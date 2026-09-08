@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
+import { siteUrl } from "@/lib/site";
 import { hub } from "@/lib/hub-api";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.chajewelsjapan.com";
+  const base = siteUrl();
   const [cols, prods] = await Promise.all([hub.collections().catch(() => []), hub.productSlugs().catch(() => [])]);
   return [
     { url: base, changeFrequency: "daily", priority: 1 },
