@@ -30,7 +30,7 @@ export default async function About() {
         <div>
           <h1 className="text-[clamp(36px,5.5vw,80px)]">{c.h1}</h1>
           <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-champagne/85"><p>{c.p1}</p><p>{c.p2}</p><p>{c.p3}</p></div>
-          <div className="mt-8"><Button asChild><Link href="/collections/k18-gold">{c.cta}</Link></Button></div>
+          <div className="mt-8"><Button asChild><Link href="/collections">{c.cta}</Link></Button></div>
         </div>
         <dl className="rule-grid grid self-start sm:grid-cols-2">{c.facts.map(([k, v]) => <div key={k} className="bg-velvet-deep p-6"><dt className="font-display text-2xl text-gold-pale">{k}</dt><dd className="mt-1 text-sm text-champagne/75">{v}</dd></div>)}</dl>
       </div>

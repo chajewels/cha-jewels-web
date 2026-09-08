@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCollectionWithProducts, getCollections } from "@/lib/queries/products";
-import { getRegion } from "@/lib/region";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { ProductCard } from "@/components/catalog/product-card";
@@ -13,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return col ? { title: col.name, description: col.description ?? undefined } : {};
 }
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
-  const [col, region, lang] = await Promise.all([getCollectionWithProducts((await params).slug), getRegion(), getLang()]);
+  const [col, lang] = await Promise.all([getCollectionWithProducts((await params).slug), getLang()]);
   if (!col) notFound();
   const t = tr(lang);
   return (
@@ -22,7 +21,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <h1 className="text-[clamp(40px,6vw,88px)]">{col.name}</h1>
         {col.description && <p className="mt-4 max-w-[58ch] text-champagne/75">{col.description}</p>}
         {col.products.length === 0 ? <p className="mt-12 border border-rule p-6 text-champagne/75">{t("collection", "empty")}</p>
-          : <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">{col.products.map((p) => <ProductCard key={p.id} product={p} region={region} lang={lang} />)}</div>}
+          : <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">{col.products.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}</div>}
       </div>
     </section>
   );

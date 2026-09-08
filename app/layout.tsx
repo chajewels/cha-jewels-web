@@ -4,7 +4,6 @@ import { Bodoni_Moda, Archivo, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
-import { getRegion } from "@/lib/region";
 import { getLang } from "@/lib/i18n-server";
 
 const display = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
@@ -20,12 +19,12 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [region, lang] = await Promise.all([getRegion(), getLang()]);
+  const lang = await getLang();
   return (
     <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
       <body>
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-gold px-3 py-2 text-ink focus:left-2">{lang === "ja" ? "本文へ" : "Skip to content"}</a>
-        <Header region={region} lang={lang} />
+        <Header lang={lang} />
         <main id="main">{children}</main>
         <Footer lang={lang} />
       </body>

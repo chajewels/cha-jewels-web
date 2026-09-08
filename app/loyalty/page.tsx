@@ -2,13 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-import { tiers } from "@/lib/loyalty";
+import { hub } from "@/lib/hub-api";
+import { tiers as fallbackTiers } from "@/lib/loyalty";
+import type { HubTier } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 export const metadata: Metadata = { title: "会員プログラム / Loyalty" };
+export const revalidate = 300;
 export default async function LoyaltyPage() {
   const lang = await getLang();
   const t = tr(lang);
+  // Tiers come from the Hub (the system that actually awards them). Local list is only a fallback if the Hub is unreachable.
+  const tiers: HubTier[] = await hub.loyaltyTiers().catch(() => fallbackTiers.map((x) => ({ slug: x.slug, name: x.name, threshold_jpy: x.thresholdJpy, requalify_spend: null, multiplier: null, hold_minutes: x.holdMinutes, benefits_ja: x.perks.ja, benefits_en: x.perks.en })));
   return (
     <>
       <section className="border-b border-rule-soft py-[clamp(48px,7vw,96px)]">
@@ -29,9 +34,9 @@ export default async function LoyaltyPage() {
                 <h3 className="mt-1 text-[28px] text-gold-pale">{tier.name}</h3>
                 <div className="my-4 h-0.5 bg-[linear-gradient(90deg,#8A6B12,#E8D28A)]" style={{ width: `${25 + i * 25}%` }} />
                 <p className="text-xs text-champagne/55">{t("loyalty", "threshold")}</p>
-                <p className="font-display text-2xl text-champagne">{tier.thresholdJpy === 0 ? (lang === "ja" ? "入会時" : "On joining") : `${formatMoney(tier.thresholdJpy, "JP")}+`}</p>
+                <p className="font-display text-2xl text-champagne">{tier.threshold_jpy === 0 ? (lang === "ja" ? "入会時" : "On joining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</p>
                 <p className="mt-4 text-xs text-champagne/55">{t("loyalty", "perks")}</p>
-                <ul className="mt-1 space-y-1.5 text-sm text-champagne/80">{tier.perks[lang].map((p) => <li key={p} className="relative pl-4 before:absolute before:left-0 before:top-2.5 before:h-px before:w-2 before:bg-gold">{p}</li>)}</ul>
+                <ul className="mt-1 space-y-1.5 text-sm text-champagne/80">{(lang === "ja" ? tier.benefits_ja : tier.benefits_en).map((p) => <li key={p} className="relative pl-4 before:absolute before:left-0 before:top-2.5 before:h-px before:w-2 before:bg-gold">{p}</li>)}</ul>
               </li>
             ))}
           </ol>

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { fromPrice, primaryImage, type Product } from "@/lib/queries/products";
-import { formatMoney, type Region } from "@/lib/utils";
+import { formatMoney } from "@/lib/utils";
+import { metalLabel, normalizeMetal } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
-export function ProductCard({ product, region, lang, featured = false }: { product: Product; region: Region; lang: Lang; featured?: boolean }) {
+export function ProductCard({ product, lang, featured = false }: { product: Product; lang: Lang; featured?: boolean }) {
   const t = tr(lang);
-  const price = fromPrice(product, region);
+  const price = fromPrice(product);
+  const metal = metalLabel(normalizeMetal(product.karat), lang);
   const img = primaryImage(product);
   const v = product.product_variants[0];
   return (
@@ -15,13 +17,13 @@ export function ProductCard({ product, region, lang, featured = false }: { produ
       </div>
       {featured && v && (
         <dl className="grid grid-cols-3 border-t border-gold bg-velvet-deep">
-          <Spec k={t("product", "metal")} v={product.karat ?? "—"} /><Spec k={t("product", "weight")} v={product.weight_g ? `${product.weight_g} g` : "—"} /><Spec k={t("product", "stone")} v={v.stone ?? "—"} last />
+          <Spec k={t("product", "metal")} v={metal} /><Spec k={t("product", "weight")} v={product.weight_g ? `${product.weight_g} g` : "—"} /><Spec k={t("product", "stone")} v={v.stone ?? "—"} last />
         </dl>
       )}
       <div className="flex flex-1 flex-col p-5">
         <h3 className="font-display text-2xl text-gold-pale">{product.name}</h3>
-        {product.weight_g && <p className="mt-1 text-sm text-champagne/60">{product.karat} · {product.weight_g} g</p>}
-        {price != null && <p className="mt-auto pt-4 text-sm text-champagne/75">{formatMoney(price, region)}<span className="text-champagne/55"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3), region)}</span></p>}
+        {product.weight_g && <p className="mt-1 text-sm text-champagne/60">{metal} · {product.weight_g} g</p>}
+        {price != null && <p className="mt-auto pt-4 text-sm text-champagne/75">{formatMoney(price)}<span className="text-champagne/55"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span></p>}
       </div>
     </Link>
   );

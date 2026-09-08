@@ -8,8 +8,8 @@ export const getCollectionWithProducts = cache((slug: string) => hub.collection(
 export const getProductBySlug = cache((slug: string) => hub.product(slug));
 export const getFeaturedProducts = cache((limit = 8) => hub.featured(limit));
 
-export function fromPrice(p: Product, region: "JP" | "PH") {
-  const prices = p.product_variants.map((v) => (region === "PH" ? v.price_php ?? Infinity : v.price_jpy));
+export function fromPrice(p: Product) {
+  const prices = p.product_variants.map((v) => v.price_jpy);
   const min = Math.min(...prices);
   return Number.isFinite(min) ? min : null;
 }

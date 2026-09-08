@@ -1,5 +1,5 @@
 import "server-only";
-import type { Collection, LayawayQuote, LiveClaim, Product } from "@/lib/types";
+import type { Collection, FxRate, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 
 /**
@@ -37,10 +37,14 @@ export const hub = {
     FIXTURES ? Promise.resolve(fx.products.find((p) => p.slug === slug) ?? null) : notFoundToNull(call(`/catalog/products/${encodeURIComponent(slug)}`)),
   featured: (limit = 8): Promise<Product[]> => FIXTURES ? Promise.resolve(fx.products.slice(0, limit)) : call(`/catalog/products?featured=1&limit=${limit}`),
   productSlugs: (): Promise<{ slug: string; updated_at: string }[]> => FIXTURES ? Promise.resolve(fx.products.map((p) => ({ slug: p.slug, updated_at: "2026-09-01" }))) : call("/catalog/products?fields=slug,updated_at&limit=5000"),
-  layawayQuote: (price: number, term_months: number, currency: "JPY" | "PHP"): Promise<LayawayQuote> =>
-    FIXTURES ? Promise.resolve(fx.quote(price, term_months, currency)) : call("/layaway/quote", { method: "POST", body: JSON.stringify({ price, term_months, currency }), revalidate: false }),
+  /** Quote is always computed in JPY by the Hub. Peso display uses hub.fx(). */
+  layawayQuote: (price: number, term_months: number): Promise<LayawayQuote> =>
+    FIXTURES ? Promise.resolve(fx.quote(price, term_months, "JPY")) : call("/layaway/quote", { method: "POST", body: JSON.stringify({ price, term_months, currency: "JPY" }), revalidate: false }),
+  fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: 0.39, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"] }),
   claim: (code: string): Promise<LiveClaim | null> =>
     FIXTURES ? Promise.resolve(fx.claims.find((c) => c.code === code.toUpperCase()) ?? null) : notFoundToNull(call(`/claims/${encodeURIComponent(code.toUpperCase())}`, { revalidate: false })),
+  loyaltyTiers: (): Promise<HubTier[]> =>
+    FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };

@@ -6,12 +6,12 @@ The public website (`chajewels/cha-jewels-web`, Next.js on Vercel) talks to the 
 - Header `x-api-key: <HUB_API_KEY>` on every request. Compare against secret `WEBSITE_API_KEY` (Cloud → Secrets). Return 401 otherwise.
 - JSON in, JSON out. `404 {"error":"not_found"}` for missing records. Never return `cost_basis`, margin, or commission fields.
 - CORS not required (server-to-server), but allow `OPTIONS` for safety.
-- All prices are integers: JPY in yen, PHP in pesos (no decimals).
+- All prices are integers in JPY. `price_php` is optional and, if present, is the Hub's own conversion at the day's rate; the website does not require it.
 
 ## Types
 ```ts
 Collection = { id, slug, name, hero_media: string|null, description: string|null }
-Product = { id, sku, slug, name, karat: "K18"|"PT900"|"PT950"|null, weight_g: number|null,
+Product = { id, sku, slug, name, karat: "K18"|"K14"|"K10"|"PT1000"|"PT950"|"PT900"|"SILVER925"|null, weight_g: number|null,
             description_en, description_ja, description_tl: string|null, status: "active",
             product_variants: Variant[] }
 Variant = { id, size: string|null, stone: string|null, price_jpy: number, price_php: number|null,
@@ -31,6 +31,8 @@ LiveClaim = { id, code, price_locked, status: "held"|"paid"|"layaway"|"expired"|
 | `POST /layaway/quote` body `{price, term_months, currency}` | `LayawayQuote` | **Single source of layaway math for site AND Hub.** 30% down; equal monthly; terms 3–6, up to 8 when price ≥ ¥300,000 (PHP: same threshold at day's rate); clamp term to max instead of erroring; 0% interest. |
 | `GET /claims/:code` | `LiveClaim` | code uppercased; 404 if unknown |
 | `POST /claims/:code/checkout` (Phase 2) | order or plan | requires customer JWT in `Authorization`; idempotent |
+| `GET /loyalty/tiers` | `HubTier[]` | Hub loyalty_tiers ordered by rank: `{slug,name,threshold_jpy,requalify_spend,multiplier,hold_minutes,benefits_ja[],benefits_en[]}` |
+| `GET /fx` | `{ jpy_php: number, as_of: "YYYY-MM-DD" }` | Daily JPY→PHP rate; refreshed by cron. Website uses it for display only. |
 | `POST /loyalty/join` body `{name, contact, region, lang}` | `{ok:true}` | insert into `loyalty_signups` (migration 0002) |
 
 ## Hub → website
