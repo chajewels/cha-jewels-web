@@ -6,7 +6,8 @@ import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { ProductCard } from "@/components/catalog/product-card";
 export const revalidate = 60;
-export async function generateStaticParams() { return (await getCollections()).map((c) => ({ slug: c.slug })); }
+// Pre-render known collections when the Hub is reachable; otherwise build with none and render on demand.
+export async function generateStaticParams() { try { return (await getCollections()).map((c) => ({ slug: c.slug })); } catch { return []; } }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const col = await getCollectionWithProducts((await params).slug);
   return col ? { title: col.name, description: col.description ?? undefined } : {};

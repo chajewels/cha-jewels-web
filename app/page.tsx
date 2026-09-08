@@ -10,7 +10,7 @@ import { JsonLd } from "@/components/site/json-ld";
 export const revalidate = 60;
 
 export default async function Home() {
-  const [region, lang, collections, featured] = await Promise.all([getRegion(), getLang(), getCollections(), getFeaturedProducts(8)]);
+  const [region, lang, collections, featured] = await Promise.all([getRegion(), getLang(), getCollections().catch(() => []), getFeaturedProducts(8).catch(() => [])]);
   const t = tr(lang);
   return (
     <>
