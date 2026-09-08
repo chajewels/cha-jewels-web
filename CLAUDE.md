@@ -4,12 +4,12 @@
 - **Claude Code** owns everything under `app/`, `components/`, `lib/` (frontend, UI, read-only audits).
 - **Lovable** owns `supabase/functions/` and applies migrations. Claude Code may DRAFT SQL in `supabase/migrations/` and RPC contracts in `supabase/contracts/`, but never runs them.
 - **Cynthia** runs all SQL in the Supabase SQL Editor.
-- This is the SAME Supabase project as the Hub. Never create tables that duplicate Hub tables (`customers`, `orders`, `layaway_plans`, `layaway_payments`, `loyalty_ledger`). Read them; do not fork them.
+- The website talks to the Hub ONLY through the Website API (`lib/hub-api.ts`, spec in `supabase/contracts/api.md`). No direct table reads. The Hub's backend is Lovable Cloud today and will move to Cynthia's own Supabase before Phase 2; the API contract is what keeps that move invisible to the site.
 
 ## Non-negotiable business rules
-- Layaway math is NEVER computed in the browser or in Next.js. Call the `layaway_quote` RPC. Same for points (`award_points`, `redeem_points`).
+- Layaway math is NEVER computed in the browser or in Next.js. Call `POST /layaway/quote` via `hub.layawayQuote`. Same for points.
 - Products are added in the Hub only. This site has no product editor.
-- Cost basis, margin, and CSR commission columns must never be selected in any query that runs with the anon or authenticated role.
+- Cost basis, margin, and CSR commission fields never cross the API. If they appear in a response, that is a Hub bug to report, not data to render.
 
 ## Terminology (hard rule)
 - Gold is described as **K18 gold, Made in Japan**.
