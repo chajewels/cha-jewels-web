@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root { --rule: rgba(201,162,39,.32); }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body { @apply bg-velvet text-champagne font-sans antialiased; }
+  h1, h2, h3 { @apply font-display font-normal leading-[1.02] tracking-[-0.01em]; }
+  :lang(ja) h1, :lang(ja) h2, :lang(ja) h3 { @apply font-jp font-medium tracking-[0.01em]; }
+  *:focus-visible { @apply outline outline-2 outline-gold-pale outline-offset-[3px]; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+}
+@layer components {
+  .gilt { background: linear-gradient(100deg,#8A6B12 0%,#E8D28A 30%,#C9A227 50%,#E8D28A 70%,#8A6B12 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .wrap { @apply max-w-site mx-auto px-[clamp(18px,4vw,48px)]; }
+  .rule-grid { background: var(--rule); gap: 2px; }
+}
