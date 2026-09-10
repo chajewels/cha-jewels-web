@@ -32,4 +32,4 @@ export function quote(price: number, term: number, currency: "JPY" | "PHP"): Lay
   const dp = Math.round(price * 0.3);
   return { down_payment: dp, monthly: Math.round((price - dp) / t), term_months: t, total: price, max_term_months: max, currency };
 }
-export const tiers: HubTier[] = localTiers.map((t) => ({ slug: t.slug, name: t.name, threshold_jpy: t.thresholdJpy, requalify_spend: null, multiplier: null, hold_minutes: t.holdMinutes, benefits_ja: t.perks.ja, benefits_en: t.perks.en }));
+export const tiers: HubTier[] = localTiers.map((t) => ({ slug: t.slug, name: t.name, threshold_jpy: t.thresholdJpy, requalify_spend: t.requalifyJpy, multiplier: t.multiplier, hold_minutes: t.holdMinutes, benefits_ja: t.perks.ja, benefits_en: t.perks.en }));

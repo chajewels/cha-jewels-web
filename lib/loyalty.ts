@@ -1,15 +1,107 @@
 import type { Lang } from "./i18n";
 /**
- * Level thresholds are 12-month rolling spend in JPY.
- * PROPOSED VALUES — confirm with Cynthia before launch. Perks mirror the Hub's tier definitions.
- * The binding tier is computed by the Hub (loyalty_ledger); this file is display-only.
+ * Tier ladder — reconciled against the Hub's `loyalty_tiers` table 2026-09-10.
+ *
+ * The Hub is the binding source: it computes a member's tier and serves the
+ * ladder from GET /loyalty/tiers. The /loyalty page renders THIS list only when
+ * the Hub is unreachable, so it must not drift from the table. These are the
+ * real values, not proposals.
+ *
+ * thresholdJpy   12-month rolling spend that earns the tier.
+ * requalifyJpy   spend needed to keep the tier for another period (null = none).
+ * multiplier     points multiplier on every purchase.
+ *
+ * EVERY tier holds a claimed piece for 60 minutes. Hold time is NOT a tier
+ * benefit and must never be advertised as one — see HOLD_MINUTES.
  */
-export type Tier = { slug: string; name: string; thresholdJpy: number; holdMinutes: number; perks: Record<Lang, string[]> };
+export type Tier = {
+  slug: string;
+  name: string;
+  thresholdJpy: number;
+  requalifyJpy: number | null;
+  multiplier: number;
+  holdMinutes: number;
+  perks: Record<Lang, string[]>;
+};
+
+/** Uniform across every tier. State it once, never per tier. */
+export const HOLD_MINUTES = 60;
+
 export const tiers: Tier[] = [
-  { slug: "glimmer", name: "Glimmer", thresholdJpy: 0, holdMinutes: 60, perks: { ja: ["ポイント付与開始（¥10,000＝100pt）", "ライブ販売の事前告知", "予約商品の確保 60分"], en: ["Points start (¥10,000 = 100 pts)", "Live drop previews before the public post", "Claimed pieces held 60 minutes"] } },
-  { slug: "radiant", name: "Radiant", thresholdJpy: 100000, holdMinutes: 180, perks: { ja: ["予約商品の確保 3時間", "お誕生日ポイント 500pt", "パールの糸替え1回無料"], en: ["Claimed pieces held 3 hours", "500 birthday points", "One free pearl restring"] } },
-  { slug: "elite", name: "Elite", thresholdJpy: 300000, holdMinutes: 720, perks: { ja: ["予約商品の確保 12時間", "分割予約 最長8か月（金額を問わず）", "年2回のクリーニング無料"], en: ["Claimed pieces held 12 hours", "8-month layaway on any amount", "Cleaning twice a year, free"] } },
-  { slug: "crown", name: "Crown VIP", thresholdJpy: 1000000, holdMinutes: 1440, perks: { ja: ["予約商品の確保 24時間", "新作・プレラブド入荷の先行案内", "専任アドバイザー", "サイズ直し・修理 永年無料"], en: ["Claimed pieces held 24 hours", "First pick of new and preloved arrivals", "A dedicated advisor", "Resizing and repair free for life"] } },
+  {
+    slug: "glimmer",
+    name: "Glimmer",
+    thresholdJpy: 0,
+    requalifyJpy: null,
+    multiplier: 1,
+    holdMinutes: HOLD_MINUTES,
+    perks: {
+      ja: ["通常ポイント付与", "ロイヤルティ特典のご利用", "会員限定プロモーションのご案内"],
+      en: ["Standard points accumulation", "Access to loyalty rewards", "Access to member promotions"],
+    },
+  },
+  {
+    slug: "radiant",
+    name: "Radiant",
+    thresholdJpy: 1000000,
+    requalifyJpy: 500000,
+    multiplier: 2,
+    holdMinutes: HOLD_MINUTES,
+    perks: {
+      ja: ["全商品ポイント2倍", "会員限定プロモーションの優先ご案内", "フラッシュセールへの優先ご参加"],
+      en: [
+        "Double points on all purchases",
+        "Access to exclusive member promotions",
+        "Priority access to flash sales",
+      ],
+    },
+  },
+  {
+    slug: "elite",
+    name: "Elite",
+    thresholdJpy: 4000000,
+    requalifyJpy: 2000000,
+    multiplier: 2,
+    holdMinutes: HOLD_MINUTES,
+    perks: {
+      ja: [
+        "全商品ポイント2倍",
+        "4点ご購入ごとに送料無料（1点あたり¥8,000以上）",
+        "1回のご注文¥50,000ごとに2%割引",
+        "Elite限定特典のご利用",
+      ],
+      en: [
+        "Double points on all purchases",
+        "Free shipping every 4 items purchased (min ¥8,000/item)",
+        "2% discount for every ¥50,000 order in one invoice",
+        "Access to Elite exclusive rewards",
+      ],
+    },
+  },
+  {
+    slug: "crown-vip",
+    name: "Crown VIP",
+    thresholdJpy: 8000000,
+    requalifyJpy: 4000000,
+    multiplier: 3,
+    holdMinutes: HOLD_MINUTES,
+    perks: {
+      ja: [
+        "全商品ポイント3倍",
+        "3点ご購入ごとに送料無料（1点あたり¥8,000以上）",
+        "1回のご注文¥50,000ごとに3%割引",
+        "ご発送ごとにミステリーギフトを同封",
+        "Crown VIP限定特典のご利用",
+      ],
+      en: [
+        "Triple points on all purchases",
+        "Free shipping every 3 items purchased (min ¥8,000/item)",
+        "3% discount for every ¥50,000 order in one invoice",
+        "Mystery gift with every shipment",
+        "Access to Crown VIP exclusive rewards",
+      ],
+    },
+  },
 ];
 export const POINTS_PER_10K = 100;
 export const INACTIVITY_MONTHS = 6;
