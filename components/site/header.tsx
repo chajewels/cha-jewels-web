@@ -5,7 +5,7 @@ import { MobileNav } from "./mobile-nav";
 import { Button } from "@/components/ui/button";
 export function Header({ lang }: { lang: Lang }) {
   const t = tr(lang);
-  const links = [["/", t("nav", "home")], ["/about", t("nav", "about")], ["/collections", t("nav", "collections")], ["/layaway", t("nav", "layaway")], ["/loyalty", t("nav", "loyalty")], ["/blog", t("nav", "blog")]] as const;
+  const links = [["/", t("nav", "home")], ["/about", t("nav", "about")], ["/collections", t("nav", "collections")], ["/layaway", t("nav", "layaway")], ["/loyalty", t("nav", "loyalty")], ["/wholesale", t("nav", "wholesale")], ["/blog", t("nav", "blog")]] as const;
   return (
     <header className="sticky top-0 z-40 border-b border-rule bg-velvet/90 backdrop-blur">
       <div className="wrap flex h-[68px] items-center justify-between gap-4">

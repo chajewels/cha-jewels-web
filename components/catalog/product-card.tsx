@@ -4,6 +4,7 @@ import { fromPrice, primaryImage, type Product } from "@/lib/queries/products";
 import { formatMoney } from "@/lib/utils";
 import { metalLabel, normalizeMetal } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
+import { ConditionBadge } from "@/components/catalog/condition-badge";
 export function ProductCard({ product, lang, featured = false }: { product: Product; lang: Lang; featured?: boolean }) {
   const t = tr(lang);
   const price = fromPrice(product);
@@ -21,6 +22,7 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
         </dl>
       )}
       <div className="flex flex-1 flex-col p-5">
+        {product.condition === "Preloved" && <div className="mb-2"><ConditionBadge condition={product.condition} lang={lang} /></div>}
         <h3 className="font-display text-2xl text-gold-pale">{product.name}</h3>
         {product.weight_g && <p className="mt-1 text-sm text-champagne/60">{metal} · {product.weight_g} g</p>}
         {price != null && <p className="mt-auto pt-4 text-sm text-champagne/75">{formatMoney(price)}<span className="text-champagne/55"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span></p>}

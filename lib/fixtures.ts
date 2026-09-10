@@ -11,6 +11,8 @@ export const collections: Collection[] = [
 ]; 
 const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: number, stone: string | null, col: string): Product & { col: string } => ({
   id: `p${i}`, sku: `CJ-${1000 + i}`, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, karat, weight_g: w, status: "active", col,
+  // Rings are the preloved line in preview data; everything else is New.
+  condition: col === "rings" ? "Preloved" : "New",
   description_en: `${name}. ${karat} ${stone ? "with " + stone + ", " : ""}crafted in Japan and priced by weight.`, description_ja: null, description_tl: null,
   product_variants: [{ id: `v${i}`, size: null, stone, price_jpy: jpy, price_php: Math.round(jpy * 0.39), stock_qty: i % 5 === 0 ? 0 : 3, product_media: [] }],
 });

@@ -13,12 +13,16 @@ The public website (`chajewels/cha-jewels-web`, Next.js on Vercel) talks to the 
 Collection = { id, slug, name, hero_media: string|null, description: string|null }
 Product = { id, sku, slug, name, karat: "K18"|"K14"|"K10"|"PT1000"|"PT950"|"PT900"|"SILVER925"|null, weight_g: number|null,
             description_en, description_ja, description_tl: string|null, status: "active",
-            product_variants: Variant[] }
+            condition: "New"|"Preloved", product_variants: Variant[] }
 Variant = { id, size: string|null, stone: string|null, price_jpy: number, price_php: number|null,
             stock_qty: number, product_media: { url, alt: string|null, sort: number }[] }
 LayawayQuote = { down_payment, monthly, term_months, total, max_term_months, currency }
 LiveClaim = { id, code, price_locked, status: "held"|"paid"|"layaway"|"expired"|"released", expires_at, product_variant_id }
 ```
+
+`condition` is returned on every product. The site treats an absent value as
+`"New"`, and only `"Preloved"` renders a badge — so a Hub response predating the
+field degrades safely rather than mislabelling stock.
 
 ## Endpoints
 | Method & path | Returns | Notes |
@@ -34,6 +38,7 @@ LiveClaim = { id, code, price_locked, status: "held"|"paid"|"layaway"|"expired"|
 | `GET /loyalty/tiers` | `HubTier[]` | Hub loyalty_tiers ordered by rank: `{slug,name,threshold_jpy,requalify_spend,multiplier,hold_minutes,benefits_ja[],benefits_en[]}` |
 | `GET /fx` | `{ jpy_php: number, as_of: "YYYY-MM-DD" }` | Daily JPY→PHP rate; refreshed by cron. Website uses it for display only. |
 | `POST /loyalty/join` body `{name, contact, region, lang}` | `{ok:true}` | insert into `loyalty_signups` (migration 0002) |
+| `POST /wholesale/inquiry` body `{name, business, email, phone?, market, volume, notes?, lang}` | `{ok:true}` | insert into `wholesale_inquiries`. `market` `JP\|PH\|BOTH\|OTHER`; `volume` `TEST\|20_50\|50_200\|200_PLUS`; `lang` `ja\|en`. Optional fields are omitted, never sent as `""`. |
 
 ## Hub → website
 On any change to `products`, `product_variants`, `product_media`, or `collection_products`, a DB trigger calls edge function `notify_website` which POSTs `{productSlug?, collectionSlug?}` to `${WEBSITE_URL}/api/revalidate` with header `x-revalidate-secret: <REVALIDATE_SECRET>`.

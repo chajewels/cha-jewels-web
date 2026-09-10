@@ -25,7 +25,12 @@ export function JoinForm({ lang }: { lang: Lang }) {
       </label>
       <Button type="submit" disabled={state === "sending"}>{c.submit[lang]}</Button>
       {state === "err" && <p className="text-garnet">{lang === "ja" ? "送信できませんでした。もう一度お試しください。" : "Could not submit. Please try again."}</p>}
-      <p className="text-xs text-champagne/55">{c.consent[lang]}</p>
+      <p className="text-xs text-champagne/55">
+        {c.consent[lang]}{" "}
+        <a href="/legal/terms" className="underline hover:text-gold-pale">{dict.footer.sale[lang]}</a>
+        {" · "}
+        <a href="/legal/privacy" className="underline hover:text-gold-pale">{dict.footer.privacy[lang]}</a>
+      </p>
     </form>
   );
 }

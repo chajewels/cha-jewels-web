@@ -7,6 +7,7 @@ import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
 import { PriceBlock } from "@/components/commerce/price-block";
 import { KaratBadge } from "@/components/catalog/karat-badge";
+import { ConditionBadge } from "@/components/catalog/condition-badge";
 import { metalLabel, normalizeMetal } from "@/lib/metals";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { JsonLd } from "@/components/site/json-ld";
@@ -39,12 +40,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </dl>
           </figure>
           <div>
-            <KaratBadge karat={p.karat} lang={lang} />
+            <div className="flex flex-wrap items-center gap-2">
+              <KaratBadge karat={p.karat} lang={lang} />
+              <ConditionBadge condition={p.condition} lang={lang} />
+            </div>
             <h1 className="mt-4 text-[clamp(32px,4.2vw,60px)]">{p.name}</h1>
             {price != null && <PriceBlock price={price} lang={lang} className="mt-6" />}
             {desc && <p className="mt-6 max-w-[52ch] text-champagne/80">{desc}</p>}
             <p className="mt-4 text-sm text-champagne/60">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
-            {price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} className="mt-8" />}
+            {price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" />}
           </div>
         </div>
       </section>

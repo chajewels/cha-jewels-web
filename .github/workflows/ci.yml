@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # Terminology is a hard rule (CLAUDE.md): gold is described by purity and
+      # where it is crafted, never by a country name as a purity claim.
+      - run: npm run check:terms
+
+      - run: npm run typecheck
+
+      - run: npm run lint

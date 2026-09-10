@@ -47,4 +47,6 @@ export const hub = {
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+  wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
+    FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };

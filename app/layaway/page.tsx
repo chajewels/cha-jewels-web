@@ -11,7 +11,7 @@ export default async function LayawayPage() {
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap grid gap-12 md:grid-cols-2">
         <div><h1 className="text-[clamp(36px,5.5vw,80px)]">{t("home", "layH")}</h1><p className="mt-5 max-w-[52ch] text-champagne/80">{t("home", "layP")}</p></div>
-        <LayawayCalculator lang={lang} phpRate={fx.jpy_php} />
+        <LayawayCalculator lang={lang} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} />
       </div>
     </section>
   );
