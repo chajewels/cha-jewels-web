@@ -3,7 +3,7 @@ export const LANG_COOKIE = "cj-lang";
 export const DEFAULT_LANG: Lang = "ja";
 
 export const dict = {
-  nav: { home: { ja: "ホーム", en: "Home" }, about: { ja: "私たちについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "会員プログラム", en: "Loyalty" }, claim: { ja: "ライブ予約の確定", en: "Claim from Live" }, wholesale: { ja: "卸売", en: "Wholesale" } },
+  nav: { home: { ja: "ホーム", en: "Home" }, about: { ja: "私たちについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "会員プログラム", en: "Loyalty" }, claim: { ja: "ライブ予約の確定", en: "Claim from Live" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "アカウント", en: "Account" } },
   hero: {
     h1a: { ja: "身につける資産。", en: "Gold you can wear." }, h1b: { ja: "証明できる価値。", en: "Value you can prove." },
     lede: { ja: "日本の工房で作られたK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。すべて重量で価格を明示。無利息の分割予約で一点から、卸売なら東京から直接。次の世代へ受け継ぐ、資産としてのジュエリーです。", en: "K18 gold, Akoya pearls and certified diamonds, crafted in Japanese workshops and priced by what they weigh. Buy one piece on 0% layaway, stock your shop from Tokyo, or build a gold collection your daughter will inherit." },
@@ -55,6 +55,27 @@ export const dict = {
   faq: { h1: { ja: "よくある質問", en: "Frequently asked questions" }, lede: { ja: "お問い合わせの多いご質問をまとめました。ほかにご不明な点があればお気軽にご連絡ください。", en: "The questions we are asked most. If yours is not here, please get in touch." } },
   gold: { h1: { ja: "ゴールドの基礎知識", en: "The gold guide" }, lede: { ja: "K18の意味、刻印の読み方、長く美しく保つためのお手入れ。購入前に知っておいていただきたいことをまとめました。", en: "What K18 means, how to read a stamp, and how to keep a piece looking right. The things worth knowing before you buy." }, cta: { ja: "コレクションを見る", en: "Shop the collections" } },
   legal: { draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" } },
+  account: {
+    h1: { ja: "アカウント", en: "Your account" },
+    loginH: { ja: "サインイン", en: "Sign in" },
+    loginP: { ja: "メールアドレスにサインイン用のリンクをお送りします。パスワードは不要です。", en: "We email you a sign-in link. No password to remember." },
+    email: { ja: "メールアドレス", en: "Email" },
+    sendLink: { ja: "リンクを送る", en: "Email me a link" },
+    sent: { ja: "リンクをお送りしました。メールをご確認ください。リンクは1回のみ有効です。", en: "Check your email. The link works once." },
+    err: { ja: "送信できませんでした。もう一度お試しください。", en: "Could not send the link. Please try again." },
+    note: { ja: "現在はメールでのサインインのみご利用いただけます。SMSでのサインインは準備中です。", en: "Email sign-in only for now. Signing in by SMS is not available yet." },
+    signOut: { ja: "サインアウト", en: "Sign out" },
+    profile: { ja: "お客様情報", en: "Your details" },
+    name: { ja: "お名前", en: "Name" }, code: { ja: "お客様番号", en: "Customer number" },
+    loyalty: { ja: "会員プログラム", en: "Loyalty" },
+    tier: { ja: "レベル", en: "Level" }, points: { ja: "ポイント", en: "Points" },
+    notEnrolled: { ja: "まだご入会いただいていません。", en: "You have not joined yet." },
+    addresses: { ja: "お届け先", en: "Addresses" },
+    noAddresses: { ja: "お届け先が登録されていません。ご注文時にご登録いただけます。", en: "No addresses saved yet. You can add one at checkout." },
+    default: { ja: "既定", en: "Default" },
+    unavailable: { ja: "アカウント情報を読み込めませんでした。しばらくしてからもう一度お試しください。", en: "We could not load your account just now. Please try again shortly." },
+    soon: { ja: "ご注文と分割予約の履歴は順次公開します。", en: "Orders and layaway plans appear here as they go live." },
+  },
   about: { h1: { ja: "私たちについて", en: "About Us" } },
   blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" } },
 } as const;
