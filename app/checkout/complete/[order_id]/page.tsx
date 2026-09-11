@@ -7,6 +7,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { TransferDetails } from "@/components/commerce/transfer-details";
 
 export const metadata: Metadata = { title: "ご注文ありがとうございます / Thank you" };
 export const dynamic = "force-dynamic";
@@ -54,17 +55,15 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
           />
         </dl>
 
-        {instructions && (
-          <div className="mt-10 border border-gold p-6">
-            <h2 className="font-display text-xl text-gold-pale">
-              {t("complete", "instructions")} · {lang === "ja" ? instructions.method_label_ja : instructions.method_label_en}
-            </h2>
-            <p className="mt-4 whitespace-pre-line text-sm text-champagne/80">
-              {lang === "ja" ? instructions.body_ja : instructions.body_en}
-            </p>
+        <div className="mt-10">
+          <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-champagne/45">
+            {t("complete", "instructions")}
+          </h2>
+          <TransferDetails instructions={instructions} lang={lang} />
+          {instructions && (
             <p className="mt-4 text-sm text-champagne/60">{t("complete", "keepRef")}</p>
-          </div>
-        )}
+          )}
+        </div>
 
         <p className="mt-8 text-sm text-champagne/60">{t("checkout", "deadlineNote")}</p>
 

@@ -35,7 +35,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
   const [error, setError] = useState<string | null>(null);
 
   const errorCopy = (code: string) =>
-    code === "sold_out" ? t("checkout", "soldOut")
+    code === "transfer_unavailable" ? t("checkout", "transferUnavailable")
+    : code === "sold_out" ? t("checkout", "soldOut")
     : code === "expired" ? t("checkout", "expired")
     : code === "empty_cart" ? t("checkout", "emptyCart")
     : code === "address_required" ? t("checkout", "addressRequired")
@@ -215,14 +216,25 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
         {step === 3 && quote && (
           <div className="space-y-6">
             <h2 className="font-display text-xl text-gold-pale">{t("checkout", "payHeading")}</h2>
-            <div className="border border-gold p-4 text-sm text-champagne/80">
-              <p className="text-gold-pale">{t("checkout", "transferJP")} · {t("checkout", "transferPH")}</p>
-              <p className="mt-2">{t("checkout", "transferOnly")}</p>
-              <p className="mt-2">{t("checkout", "deadlineNote")}</p>
-            </div>
+            {/* A destination with no complete bank/GCash details in the Hub is
+                not offered transfer at all. Showing the method and failing at
+                the last click — or worse, taking an order we cannot be paid for
+                — is the outcome this prevents. The Hub enforces the same rule
+                server-side; this is the courteous half of it. */}
+            {quote.transfer_available ? (
+              <div className="border border-gold p-4 text-sm text-champagne/80">
+                <p className="text-gold-pale">{t("checkout", "transferJP")} · {t("checkout", "transferPH")}</p>
+                <p className="mt-2">{t("checkout", "transferOnly")}</p>
+                <p className="mt-2">{t("checkout", "deadlineNote")}</p>
+              </div>
+            ) : (
+              <p role="alert" className="border border-gold px-4 py-3 text-sm text-gold-pale">
+                {t("checkout", "transferUnavailable")}
+              </p>
+            )}
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
-              <Button onClick={placeOrder} disabled={pending}>
+              <Button onClick={placeOrder} disabled={pending || !quote.transfer_available}>
                 {pending ? t("checkout", "placing") : t("checkout", "placeOrder")}
               </Button>
             </div>

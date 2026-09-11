@@ -133,6 +133,26 @@ export const dict = {
     failed: { ja: "ご注文を完了できませんでした。しばらくしてからもう一度お試しください。", en: "We could not complete your order. Please try again shortly." },
     emptyCart: { ja: "カートが空のためお手続きできません。", en: "There is nothing in your cart to check out." },
     addressRequired: { ja: "お届け先をご入力ください。", en: "Please enter a delivery address." },
+    transferUnavailable: {
+      ja: "申し訳ありません。お届け先の国へのお支払い方法をただいまご用意できません。お手数ですが当店までご連絡ください。",
+      en: "Sorry — we cannot take payment for that destination just now. Please contact us and we will arrange it.",
+    },
+  },
+  transfer: {
+    bank: { ja: "銀行口座", en: "Bank account" },
+    gcash: { ja: "GCash", en: "GCash" },
+    bankName: { ja: "銀行名", en: "Bank" },
+    branch: { ja: "支店名", en: "Branch" },
+    accountType: { ja: "口座種別", en: "Account type" },
+    accountNumber: { ja: "口座番号", en: "Account number" },
+    accountHolder: { ja: "口座名義", en: "Account holder" },
+    gcashNumber: { ja: "GCash 番号", en: "GCash number" },
+    gcashName: { ja: "GCash 名義", en: "GCash name" },
+    nameNotice: { ja: "振込名義はご注文者名でお願いします", en: "Transfer under the name on the order" },
+    unavailable: {
+      ja: "お振込先の準備中です。お手数ですが当店までご連絡ください。",
+      en: "Transfer details not yet available — please contact us.",
+    },
   },
   complete: {
     h1: { ja: "ご注文ありがとうございます", en: "Thank you for your order" },
