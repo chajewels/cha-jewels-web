@@ -122,9 +122,10 @@ export const dict = {
     total: { ja: "合計", en: "Total" },
     manualQuote: { ja: "この国への送料は個別にお見積りいたします。ご注文前に担当者よりご連絡いたします。", en: "We quote shipping to this country individually. Our team will contact you before the order is placed." },
     payHeading: { ja: "お支払い方法", en: "How you will pay" },
-    transferJP: { ja: "銀行振込", en: "Bank transfer" },
-    transferPH: { ja: "GCash / 銀行振込", en: "GCash / bank transfer" },
-    transferOnly: { ja: "現在は銀行振込（日本）・GCash / 銀行振込（フィリピン）のみご利用いただけます。カード決済は準備中です。", en: "Bank transfer (Japan) and GCash or bank transfer (Philippines) only for now. Card payment is coming soon." },
+    // Region-neutral by design: a customer is shown the methods for their own
+    // destination and must never learn what the other region pays into.
+    transferOnly: { ja: "現在はお振込のみご利用いただけます。カード決済は準備中です。", en: "Bank transfer only for now. Card payment is coming soon." },
+    transferPreview: { ja: "お振込先は以下のとおりです。ご注文確定後、この画面とメールでも改めてご案内します。", en: "You will transfer to the account below. We show it again after you place the order, and send it by email." },
     placeOrder: { ja: "ご注文を確定する", en: "Place order" },
     placing: { ja: "処理中…", en: "Placing your order…" },
     deadlineNote: { ja: "ご注文後72時間以内にお振込ください。期限を過ぎたご注文は自動的にキャンセルとなり、商品は再び販売されます。", en: "Please transfer within 72 hours. After that the order is cancelled automatically and the piece goes back on sale." },
@@ -148,6 +149,10 @@ export const dict = {
     accountHolder: { ja: "口座名義", en: "Account holder" },
     gcashNumber: { ja: "GCash 番号", en: "GCash number" },
     gcashName: { ja: "GCash 名義", en: "GCash name" },
+    mayaNumber: { ja: "Maya 番号", en: "Maya number" },
+    mayaName: { ja: "Maya 名義", en: "Maya name" },
+    walletNumber: { ja: "送金先番号", en: "Account / number" },
+    walletName: { ja: "登録名義", en: "Registered name" },
     nameNotice: { ja: "振込名義はご注文者名でお願いします", en: "Transfer under the name on the order" },
     unavailable: {
       ja: "お振込先の準備中です。お手数ですが当店までご連絡ください。",

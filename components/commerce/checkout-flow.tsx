@@ -7,6 +7,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { payAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
 import type { HubAddress, HubQuote, OrderType } from "@/lib/types";
 
@@ -216,17 +217,23 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
         {step === 3 && quote && (
           <div className="space-y-6">
             <h2 className="font-display text-xl text-gold-pale">{t("checkout", "payHeading")}</h2>
-            {/* A destination with no complete bank/GCash details in the Hub is
-                not offered transfer at all. Showing the method and failing at
-                the last click — or worse, taking an order we cannot be paid for
-                — is the outcome this prevents. The Hub enforces the same rule
+            {/* A region with no complete, active method in the Hub is not
+                offered transfer at all. Showing the method and failing at the
+                last click — or worse, taking an order we cannot be paid for —
+                is the outcome this prevents. The Hub enforces the same rule
                 server-side; this is the courteous half of it. */}
             {quote.transfer_available ? (
-              <div className="border border-gold p-4 text-sm text-champagne/80">
-                <p className="text-gold-pale">{t("checkout", "transferJP")} · {t("checkout", "transferPH")}</p>
-                <p className="mt-2">{t("checkout", "transferOnly")}</p>
-                <p className="mt-2">{t("checkout", "deadlineNote")}</p>
-              </div>
+              <>
+                <div className="border border-rule bg-velvet p-4 text-sm text-champagne/80">
+                  <p>{t("checkout", "transferOnly")}</p>
+                  <p className="mt-2">{t("checkout", "transferPreview")}</p>
+                  <p className="mt-2">{t("checkout", "deadlineNote")}</p>
+                </div>
+                {/* The Hub sends only this destination's region, so these are
+                    the accounts this customer will actually pay into — and the
+                    other region's are not in the payload to leak. */}
+                <TransferDetails methods={quote.transfer_methods} lang={lang} />
+              </>
             ) : (
               <p role="alert" className="border border-gold px-4 py-3 text-sm text-gold-pale">
                 {t("checkout", "transferUnavailable")}

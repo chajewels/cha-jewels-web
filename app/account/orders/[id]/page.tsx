@@ -35,7 +35,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     );
   }
 
-  const { order, items, transfer_instructions: instructions } = detail;
+  const { order, items, transfer_methods: methods } = detail;
   const status = orderStatusLabel(order, lang);
   const address = order.ship_to_address;
   const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
@@ -98,8 +98,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 {t("complete", "deadline")} {due.toLocaleString(lang === "ja" ? "ja-JP" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}
               </p>
             )}
-            <TransferDetails instructions={instructions} lang={lang} />
-            {instructions && (
+            <TransferDetails methods={methods} lang={lang} />
+            {methods.length > 0 && (
               <p className="mt-4 text-sm text-champagne/60">{t("complete", "keepRef")}</p>
             )}
           </div>
