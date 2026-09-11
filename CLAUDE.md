@@ -18,6 +18,11 @@
 - Forbidden anywhere in copy, alt text, metadata or product data: "Japan gold", "Japanese gold", "Saudi gold", "Italian gold", or any `<country> gold` phrasing as a purity claim.
 - `npm run check:terms` must pass before every commit. It is also run in CI.
 
+## Sign-in (email link)
+- `LoginForm` calls `signInWithOtp` with `emailRedirectTo = <origin>/auth/callback?next=…`; `/auth/callback` accepts a PKCE `code` **or** `token_hash`+`type`, names GoTrue `error`/`error_code` as `/login?error=…`, and always redirects — it never renders and never 500s.
+- **Every storefront origin must be on the Hub project's Supabase Auth redirect allow-list**: production (`chajewelsjapan.com`, `www.`), the Vercel production alias, and the project-scoped preview wildcard `https://cha-jewels-web-*-cha-jewels.vercel.app/**`. A `redirect_to` outside the list makes GoTrue fall back to the project Site URL (the Hub) — the customer sees the Hub's black splash and the code is never exchanged. That is a Lovable Cloud auth setting, not code; see Bug #264 in the Hub repo. Never add a bare `https://*.vercel.app/**` — it would let any Vercel deployment receive this project's sign-in codes.
+- The sign-in email is sent by the Hub's `auth-email-hook`, which picks the Cha Jewels template by the link's target host. Staff emails are untouched.
+
 ## Cart and checkout (Phase 2 step 2)
 - The cart is a **cookie** (`cj-cart`, `lib/cart.ts`), holding only `{variant_id, slug, qty}`. Prices and stock are never stored in it — they are re-read from the Hub on every render, and the Hub re-prices again at `/checkout/quote` and once more inside `create_web_order_atomic`. Nothing on this side is trusted for money.
 - Cart mutations are **Server Actions** (`lib/cart-actions.ts`); checkout calls are Server Actions too (`lib/checkout-actions.ts`), so the customer JWT is paired with `HUB_API_KEY` on the server and never travels with a browser fetch.
