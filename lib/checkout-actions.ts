@@ -108,7 +108,11 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
     // A 409 here is either a quote that aged out or a piece someone else
     // bought first. The Hub distinguishes them in the body, but by this point
     // the advice is the same: go back and re-quote.
-    if (err instanceof HubError && err.status === 409) return { ok: false, code: "expired" };
+    // 409 covers both "the world moved" and "we cannot be paid for that
+    // destination". They need different copy, so read the body's code.
+    if (err instanceof HubError && err.status === 409) {
+      return { ok: false, code: err.code === "transfer_unavailable" ? "transfer_unavailable" : "expired" };
+    }
     return { ok: false, code: toCode(err) };
   }
 }

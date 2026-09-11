@@ -8,6 +8,7 @@ import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { orderStatusLabel, toneClass } from "@/lib/order-status";
 import { Button } from "@/components/ui/button";
+import { TransferDetails } from "@/components/commerce/transfer-details";
 
 export const metadata: Metadata = { title: "ご注文詳細 / Order" };
 export const dynamic = "force-dynamic";
@@ -87,20 +88,20 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         )}
 
         {/* Instructions only while the money is still outstanding. */}
-        {instructions && order.payment_status === "pending_transfer" && (
-          <div className="mt-10 border border-gold p-6">
-            <h2 className="font-display text-xl text-gold-pale">
-              {t("complete", "instructions")} · {lang === "ja" ? instructions.method_label_ja : instructions.method_label_en}
+        {order.payment_status === "pending_transfer" && (
+          <div className="mt-10">
+            <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-champagne/45">
+              {t("complete", "instructions")}
             </h2>
             {due && (
-              <p className="mt-2 text-sm text-champagne/70">
+              <p className="mb-3 text-sm text-champagne/70">
                 {t("complete", "deadline")} {due.toLocaleString(lang === "ja" ? "ja-JP" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}
               </p>
             )}
-            <p className="mt-4 whitespace-pre-line text-sm text-champagne/80">
-              {lang === "ja" ? instructions.body_ja : instructions.body_en}
-            </p>
-            <p className="mt-4 text-sm text-champagne/60">{t("complete", "keepRef")}</p>
+            <TransferDetails instructions={instructions} lang={lang} />
+            {instructions && (
+              <p className="mt-4 text-sm text-champagne/60">{t("complete", "keepRef")}</p>
+            )}
           </div>
         )}
       </div>

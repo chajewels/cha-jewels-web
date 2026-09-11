@@ -11,7 +11,10 @@ const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
 const BASE = (process.env.HUB_API_URL ?? "").replace(/\/$/, "");
 const KEY = process.env.HUB_API_KEY ?? "";
 
-export class HubError extends Error { constructor(public status: number, message: string) { super(message); } }
+/** `code` is the Hub's machine-readable error string (e.g. "transfer_unavailable"), when it sent one. */
+export class HubError extends Error {
+  constructor(public status: number, message: string, public code: string | null = null) { super(message); }
+}
 
 async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[]; jwt?: string } = {}): Promise<T> {
   if (!BASE || !KEY) throw new HubError(500, "HUB_API_URL / HUB_API_KEY not configured");
@@ -29,7 +32,15 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
     cache: revalidate === false ? "no-store" : undefined,
   });
   if (res.status === 404) throw new HubError(404, "Not found");
-  if (!res.ok) throw new HubError(res.status, `Hub API ${res.status} on ${path}`);
+  if (!res.ok) {
+    // Read the body's error code so callers can tell one 409 from another.
+    // A body that is missing or not JSON is normal for gateway-level failures.
+    const code = await res.clone().json().then(
+      (b) => (typeof b?.error === "string" ? b.error : null),
+      () => null,
+    );
+    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}`, code);
+  }
   return res.json() as Promise<T>;
 }
 const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404) return null; throw e; } };

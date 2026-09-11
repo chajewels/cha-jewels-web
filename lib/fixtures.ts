@@ -51,12 +51,24 @@ export const meFixture: HubMe = {
  */
 const FIXTURE_ORDER_ID = "order-fixture";
 const FIXTURE_REFERENCE = "CJ-W-000001";
+// Obviously fake account values — this fixture only ever renders in preview
+// mode, and a realistic-looking account number is exactly what must never
+// appear on a page. Real details live only in the Hub.
 const fixtureInstructions: TransferInstructions = {
   country: "JP",
   method_label_ja: "銀行振込",
   method_label_en: "Bank transfer",
-  body_ja: "【プレビュー表示】実際のお振込先はご注文確認メールにてご案内いたします。",
-  body_en: "[Preview] Real transfer details are sent with your order confirmation email.",
+  bank: {
+    name: "PREVIEW BANK (not a real bank)",
+    branch: "PREVIEW BRANCH",
+    account_type: "普通",
+    account_number: "0000000",
+    account_holder: "PREVIEW ACCOUNT",
+  },
+  gcash: null,
+  note_ja: "【プレビュー表示】実際のお振込先はHubで管理されています。",
+  note_en: "[Preview] Real transfer details are managed in the Hub.",
+  updated_at: null,
 };
 
 export function quoteFixture(body: { items: { variant_id: string; qty: number }[]; order_type: OrderType }): HubQuote {
@@ -72,7 +84,8 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
   const shipping = subtotal >= 50000 ? 0 : 800;
   return {
     quote_id: "quote-fixture", items, subtotal_jpy: subtotal, shipping_jpy: shipping,
-    total_jpy: subtotal + shipping, requires_manual_quote: false, order_type: body.order_type,
+    total_jpy: subtotal + shipping, requires_manual_quote: false, transfer_available: true,
+    order_type: body.order_type,
     expires_at: new Date(Date.now() + 30 * 60e3).toISOString(),
   };
 }
