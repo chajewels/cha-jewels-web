@@ -10,6 +10,7 @@ import { KaratBadge } from "@/components/catalog/karat-badge";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
 import { metalLabel, normalizeMetal } from "@/lib/metals";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
+import { AddToCart } from "@/components/commerce/add-to-cart";
 import { JsonLd } from "@/components/site/json-ld";
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -48,6 +49,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {price != null && <PriceBlock price={price} lang={lang} className="mt-6" />}
             {desc && <p className="mt-6 max-w-[52ch] text-champagne/80">{desc}</p>}
             <p className="mt-4 text-sm text-champagne/60">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
+            {/* Full-price purchase. The layaway button waits for step 4; until
+                then the calculator below is informational only. */}
+            {variant && <AddToCart variantId={variant.id} slug={p.slug} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
             {price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" />}
           </div>
         </div>

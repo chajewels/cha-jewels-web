@@ -1,4 +1,4 @@
-import type { Collection, HubMe, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
+import type { Collection, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LiveClaim, OrderType, Product, TransferInstructions } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 export const collections: Collection[] = [
@@ -43,3 +43,68 @@ export const meFixture: HubMe = {
   loyalty: { enrolled: true, points: 1200, tier: "Glimmer", multiplier: 1 },
   saved_card: false,
 };
+
+/**
+ * Preview-mode checkout. Lets the Vercel preview walk the whole flow with no
+ * Hub behind it. Prices are made up; the deadline is a real 72 hours out so the
+ * countdown copy renders the way it will in production.
+ */
+const FIXTURE_ORDER_ID = "order-fixture";
+const FIXTURE_REFERENCE = "CJ-W-000001";
+const fixtureInstructions: TransferInstructions = {
+  country: "JP",
+  method_label_ja: "銀行振込",
+  method_label_en: "Bank transfer",
+  body_ja: "【プレビュー表示】実際のお振込先はご注文確認メールにてご案内いたします。",
+  body_en: "[Preview] Real transfer details are sent with your order confirmation email.",
+};
+
+export function quoteFixture(body: { items: { variant_id: string; qty: number }[]; order_type: OrderType }): HubQuote {
+  const items: HubQuoteItem[] = body.items.map((line) => {
+    const product = products.find((p) => p.product_variants.some((v) => v.id === line.variant_id)) ?? products[0];
+    const unit = product.product_variants[0].price_jpy;
+    return {
+      variant_id: line.variant_id, product_id: product.id, sku: product.sku, slug: product.slug,
+      name: product.name, qty: line.qty, unit_price_jpy: unit, line_total_jpy: unit * line.qty,
+    };
+  });
+  const subtotal = items.reduce((n, i) => n + i.line_total_jpy, 0);
+  const shipping = subtotal >= 50000 ? 0 : 800;
+  return {
+    quote_id: "quote-fixture", items, subtotal_jpy: subtotal, shipping_jpy: shipping,
+    total_jpy: subtotal + shipping, requires_manual_quote: false, order_type: body.order_type,
+    expires_at: new Date(Date.now() + 30 * 60e3).toISOString(),
+  };
+}
+
+export function payFixture(): HubPayResult {
+  return {
+    order_id: FIXTURE_ORDER_ID, web_reference: FIXTURE_REFERENCE, total_jpy: 236800,
+    transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
+    transfer_instructions: fixtureInstructions,
+  };
+}
+
+export const ordersFixture: HubOrder[] = [{
+  id: FIXTURE_ORDER_ID, web_reference: FIXTURE_REFERENCE, invoice_number: "900001",
+  status: "pending", payment_status: "pending_transfer", payment_method: "transfer",
+  order_type: "SELF", currency: "JPY", total_amount: 236800, total_paid: 0,
+  remaining_balance: 236800, shipping_fee: 800,
+  transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
+  recipient_name: null, gift_note: null, order_date: new Date().toISOString().slice(0, 10),
+  created_at: new Date().toISOString(), completed_at: null, cancelled_at: null,
+  tracking_number: null, shipped_at: null,
+}];
+
+export function orderFixture(id: string): HubOrderDetail | null {
+  const order = ordersFixture.find((o) => o.id === id);
+  if (!order) return null;
+  return {
+    order: { ...order, ship_to_address: meFixture.addresses[0] },
+    items: [{
+      id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle",
+      sku: "CJ-0003", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null,
+    }],
+    transfer_instructions: fixtureInstructions,
+  };
+}

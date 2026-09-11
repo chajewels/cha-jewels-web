@@ -18,5 +18,13 @@
 - Forbidden anywhere in copy, alt text, metadata or product data: "Japan gold", "Japanese gold", "Saudi gold", "Italian gold", or any `<country> gold` phrasing as a purity claim.
 - `npm run check:terms` must pass before every commit. It is also run in CI.
 
+## Cart and checkout (Phase 2 step 2)
+- The cart is a **cookie** (`cj-cart`, `lib/cart.ts`), holding only `{variant_id, slug, qty}`. Prices and stock are never stored in it — they are re-read from the Hub on every render, and the Hub re-prices again at `/checkout/quote` and once more inside `create_web_order_atomic`. Nothing on this side is trusted for money.
+- Cart mutations are **Server Actions** (`lib/cart-actions.ts`); checkout calls are Server Actions too (`lib/checkout-actions.ts`), so the customer JWT is paired with `HUB_API_KEY` on the server and never travels with a browser fetch.
+- **A quote does not reserve stock.** Stock is decremented only when the order is created, so an abandoned checkout never sits on a one-of-a-kind piece. A transfer order holds stock for 72 hours; the Hub cancels it and restores stock after that.
+- `/cart` is open to anonymous visitors. `/checkout` and `/account/*` are gated in `middleware.ts` — but that gate decides what to RENDER; the Hub independently requires the JWT.
+- **A web order is a Hub `cash_order`**, not a separate `orders` table. The customer sees `web_reference` (`CJ-W-000123`); the Hub's financial key stays the numeric `invoice_number`. See `docs/WEBSITE-VERCEL.md` in the Hub repo.
+- Layaway checkout (`mode: 'layaway'`) and card payment (`method: 'square'`) both answer **501** until steps 4 and 3. Do not stub them locally — the 501 is the contract.
+
 ## Stack
 Next.js 15 App Router, TypeScript strict, Tailwind, shadcn/ui components copied into `components/ui`, Supabase via `@supabase/ssr`. Product and collection pages are ISR (60 s) with on-demand revalidation from the Hub.

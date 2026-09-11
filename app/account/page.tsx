@@ -92,8 +92,11 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           </div>
         )}
 
-        {/* Orders and layaway plans arrive in steps 2 and 4 of the Phase 2 plan. */}
-        <p className="mt-10 text-sm text-champagne/55">{t("account", "soon")}</p>
+        {/* Orders landed in step 2. Layaway plans arrive in step 4. */}
+        <div className="mt-10 flex flex-wrap items-center gap-4">
+          <Link href="/account/orders" className="text-gold-pale underline underline-offset-4">{t("orders", "h1")}</Link>
+          <span className="text-sm text-champagne/55">{t("account", "soon")}</span>
+        </div>
       </div>
     </section>
   );
