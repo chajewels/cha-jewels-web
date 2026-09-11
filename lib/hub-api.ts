@@ -1,5 +1,5 @@
 import "server-only";
-import type { Collection, FxRate, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
+import type { Collection, FxRate, HubAddress, HubCustomer, HubMe, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 
 /**
@@ -13,12 +13,18 @@ const KEY = process.env.HUB_API_KEY ?? "";
 
 class HubError extends Error { constructor(public status: number, message: string) { super(message); } }
 
-async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[] } = {}): Promise<T> {
+async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[]; jwt?: string } = {}): Promise<T> {
   if (!BASE || !KEY) throw new HubError(500, "HUB_API_URL / HUB_API_KEY not configured");
-  const { revalidate = 60, tags = ["catalog"], ...rest } = init;
+  const { revalidate = 60, tags = ["catalog"], jwt, ...rest } = init;
   const res = await fetch(`${BASE}${path}`, {
     ...rest,
-    headers: { "content-type": "application/json", "x-api-key": KEY, ...(rest.headers ?? {}) },
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": KEY,
+      // Customer routes need BOTH the server key and the customer's JWT.
+      ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+      ...(rest.headers ?? {}),
+    },
     next: revalidate === false ? undefined : { revalidate, tags },
     cache: revalidate === false ? "no-store" : undefined,
   });
@@ -47,6 +53,19 @@ export const hub = {
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+  /** Links or creates the customers row for a signed-in customer. Idempotent. */
+  authCustomer: (jwt: string, full_name?: string): Promise<{ customer: HubCustomer; created: boolean }> =>
+    FIXTURES
+      ? Promise.resolve({ customer: fx.meFixture.customer, created: false })
+      : call("/auth/customer", { method: "POST", body: JSON.stringify({ full_name }), jwt, revalidate: false }),
+  /** Profile, addresses, loyalty snapshot. 404 before authCustomer has run. */
+  me: (jwt: string): Promise<HubMe> =>
+    FIXTURES ? Promise.resolve(fx.meFixture) : call("/me", { jwt, revalidate: false }),
+  /** Replaces the whole address list. The Hub applies it atomically. */
+  putAddresses: (jwt: string, addresses: HubAddress[]): Promise<{ ok: true; count: number }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true, count: addresses.length })
+      : call("/me/addresses", { method: "PUT", body: JSON.stringify({ addresses }), jwt, revalidate: false }),
   wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };

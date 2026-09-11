@@ -1,4 +1,4 @@
-import type { Collection, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
+import type { Collection, HubMe, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 export const collections: Collection[] = [
@@ -35,3 +35,11 @@ export function quote(price: number, term: number, currency: "JPY" | "PHP"): Lay
   return { down_payment: dp, monthly: Math.round((price - dp) / t), term_months: t, total: price, max_term_months: max, currency };
 }
 export const tiers: HubTier[] = localTiers.map((t) => ({ slug: t.slug, name: t.name, threshold_jpy: t.thresholdJpy, requalify_spend: t.requalifyJpy, multiplier: t.multiplier, hold_minutes: t.holdMinutes, benefits_ja: t.perks.ja, benefits_en: t.perks.en }));
+
+/** Preview-mode account data. Obvious placeholders — never real customer data. */
+export const meFixture: HubMe = {
+  customer: { id: "cust-fixture", customer_code: "CJ-2026-00008", full_name: "Preview Customer", email: "preview@example.com", mobile_number: null },
+  addresses: [{ id: "addr-1", label: "home", recipient_name: "Preview Customer", line1: "1-2-3 Tateishi", city: "Katsushika-ku", region: "Tokyo", postal_code: "124-0012", country: "JP", phone: null, is_default: true }],
+  loyalty: { enrolled: true, points: 1200, tier: "Glimmer", multiplier: 1 },
+  saved_card: false,
+};
