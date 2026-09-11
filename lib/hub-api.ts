@@ -1,5 +1,5 @@
 import "server-only";
-import type { Collection, FxRate, HubAddress, HubCustomer, HubMe, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
+import type { Collection, FxRate, HubAddress, HubCustomer, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, LiveClaim, OrderType, Product } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 
 /**
@@ -11,7 +11,7 @@ const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
 const BASE = (process.env.HUB_API_URL ?? "").replace(/\/$/, "");
 const KEY = process.env.HUB_API_KEY ?? "";
 
-class HubError extends Error { constructor(public status: number, message: string) { super(message); } }
+export class HubError extends Error { constructor(public status: number, message: string) { super(message); } }
 
 async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[]; jwt?: string } = {}): Promise<T> {
   if (!BASE || !KEY) throw new HubError(500, "HUB_API_URL / HUB_API_KEY not configured");
@@ -66,6 +66,26 @@ export const hub = {
     FIXTURES
       ? Promise.resolve({ ok: true, count: addresses.length })
       : call("/me/addresses", { method: "PUT", body: JSON.stringify({ addresses }), jwt, revalidate: false }),
+  /**
+   * Prices a basket. Does NOT reserve stock — the decrement happens at pay
+   * time, so an abandoned checkout never sits on a one-of-a-kind piece.
+   * Throws HubError(409) when a piece sold out between browsing and checkout.
+   */
+  quote: (jwt: string, body: { items: { variant_id: string; qty: number }[]; order_type: OrderType; ship_to_address_id: string; recipient_name?: string; recipient_phone?: string; gift_note?: string }): Promise<HubQuote> =>
+    FIXTURES
+      ? Promise.resolve(fx.quoteFixture(body))
+      : call("/checkout/quote", { method: "POST", body: JSON.stringify({ ...body, mode: "full" }), jwt, revalidate: false }),
+  /** Turns a quote into a real order. Transfer only in this step; Square is 501. */
+  pay: (jwt: string, quote_id: string): Promise<HubPayResult> =>
+    FIXTURES
+      ? Promise.resolve(fx.payFixture())
+      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer" }), jwt, revalidate: false }),
+  orders: (jwt: string): Promise<HubOrder[]> =>
+    FIXTURES ? Promise.resolve(fx.ordersFixture) : call("/orders", { jwt, revalidate: false }),
+  order: (jwt: string, id: string): Promise<HubOrderDetail | null> =>
+    FIXTURES
+      ? Promise.resolve(fx.orderFixture(id))
+      : notFoundToNull(call(`/orders/${encodeURIComponent(id)}`, { jwt, revalidate: false })),
   wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };

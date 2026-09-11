@@ -53,7 +53,7 @@ Edge functions: `square_webhook`, `layaway_autocharge` (daily cron: due instalme
 
 ## Sequence (each step = one PR on develop, one Lovable deploy message)
 1. Hub: auth linkage, `customers.auth_user_id`, `/auth/customer`, `/me`, addresses. Site: `/login`, `/account` shell.
-2. Hub: quotes + transfer orders (`/checkout/quote`, `/checkout/pay` transfer path), `orders`, `order_items`. Site: cart, checkout with transfer only. **First real order end to end without Square.**
+2. Hub: quotes + transfer orders (`/checkout/quote`, `/checkout/pay` transfer path), `orders`, `order_items`. Site: cart, checkout with transfer only. **First real order end to end without Square.** — BUILT. The Hub half landed on `cash_orders` / `cash_order_items`, not new `orders` / `order_items`: those two tables do not exist, and `cash_orders` is what loyalty, store credit, the test-account regex and Finance are already keyed on. Step 3 onwards should read `cash_orders` wherever this plan says `orders`.
 3. Hub: Square payments (`/checkout/pay` square path, `square_webhook`), `payments` table. Site: card form, Apple/Google Pay. Sandbox first, then production keys.
 4. Hub: layaway plan creation from checkout, instalment pay, card-on-file, `layaway_autocharge`. Site: layaway flow + schedule + pay-now.
 5. Hub: claim checkout, expiry cron hardening. Site: live claim page.

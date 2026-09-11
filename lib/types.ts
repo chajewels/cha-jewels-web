@@ -16,3 +16,36 @@ export type HubCustomer = { id: string; customer_code: string | null; full_name:
 export type HubAddress = { id?: string; label?: string | null; recipient_name?: string | null; line1: string; line2?: string | null; city?: string | null; region?: string | null; postal_code?: string | null; country?: string | null; phone?: string | null; is_default?: boolean };
 export type HubLoyalty = { enrolled: boolean; points: number; tier: string | null; multiplier: number | null };
 export type HubMe = { customer: HubCustomer; addresses: HubAddress[]; loyalty: HubLoyalty; saved_card: boolean };
+
+/** Phase 2 step 2 — cart, checkout and orders. */
+export type OrderType = "SELF" | "GIFT" | "PROXY";
+export type HubQuoteItem = { variant_id: string; product_id: string | null; sku: string | null; slug: string | null; name: string; qty: number; unit_price_jpy: number; line_total_jpy: number };
+export type HubQuote = {
+  quote_id: string;
+  items: HubQuoteItem[];
+  subtotal_jpy: number;
+  /** null means we publish no rate for that country — ask, never ship free. */
+  shipping_jpy: number | null;
+  total_jpy: number;
+  requires_manual_quote: boolean;
+  order_type: OrderType;
+  expires_at: string;
+};
+export type TransferInstructions = { country: string; method_label_ja: string; method_label_en: string; body_ja: string; body_en: string };
+export type HubPayResult = { order_id: string; web_reference: string; total_jpy: number; transfer_due_at: string; transfer_instructions: TransferInstructions | null };
+/** `status` is the Hub's cash_order_status; `payment_status` is the web-facing one. */
+export type HubOrder = {
+  id: string; web_reference: string | null; invoice_number: string | null;
+  status: "pending" | "completed" | "cancelled" | "expired";
+  payment_status: "pending_transfer" | "paid" | "failed" | "refunded" | "cancelled" | null;
+  payment_method: string | null; order_type: OrderType | null; currency: string;
+  total_amount: number; total_paid: number; remaining_balance: number; shipping_fee: number | null;
+  transfer_due_at: string | null; recipient_name: string | null; gift_note: string | null;
+  order_date: string | null; created_at: string; completed_at: string | null; cancelled_at: string | null;
+  tracking_number: string | null; shipped_at: string | null;
+  ship_to_address?: HubAddress | null;
+};
+export type HubOrderItem = { id: string; variant_id: string | null; product_id: string | null; title: string; sku: string | null; quantity: number; unit_price_jpy: number; line_total_jpy: number; image_url: string | null };
+export type HubOrderDetail = { order: HubOrder; items: HubOrderItem[]; transfer_instructions: TransferInstructions | null };
+/** The Hub answers checkout failures with a code, not an HTTP body we should guess at. */
+export type HubCheckoutError = { error: string; variant_id?: string; available?: number };
