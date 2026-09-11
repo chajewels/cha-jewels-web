@@ -61,7 +61,7 @@ create or replace function reject_forbidden_gold_terms() returns trigger languag
 begin
   if coalesce(new.name,'') || ' ' || coalesce(new.description_en,'') || ' ' || coalesce(new.description_tl,'')
      ~* '\m(japan(ese)?|saudi|italian|dubai|hk|chinese) gold\M' then
-    raise exception 'Forbidden gold terminology. Use "K18 gold, Made in Japan".';
+    raise exception 'Forbidden gold terminology. Describe purity as "K18 gold"; origin is the product''s origin field.';
   end if;
   return new;
 end $$;

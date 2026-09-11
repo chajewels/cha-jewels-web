@@ -27,7 +27,7 @@ Implementation: client component `components/wholesale/inquiry-form.tsx` posting
 ## 3. `/faq`
 Use `<details>` accordions styled like the existing site. Seven questions, JA + EN. Include FAQPage JSON-LD via `components/site/json-ld.tsx` (extend it with a `faq` type taking `{q,a}[]`).
 
-1. 本当に日本製ですか？ / Is your gold really made in Japan? — Yes. Every gold piece is K18 (75% pure), carries the K18 stamp and a maker's mark, and is made by Japanese workshops we work with directly. We describe gold by its purity and where it is crafted, never by a country name as a substitute for a purity claim. (JA equivalent.)
+1. ゴールドは本物ですか？どこで作られていますか？ / Is your gold real, and where is it made? — Every gold piece is K18 (75% pure), carries the K18 stamp, and is hallmark checked in Japan before listing. Origin varies per piece: a listing shows an origin badge only when Japanese manufacture is confirmed (from Hub data), a branded piece shows its brand name, and a listing with neither claims no origin. Purity is never described by a country name. (JA equivalent.)
 2. 分割予約のしくみは？ / How does layaway work? — 30% to reserve; balance in equal monthly payments over 3–6 months at 0% interest; ¥300,000+ up to 8 months; written schedule; reminders 3 days before each due date; ships after the last payment.
 3. フィリピンへの配送とペソ払いはできますか？ / Do you ship to the Philippines and can I pay in pesos? — Ships insured from Tokyo. Peso figures on the site are indicative at the day's rate; payment is settled in yen (state this exactly — the Hub prices in JPY only).
 4. 家族へのプレゼントとして送れますか？ / Can I buy for family back home? — Para Sa Iba: pay here, we deliver to your family in Japan or the Philippines with your note; for layaway, ships after the final payment; points go to the payer.

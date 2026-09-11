@@ -13,7 +13,8 @@ The public website (`chajewels/cha-jewels-web`, Next.js on Vercel) talks to the 
 Collection = { id, slug, name, hero_media: string|null, description: string|null }
 Product = { id, sku, slug, name, karat: "K18"|"K14"|"K10"|"PT1000"|"PT950"|"PT900"|"SILVER925"|null, weight_g: number|null,
             description_en, description_ja, description_tl: string|null, status: "active",
-            condition: "New"|"Preloved", product_variants: Variant[] }
+            condition: "New"|"Preloved", origin: "JAPAN"|"BRAND"|"OTHER"|"UNKNOWN", brand: string|null,
+            product_variants: Variant[] }
 Variant = { id, size: string|null, stone: string|null, price_jpy: number, price_php: number|null,
             stock_qty: number, product_media: { url, alt: string|null, sort: number }[] }
 LayawayQuote = { down_payment, monthly, term_months, total, max_term_months, currency }
@@ -23,6 +24,13 @@ LiveClaim = { id, code, price_locked, status: "held"|"paid"|"layaway"|"expired"|
 `condition` is returned on every product. The site treats an absent value as
 `"New"`, and only `"Preloved"` renders a badge — so a Hub response predating the
 field degrades safely rather than mislabelling stock.
+
+`origin` and `brand` are returned on every product and are the ONLY source of
+an origin claim on the site. `"JAPAN"` renders the origin badge for that
+piece; `"BRAND"` renders `brand` (name only, never a logo) and claims no origin;
+`"OTHER"`, `"UNKNOWN"` and an absent value render nothing. The site never infers
+an origin from metal, name or description, and site-wide copy may only say
+"authenticated in Japan" / "hallmark checked in Japan".
 
 ## Endpoints
 | Method & path | Returns | Notes |

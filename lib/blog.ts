@@ -7,8 +7,8 @@ export const posts: Post[] = [
     title: { ja: "K18とは何か、なぜ日本の基準なのか", en: "What K18 means, and why it is the Japanese standard" },
     excerpt: { ja: "純度75%の意味、刻印の読み方、なぜK24ではなくK18が毎日身につけるジュエリーに選ばれるのか。", en: "What 75% purity means, how to read the stamp, and why K18 rather than K24 is chosen for jewelry worn every day." },
     body: {
-      ja: ["K18は金の含有率が75%であることを示します。残りの25%は銀や銅などの合金で、これが硬さと色を決めます。", "純度の高いK24は柔らかく、指輪やチェーンとしては曲がりやすく傷つきやすい。K18は資産価値と耐久性の両立点として、日本の高級ジュエリーの標準になっています。", "刻印はK18またはAU750。日本製の場合、多くはメーカーの刻印も入ります。東京でもマニラでも、どの宝石店でも読み取れます。"],
-      en: ["K18 means the metal is 75% gold. The other 25% is an alloy of silver and copper that sets hardness and color.", "K24 is purer but soft; as a ring or chain it bends and scratches. K18 is the balance point between asset value and durability, and the standard for fine jewelry in Japan.", "The stamp reads K18 or AU750, usually with a maker's mark on Japanese pieces. Any jeweler in Tokyo or Manila can read it."],
+      ja: ["K18は金の含有率が75%であることを示します。残りの25%は銀や銅などの合金で、これが硬さと色を決めます。", "純度の高いK24は柔らかく、指輪やチェーンとしては曲がりやすく傷つきやすい。K18は資産価値と耐久性の両立点として、日本の高級ジュエリーの標準になっています。", "刻印はK18またはAU750。メーカーの刻印が入ることもあります。東京でもマニラでも、どの宝石店でも読み取れます。"],
+      en: ["K18 means the metal is 75% gold. The other 25% is an alloy of silver and copper that sets hardness and color.", "K24 is purer but soft; as a ring or chain it bends and scratches. K18 is the balance point between asset value and durability, and the standard for fine jewelry in Japan.", "The stamp reads K18 or AU750, often with a maker's mark beside it. Any jeweler in Tokyo or Manila can read it."],
     },
   },
   {
