@@ -19,6 +19,10 @@ export function LoginForm({ lang }: { lang: Lang }) {
   const c = dict.account;
   const params = useSearchParams();
   const next = params.get("next") ?? "/account";
+  // middleware sends ?reason=config when the Supabase env vars are missing on
+  // this deployment. Without this notice the redirect is a silent dead end: the
+  // form renders normally and every attempt fails for reasons nobody can see.
+  const configError = params.get("reason") === "config";
   const [state, setState] = useState<"idle" | "sending" | "sent" | "err">("idle");
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -42,6 +46,9 @@ export function LoginForm({ lang }: { lang: Lang }) {
   }
   return (
     <form onSubmit={submit} noValidate className="grid gap-4 border border-gold bg-velvet-deep p-6 text-sm">
+      {configError && (
+        <p role="alert" className="border border-garnet/60 p-3 text-champagne/85">{c.configErr[lang]}</p>
+      )}
       <label className="grid gap-1.5 text-champagne/75">
         {c.email[lang]}
         <input name="email" type="email" required autoComplete="email" className="min-h-11 w-full rounded-sm border border-rule bg-velvet px-3 text-champagne" />
