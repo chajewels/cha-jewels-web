@@ -23,6 +23,13 @@ export function LoginForm({ lang }: { lang: Lang }) {
   // this deployment. Without this notice the redirect is a silent dead end: the
   // form renders normally and every attempt fails for reasons nobody can see.
   const configError = params.get("reason") === "config";
+  // /auth/callback sends the customer back here with the reason a link could
+  // not be completed. An expired or reused link is the common case and gets
+  // its own wording; everything else is "we could not finish — request a new one".
+  const linkError = params.get("error");
+  const linkErrorCopy = !linkError ? null
+    : linkError === "otp_expired" || linkError === "access_denied" ? c.linkExpired[lang]
+    : c.linkFailed[lang];
   const [state, setState] = useState<"idle" | "sending" | "sent" | "err">("idle");
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -48,6 +55,9 @@ export function LoginForm({ lang }: { lang: Lang }) {
     <form onSubmit={submit} noValidate className="grid gap-4 border border-gold bg-velvet-deep p-6 text-sm">
       {configError && (
         <p role="alert" className="border border-garnet/60 p-3 text-champagne/85">{c.configErr[lang]}</p>
+      )}
+      {!configError && linkErrorCopy && (
+        <p role="alert" className="border border-gold/60 p-3 text-champagne/85">{linkErrorCopy}</p>
       )}
       <label className="grid gap-1.5 text-champagne/75">
         {c.email[lang]}
