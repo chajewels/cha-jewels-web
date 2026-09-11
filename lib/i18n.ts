@@ -65,6 +65,7 @@ export const dict = {
     err: { ja: "送信できませんでした。もう一度お試しください。", en: "Could not send the link. Please try again." },
     note: { ja: "現在はメールでのサインインのみご利用いただけます。SMSでのサインインは準備中です。", en: "Email sign-in only for now. Signing in by SMS is not available yet." },
     signOut: { ja: "サインアウト", en: "Sign out" },
+    configErr: { ja: "ただいまサインインをご利用いただけません。恐れ入りますが、時間をおいて再度お試しください。", en: "Sign-in is temporarily unavailable. Please try again shortly." },
     profile: { ja: "お客様情報", en: "Your details" },
     name: { ja: "お名前", en: "Name" }, code: { ja: "お客様番号", en: "Customer number" },
     loyalty: { ja: "会員プログラム", en: "Loyalty" },
