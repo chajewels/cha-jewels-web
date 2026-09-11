@@ -14,7 +14,7 @@
 - Cost basis, margin, and CSR commission fields never cross the API. If they appear in a response, that is a Hub bug to report, not data to render.
 
 ## Terminology (hard rule)
-- Gold is described as **K18 gold, Made in Japan**.
+- Gold is described by purity: **K18 gold**. Origin is per-product DATA from the Hub (`origin`: JAPAN | BRAND | OTHER | UNKNOWN). `components/catalog/origin-badge.tsx` is the only file allowed to render "Made in Japan" / 日本製, and only when `origin === "JAPAN"`; a branded piece shows its brand name and claims no origin. Site-wide copy may say "authenticated in Japan" / "hallmark checked in Japan", never an origin.
 - Forbidden anywhere in copy, alt text, metadata or product data: "Japan gold", "Japanese gold", "Saudi gold", "Italian gold", or any `<country> gold` phrasing as a purity claim.
 - `npm run check:terms` must pass before every commit. It is also run in CI.
 

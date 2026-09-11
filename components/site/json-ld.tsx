@@ -9,6 +9,9 @@ export function JsonLd(props: Props) {
     : props.type === "faq"
     ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: props.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })) }
     : { "@context": "https://schema.org", "@type": "Product", name: props.product.name, sku: props.product.sku, image: primaryImage(props.product)?.url, material: props.product.karat ?? undefined, description: props.product.description_en ?? undefined,
+        // A brand only when the Hub says the piece is branded. No countryOfOrigin
+        // is ever emitted here — origin is a per-piece badge, not structured data.
+        brand: props.product.origin === "BRAND" && props.product.brand?.trim() ? { "@type": "Brand", name: props.product.brand.trim() } : undefined,
         offers: { "@type": "Offer", price: fromPrice(props.product) ?? undefined, priceCurrency: "JPY",
           // Absent condition is New — matches ConditionBadge, which only renders for Preloved.
           itemCondition: props.product.condition === "Preloved" ? "https://schema.org/UsedCondition" : "https://schema.org/NewCondition",

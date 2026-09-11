@@ -8,6 +8,7 @@ import { hub } from "@/lib/hub-api";
 import { PriceBlock } from "@/components/commerce/price-block";
 import { KaratBadge } from "@/components/catalog/karat-badge";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
+import { OriginBadge } from "@/components/catalog/origin-badge";
 import { metalLabel, normalizeMetal } from "@/lib/metals";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { AddToCart } from "@/components/commerce/add-to-cart";
@@ -43,6 +44,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <KaratBadge karat={p.karat} lang={lang} />
+              <OriginBadge origin={p.origin} brand={p.brand} lang={lang} />
               <ConditionBadge condition={p.condition} lang={lang} />
             </div>
             <h1 className="mt-4 text-[clamp(32px,4.2vw,60px)]">{p.name}</h1>

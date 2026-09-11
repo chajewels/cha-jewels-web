@@ -11,10 +11,10 @@ export type FaqItem = { q: Record<Lang, string>; a: Record<Lang, string> };
  */
 export const faqItems: FaqItem[] = [
   {
-    q: { ja: "本当に日本製ですか？", en: "Is your gold really made in Japan?" },
+    q: { ja: "ゴールドは本物ですか？どこで作られていますか？", en: "Is your gold real, and where is it made?" },
     a: {
-      ja: "はい。ゴールドはすべてK18（純度75%）で、K18の刻印と製造元のマークが入っています。直接お取引のある日本の工房で製作しています。当店では純度と製作地で商品を説明しており、国名を純度の代わりに用いることはありません。",
-      en: "Yes. Every gold piece is K18 — 75% pure — carries the K18 stamp and a maker's mark, and is made by Japanese workshops we work with directly. We describe gold by its purity and where it is crafted, never by a country name as a substitute for a purity claim.",
+      ja: "ゴールドはすべてK18（純度75%）で、K18の刻印が入り、一点ずつ日本で真贋を確認してから掲載しています。製作地は商品ごとに異なります。日本での製造を確認できた場合のみ商品ページに製造国を表示し、ブランド品はブランド名を表示します。どちらの表示もない商品については、製作地を断定していません。当店では純度で商品を説明しており、国名を純度の代わりに用いることはありません。",
+      en: "Every gold piece is K18 — 75% pure — carries the K18 stamp, and is hallmark checked in Japan before it is listed. Where a piece was made varies. A listing carries an origin badge only when we have confirmed Japanese manufacture, and a branded piece shows its brand name instead. If a listing shows neither, we are not claiming an origin. We describe gold by its purity, never by a country name as a substitute for a purity claim.",
     },
   },
   {

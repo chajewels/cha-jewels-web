@@ -12,8 +12,8 @@ const jp = Noto_Serif_JP({ subsets: ["latin"], weight: ["400", "500"], variable:
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
-  title: { default: "Cha Jewels | 日本製K18ゴールド・パール・ダイヤモンド", template: "%s | Cha Jewels" },
-  description: "日本の工房で作られたK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。無利息の分割予約、東京からの卸売、日本・フィリピン・海外への配送。",
+  title: { default: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", template: "%s | Cha Jewels" },
+  description: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。無利息の分割予約、東京からの卸売、日本・フィリピン・海外への配送。",
   openGraph: { type: "website", siteName: "Cha Jewels", locale: "ja_JP", alternateLocale: ["en_US"] },
   alternates: { canonical: "/", languages: { ja: "/", en: "/?lang=en" } },
 };
