@@ -37,7 +37,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
     );
   }
 
-  const { order, transfer_instructions: instructions } = detail;
+  const { order, transfer_methods: methods } = detail;
   const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
 
   return (
@@ -59,8 +59,8 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
           <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-champagne/45">
             {t("complete", "instructions")}
           </h2>
-          <TransferDetails instructions={instructions} lang={lang} />
-          {instructions && (
+          <TransferDetails methods={methods} lang={lang} />
+          {methods.length > 0 && (
             <p className="mt-4 text-sm text-champagne/60">{t("complete", "keepRef")}</p>
           )}
         </div>

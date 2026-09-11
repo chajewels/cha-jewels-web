@@ -28,28 +28,48 @@ export type HubQuote = {
   shipping_jpy: number | null;
   total_jpy: number;
   requires_manual_quote: boolean;
-  /** false when the destination country has no complete bank/GCash details in the Hub. */
+  /** Which set of accounts this destination is paid into. Japan, or everywhere else. */
+  transfer_region: TransferRegion;
+  /** Active, complete methods for `transfer_region`, in the Hub's own order. */
+  transfer_methods: TransferMethod[];
+  /** false when that region has no complete, active method in the Hub. */
   transfer_available: boolean;
   order_type: OrderType;
   expires_at: string;
 };
 /**
- * Structured transfer details, built by the Hub from its own columns at request
- * time — so a correction an admin makes shows on the site with no deploy.
- * `null` anywhere in the chain means "no usable method for this country": the
- * page must say so, never fall back to placeholder prose.
+ * Transfer methods, built by the Hub from its own rows at request time — so a
+ * correction an admin makes shows on the site with no deploy.
+ *
+ * The Hub sends one region's methods and only that region's: JP for an order
+ * shipping inside Japan, OVERSEAS for everywhere else. The other region's
+ * account details never reach the browser, so there is nothing here to filter
+ * and no way for the wrong account to leak into the page.
+ *
+ * An EMPTY array means no usable method — the page must say so plainly and
+ * never fall back to placeholder prose.
  */
-export type TransferBank = { name: string; branch: string | null; account_type: string | null; account_number: string; account_holder: string };
-export type TransferGcash = { number: string; name: string };
-export type TransferInstructions = {
-  country: string;
-  method_label_ja: string; method_label_en: string;
-  bank: TransferBank | null;
-  gcash: TransferGcash | null;
-  note_ja: string | null; note_en: string | null;
-  updated_at: string | null;
+export type TransferRegion = "JP" | "OVERSEAS";
+export type TransferMethodType = "bank" | "gcash" | "maya" | "other";
+export type TransferBank = {
+  name: string; branch: string | null; account_type: string | null;
+  account_number: string | null; account_holder: string | null;
 };
-export type HubPayResult = { order_id: string; web_reference: string; total_jpy: number; transfer_due_at: string; transfer_instructions: TransferInstructions | null };
+export type TransferWallet = { number: string; name: string | null };
+export type TransferMethod = {
+  id: string;
+  method_type: TransferMethodType;
+  label_ja: string; label_en: string;
+  /** Present on bank methods; some `other` methods carry one too. */
+  bank: TransferBank | null;
+  /** Present on GCash / Maya methods. */
+  wallet: TransferWallet | null;
+  note_ja: string | null; note_en: string | null;
+};
+export type HubPayResult = {
+  order_id: string; web_reference: string; total_jpy: number; transfer_due_at: string;
+  transfer_region: TransferRegion; transfer_methods: TransferMethod[];
+};
 /** `status` is the Hub's cash_order_status; `payment_status` is the web-facing one. */
 export type HubOrder = {
   id: string; web_reference: string | null; invoice_number: string | null;
@@ -63,6 +83,6 @@ export type HubOrder = {
   ship_to_address?: HubAddress | null;
 };
 export type HubOrderItem = { id: string; variant_id: string | null; product_id: string | null; title: string; sku: string | null; quantity: number; unit_price_jpy: number; line_total_jpy: number; image_url: string | null };
-export type HubOrderDetail = { order: HubOrder; items: HubOrderItem[]; transfer_instructions: TransferInstructions | null };
+export type HubOrderDetail = { order: HubOrder; items: HubOrderItem[]; transfer_region: TransferRegion; transfer_methods: TransferMethod[] };
 /** The Hub answers checkout failures with a code, not an HTTP body we should guess at. */
 export type HubCheckoutError = { error: string; variant_id?: string; available?: number };

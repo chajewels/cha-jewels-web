@@ -1,4 +1,4 @@
-import type { Collection, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LiveClaim, OrderType, Product, TransferInstructions } from "@/lib/types";
+import type { Collection, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LiveClaim, OrderType, Product, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 export const collections: Collection[] = [
@@ -54,22 +54,39 @@ const FIXTURE_REFERENCE = "CJ-W-000001";
 // Obviously fake account values — this fixture only ever renders in preview
 // mode, and a realistic-looking account number is exactly what must never
 // appear on a page. Real details live only in the Hub.
-const fixtureInstructions: TransferInstructions = {
-  country: "JP",
-  method_label_ja: "銀行振込",
-  method_label_en: "Bank transfer",
-  bank: {
-    name: "PREVIEW BANK (not a real bank)",
-    branch: "PREVIEW BRANCH",
-    account_type: "普通",
-    account_number: "0000000",
-    account_holder: "PREVIEW ACCOUNT",
+/**
+ * Obviously fake, and deliberately so: these exist to prove the layout renders
+ * two methods in order, never to stand in for an account. Real details live
+ * only in the Hub and reach the site through the API.
+ */
+const fixtureMethods: TransferMethod[] = [
+  {
+    id: "fixture-bank",
+    method_type: "bank",
+    label_ja: "銀行振込",
+    label_en: "Bank transfer",
+    bank: {
+      name: "PREVIEW BANK (not a real bank)",
+      branch: "PREVIEW BRANCH",
+      account_type: "普通",
+      account_number: "0000000",
+      account_holder: "PREVIEW ACCOUNT",
+    },
+    wallet: null,
+    note_ja: "【プレビュー表示】実際のお振込先はHubで管理されています。",
+    note_en: "[Preview] Real transfer details are managed in the Hub.",
   },
-  gcash: null,
-  note_ja: "【プレビュー表示】実際のお振込先はHubで管理されています。",
-  note_en: "[Preview] Real transfer details are managed in the Hub.",
-  updated_at: null,
-};
+  {
+    id: "fixture-wallet",
+    method_type: "gcash",
+    label_ja: "GCash",
+    label_en: "GCash",
+    bank: null,
+    wallet: { number: "0000 000 0000", name: "PREVIEW WALLET" },
+    note_ja: null,
+    note_en: null,
+  },
+];
 
 export function quoteFixture(body: { items: { variant_id: string; qty: number }[]; order_type: OrderType }): HubQuote {
   const items: HubQuoteItem[] = body.items.map((line) => {
@@ -84,7 +101,8 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
   const shipping = subtotal >= 50000 ? 0 : 800;
   return {
     quote_id: "quote-fixture", items, subtotal_jpy: subtotal, shipping_jpy: shipping,
-    total_jpy: subtotal + shipping, requires_manual_quote: false, transfer_available: true,
+    total_jpy: subtotal + shipping, requires_manual_quote: false,
+    transfer_region: "JP", transfer_methods: fixtureMethods, transfer_available: true,
     order_type: body.order_type,
     expires_at: new Date(Date.now() + 30 * 60e3).toISOString(),
   };
@@ -94,7 +112,7 @@ export function payFixture(): HubPayResult {
   return {
     order_id: FIXTURE_ORDER_ID, web_reference: FIXTURE_REFERENCE, total_jpy: 236800,
     transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
-    transfer_instructions: fixtureInstructions,
+    transfer_region: "JP", transfer_methods: fixtureMethods,
   };
 }
 
@@ -118,6 +136,6 @@ export function orderFixture(id: string): HubOrderDetail | null {
       id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle",
       sku: "CJ-0003", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null,
     }],
-    transfer_instructions: fixtureInstructions,
+    transfer_region: "JP", transfer_methods: fixtureMethods,
   };
 }
