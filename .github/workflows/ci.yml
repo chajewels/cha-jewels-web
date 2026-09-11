@@ -2,8 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
+  # Both bases: a step's work arrives as feature -> develop, and develop -> main
+  # is the release PR. Filtering to main alone left feature PRs unchecked.
   pull_request:
+    branches: [main, develop]
 
 jobs:
   check:

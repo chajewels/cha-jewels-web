@@ -4,6 +4,8 @@
 - **Claude Code** owns everything under `app/`, `components/`, `lib/` (frontend, UI, read-only audits).
 - **Lovable** owns `supabase/functions/` and applies migrations. Claude Code may DRAFT SQL in `supabase/migrations/` and RPC contracts in `supabase/contracts/`, but never runs them.
 - **Cynthia** runs all SQL in the Supabase SQL Editor.
+- `main` is production and deploys to Vercel automatically. Work on `develop`; open a PR `develop` -> `main` and wait for Cynthia to merge. Vercel posts a preview URL on every PR; that is what she reviews.
+  Short-lived feature branches are fine, but they merge into `develop`, never into `main`. Never push directly to `main`.
 - The website talks to the Hub ONLY through the Website API (`lib/hub-api.ts`, spec in `supabase/contracts/api.md`). No direct table reads. The Hub's backend is Lovable Cloud today and will move to Cynthia's own Supabase before Phase 2; the API contract is what keeps that move invisible to the site.
 
 ## Non-negotiable business rules
