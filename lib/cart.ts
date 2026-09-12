@@ -29,7 +29,9 @@ export type CartItem = {
   variant_id: string;
   slug: string;
   qty: number;
+  /** English name; `name_ja` is the Hub-generated Japanese, null until generated. Pick via lib/catalog-i18n. */
   name: string;
+  name_ja: string | null;
   sku: string;
   size: string | null;
   stone: string | null;
@@ -114,7 +116,8 @@ export async function hydrateCart(lines: CartLine[]): Promise<{ items: CartItem[
       variant_id: variant.id,
       slug: product.slug,
       qty,
-      name: product.name,
+      name: product.name_en ?? product.name,
+      name_ja: product.name_ja ?? null,
       sku: product.sku,
       size: variant.size,
       stone: variant.stone,

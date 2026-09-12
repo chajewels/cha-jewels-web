@@ -11,8 +11,14 @@ export type Condition = "New" | "Preloved";
  * response may omit it — and an absent origin renders as UNKNOWN, not Japan.
  */
 export type Origin = "JAPAN" | "BRAND" | "OTHER" | "UNKNOWN";
-export type Product = { id: string; sku: string; slug: string; name: string; karat: string | null; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; product_variants: ProductVariant[] };
-export type Collection = { id: string; slug: string; name: string; hero_media: string | null; description: string | null };
+/**
+ * Bilingual copy: `name_en` / `name_ja` / `description_en` / `description_ja`.
+ * `name` is the Hub's English alias and stays for older responses. Pick the
+ * field for the current lang through lib/catalog-i18n — never read one
+ * language's column directly in a component.
+ */
+export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; product_variants: ProductVariant[] };
+export type Collection = { id: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; hero_media: string | null; description: string | null; description_en?: string | null; description_ja?: string | null };
 export type LiveClaim = { id: string; code: string; price_locked: number; status: "held" | "paid" | "layaway" | "expired" | "released"; expires_at: string; product_variant_id: string };
 export type LayawayQuote = { down_payment: number; monthly: number; term_months: number; total: number; max_term_months: number; currency: "JPY" | "PHP" };
 export type HubTier = { slug: string; name: string; threshold_jpy: number; requalify_spend: number | null; multiplier: number | null; hold_minutes: number; benefits_ja: string[]; benefits_en: string[] };
@@ -26,7 +32,7 @@ export type HubMe = { customer: HubCustomer; addresses: HubAddress[]; loyalty: H
 
 /** Phase 2 step 2 — cart, checkout and orders. */
 export type OrderType = "SELF" | "GIFT" | "PROXY";
-export type HubQuoteItem = { variant_id: string; product_id: string | null; sku: string | null; slug: string | null; name: string; qty: number; unit_price_jpy: number; line_total_jpy: number };
+export type HubQuoteItem = { variant_id: string; product_id: string | null; sku: string | null; slug: string | null; name: string; name_en?: string | null; name_ja?: string | null; qty: number; unit_price_jpy: number; line_total_jpy: number };
 export type HubQuote = {
   quote_id: string;
   items: HubQuoteItem[];
@@ -89,7 +95,8 @@ export type HubOrder = {
   tracking_number: string | null; shipped_at: string | null;
   ship_to_address?: HubAddress | null;
 };
-export type HubOrderItem = { id: string; variant_id: string | null; product_id: string | null; title: string; sku: string | null; quantity: number; unit_price_jpy: number; line_total_jpy: number; image_url: string | null };
+/** `title` is the English line title frozen at order time; `title_ja` is derived by the Hub from the product's current Japanese name and may be null. */
+export type HubOrderItem = { id: string; variant_id: string | null; product_id: string | null; title: string; title_ja?: string | null; sku: string | null; quantity: number; unit_price_jpy: number; line_total_jpy: number; image_url: string | null };
 export type HubOrderDetail = { order: HubOrder; items: HubOrderItem[]; transfer_region: TransferRegion; transfer_methods: TransferMethod[] };
 /** The Hub answers checkout failures with a code, not an HTTP body we should guess at. */
 export type HubCheckoutError = { error: string; variant_id?: string; available?: number };

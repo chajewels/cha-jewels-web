@@ -3,14 +3,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCollectionWithProducts, getCollections } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
+import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
 import { ProductCard } from "@/components/catalog/product-card";
 export const revalidate = 60;
 // Pre-render known collections when the Hub is reachable; otherwise build with none and render on demand.
 export async function generateStaticParams() { try { return (await getCollections()).map((c) => ({ slug: c.slug })); } catch { return []; } }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const col = await getCollectionWithProducts((await params).slug);
-  return col ? { title: col.name, description: col.description ?? undefined } : {};
+  const [col, lang] = await Promise.all([getCollectionWithProducts((await params).slug), getLang()]);
+  return col ? { title: collectionName(col, lang), description: collectionDescription(col, lang) ?? undefined } : {};
 }
 
 const FILTERS = [
@@ -45,8 +46,8 @@ export default async function CollectionPage({
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
-        <h1 className="text-[clamp(40px,6vw,88px)]">{col.name}</h1>
-        {col.description && <p className="mt-4 max-w-[58ch] text-champagne/75">{col.description}</p>}
+        <h1 className="text-[clamp(40px,6vw,88px)]">{collectionName(col, lang)}</h1>
+        {collectionDescription(col, lang) && <p className="mt-4 max-w-[58ch] text-champagne/75">{collectionDescription(col, lang)}</p>}
         <nav aria-label={t("collection", "filterLabel")} className="mt-8 flex flex-wrap gap-2 text-sm">
           {FILTERS.map((f) => {
             const on = f.key === active;

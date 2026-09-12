@@ -7,6 +7,7 @@ import { removeFromCart, setCartQty } from "@/lib/cart-actions";
 import { formatMoney } from "@/lib/utils";
 import { tr, type Lang } from "@/lib/i18n";
 import type { CartItem } from "@/lib/cart";
+import { cartItemName } from "@/lib/catalog-i18n";
 
 export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
   const t = tr(lang);
@@ -18,16 +19,17 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
         // A one-of-a-kind piece has a single unit on the shelf; there is no
         // quantity decision to offer, so we state the fact instead.
         const oneOfAKind = item.stock_qty <= 1;
+        const name = cartItemName(item, lang);
         return (
           <li key={item.variant_id} className="flex flex-wrap items-start gap-4 bg-velvet p-5">
             <div className="relative h-24 w-20 shrink-0 overflow-hidden border border-rule bg-velvet-deep">
               {item.image && (
-                <Image src={item.image.url} alt={item.image.alt ?? item.name} fill sizes="80px" className="object-cover" />
+                <Image src={item.image.url} alt={item.image.alt ?? name} fill sizes="80px" className="object-cover" />
               )}
             </div>
             <div className="min-w-[180px] flex-1">
               <Link href={`/products/${item.slug}`} className="font-display text-lg text-gold-pale hover:underline">
-                {item.name}
+                {name}
               </Link>
               <p className="mt-1 text-xs text-champagne/55">
                 SKU {item.sku}

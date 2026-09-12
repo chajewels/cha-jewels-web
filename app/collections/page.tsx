@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCollections } from "@/lib/queries/products";
 import { getLang, } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
+import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 export const metadata: Metadata = { title: "コレクション / Collections" };
 export const revalidate = 60;
 export default async function CollectionsIndex() {
@@ -15,8 +16,8 @@ export default async function CollectionsIndex() {
         <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
           {collections.map((c) => (
             <Link key={c.id} href={`/collections/${c.slug}`} className="min-h-[200px] bg-velvet p-6 hover:underline underline-offset-8">
-              <h2 className="text-[28px] text-gold-pale">{c.name}</h2>
-              {c.description && <p className="mt-2 text-sm text-champagne/75">{c.description}</p>}
+              <h2 className="text-[28px] text-gold-pale">{collectionName(c, lang)}</h2>
+              {collectionDescription(c, lang) && <p className="mt-2 text-sm text-champagne/75">{collectionDescription(c, lang)}</p>}
             </Link>
           ))}
         </div>
