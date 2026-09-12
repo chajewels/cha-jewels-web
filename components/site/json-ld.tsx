@@ -1,6 +1,7 @@
 import type { Product } from "@/lib/queries/products";
 import { siteUrl } from "@/lib/site";
-import { fromPrice, primaryImage } from "@/lib/queries/products";
+import { allImages, fromPrice } from "@/lib/queries/products";
+import { metalsLabel, productMetals } from "@/lib/metals";
 type Props = { type: "store" } | { type: "product"; product: Product } | { type: "faq"; items: { q: string; a: string }[] };
 export function JsonLd(props: Props) {
   const base = siteUrl();
@@ -8,7 +9,7 @@ export function JsonLd(props: Props) {
     ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: "Cha Jewels Co., Ltd.", url: base, address: { "@type": "PostalAddress", addressLocality: "Katsushika-ku", addressRegion: "Tokyo", addressCountry: "JP" }, areaServed: ["JP", "PH"], priceRange: "¥¥¥" }
     : props.type === "faq"
     ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: props.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })) }
-    : { "@context": "https://schema.org", "@type": "Product", name: props.product.name, sku: props.product.sku, image: primaryImage(props.product)?.url, material: props.product.karat ?? undefined, description: props.product.description_en ?? undefined,
+    : { "@context": "https://schema.org", "@type": "Product", name: props.product.name, sku: props.product.sku, image: allImages(props.product).map((m) => m.url), material: productMetals(props.product).length ? metalsLabel(productMetals(props.product), "en") : undefined, description: props.product.description_en ?? undefined,
         // A brand only when the Hub says the piece is branded. No countryOfOrigin
         // is ever emitted here — origin is a per-piece badge, not structured data.
         brand: props.product.origin === "BRAND" && props.product.brand?.trim() ? { "@type": "Brand", name: props.product.brand.trim() } : undefined,

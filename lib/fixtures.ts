@@ -12,7 +12,7 @@ export const collections: Collection[] = [
   { id: "c7", slug: "sets", name: "Sets", name_ja: null, hero_media: null, description: "Matched pieces sold together at a set price.", description_ja: null },
 ]; 
 const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: number, stone: string | null, col: string, name_ja: string | null = null): Product & { col: string } => ({
-  id: `p${i}`, sku: `CJ-${1000 + i}`, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_en: name, name_ja, karat, weight_g: w, status: "active", col,
+  id: `p${i}`, sku: `CJ-${1000 + i}`, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_en: name, name_ja, karat, metals: karat ? [karat] : [], weight_g: w, status: "active", col,
   // Rings are the preloved line in preview data; everything else is New.
   condition: col === "rings" ? "Preloved" : "New",
   description_en: `${name}. ${karat} ${stone ? "with " + stone + ", " : ""}hallmark checked in Japan and priced by weight.`, description_ja: null, description_tl: null,
@@ -33,6 +33,11 @@ export const products = [
   mk(7, "Baby bangle", "K18", 6.3, 124000, null, "bracelets"),
   mk(8, "Freshwater drop earrings", "K18", 3.1, 62000, "freshwater pearls", "earrings"),
 ];
+// Preview-only photos and a two-stamp piece, so the gallery and "PT900 / K18"
+// can be seen without the Hub. The SVGs live in public/fixtures/.
+products[0].metals = ["PT900", "K18"];
+products[0].product_variants[0].product_media = [1, 2, 3].map((n) => ({ url: `/fixtures/pendant-${n}.svg`, alt: `Double-sided diamond pendant, photo ${n}`, sort: n - 1 }));
+products[1].product_variants[0].product_media = [{ url: "/fixtures/chain-1.svg", alt: null, sort: 0 }];
 export const claims: LiveClaim[] = [{ id: "l1", code: "CJ-4821", price_locked: 236000, status: "held", expires_at: new Date(Date.now() + 36e5 * 6).toISOString(), product_variant_id: "v3" }];
 export function quote(price: number, term: number, currency: "JPY" | "PHP"): LayawayQuote {
   const threshold = currency === "PHP" ? 300000 * 0.39 : 300000;

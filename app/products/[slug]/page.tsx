@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Image from "next/image";
-import { getProductBySlug, primaryImage } from "@/lib/queries/products";
+import { allImages, getProductBySlug, primaryImage } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
 import { productDescription, productName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
@@ -10,7 +9,8 @@ import { PriceBlock } from "@/components/commerce/price-block";
 import { KaratBadge } from "@/components/catalog/karat-badge";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
 import { OriginBadge } from "@/components/catalog/origin-badge";
-import { metalLabel, normalizeMetal } from "@/lib/metals";
+import { metalsLabel, productMetals } from "@/lib/metals";
+import { ProductGallery } from "@/components/catalog/product-gallery";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { AddToCart } from "@/components/commerce/add-to-cart";
 import { JsonLd } from "@/components/site/json-ld";
@@ -27,7 +27,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const t = tr(lang);
   const variant = p.product_variants[0];
   const price = variant?.price_jpy;
-  const img = primaryImage(p);
+  const images = allImages(p).map((m) => ({ url: m.url, alt: m.alt }));
+  const metals = productMetals(p);
   const name = productName(p, lang);
   const desc = productDescription(p, lang);
   return (
@@ -36,16 +37,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <section className="py-[clamp(40px,6vw,80px)]">
         <div className="wrap grid gap-10 md:grid-cols-2">
           <figure className="border border-gold bg-velvet-deep p-1.5">
-            <div className="relative aspect-[4/5] overflow-hidden bg-velvet-deep">{img ? <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:768px) 50vw, 100vw" className="object-cover" priority /> : null}</div>
+            <ProductGallery images={images} name={name} lang={lang} />
             <dl className="grid grid-cols-3 border-t border-gold bg-velvet-deep">
-              <div className="border-r border-rule p-4"><dt className="text-xs text-champagne/55">{t("product", "metal")}</dt><dd className="font-display text-2xl text-gold-pale">{metalLabel(normalizeMetal(p.karat), lang)}</dd></div>
+              <div className="border-r border-rule p-4"><dt className="text-xs text-champagne/55">{t("product", "metal")}</dt><dd className="font-display text-2xl text-gold-pale">{metalsLabel(metals, lang)}</dd></div>
               <div className="border-r border-rule p-4"><dt className="text-xs text-champagne/55">{t("product", "weight")}</dt><dd className="font-display text-2xl text-gold-pale">{p.weight_g ? `${p.weight_g} g` : "—"}</dd></div>
               <div className="p-4"><dt className="text-xs text-champagne/55">{t("product", "stone")}</dt><dd className="font-display text-2xl text-gold-pale">{variant?.stone ?? "—"}</dd></div>
             </dl>
           </figure>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <KaratBadge karat={p.karat} lang={lang} />
+              <KaratBadge metals={metals} lang={lang} />
               <OriginBadge origin={p.origin} brand={p.brand} lang={lang} />
               <ConditionBadge condition={p.condition} lang={lang} />
             </div>

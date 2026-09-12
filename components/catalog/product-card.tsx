@@ -2,14 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { fromPrice, primaryImage, type Product } from "@/lib/queries/products";
 import { formatMoney } from "@/lib/utils";
-import { metalLabel, normalizeMetal } from "@/lib/metals";
+import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import { productName } from "@/lib/catalog-i18n";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
 export function ProductCard({ product, lang, featured = false }: { product: Product; lang: Lang; featured?: boolean }) {
   const t = tr(lang);
   const price = fromPrice(product);
-  const metal = metalLabel(normalizeMetal(product.karat), lang);
+  const metal = metalsLabel(productMetals(product), lang);
   const img = primaryImage(product);
   const v = product.product_variants[0];
   const name = productName(product, lang);
