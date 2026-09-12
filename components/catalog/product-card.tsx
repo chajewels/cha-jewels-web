@@ -4,6 +4,7 @@ import { fromPrice, primaryImage, type Product } from "@/lib/queries/products";
 import { formatMoney } from "@/lib/utils";
 import { metalLabel, normalizeMetal } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
+import { productName } from "@/lib/catalog-i18n";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
 export function ProductCard({ product, lang, featured = false }: { product: Product; lang: Lang; featured?: boolean }) {
   const t = tr(lang);
@@ -11,10 +12,11 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
   const metal = metalLabel(normalizeMetal(product.karat), lang);
   const img = primaryImage(product);
   const v = product.product_variants[0];
+  const name = productName(product, lang);
   return (
     <Link href={`/products/${product.slug}`} className={`flex flex-col bg-velvet ${featured ? "border border-gold p-1.5" : ""}`}>
       <div className={`relative overflow-hidden bg-velvet-deep ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
-        {img ? <Image src={img.url} alt={img.alt ?? product.name} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover" /> : <GoldMotif />}
+        {img ? <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover" /> : <GoldMotif />}
       </div>
       {featured && v && (
         <dl className="grid grid-cols-3 border-t border-gold bg-velvet-deep">
@@ -23,7 +25,7 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
       )}
       <div className="flex flex-1 flex-col p-5">
         {product.condition === "Preloved" && <div className="mb-2"><ConditionBadge condition={product.condition} lang={lang} /></div>}
-        <h3 className="font-display text-2xl text-gold-pale">{product.name}</h3>
+        <h3 className="font-display text-2xl text-gold-pale">{name}</h3>
         {product.weight_g && <p className="mt-1 text-sm text-champagne/60">{metal} · {product.weight_g} g</p>}
         {price != null && <p className="mt-auto pt-4 text-sm text-champagne/75">{formatMoney(price)}<span className="text-champagne/55"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span></p>}
       </div>

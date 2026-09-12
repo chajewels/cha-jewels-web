@@ -2,15 +2,17 @@ import type { Collection, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuot
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 export const collections: Collection[] = [
-  { id: "c1", slug: "necklaces", name: "Necklaces", hero_media: null, description: "Chains and strands in K18 and pearl, sized for daily wear." },
-  { id: "c2", slug: "pendants", name: "Pendants", hero_media: null, description: "Diamond, pearl and gold pendants to hang on your own chain or ours." },
-  { id: "c3", slug: "earrings", name: "Earrings", hero_media: null, description: "Hoops, studs and drops in K18 and platinum." },
-  { id: "c4", slug: "bracelets", name: "Bracelets", hero_media: null, description: "Bangles and chain bracelets, weight stated on every piece." },
-  { id: "c5", slug: "rings", name: "Rings", hero_media: null, description: "Solitaires, bands and statement rings, resizable in Japan." },
-  { id: "c6", slug: "anklets", name: "Anklets", hero_media: null, description: "Fine K18 anklets for everyday wear." },
+  { id: "c1", slug: "necklaces", name: "Necklaces", name_ja: "ネックレス", hero_media: null, description: "Chains and strands in K18 and pearl, sized for daily wear.", description_ja: "K18とパールのチェーン・ネックレス。毎日身につけやすい長さでご用意しています。" },
+  { id: "c2", slug: "pendants", name: "Pendants", name_ja: "ペンダント", hero_media: null, description: "Diamond, pearl and gold pendants to hang on your own chain or ours.", description_ja: "ダイヤモンド、パール、ゴールドのペンダント。お手持ちのチェーンにも、当店のチェーンにも。" },
+  { id: "c3", slug: "earrings", name: "Earrings", name_ja: "ピアス・イヤリング", hero_media: null, description: "Hoops, studs and drops in K18 and platinum.", description_ja: "K18とプラチナのフープ、スタッド、ドロップタイプ。" },
+  { id: "c4", slug: "bracelets", name: "Bracelets", name_ja: "ブレスレット", hero_media: null, description: "Bangles and chain bracelets, weight stated on every piece.", description_ja: "バングルとチェーンブレスレット。すべての商品に重量を表示しています。" },
+  { id: "c5", slug: "rings", name: "Rings", name_ja: "リング", hero_media: null, description: "Solitaires, bands and statement rings, resizable in Japan.", description_ja: "ソリティア、バンド、ステートメントリング。日本国内でサイズ直しを承ります。" },
+  { id: "c6", slug: "anklets", name: "Anklets", name_ja: "アンクレット", hero_media: null, description: "Fine K18 anklets for everyday wear.", description_ja: "毎日身につけられる華奢なK18アンクレット。" },
+  // One type without Japanese yet: the site must fall back to English, not blank.
+  { id: "c7", slug: "sets", name: "Sets", name_ja: null, hero_media: null, description: "Matched pieces sold together at a set price.", description_ja: null },
 ]; 
-const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: number, stone: string | null, col: string): Product & { col: string } => ({
-  id: `p${i}`, sku: `CJ-${1000 + i}`, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, karat, weight_g: w, status: "active", col,
+const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: number, stone: string | null, col: string, name_ja: string | null = null): Product & { col: string } => ({
+  id: `p${i}`, sku: `CJ-${1000 + i}`, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_en: name, name_ja, karat, weight_g: w, status: "active", col,
   // Rings are the preloved line in preview data; everything else is New.
   condition: col === "rings" ? "Preloved" : "New",
   description_en: `${name}. ${karat} ${stone ? "with " + stone + ", " : ""}hallmark checked in Japan and priced by weight.`, description_ja: null, description_tl: null,
@@ -21,10 +23,11 @@ const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: nu
   product_variants: [{ id: `v${i}`, size: null, stone, price_jpy: jpy, price_php: Math.round(jpy * 0.39), stock_qty: i % 5 === 0 ? 0 : 3, product_media: [] }],
 });
 export const products = [
-  mk(1, "Double-sided diamond pendant", "PT900", 16.9, 1480000, "2.62 ct diamonds", "pendants"),
-  mk(2, "Kihei chain 50 cm", "K18", 20.4, 398000, null, "necklaces"),
-  mk(3, "Twist bangle", "K18", 12.1, 236000, null, "bracelets"),
-  mk(4, "Akoya strand 7.5 mm", "K18", 4.2, 168000, "Akoya pearls", "earrings"),
+  mk(1, "Double-sided diamond pendant", "PT900", 16.9, 1480000, "2.62 ct diamonds", "pendants", "両面ダイヤモンドペンダント"),
+  mk(2, "Kihei chain 50 cm", "K18", 20.4, 398000, null, "necklaces", "喜平チェーン 50 cm"),
+  mk(3, "Twist bangle", "K18", 12.1, 236000, null, "bracelets", "ツイストバングル"),
+  mk(4, "Akoya strand 7.5 mm", "K18", 4.2, 168000, "Akoya pearls", "earrings", "あこや真珠 7.5 mm"),
+  // No Japanese name yet — the card must show the English one.
   mk(5, "Solitaire ring", "PT950", 3.8, 312000, "0.5 ct diamond", "rings"),
   mk(6, "Hoop earrings", "K18", 5.6, 118000, null, "necklaces"),
   mk(7, "Baby bangle", "K18", 6.3, 124000, null, "bracelets"),
@@ -98,7 +101,8 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
     const unit = product.product_variants[0].price_jpy;
     return {
       variant_id: line.variant_id, product_id: product.id, sku: product.sku, slug: product.slug,
-      name: product.name, qty: line.qty, unit_price_jpy: unit, line_total_jpy: unit * line.qty,
+      name: product.name, name_en: product.name, name_ja: product.name_ja ?? null,
+      qty: line.qty, unit_price_jpy: unit, line_total_jpy: unit * line.qty,
     };
   });
   const subtotal = items.reduce((n, i) => n + i.line_total_jpy, 0);
@@ -137,7 +141,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
   return {
     order: { ...order, ship_to_address: meFixture.addresses[0] },
     items: [{
-      id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle",
+      id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle", title_ja: "ツイストバングル",
       sku: "CJ-0003", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null,
     }],
     transfer_region: "JP", transfer_methods: fixtureMethods,

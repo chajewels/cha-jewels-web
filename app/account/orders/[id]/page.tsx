@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
+import { orderLineTitle } from "@/lib/catalog-i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
@@ -54,7 +55,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           {items.map((line) => (
             <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-velvet p-5">
               <div>
-                <p className="text-champagne">{line.title}</p>
+                <p className="text-champagne">{orderLineTitle(line, lang)}</p>
                 <p className="mt-1 text-xs text-champagne/55">
                   {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
                 </p>

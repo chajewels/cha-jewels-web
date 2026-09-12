@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
+import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
 import { ProductCard } from "@/components/catalog/product-card";
@@ -35,8 +36,8 @@ export default async function Home() {
           <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
             {collections.map((c) => (
               <Link key={c.id} href={`/collections/${c.slug}`} className="min-h-[220px] bg-velvet p-6 hover:underline underline-offset-8">
-                <h3 className="text-[28px] text-gold-pale">{c.name}</h3>
-                {c.description && <p className="mt-2 text-sm text-champagne/75">{c.description}</p>}
+                <h3 className="text-[28px] text-gold-pale">{collectionName(c, lang)}</h3>
+                {collectionDescription(c, lang) && <p className="mt-2 text-sm text-champagne/75">{collectionDescription(c, lang)}</p>}
               </Link>
             ))}
           </div>

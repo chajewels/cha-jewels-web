@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { tr, type Lang } from "@/lib/i18n";
+import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { payAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
@@ -199,7 +200,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
             <ul className="rule-grid grid gap-px">
               {quote.items.map((line) => (
                 <li key={line.variant_id} className="flex items-baseline justify-between gap-4 bg-velvet p-4 text-sm">
-                  <span>{line.name} × {line.qty}</span>
+                  <span>{quoteItemName(line, lang)} × {line.qty}</span>
                   <span className="font-display text-lg text-gold-pale">{formatMoney(line.line_total_jpy)}</span>
                 </li>
               ))}
@@ -253,7 +254,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
         <ul className="space-y-2 text-sm text-champagne/75">
           {items.map((i) => (
             <li key={i.variant_id} className="flex justify-between gap-4">
-              <span>{i.name}{i.qty > 1 ? ` × ${i.qty}` : ""}</span>
+              <span>{cartItemName(i, lang)}{i.qty > 1 ? ` × ${i.qty}` : ""}</span>
               <span>{formatMoney(i.line_total_jpy)}</span>
             </li>
           ))}
