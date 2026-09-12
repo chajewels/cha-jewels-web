@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { posts } from "@/lib/blog";
-export const metadata: Metadata = { title: "ブログ / Blog" };
+export const generateMetadata = () => pageMeta("blog");
 export default async function Blog() {
   const lang = await getLang();
   const t = tr(lang);

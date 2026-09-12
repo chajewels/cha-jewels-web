@@ -11,12 +11,12 @@ export function Header({ lang }: { lang: Lang }) {
     <header className="sticky top-0 z-40 border-b border-rule bg-velvet/90 backdrop-blur">
       <div className="wrap flex h-[68px] items-center justify-between gap-4">
         <Link href="/" className="gilt whitespace-nowrap font-display text-[26px] font-medium tracking-wide" aria-label="Cha Jewels">Cha Jewels</Link>
-        <nav aria-label="Primary" className="hidden xl:block"><ul className="flex gap-5 whitespace-nowrap text-sm text-champagne/75">{links.map(([h, l]) => <li key={h}><Link href={h} className="hover:text-gold-pale">{l}</Link></li>)}</ul></nav>
+        <nav aria-label={t("nav", "primary")} className="hidden xl:block"><ul className="flex gap-5 whitespace-nowrap text-sm text-champagne/75">{links.map(([h, l]) => <li key={h}><Link href={h} className="hover:text-gold-pale">{l}</Link></li>)}</ul></nav>
         <div className="flex items-center gap-2 sm:gap-3">
           <LangSwitcher lang={lang} />
           <CartButton lang={lang} />
           <Button asChild variant="ghost" className="hidden min-h-10 whitespace-nowrap px-4 text-sm xl:inline-flex"><Link href="/live">{t("nav", "claim")}</Link></Button>
-          <MobileNav links={links.map(([h, l]) => ({ href: h, label: l }))} claim={t("nav", "claim")} />
+          <MobileNav links={links.map(([h, l]) => ({ href: h, label: l }))} claim={t("nav", "claim")} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} />
         </div>
       </div>
     </header>

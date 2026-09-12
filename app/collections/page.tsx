@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { getCollections } from "@/lib/queries/products";
 import { getLang, } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
-export const metadata: Metadata = { title: "コレクション / Collections" };
+export const generateMetadata = () => pageMeta("collections");
 export const revalidate = 60;
 export default async function CollectionsIndex() {
   const [lang, collections] = await Promise.all([getLang(), getCollections().catch(() => [])]);

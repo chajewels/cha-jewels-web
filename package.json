@@ -9,6 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "check:terms": "node scripts/check-terminology.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > lib/supabase/database.types.ts"
   },
   "dependencies": {

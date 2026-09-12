@@ -28,6 +28,10 @@ jobs:
       # where it is crafted, never by a country name as a purity claim.
       - run: npm run check:terms
 
+      # Every user-facing string follows the language toggle: no CJK literal in
+      # a .tsx outside lib/i18n and lib/content.
+      - run: npm run check:i18n
+
       - run: npm run typecheck
 
       - run: npm run lint

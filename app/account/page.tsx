@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
@@ -8,7 +8,7 @@ import { hub } from "@/lib/hub-api";
 import type { HubMe } from "@/lib/types";
 import { SignOutButton } from "@/components/account/sign-out-button";
 
-export const metadata: Metadata = { title: "アカウント / Account" };
+export const generateMetadata = () => pageMeta("account");
 // Customer data is per-request by definition; never cache this page.
 export const dynamic = "force-dynamic";
 
@@ -61,7 +61,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                 <dl className="mt-4 space-y-2 text-sm">
                   <Row k={t("account", "tier")} v={me.loyalty.tier ?? "—"} />
                   <Row k={t("account", "points")} v={me.loyalty.points.toLocaleString()} />
-                  <Row k={t("loyalty", "multiplier")} v={me.loyalty.multiplier === null ? "—" : lang === "ja" ? `${me.loyalty.multiplier}倍` : `${me.loyalty.multiplier}x`} />
+                  <Row k={t("loyalty", "multiplier")} v={me.loyalty.multiplier === null ? "—" : t("loyalty", "times", { n: String(me.loyalty.multiplier) })} />
                 </dl>
               ) : (
                 <p className="mt-4 text-sm text-champagne/75">

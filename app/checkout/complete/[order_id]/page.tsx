@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
@@ -9,7 +9,7 @@ import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 
-export const metadata: Metadata = { title: "ご注文ありがとうございます / Thank you" };
+export const generateMetadata = () => pageMeta("complete");
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutCompletePage({ params }: { params: Promise<{ order_id: string }> }) {

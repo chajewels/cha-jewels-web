@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
@@ -9,7 +9,7 @@ import { formatMoney } from "@/lib/utils";
 import { orderStatusLabel, toneClass } from "@/lib/order-status";
 import type { HubOrder } from "@/lib/types";
 
-export const metadata: Metadata = { title: "ご注文履歴 / Your orders" };
+export const generateMetadata = () => pageMeta("orders");
 export const dynamic = "force-dynamic";
 
 export default async function OrdersPage() {
