@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
-import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
+import { CollectionCard } from "@/components/catalog/collection-card";
+import { ShowroomDepth } from "@/components/site/showroom-depth";
+import { showroomCopy } from "@/lib/i18n-showroom";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
 import { ProductCard } from "@/components/catalog/product-card";
@@ -16,9 +18,10 @@ export default async function Home() {
   return (
     <>
       <JsonLd type="store" />
-      <section className="border-b border-rule-soft py-[clamp(56px,8vw,112px)]">
-        <div className="wrap grid items-end gap-12 md:grid-cols-2">
-          <div>
+      <section className="showroom-hero border-b border-rule-soft py-[clamp(40px,6vw,88px)]">
+        <div className="wrap grid items-center gap-12 md:grid-cols-2">
+          <div className="showroom-intro">
+            <p className="mb-6 text-xs tracking-[0.2em] text-gold-pale">{showroomCopy[lang].eyebrow}</p>
             <h1 className="text-[clamp(40px,6.4vw,96px)]"><span className="gilt">{t("hero", "h1a")}</span><br /><em className={lang === "ja" ? "not-italic" : ""}>{t("hero", "h1b")}</em></h1>
             <p className="mt-7 max-w-[50ch] text-[clamp(16px,1.3vw,19px)] text-champagne/85">{t("hero", "lede")}</p>
             <div className="mt-9 flex flex-wrap gap-3">
@@ -26,20 +29,15 @@ export default async function Home() {
               <Button asChild variant="ghost"><Link href="/layaway">{t("hero", "cta2")}</Link></Button>
             </div>
           </div>
-          {featured[0] && <ProductCard product={featured[0]} lang={lang} featured />}
+          {featured[0] && <ShowroomDepth><ProductCard product={featured[0]} lang={lang} featured /></ShowroomDepth>}
         </div>
       </section>
       <section className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
         <div className="wrap">
           <h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "colsH")}</h2>
           <p className="mt-4 max-w-[58ch] text-champagne/75">{t("home", "colsP")}</p>
-          <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
-            {collections.map((c) => (
-              <Link key={c.id} href={`/collections/${c.slug}`} className="min-h-[220px] bg-velvet p-6 hover:underline underline-offset-8">
-                <h3 className="text-[28px] text-gold-pale">{collectionName(c, lang)}</h3>
-                {collectionDescription(c, lang) && <p className="mt-2 text-sm text-champagne/75">{collectionDescription(c, lang)}</p>}
-              </Link>
-            ))}
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {collections.map((c) => <CollectionCard key={c.id} collection={c} lang={lang} />)}
           </div>
         </div>
       </section>

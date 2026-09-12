@@ -1,12 +1,12 @@
 import { formatMoney, cn } from "@/lib/utils";
-import { tr, type Lang } from "@/lib/i18n";
-/** Full price + the standard 30% reservation line. Presentational; the binding figure comes from layaway_quote. */
+import type { Lang } from "@/lib/i18n";
+import { showroomCopy } from "@/lib/i18n-showroom";
+/** The Hub calculator below owns all reservation amounts; do not duplicate its math here. */
 export function PriceBlock({ price, lang, className }: { price: number; lang: Lang; className?: string }) {
-  const t = tr(lang);
   return (
     <div className={cn("border-y border-rule py-4", className)}>
-      <p className="font-display text-4xl text-gold-pale">{formatMoney(price)}</p>
-      <p className="mt-1 text-sm text-champagne/70">{t("product", "orReserve", { dp: formatMoney(Math.round(price * 0.3)) })}</p>
+      <p className="text-3xl tabular-nums text-gold-pale sm:text-4xl">{formatMoney(price)}</p>
+      <a href="#layaway-quote" className="mt-2 inline-flex min-h-11 items-center text-sm text-gold-pale underline underline-offset-4">{showroomCopy[lang].layawayInfo}</a>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { addToCart } from "@/lib/cart-actions";
 import { tr, type Lang } from "@/lib/i18n";
+import { showroomCopy } from "@/lib/i18n-showroom";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -16,6 +17,7 @@ export function AddToCart({ variantId, slug, stockQty, lang, className }: {
 }) {
   const t = tr(lang);
   const [pending, start] = useTransition();
+  const [error, setError] = useState(false);
   const [added, setAdded] = useState(false);
   const soldOut = stockQty <= 0;
 
@@ -32,10 +34,10 @@ export function AddToCart({ variantId, slug, stockQty, lang, className }: {
       <div className="flex flex-wrap items-center gap-3">
         <Button
           disabled={pending}
-          onClick={() => start(async () => { await addToCart(variantId, slug, 1); setAdded(true); })}
+          onClick={() => start(async () => { setError(false); try { await addToCart(variantId, slug, 1); setAdded(true); } catch { setError(true); } })}
           className="w-full sm:w-auto"
         >
-          {added ? t("cart", "added") : t("cart", "add")}
+          {pending ? showroomCopy[lang].adding : added ? t("cart", "added") : t("cart", "add")}
         </Button>
         {added && (
           <Link href="/cart" className="text-sm text-gold-pale underline underline-offset-4">
@@ -43,6 +45,7 @@ export function AddToCart({ variantId, slug, stockQty, lang, className }: {
           </Link>
         )}
       </div>
+      {error && <p role="alert" className="mt-2 max-w-[32ch] text-sm text-champagne">{showroomCopy[lang].addError}</p>}
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { OriginBadge } from "@/components/catalog/origin-badge";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
-import { AddToCart } from "@/components/commerce/add-to-cart";
+import { ProductPurchase } from "@/components/commerce/product-purchase";
 import { JsonLd } from "@/components/site/json-ld";
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -34,14 +34,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <JsonLd type="product" product={p} />
-      <section className="py-[clamp(40px,6vw,80px)]">
+      <section className="pb-36 pt-[clamp(40px,6vw,80px)] md:pb-20">
         <div className="wrap grid gap-10 md:grid-cols-2">
-          <figure className="border border-gold bg-velvet-deep p-1.5">
-            <ProductGallery images={images} name={name} lang={lang} />
+          <figure className="self-start border border-gold bg-velvet-deep p-1.5">
+            <ProductGallery key={p.slug} images={images} name={name} lang={lang} />
             <dl className="grid grid-cols-3 border-t border-gold bg-velvet-deep">
-              <div className="border-r border-rule p-4"><dt className="text-xs text-champagne/55">{t("product", "metal")}</dt><dd className="font-display text-2xl text-gold-pale">{metalsLabel(metals, lang)}</dd></div>
-              <div className="border-r border-rule p-4"><dt className="text-xs text-champagne/55">{t("product", "weight")}</dt><dd className="font-display text-2xl text-gold-pale">{p.weight_g ? `${p.weight_g} g` : "—"}</dd></div>
-              <div className="p-4"><dt className="text-xs text-champagne/55">{t("product", "stone")}</dt><dd className="font-display text-2xl text-gold-pale">{variant?.stone ?? "—"}</dd></div>
+              <div className="min-w-0 border-r border-rule p-3 sm:p-4"><dt className="text-xs text-champagne/55">{t("product", "metal")}</dt><dd className="break-words font-display text-lg text-gold-pale sm:text-2xl">{metalsLabel(metals, lang)}</dd></div>
+              <div className="min-w-0 border-r border-rule p-3 sm:p-4"><dt className="text-xs text-champagne/55">{t("product", "weight")}</dt><dd className="break-words font-display text-lg text-gold-pale sm:text-2xl">{p.weight_g ? `${p.weight_g} g` : "—"}</dd></div>
+              <div className="min-w-0 p-3 sm:p-4"><dt className="text-xs text-champagne/55">{t("product", "stone")}</dt><dd className="break-words font-display text-lg text-gold-pale sm:text-2xl">{variant?.stone ?? "—"}</dd></div>
             </dl>
           </figure>
           <div>
@@ -56,8 +56,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="mt-4 text-sm text-champagne/60">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
             {/* Full-price purchase. The layaway button waits for step 4; until
                 then the calculator below is informational only. */}
-            {variant && <AddToCart variantId={variant.id} slug={p.slug} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
-            {price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" />}
+            {variant && <ProductPurchase key={variant.id} variantId={variant.id} slug={p.slug} stockQty={variant.stock_qty} price={variant.price_jpy} lang={lang} />}
+            {price != null && <div id="layaway-quote"><LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" /></div>}
           </div>
         </div>
       </section>

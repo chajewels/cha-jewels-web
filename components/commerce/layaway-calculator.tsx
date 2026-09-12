@@ -36,7 +36,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRat
       <div role="group" aria-label={c.currency[lang]} className="flex w-fit overflow-hidden rounded-sm border border-rule text-xs">
         {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? "bg-gold text-ink" : "text-champagne/75"}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
-      <output aria-live="polite" className="grid grid-cols-3 gap-3">
+      <output aria-live="polite" className="grid gap-3 sm:grid-cols-3">
         <Cell k={c.dp[lang]} v={quote ? fmt(quote.down_payment) : "—"} />
         <Cell k={c.monthly[lang]} v={quote ? fmt(quote.monthly) : "—"} />
         <Cell k={c.total[lang]} v={quote ? fmt(quote.total) : "—"} />
@@ -46,4 +46,4 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRat
     </form>
   );
 }
-function Cell({ k, v }: { k: string; v: string }) { return <div><span className="text-xs text-champagne/55">{k}</span><b className="mt-1 block font-display text-2xl font-normal text-gold-pale">{v}</b></div>; }
+function Cell({ k, v }: { k: string; v: string }) { return <div className="flex items-baseline justify-between gap-3 border-b border-rule-soft pb-2 sm:block sm:border-0 sm:pb-0"><span className="text-xs text-champagne/55">{k}</span><b className="mt-1 block text-xl font-normal tabular-nums text-gold-pale">{v}</b></div>; }
