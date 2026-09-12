@@ -23,9 +23,9 @@ export async function Footer({ lang }: { lang: Lang }) {
           </ul>
         </div>
         <div><h4 className="mb-3 font-display text-lg text-gold-pale">{t("footer", "help")}</h4><ul className="space-y-2 text-champagne/75"><li><Link href="/layaway">{t("footer", "terms")}</Link></li><li><Link href="/loyalty">{t("nav", "loyalty")}</Link></li><li><Link href="/faq">{t("footer", "faq")}</Link></li><li><Link href="/gold-guide">{t("footer", "goldGuide")}</Link></li><li><Link href="/about">{t("nav", "about")}</Link></li><li><Link href="/blog">{t("nav", "blog")}</Link></li></ul></div>
-        <div><h4 className="mb-3 font-display text-lg text-gold-pale">{t("footer", "legal")}</h4><ul className="space-y-2 text-champagne/75"><li><Link href="/legal/tokusho" lang="ja">特定商取引法に基づく表記</Link></li><li><Link href="/legal/privacy">{t("footer", "privacy")}</Link></li><li><Link href="/legal/terms">{t("footer", "sale")}</Link></li></ul></div>
+        <div><h4 className="mb-3 font-display text-lg text-gold-pale">{t("footer", "legal")}</h4><ul className="space-y-2 text-champagne/75"><li><Link href="/legal/tokusho">{t("footer", "tokusho")}</Link></li><li><Link href="/legal/privacy">{t("footer", "privacy")}</Link></li><li><Link href="/legal/terms">{t("footer", "sale")}</Link></li></ul></div>
       </div>
-      <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-rule pt-5 text-xs text-champagne/55"><span>© {new Date().getFullYear()} 株式会社チャジュエルズ Cha Jewels Co., Ltd. · 東京都葛飾区立石</span><span lang="ja">適格請求書発行事業者登録番号 T7011801044120</span></div>
+      <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-rule pt-5 text-xs text-champagne/55"><span>© {new Date().getFullYear()} {t("footer", "company")}</span><span>{t("footer", "invoiceReg")}</span></div>
     </footer>
   );
 }

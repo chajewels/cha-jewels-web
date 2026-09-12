@@ -1,12 +1,13 @@
-import type { Lang } from "@/lib/i18n";
+import { dict, type Lang } from "@/lib/i18n";
 import type { Origin } from "@/lib/types";
 
 /**
  * The ONLY place an origin claim is rendered, and it renders one only from
- * data. The check-terminology script exempts this file alone: "Made in Japan"
- * and 日本製 hardcoded anywhere else fail the build.
+ * data. The check-terminology script exempts this file and the dictionary
+ * entry it reads (product.originJapan): the Japanese-origin claim hardcoded
+ * anywhere else fails the build.
  *
- *   JAPAN            -> 日本製 / Made in Japan
+ *   JAPAN            -> the Japanese-origin label (product.originJapan)
  *   BRAND with brand -> the brand name, and NO origin claim
  *   OTHER, UNKNOWN   -> nothing (a missing origin is not a Japanese one)
  *
@@ -16,7 +17,7 @@ import type { Origin } from "@/lib/types";
  */
 export function OriginBadge({ origin, brand, lang }: { origin: Origin | undefined; brand: string | null | undefined; lang: Lang }) {
   const label = origin === "JAPAN"
-    ? (lang === "ja" ? "日本製" : "Made in Japan")
+    ? dict.product.originJapan[lang]
     : origin === "BRAND" && brand?.trim()
       ? brand.trim()
       : null;

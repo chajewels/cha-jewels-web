@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
@@ -10,7 +10,7 @@ import { CheckoutFlow } from "@/components/commerce/checkout-flow";
 import { Button } from "@/components/ui/button";
 import type { HubAddress } from "@/lib/types";
 
-export const metadata: Metadata = { title: "ご注文手続き / Checkout" };
+export const generateMetadata = () => pageMeta("checkout");
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {

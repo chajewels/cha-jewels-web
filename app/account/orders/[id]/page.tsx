@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
@@ -11,7 +11,7 @@ import { orderStatusLabel, toneClass } from "@/lib/order-status";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 
-export const metadata: Metadata = { title: "ご注文詳細 / Order" };
+export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {

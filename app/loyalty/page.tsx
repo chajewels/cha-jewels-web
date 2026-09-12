@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
@@ -7,7 +7,7 @@ import { tiers as fallbackTiers } from "@/lib/loyalty";
 import type { HubTier } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-export const metadata: Metadata = { title: "会員プログラム / Loyalty" };
+export const generateMetadata = () => pageMeta("loyalty");
 export const revalidate = 300;
 export default async function LoyaltyPage() {
   const lang = await getLang();
@@ -30,15 +30,15 @@ export default async function LoyaltyPage() {
           <ol className="rule-grid mt-12 grid sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier, i) => (
               <li key={tier.slug} className="flex flex-col bg-velvet p-6">
-                <span className="text-xs text-champagne/55">Level {i + 1}</span>
+                <span className="text-xs text-champagne/55">{t("loyalty", "level", { n: String(i + 1) })}</span>
                 <h3 className="mt-1 text-[28px] text-gold-pale">{tier.name}</h3>
                 <div className="my-4 h-0.5 bg-[linear-gradient(90deg,#8A6B12,#E8D28A)]" style={{ width: `${25 + i * 25}%` }} />
                 <p className="text-xs text-champagne/55">{t("loyalty", "threshold")}</p>
-                <p className="font-display text-2xl text-champagne">{tier.threshold_jpy === 0 ? (lang === "ja" ? "入会時" : "On joining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</p>
+                <p className="font-display text-2xl text-champagne">{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</p>
                 <dl className="mt-4 space-y-2 text-xs">
                   <div className="flex items-baseline justify-between gap-3">
                     <dt className="text-champagne/55">{t("loyalty", "multiplier")}</dt>
-                    <dd className="font-display text-base text-gold-pale">{tier.multiplier === null ? "—" : lang === "ja" ? `${tier.multiplier}倍` : `${tier.multiplier}x`}</dd>
+                    <dd className="font-display text-base text-gold-pale">{tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}</dd>
                   </div>
                   <div className="flex items-baseline justify-between gap-3">
                     <dt className="text-champagne/55">{t("loyalty", "requalify")}</dt>

@@ -3,7 +3,7 @@ export const LANG_COOKIE = "cj-lang";
 export const DEFAULT_LANG: Lang = "ja";
 
 export const dict = {
-  nav: { home: { ja: "ホーム", en: "Home" }, about: { ja: "私たちについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "会員プログラム", en: "Loyalty" }, claim: { ja: "ライブ予約の確定", en: "Claim from Live" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "アカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
+  nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "私たちについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "会員プログラム", en: "Loyalty" }, claim: { ja: "ライブ予約の確定", en: "Claim from Live" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "アカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
   hero: {
     h1a: { ja: "身につける資産。", en: "Gold you can wear." }, h1b: { ja: "証明できる価値。", en: "Value you can prove." },
     lede: { ja: "K18ゴールド、あこや真珠、鑑定書付きダイヤモンド。一点ずつ東京で真贋を確認し、重量で価格を明示。無利息の分割予約で一点から、卸売なら東京から直接。次の世代へ受け継ぐ、資産としてのジュエリーです。", en: "K18 gold, Akoya pearls and certified diamonds, each piece checked and priced by weight in Tokyo. Buy one piece on 0% layaway, stock your shop from Tokyo, or build a gold collection your daughter will inherit." },
@@ -16,16 +16,20 @@ export const dict = {
     layH: { ja: "今すぐ予約、月々のお支払い", en: "Reserve it now, pay it off monthly" },
     layP: { ja: "30%のお支払いで商品を確保。残額は無利息で月々均等払い。¥300,000以上のご注文は最長8か月まで。", en: "Pay 30% to take the piece off the shelf, then the balance in equal monthly amounts at 0% interest. Orders of ¥300,000 and above can stretch to eight months." },
   },
-  product: { metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, reserved: { ja: "予約済み", en: "Currently reserved" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" } },
-  calc: { price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金（30%）", en: "Down payment (30%)" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "概算です。正確な日程と金額は契約書に記載します。", en: "Estimate. Your signed agreement shows exact dates and amounts." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, phpNote: { ja: "ペソ表示は本日のレートによる参考値です。お支払いは円建てで確定します。", en: "Peso figures are indicative at today's rate. Payments are settled in yen." }, rateAsOf: { ja: "レート基準日 {date}", en: "Rate as of {date}" } },
+  product: { originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, reserved: { ja: "予約済み", en: "Currently reserved" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" } },
+  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金（30%）", en: "Down payment (30%)" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "概算です。正確な日程と金額は契約書に記載します。", en: "Estimate. Your signed agreement shows exact dates and amounts." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, phpNote: { ja: "ペソ表示は本日のレートによる参考値です。お支払いは円建てで確定します。", en: "Peso figures are indicative at today's rate. Payments are settled in yen." }, rateAsOf: { ja: "レート基準日 {date}", en: "Rate as of {date}" } },
   collection: {
     empty: { ja: "まだ商品が登録されていません。Hubで追加された商品は1分以内に表示されます。", en: "No pieces are listed here yet. New pieces are added from the Hub and appear within a minute." },
     emptyFiltered: { ja: "この条件に該当する商品はありません。", en: "No pieces match this filter." },
     filterLabel: { ja: "状態でしぼり込む", en: "Filter by condition" },
     filterAll: { ja: "すべて", en: "All" }, filterNew: { ja: "新品", en: "New" }, filterPreloved: { ja: "プレラブド", en: "Preloved" },
   },
-  footer: { blurb: { ja: "日本で真贋確認済みのK18ゴールド、パール、ダイヤモンドジュエリーと、厳選したプレラブド・ラグジュアリー。東京のお客様と、世界中のフィリピン人ファミリーのために。", en: "K18 gold, pearl and diamond jewelry, hallmark checked in Japan, and curated preloved luxury. For our neighbours in Tokyo and Filipino families everywhere." }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of sale" } },
+  footer: { tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, company: { ja: "株式会社チャジュエルズ Cha Jewels Co., Ltd. · 東京都葛飾区立石", en: "Cha Jewels Co., Ltd. · Tateishi, Katsushika-ku, Tokyo" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, blurb: { ja: "日本で真贋確認済みのK18ゴールド、パール、ダイヤモンドジュエリーと、厳選したプレラブド・ラグジュアリー。東京のお客様と、世界中のフィリピン人ファミリーのために。", en: "K18 gold, pearl and diamond jewelry, hallmark checked in Japan, and curated preloved luxury. For our neighbours in Tokyo and Filipino families everywhere." }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of sale" } },
   loyalty: {
+    level: { ja: "レベル {n}", en: "Level {n}" }, onJoining: { ja: "入会時", en: "On joining" }, times: { ja: "{n}倍", en: "{n}x" },
+    regionJp: { ja: "日本", en: "Japan" }, regionPh: { ja: "フィリピン", en: "Philippines" }, regionOther: { ja: "その他", en: "Elsewhere" },
+    contactPlaceholder: { ja: "+81 / +63 / メール", en: "+81 / +63 / email" },
+    err: { ja: "送信できませんでした。もう一度お試しください。", en: "Could not submit. Please try again." },
     h1: { ja: "積み上がる会員プログラム", en: "Loyalty that adds up" },
     lede: { ja: "¥10,000のお買い上げごとに100ポイント。1ポイント＝¥1として次回のお買い物にご利用いただけます。6か月以内にご購入があればポイントは失効しません。ポイントは譲渡・換金できません。", en: "Every ¥10,000 spent earns 100 points, and one point is worth ¥1 on your next piece. Points stay active as long as you buy something within six months. Points cannot be transferred or cashed out." },
     levelsH: { ja: "レベルの仕組み", en: "How the levels work" },
@@ -54,7 +58,7 @@ export const dict = {
   },
   faq: { h1: { ja: "よくある質問", en: "Frequently asked questions" }, lede: { ja: "お問い合わせの多いご質問をまとめました。ほかにご不明な点があればお気軽にご連絡ください。", en: "The questions we are asked most. If yours is not here, please get in touch." } },
   gold: { h1: { ja: "ゴールドの基礎知識", en: "The gold guide" }, lede: { ja: "K18の意味、刻印の読み方、長く美しく保つためのお手入れ。購入前に知っておいていただきたいことをまとめました。", en: "What K18 means, how to read a stamp, and how to keep a piece looking right. The things worth knowing before you buy." }, cta: { ja: "コレクションを見る", en: "Shop the collections" } },
-  legal: { draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" } },
+  legal: { english: { ja: "English", en: "English" }, draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" } },
   account: {
     h1: { ja: "アカウント", en: "Your account" },
     loginH: { ja: "サインイン", en: "Sign in" },
@@ -194,6 +198,31 @@ export const dict = {
   },
   about: { h1: { ja: "私たちについて", en: "About Us" } },
   blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" } },
+  notFound: { h1: { ja: "そのお品物はここにはありません。", en: "That piece is not here." }, p: { ja: "すでに売れたか、リンクが古い可能性があります。", en: "It may have sold, or the link is old." }, back: { ja: "コレクションに戻る", en: "Back to the collections" } },
+  claim: { code: { ja: "予約コード", en: "Claim code" }, priceLocked: { ja: "確定価格", en: "Price locked at" }, ended: { ja: "このお取り置きは終了し、商品は再び販売中です。ご希望の場合はチームまでご連絡ください。", en: "This hold has ended and the piece is back on sale. Message the team if you still want it." }, heldUntil: { ja: "{time} JST までお取り置き。お支払い手続きはフェーズ2で開始します。", en: "Held until {time} JST. Checkout opens in Phase 2." } },
+  /** Page <title> and description, chosen by the language cookie in generateMetadata (lib/page-meta.ts). */
+  meta: {
+    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。無利息の分割予約、東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
+    layaway: { title: { ja: "分割予約", en: "Layaway" } },
+    blog: { title: { ja: "ブログ", en: "Blog" } },
+    account: { title: { ja: "アカウント", en: "Account" } },
+    orders: { title: { ja: "ご注文履歴", en: "Your orders" } },
+    order: { title: { ja: "ご注文詳細", en: "Order" } },
+    loyalty: { title: { ja: "会員プログラム", en: "Loyalty" } },
+    join: { title: { ja: "入会", en: "Join" } },
+    goldGuide: { title: { ja: "ゴールドの基礎知識", en: "Gold guide" }, description: { ja: "K18の意味、刻印の読み方、ゴールドとパールのお手入れ方法。", en: "What K18 means, how to read a hallmark, and how to care for gold and pearls." } },
+    checkout: { title: { ja: "ご注文手続き", en: "Checkout" } },
+    complete: { title: { ja: "ご注文ありがとうございます", en: "Thank you" } },
+    wholesale: { title: { ja: "卸売", en: "Wholesale" }, description: { ja: "日本とフィリピンのライブ販売者、ブティック、ファミリー経営の宝飾店に、K18ゴールドを卸価格で。", en: "K18 gold at trade prices for live sellers, boutiques and family jewelry businesses in Japan and the Philippines." } },
+    cart: { title: { ja: "カート", en: "Cart" } },
+    login: { title: { ja: "サインイン", en: "Sign in" } },
+    about: { title: { ja: "私たちについて", en: "About Us" } },
+    faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "分割予約、フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
+    collections: { title: { ja: "コレクション", en: "Collections" } },
+    terms: { title: { ja: "利用規約", en: "Terms of sale" }, description: { ja: "価格、分割予約、ライブからの予約、配送、返品、修理、準拠法。", en: "Prices, layaway, claims from Live, shipping, returns, repairs and governing law." } },
+    privacy: { title: { ja: "プライバシーポリシー", en: "Privacy policy" }, description: { ja: "Cha Jewelsが収集する情報、その目的、第三者への提供、開示・削除のご請求方法。", en: "What Cha Jewels collects, why, who else sees it, and how to ask for a copy or a deletion." } },
+    tokusho: { title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" } },
+  },
 } as const;
 
 type Leaf = { ja: string; en: string };

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
@@ -7,7 +7,7 @@ import { CartLines } from "@/components/commerce/cart-lines";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = { title: "カート / Cart" };
+export const generateMetadata = () => pageMeta("cart");
 // The cart is a cookie and prices are live; there is nothing here to cache.
 export const dynamic = "force-dynamic";
 

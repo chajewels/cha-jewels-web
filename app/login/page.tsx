@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { LoginForm } from "@/components/account/login-form";
 
-export const metadata: Metadata = { title: "サインイン / Sign in" };
+export const generateMetadata = () => pageMeta("login");
 
 export default async function LoginPage() {
   const lang = await getLang();

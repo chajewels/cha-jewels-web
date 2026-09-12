@@ -10,7 +10,9 @@ const forbidden = [/\bjapan(?:ese)? gold\b/i, /\bsaudi gold\b/i, /\bitalian gold
 // product's `origin` field. Hardcoded anywhere else it is an assertion about
 // pieces nobody checked — branded and preloved items included.
 const originClaims = [/\bmade in japan\b/i, /日本製/];
-const originAllowed = new Set(["components/catalog/origin-badge.tsx"]);
+// lib/i18n.ts holds the string (product.originJapan) so it follows the language
+// toggle; only OriginBadge may render it.
+const originAllowed = new Set(["components/catalog/origin-badge.tsx", "lib/i18n.ts"]);
 
 const skip = new Set(["node_modules", ".next", ".git"]);
 let hits = 0;
