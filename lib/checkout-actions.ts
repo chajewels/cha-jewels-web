@@ -1,6 +1,7 @@
 "use server";
 
 import { supabaseServer } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
 import { hub, HubError } from "@/lib/hub-api";
 import { readCart, hydrateCart } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
@@ -115,7 +116,9 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
   if (!quoteId) return { ok: false, code: "failed" };
 
   try {
-    const result = await hub.pay(jwt, quoteId);
+    // The language cookie decides which language the Hub writes the order
+    // emails in — read server-side, never trusted from the client component.
+    const result = await hub.pay(jwt, quoteId, await getLang());
     // The order exists and holds the stock; the cart has served its purpose.
     // Emptied only on success, so a failed payment leaves the basket intact.
     await writeCart([]);

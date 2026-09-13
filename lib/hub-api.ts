@@ -91,10 +91,11 @@ export const hub = {
       ? Promise.resolve(fx.quoteFixture(body))
       : call("/checkout/quote", { method: "POST", body: JSON.stringify({ ...body, mode: "full" }), jwt, revalidate: false }),
   /** Turns a quote into a real order. Transfer only in this step; Square is 501. */
-  pay: (jwt: string, quote_id: string): Promise<HubPayResult> =>
+  /** `lang` is stored on the order: the confirmation and every later email about it are written in it. */
+  pay: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubPayResult> =>
     FIXTURES
       ? Promise.resolve(fx.payFixture())
-      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer" }), jwt, revalidate: false }),
+      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer", lang }), jwt, revalidate: false }),
   orders: (jwt: string): Promise<HubOrder[]> =>
     FIXTURES ? Promise.resolve(fx.ordersFixture) : call("/orders", { jwt, revalidate: false }),
   order: (jwt: string, id: string): Promise<HubOrderDetail | null> =>
