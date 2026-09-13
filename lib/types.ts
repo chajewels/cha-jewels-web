@@ -96,7 +96,7 @@ export type HubOrder = {
   tracking_number: string | null; shipped_at: string | null;
   /** Set by the Hub when the order is cancelled; the refund decision is the Hub's, this side only renders it. */
   cancellation_reason: string | null;
-  refund_status: "refund_issued" | "refund_pending" | "no_refund" | null;
+  refund_status: "refund_issued" | "refund_pending" | "store_credit_issued" | "no_refund" | null;
   refund_note: string | null;
   /** When a transfer order ran past its 72-hour hold and the Hub released the stock. */
   expired_at: string | null;

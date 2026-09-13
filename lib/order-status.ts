@@ -37,6 +37,7 @@ export function refundLabel(status: HubOrder["refund_status"], lang: Lang): stri
   switch (status) {
     case "refund_issued": return dict.orders.refundIssued[lang];
     case "refund_pending": return dict.orders.refundPending[lang];
+    case "store_credit_issued": return dict.orders.storeCredit[lang];
     case "no_refund": return dict.orders.noRefund[lang];
     default: return null;
   }
