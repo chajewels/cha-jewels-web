@@ -7,7 +7,7 @@ import { orderLineTitle } from "@/lib/catalog-i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { orderStatusLabel, toneClass } from "@/lib/order-status";
+import { orderStatusLabel, refundLabel, toneClass } from "@/lib/order-status";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 
@@ -40,6 +40,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const status = orderStatusLabel(order, lang);
   const address = order.ship_to_address;
   const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
+  const locale = lang === "ja" ? "ja-JP" : "en-GB";
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { dateStyle: "medium" });
+  const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
+  const refund = refundLabel(order.refund_status, lang);
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
@@ -80,6 +84,25 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <p>{[address.city, address.region, address.postal_code].filter(Boolean).join(" ")}</p>
             <p className="text-champagne/55">{address.country}</p>
           </div>
+        )}
+
+        {/* The Hub decided the cancellation and the refund; this block only reports them. */}
+        {cancelled && (
+          <div className="mt-10 border border-rule p-6 text-sm text-champagne/80">
+            <h2 className="font-display text-xl text-gold-pale">{t("orders", "statusCancelled")}</h2>
+            <dl className="mt-4 space-y-2">
+              {order.cancelled_at && <Row k={t("orders", "cancelledOn")} v={fmtDate(order.cancelled_at)} />}
+              {order.cancellation_reason && <Row k={t("orders", "cancelReason")} v={order.cancellation_reason} />}
+              {refund && <Row k={t("orders", "refund")} v={refund} />}
+            </dl>
+            {order.refund_note && <p className="mt-4 whitespace-pre-line text-champagne/55">{order.refund_note}</p>}
+          </div>
+        )}
+
+        {order.status === "expired" && (
+          <p className="mt-10 text-sm text-champagne/55">
+            {t("orders", "statusExpired")}{order.expired_at ? ` · ${fmtDate(order.expired_at)}` : ""}
+          </p>
         )}
 
         {order.tracking_number && (

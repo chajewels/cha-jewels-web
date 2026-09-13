@@ -94,6 +94,12 @@ export type HubOrder = {
   transfer_due_at: string | null; recipient_name: string | null; gift_note: string | null;
   order_date: string | null; created_at: string; completed_at: string | null; cancelled_at: string | null;
   tracking_number: string | null; shipped_at: string | null;
+  /** Set by the Hub when the order is cancelled; the refund decision is the Hub's, this side only renders it. */
+  cancellation_reason: string | null;
+  refund_status: "refund_issued" | "refund_pending" | "no_refund" | null;
+  refund_note: string | null;
+  /** When a transfer order ran past its 72-hour hold and the Hub released the stock. */
+  expired_at: string | null;
   ship_to_address?: HubAddress | null;
 };
 /** `title` is the English line title frozen at order time; `title_ja` is derived by the Hub from the product's current Japanese name and may be null. */

@@ -138,6 +138,7 @@ export const ordersFixture: HubOrder[] = [{
   recipient_name: null, gift_note: null, order_date: new Date().toISOString().slice(0, 10),
   created_at: new Date().toISOString(), completed_at: null, cancelled_at: null,
   tracking_number: null, shipped_at: null,
+  cancellation_reason: null, refund_status: null, refund_note: null, expired_at: null,
 }];
 
 export function orderFixture(id: string): HubOrderDetail | null {
