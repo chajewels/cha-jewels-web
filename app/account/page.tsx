@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
-import { hub } from "@/lib/hub-api";
+import { hubMe } from "@/lib/session";
 import type { HubMe } from "@/lib/types";
 import { SignOutButton } from "@/components/account/sign-out-button";
 
@@ -25,7 +25,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   let me: HubMe | null = null;
   let failure: string | null = sp.link === "failed" ? "link" : null;
   if (jwt) {
-    try { me = await hub.me(jwt); } catch { failure = failure ?? "hub"; }
+    try { me = await hubMe(jwt); } catch { failure = failure ?? "hub"; }
   } else {
     failure = failure ?? "session";
   }
@@ -55,7 +55,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
               </dl>
             </div>
 
-            <div className="bg-velvet p-6">
+            <div id="loyalty" className="bg-velvet p-6">
               <h2 className="font-display text-xl text-gold-pale">{t("account", "loyalty")}</h2>
               {me.loyalty.enrolled ? (
                 <dl className="mt-4 space-y-2 text-sm">

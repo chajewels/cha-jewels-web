@@ -82,6 +82,11 @@ export const dict = {
     default: { ja: "既定", en: "Default" },
     unavailable: { ja: "アカウント情報を読み込めませんでした。しばらくしてからもう一度お試しください。", en: "We could not load your account just now. Please try again shortly." },
     soon: { ja: "ご注文と分割予約の履歴は順次公開します。", en: "Orders and layaway plans appear here as they go live." },
+    layawayH: { ja: "分割予約", en: "Your layaway plans" },
+    layawaySoon: { ja: "分割予約のご利用状況はまもなくこちらでご覧いただけます。それまでのお問い合わせは、ご注文時のメールへのご返信でお受けしています。", en: "Your layaway plans will appear here soon. Until then, reply to any order email and we will help." },
+    layawayLearn: { ja: "分割予約について", en: "How layaway works" },
+    addressesH: { ja: "お届け先住所", en: "Your addresses" },
+    addressesP: { ja: "ご注文時に選択できるお届け先です。追加・変更はご注文手続きの中で行えます。", en: "The addresses you can ship to. Add or change one during checkout." },
   },
   cart: {
     h1: { ja: "カート", en: "Your cart" },
@@ -202,6 +207,18 @@ export const dict = {
   blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" } },
   notFound: { h1: { ja: "そのお品物はここにはありません。", en: "That piece is not here." }, p: { ja: "すでに売れたか、リンクが古い可能性があります。", en: "It may have sold, or the link is old." }, back: { ja: "コレクションに戻る", en: "Back to the collections" } },
   claim: { code: { ja: "予約コード", en: "Claim code" }, priceLocked: { ja: "確定価格", en: "Price locked at" }, ended: { ja: "このお取り置きは終了し、商品は再び販売中です。ご希望の場合はチームまでご連絡ください。", en: "This hold has ended and the piece is back on sale. Message the team if you still want it." }, heldUntil: { ja: "{time} JST までお取り置き。お支払い手続きはフェーズ2で開始します。", en: "Held until {time} JST. Checkout opens in Phase 2." } },
+  /** Header account menu (signed in) and the drawer's account section. */
+  accountMenu: {
+    menu: { ja: "アカウントメニュー", en: "Account menu" },
+    fallback: { ja: "アカウント", en: "Account" },
+    myAccount: { ja: "マイページ", en: "My account" },
+    orders: { ja: "注文履歴", en: "Orders" },
+    layaway: { ja: "分割予約", en: "Layaway" },
+    addresses: { ja: "住所", en: "Addresses" },
+    points: { ja: "ポイント・会員レベル", en: "Points & level" },
+    signOut: { ja: "サインアウト", en: "Sign out" },
+    signedOut: { ja: "サインアウトしました", en: "Signed out" },
+  },
   /** Page <title> and description, chosen by the language cookie in generateMetadata (lib/page-meta.ts). */
   meta: {
     site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。無利息の分割予約、東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
@@ -209,6 +226,7 @@ export const dict = {
     blog: { title: { ja: "ブログ", en: "Blog" } },
     account: { title: { ja: "アカウント", en: "Account" } },
     orders: { title: { ja: "ご注文履歴", en: "Your orders" } },
+    addresses: { title: { ja: "お届け先住所", en: "Your addresses" } },
     order: { title: { ja: "ご注文詳細", en: "Order" } },
     loyalty: { title: { ja: "会員プログラム", en: "Loyalty" } },
     join: { title: { ja: "入会", en: "Join" } },
