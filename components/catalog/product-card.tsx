@@ -13,10 +13,19 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
   const img = primaryImage(product);
   const v = product.product_variants[0];
   const name = productName(product, lang);
+  // Sold out when every variant is at zero. One-of-a-kind pieces usually have
+  // exactly one variant, so this is "the piece is gone" — the card says so
+  // before the shopper opens a page whose button is disabled anyway.
+  const soldOut = product.product_variants.length > 0 && product.product_variants.every((pv) => pv.stock_qty <= 0);
   return (
     <Link href={`/products/${product.slug}`} className={`flex flex-col bg-velvet ${featured ? "border border-gold p-1.5" : ""}`}>
       <div className={`relative overflow-hidden bg-velvet-deep ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
-        {img ? <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover" /> : <GoldMotif />}
+        {img ? <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:1024px) 25vw, 50vw" className={`object-cover ${soldOut ? "opacity-50" : ""}`} /> : <GoldMotif />}
+        {soldOut && (
+          <span className="absolute left-3 top-3 border border-gold bg-velvet-deep/90 px-2.5 py-1 text-xs tracking-wide text-gold-pale">
+            {t("cart", "soldOut")}
+          </span>
+        )}
       </div>
       {featured && v && (
         <dl className="grid grid-cols-3 border-t border-gold bg-velvet-deep">
@@ -27,7 +36,14 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
         {product.condition === "Preloved" && <div className="mb-2"><ConditionBadge condition={product.condition} lang={lang} /></div>}
         <h3 className="font-display text-2xl text-gold-pale">{name}</h3>
         {product.weight_g && <p className="mt-1 text-sm text-champagne/60">{metal} · {product.weight_g} g</p>}
-        {price != null && <p className="mt-auto pt-4 text-sm text-champagne/75">{formatMoney(price)}<span className="text-champagne/55"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span></p>}
+        {price != null && (
+          <p className="mt-auto pt-4 text-sm text-champagne/75">
+            {formatMoney(price)}
+            {soldOut
+              ? <span className="text-champagne/55"> · {t("cart", "soldOut")}</span>
+              : <span className="text-champagne/55"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span>}
+          </p>
+        )}
       </div>
     </Link>
   );
