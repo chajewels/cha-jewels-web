@@ -52,7 +52,7 @@ export const tiers: HubTier[] = localTiers.map((t) => ({ slug: t.slug, name: t.n
 export const meFixture: HubMe = {
   customer: { id: "cust-fixture", customer_code: "CJ-2026-00008", full_name: "Preview Customer", email: "preview@example.com", mobile_number: null },
   addresses: [{ id: "addr-1", label: "home", recipient_name: "Preview Customer", line1: "1-2-3 Tateishi", city: "Katsushika-ku", region: "Tokyo", postal_code: "124-0012", country: "JP", phone: null, is_default: true }],
-  loyalty: { enrolled: true, points: 1200, tier: "Glimmer", multiplier: 1 },
+  loyalty: { enrolled: true, points: 1200, tier: "Glimmer", multiplier: 1, reduced: true, earned_tier: "Radiant", regain_jpy: 397418 },
   saved_card: false,
 };
 

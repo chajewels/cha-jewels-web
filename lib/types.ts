@@ -28,7 +28,21 @@ export type FxRate = { jpy_php: number; as_of: string };
 /** Phase 2 step 1 — customer account. */
 export type HubCustomer = { id: string; customer_code: string | null; full_name: string | null; email: string | null; mobile_number: string | null };
 export type HubAddress = { id?: string; label?: string | null; recipient_name?: string | null; line1: string; line2?: string | null; city?: string | null; region?: string | null; postal_code?: string | null; country?: string | null; phone?: string | null; is_default?: boolean };
-export type HubLoyalty = { enrolled: boolean; points: number; tier: string | null; multiplier: number | null };
+/**
+ * Loyalty snapshot from the Hub. `reduced` = the level is temporarily one step
+ * down after 180 days without a purchase; `earned_tier` is the level the
+ * member earned and `regain_jpy` the spend still needed to get it back. All
+ * three are absent on older Hub deploys — read them defensively.
+ */
+export type HubLoyalty = {
+  enrolled: boolean;
+  points: number;
+  tier: string | null;
+  multiplier: number | null;
+  reduced?: boolean;
+  earned_tier?: string | null;
+  regain_jpy?: number | null;
+};
 export type HubMe = { customer: HubCustomer; addresses: HubAddress[]; loyalty: HubLoyalty; saved_card: boolean };
 
 /** Phase 2 step 2 — cart, checkout and orders. */

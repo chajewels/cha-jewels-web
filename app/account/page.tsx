@@ -6,6 +6,7 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
 import type { HubMe } from "@/lib/types";
+import { formatMoney } from "@/lib/utils";
 import { SignOutButton } from "@/components/account/sign-out-button";
 
 export const generateMetadata = () => pageMeta("account");
@@ -58,11 +59,27 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             <div id="loyalty" className="bg-velvet p-6">
               <h2 className="font-display text-xl text-gold-pale">{t("account", "loyalty")}</h2>
               {me.loyalty.enrolled ? (
-                <dl className="mt-4 space-y-2 text-sm">
-                  <Row k={t("account", "tier")} v={me.loyalty.tier ?? "—"} />
-                  <Row k={t("account", "points")} v={me.loyalty.points.toLocaleString()} />
-                  <Row k={t("loyalty", "multiplier")} v={me.loyalty.multiplier === null ? "—" : t("loyalty", "times", { n: String(me.loyalty.multiplier) })} />
-                </dl>
+                <>
+                  <dl className="mt-4 space-y-2 text-sm">
+                    <Row k={t("account", "tier")} v={me.loyalty.tier ?? "—"} />
+                    <Row k={t("account", "points")} v={me.loyalty.points.toLocaleString()} />
+                    <Row k={t("loyalty", "multiplier")} v={me.loyalty.multiplier === null ? "—" : t("loyalty", "times", { n: String(me.loyalty.multiplier) })} />
+                  </dl>
+                  {me.loyalty.reduced === true && (
+                    <div className="mt-4 border border-garnet/60 bg-velvet-deep p-4 text-sm" data-testid="level-reduced">
+                      <p className="font-display text-base text-gold-pale">{t("account", "levelReduced")}</p>
+                      <p className="mt-1 text-champagne/75">{t("account", "levelReducedP")}</p>
+                      <dl className="mt-3 space-y-2">
+                        {me.loyalty.earned_tier && <Row k={t("account", "earnedLevel")} v={me.loyalty.earned_tier} />}
+                        {typeof me.loyalty.regain_jpy === "number" && <Row k={t("account", "regain")} v={formatMoney(me.loyalty.regain_jpy, "JP")} />}
+                      </dl>
+                    </div>
+                  )}
+                  <p className="mt-4 text-xs text-champagne/55">
+                    {t("account", "levelRule")}{" "}
+                    <Link href="/loyalty" className="underline hover:text-gold-pale">{t("nav", "loyalty")}</Link>
+                  </p>
+                </>
               ) : (
                 <p className="mt-4 text-sm text-champagne/75">
                   {t("account", "notEnrolled")}{" "}
