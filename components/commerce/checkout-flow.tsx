@@ -35,6 +35,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
   const [giftNote, setGiftNote] = useState("");
   const [quote, setQuote] = useState<HubQuote | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The Hub's request id for the failure on screen. Shown as "Ref: …" so the
+  // next "could not complete" is one log lookup away instead of a mystery.
+  const [errorRef, setErrorRef] = useState<string | null>(null);
 
   const errorCopy = (code: string) =>
     code === "transfer_unavailable" ? t("checkout", "transferUnavailable")
@@ -44,8 +47,23 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
     : code === "address_required" ? t("checkout", "addressRequired")
     : t("checkout", "failed");
 
+  function showError(code: string, requestId?: string | null) {
+    setError(errorCopy(code));
+    // Only a server-side failure needs a reference; the others say what to do.
+    setErrorRef(code === "failed" ? requestId ?? null : null);
+  }
+  function clearError() { setError(null); setErrorRef(null); }
+
+  const quoteInput = () => ({
+    ship_to_address_id: addressId,
+    order_type: orderType,
+    recipient_name: orderType === "SELF" ? undefined : recipientName,
+    recipient_phone: orderType === "SELF" ? undefined : recipientPhone,
+    gift_note: orderType === "GIFT" ? giftNote : undefined,
+  });
+
   function saveAddress(form: FormData) {
-    setError(null);
+    clearError();
     const draft: HubAddress = {
       label: "home",
       recipient_name: String(form.get("recipient_name") ?? "").trim() || null,
@@ -59,7 +77,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
     };
     start(async () => {
       const res = await saveAddressAction(addresses, draft);
-      if (!res.ok) { setError(errorCopy(res.code)); return; }
+      if (!res.ok) { showError(res.code, res.requestId); return; }
       setAddresses(res.data);
       setAddressId(res.data.find((a) => a.is_default)?.id ?? res.data[0]?.id ?? "");
       setShowNew(false);
@@ -67,16 +85,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
   }
 
   function toReview() {
-    setError(null);
+    clearError();
     start(async () => {
-      const res = await quoteAction({
-        ship_to_address_id: addressId,
-        order_type: orderType,
-        recipient_name: orderType === "SELF" ? undefined : recipientName,
-        recipient_phone: orderType === "SELF" ? undefined : recipientPhone,
-        gift_note: orderType === "GIFT" ? giftNote : undefined,
-      });
-      if (!res.ok) { setError(errorCopy(res.code)); return; }
+      const res = await quoteAction(quoteInput());
+      if (!res.ok) { showError(res.code, res.requestId); return; }
       setQuote(res.data);
       setStep(2);
     });
@@ -84,16 +96,39 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
 
   function placeOrder() {
     if (!quote) return;
-    setError(null);
+    clearError();
     start(async () => {
       const res = await payAction(quote.quote_id);
-      if (!res.ok) {
-        setError(errorCopy(res.code));
-        // A stale quote is recoverable by going back and re-pricing.
-        if (res.code === "expired" || res.code === "sold_out") setStep(1);
+      if (res.ok) { router.push(`/checkout/complete/${res.data.order_id}`); return; }
+
+      if (res.code === "expired") {
+        // The quote aged out (30 minutes) or was already used. Price the same
+        // basket again and land on Review with the fresh figures, saying why.
+        const fresh = await quoteAction(quoteInput());
+        if (fresh.ok) {
+          setQuote(fresh.data);
+          setStep(2);
+          setError(t("checkout", "expiredRequoted"));
+          setErrorRef(null);
+        } else {
+          setQuote(null);
+          setStep(1);
+          showError(fresh.code, fresh.requestId);
+        }
         return;
       }
-      router.push(`/checkout/complete/${res.data.order_id}`);
+      if (res.code === "sold_out") {
+        // The piece is gone; the cart still lists it. Say so on the delivery
+        // step, where the cart link is, rather than on a payment screen for
+        // an order that can no longer exist.
+        setQuote(null);
+        setStep(1);
+        showError(res.code);
+        return;
+      }
+      // transfer_unavailable, signed_out, failed — stay put, show the reason,
+      // and for a server failure the Hub's request id.
+      showError(res.code, res.requestId);
     });
   }
 
@@ -109,7 +144,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
         </ol>
 
         {error && (
-          <p role="alert" className="mb-6 border border-garnet/60 bg-velvet-deep p-4 text-sm text-champagne/85">{error}</p>
+          <div role="alert" className="mb-6 border border-garnet/60 bg-velvet-deep p-4 text-sm text-champagne/85">
+            <p>{error}</p>
+            {errorRef && (
+              <p className="mt-2 font-mono text-xs text-champagne/55">{t("checkout", "ref")}: {errorRef}</p>
+            )}
+          </div>
         )}
 
         {step === 1 && (

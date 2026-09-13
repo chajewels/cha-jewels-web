@@ -138,6 +138,8 @@ export const dict = {
     deadlineNote: { ja: "ご注文後72時間以内にお振込ください。期限を過ぎたご注文は自動的にキャンセルとなり、商品は再び販売されます。", en: "Please transfer within 72 hours. After that the order is cancelled automatically and the piece goes back on sale." },
     soldOut: { ja: "申し訳ありません。ご注文手続き中にこの商品は売り切れとなりました。", en: "Sorry — that piece sold while you were checking out." },
     expired: { ja: "お見積りの有効期限が切れました。もう一度お試しください。", en: "Your quote expired. Please try again." },
+    expiredRequoted: { ja: "お見積りの有効期限が切れたため、最新の内容でお見積りし直しました。ご確認のうえ、もう一度お進みください。", en: "Your quote had expired, so we priced your order again. Please review it and continue." },
+    ref: { ja: "参照番号", en: "Reference" },
     failed: { ja: "ご注文を完了できませんでした。しばらくしてからもう一度お試しください。", en: "We could not complete your order. Please try again shortly." },
     emptyCart: { ja: "カートが空のためお手続きできません。", en: "There is nothing in your cart to check out." },
     addressRequired: { ja: "お届け先をご入力ください。", en: "Please enter a delivery address." },

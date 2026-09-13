@@ -100,4 +100,4 @@ export type HubOrder = {
 export type HubOrderItem = { id: string; variant_id: string | null; product_id: string | null; title: string; title_ja?: string | null; sku: string | null; quantity: number; unit_price_jpy: number; line_total_jpy: number; image_url: string | null };
 export type HubOrderDetail = { order: HubOrder; items: HubOrderItem[]; transfer_region: TransferRegion; transfer_methods: TransferMethod[] };
 /** The Hub answers checkout failures with a code, not an HTTP body we should guess at. */
-export type HubCheckoutError = { error: string; variant_id?: string; available?: number };
+export type HubCheckoutError = { error: string; variant_id?: string; available?: number; request_id?: string };

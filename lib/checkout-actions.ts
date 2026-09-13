@@ -18,7 +18,7 @@ import type { HubAddress, HubQuote, HubPayResult, OrderType } from "@/lib/types"
  * locally: the Hub re-prices at /checkout/quote and again inside
  * create_web_order_atomic, so a tampered client cannot move a price.
  */
-export type ActionResult<T> = { ok: true; data: T } | { ok: false; code: string };
+export type ActionResult<T> = { ok: true; data: T } | { ok: false; code: string; requestId?: string | null };
 
 async function jwtOrNull(): Promise<string | null> {
   const supabase = await supabaseServer();
@@ -26,13 +26,29 @@ async function jwtOrNull(): Promise<string | null> {
   return data.session?.access_token ?? null;
 }
 
-/** Maps a Hub failure to a code the UI has copy for; anything else is "failed". */
+/**
+ * Maps a Hub failure to a code the UI has copy for. The Hub's own error string
+ * decides — not the HTTP status alone, because 409 covers "the quote aged out",
+ * "someone bought it first" and "we cannot be paid for that destination", and
+ * each needs different words and a different next step. Anything unknown is
+ * "failed", and carries the Hub's request id so the screen can show it.
+ */
+const EXPIRED = new Set(["quote_expired", "quote_already_used", "quote_not_found"]);
+const SOLD_OUT = new Set(["out_of_stock", "variant_missing"]);
+
 function toCode(err: unknown): string {
   if (err instanceof HubError) {
+    if (err.code && EXPIRED.has(err.code)) return "expired";
+    if (err.code && SOLD_OUT.has(err.code)) return "sold_out";
+    if (err.code === "transfer_unavailable") return "transfer_unavailable";
     if (err.status === 409) return "sold_out";
     if (err.status === 401 || err.status === 403) return "signed_out";
   }
   return "failed";
+}
+
+function fail<T>(err: unknown): ActionResult<T> {
+  return { ok: false, code: toCode(err), requestId: err instanceof HubError ? err.requestId : null };
 }
 
 /**
@@ -59,7 +75,7 @@ export async function saveAddressAction(
     const me = await hub.me(jwt);
     return { ok: true, data: me.addresses };
   } catch (err) {
-    return { ok: false, code: toCode(err) };
+    return fail(err);
   }
 }
 
@@ -89,7 +105,7 @@ export async function quoteAction(input: {
     });
     return { ok: true, data: quote };
   } catch (err) {
-    return { ok: false, code: toCode(err) };
+    return fail(err);
   }
 }
 
@@ -105,14 +121,8 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
     await writeCart([]);
     return { ok: true, data: result };
   } catch (err) {
-    // A 409 here is either a quote that aged out or a piece someone else
-    // bought first. The Hub distinguishes them in the body, but by this point
-    // the advice is the same: go back and re-quote.
-    // 409 covers both "the world moved" and "we cannot be paid for that
-    // destination". They need different copy, so read the body's code.
-    if (err instanceof HubError && err.status === 409) {
-      return { ok: false, code: err.code === "transfer_unavailable" ? "transfer_unavailable" : "expired" };
-    }
-    return { ok: false, code: toCode(err) };
+    // expired / sold_out / transfer_unavailable / failed — decided by the
+    // Hub's error code in toCode(); the request id rides along for "Ref: …".
+    return fail(err);
   }
 }

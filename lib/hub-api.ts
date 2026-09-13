@@ -11,9 +11,14 @@ const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
 const BASE = (process.env.HUB_API_URL ?? "").replace(/\/$/, "");
 const KEY = process.env.HUB_API_KEY ?? "";
 
-/** `code` is the Hub's machine-readable error string (e.g. "transfer_unavailable"), when it sent one. */
+/**
+ * `code` is the Hub's machine-readable error string (e.g. "transfer_unavailable"),
+ * when it sent one. `requestId` is the Hub's x-request-id for that call: shown
+ * to the shopper as "Ref: …" so a failure on screen can be matched to the one
+ * Hub log line that names its cause.
+ */
 export class HubError extends Error {
-  constructor(public status: number, message: string, public code: string | null = null) { super(message); }
+  constructor(public status: number, message: string, public code: string | null = null, public requestId: string | null = null) { super(message); }
 }
 
 async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[]; jwt?: string } = {}): Promise<T> {
@@ -35,11 +40,10 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
   if (!res.ok) {
     // Read the body's error code so callers can tell one 409 from another.
     // A body that is missing or not JSON is normal for gateway-level failures.
-    const code = await res.clone().json().then(
-      (b) => (typeof b?.error === "string" ? b.error : null),
-      () => null,
-    );
-    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}`, code);
+    const body = await res.clone().json().then((b) => (b && typeof b === "object" ? b : null), () => null);
+    const code = typeof body?.error === "string" ? body.error : null;
+    const requestId = (typeof body?.request_id === "string" && body.request_id) || res.headers.get("x-request-id") || null;
+    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId);
   }
   return res.json() as Promise<T>;
 }
