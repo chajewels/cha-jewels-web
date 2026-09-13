@@ -4,6 +4,8 @@ import { Bodoni_Moda, Archivo, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
+import { FlashNotice } from "@/components/site/flash-notice";
+import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { dict, tr } from "@/lib/i18n";
 
@@ -30,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-gold px-3 py-2 text-ink focus:left-2">{t("nav", "skip")}</a>
         <Header lang={lang} />
+        <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>
         <Footer lang={lang} />
       </body>
