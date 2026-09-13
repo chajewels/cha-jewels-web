@@ -6,7 +6,7 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { orderStatusLabel, toneClass } from "@/lib/order-status";
+import { isClosedOrder, orderStatusLabel, refundLabel, toneClass } from "@/lib/order-status";
 import type { HubOrder } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("orders");
@@ -48,6 +48,11 @@ export default async function OrdersPage() {
           <ul className="rule-grid mt-10 grid gap-px">
             {orders.map((order) => {
               const status = orderStatusLabel(order, lang);
+              // A cancelled or expired order stays in the list; the reason and the
+              // refund decision sit under its badge so the customer need not open it.
+              const closedNote = isClosedOrder(order)
+                ? [order.cancellation_reason, refundLabel(order.refund_status, lang)].filter(Boolean).join(" · ")
+                : "";
               return (
                 <li key={order.id} className="flex flex-wrap items-center justify-between gap-4 bg-velvet p-5">
                   <div>
@@ -56,7 +61,10 @@ export default async function OrdersPage() {
                       {t("orders", "placed")} {(order.order_date ?? order.created_at).slice(0, 10)}
                     </p>
                   </div>
-                  <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
+                  <div className="flex flex-col items-start gap-1">
+                    <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
+                    {closedNote && <p className="max-w-[36ch] text-xs text-champagne/55">{closedNote}</p>}
+                  </div>
                   <p className="font-display text-xl text-gold-pale">{formatMoney(Number(order.total_amount))}</p>
                   <Link href={`/account/orders/${order.id}`} className="text-sm text-gold-pale underline underline-offset-4">
                     {t("orders", "view")}
