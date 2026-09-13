@@ -46,6 +46,13 @@ export const faqItems: FaqItem[] = [
     },
   },
   {
+    q: { ja: "会員レベルはどのように決まりますか？", en: "How is my member level decided?" },
+    a: {
+      ja: "これまでのお買い上げ合計で決まり、上のレベルに達した日から特典が使えます。180日間お買い上げがない場合はレベルが1段階下がり、各レベルの復帰条件の金額をお買い上げいただくと元に戻ります。ポイントは有効期限内であれば残ります。",
+      en: "By your lifetime purchases with Cha Jewels; the perks of a new level start the same day you reach it. If 180 days pass without a purchase your level steps down by one, and it comes back once you spend that level's regain amount. Your points stay as long as they are within their validity period.",
+    },
+  },
+  {
     q: { ja: "買い取りはしていますか？", en: "Will you buy it back?" },
     a: {
       ja: "当店でお求めいただいたK18の商品は、その時点の金相場に基づき書面でお見積りをお出しします。有効期限は7日間です。プレラブド・ラグジュアリーは買い取りではなく、委託販売のお手伝いをしています。",

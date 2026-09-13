@@ -27,6 +27,7 @@ export default async function LoyaltyPage() {
         <div className="wrap">
           <h2 className="max-w-[20ch] text-[clamp(30px,4vw,56px)]">{t("loyalty", "levelsH")}</h2>
           <p className="mt-4 max-w-[58ch] text-champagne/75">{t("loyalty", "levelsP")}</p>
+          <p className="mt-2 max-w-[58ch] text-sm text-champagne/60">{t("loyalty", "inactivityP")}</p>
           <ol className="rule-grid mt-12 grid sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier, i) => (
               <li key={tier.slug} className="flex flex-col bg-velvet p-6">
