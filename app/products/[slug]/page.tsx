@@ -15,6 +15,7 @@ import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { AddToCart } from "@/components/commerce/add-to-cart";
 import { ReserveWithLayaway } from "@/components/commerce/reserve-with-layaway";
 import { JsonLd } from "@/components/site/json-ld";
+import { ProductView } from "@/components/analytics/product-view";
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const [p, lang] = await Promise.all([getProductBySlug((await params).slug), getLang()]);
@@ -35,6 +36,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <JsonLd type="product" product={p} />
+      <ProductView sku={p.sku} lang={lang} />
       <section className="py-[clamp(40px,6vw,80px)]">
         <div className="wrap grid gap-10 md:grid-cols-2">
           <figure className="border border-gold bg-velvet-deep p-1.5">
@@ -58,8 +60,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {/* Two ways to buy the same piece, one basket. The calculator below
                 stays: it answers "what would that cost me monthly" before the
                 shopper commits to either. */}
-            {variant && <AddToCart variantId={variant.id} slug={p.slug} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
-            {variant && <ReserveWithLayaway variantId={variant.id} slug={p.slug} stockQty={variant.stock_qty} lang={lang} className="mt-3" />}
+            {variant && <AddToCart variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
+            {variant && <ReserveWithLayaway variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-3" />}
             {price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" />}
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addToCart } from "@/lib/cart-actions";
+import { trackAddToCart } from "@/lib/analytics";
 import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 
@@ -19,8 +20,8 @@ import { Button } from "@/components/ui/button";
  * the plan is created at the end of checkout, so an abandoned basket never sits
  * on a one-of-a-kind piece.
  */
-export function ReserveWithLayaway({ variantId, slug, stockQty, lang, className }: {
-  variantId: string; slug: string; stockQty: number; lang: Lang; className?: string;
+export function ReserveWithLayaway({ variantId, slug, sku, stockQty, lang, className }: {
+  variantId: string; slug: string; sku: string; stockQty: number; lang: Lang; className?: string;
 }) {
   const t = tr(lang);
   const router = useRouter();
@@ -36,6 +37,10 @@ export function ReserveWithLayaway({ variantId, slug, stockQty, lang, className 
         className="w-full sm:w-auto"
         onClick={() => start(async () => {
           await addToCart(variantId, slug, 1);
+          // Same event as the plain cart button: this is a cart addition that
+          // landed. Telling the two intents apart would need a third property,
+          // which Vercel Pro does not allow — see lib/analytics.ts.
+          trackAddToCart(sku, lang);
           router.push("/checkout?mode=layaway");
         })}
       >
