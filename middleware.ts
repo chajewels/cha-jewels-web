@@ -33,7 +33,11 @@ function toLogin(req: NextRequest, reason?: string) {
   const to = req.nextUrl.clone();
   to.pathname = "/login";
   to.search = "";
-  to.searchParams.set("next", req.nextUrl.pathname);
+  // Keep the query string with the path. "Reserve with layaway" sends a shopper
+  // to /checkout?mode=layaway; a signed-out one who lost the mode here would
+  // sign in and land on full payment instead of what they pressed. Still a
+  // relative path, so the login form's relative-only check is unaffected.
+  to.searchParams.set("next", `${req.nextUrl.pathname}${req.nextUrl.search}`);
   if (reason) to.searchParams.set("reason", reason);
   return NextResponse.redirect(to);
 }

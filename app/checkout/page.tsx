@@ -13,8 +13,14 @@ import type { HubAddress } from "@/lib/types";
 export const generateMetadata = () => pageMeta("checkout");
 export const dynamic = "force-dynamic";
 
-export default async function CheckoutPage() {
-  const [lang, lines] = await Promise.all([getLang(), readCart()]);
+export default async function CheckoutPage({ searchParams }: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const [lang, lines, params] = await Promise.all([getLang(), readCart(), searchParams]);
+  // Reserve on a product page lands here with ?mode=layaway pre-selected. It is
+  // only the step's starting position — the shopper can still switch, and the
+  // Hub prices whichever they end on.
+  const initialMode = params.mode === "layaway" ? "layaway" : "full";
   const t = tr(lang);
 
   // middleware also gates /checkout, but a page that reads customer data must
@@ -52,7 +58,7 @@ export default async function CheckoutPage() {
       <div className="wrap">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
         <div className="mt-10">
-          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} />
+          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} />
         </div>
       </div>
     </section>
