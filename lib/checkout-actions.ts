@@ -5,7 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { hub, HubError } from "@/lib/hub-api";
 import { readCart, hydrateCart } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
-import type { HubAddress, HubQuote, HubPayResult, OrderType } from "@/lib/types";
+import type { CheckoutMode, HubAddress, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
 /**
  * Checkout runs entirely on the server.
@@ -42,6 +42,12 @@ function toCode(err: unknown): string {
     if (err.code && EXPIRED.has(err.code)) return "expired";
     if (err.code && SOLD_OUT.has(err.code)) return "sold_out";
     if (err.code === "transfer_unavailable") return "transfer_unavailable";
+    // Layaway refusals. below_plan_minimum covers both "no term is sellable at
+    // this amount" and "the term chosen is out of reach" — the customer picks
+    // again from the terms the Hub sent, so one message serves both.
+    if (err.code === "below_plan_minimum") return "below_plan_minimum";
+    if (err.code === "currency_not_supported_for_full") return "currency_unsupported";
+    if (err.code === "fx_rate_missing") return "rate_unavailable";
     if (err.status === 409) return "sold_out";
     if (err.status === 401 || err.status === 403) return "signed_out";
   }
@@ -86,6 +92,10 @@ export async function quoteAction(input: {
   recipient_name?: string;
   recipient_phone?: string;
   gift_note?: string;
+  /** Absent means full payment, the behaviour before step 4. */
+  mode?: CheckoutMode;
+  term_months?: number;
+  settlement_currency?: SettlementCurrency;
 }): Promise<ActionResult<HubQuote>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
@@ -103,6 +113,9 @@ export async function quoteAction(input: {
       recipient_name: input.recipient_name,
       recipient_phone: input.recipient_phone,
       gift_note: input.gift_note,
+      mode: input.mode ?? "full",
+      term_months: input.mode === "layaway" ? input.term_months : undefined,
+      settlement_currency: input.settlement_currency,
     });
     return { ok: true, data: quote };
   } catch (err) {
@@ -126,6 +139,30 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
   } catch (err) {
     // expired / sold_out / transfer_unavailable / failed — decided by the
     // Hub's error code in toCode(); the request id rides along for "Ref: …".
+    return fail(err);
+  }
+}
+
+/**
+ * Turns a layaway quote into a plan. Same endpoint as payAction, different
+ * answer: the Hub reads the mode off the quote, so the two are separate actions
+ * rather than one with a union return the caller has to narrow.
+ *
+ * No money moves here. The plan is created, the piece comes off the shelf, and
+ * the customer is told where to send the deposit and by when.
+ */
+export async function payLayawayAction(quoteId: string): Promise<ActionResult<HubLayawayPayResult>> {
+  const jwt = await jwtOrNull();
+  if (!jwt) return { ok: false, code: "signed_out" };
+  if (!quoteId) return { ok: false, code: "failed" };
+
+  try {
+    const result = await hub.payLayaway(jwt, quoteId, await getLang());
+    // The plan holds the stock now, so the basket has served its purpose.
+    // Cleared only on success — a refused plan leaves the cart intact.
+    await writeCart([]);
+    return { ok: true, data: result };
+  } catch (err) {
     return fail(err);
   }
 }

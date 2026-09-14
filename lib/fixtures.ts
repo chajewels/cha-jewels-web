@@ -1,4 +1,4 @@
-import type { Collection, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LiveClaim, OrderType, Product, TransferMethod } from "@/lib/types";
+import type { CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, LiveClaim, OrderType, Product, SettlementCurrency, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 export const collections: Collection[] = [
@@ -39,13 +39,39 @@ products[0].metals = ["PT900", "K18"];
 products[0].product_variants[0].product_media = [1, 2, 3].map((n) => ({ url: `/fixtures/pendant-${n}.svg`, alt: `Double-sided diamond pendant, photo ${n}`, sort: n - 1 }));
 products[1].product_variants[0].product_media = [{ url: "/fixtures/chain-1.svg", alt: null, sort: 0 }];
 export const claims: LiveClaim[] = [{ id: "l1", code: "CJ-4821", price_locked: 236000, status: "held", expires_at: new Date(Date.now() + 36e5 * 6).toISOString(), product_variant_id: "v3" }];
+/**
+ * The calculator's preview answer, in the shape the real SQL function returns:
+ * the configured terms with this amount's eligibility already decided, the
+ * Hub's floor-and-remainder rounding, and the downgrade flag a write path
+ * refuses on. Keeping the shape honest here is what stops preview mode from
+ * hiding a field the production page depends on.
+ */
 export function quote(price: number, term: number, currency: "JPY" | "PHP"): LayawayQuote {
-  const threshold = currency === "PHP" ? 300000 * 0.39 : 300000;
-  const max = price >= threshold ? 8 : 6;
-  const t = Math.min(Math.max(term, 3), max);
+  const rate = currency === "PHP" ? 0.39 : 1;
+  const terms: LayawayTerm[] = PLAN_MINIMUMS.map(([months, minJpy]) => ({
+    months, label: `${months} Months`,
+    min_amount: Math.round(minJpy * rate),
+    dp_percentage: 0.3,
+    eligible: price >= Math.round(minJpy * rate),
+  }));
+  const eligible = terms.filter((t) => t.eligible);
+  const wanted = eligible.find((t) => t.months === term);
+  const chosen = wanted ?? eligible[eligible.length - 1] ?? terms[0];
+  const max = eligible.length ? eligible[eligible.length - 1].months : 3;
   const dp = Math.round(price * 0.3);
-  return { down_payment: dp, monthly: Math.round((price - dp) / t), term_months: t, total: price, max_term_months: max, currency };
+  const base = Math.floor((price - dp) / chosen.months);
+  const remainder = price - dp - base * chosen.months;
+  return {
+    down_payment: dp, monthly: base, last_month: base + remainder,
+    term_months: chosen.months, total: price, max_term_months: max, currency,
+    allowed_terms: terms,
+    requested_term_months: term,
+    term_downgraded: chosen.months !== term,
+  };
 }
+
+/** plan_configurations as it stands: months and the yen minimum. */
+const PLAN_MINIMUMS: [number, number][] = [[3, 0], [6, 25000], [8, 300000], [10, 600000], [12, 1000000]];
 export const tiers: HubTier[] = localTiers.map((t) => ({ slug: t.slug, name: t.name, threshold_jpy: t.thresholdJpy, requalify_spend: t.requalifyJpy, multiplier: t.multiplier, hold_minutes: t.holdMinutes, benefits_ja: t.perks.ja, benefits_en: t.perks.en }));
 
 /** Preview-mode account data. Obvious placeholders — never real customer data. */
@@ -100,7 +126,7 @@ const fixtureMethods: TransferMethod[] = [
   },
 ];
 
-export function quoteFixture(body: { items: { variant_id: string; qty: number }[]; order_type: OrderType }): HubQuote {
+export function quoteFixture(body: { items: { variant_id: string; qty: number }[]; order_type: OrderType; mode?: CheckoutMode; term_months?: number; settlement_currency?: SettlementCurrency }): HubQuote {
   const items: HubQuoteItem[] = body.items.map((line) => {
     const product = products.find((p) => p.product_variants.some((v) => v.id === line.variant_id)) ?? products[0];
     const unit = product.product_variants[0].price_jpy;
@@ -112,14 +138,56 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
   });
   const subtotal = items.reduce((n, i) => n + i.line_total_jpy, 0);
   const shipping = subtotal >= 50000 ? 0 : 800;
+  const total = subtotal + shipping;
+  const mode: CheckoutMode = body.mode ?? "full";
+  const settlement: SettlementCurrency = body.settlement_currency ?? "JPY";
+  const rate = settlement === "PHP" ? 0.39 : null;
+  const inSettlement = (jpy: number) => (rate === null ? jpy : Math.round(jpy * rate));
   return {
     quote_id: "quote-fixture", items, subtotal_jpy: subtotal, shipping_jpy: shipping,
-    total_jpy: subtotal + shipping, requires_manual_quote: false,
+    total_jpy: total, requires_manual_quote: false,
     transfer_region: "JP", transfer_methods: fixtureMethods, transfer_available: true,
     order_type: body.order_type,
     expires_at: new Date(Date.now() + 30 * 60e3).toISOString(),
+    mode,
+    settlement_currency: settlement,
+    fx_rate: rate,
+    fx_rate_date: rate === null ? null : "2026-09-08",
+    // Shipping is converted and the subtotal is the remainder, so the parts
+    // always sum to the settlement total exactly — the same rule the Hub uses.
+    shipping_settlement: inSettlement(shipping),
+    total_settlement: inSettlement(total),
+    subtotal_settlement: inSettlement(total) - inSettlement(shipping),
+    layaway: mode === "layaway" ? layawayPlanOf(inSettlement(total), body.term_months ?? 6) : null,
   };
 }
+
+/** The same floor-and-remainder rule the Hub uses, so preview figures add up. */
+function layawayPlanOf(total: number, termMonths: number) {
+  const term = fixtureTerms.some((t) => t.months === termMonths && t.eligible) ? termMonths : 3;
+  const deposit = Math.round(total * 0.3);
+  const base = Math.floor((total - deposit) / term);
+  const remainder = total - deposit - base * term;
+  const start = new Date();
+  const schedule: LayawayScheduleRow[] = Array.from({ length: term }, (_, i) => {
+    const due = new Date(start);
+    due.setMonth(due.getMonth() + i + 1);
+    return {
+      installment_number: i + 1,
+      due_date: due.toISOString().slice(0, 10),
+      amount: base + (i === term - 1 ? remainder : 0),
+    };
+  });
+  return { term_months: term, deposit, monthly: base, last_month: base + remainder, schedule, allowed_terms: fixtureTerms };
+}
+
+const fixtureTerms: LayawayTerm[] = [
+  { months: 3, label: "3 Months", min_amount: 0, dp_percentage: 0.3, eligible: true },
+  { months: 6, label: "6 Months", min_amount: 25000, dp_percentage: 0.3, eligible: true },
+  { months: 8, label: "8 Months", min_amount: 300000, dp_percentage: 0.3, eligible: false },
+  { months: 10, label: "10 Months", min_amount: 600000, dp_percentage: 0.3, eligible: false },
+  { months: 12, label: "12 Months", min_amount: 1000000, dp_percentage: 0.3, eligible: false },
+];
 
 export function payFixture(): HubPayResult {
   return {
@@ -151,5 +219,78 @@ export function orderFixture(id: string): HubOrderDetail | null {
       sku: "CJ-0003", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null,
     }],
     transfer_region: "JP", transfer_methods: fixtureMethods,
+  };
+}
+
+/** Phase 2 step 4 — layaway preview data. */
+const FIXTURE_PLAN_ID = "plan-fixture";
+const FIXTURE_PLAN_REFERENCE = "CJ-W-900002";
+const fixturePlanTotal = 236800;
+const fixturePlanDeposit = Math.round(fixturePlanTotal * 0.3);
+const fixturePlanTerm = 6;
+const fixturePlanBase = Math.floor((fixturePlanTotal - fixturePlanDeposit) / fixturePlanTerm);
+const fixturePlanRemainder = fixturePlanTotal - fixturePlanDeposit - fixturePlanBase * fixturePlanTerm;
+
+function fixtureDueDate(monthsAhead: number): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + monthsAhead);
+  return d.toISOString().slice(0, 10);
+}
+
+export function layawayPayFixture(): HubLayawayPayResult {
+  return {
+    mode: "layaway",
+    account_id: FIXTURE_PLAN_ID,
+    web_reference: FIXTURE_PLAN_REFERENCE,
+    currency: "JPY",
+    total: fixturePlanTotal,
+    deposit: fixturePlanDeposit,
+    term_months: fixturePlanTerm,
+    schedule: Array.from({ length: fixturePlanTerm }, (_, i) => ({
+      installment_number: i + 1,
+      due_date: fixtureDueDate(i + 1),
+      amount: fixturePlanBase + (i === fixturePlanTerm - 1 ? fixturePlanRemainder : 0),
+    })),
+    transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
+    transfer_region: "JP",
+    transfer_methods: fixtureMethods,
+  };
+}
+
+export const layawayPlansFixture: HubLayawayPlan[] = [{
+  id: FIXTURE_PLAN_ID, web_reference: FIXTURE_PLAN_REFERENCE, invoice_number: "900002",
+  status: "active", currency: "JPY", total_amount: fixturePlanTotal, total_paid: 0,
+  remaining_balance: fixturePlanTotal, downpayment_amount: fixturePlanDeposit,
+  payment_plan_months: fixturePlanTerm, shipping_fee: 800,
+  order_date: new Date().toISOString().slice(0, 10), end_date: fixtureDueDate(fixturePlanTerm),
+  transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
+  settlement_due_at: null, expired_at: null,
+  created_at: new Date().toISOString(), completed_at: null,
+  tracking_number: null, shipped_at: null,
+}];
+
+export function layawayPlanFixture(id: string): HubLayawayDetail | null {
+  const plan = layawayPlansFixture.find((p) => p.id === id);
+  if (!plan) return null;
+  return {
+    plan,
+    schedule: Array.from({ length: fixturePlanTerm }, (_, i) => {
+      const amount = fixturePlanBase + (i === fixturePlanTerm - 1 ? fixturePlanRemainder : 0);
+      return {
+        id: `row-${i + 1}`, installment_number: i + 1, due_date: fixtureDueDate(i + 1),
+        base_installment_amount: amount, penalty_amount: 0, carried_amount: 0,
+        total_due_amount: amount, allocated: 0, actual_remaining: amount,
+        computed_status: "pending" as const,
+      };
+    }),
+    items: [{
+      id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle", title_ja: "ツイストバングル",
+      sku: "CJ-0003", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null,
+    }],
+    payments: [],
+    pending_submissions: [],
+    deposit_paid: false,
+    transfer_region: "JP",
+    transfer_methods: fixtureMethods,
   };
 }

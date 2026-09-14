@@ -13,6 +13,7 @@ import { metalsLabel, productMetals } from "@/lib/metals";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { AddToCart } from "@/components/commerce/add-to-cart";
+import { ReserveWithLayaway } from "@/components/commerce/reserve-with-layaway";
 import { JsonLd } from "@/components/site/json-ld";
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -54,9 +55,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {price != null && <PriceBlock price={price} lang={lang} className="mt-6" />}
             {desc && <p className="mt-6 max-w-[52ch] text-champagne/80">{desc}</p>}
             <p className="mt-4 text-sm text-champagne/60">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
-            {/* Full-price purchase. The layaway button waits for step 4; until
-                then the calculator below is informational only. */}
+            {/* Two ways to buy the same piece, one basket. The calculator below
+                stays: it answers "what would that cost me monthly" before the
+                shopper commits to either. */}
             {variant && <AddToCart variantId={variant.id} slug={p.slug} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
+            {variant && <ReserveWithLayaway variantId={variant.id} slug={p.slug} stockQty={variant.stock_qty} lang={lang} className="mt-3" />}
             {price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" />}
           </div>
         </div>

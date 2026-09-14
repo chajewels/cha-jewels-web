@@ -21,7 +21,21 @@ export type Origin = "JAPAN" | "BRAND" | "OTHER" | "UNKNOWN";
 export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; product_variants: ProductVariant[] };
 export type Collection = { id: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; hero_media: string | null; description: string | null; description_en?: string | null; description_ja?: string | null };
 export type LiveClaim = { id: string; code: string; price_locked: number; status: "held" | "paid" | "layaway" | "expired" | "released"; expires_at: string; product_variant_id: string };
-export type LayawayQuote = { down_payment: number; monthly: number; term_months: number; total: number; max_term_months: number; currency: "JPY" | "PHP" };
+/**
+ * What the shared SQL function returns. `allowed_terms` is the business's real
+ * term list with this amount's eligibility already decided, so the calculator
+ * never has to carry a hardcoded array that drifts from what is sellable.
+ * Optional because an older Hub deploy does not send it.
+ */
+export type LayawayQuote = {
+  down_payment: number; monthly: number; term_months: number; total: number;
+  max_term_months: number; currency: "JPY" | "PHP";
+  last_month?: number;
+  allowed_terms?: LayawayTerm[];
+  /** true when the term asked for was out of reach and a shorter one was quoted. */
+  term_downgraded?: boolean;
+  requested_term_months?: number;
+};
 export type HubTier = { slug: string; name: string; threshold_jpy: number; requalify_spend: number | null; multiplier: number | null; hold_minutes: number; benefits_ja: string[]; benefits_en: string[] };
 export type FxRate = { jpy_php: number; as_of: string };
 
@@ -64,6 +78,17 @@ export type HubQuote = {
   transfer_available: boolean;
   order_type: OrderType;
   expires_at: string;
+  /** Phase 2 step 4. Absent on an older Hub deploy — read defensively. */
+  mode?: CheckoutMode;
+  settlement_currency?: SettlementCurrency;
+  /** Pesos per yen, and the day that rate was published. null on a yen plan. */
+  fx_rate?: number | null;
+  fx_rate_date?: string | null;
+  /** The same three totals in the settlement currency. */
+  subtotal_settlement?: number;
+  shipping_settlement?: number | null;
+  total_settlement?: number;
+  layaway?: HubQuoteLayaway | null;
 };
 /**
  * Transfer methods, built by the Hub from its own rows at request time — so a
@@ -121,3 +146,116 @@ export type HubOrderItem = { id: string; variant_id: string | null; product_id: 
 export type HubOrderDetail = { order: HubOrder; items: HubOrderItem[]; transfer_region: TransferRegion; transfer_methods: TransferMethod[] };
 /** The Hub answers checkout failures with a code, not an HTTP body we should guess at. */
 export type HubCheckoutError = { error: string; variant_id?: string; available?: number; request_id?: string };
+
+/**
+ * Phase 2 step 4 — web layaway.
+ *
+ * A plan is an ordinary Hub layaway account that happens to have started on
+ * this site. Every figure here comes from the Hub: the deposit, the schedule
+ * and the per-row remaining are computed there and only rendered here.
+ *
+ * The settlement currency is the customer's choice at checkout. A yen plan is
+ * quoted and settled in yen; a peso plan is converted once, at the rate stored
+ * on the plan, and every figure in it is already in pesos. The two are never
+ * mixed and nothing is converted on this side.
+ */
+export type SettlementCurrency = "JPY" | "PHP";
+export type CheckoutMode = "full" | "layaway";
+
+/** One row of `allowed_terms`: what the Hub sells and what this basket reaches. */
+export type LayawayTerm = {
+  months: number;
+  label: string;
+  min_amount: number;
+  dp_percentage: number;
+  /** false when this basket's total is under the term's minimum. */
+  eligible: boolean;
+};
+export type LayawayScheduleRow = { installment_number: number; due_date: string; amount: number };
+
+/** The plan attached to a layaway quote, in the settlement currency. */
+export type HubQuoteLayaway = {
+  term_months: number;
+  deposit: number;
+  monthly: number;
+  last_month: number;
+  schedule: LayawayScheduleRow[];
+  allowed_terms: LayawayTerm[];
+};
+
+export type HubLayawayPayResult = {
+  mode: "layaway";
+  account_id: string;
+  web_reference: string;
+  currency: SettlementCurrency;
+  total: number;
+  deposit: number;
+  term_months: number;
+  schedule: LayawayScheduleRow[];
+  transfer_due_at: string;
+  transfer_region: TransferRegion;
+  transfer_methods: TransferMethod[];
+};
+
+/** A plan as the list sees it. `status` is the Hub's account_status. */
+export type HubLayawayPlan = {
+  id: string;
+  web_reference: string | null;
+  invoice_number: string | null;
+  status: string;
+  currency: SettlementCurrency;
+  total_amount: number;
+  total_paid: number;
+  remaining_balance: number;
+  downpayment_amount: number;
+  payment_plan_months: number;
+  shipping_fee: number | null;
+  order_date: string | null;
+  end_date: string | null;
+  /** When the deposit must arrive. A field the Hub's staff can move, not a rule. */
+  transfer_due_at: string | null;
+  settlement_due_at: string | null;
+  /** Set when the deposit never arrived and the Hub released the hold. */
+  expired_at: string | null;
+  created_at: string;
+  completed_at: string | null;
+  tracking_number: string | null;
+  shipped_at: string | null;
+};
+
+/**
+ * DISPLAY RULES: `actual_remaining`, `allocated` and `computed_status` are the
+ * only fields to render. `total_due_amount` is a write-only cache on the Hub's
+ * side and is carried here for completeness, never shown.
+ */
+export type HubLayawayScheduleRow = {
+  id: string;
+  installment_number: number;
+  due_date: string;
+  base_installment_amount: number;
+  penalty_amount: number;
+  carried_amount: number;
+  total_due_amount: number;
+  allocated: number;
+  actual_remaining: number;
+  computed_status: "pending" | "partially_paid" | "paid" | "overdue" | "cancelled";
+};
+export type HubLayawayPayment = {
+  id: string; amount_paid: number; currency: string; date_paid: string;
+  payment_method: string | null; reference_number: string | null; created_at: string;
+};
+/** A report of a transfer the Hub has not confirmed yet. Not money on the books. */
+export type HubLayawaySubmission = {
+  id: string; submitted_amount: number; payment_date: string;
+  payment_method: string | null; status: string; created_at: string;
+};
+export type HubLayawayDetail = {
+  plan: HubLayawayPlan;
+  schedule: HubLayawayScheduleRow[];
+  items: HubOrderItem[];
+  payments: HubLayawayPayment[];
+  pending_submissions: HubLayawaySubmission[];
+  deposit_paid: boolean;
+  transfer_region: TransferRegion;
+  transfer_methods: TransferMethod[];
+};

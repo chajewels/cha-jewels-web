@@ -7,17 +7,29 @@ import { tr, type Lang } from "@/lib/i18n";
 import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { payAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { payAction, payLayawayAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
-import type { HubAddress, HubQuote, OrderType } from "@/lib/types";
+import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
 
 type Step = 1 | 2 | 3;
 
 const ORDER_TYPES: OrderType[] = ["SELF", "GIFT", "PROXY"];
 
-export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
+/**
+ * Shown before the first quote, when nothing is known about eligibility yet.
+ * These are the months plan_configurations holds; whether this basket reaches
+ * one of them is the Hub's answer, and it replaces this list as soon as the
+ * quote comes back.
+ */
+const DEFAULT_TERMS: LayawayTerm[] = [3, 6, 8, 10, 12].map((months) => ({
+  months, label: `${months}`, min_amount: 0, dp_percentage: 0.3, eligible: true,
+}));
+
+export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full" }: {
   lang: Lang; items: CartItem[]; subtotal: number; initialAddresses: HubAddress[];
+  /** "layaway" when the shopper arrived from Reserve on a product page. */
+  initialMode?: CheckoutMode;
 }) {
   const t = tr(lang);
   const router = useRouter();
@@ -33,6 +45,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
   const [recipientName, setRecipientName] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
   const [giftNote, setGiftNote] = useState("");
+  // How this order is paid, and in what. Both are fixed the moment the quote is
+  // taken: the Hub writes the plan in the settlement currency, and a plan does
+  // not change currency afterwards.
+  const [mode, setMode] = useState<CheckoutMode>(initialMode);
+  const [settlement, setSettlement] = useState<SettlementCurrency>("JPY");
+  const [term, setTerm] = useState(6);
   const [quote, setQuote] = useState<HubQuote | null>(null);
   const [error, setError] = useState<string | null>(null);
   // The Hub's request id for the failure on screen. Shown as "Ref: …" so the
@@ -45,6 +63,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
     : code === "expired" ? t("checkout", "expired")
     : code === "empty_cart" ? t("checkout", "emptyCart")
     : code === "address_required" ? t("checkout", "addressRequired")
+    : code === "below_plan_minimum" ? t("checkout", "belowMinimum")
+    : code === "currency_unsupported" ? t("checkout", "currencyUnsupported")
+    : code === "rate_unavailable" ? t("checkout", "rateUnavailable")
     : t("checkout", "failed");
 
   function showError(code: string, requestId?: string | null) {
@@ -54,12 +75,30 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
   }
   function clearError() { setError(null); setErrorRef(null); }
 
+  // The Hub's own term list once a quote exists; the configured months until
+  // then. Never a hardcoded array of what the calculator used to offer.
+  const termOptions: LayawayTerm[] = quote?.layaway?.allowed_terms ?? DEFAULT_TERMS;
+  const plan = mode === "layaway" ? quote?.layaway ?? null : null;
+  // The currency the QUOTE was taken in, not the toggle's current position: the
+  // figures on screen belong to the quote, and the toggle may have moved since.
+  const settlementCurrency: SettlementCurrency = quote?.settlement_currency ?? settlement;
+  const money = (n: number) => formatMoney(n, settlementCurrency);
+  // Totals follow the same rule. A yen quote has no settlement figures of its
+  // own, so the yen ones are already the right answer.
+  const shownSubtotal = quote?.subtotal_settlement ?? quote?.subtotal_jpy ?? subtotal;
+  const shownShipping = quote === null ? null : quote.shipping_settlement ?? quote.shipping_jpy;
+  const shownTotal = quote?.total_settlement ?? quote?.total_jpy ?? subtotal;
+
   const quoteInput = () => ({
     ship_to_address_id: addressId,
     order_type: orderType,
     recipient_name: orderType === "SELF" ? undefined : recipientName,
     recipient_phone: orderType === "SELF" ? undefined : recipientPhone,
     gift_note: orderType === "GIFT" ? giftNote : undefined,
+    mode,
+    term_months: term,
+    // Paying in full is yen-only; sending PHP there would be refused.
+    settlement_currency: mode === "layaway" ? settlement : ("JPY" as SettlementCurrency),
   });
 
   function saveAddress(form: FormData) {
@@ -98,8 +137,18 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
     if (!quote) return;
     clearError();
     start(async () => {
-      const res = await payAction(quote.quote_id);
-      if (res.ok) { router.push(`/checkout/complete/${res.data.order_id}`); return; }
+      // The Hub reads the mode off the quote, so the two answers differ: an
+      // order id for a full payment, a plan id for layaway. Each lands on its
+      // own confirmation.
+      const res = mode === "layaway"
+        ? await payLayawayAction(quote.quote_id)
+        : await payAction(quote.quote_id);
+      if (res.ok) {
+        router.push(mode === "layaway"
+          ? `/account/layaway/${(res.data as { account_id: string }).account_id}?placed=1`
+          : `/checkout/complete/${(res.data as { order_id: string }).order_id}`);
+        return;
+      }
 
       if (res.code === "expired") {
         // The quote aged out (30 minutes) or was already used. Price the same
@@ -231,6 +280,73 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
               )}
             </fieldset>
 
+            <fieldset>
+              <legend className="font-display text-xl text-gold-pale">{t("checkout", "modeH")}</legend>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {(["full", "layaway"] as const).map((m) => (
+                  <button
+                    key={m} type="button" onClick={() => setMode(m)}
+                    aria-pressed={mode === m}
+                    className={`border p-4 text-left text-sm ${mode === m ? "border-gold text-champagne" : "border-rule text-champagne/65"}`}
+                  >
+                    <span className="block text-gold-pale">{m === "full" ? t("checkout", "modeFull") : t("checkout", "modeLayaway")}</span>
+                    <span className="mt-1 block text-xs text-champagne/60">
+                      {m === "full" ? t("checkout", "modeFullNote") : t("checkout", "modeLayawayNote")}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Currency and term belong to a plan, not to a one-off payment, so
+                neither is offered for a full-price order. Paying in full is
+                yen-only and the Hub refuses anything else. */}
+            {mode === "layaway" && (
+              <>
+                <fieldset>
+                  <legend className="font-display text-xl text-gold-pale">{t("checkout", "settlementH")}</legend>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {(["JPY", "PHP"] as const).map((cur) => (
+                      <button
+                        key={cur} type="button" onClick={() => setSettlement(cur)}
+                        aria-pressed={settlement === cur}
+                        className={`border px-4 py-2 text-sm ${settlement === cur ? "border-gold text-gold-pale" : "border-rule text-champagne/65"}`}
+                      >
+                        {cur === "JPY" ? t("checkout", "settlementJpy") : t("checkout", "settlementPhp")}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-champagne/55">{t("checkout", "settlementNote")}</p>
+                </fieldset>
+
+                <fieldset>
+                  <legend className="font-display text-xl text-gold-pale">{t("checkout", "termH")}</legend>
+                  {/* Before the first quote there is no eligibility to show, so
+                      every configured term is offered and the Hub decides. After
+                      it, the terms this basket cannot reach are disabled with
+                      their minimum named. */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {termOptions.map((tm) => (
+                      <button
+                        key={tm.months} type="button" disabled={!tm.eligible}
+                        onClick={() => setTerm(tm.months)}
+                        aria-pressed={term === tm.months}
+                        title={tm.eligible ? undefined : t("checkout", "termUnavailable")}
+                        className={`border px-4 py-2 text-left text-sm disabled:opacity-40 ${term === tm.months && tm.eligible ? "border-gold text-gold-pale" : "border-rule text-champagne/65"}`}
+                      >
+                        <span className="block">{t("checkout", "termMonths", { n: String(tm.months) })}</span>
+                        {tm.min_amount > 0 && (
+                          <span className="block text-[11px] text-champagne/45">
+                            {t("checkout", "termMin", { amount: formatMoney(tm.min_amount, settlement) })}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              </>
+            )}
+
             <Button disabled={pending || !addressId} onClick={toReview}>{t("checkout", "continue")}</Button>
           </div>
         )}
@@ -247,6 +363,32 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
             </ul>
             {quote.requires_manual_quote && (
               <p className="border border-gold px-4 py-3 text-sm text-gold-pale">{t("checkout", "manualQuote")}</p>
+            )}
+            {/* The plan exactly as the Hub computed it, in the currency it will
+                be written in. Nothing here is recalculated on this side. */}
+            {plan && (
+              <div className="border border-gold p-5">
+                <dl className="grid gap-4 sm:grid-cols-3">
+                  <PlanFigure k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />
+                  <PlanFigure k={t("checkout", "layawayMonthly")} v={money(plan.monthly)} />
+                  <PlanFigure k={t("checkout", "layawayLast")} v={money(plan.last_month)} />
+                </dl>
+                <h3 className="mt-6 text-xs uppercase tracking-[0.14em] text-champagne/45">{t("checkout", "layawaySchedule")}</h3>
+                <ul className="mt-3 space-y-1 text-sm text-champagne/75">
+                  {plan.schedule.map((row) => (
+                    <li key={row.installment_number} className="flex justify-between gap-4">
+                      <span>{row.due_date}</span>
+                      <span className="text-champagne">{money(row.amount)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs text-champagne/55">{t("checkout", "layawayDeadline")}</p>
+                {settlementCurrency === "PHP" && quote.fx_rate_date && (
+                  <p className="mt-2 text-xs text-champagne/45">
+                    {t("checkout", "settlementRate", { date: quote.fx_rate_date.slice(0, 10) })}
+                  </p>
+                )}
+              </div>
             )}
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
@@ -283,7 +425,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={placeOrder} disabled={pending || !quote.transfer_available}>
-                {pending ? t("checkout", "placing") : t("checkout", "placeOrder")}
+                {mode === "layaway"
+                  ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
+                  : (pending ? t("checkout", "placing") : t("checkout", "placeOrder"))}
               </Button>
             </div>
           </div>
@@ -300,15 +444,16 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses }: {
           ))}
         </ul>
         <dl className="mt-5 space-y-2 border-t border-rule pt-4 text-sm">
-          <Line k={t("checkout", "subtotal")} v={formatMoney(quote?.subtotal_jpy ?? subtotal)} />
+          <Line k={t("checkout", "subtotal")} v={money(shownSubtotal)} />
           <Line
             k={t("checkout", "shipping")}
-            v={quote === null ? "—" : quote.shipping_jpy === null ? "—" : quote.shipping_jpy === 0 ? t("checkout", "free") : formatMoney(quote.shipping_jpy)}
+            v={shownShipping === null ? "—" : shownShipping === 0 ? t("checkout", "free") : money(shownShipping)}
           />
+          {plan && <Line k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />}
         </dl>
         <div className="mt-4 flex items-baseline justify-between border-t border-gold pt-4">
           <span className="text-champagne/70">{t("checkout", "total")}</span>
-          <span className="font-display text-2xl text-gold-pale">{formatMoney(quote?.total_jpy ?? subtotal)}</span>
+          <span className="font-display text-2xl text-gold-pale">{money(shownTotal)}</span>
         </div>
         <Link href="/cart" className="mt-4 inline-block text-xs text-champagne/55 underline underline-offset-4">
           {t("cart", "h1")}
@@ -326,6 +471,15 @@ function Field({ name, label, required, defaultValue, className }: {
       {label}{required && <span className="text-gold-pale"> *</span>}
       <input name={name} required={required} defaultValue={defaultValue} className="mt-1 w-full border border-rule bg-velvet-deep px-3 py-2 text-champagne" />
     </label>
+  );
+}
+
+function PlanFigure({ k, v }: { k: string; v: string }) {
+  return (
+    <div>
+      <dt className="text-xs text-champagne/55">{k}</dt>
+      <dd className="mt-1 font-display text-2xl text-gold-pale">{v}</dd>
+    </div>
   );
 }
 
