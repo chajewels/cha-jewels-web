@@ -8,6 +8,7 @@ import { FlashNotice } from "@/components/site/flash-notice";
 import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { dict, tr } from "@/lib/i18n";
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 
 const display = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
 const sans = Archivo({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans", display: "swap" });
@@ -35,6 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>
         <Footer lang={lang} />
+        <AnalyticsProvider />
       </body>
     </html>
   );

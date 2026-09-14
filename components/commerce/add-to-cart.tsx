@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { addToCart } from "@/lib/cart-actions";
 import { tr, type Lang } from "@/lib/i18n";
+import { trackAddToCart } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -11,8 +12,8 @@ import { Button } from "@/components/ui/button";
  * cart clamps to stock anyway. Disabled outright when nothing is on the shelf,
  * so the shopper never gets as far as a 409 at checkout.
  */
-export function AddToCart({ variantId, slug, stockQty, lang, className }: {
-  variantId: string; slug: string; stockQty: number; lang: Lang; className?: string;
+export function AddToCart({ variantId, slug, sku, stockQty, lang, className }: {
+  variantId: string; slug: string; sku: string; stockQty: number; lang: Lang; className?: string;
 }) {
   const t = tr(lang);
   const [pending, start] = useTransition();
@@ -32,7 +33,7 @@ export function AddToCart({ variantId, slug, stockQty, lang, className }: {
       <div className="flex flex-wrap items-center gap-3">
         <Button
           disabled={pending}
-          onClick={() => start(async () => { await addToCart(variantId, slug, 1); setAdded(true); })}
+          onClick={() => start(async () => { await addToCart(variantId, slug, 1); setAdded(true); trackAddToCart(sku, lang); })}
           className="w-full sm:w-auto"
         >
           {added ? t("cart", "added") : t("cart", "add")}
