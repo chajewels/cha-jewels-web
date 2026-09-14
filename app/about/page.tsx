@@ -23,6 +23,17 @@ export default async function About() {
           </ul>
           <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-champagne/85">
             {c.body.map((p) => <p key={p}>{p}</p>)}
+          </div>
+          {/* Mission and Vision. Headed sections, so they take the page's
+              display type for the heading and sit between the body and the
+              closing statement. */}
+          {c.sections.map((s) => (
+            <div key={s.heading} className="mt-8 max-w-[58ch] border-t border-gold-pale/25 pt-6">
+              <h2 className="font-display text-2xl text-gold-pale">{s.heading}</h2>
+              <p className="mt-3 text-[17px] text-champagne/85">{s.body}</p>
+            </div>
+          ))}
+          <div className="mt-8 max-w-[58ch] space-y-5 text-[17px] text-champagne/85">
             <p>{c.closing[0]}</p>
             <p className="font-display text-2xl text-gold-pale">{c.closing[1]}</p>
           </div>

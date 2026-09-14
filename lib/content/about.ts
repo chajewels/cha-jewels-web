@@ -9,6 +9,9 @@ import type { Lang } from "@/lib/i18n";
  * figure the facts block used to carry still appears on the layaway page, the
  * FAQ and the legal page, so nothing was lost by dropping it here.
  */
+/** A headed section of prose. Mission and Vision today; the shape takes more. */
+export type AboutSection = { heading: string; body: string };
+
 export type AboutCopy = {
   h1: string;
   /** Founding story. 2021 sole proprietorship -> 2024 incorporation. */
@@ -21,6 +24,11 @@ export type AboutCopy = {
   listHeading: string;
   /** Products and services. Replaces the former `facts` pairs. */
   list: string[];
+  /**
+   * Mission and Vision, rendered after the body paragraphs and before the
+   * closing. See the PR for why this beat placing them before `body[1]`.
+   */
+  sections: AboutSection[];
   /** Closing paragraph then the closing line, rendered in order. */
   closing: [string, string];
   cta: string;
@@ -51,6 +59,16 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
       "無利息の分割予約",
       "国内・海外への配送",
     ],
+    sections: [
+      {
+        heading: "私たちのミッション",
+        body: "日本の確かなジュエリーを、より多くの方へ。透明な商品情報、無利息の分割予約、そして頼れるサポートを通じて、その入口を広げていきます。K18ゴールド、プラチナ、あこや真珠、鑑定書付きダイヤモンド、天然石、ハンドメイドの天然石ブレスレット、そして厳選したプレラブドジュエリー。安心してお選びいただけるものだけをお届けします。",
+      },
+      {
+        heading: "私たちのビジョン",
+        body: "日本のものづくりと、日本・フィリピン・世界各国のお客様をつなぐ、信頼される国際的なジュエリーカンパニーを目指します。普段使いの一点でも、人生の節目のお品でも、大切に育てるコレクションでも、次の世代へ受け継ぐものでも、気持ちの面でも資産の面でも永く価値の続くジュエリー選びを、お手伝いしてまいります。",
+      },
+    ],
     closing: [
       "日本の工房で仕上げられた一点も、丁寧に検品したプレラブドも、手仕事の天然石ジュエリーも、真贋と品質、そして永く続く価値に目を配って選んでいます。",
       "確かな素材。明確な情報。自信を持ってお選びいただけるジュエリーです。",
@@ -80,6 +98,19 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
       "Jewelry resizing, polishing, and certification assistance",
       "Flexible interest-free layaway options",
       "Domestic and international shipping",
+    ],
+    sections: [
+      {
+        heading: "Our Mission",
+        // "jewelry from Japan" is the same class of phrase as the closing
+        // paragraph's workshops line: a site-wide origin statement where origin
+        // is per-product data. Left as written; flagged in the PR with it.
+        body: "To make authentic, high-quality jewelry from Japan accessible to more people through transparent product information, flexible interest-free layaway options, and dependable customer service. We are committed to offering K18 gold, platinum, Akoya pearls, certified diamonds, natural gemstones, handmade gemstone bracelets, and carefully selected preloved jewelry that customers can purchase with confidence.",
+      },
+      {
+        heading: "Our Vision",
+        body: "To become a trusted international jewelry company connecting Japanese craftsmanship with customers in Japan, the Philippines, and around the world. We aim to help individuals and families choose jewelry with lasting personal and material value—whether for everyday wear, meaningful milestones, treasured collections, or future generations.",
+      },
     ],
     closing: [
       // "From jewelry made by Japanese workshops" in the supplied copy. Origin is
