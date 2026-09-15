@@ -36,9 +36,37 @@ bank transfer days later. Only the Hub knows those happened.
 | 2026-09-14 | Instrumentation written (PR 1). **Not live** — merge and deploy are the owner's. |
 | 2026-09-15 | **Instrumentation live in production** (first storefront production release). |
 | 2026-09-15 | First production check: `add_to_cart` seen, **`product_view` absent**. Page views recorded for both product pages in the same session, so the pages rendered and the provider worked. Root cause: `<AnalyticsProvider/>` was mounted after `{children}`, so `product_view`'s mount effect called `track()` before `inject()` had created `window.va` — and `track()` silently no-ops when it is undefined. Fixed; awaiting production confirmation. **The baseline did NOT start here.** |
-| _pending_ | **`product_view` CONFIRMED in production.** Fill in on the day two distinct SKUs appear in the Vercel Events panel after two real product-page visits. **The baseline window starts on THIS date.** `add_to_cart` alone does not start it — the two events answer different questions and a view count is the denominator. |
+| **2026-09-15** | **`product_view` CONFIRMED FIRING in production**, after the #29 fix and the #31 release. Vercel Events panel: `product_view` **1 visitor / 1 total**, where it was **zero** for the whole life of the instrumentation before #29. **THE BASELINE WINDOW STARTS ON THIS DATE.** What this row does and does not prove is set out below — the per-SKU de-duplication is NOT yet proven, and this row must not be read as though it were. |
 | _pending_ | **Step 4 release (web layaway).** Separate line, separate date. Anything after it is step 4 plus whatever else; do not attribute it to the remodel. |
 | _pending_ | Remodel release, if it happens. |
+
+### What the 2026-09-15 confirmation proves, and what it does not
+
+**Proven.** `product_view` reaches Vercel. The count moved from zero — where it
+had sat since the instrumentation went live — to 1 visitor / 1 total. That is
+the whole of what #29 was about: the event was being dropped silently by
+`track()` before `window.va` existed, and it is not being dropped now.
+
+**NOT proven: the per-SKU de-duplication.** The obvious check would be to read
+`product_view` against `add_to_cart`, which stands at 3. That comparison does
+not work, and it is worth writing down why so nobody tries it later:
+
+> **The two counters cover different windows.** `add_to_cart` has been recording
+> all day, including attempts made BEFORE the #29 fix, when `product_view` was
+> still being dropped. So its 3 is cumulative across a period in which the other
+> number was structurally incapable of moving. Comparing a post-fix count with a
+> whole-day count says nothing about either.
+
+**What would settle it:** one session, two different product pages, and
+`product_view` reaching 3 — two distinct SKUs counted once each, and neither
+counted twice. A reload of the same piece is a fresh document and legitimately
+counts again; a language toggle on the same page must not.
+
+That check is worth doing once deliberately, but it does not block the baseline.
+Real traffic answers it on its own: if the de-duplication were broken, views
+would run far ahead of visitors within days, and the ratio is visible in the same
+panel. The baseline starts today either way, because the denominator is now
+being recorded at all — which it was not yesterday.
 
 ### Baseline window
 
