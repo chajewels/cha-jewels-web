@@ -105,21 +105,28 @@ export const privacySections: LegalSection[] = [
     },
   },
   {
-    // RESIDENCE, NOT NATIONALITY (reworded 2026-09-16, owner-requested).
-    // Naming both laws stays: they are different laws with different
-    // obligations, and a generic "we comply with applicable law" gives a
-    // customer nothing they can act on. But the test the laws actually apply
-    // is WHERE THE PERSON IS. The previous wording said "Japanese customers"
-    // and "customers in the Philippines", which reads as nationality and gets
-    // a Filipino customer living in Tokyo wrong — APPI covers them. The
-    // nationality point is now stated explicitly rather than left to be
-    // inferred, because that is the reading that was wrong before.
-    // FLAGGED FOR LEGAL REVIEW: this changes what we tell customers about
-    // their statutory rights, not a copy edit. Confirm both languages.
+    // ONE STATEMENT, EVERY CUSTOMER, NO COUNTRY AND NO LAW NAMED.
+    // Owner decision 2026-09-16: Cha Jewels serves customers everywhere, so
+    // the rights sentence does not split them by where they are.
+    //
+    // This replaces two earlier versions, and the second never shipped:
+    //   - "Japanese customers are covered by the APPI; customers in the
+    //     Philippines by the Data Privacy Act" — split by what read as
+    //     nationality;
+    //   - a residence-based rewrite of the same split (branch only, never
+    //     merged to develop or main).
+    // The split itself is what is gone now, not just its test.
+    //
+    // FLAGGED FOR LEGAL REVIEW, NOT SETTLED — see the PR. Naming APPI and the
+    // Data Privacy Act was not decoration: both regimes expect a controller to
+    // say which law applies and how rights are exercised under it. Dropping the
+    // names makes this page simpler and less specific, and that trade belongs
+    // to whoever does the review this page already says it is pending. Do not
+    // re-argue it in the page copy.
     h: { ja: "お客様の権利", en: "Your rights" },
     body: {
-      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。適用される法律は国籍ではなく、お客様の居住地によって決まります。日本にお住まいのお客様には日本の個人情報保護法（APPI）が、フィリピンにお住まいのお客様にはフィリピンのデータプライバシー法（Data Privacy Act of 2012）が適用されます。"],
-      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. Which law applies depends on where you live, not on your nationality: if you live in Japan, Japan’s Act on the Protection of Personal Information (APPI) covers your data; if you live in the Philippines, the Data Privacy Act of 2012 covers it."],
+      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。これはお住まいの地域を問わず、すべてのお客様に共通です。"],
+      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. This is the same for every customer, wherever you live."],
     },
   },
   {
