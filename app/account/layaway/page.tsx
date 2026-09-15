@@ -16,6 +16,14 @@ export const dynamic = "force-dynamic";
 /**
  * The customer's layaway plans — every plan, not only the ones placed here.
  *
+ * NOT GATED ON LANGUAGE, deliberately. Layaway is offered in English only
+ * (owner decision 2026-09-15, lib/layaway-availability), but that governs
+ * whether a NEW plan can be STARTED. This page is the record of plans that
+ * already exist, most of them arranged with Cha Jewels directly rather than at
+ * this checkout — and a live commitment must not disappear because someone
+ * moved the language toggle. Hiding a balance is the one outcome here worse
+ * than showing a product we no longer sell in this language.
+ *
  * Every figure is the Hub's: the balance is the Hub's `remaining_balance`, not
  * a subtraction done on this side, so it never disagrees with what a reviewer
  * sees. What this page must be careful about is the LABEL on that figure, since

@@ -1,7 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-import { faqItems } from "@/lib/content/faq";
+import { faqFor } from "@/lib/content/faq";
 import { JsonLd } from "@/components/site/json-ld";
 
 export const generateMetadata = () => pageMeta("faq");
@@ -10,7 +10,8 @@ export default async function FaqPage() {
   const lang = await getLang();
   const t = tr(lang);
   // Same source as the visible answers, so the structured data cannot drift.
-  const jsonLdItems = faqItems.map((i) => ({ q: i.q[lang], a: i.a[lang] }));
+  const items = faqFor(lang);
+  const jsonLdItems = items.map((i) => ({ q: i.q[lang], a: i.a[lang] }));
   return (
     <>
       <JsonLd type="faq" items={jsonLdItems} />
@@ -22,7 +23,7 @@ export default async function FaqPage() {
       </section>
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[72ch]">
-          {faqItems.map((item) => (
+          {items.map((item) => (
             <details key={item.q.en} className="group border-b border-rule py-5">
               <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 font-display text-[clamp(19px,2.2vw,26px)] text-gold-pale marker:hidden">
                 {item.q[lang]}

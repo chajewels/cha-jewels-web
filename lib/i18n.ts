@@ -6,7 +6,12 @@ export const dict = {
   nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "私たちについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "会員プログラム", en: "Loyalty" }, claim: { ja: "ライブ予約の確定", en: "Claim from Live" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "アカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
   hero: {
     h1a: { ja: "身につける資産。", en: "Gold you can wear." }, h1b: { ja: "証明できる価値。", en: "Value you can prove." },
-    lede: { ja: "K18ゴールド、あこや真珠、鑑定書付きダイヤモンド。一点ずつ東京で真贋を確認し、重量で価格を明示。無利息の分割予約で一点から、卸売なら東京から直接。次の世代へ受け継ぐ、資産としてのジュエリーです。", en: "K18 gold, Akoya pearls and certified diamonds, each piece checked and priced by weight in Tokyo. Buy one piece on 0% layaway, stock your shop from Tokyo, or build a gold collection your daughter will inherit." },
+    // The ja lede no longer mentions 分割予約: layaway is English-only (owner
+    // decision 2026-09-15) and the hero is the first thing a Japanese visitor
+    // reads. The en lede is unchanged. Found by walking the site, not by
+    // reading the diff — the section and the CTA were gated and this prose
+    // still sold the thing.
+    lede: { ja: "K18ゴールド、あこや真珠、鑑定書付きダイヤモンド。一点ずつ東京で真贋を確認し、重量で価格を明示。卸売なら東京から直接。次の世代へ受け継ぐ、資産としてのジュエリーです。", en: "K18 gold, Akoya pearls and certified diamonds, each piece checked and priced by weight in Tokyo. Buy one piece on 0% layaway, stock your shop from Tokyo, or build a gold collection your daughter will inherit." },
     cta1: { ja: "コレクションを見る", en: "Shop the collections" }, cta2: { ja: "分割予約を計算する", en: "Calculate layaway" },
   },
   home: {
@@ -206,6 +211,11 @@ export const dict = {
     layawayMonthly: { ja: "月々のお支払い", en: "Monthly" },
     layawayLast: { ja: "最終回", en: "Final payment" },
     layawaySchedule: { ja: "お支払い予定", en: "Your schedule" },
+    // Shown if a shopper had layaway selected and the site language moved to
+    // Japanese before they paid — layaway is English-only (owner decision
+    // 2026-09-15). Nothing was charged and the basket is intact, so the copy
+    // says what to do next rather than apologising.
+    layawayUnavailable: { ja: "分割予約は英語表示のみでのお取り扱いとなります。全額でのお支払いにお進みいただくか、表示言語をEnglishに切り替えてください。カートの中身はそのままです。", en: "Layaway is available on the English site only. Pay in full, or switch the language to English to reserve. Your basket is untouched." },
     layawayDeadline: { ja: "お申込金は72時間以内にお振込ください。期限を過ぎた場合はお取り置きを解除し、商品は再び販売いたします。お支払いは発生しません。", en: "Please send the deposit within 72 hours. After that we release the hold and the piece goes back on sale; nothing is owed." },
     reservePiece: { ja: "この内容で予約する", en: "Reserve this piece" },
     reserving: { ja: "手続き中…", en: "Reserving…" },
@@ -390,8 +400,14 @@ export const dict = {
     signedOut: { ja: "サインアウトしました", en: "Signed out" },
   },
   /** Page <title> and description, chosen by the language cookie in generateMetadata (lib/page-meta.ts). */
+  /**
+   * PAGE METADATA. The ja descriptions no longer mention 分割予約: they are the
+   * Japanese search snippet and the link preview, so they advertise the offer
+   * as surely as the page does. The en descriptions are unchanged. Layaway is
+   * English-only — owner decision 2026-09-15, lib/layaway-availability.
+   */
   meta: {
-    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。無利息の分割予約、東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
+    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
     layaway: { title: { ja: "分割予約", en: "Layaway" } },
     blog: { title: { ja: "ブログ", en: "Blog" } },
     account: { title: { ja: "アカウント", en: "Account" } },
@@ -407,9 +423,9 @@ export const dict = {
     cart: { title: { ja: "カート", en: "Cart" } },
     login: { title: { ja: "サインイン", en: "Sign in" } },
     about: { title: { ja: "私たちについて", en: "About Us" } },
-    faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "分割予約、フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
+    faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
     collections: { title: { ja: "コレクション", en: "Collections" } },
-    terms: { title: { ja: "利用規約", en: "Terms of sale" }, description: { ja: "価格、分割予約、ライブからの予約、配送、返品、修理、準拠法。", en: "Prices, layaway, claims from Live, shipping, returns, repairs and governing law." } },
+    terms: { title: { ja: "利用規約", en: "Terms of sale" }, description: { ja: "価格、ライブからの予約、配送、返品、修理、準拠法。", en: "Prices, layaway, claims from Live, shipping, returns, repairs and governing law." } },
     privacy: { title: { ja: "プライバシーポリシー", en: "Privacy policy" }, description: { ja: "Cha Jewelsが収集する情報、その目的、第三者への提供、開示・削除のご請求方法。", en: "What Cha Jewels collects, why, who else sees it, and how to ask for a copy or a deletion." } },
     tokusho: { title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" } },
   },

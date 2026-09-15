@@ -17,6 +17,13 @@ import type { ActionResult } from "@/lib/checkout-actions";
  * The file never touches the Hub API key path: `uploadProof` goes to the Hub's
  * own upload function, which re-checks that this customer owns this plan before
  * writing anything.
+ *
+ * NOT GATED ON LANGUAGE, deliberately. Layaway is offered in English only
+ * (owner decision 2026-09-15, lib/layaway-availability), but that governs
+ * whether a NEW plan can be started — never whether an existing one can be
+ * paid. A plan-holder browsing in Japanese must be able to report a transfer;
+ * refusing here would strand someone mid-plan with a payment they have already
+ * sent and no way to tell us. Same reason /account/layaway is not gated.
  */
 
 const MAX_PROOF_BYTES = 10 * 1024 * 1024;

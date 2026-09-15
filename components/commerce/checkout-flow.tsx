@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { tr, type Lang } from "@/lib/i18n";
@@ -11,6 +11,7 @@ import { payAction, payLayawayAction, quoteAction, saveAddressAction } from "@/l
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
+import { LAYAWAY_UNAVAILABLE, layawayOffered } from "@/lib/layaway-availability";
 
 type Step = 1 | 2 | 3;
 
@@ -48,7 +49,15 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // How this order is paid, and in what. Both are fixed the moment the quote is
   // taken: the Hub writes the plan in the settlement currency, and a plan does
   // not change currency afterwards.
-  const [mode, setMode] = useState<CheckoutMode>(initialMode);
+  // LAYAWAY IS ENGLISH-ONLY (owner decision 2026-09-15) — one rule, in
+  // lib/layaway-availability. `lang` is a prop refreshed by the server when the
+  // toggle is used, but `mode` is client state that router.refresh() does NOT
+  // reset: a shopper who picks layaway in English and then switches to Japanese
+  // would otherwise still be in layaway mode with the toggle gone. Coerce back
+  // to full when it is not offered, and the server refuses as the backstop.
+  const layawayOk = layawayOffered(lang);
+  const [mode, setMode] = useState<CheckoutMode>(layawayOk ? initialMode : "full");
+  useEffect(() => { if (!layawayOk && mode === "layaway") { setMode("full"); setQuote(null); } }, [layawayOk, mode]);
   const [settlement, setSettlement] = useState<SettlementCurrency>("JPY");
   const [term, setTerm] = useState(6);
   const [quote, setQuote] = useState<HubQuote | null>(null);
@@ -66,6 +75,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     : code === "below_plan_minimum" ? t("checkout", "belowMinimum")
     : code === "currency_unsupported" ? t("checkout", "currencyUnsupported")
     : code === "rate_unavailable" ? t("checkout", "rateUnavailable")
+    : code === LAYAWAY_UNAVAILABLE ? t("checkout", "layawayUnavailable")
     : t("checkout", "failed");
 
   function showError(code: string, requestId?: string | null) {
@@ -311,6 +321,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               )}
             </fieldset>
 
+            {/* One way to pay where layaway is not offered, so there is nothing
+                to choose between and the fieldset goes entirely. */}
+            {layawayOk && (
             <fieldset>
               <legend className="font-display text-xl text-gold-pale">{t("checkout", "modeH")}</legend>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -328,6 +341,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 ))}
               </div>
             </fieldset>
+            )}
 
             {/* Currency and term belong to a plan, not to a one-off payment, so
                 neither is offered for a full-price order. Paying in full is

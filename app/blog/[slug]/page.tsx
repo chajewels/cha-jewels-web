@@ -3,14 +3,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-import { getPost, posts } from "@/lib/blog";
+import { getPostFor, posts } from "@/lib/blog";
 export function generateStaticParams() { return posts.map((p) => ({ slug: p.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const p = getPost((await params).slug); const lang = await getLang();
+  const lang = await getLang();
+  const p = getPostFor((await params).slug, lang);
   return p ? { title: p.title[lang], description: p.excerpt[lang] } : {};
 }
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const [p, lang] = await Promise.all([getPost((await params).slug), getLang()]);
+  // getPostFor, not getPost: a layaway post 404s where layaway is not offered.
+  // The slug stays in generateStaticParams, so without this the Japanese site
+  // would serve a Japanese layaway explainer it hides everywhere else.
+  const [{ slug }, lang] = await Promise.all([params, getLang()]);
+  const p = getPostFor(slug, lang);
   if (!p) notFound();
   const t = tr(lang);
   return (
