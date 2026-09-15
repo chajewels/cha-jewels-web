@@ -168,6 +168,7 @@ export const dict = {
     settlementJpy: { ja: "日本円で", en: "Japanese yen" },
     settlementPhp: { ja: "フィリピンペソで", en: "Philippine pesos" },
     settlementNote: { ja: "お選びいただいた通貨で金額が確定します。以降のお支払いもすべて同じ通貨です。", en: "Your plan is fixed in the currency you choose here, and every payment on it is in that currency." },
+    settlementPending: { ja: "ペソでのお支払い金額は、次の画面で本日のレートにより確定します。", en: "Your peso amounts are worked out at the next step, using today's rate." },
     settlementRate: { ja: "レート基準日 {date}", en: "Rate as of {date}" },
     settlementFullNote: { ja: "一括でのお支払いは日本円のみとなります。", en: "Paying in full is available in yen only." },
     termH: { ja: "お支払い回数", en: "Over how many months?" },
