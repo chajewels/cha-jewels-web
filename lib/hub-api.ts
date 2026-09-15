@@ -1,5 +1,5 @@
 import "server-only";
-import type { Collection, FxRate, HubTier, LayawayQuote, LiveClaim, Product } from "@/lib/types";
+import type { CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, LiveClaim, OrderType, Product, SettlementCurrency } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 
 /**
@@ -11,19 +11,40 @@ const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
 const BASE = (process.env.HUB_API_URL ?? "").replace(/\/$/, "");
 const KEY = process.env.HUB_API_KEY ?? "";
 
-class HubError extends Error { constructor(public status: number, message: string) { super(message); } }
+/**
+ * `code` is the Hub's machine-readable error string (e.g. "transfer_unavailable"),
+ * when it sent one. `requestId` is the Hub's x-request-id for that call: shown
+ * to the shopper as "Ref: …" so a failure on screen can be matched to the one
+ * Hub log line that names its cause.
+ */
+export class HubError extends Error {
+  constructor(public status: number, message: string, public code: string | null = null, public requestId: string | null = null) { super(message); }
+}
 
-async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[] } = {}): Promise<T> {
+async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[]; jwt?: string } = {}): Promise<T> {
   if (!BASE || !KEY) throw new HubError(500, "HUB_API_URL / HUB_API_KEY not configured");
-  const { revalidate = 60, tags = ["catalog"], ...rest } = init;
+  const { revalidate = 60, tags = ["catalog"], jwt, ...rest } = init;
   const res = await fetch(`${BASE}${path}`, {
     ...rest,
-    headers: { "content-type": "application/json", "x-api-key": KEY, ...(rest.headers ?? {}) },
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": KEY,
+      // Customer routes need BOTH the server key and the customer's JWT.
+      ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+      ...(rest.headers ?? {}),
+    },
     next: revalidate === false ? undefined : { revalidate, tags },
     cache: revalidate === false ? "no-store" : undefined,
   });
   if (res.status === 404) throw new HubError(404, "Not found");
-  if (!res.ok) throw new HubError(res.status, `Hub API ${res.status} on ${path}`);
+  if (!res.ok) {
+    // Read the body's error code so callers can tell one 409 from another.
+    // A body that is missing or not JSON is normal for gateway-level failures.
+    const body = await res.clone().json().then((b) => (b && typeof b === "object" ? b : null), () => null);
+    const code = typeof body?.error === "string" ? body.error : null;
+    const requestId = (typeof body?.request_id === "string" && body.request_id) || res.headers.get("x-request-id") || null;
+    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId);
+  }
   return res.json() as Promise<T>;
 }
 const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404) return null; throw e; } };
@@ -47,6 +68,108 @@ export const hub = {
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+  /** Links or creates the customers row for a signed-in customer. Idempotent. */
+  authCustomer: (jwt: string, full_name?: string): Promise<{ customer: HubCustomer; created: boolean }> =>
+    FIXTURES
+      ? Promise.resolve({ customer: fx.meFixture.customer, created: false })
+      : call("/auth/customer", { method: "POST", body: JSON.stringify({ full_name }), jwt, revalidate: false }),
+  /** Profile, addresses, loyalty snapshot. 404 before authCustomer has run. */
+  me: (jwt: string): Promise<HubMe> =>
+    // NEXT_PUBLIC_PREVIEW_BLANK=1 serves the empty-record fixture instead, so
+    // the "we cannot see any orders or plans" branch can be looked at. Preview
+    // only; it is read inside the FIXTURES branch and nowhere else.
+    FIXTURES
+      ? Promise.resolve(process.env.NEXT_PUBLIC_PREVIEW_BLANK === "1" ? fx.meBlankFixture : fx.meFixture)
+      : call("/me", { jwt, revalidate: false }),
+  /** Replaces the whole address list. The Hub applies it atomically. */
+  putAddresses: (jwt: string, addresses: HubAddress[]): Promise<{ ok: true; count: number }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true, count: addresses.length })
+      : call("/me/addresses", { method: "PUT", body: JSON.stringify({ addresses }), jwt, revalidate: false }),
+  /**
+   * Prices a basket. Does NOT reserve stock — the decrement happens at pay
+   * time, so an abandoned checkout never sits on a one-of-a-kind piece.
+   * Throws HubError(409) when a piece sold out between browsing and checkout.
+   */
+  quote: (jwt: string, body: { items: { variant_id: string; qty: number }[]; order_type: OrderType; ship_to_address_id: string; recipient_name?: string; recipient_phone?: string; gift_note?: string; mode?: CheckoutMode; term_months?: number; settlement_currency?: SettlementCurrency }): Promise<HubQuote> =>
+    FIXTURES
+      ? Promise.resolve(fx.quoteFixture(body))
+      : call("/checkout/quote", { method: "POST", body: JSON.stringify({ mode: "full", ...body }), jwt, revalidate: false }),
+  /** Turns a quote into a real order. Transfer only in this step; Square is 501. */
+  /** `lang` is stored on the order: the confirmation and every later email about it are written in it. */
+  pay: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubPayResult> =>
+    FIXTURES
+      ? Promise.resolve(fx.payFixture())
+      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer", lang }), jwt, revalidate: false }),
+  /**
+   * The same endpoint, for a quote whose mode is layaway. The Hub decides from
+   * the quote which it is; the two answers differ, so they are typed apart
+   * rather than merged into one shape with everything optional.
+   */
+  payLayaway: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubLayawayPayResult> =>
+    FIXTURES
+      ? Promise.resolve(fx.layawayPayFixture())
+      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer", lang }), jwt, revalidate: false }),
+  /** The customer's own plans, newest first. */
+  layawayPlans: (jwt: string): Promise<HubLayawayPlan[]> =>
+    FIXTURES ? Promise.resolve(fx.layawayPlansFixture) : call("/layaway", { jwt, revalidate: false }),
+  layawayPlan: (jwt: string, id: string): Promise<HubLayawayDetail | null> =>
+    FIXTURES
+      ? Promise.resolve(fx.layawayPlanFixture(id))
+      : notFoundToNull(call(`/layaway/${encodeURIComponent(id)}`, { jwt, revalidate: false })),
+  /**
+   * Reports a transfer. This creates a SUBMISSION, never a payment: nothing is
+   * on the books until a Cha Jewels reviewer confirms it in the Hub. Proof is
+   * required — the Hub refuses without it, as it does on every other path.
+   */
+  layawayPay: (jwt: string, id: string, body: { amount: number; payment_date: string; payment_method: string; reference_number?: string; proof_url: string }): Promise<{ ok: true; is_deposit: boolean }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const, is_deposit: false })
+      : call(`/layaway/${encodeURIComponent(id)}/pay`, { method: "POST", body: JSON.stringify(body), jwt, revalidate: false }),
+  orders: (jwt: string): Promise<HubOrder[]> =>
+    FIXTURES ? Promise.resolve(fx.ordersFixture) : call("/orders", { jwt, revalidate: false }),
+  order: (jwt: string, id: string): Promise<HubOrderDetail | null> =>
+    FIXTURES
+      ? Promise.resolve(fx.orderFixture(id))
+      : notFoundToNull(call(`/orders/${encodeURIComponent(id)}`, { jwt, revalidate: false })),
   wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };
+
+/**
+ * Uploads a proof of payment and returns its public URL.
+ *
+ * This is the one Hub call that does NOT go through the website API. The
+ * `upload-proof` function is a sibling edge function in the same Supabase
+ * project, and it already does exactly what is needed here: it authenticates
+ * the customer's JWT and checks that the account belongs to them before
+ * writing anything. Reaching for it directly reuses that check rather than
+ * building a second uploader with a second chance to get ownership wrong.
+ *
+ * No new secret: the function URL is derived from the Supabase URL the site
+ * already signs customers in against, and the gateway's `apikey` is the
+ * publishable anon key that ships in the browser bundle regardless. The
+ * customer's JWT is what actually authorizes the write.
+ */
+export async function uploadProof(jwt: string, accountId: string, file: File): Promise<string> {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  if (!base || !anon) throw new HubError(500, "Supabase URL / anon key not configured");
+
+  const form = new FormData();
+  form.set("file", file);
+  form.set("account_id", accountId);
+  // Namespaced by time so a second upload never silently replaces the first.
+  form.set("file_name", `web-${Date.now()}-${file.name}`);
+
+  const res = await fetch(`${base}/functions/v1/upload-proof`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${jwt}`, apikey: anon },
+    body: form,
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body?.proof_url) {
+    throw new HubError(res.status, typeof body?.error === "string" ? body.error : "upload_failed", "upload_failed");
+  }
+  return String(body.proof_url);
+}

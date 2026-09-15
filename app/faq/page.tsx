@@ -1,13 +1,10 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { faqItems } from "@/lib/content/faq";
 import { JsonLd } from "@/components/site/json-ld";
 
-export const metadata: Metadata = {
-  title: "よくある質問 / FAQ",
-  description: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums.",
-};
+export const generateMetadata = () => pageMeta("faq");
 
 export default async function FaqPage() {
   const lang = await getLang();
@@ -29,7 +26,7 @@ export default async function FaqPage() {
             <details key={item.q.en} className="group border-b border-rule py-5">
               <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 font-display text-[clamp(19px,2.2vw,26px)] text-gold-pale marker:hidden">
                 {item.q[lang]}
-                <span aria-hidden="true" className="shrink-0 text-champagne/45 transition-transform group-open:rotate-45">＋</span>
+                <span aria-hidden="true" className="shrink-0 text-champagne/45 transition-transform group-open:rotate-45">+</span>
               </summary>
               <p className="mt-4 max-w-[62ch] text-champagne/80">{item.a[lang]}</p>
             </details>

@@ -7,8 +7,10 @@ import type { Lang } from "./i18n";
  * the Hub is unreachable, so it must not drift from the table. These are the
  * real values, not proposals.
  *
- * thresholdJpy   12-month rolling spend that earns the tier.
- * requalifyJpy   spend needed to keep the tier for another period (null = none).
+ * thresholdJpy   lifetime spend (cumulative, never resets) that earns the tier.
+ * requalifyJpy   comeback spend: after 180 days without a purchase the member
+ *                steps down one tier, and this is the extra spend needed to
+ *                regain the earned tier (null = none).
  * multiplier     points multiplier on every purchase.
  *
  * EVERY tier holds a claimed piece for 60 minutes. Hold time is NOT a tier

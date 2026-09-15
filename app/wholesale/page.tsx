@@ -1,13 +1,10 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { wholesaleBullets } from "@/lib/content/wholesale";
 import { InquiryForm } from "@/components/wholesale/inquiry-form";
 
-export const metadata: Metadata = {
-  title: "卸売 / Wholesale",
-  description: "K18 gold at trade prices for live sellers, boutiques and family jewelry businesses in Japan and the Philippines.",
-};
+export const generateMetadata = () => pageMeta("wholesale");
 
 export default async function WholesalePage() {
   const lang = await getLang();

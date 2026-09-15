@@ -14,9 +14,23 @@
 - Cost basis, margin, and CSR commission fields never cross the API. If they appear in a response, that is a Hub bug to report, not data to render.
 
 ## Terminology (hard rule)
-- Gold is described as **K18 gold, Made in Japan**.
+- Gold is described by purity: **K18 gold**. Origin is per-product DATA from the Hub (`origin`: JAPAN | BRAND | OTHER | UNKNOWN). `components/catalog/origin-badge.tsx` is the only file allowed to render "Made in Japan" / 日本製, and only when `origin === "JAPAN"`; a branded piece shows its brand name and claims no origin. Site-wide copy may say "authenticated in Japan" / "hallmark checked in Japan", never an origin.
 - Forbidden anywhere in copy, alt text, metadata or product data: "Japan gold", "Japanese gold", "Saudi gold", "Italian gold", or any `<country> gold` phrasing as a purity claim.
 - `npm run check:terms` must pass before every commit. It is also run in CI.
+
+## Sign-in (email link)
+- `LoginForm` calls `signInWithOtp` with `emailRedirectTo = <origin>/auth/callback?next=…`; `/auth/callback` accepts a PKCE `code` **or** `token_hash`+`type`, names GoTrue `error`/`error_code` as `/login?error=…`, and always redirects — it never renders and never 500s.
+- **Every storefront origin must be on the Hub project's Supabase Auth redirect allow-list**: production (`chajewelsjapan.com`, `www.`), the Vercel production alias `https://cha-jewels-web.vercel.app/**`, the team alias `https://cha-jewels-web-cha-jewels.vercel.app/**` (NOT covered by the wildcard — the `*` needs a segment between the two dashes), and the project-scoped preview wildcard `https://cha-jewels-web-*-cha-jewels.vercel.app/**` (covers `-git-<branch>-` and `-<hash>-` hosts). A `redirect_to` outside the list makes GoTrue fall back to the project Site URL (the Hub) — the customer sees the Hub's black splash and the code is never exchanged. That is a Lovable Cloud auth setting, not code; see Bug #264 in the Hub repo. Never add a bare `https://*.vercel.app/**` — it would let any Vercel deployment receive this project's sign-in codes.
+- The sign-in email is sent by the Hub's `auth-email-hook`, which picks the Cha Jewels template by the link's target host. Staff emails are untouched.
+- **Test sign-in from the branch alias, never from a per-deployment URL.** Vercel gives every deployment two hosts: the branch alias `https://cha-jewels-web-git-<branch>-cha-jewels.vercel.app` (matched by the wildcard above) and a per-deployment host such as `cha-jewels-web-3m47fl3tm-cha-jewels.vercel.app`. Only the alias is guaranteed to be on the allow-list; a per-deployment host that GoTrue does not recognise falls back to the Site URL and the Hub template arrives (2026-09-13, Bug #264 follow-up). Preview reviews and sign-in tests use the `-git-develop-` alias or the PR's branch alias.
+
+## Cart and checkout (Phase 2 step 2)
+- The cart is a **cookie** (`cj-cart`, `lib/cart.ts`), holding only `{variant_id, slug, qty}`. Prices and stock are never stored in it — they are re-read from the Hub on every render, and the Hub re-prices again at `/checkout/quote` and once more inside `create_web_order_atomic`. Nothing on this side is trusted for money.
+- Cart mutations are **Server Actions** (`lib/cart-actions.ts`); checkout calls are Server Actions too (`lib/checkout-actions.ts`), so the customer JWT is paired with `HUB_API_KEY` on the server and never travels with a browser fetch.
+- **A quote does not reserve stock.** Stock is decremented only when the order is created, so an abandoned checkout never sits on a one-of-a-kind piece. A transfer order holds stock for 72 hours; the Hub cancels it and restores stock after that.
+- `/cart` is open to anonymous visitors. `/checkout` and `/account/*` are gated in `middleware.ts` — but that gate decides what to RENDER; the Hub independently requires the JWT.
+- **A web order is a Hub `cash_order`**, not a separate `orders` table. The customer sees `web_reference` (`CJ-W-000123`); the Hub's financial key stays the numeric `invoice_number`. See `docs/WEBSITE-VERCEL.md` in the Hub repo.
+- Layaway checkout (`mode: 'layaway'`) and card payment (`method: 'square'`) both answer **501** until steps 4 and 3. Do not stub them locally — the 501 is the contract.
 
 ## Stack
 Next.js 15 App Router, TypeScript strict, Tailwind, shadcn/ui components copied into `components/ui`, Supabase via `@supabase/ssr`. Product and collection pages are ISR (60 s) with on-demand revalidation from the Hub.

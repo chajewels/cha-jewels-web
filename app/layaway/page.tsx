@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
-export const metadata: Metadata = { title: "分割予約 / Layaway" };
+export const generateMetadata = () => pageMeta("layaway");
 export default async function LayawayPage() {
   const [lang, fx] = await Promise.all([getLang(), hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }))]);
   const t = tr(lang);

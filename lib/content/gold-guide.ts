@@ -6,12 +6,12 @@ export const guideSections: GuideSection[] = [
   {
     h: { ja: "K18とは", en: "What K18 means" },
     body: {
-      ja: "K18は金の含有率75%を表します。残りの25%は銀や銅などの合金で、硬さと色を決める部分です。K24（純金）は柔らかすぎて日常使いのジュエリーには向きません。K18は日本のファインジュエリーの標準です。ヨーロッパでは同じ規格を「750」または「Au750」と表記します。K18・750・Au750はすべて同じ意味です。",
-      en: "K18 is 75% gold. The remaining 25% is alloy — usually silver and copper — and it is what sets the hardness and the colour. K24 is pure gold and too soft for jewelry you actually wear. K18 is the fine-jewelry standard in Japan. In Europe the same standard is marked 750 or Au750: K18, 750 and Au750 all mean the same thing.",
+      ja: "K18は金の含有率75%を表します。残りの25%は銀や銅などの合金で、硬さと色を決める部分です。K24（純金）は柔らかすぎて日常使いのジュエリーには向きません。K18は日本のファインジュエリーの標準です。ヨーロッパでは同じ規格を「750」または「Au750」、英語圏では「18K」と表記します。K18・750・18K・Au750はすべて同じ75%の純度を指します。刻印はそのまま表示します。",
+      en: "K18 is 75% gold. The remaining 25% is alloy — usually silver and copper — and it is what sets the hardness and the colour. K24 is pure gold and too soft for jewelry you actually wear. K18 is the fine-jewelry standard in Japan. In Europe the same standard is marked 750 or Au750, and in English-speaking markets 18K: K18, 750, 18K and Au750 all denote the same 75% purity. We show the stamp as it appears on the piece.",
     },
     facts: [
       { k: { ja: "金の含有率", en: "Gold content" }, v: { ja: "75%", en: "75%" } },
-      { k: { ja: "同等の刻印", en: "Same standard" }, v: { ja: "750 / Au750", en: "750 / Au750" } },
+      { k: { ja: "同等の刻印", en: "Same standard" }, v: { ja: "750 / 18K / Au750", en: "750 / 18K / Au750" } },
       { k: { ja: "日常使い", en: "Daily wear" }, v: { ja: "適する", en: "Suitable" } },
     ],
   },

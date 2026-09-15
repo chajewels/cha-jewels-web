@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { JoinForm } from "@/components/loyalty/join-form";
-export const metadata: Metadata = { title: "入会 / Join" };
+export const generateMetadata = () => pageMeta("join");
 export default async function JoinPage() {
   const lang = await getLang();
   const t = tr(lang);

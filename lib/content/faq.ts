@@ -11,10 +11,10 @@ export type FaqItem = { q: Record<Lang, string>; a: Record<Lang, string> };
  */
 export const faqItems: FaqItem[] = [
   {
-    q: { ja: "本当に日本製ですか？", en: "Is your gold really made in Japan?" },
+    q: { ja: "ゴールドは本物ですか？どこで作られていますか？", en: "Is your gold real, and where is it made?" },
     a: {
-      ja: "はい。ゴールドはすべてK18（純度75%）で、K18の刻印と製造元のマークが入っています。直接お取引のある日本の工房で製作しています。当店では純度と製作地で商品を説明しており、国名を純度の代わりに用いることはありません。",
-      en: "Yes. Every gold piece is K18 — 75% pure — carries the K18 stamp and a maker's mark, and is made by Japanese workshops we work with directly. We describe gold by its purity and where it is crafted, never by a country name as a substitute for a purity claim.",
+      ja: "ゴールドはすべてK18（純度75%）で、K18の刻印が入り、一点ずつ日本で真贋を確認してから掲載しています。製作地は商品ごとに異なります。日本での製造を確認できた場合のみ商品ページに製造国を表示し、ブランド品はブランド名を表示します。どちらの表示もない商品については、製作地を断定していません。当店では純度で商品を説明しており、国名を純度の代わりに用いることはありません。",
+      en: "Every gold piece is K18 — 75% pure — carries the K18 stamp, and is hallmark checked in Japan before it is listed. Where a piece was made varies. A listing carries an origin badge only when we have confirmed Japanese manufacture, and a branded piece shows its brand name instead. If a listing shows neither, we are not claiming an origin. We describe gold by its purity, never by a country name as a substitute for a purity claim.",
     },
   },
   {
@@ -43,6 +43,13 @@ export const faqItems: FaqItem[] = [
     a: {
       ja: "ご予約いただいた商品は60分間お取り置きします。これは会員レベルを問わず同じです。60分を過ぎると商品は販売中に戻ります。",
       en: "A claimed piece is held for 60 minutes. That is the same for every member, at every level. After that the piece returns to sale.",
+    },
+  },
+  {
+    q: { ja: "会員レベルはどのように決まりますか？", en: "How is my member level decided?" },
+    a: {
+      ja: "これまでのお買い上げ合計で決まり、上のレベルに達した日から特典が使えます。180日間お買い上げがない場合はレベルが1段階下がり、各レベルの復帰条件の金額をお買い上げいただくと元に戻ります。ポイントは有効期限内であれば残ります。",
+      en: "By your lifetime purchases with Cha Jewels; the perks of a new level start the same day you reach it. If 180 days pass without a purchase your level steps down by one, and it comes back once you spend that level's regain amount. Your points stay as long as they are within their validity period.",
     },
   },
   {

@@ -1,14 +1,11 @@
-import type { Metadata } from "next";
+import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { guideSections } from "@/lib/content/gold-guide";
 import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = {
-  title: "ゴールドの基礎知識 / Gold guide",
-  description: "What K18 means, how to read a hallmark, and how to care for gold and pearls.",
-};
+export const generateMetadata = () => pageMeta("goldGuide");
 
 export default async function GoldGuidePage() {
   const lang = await getLang();
