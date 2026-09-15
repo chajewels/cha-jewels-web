@@ -22,8 +22,13 @@ export const legalTitles: Record<"terms" | "privacy", Record<Lang, string>> = {
 
 /**
  * 特定商取引法に基づく表記 — required by Japanese law for online sales and
- * rendered in Japanese only, whatever the language toggle says. Confirm every
- * line with a JP compliance review before launch.
+ * rendered in Japanese in BOTH languages, because the Japanese is the version
+ * the law governs. On EN the page now says so in English and points at
+ * /legal/terms and /legal/privacy, rather than leaving an English subtitle over
+ * a Japanese body (owner decision 2026-09-16 — see app/legal/tokusho/page.tsx
+ * for the reasoning and for how to add a labelled translation if the compliance
+ * reviewer wants one). Confirm every line with a JP compliance review before
+ * launch.
  *
  * LAYAWAY IS QUALIFIED HERE, NOT REMOVED (owner decision 2026-09-15, option C).
  * Layaway is no longer offered to a visitor reading the site in Japanese, but
@@ -100,10 +105,21 @@ export const privacySections: LegalSection[] = [
     },
   },
   {
+    // RESIDENCE, NOT NATIONALITY (reworded 2026-09-16, owner-requested).
+    // Naming both laws stays: they are different laws with different
+    // obligations, and a generic "we comply with applicable law" gives a
+    // customer nothing they can act on. But the test the laws actually apply
+    // is WHERE THE PERSON IS. The previous wording said "Japanese customers"
+    // and "customers in the Philippines", which reads as nationality and gets
+    // a Filipino customer living in Tokyo wrong — APPI covers them. The
+    // nationality point is now stated explicitly rather than left to be
+    // inferred, because that is the reading that was wrong before.
+    // FLAGGED FOR LEGAL REVIEW: this changes what we tell customers about
+    // their statutory rights, not a copy edit. Confirm both languages.
     h: { ja: "お客様の権利", en: "Your rights" },
     body: {
-      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。日本のお客様には個人情報保護法（APPI）が、フィリピンのお客様にはData Privacy Actが適用されます。"],
-      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. Japanese customers are covered by the APPI; customers in the Philippines by the Data Privacy Act."],
+      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。適用される法律は国籍ではなく、お客様の居住地によって決まります。日本にお住まいのお客様には日本の個人情報保護法（APPI）が、フィリピンにお住まいのお客様にはフィリピンのデータプライバシー法（Data Privacy Act of 2012）が適用されます。"],
+      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. Which law applies depends on where you live, not on your nationality: if you live in Japan, Japan’s Act on the Protection of Personal Information (APPI) covers your data; if you live in the Philippines, the Data Privacy Act of 2012 covers it."],
     },
   },
   {
