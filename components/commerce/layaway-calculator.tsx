@@ -3,6 +3,7 @@ import { useEffect, useState, useTransition } from "react";
 import { layawayQuote } from "@/lib/layaway";
 import { formatMoney, toPhp, cn, type Currency } from "@/lib/utils";
 import { dict, type Lang } from "@/lib/i18n";
+import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
 /** Renders numbers returned by the shared RPC. Peso figures are display conversions at the Hub's rate; no layaway math here. */
 export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRateAsOf, className }: { lang: Lang; initialPrice?: number; phpRate: number; phpRateAsOf?: string; className?: string }) {
@@ -38,10 +39,15 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRat
         </label>
         <label className="grid gap-1.5 text-champagne/75">{c.term[lang]}
           <select value={term} onChange={(e) => setTerm(Number(e.target.value))} className={field}>
+            {/* A term the Hub has but has not launched is listed and disabled
+                rather than dropped (owner decision 2026-09-16) — same rule as
+                the reservation flow, one source in lib/layaway-availability. */}
             {terms.map((tm) => (
-              <option key={tm.months} value={tm.months} disabled={!tm.eligible}>
+              <option key={tm.months} value={tm.months} disabled={!termLaunched(tm.months) || !tm.eligible}>
                 {tm.months}
-                {tm.min_amount > 0 ? ` · ${c.minFrom[lang].replace("{amount}", fmt(tm.min_amount))}` : ""}
+                {!termLaunched(tm.months)
+                  ? ` · ${c.notLaunched[lang]}`
+                  : tm.min_amount > 0 ? ` · ${c.minFrom[lang].replace("{amount}", fmt(tm.min_amount))}` : ""}
               </option>
             ))}
           </select>

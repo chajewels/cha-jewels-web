@@ -1,13 +1,16 @@
+import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
 import type { LegalArticle, LegalBlock } from "@/lib/content/legal";
 
 /**
  * A numbered legal document, rendered wholly in the selected language.
  *
- * Sibling of LegalDoc, not a replacement for it. LegalDoc takes a flat list of
- * heading + lines and is what /legal/terms needs; this takes numbered articles
- * whose bodies mix paragraphs, sub-lists and line-break-significant blocks,
- * which is what the privacy policy needs. Same visual language on purpose --
+ * The renderer for all three of them now: privacy, returns and the terms of
+ * service. It takes numbered articles whose bodies mix paragraphs, sub-headings,
+ * sub-lists, line-break-significant blocks (an address) and prose carrying a
+ * link. The former LegalDoc -- a flat heading + lines shape -- was deleted with
+ * the seven-section terms summary that was its only caller. Same visual
+ * language throughout on purpose --
  * the gold hairline between articles, the display-face heading in gold-pale,
  * the 72ch measure -- so the two pages read as one set.
  *
@@ -46,6 +49,27 @@ function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
             <li key={item}>{item}</li>
           ))}
         </ul>
+      );
+    case "rich":
+      // A paragraph carrying a link. The runs are per language because the
+      // linked phrase does not sit in the same place in both sentences.
+      // Index is a safe key: a block's runs are a fixed, ordered list.
+      return (
+        <p className="mt-4 text-champagne/80">
+          {block.runs[lang].map((run, i) =>
+            run.href ? (
+              <Link
+                key={i}
+                href={run.href}
+                className="underline decoration-gold-pale/50 underline-offset-4 hover:text-gold-pale"
+              >
+                {run.t}
+              </Link>
+            ) : (
+              <span key={i}>{run.t}</span>
+            ),
+          )}
+        </p>
       );
     case "lines":
       // Line breaks carry meaning here (a postal address), so each line is its
