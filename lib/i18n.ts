@@ -2,6 +2,92 @@ export type Lang = "ja" | "en";
 export const LANG_COOKIE = "cj-lang";
 export const DEFAULT_LANG: Lang = "ja";
 
+/**
+ * Query parameter that sets the language for a shareable link, e.g.
+ * /layaway?lang=en. Honoured by the middleware, which treats it exactly like
+ * pressing the toggle: it writes the cookie, so the choice sticks for the rest
+ * of the visit. This is what makes an English link postable — the Filipino
+ * customer base arrives from Facebook, and without it every such link lands on
+ * Japanese and therefore on no layaway at all.
+ */
+export const LANG_PARAM = "lang";
+
+/** A value we are willing to treat as a language choice. */
+export function asLang(value: string | null | undefined): Lang | null {
+  return value === "ja" || value === "en" ? value : null;
+}
+
+/**
+ * WHICH LANGUAGE DOES THIS VISITOR GET? ONE RULE, ONE PLACE.
+ *
+ * Order of authority:
+ *   1. An explicit choice — the `cj-lang` cookie, written by the toggle or by
+ *      ?lang=. It always wins; detection never overrides a person.
+ *   2. Accept-Language, on a FIRST visit only (owner decision 2026-09-15).
+ *   3. DEFAULT_LANG (ja) when the browser expresses no preference at all.
+ *
+ * THE DETECTION RULE, stated so it can be argued with rather than reverse
+ * engineered: Japanese only for a visitor who actually asks for Japanese.
+ * A header that ranks Japanese above every other tag we understand gets `ja`;
+ * anything else gets `en`, including languages we do not serve — someone whose
+ * browser asks for `tl`, `fil`, `zh` or `de` reads neither of our two
+ * languages natively, and English is the likelier second. No header at all
+ * (most crawlers, some bots) falls through to DEFAULT_LANG.
+ *
+ * WHY THIS EXISTS: before it, `ja` was served to every first-time visitor
+ * because nothing looked at the browser at all, so a Filipino customer
+ * following a link landed on Japanese — and since 2026-09-15 that also means
+ * landing on a site with no layaway. The default was working against the
+ * customer base the feature is for.
+ *
+ * q-values are respected, so `en;q=0.9, ja;q=0.4` is an English reader who can
+ * also read some Japanese, and gets English. `q=0` is an explicit refusal of
+ * that language, and a bare `*` is "anything" — no preference, so DEFAULT_LANG.
+ */
+export function detectLang(acceptLanguage: string | null | undefined): Lang {
+  if (!acceptLanguage || !acceptLanguage.trim()) return DEFAULT_LANG;
+
+  let best: { lang: Lang; q: number } | null = null;
+  for (const part of acceptLanguage.split(",")) {
+    const [tagRaw, ...params] = part.trim().split(";");
+    const tag = tagRaw.trim().toLowerCase();
+    if (!tag) continue;
+
+    // "*" is "any language is acceptable" — no preference at all, so it is not
+    // evidence that the visitor cannot read Japanese. Treated as no signal.
+    if (tag === "*") return DEFAULT_LANG;
+
+    const lang: Lang | null = tag === "ja" || tag.startsWith("ja-")
+      ? "ja"
+      : tag === "en" || tag.startsWith("en-")
+        ? "en"
+        : null;
+    if (!lang) continue;
+
+    const qParam = params.map((s) => s.trim()).find((s) => s.startsWith("q="));
+    const parsed = qParam ? Number.parseFloat(qParam.slice(2)) : 1;
+    const q = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), 1) : 1;
+    if (q <= 0) continue; // q=0 is an explicit refusal of that language.
+
+    // Strictly greater, so the earliest tag wins a tie — the order the browser
+    // sent is itself a preference.
+    if (!best || q > best.q) best = { lang, q };
+  }
+
+  // A header that named languages but none of ours (tl, fil, zh, de …) reaches
+  // here with best === null. That visitor is not a Japanese reader, so English.
+  if (!best) return "en";
+  return best.lang;
+}
+
+/** The whole resolution in one call: explicit choice, else detection. */
+export function resolveLang(
+  cookieValue: string | null | undefined,
+  acceptLanguage: string | null | undefined,
+): Lang {
+  return asLang(cookieValue) ?? detectLang(acceptLanguage);
+}
+
 export const dict = {
   nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "私たちについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "会員プログラム", en: "Loyalty" }, claim: { ja: "ライブ予約の確定", en: "Claim from Live" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "アカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
   hero: {
@@ -64,7 +150,7 @@ export const dict = {
   },
   faq: { h1: { ja: "よくある質問", en: "Frequently asked questions" }, lede: { ja: "お問い合わせの多いご質問をまとめました。ほかにご不明な点があればお気軽にご連絡ください。", en: "The questions we are asked most. If yours is not here, please get in touch." } },
   gold: { h1: { ja: "ゴールドの基礎知識", en: "The gold guide" }, lede: { ja: "K18の意味、刻印の読み方、長く美しく保つためのお手入れ。購入前に知っておいていただきたいことをまとめました。", en: "What K18 means, how to read a stamp, and how to keep a piece looking right. The things worth knowing before you buy." }, cta: { ja: "コレクションを見る", en: "Shop the collections" } },
-  legal: { english: { ja: "English", en: "English" }, draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" } },
+  legal: { english: { ja: "English", en: "English" }, japanese: { ja: "日本語", en: "日本語" }, secondary: { ja: "参照用の別言語版", en: "The other language, for reference" }, draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" } },
   account: {
     h1: { ja: "アカウント", en: "Your account" },
     loginH: { ja: "サインイン", en: "Sign in" },

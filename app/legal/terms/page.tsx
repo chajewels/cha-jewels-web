@@ -9,5 +9,5 @@ export default async function TermsPage() {
   // Sections depend on the language now: the layaway section is dropped where
   // layaway is not offered (owner decision 2026-09-15). See termsSectionsFor.
   const lang = await getLang();
-  return <LegalDoc title={legalTitles.terms} sections={termsSectionsFor(lang)} />;
+  return <LegalDoc lang={lang} title={legalTitles.terms} sections={termsSectionsFor(lang)} />;
 }

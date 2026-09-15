@@ -24,6 +24,15 @@ export const legalTitles: Record<"terms" | "privacy", Record<Lang, string>> = {
  * 特定商取引法に基づく表記 — required by Japanese law for online sales and
  * rendered in Japanese only, whatever the language toggle says. Confirm every
  * line with a JP compliance review before launch.
+ *
+ * LAYAWAY IS QUALIFIED HERE, NOT REMOVED (owner decision 2026-09-15, option C).
+ * Layaway is no longer offered to a visitor reading the site in Japanese, but
+ * it remains a payment method the business genuinely offers — on the English
+ * site and arranged directly. Deleting the three rows that describe it would
+ * under-disclose a real term; leaving them unqualified would advertise in
+ * Japanese something the Japanese site refuses. So each mention is marked ※
+ * and the final row says who it is for. This is statutory wording: it needs a
+ * JP compliance read before launch like every other line on this page.
  */
 export const tokusho = {
   title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" },
@@ -34,10 +43,14 @@ export const tokusho = {
     ["登録番号", "T7011801044120"],
     ["販売価格", "各商品ページに表示（税込）"],
     ["商品代金以外の必要料金", "送料、銀行振込手数料、コンビニ決済手数料"],
-    ["支払方法", "クレジットカード、銀行振込、コンビニ決済、分割予約（レイアウェイ）"],
-    ["支払時期", "注文時。分割予約の場合は契約書記載の期日"],
-    ["引渡時期", "入金確認後5営業日以内に発送。分割予約は完済後"],
+    ["支払方法", "クレジットカード、銀行振込、コンビニ決済、分割予約（レイアウェイ）※"],
+    ["支払時期", "注文時。分割予約※の場合は契約書記載の期日"],
+    ["引渡時期", "入金確認後5営業日以内に発送。分割予約※は完済後"],
     ["返品・交換", "商品到着後7日以内、未使用に限り。オーダー品・サイズ直し品は不可"],
+    [
+      "※ 分割予約（レイアウェイ）について",
+      "分割予約は英語版サイトをご利用のお客様および海外のお客様を対象としたお支払方法で、契約書は英語およびタガログ語でご用意しています。日本語版サイトではお取り扱いしておりません。ご希望の場合は sales@chajewelsjp.com までお問い合わせください。",
+    ],
   ] as [string, string][],
 };
 
@@ -45,8 +58,8 @@ export const privacySections: LegalSection[] = [
   {
     h: { ja: "事業者", en: "Who we are" },
     body: {
-      ja: ["株式会社チャジュエルズ（東京都葛飾区立石）が本サイトを運営し、お客様の個人情報を管理します。お問い合わせ先：chajewelsjapan@gmail.com"],
-      en: ["Cha Jewels Co., Ltd. (株式会社チャジュエルズ), Tateishi, Katsushika-ku, Tokyo, operates this site and controls the personal data described here. Contact: chajewelsjapan@gmail.com"],
+      ja: ["株式会社チャジュエルズ（東京都葛飾区立石）が本サイトを運営し、お客様の個人情報を管理します。お問い合わせ先：sales@chajewelsjp.com"],
+      en: ["Cha Jewels Co., Ltd. (株式会社チャジュエルズ), Tateishi, Katsushika-ku, Tokyo, operates this site and controls the personal data described here. Contact: sales@chajewelsjp.com"],
     },
   },
   {
@@ -80,8 +93,8 @@ export const privacySections: LegalSection[] = [
   {
     h: { ja: "お客様の権利", en: "Your rights" },
     body: {
-      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。chajewelsjapan@gmail.com までご連絡ください。日本のお客様には個人情報保護法（APPI）が、フィリピンのお客様にはData Privacy Actが適用されます。"],
-      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email chajewelsjapan@gmail.com. Japanese customers are covered by the APPI; customers in the Philippines by the Data Privacy Act."],
+      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。日本のお客様には個人情報保護法（APPI）が、フィリピンのお客様にはData Privacy Actが適用されます。"],
+      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. Japanese customers are covered by the APPI; customers in the Philippines by the Data Privacy Act."],
     },
   },
   {
