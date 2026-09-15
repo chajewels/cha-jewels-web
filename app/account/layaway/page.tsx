@@ -6,7 +6,7 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { planStatusLabel } from "@/lib/plan-status";
+import { planStatusLabel, remainingIsPayable, remainingLabel } from "@/lib/plan-status";
 import { toneClass } from "@/lib/order-status";
 import type { HubLayawayPlan } from "@/lib/types";
 
@@ -14,9 +14,13 @@ export const generateMetadata = () => pageMeta("layaway");
 export const dynamic = "force-dynamic";
 
 /**
- * The customer's layaway plans. Every figure is the Hub's — the balance here is
- * the Hub's `remaining_balance`, not a subtraction done on this side, so it
- * never disagrees with what a reviewer sees.
+ * The customer's layaway plans — every plan, not only the ones placed here.
+ *
+ * Every figure is the Hub's: the balance is the Hub's `remaining_balance`, not
+ * a subtraction done on this side, so it never disagrees with what a reviewer
+ * sees. What this page must be careful about is the LABEL on that figure, since
+ * a closed plan keeps a positive balance in the Hub's books; see
+ * `remainingLabel`.
  */
 export default async function AccountLayawayPage() {
   const lang = await getLang();
@@ -42,6 +46,8 @@ export default async function AccountLayawayPage() {
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("plans", "h1")}</h1>
           <Link href="/account" className="text-sm text-champagne/60 underline underline-offset-4">{t("account", "h1")}</Link>
         </div>
+
+        <p className="mt-6 max-w-[70ch] text-sm text-champagne/65">{t("plans", "readOnlyNote")}</p>
 
         {failed && (
           <p className="mt-8 border border-garnet/60 bg-velvet-deep p-5 text-sm text-champagne/85">{t("account", "unavailable")}</p>
@@ -69,9 +75,11 @@ export default async function AccountLayawayPage() {
                   </div>
                   <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
                   <div className="text-right">
-                    <p className="font-display text-xl text-gold-pale">{money(Number(plan.remaining_balance))}</p>
+                    <p className={`font-display text-xl ${remainingIsPayable(plan) ? "text-gold-pale" : "text-champagne/55"}`}>
+                      {money(Number(plan.remaining_balance))}
+                    </p>
                     <p className="text-xs text-champagne/55">
-                      {t("plans", "remaining")} · {t("plans", "total")} {money(Number(plan.total_amount))}
+                      {remainingLabel(plan, lang)} · {t("plans", "total")} {money(Number(plan.total_amount))}
                     </p>
                   </div>
                   <Link href={`/account/layaway/${plan.id}`} className="text-sm text-gold-pale underline underline-offset-4">

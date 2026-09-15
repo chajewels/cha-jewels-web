@@ -1,6 +1,8 @@
-import type { CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, LiveClaim, OrderType, Product, SettlementCurrency, TransferMethod } from "@/lib/types";
+import type { CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, LiveClaim, OrderType, Product, SettlementCurrency, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
+/** Plans in `layawayPlansFixture`, stated here because `meFixture` is declared first. */
+const layawayPlansFixtureCount = 7;
 export const collections: Collection[] = [
   { id: "c1", slug: "necklaces", name: "Necklaces", name_ja: "ネックレス", hero_media: null, description: "Chains and strands in K18 and pearl, sized for daily wear.", description_ja: "K18とパールのチェーン・ネックレス。毎日身につけやすい長さでご用意しています。" },
   { id: "c2", slug: "pendants", name: "Pendants", name_ja: "ペンダント", hero_media: null, description: "Diamond, pearl and gold pendants to hang on your own chain or ours.", description_ja: "ダイヤモンド、パール、ゴールドのペンダント。お手持ちのチェーンにも、当店のチェーンにも。" },
@@ -80,6 +82,21 @@ export const meFixture: HubMe = {
   addresses: [{ id: "addr-1", label: "home", recipient_name: "Preview Customer", line1: "1-2-3 Tateishi", city: "Katsushika-ku", region: "Tokyo", postal_code: "124-0012", country: "JP", phone: null, is_default: true }],
   loyalty: { enrolled: true, points: 1200, tier: "Glimmer", multiplier: 1, reduced: true, earned_tier: "Radiant", regain_jpy: 397418 },
   saved_card: false,
+  records: { layaway: layawayPlansFixtureCount, orders: 1 },
+  shares_email: false,
+  portal_url: "https://portal.chajewelsjp.com/portal",
+};
+
+/**
+ * The blank-record case, which is the one that used to render as an empty page:
+ * a customer whose sign-in reached a record carrying nothing, while a second
+ * record holds the same email. Reachable in preview at /account?fixture=blank.
+ */
+export const meBlankFixture: HubMe = {
+  ...meFixture,
+  customer: { ...meFixture.customer, full_name: "Preview Twin", customer_code: "CJ-2026-06256" },
+  records: { layaway: 0, orders: 0 },
+  shares_email: true,
 };
 
 /**
@@ -257,6 +274,32 @@ export function layawayPayFixture(): HubLayawayPayResult {
   };
 }
 
+/**
+ * A plan arranged with Cha Jewels directly, in whatever state the Hub has it.
+ *
+ * Modelled on the live data rather than invented: no item lines (0 of 1,448
+ * Hub plans carry any), a real currency split (792 of them are in pesos), and
+ * a positive remaining_balance on the closed ones, which is what the Hub
+ * actually stores and what makes the labelling on this page matter.
+ */
+function hubPlan(o: {
+  id: string; invoice: string; status: string; currency: SettlementCurrency;
+  total: number; paid: number; remaining: number; months: number;
+}): HubLayawayPlan {
+  return {
+    id: o.id, web_reference: null, invoice_number: o.invoice,
+    status: o.status, currency: o.currency,
+    total_amount: o.total, total_paid: o.paid, remaining_balance: o.remaining,
+    downpayment_amount: Math.round(o.total * 0.3), payment_plan_months: o.months,
+    shipping_fee: null, order_date: fixtureDueDate(-o.months), end_date: fixtureDueDate(0),
+    transfer_due_at: null, settlement_due_at: null, expired_at: null,
+    created_at: new Date(Date.now() - 200 * 864e5).toISOString(),
+    completed_at: o.status === "completed" ? new Date(Date.now() - 20 * 864e5).toISOString() : null,
+    tracking_number: null, shipped_at: null,
+    source_channel: "hub_manual",
+  };
+}
+
 export const layawayPlansFixture: HubLayawayPlan[] = [{
   id: FIXTURE_PLAN_ID, web_reference: FIXTURE_PLAN_REFERENCE, invoice_number: "900002",
   status: "active", currency: "JPY", total_amount: fixturePlanTotal, total_paid: 0,
@@ -267,11 +310,56 @@ export const layawayPlansFixture: HubLayawayPlan[] = [{
   settlement_due_at: null, expired_at: null,
   created_at: new Date().toISOString(), completed_at: null,
   tracking_number: null, shipped_at: null,
-}];
+  source_channel: "web",
+},
+  // The five states a Hub plan reaches that a web plan never did. Figures are
+  // taken from the real extremes so the layout is checked against them.
+  hubPlan({ id: "hub-active", invoice: "19311", status: "active", currency: "PHP", total: 523712, paid: 209484, remaining: 314228, months: 6 }),
+  hubPlan({ id: "hub-overdue", invoice: "19207", status: "overdue", currency: "JPY", total: 73780, paid: 26314, remaining: 47466, months: 6 }),
+  hubPlan({ id: "hub-extension", invoice: "19188", status: "extension_active", currency: "JPY", total: 92035, paid: 73628, remaining: 18407, months: 6 }),
+  hubPlan({ id: "hub-forfeited", invoice: "18904", status: "forfeited", currency: "PHP", total: 612300, paid: 133744, remaining: 478556, months: 10 }),
+  hubPlan({ id: "hub-settlement", invoice: "18877", status: "final_settlement", currency: "JPY", total: 64200, paid: 45634, remaining: 18566, months: 8 }),
+  hubPlan({ id: "hub-completed", invoice: "18102", status: "completed", currency: "PHP", total: 83311, paid: 83311, remaining: 0, months: 3 }),
+];
 
 export function layawayPlanFixture(id: string): HubLayawayDetail | null {
   const plan = layawayPlansFixture.find((p) => p.id === id);
   if (!plan) return null;
+
+  // A Hub-arranged plan: no item lines, a schedule part paid, and a portal link
+  // rather than a payment form.
+  if (plan.source_channel !== "web") {
+    const closed = ["completed", "forfeited", "final_forfeited", "final_settlement", "cancelled"].includes(plan.status);
+    const per = Math.round((plan.total_amount - plan.downpayment_amount) / plan.payment_plan_months);
+    const paidRows = Math.min(plan.payment_plan_months, Math.floor(plan.total_paid / Math.max(per, 1)));
+    return {
+      plan,
+      schedule: Array.from({ length: plan.payment_plan_months }, (_, i) => {
+        const done = i < paidRows;
+        // Forfeiture cancels the unpaid rows; settlement leaves them overdue.
+        const state = done ? "paid"
+          : plan.status === "forfeited" ? "cancelled"
+          : plan.status === "completed" ? "paid"
+          : i === paidRows ? "overdue" : "pending";
+        return {
+          id: `${plan.id}-row-${i + 1}`, installment_number: i + 1, due_date: fixtureDueDate(i + 1 - plan.payment_plan_months),
+          base_installment_amount: per, penalty_amount: state === "overdue" ? 1000 : 0, carried_amount: 0,
+          total_due_amount: per, allocated: done ? per : 0, actual_remaining: done ? 0 : per,
+          computed_status: state as HubLayawayScheduleRow["computed_status"],
+        };
+      }),
+      items: [],
+      payments: paidRows > 0
+        ? [{ id: `${plan.id}-p1`, amount_paid: plan.total_paid, currency: plan.currency, date_paid: fixtureDueDate(-1), payment_method: "Bank transfer", reference_number: null, created_at: new Date().toISOString() }]
+        : [],
+      pending_submissions: [],
+      deposit_paid: plan.total_paid > 0,
+      transfer_region: plan.currency === "PHP" ? "OVERSEAS" : "JP",
+      transfer_methods: closed ? [] : fixtureMethods,
+      portal_url: "https://portal.chajewelsjp.com/portal",
+    };
+  }
+
   return {
     plan,
     schedule: Array.from({ length: fixturePlanTerm }, (_, i) => {

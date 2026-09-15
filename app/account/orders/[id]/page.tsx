@@ -55,6 +55,15 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
         </div>
 
+        {/* A Hub-arranged order records its pieces on the invoice, not in this
+            table: 153 of the 154 carry no lines and none carries a saved
+            address. Rendering an empty list left the page showing a total and
+            nothing else. */}
+        {items.length === 0 && (
+          <p className="mt-10 text-sm text-champagne/70">{t("orders", "arrangedWithUs")}</p>
+        )}
+
+        {items.length > 0 && (
         <ul className="rule-grid mt-10 grid gap-px">
           {items.map((line) => (
             <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-velvet p-5">
@@ -64,16 +73,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
                 </p>
               </div>
-              <p className="font-display text-xl text-gold-pale">{formatMoney(Number(line.line_total_jpy))}</p>
+              <p className="font-display text-xl text-gold-pale">{formatMoney(Number(line.line_total_jpy), order.currency)}</p>
             </li>
           ))}
         </ul>
+        )}
 
         <dl className="mt-6 space-y-2 border-t border-gold pt-4 text-sm">
           {order.shipping_fee != null && Number(order.shipping_fee) > 0 && (
-            <Row k={t("checkout", "shipping")} v={formatMoney(Number(order.shipping_fee))} />
+            <Row k={t("checkout", "shipping")} v={formatMoney(Number(order.shipping_fee), order.currency)} />
           )}
-          <Row k={t("orders", "total")} v={formatMoney(Number(order.total_amount))} />
+          <Row k={t("orders", "total")} v={formatMoney(Number(order.total_amount), order.currency)} />
         </dl>
 
         {address && (

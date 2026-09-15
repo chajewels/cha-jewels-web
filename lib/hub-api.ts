@@ -75,7 +75,12 @@ export const hub = {
       : call("/auth/customer", { method: "POST", body: JSON.stringify({ full_name }), jwt, revalidate: false }),
   /** Profile, addresses, loyalty snapshot. 404 before authCustomer has run. */
   me: (jwt: string): Promise<HubMe> =>
-    FIXTURES ? Promise.resolve(fx.meFixture) : call("/me", { jwt, revalidate: false }),
+    // NEXT_PUBLIC_PREVIEW_BLANK=1 serves the empty-record fixture instead, so
+    // the "we cannot see any orders or plans" branch can be looked at. Preview
+    // only; it is read inside the FIXTURES branch and nowhere else.
+    FIXTURES
+      ? Promise.resolve(process.env.NEXT_PUBLIC_PREVIEW_BLANK === "1" ? fx.meBlankFixture : fx.meFixture)
+      : call("/me", { jwt, revalidate: false }),
   /** Replaces the whole address list. The Hub applies it atomically. */
   putAddresses: (jwt: string, addresses: HubAddress[]): Promise<{ ok: true; count: number }> =>
     FIXTURES

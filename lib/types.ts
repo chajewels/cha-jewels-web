@@ -57,7 +57,24 @@ export type HubLoyalty = {
   earned_tier?: string | null;
   regain_jpy?: number | null;
 };
-export type HubMe = { customer: HubCustomer; addresses: HubAddress[]; loyalty: HubLoyalty; saved_card: boolean };
+export type HubMe = {
+  customer: HubCustomer;
+  addresses: HubAddress[];
+  loyalty: HubLoyalty;
+  saved_card: boolean;
+  /**
+   * How many orders and plans this customer record actually holds. Lets the
+   * account page tell "you have not bought from us yet" apart from "this
+   * sign-in reached a record with nothing on it", which are different
+   * sentences and only one of them is true. Optional: an older Hub deploy
+   * does not send it.
+   */
+  records?: { layaway: number; orders: number };
+  /** True when another customer record carries this same email address. */
+  shares_email?: boolean;
+  /** Where every action lives. Built by the Hub, never assembled here. */
+  portal_url?: string | null;
+};
 
 /** Phase 2 step 2 — cart, checkout and orders. */
 export type OrderType = "SELF" | "GIFT" | "PROXY";
@@ -128,11 +145,22 @@ export type HubOrder = {
   id: string; web_reference: string | null; invoice_number: string | null;
   status: "pending" | "completed" | "cancelled" | "expired";
   payment_status: "pending_transfer" | "paid" | "failed" | "refunded" | "cancelled" | null;
-  payment_method: string | null; order_type: OrderType | null; currency: string;
+  payment_method: string | null; order_type: OrderType | null;
+  /**
+   * JPY or PHP — the Hub's `account_currency` enum has no third value, and
+   * 73 of the orders arranged with us directly are in pesos. Typed narrowly so
+   * a figure cannot be rendered without saying which currency it is in.
+   */
+  currency: SettlementCurrency;
   total_amount: number; total_paid: number; remaining_balance: number; shipping_fee: number | null;
   transfer_due_at: string | null; recipient_name: string | null; gift_note: string | null;
   order_date: string | null; created_at: string; completed_at: string | null; cancelled_at: string | null;
   tracking_number: string | null; shipped_at: string | null;
+  /**
+   * Where the order was created. "web" started here; "hub_manual" was arranged
+   * with Cha Jewels directly and is shown here read-only.
+   */
+  source_channel?: string | null;
   /** Set by the Hub when the order is cancelled; the refund decision is the Hub's, this side only renders it. */
   cancellation_reason: string | null;
   refund_status: "refund_issued" | "refund_pending" | "store_credit_issued" | "no_refund" | null;
@@ -221,6 +249,13 @@ export type HubLayawayPlan = {
   completed_at: string | null;
   tracking_number: string | null;
   shipped_at: string | null;
+  /**
+   * Where the plan was created. "web" started at this checkout; "hub_manual"
+   * was arranged with Cha Jewels directly — the great majority, and every plan
+   * older than this site. A hub_manual plan is READ-ONLY here: payment is
+   * reported in the customer portal, so the payment form is not offered for it.
+   */
+  source_channel?: string | null;
 };
 
 /**
@@ -258,4 +293,6 @@ export type HubLayawayDetail = {
   deposit_paid: boolean;
   transfer_region: TransferRegion;
   transfer_methods: TransferMethod[];
+  /** This customer's portal link, from the Hub's own builder. */
+  portal_url?: string | null;
 };

@@ -91,7 +91,25 @@ export const dict = {
     noAddresses: { ja: "お届け先が登録されていません。ご注文時にご登録いただけます。", en: "No addresses saved yet. You can add one at checkout." },
     default: { ja: "既定", en: "Default" },
     unavailable: { ja: "アカウント情報を読み込めませんでした。しばらくしてからもう一度お試しください。", en: "We could not load your account just now. Please try again shortly." },
-    soon: { ja: "ご注文と分割予約の履歴は順次公開します。", en: "Orders and layaway plans appear here as they go live." },
+    /**
+     * WAS "Orders and layaway plans appear here as they go live." — true while
+     * the account page could only show web orders, and false the moment it
+     * could show everything. Now it says what the two links are.
+     */
+    soon: { ja: "ご注文と分割予約の履歴をご確認いただけます。", en: "Everything you have with us is listed here." },
+    /**
+     * A signed-in customer with no orders and no plans on this record. Two
+     * sentences, because the two causes need different advice: a genuinely new
+     * customer, and a customer whose history sits on a second record carrying
+     * the same email (eight such addresses in live data). Neither renders as a
+     * blank page, which is what used to happen.
+     */
+    noRecords: { ja: "このサインインでは、ご注文・ご予約が見つかりませんでした。以前にお買い上げいただいている場合は、別のメールアドレスでご登録されている可能性がございます。ご連絡いただければお調べいたします。", en: "We cannot see any orders or plans on this sign-in. If you have bought from us before, your records may sit under a different email address — message us and we will find them." },
+    noRecordsShared: { ja: "このサインインでは、ご注文・ご予約が見つかりませんでした。このメールアドレスには複数のご登録が残っているため、担当者に通知いたしました。記録を統合いたしますので、お急ぎの場合はご連絡ください。", en: "We cannot see any orders or plans on this sign-in, and we hold more than one record for this email address. Our team has been told and will join them up. Message us if you need something before then." },
+    ordersNone: { ja: "ご注文履歴はまだありません。", en: "No orders yet." },
+    /** What the other surface is for. Shown on the account page, in both languages. */
+    portalH: { ja: "カスタマーポータル", en: "Your customer portal" },
+    portalP: { ja: "お支払いのご報告、延長のお申し出、ご利用明細、ポイントのご利用はカスタマーポータルから承ります。こちらのサイトはお買い物と、お取引内容のご確認にご利用ください。", en: "Reporting a payment, asking for an extension, your statements and spending your points are all handled in the customer portal. This site is for shopping, and for looking at everything you have with us." },
     layawayH: { ja: "分割予約", en: "Your layaway plans" },
     layawaySoon: { ja: "分割予約のご利用状況はまもなくこちらでご覧いただけます。それまでのお問い合わせは、ご注文時のメールへのご返信でお受けしています。", en: "Your layaway plans will appear here soon. Until then, reply to any order email and we will help." },
     layawayLearn: { ja: "分割予約について", en: "How layaway works" },
@@ -249,6 +267,12 @@ export const dict = {
     storeCredit: { ja: "ストアクレジット発行", en: "Store credit issued" },
     noRefund: { ja: "返金なし", en: "No refund" },
     cancelledOn: { ja: "キャンセル日", en: "Cancelled on" },
+    /**
+     * 153 of the 154 orders arranged with us directly carry no line items and
+     * no saved address — those are recorded on the invoice, not in this table.
+     * Without this line the order page showed a total and nothing else.
+     */
+    arrangedWithUs: { ja: "このご注文は当店にて直接承ったものです。お品物とお届け先の詳細はご請求書に記載しております。ご確認が必要な場合はご連絡ください。", en: "This order was arranged with us directly, so the pieces and the delivery details are on your invoice rather than here. Ask us any time and we will send it again." },
   },
   /** Phase 2 step 4 — layaway plans in the account area, and the pay-now form. */
   plans: {
@@ -279,6 +303,39 @@ export const dict = {
     statusOverdue: { ja: "お支払い期限超過", en: "Overdue" },
     statusCompleted: { ja: "完済", en: "Paid in full" },
     statusCancelled: { ja: "終了", en: "Closed" },
+    /**
+     * Hub-created plans reach states a web plan never had. `statusCancelled`
+     * used to absorb all of them, which made a forfeited plan read as a
+     * clerical "Closed" beside a live-looking balance. Each state now says what
+     * it is, and `planNote` below adds the one sentence that explains it.
+     */
+    statusForfeited: { ja: "規約により終了", en: "Closed under the plan terms" },
+    statusSettlement: { ja: "精算手続き中", en: "In settlement" },
+    statusExtension: { ja: "延長中", en: "Extended" },
+    /**
+     * A closed plan still carries a positive remaining_balance in the Hub — all
+     * 53 forfeited plans do, up to ¥478,556. Labelling that figure "Still to
+     * pay" invites a payment the plan cannot take, so a closed plan labels it
+     * for what it is: what was outstanding when the plan closed.
+     */
+    unpaidAtClosure: { ja: "終了時点の未払額", en: "Unpaid when it closed" },
+    noteOverdue: { ja: "お支払い期限を過ぎているお支払いがございます。ご不明な点はお問い合わせください。", en: "One or more payments are past their due date. Please get in touch if anything is unclear." },
+    noteExtension: { ja: "お取り決めにより、お支払い期間を延長しています。", en: "This plan is running on an agreed extension." },
+    noteCompleted: { ja: "完済いただきました。ありがとうございます。", en: "This plan is paid in full. Thank you." },
+    noteForfeited: { ja: "お支払いが規約どおりに完了しなかったため、このご予約は終了しております。ご相談をご希望の場合はご連絡ください。", en: "This plan was closed because the payments were not completed under the plan terms. Please contact us if you would like to talk about it." },
+    noteSettlement: { ja: "このご予約は終了し、別途精算のお手続きとなっております。詳細はお問い合わせください。", en: "This plan is closed and is being settled with us separately. Please contact us for the details." },
+    noteCancelled: { ja: "このご予約は終了しております。", en: "This plan is closed." },
+    /**
+     * 0 of 1,448 Hub-created plans carry item lines — those live only for plans
+     * placed on this site. Rendering nothing at all left a plan page with
+     * figures and no idea what the piece was.
+     */
+    arrangedWithUs: { ja: "このご予約は当店にて直接承ったものです。お品物の詳細はご請求書に記載しております。ご確認が必要な場合はご連絡ください。", en: "This plan was arranged with us directly, so the piece is described on your invoice rather than here. Ask us any time and we will send it again." },
+    payElsewhereH: { ja: "お支払いのご報告", en: "Paying this plan" },
+    payElsewhereP: { ja: "このご予約のお支払いは、カスタマーポータルからご報告いただけます。担当者が入金を確認したうえで、お支払い予定に反映いたします。このページはご確認用です。", en: "Payments for this plan are reported in your customer portal, where our team checks them against the bank before the balance moves. This page is for looking." },
+    portalCta: { ja: "ポータルを開く", en: "Open your portal" },
+    portalFallback: { ja: "リンクが開かない場合は、ご連絡いただければ新しいリンクをお送りいたします。", en: "If that link does not open your account, message us and we will send you a fresh one." },
+    readOnlyNote: { ja: "こちらではすべてのご予約をご確認いただけます。お支払いのご報告、延長のお申し出、ポイントはカスタマーポータルをご利用ください。", en: "Every plan you have with us is listed here. Reporting a payment, asking for an extension and your points are all in the customer portal." },
     awaitingDeposit: { ja: "お申込金のご入金をお待ちしています。ご入金が確認できるまで、お品物をお取り置きしています。", en: "We are waiting for your deposit. The piece stays reserved until it arrives." },
     expiredNote: { ja: "お申込金を期限までに確認できなかったため、お取り置きを解除しました。お支払いは発生しておりません。", en: "The deposit did not arrive by the deadline, so the hold was released. Nothing was paid and nothing is owed." },
     payH: { ja: "お振込を報告する", en: "Tell us about your transfer" },

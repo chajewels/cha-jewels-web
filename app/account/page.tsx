@@ -109,11 +109,48 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           </div>
         )}
 
-        {/* Orders landed in step 2. Layaway plans arrive in step 4. */}
+        {/*
+          A SIGN-IN THAT FINDS NOTHING SAYS SO (2026-09-15).
+          `records` counts this customer's orders and plans in the Hub. Zero has
+          two quite different causes and they need different advice: a new
+          customer, or a customer whose history sits on a second record carrying
+          the same email — eight such addresses exist, and six of them resolve
+          to the record WITHOUT the plan. That case used to render as an account
+          page with nothing on it and no explanation at all. The Hub also raises
+          a staff notification for it, because the customer cannot fix the data
+          and staff can.
+        */}
+        {me?.records && me.records.layaway === 0 && me.records.orders === 0 && (
+          <p className="mt-10 border border-gold/60 bg-velvet-deep p-5 text-sm text-champagne/85">
+            {me.shares_email ? t("account", "noRecordsShared") : t("account", "noRecords")}
+          </p>
+        )}
+
         <div className="mt-10 flex flex-wrap items-center gap-4">
           <Link href="/account/orders" className="text-gold-pale underline underline-offset-4">{t("orders", "h1")}</Link>
+          <Link href="/account/layaway" className="text-gold-pale underline underline-offset-4">{t("plans", "h1")}</Link>
           <span className="text-sm text-champagne/55">{t("account", "soon")}</span>
         </div>
+
+        {/* What the other surface is for. Every action a customer can take on
+            their account still lives in the portal; this site shows and sells.
+            The link is the Hub's own builder, so a legacy customer gets their
+            token and everyone else gets the bare URL. */}
+        {me?.portal_url && (
+          <div className="mt-10 border border-rule bg-velvet p-6">
+            <h2 className="font-display text-xl text-gold-pale">{t("account", "portalH")}</h2>
+            <p className="mt-2 max-w-[62ch] text-sm text-champagne/75">{t("account", "portalP")}</p>
+            <a
+              href={me.portal_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block text-gold-pale underline underline-offset-4"
+            >
+              {t("plans", "portalCta")}
+            </a>
+            <p className="mt-3 text-xs text-champagne/50">{t("plans", "portalFallback")}</p>
+          </div>
+        )}
       </div>
     </section>
   );
