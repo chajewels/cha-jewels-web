@@ -44,7 +44,7 @@ End with a CTA to `/collections`.
 
 ## 5. `/legal/privacy` and `/legal/terms`
 Bilingual pages (JA first, then EN below). Mark each with a visible line: `最終更新 2026-09-08 · 法務レビュー前の草案 / Draft pending legal review` so nobody mistakes them for final.
-- Privacy: operator = 株式会社チャジュエルズ; data collected (name, contact, delivery address, order and layaway records, loyalty points, site usage); purposes; sharing only with delivery, payment and messaging providers; retention; rights (access, correction, deletion) and the contact address chajewelsjapan@gmail.com; reference to APPI (Japan) and the Data Privacy Act (Philippines) for PH customers; cookies limited to language/session.
+- Privacy: operator = 株式会社チャジュエルズ; data collected (name, contact, delivery address, order and layaway records, loyalty points, site usage); purposes; sharing only with delivery, payment and messaging providers; retention; rights (access, correction, deletion) and the contact address sales@chajewelsjp.com; reference to APPI (Japan) and the Data Privacy Act (Philippines) for PH customers; cookies limited to language/session.
 - Terms: prices in JPY; peso figures indicative; layaway summary with a link to `/layaway`; live-claim hold rule (60 minutes); shipping and risk of loss; returns 7 days unused (matching the tokusho page); repairs and buy-back as described on the site; governing law Japan, Tokyo District Court.
 
 Link both from the footer (already there) and from the loyalty join form consent line.

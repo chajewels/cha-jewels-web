@@ -12,6 +12,7 @@ import { OriginBadge } from "@/components/catalog/origin-badge";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { AddToCart } from "@/components/commerce/add-to-cart";
 import { ReserveWithLayaway } from "@/components/commerce/reserve-with-layaway";
 import { JsonLd } from "@/components/site/json-ld";
@@ -27,6 +28,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const [p, lang, fx] = await Promise.all([getProductBySlug((await params).slug), getLang(), hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }))]);
   if (!p) notFound();
   const t = tr(lang);
+  const layaway = layawayOffered(lang);
   const variant = p.product_variants[0];
   const price = variant?.price_jpy;
   const images = allImages(p).map((m) => ({ url: m.url, alt: m.alt }));
@@ -57,12 +59,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {price != null && <PriceBlock price={price} lang={lang} className="mt-6" />}
             {desc && <p className="mt-6 max-w-[52ch] text-champagne/80">{desc}</p>}
             <p className="mt-4 text-sm text-champagne/60">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
-            {/* Two ways to buy the same piece, one basket. The calculator below
-                stays: it answers "what would that cost me monthly" before the
-                shopper commits to either. */}
+            {/* Two ways to buy the same piece, one basket — but only where
+                layaway is offered (English only, owner decision 2026-09-15).
+                On ja the piece is cash-only, so Reserve and the calculator both
+                go: a calculator for a plan the shopper cannot start is a
+                promise the checkout would refuse. See lib/layaway-availability. */}
             {variant && <AddToCart variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
-            {variant && <ReserveWithLayaway variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-3" />}
-            {price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" />}
+            {layaway && variant && <ReserveWithLayaway variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-3" />}
+            {layaway && price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} className="mt-8" />}
           </div>
         </div>
       </section>

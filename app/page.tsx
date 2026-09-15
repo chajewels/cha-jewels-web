@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
@@ -13,6 +14,7 @@ export const revalidate = 60;
 export default async function Home() {
   const [lang, collections, featured, fx] = await Promise.all([getLang(), getCollections().catch(() => []), getFeaturedProducts(8).catch(() => []), hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }))]);
   const t = tr(lang);
+  const layaway = layawayOffered(lang);
   return (
     <>
       <JsonLd type="store" />
@@ -23,7 +25,7 @@ export default async function Home() {
             <p className="mt-7 max-w-[50ch] text-[clamp(16px,1.3vw,19px)] text-champagne/85">{t("hero", "lede")}</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
-              <Button asChild variant="ghost"><Link href="/layaway">{t("hero", "cta2")}</Link></Button>
+              {layaway && <Button asChild variant="ghost"><Link href="/layaway">{t("hero", "cta2")}</Link></Button>}
             </div>
           </div>
           {featured[0] && <ProductCard product={featured[0]} lang={lang} featured />}
@@ -52,12 +54,17 @@ export default async function Home() {
           <div className="rule-grid grid grid-cols-2 lg:grid-cols-4">{featured.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}</div>
         </div>
       </section>
-      <section id="layaway" className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
-        <div className="wrap grid gap-12 md:grid-cols-2">
-          <div><h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "layH")}</h2><p className="mt-4 max-w-[46ch] text-champagne/75">{t("home", "layP")}</p></div>
-          <LayawayCalculator lang={lang} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} />
-        </div>
-      </section>
+      {/* Layaway is English-only (owner decision 2026-09-15). The section and the
+          calculator go together — a calculator with no explanation is worse
+          than neither. See lib/layaway-availability. */}
+      {layaway && (
+        <section id="layaway" className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
+          <div className="wrap grid gap-12 md:grid-cols-2">
+            <div><h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "layH")}</h2><p className="mt-4 max-w-[46ch] text-champagne/75">{t("home", "layP")}</p></div>
+            <LayawayCalculator lang={lang} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} />
+          </div>
+        </section>
+      )}
     </>
   );
 }

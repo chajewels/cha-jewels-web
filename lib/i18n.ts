@@ -2,11 +2,112 @@ export type Lang = "ja" | "en";
 export const LANG_COOKIE = "cj-lang";
 export const DEFAULT_LANG: Lang = "ja";
 
+/**
+ * Query parameter that sets the language for a shareable link, e.g.
+ * /layaway?lang=en. Honoured by the middleware, which treats it exactly like
+ * pressing the toggle: it writes the cookie, so the choice sticks for the rest
+ * of the visit. This is what makes an English link postable — the Filipino
+ * customer base arrives from Facebook, and without it every such link lands on
+ * Japanese and therefore on no layaway at all.
+ */
+export const LANG_PARAM = "lang";
+
+/**
+ * Request header the middleware uses to tell a server render which path it is.
+ *
+ * `generateMetadata` is handed params and searchParams but never the pathname,
+ * and a layout's metadata is what every page inherits — so without this the
+ * root layout cannot name the page it is describing. That is exactly how every
+ * URL on the site came to declare rel=canonical pointing at the home page.
+ */
+export const PATH_HEADER = "x-cj-path";
+
+/** A value we are willing to treat as a language choice. */
+export function asLang(value: string | null | undefined): Lang | null {
+  return value === "ja" || value === "en" ? value : null;
+}
+
+/**
+ * WHICH LANGUAGE DOES THIS VISITOR GET? ONE RULE, ONE PLACE.
+ *
+ * Order of authority:
+ *   1. An explicit choice — the `cj-lang` cookie, written by the toggle or by
+ *      ?lang=. It always wins; detection never overrides a person.
+ *   2. Accept-Language, on a FIRST visit only (owner decision 2026-09-15).
+ *   3. DEFAULT_LANG (ja) when the browser expresses no preference at all.
+ *
+ * THE DETECTION RULE, stated so it can be argued with rather than reverse
+ * engineered: Japanese only for a visitor who actually asks for Japanese.
+ * A header that ranks Japanese above every other tag we understand gets `ja`;
+ * anything else gets `en`, including languages we do not serve — someone whose
+ * browser asks for `tl`, `fil`, `zh` or `de` reads neither of our two
+ * languages natively, and English is the likelier second. No header at all
+ * (most crawlers, some bots) falls through to DEFAULT_LANG.
+ *
+ * WHY THIS EXISTS: before it, `ja` was served to every first-time visitor
+ * because nothing looked at the browser at all, so a Filipino customer
+ * following a link landed on Japanese — and since 2026-09-15 that also means
+ * landing on a site with no layaway. The default was working against the
+ * customer base the feature is for.
+ *
+ * q-values are respected, so `en;q=0.9, ja;q=0.4` is an English reader who can
+ * also read some Japanese, and gets English. `q=0` is an explicit refusal of
+ * that language, and a bare `*` is "anything" — no preference, so DEFAULT_LANG.
+ */
+export function detectLang(acceptLanguage: string | null | undefined): Lang {
+  if (!acceptLanguage || !acceptLanguage.trim()) return DEFAULT_LANG;
+
+  let best: { lang: Lang; q: number } | null = null;
+  for (const part of acceptLanguage.split(",")) {
+    const [tagRaw, ...params] = part.trim().split(";");
+    const tag = tagRaw.trim().toLowerCase();
+    if (!tag) continue;
+
+    // "*" is "any language is acceptable" — no preference at all, so it is not
+    // evidence that the visitor cannot read Japanese. Treated as no signal.
+    if (tag === "*") return DEFAULT_LANG;
+
+    const lang: Lang | null = tag === "ja" || tag.startsWith("ja-")
+      ? "ja"
+      : tag === "en" || tag.startsWith("en-")
+        ? "en"
+        : null;
+    if (!lang) continue;
+
+    const qParam = params.map((s) => s.trim()).find((s) => s.startsWith("q="));
+    const parsed = qParam ? Number.parseFloat(qParam.slice(2)) : 1;
+    const q = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), 1) : 1;
+    if (q <= 0) continue; // q=0 is an explicit refusal of that language.
+
+    // Strictly greater, so the earliest tag wins a tie — the order the browser
+    // sent is itself a preference.
+    if (!best || q > best.q) best = { lang, q };
+  }
+
+  // A header that named languages but none of ours (tl, fil, zh, de …) reaches
+  // here with best === null. That visitor is not a Japanese reader, so English.
+  if (!best) return "en";
+  return best.lang;
+}
+
+/** The whole resolution in one call: explicit choice, else detection. */
+export function resolveLang(
+  cookieValue: string | null | undefined,
+  acceptLanguage: string | null | undefined,
+): Lang {
+  return asLang(cookieValue) ?? detectLang(acceptLanguage);
+}
+
 export const dict = {
   nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "私たちについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "会員プログラム", en: "Loyalty" }, claim: { ja: "ライブ予約の確定", en: "Claim from Live" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "アカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
   hero: {
     h1a: { ja: "身につける資産。", en: "Gold you can wear." }, h1b: { ja: "証明できる価値。", en: "Value you can prove." },
-    lede: { ja: "K18ゴールド、あこや真珠、鑑定書付きダイヤモンド。一点ずつ東京で真贋を確認し、重量で価格を明示。無利息の分割予約で一点から、卸売なら東京から直接。次の世代へ受け継ぐ、資産としてのジュエリーです。", en: "K18 gold, Akoya pearls and certified diamonds, each piece checked and priced by weight in Tokyo. Buy one piece on 0% layaway, stock your shop from Tokyo, or build a gold collection your daughter will inherit." },
+    // The ja lede no longer mentions 分割予約: layaway is English-only (owner
+    // decision 2026-09-15) and the hero is the first thing a Japanese visitor
+    // reads. The en lede is unchanged. Found by walking the site, not by
+    // reading the diff — the section and the CTA were gated and this prose
+    // still sold the thing.
+    lede: { ja: "K18ゴールド、あこや真珠、鑑定書付きダイヤモンド。一点ずつ東京で真贋を確認し、重量で価格を明示。卸売なら東京から直接。次の世代へ受け継ぐ、資産としてのジュエリーです。", en: "K18 gold, Akoya pearls and certified diamonds, each piece checked and priced by weight in Tokyo. Buy one piece on 0% layaway, stock your shop from Tokyo, or build a gold collection your daughter will inherit." },
     cta1: { ja: "コレクションを見る", en: "Shop the collections" }, cta2: { ja: "分割予約を計算する", en: "Calculate layaway" },
   },
   home: {
@@ -59,7 +160,7 @@ export const dict = {
   },
   faq: { h1: { ja: "よくある質問", en: "Frequently asked questions" }, lede: { ja: "お問い合わせの多いご質問をまとめました。ほかにご不明な点があればお気軽にご連絡ください。", en: "The questions we are asked most. If yours is not here, please get in touch." } },
   gold: { h1: { ja: "ゴールドの基礎知識", en: "The gold guide" }, lede: { ja: "K18の意味、刻印の読み方、長く美しく保つためのお手入れ。購入前に知っておいていただきたいことをまとめました。", en: "What K18 means, how to read a stamp, and how to keep a piece looking right. The things worth knowing before you buy." }, cta: { ja: "コレクションを見る", en: "Shop the collections" } },
-  legal: { english: { ja: "English", en: "English" }, draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" } },
+  legal: { english: { ja: "English", en: "English" }, japanese: { ja: "日本語", en: "日本語" }, secondary: { ja: "参照用の別言語版", en: "The other language, for reference" }, draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" } },
   account: {
     h1: { ja: "アカウント", en: "Your account" },
     loginH: { ja: "サインイン", en: "Sign in" },
@@ -206,6 +307,11 @@ export const dict = {
     layawayMonthly: { ja: "月々のお支払い", en: "Monthly" },
     layawayLast: { ja: "最終回", en: "Final payment" },
     layawaySchedule: { ja: "お支払い予定", en: "Your schedule" },
+    // Shown if a shopper had layaway selected and the site language moved to
+    // Japanese before they paid — layaway is English-only (owner decision
+    // 2026-09-15). Nothing was charged and the basket is intact, so the copy
+    // says what to do next rather than apologising.
+    layawayUnavailable: { ja: "分割予約は英語表示のみでのお取り扱いとなります。全額でのお支払いにお進みいただくか、表示言語をEnglishに切り替えてください。カートの中身はそのままです。", en: "Layaway is available on the English site only. Pay in full, or switch the language to English to reserve. Your basket is untouched." },
     layawayDeadline: { ja: "お申込金は72時間以内にお振込ください。期限を過ぎた場合はお取り置きを解除し、商品は再び販売いたします。お支払いは発生しません。", en: "Please send the deposit within 72 hours. After that we release the hold and the piece goes back on sale; nothing is owed." },
     reservePiece: { ja: "この内容で予約する", en: "Reserve this piece" },
     reserving: { ja: "手続き中…", en: "Reserving…" },
@@ -390,8 +496,14 @@ export const dict = {
     signedOut: { ja: "サインアウトしました", en: "Signed out" },
   },
   /** Page <title> and description, chosen by the language cookie in generateMetadata (lib/page-meta.ts). */
+  /**
+   * PAGE METADATA. The ja descriptions no longer mention 分割予約: they are the
+   * Japanese search snippet and the link preview, so they advertise the offer
+   * as surely as the page does. The en descriptions are unchanged. Layaway is
+   * English-only — owner decision 2026-09-15, lib/layaway-availability.
+   */
   meta: {
-    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。無利息の分割予約、東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
+    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
     layaway: { title: { ja: "分割予約", en: "Layaway" } },
     blog: { title: { ja: "ブログ", en: "Blog" } },
     account: { title: { ja: "アカウント", en: "Account" } },
@@ -407,9 +519,9 @@ export const dict = {
     cart: { title: { ja: "カート", en: "Cart" } },
     login: { title: { ja: "サインイン", en: "Sign in" } },
     about: { title: { ja: "私たちについて", en: "About Us" } },
-    faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "分割予約、フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
+    faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
     collections: { title: { ja: "コレクション", en: "Collections" } },
-    terms: { title: { ja: "利用規約", en: "Terms of sale" }, description: { ja: "価格、分割予約、ライブからの予約、配送、返品、修理、準拠法。", en: "Prices, layaway, claims from Live, shipping, returns, repairs and governing law." } },
+    terms: { title: { ja: "利用規約", en: "Terms of sale" }, description: { ja: "価格、ライブからの予約、配送、返品、修理、準拠法。", en: "Prices, layaway, claims from Live, shipping, returns, repairs and governing law." } },
     privacy: { title: { ja: "プライバシーポリシー", en: "Privacy policy" }, description: { ja: "Cha Jewelsが収集する情報、その目的、第三者への提供、開示・削除のご請求方法。", en: "What Cha Jewels collects, why, who else sees it, and how to ask for a copy or a deletion." } },
     tokusho: { title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" } },
   },
