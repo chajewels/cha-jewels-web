@@ -8,7 +8,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { toneClass } from "@/lib/order-status";
-import { canPayHere, isLivePlan, planNote, planStatusLabel, remainingIsPayable, remainingLabel, rowStatusLabel } from "@/lib/plan-status";
+import { canPayHere, isLivePlan, planNote, planStatusLabel, remainingIsPayable, remainingLabel, rowStatusLabel, showsRemainingFigure } from "@/lib/plan-status";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { LayawayPayForm } from "@/components/commerce/layaway-pay-form";
@@ -117,7 +117,12 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         <dl className="mt-10 grid gap-4 border border-rule p-5 sm:grid-cols-3">
           <Figure k={t("plans", "total")} v={money(Number(plan.total_amount))} />
           <Figure k={t("plans", "paid")} v={money(Number(plan.total_paid))} />
-          <Figure k={remainingLabel(plan, lang)} v={money(Number(plan.remaining_balance))} dim={!remainingIsPayable(plan)} />
+          {/* Hidden on a closed plan that left nothing unpaid: the two cells
+              above already say "Plan total X · Paid so far X", and a third
+              reading "Unpaid when it closed 0" would contradict the badge. */}
+          {showsRemainingFigure(plan) && (
+            <Figure k={remainingLabel(plan, lang)} v={money(Number(plan.remaining_balance))} dim={!remainingIsPayable(plan)} />
+          )}
         </dl>
 
         <dl className="mt-4 space-y-2 text-sm">
