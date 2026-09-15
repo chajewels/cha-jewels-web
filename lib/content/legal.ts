@@ -22,8 +22,13 @@ export const legalTitles: Record<"terms" | "privacy", Record<Lang, string>> = {
 
 /**
  * 特定商取引法に基づく表記 — required by Japanese law for online sales and
- * rendered in Japanese only, whatever the language toggle says. Confirm every
- * line with a JP compliance review before launch.
+ * rendered in Japanese in BOTH languages, because the Japanese is the version
+ * the law governs. On EN the page now says so in English and points at
+ * /legal/terms and /legal/privacy, rather than leaving an English subtitle over
+ * a Japanese body (owner decision 2026-09-16 — see app/legal/tokusho/page.tsx
+ * for the reasoning and for how to add a labelled translation if the compliance
+ * reviewer wants one). Confirm every line with a JP compliance review before
+ * launch.
  *
  * LAYAWAY IS QUALIFIED HERE, NOT REMOVED (owner decision 2026-09-15, option C).
  * Layaway is no longer offered to a visitor reading the site in Japanese, but
@@ -43,24 +48,108 @@ export const legalTitles: Record<"terms" | "privacy", Record<Lang, string>> = {
  */
 export const tokusho = {
   title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" },
+  /**
+   * BILINGUAL, AND IT FOLLOWS THE TOGGLE (owner decision 2026-09-16).
+   *
+   * Earlier this page was Japanese in both languages. First with a bare English
+   * subtitle over a Japanese body, then — my call, now overruled — with an
+   * English notice explaining why it was not translated. Neither was what the
+   * toggle promises. EN means English, on this page like every other.
+   *
+   * Do NOT add a notice, banner or disclaimer of any kind back to this page.
+   *
+   * WHAT IS NEVER TRANSLATED: proper nouns and identifiers. The registered
+   * company name, the representative, the invoice registration number, the
+   * email address and both phone numbers are the same characters in both
+   * columns, because they identify rather than describe. The address is written
+   * naturally in English in the order Japan Post accepts from abroad — building
+   * and room first, then block, ward, city, postal code, country.
+   *
+   * The Japanese column is untouched by this change; compare against git if you
+   * need to be sure.
+   *
+   * Still pending a JP compliance review, as the page has always said. Two
+   * things to put in front of it: the English wording below, which is a
+   * statutory disclosure rendered in a second language and therefore carries
+   * the risk that the two columns say different things; and the two phone
+   * numbers, which came in as "03,6657 6129" and "070 8307 3318" and have not
+   * been confirmed digit by digit.
+   */
   rows: [
-    ["販売業者", "株式会社チャジュエルズ（Cha Jewels Co., Ltd.）"],
-    ["代表者", "Cynthia Largo"],
-    ["所在地", "〒124-0012 東京都葛飾区立石6-5-1 タイムマンション301"],
-    ["電話番号", "03-6657-6129（代表）／070-8307-3318（携帯）"],
-    ["メールアドレス", "sales@chajewelsjp.com"],
-    ["登録番号", "T7011801044120"],
-    ["販売価格", "各商品ページに表示（税込）"],
-    ["商品代金以外の必要料金", "送料、銀行振込手数料、コンビニ決済手数料"],
-    ["支払方法", "クレジットカード、銀行振込、コンビニ決済、分割予約（レイアウェイ）※"],
-    ["支払時期", "注文時。分割予約※の場合は契約書記載の期日"],
-    ["引渡時期", "入金確認後5営業日以内に発送。分割予約※は完済後"],
-    ["返品・交換", "商品到着後7日以内、未使用に限り。オーダー品・サイズ直し品は不可"],
-    [
-      "※ 分割予約（レイアウェイ）について",
-      "分割予約は英語版サイトをご利用のお客様および海外のお客様を対象としたお支払方法で、契約書は英語およびタガログ語でご用意しています。日本語版サイトではお取り扱いしておりません。ご希望の場合は sales@chajewelsjp.com までお問い合わせください。",
-    ],
-  ] as [string, string][],
+    {
+      k: { ja: "販売業者", en: "Seller" },
+      v: { ja: "株式会社チャジュエルズ（Cha Jewels Co., Ltd.）", en: "Cha Jewels Co., Ltd. (株式会社チャジュエルズ)" },
+    },
+    {
+      k: { ja: "代表者", en: "Representative" },
+      v: { ja: "Cynthia Largo", en: "Cynthia Largo" },
+    },
+    {
+      k: { ja: "所在地", en: "Address" },
+      v: {
+        ja: "〒124-0012 東京都葛飾区立石6-5-1 タイムマンション301",
+        en: "Time Mansion 301, 6-5-1 Tateishi, Katsushika-ku, Tokyo 124-0012, Japan",
+      },
+    },
+    {
+      k: { ja: "電話番号", en: "Telephone" },
+      v: { ja: "03-6657-6129（代表）／070-8307-3318（携帯）", en: "03-6657-6129 (office) / 070-8307-3318 (mobile)" },
+    },
+    {
+      k: { ja: "メールアドレス", en: "Email" },
+      v: { ja: "sales@chajewelsjp.com", en: "sales@chajewelsjp.com" },
+    },
+    {
+      k: { ja: "登録番号", en: "Invoice registration number" },
+      v: { ja: "T7011801044120", en: "T7011801044120" },
+    },
+    {
+      k: { ja: "販売価格", en: "Price" },
+      v: { ja: "各商品ページに表示（税込）", en: "Shown on each product page, tax included" },
+    },
+    {
+      k: { ja: "商品代金以外の必要料金", en: "Charges besides the price" },
+      v: {
+        ja: "送料、銀行振込手数料、コンビニ決済手数料",
+        en: "Shipping, bank transfer fees, and convenience-store payment fees",
+      },
+    },
+    {
+      k: { ja: "支払方法", en: "Payment methods" },
+      v: {
+        ja: "クレジットカード、銀行振込、コンビニ決済、分割予約（レイアウェイ）※",
+        en: "Credit card, bank transfer, convenience-store payment, and layaway※",
+      },
+    },
+    {
+      k: { ja: "支払時期", en: "When payment is due" },
+      v: {
+        ja: "注文時。分割予約※の場合は契約書記載の期日",
+        en: "At the time of order. For layaway※, on the dates set out in your agreement",
+      },
+    },
+    {
+      k: { ja: "引渡時期", en: "When we deliver" },
+      v: {
+        ja: "入金確認後5営業日以内に発送。分割予約※は完済後",
+        en: "Dispatched within five business days of payment clearing. Layaway※ ships after the final payment",
+      },
+    },
+    {
+      k: { ja: "返品・交換", en: "Returns and exchanges" },
+      v: {
+        ja: "商品到着後7日以内、未使用に限り。オーダー品・サイズ直し品は不可",
+        en: "Within seven days of delivery and unused only. Made-to-order pieces and pieces resized for you cannot be returned",
+      },
+    },
+    {
+      k: { ja: "※ 分割予約（レイアウェイ）について", en: "※ About layaway" },
+      v: {
+        ja: "分割予約は英語版サイトをご利用のお客様および海外のお客様を対象としたお支払方法で、契約書は英語およびタガログ語でご用意しています。日本語版サイトではお取り扱いしておりません。ご希望の場合は sales@chajewelsjp.com までお問い合わせください。",
+        en: "Layaway is a payment method for customers using the English site and customers overseas, and the agreement is provided in English and Tagalog. It is not offered on the Japanese site. To ask about it, email sales@chajewelsjp.com.",
+      },
+    },
+  ] as { k: Record<Lang, string>; v: Record<Lang, string> }[],
 };
 
 export const privacySections: LegalSection[] = [
@@ -100,10 +189,28 @@ export const privacySections: LegalSection[] = [
     },
   },
   {
+    // ONE STATEMENT, EVERY CUSTOMER, NO COUNTRY AND NO LAW NAMED.
+    // Owner decision 2026-09-16: Cha Jewels serves customers everywhere, so
+    // the rights sentence does not split them by where they are.
+    //
+    // This replaces two earlier versions, and the second never shipped:
+    //   - "Japanese customers are covered by the APPI; customers in the
+    //     Philippines by the Data Privacy Act" — split by what read as
+    //     nationality;
+    //   - a residence-based rewrite of the same split (branch only, never
+    //     merged to develop or main).
+    // The split itself is what is gone now, not just its test.
+    //
+    // FLAGGED FOR LEGAL REVIEW, NOT SETTLED — see the PR. Naming APPI and the
+    // Data Privacy Act was not decoration: both regimes expect a controller to
+    // say which law applies and how rights are exercised under it. Dropping the
+    // names makes this page simpler and less specific, and that trade belongs
+    // to whoever does the review this page already says it is pending. Do not
+    // re-argue it in the page copy.
     h: { ja: "お客様の権利", en: "Your rights" },
     body: {
-      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。日本のお客様には個人情報保護法（APPI）が、フィリピンのお客様にはData Privacy Actが適用されます。"],
-      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. Japanese customers are covered by the APPI; customers in the Philippines by the Data Privacy Act."],
+      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。これはお住まいの地域を問わず、すべてのお客様に共通です。"],
+      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. This is the same for every customer, wherever you live."],
     },
   },
   {
