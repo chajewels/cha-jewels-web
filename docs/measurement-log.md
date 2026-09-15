@@ -34,8 +34,9 @@ bank transfer days later. Only the Hub knows those happened.
 | Date | Event |
 |---|---|
 | 2026-09-14 | Instrumentation written (PR 1). **Not live** — merge and deploy are the owner's. |
-| _pending_ | **Instrumentation live in production.** Fill in on the day the merge deploys. |
-| _pending_ | **Production events first VERIFIED.** Fill in on the day a real `product_view` and a real `add_to_cart` are seen in the Vercel dashboard. **The baseline window starts on THIS date — not at merge, not at deploy.** |
+| 2026-09-15 | **Instrumentation live in production** (first storefront production release). |
+| 2026-09-15 | First production check: `add_to_cart` seen, **`product_view` absent**. Page views recorded for both product pages in the same session, so the pages rendered and the provider worked. Root cause: `<AnalyticsProvider/>` was mounted after `{children}`, so `product_view`'s mount effect called `track()` before `inject()` had created `window.va` — and `track()` silently no-ops when it is undefined. Fixed; awaiting production confirmation. **The baseline did NOT start here.** |
+| _pending_ | **`product_view` CONFIRMED in production.** Fill in on the day two distinct SKUs appear in the Vercel Events panel after two real product-page visits. **The baseline window starts on THIS date.** `add_to_cart` alone does not start it — the two events answer different questions and a view count is the denominator. |
 | _pending_ | **Step 4 release (web layaway).** Separate line, separate date. Anything after it is step 4 plus whatever else; do not attribute it to the remodel. |
 | _pending_ | Remodel release, if it happens. |
 
@@ -175,3 +176,22 @@ change.
 
 Not emitted from: preview deployments, fixture mode
 (`NEXT_PUBLIC_PREVIEW_FIXTURES=1`), or localhost. See `lib/analytics.ts`.
+
+**A preview can never confirm either event**, because `analyticsEnabled()`
+requires `NEXT_PUBLIC_VERCEL_ENV === "production"` and no preview sets it. Any
+confirmation has to happen on the production domain, which is why the 2026-09-15
+hole existed for a release rather than being caught before it.
+
+### Why `product_view` is harder to keep working than `add_to_cart`
+
+`add_to_cart` is reported from a click, long after the page has mounted.
+`product_view` is reported from a mount effect, which is the one moment when
+`window.va` may not exist yet — and `track()` drops an event silently in that
+case. Two invariants keep it working, both enforced by `npm run check:analytics`
+in CI:
+
+1. `<AnalyticsProvider/>` mounts **before** `{children}` in `app/layout.tsx`, so
+   its effect creates the queue first.
+2. `trackProductView` records the SKU in `emit()`'s `onSent` callback, never
+   before the call — otherwise a dropped event consumes that SKU's one slot and
+   every later view of the same piece is suppressed too.

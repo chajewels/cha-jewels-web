@@ -48,18 +48,76 @@ export function analyticsEnabled(): boolean {
 }
 
 /**
+ * How long to keep waiting for the analytics queue to exist before giving up on
+ * an event. Generous, because the cost of waiting is nothing and the cost of
+ * dropping is a hole in the baseline; short enough that a browser which blocks
+ * the script entirely does not retry forever.
+ */
+const QUEUE_WAIT_MS = 10_000;
+const QUEUE_POLL_MS = 50;
+
+/**
+ * Whether `track()` has anywhere to put an event yet.
+ *
+ * `@vercel/analytics`'s `track()` is `window.va?.call(window, "event", …)` — if
+ * `window.va` is undefined the event is a SILENT NO-OP. It is not queued, not
+ * retried and not logged. `window.va` is created by `initQueue()` inside
+ * `inject()`, which runs in the `<Analytics/>` component's own effect, and from
+ * that moment events buffer safely into `window.vaq` until the script loads.
+ *
+ * So the only hole is the window BEFORE that effect runs — and that hole is
+ * exactly where a mount effect lands.
+ */
+const queueReady = () => typeof (window as unknown as { va?: unknown }).va === "function";
+
+/**
  * Fire and forget. Analytics must never throw into a render, block an
  * interaction, or interrupt shopping, so every failure is swallowed here —
  * a missing script, a blocked request, an ad blocker, a provider outage.
  * There is no user-visible consequence of analytics failing, ever.
+ *
+ * `onSent` runs only when the event actually reached the queue. Nothing that
+ * de-duplicates may record a send before this fires; see trackProductView.
+ *
+ * WHY THE WAIT EXISTS (found in production 2026-09-15). `add_to_cart` worked
+ * and `product_view` never appeared once. The difference was never the event or
+ * the SKU — it was WHEN each is called. `add_to_cart` fires from a click, long
+ * after everything has mounted. `product_view` fires from a mount effect, and
+ * on the product page that effect runs BEFORE the provider's, because
+ * `<AnalyticsProvider/>` sat after `{children}` in the layout. Observed order of
+ * `window.va` access on a real product page:
+ *
+ *     GET  <- track(), called by emit()      window.va undefined  -> dropped
+ *     GET  <- Analytics.useEffect
+ *     GET  <- initQueue() inside inject()
+ *     SET  <- window.va finally defined
+ *
+ * The layout order is fixed too, so the common path needs no wait at all. This
+ * wait is here so that a future layout edit, a slower hydration, or any other
+ * re-ordering cannot quietly reopen the same hole — the failure mode is
+ * invisible by construction, which is what let it ship.
  */
-function emit(name: string, props: EventProps): void {
+function emit(name: string, props: EventProps, onSent?: () => void): void {
   if (!analyticsEnabled()) return;
-  try {
-    track(name, { sku: props.sku, lang: props.lang });
-  } catch {
-    // Intentionally silent. See above.
-  }
+
+  const send = () => {
+    try {
+      track(name, { sku: props.sku, lang: props.lang });
+      onSent?.();
+    } catch {
+      // Intentionally silent. See above.
+    }
+  };
+
+  if (queueReady()) { send(); return; }
+
+  const startedAt = Date.now();
+  const retry = () => {
+    if (queueReady()) { send(); return; }
+    if (Date.now() - startedAt >= QUEUE_WAIT_MS) return; // Give up quietly.
+    setTimeout(retry, QUEUE_POLL_MS);
+  };
+  setTimeout(retry, QUEUE_POLL_MS);
 }
 
 /**
@@ -85,14 +143,34 @@ const viewedSkus = new Set<string>();
 /** Test seam. Not used by application code. */
 export function __resetViewedForTest(): void {
   viewedSkus.clear();
+  inFlight.clear();
 }
 
-/** Product detail page, once per SKU per page-load session. */
+/**
+ * Product detail page, once per SKU per page-load session.
+ *
+ * THE SKU IS RECORDED ONLY ONCE THE EVENT HAS ACTUALLY BEEN SENT. It used to be
+ * added before `emit()`, which meant a dropped event still consumed the SKU's
+ * one slot: the first view was lost AND every later view of the same piece was
+ * suppressed by the guard, with nothing anywhere to say so. The de-duplication
+ * is still exactly one view per SKU per page-load session — it just can no
+ * longer eat a view it failed to report.
+ *
+ * `inFlight` keeps that promise while an event is waiting for the queue: a
+ * second mount in that gap (Strict Mode's double-invoked effect, a remount, the
+ * language toggle) must not start a second send, and cannot be stopped by
+ * `viewedSkus` yet because nothing has been sent.
+ */
+const inFlight = new Set<string>();
+
 export function trackProductView(sku: string, lang: string): void {
   if (!sku) return;
-  if (viewedSkus.has(sku)) return;
-  viewedSkus.add(sku);
-  emit("product_view", { sku, lang });
+  if (viewedSkus.has(sku) || inFlight.has(sku)) return;
+  inFlight.add(sku);
+  emit("product_view", { sku, lang }, () => {
+    viewedSkus.add(sku);
+    inFlight.delete(sku);
+  });
 }
 
 /**
