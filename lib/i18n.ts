@@ -162,15 +162,6 @@ export const dict = {
   gold: { h1: { ja: "ゴールドの基礎知識", en: "The gold guide" }, lede: { ja: "K18の意味、刻印の読み方、長く美しく保つためのお手入れ。購入前に知っておいていただきたいことをまとめました。", en: "What K18 means, how to read a stamp, and how to keep a piece looking right. The things worth knowing before you buy." }, cta: { ja: "コレクションを見る", en: "Shop the collections" } },
   legal: {
     draft: { ja: "最終更新 2026-09-08 · 法務レビュー前の草案", en: "Last updated 2026-09-08 · Draft pending legal review" },
-    // Shown on /legal/tokusho when the site is in English, explaining why that
-    // one page is not translated. Owner decision 2026-09-16; the alternative
-    // was to translate the body. See app/legal/tokusho/page.tsx.
-    tokushoJaH: { ja: "", en: "This page is in Japanese" },
-    tokushoJaP: {
-      ja: "",
-      en: "特定商取引法に基づく表記 is the disclosure Japanese law requires of an online seller. The Japanese text below is the version the law governs, so we do not translate it — a translation we have not had reviewed could state something different from what we are required to state.",
-    },
-    tokushoJaSee: { ja: "", en: "The same commercial terms — prices, payment, delivery, returns and how to reach us — are set out in English here:" },
   },
   account: {
     h1: { ja: "アカウント", en: "Your account" },
