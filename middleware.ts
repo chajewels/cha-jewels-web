@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { LANG_COOKIE, LANG_PARAM, asLang, detectLang, type Lang } from "@/lib/i18n";
+import { LANG_COOKIE, LANG_PARAM, PATH_HEADER, asLang, detectLang, type Lang } from "@/lib/i18n";
 
 /**
  * Language resolution + session refresh + the render-time gate on /account/*
@@ -70,8 +70,18 @@ export async function middleware(req: NextRequest) {
   // their second navigation — which reads as a broken toggle.
   if (decided) req.cookies.set(LANG_COOKIE, decided);
 
+  // ---------------------------------------------------------------- pathname
+  //
+  // Forward the path so a server render can name itself. `generateMetadata`
+  // is never told the pathname, and metadata set in the root layout is what
+  // every page inherits — which is why every URL on the site used to declare
+  // rel=canonical pointing at the home page. Snapshotted AFTER the cookie
+  // write above so the language decision travels with it.
+  const fwd = new Headers(req.headers);
+  fwd.set(PATH_HEADER, req.nextUrl.pathname);
+
   const gated = isGated(req.nextUrl.pathname);
-  const res = NextResponse.next({ request: req });
+  const res = NextResponse.next({ request: { headers: fwd } });
 
   /**
    * Persist the decision (if any) on whatever response we end up returning.

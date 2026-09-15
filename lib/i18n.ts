@@ -12,6 +12,16 @@ export const DEFAULT_LANG: Lang = "ja";
  */
 export const LANG_PARAM = "lang";
 
+/**
+ * Request header the middleware uses to tell a server render which path it is.
+ *
+ * `generateMetadata` is handed params and searchParams but never the pathname,
+ * and a layout's metadata is what every page inherits — so without this the
+ * root layout cannot name the page it is describing. That is exactly how every
+ * URL on the site came to declare rel=canonical pointing at the home page.
+ */
+export const PATH_HEADER = "x-cj-path";
+
 /** A value we are willing to treat as a language choice. */
 export function asLang(value: string | null | undefined): Lang | null {
   return value === "ja" || value === "en" ? value : null;

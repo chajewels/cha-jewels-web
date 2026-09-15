@@ -33,6 +33,13 @@ export const legalTitles: Record<"terms" | "privacy", Record<Lang, string>> = {
  * Japanese something the Japanese site refuses. So each mention is marked ※
  * and the final row says who it is for. This is statutory wording: it needs a
  * JP compliance read before launch like every other line on this page.
+ *
+ * CONTACT ROWS ADDED 2026-09-15 (owner-supplied). 特商法 requires a telephone
+ * number and an address for enquiries, and this page carried neither. The
+ * numbers came from Cynthia as "03,6657 6129" and "070 8307 3318" and are
+ * written here in the conventional Japanese form; the comma was read as a
+ * hyphen. If either digit is wrong it is wrong on a statutory page, so check
+ * them at the compliance read.
  */
 export const tokusho = {
   title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" },
@@ -40,6 +47,8 @@ export const tokusho = {
     ["販売業者", "株式会社チャジュエルズ（Cha Jewels Co., Ltd.）"],
     ["代表者", "Cynthia Largo"],
     ["所在地", "〒124-0012 東京都葛飾区立石6-5-1 タイムマンション301"],
+    ["電話番号", "03-6657-6129（代表）／070-8307-3318（携帯）"],
+    ["メールアドレス", "sales@chajewelsjp.com"],
     ["登録番号", "T7011801044120"],
     ["販売価格", "各商品ページに表示（税込）"],
     ["商品代金以外の必要料金", "送料、銀行振込手数料、コンビニ決済手数料"],

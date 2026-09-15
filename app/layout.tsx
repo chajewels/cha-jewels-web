@@ -7,6 +7,7 @@ import { Footer } from "@/components/site/footer";
 import { FlashNotice } from "@/components/site/flash-notice";
 import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
+import { SeoLinks } from "@/lib/page-meta";
 import { dict, tr } from "@/lib/i18n";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 
@@ -21,7 +22,10 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: dict.meta.site.title[lang], template: "%s | Cha Jewels" },
     description: dict.meta.site.description[lang],
     openGraph: { type: "website", siteName: "Cha Jewels", locale: lang === "ja" ? "ja_JP" : "en_US", alternateLocale: [lang === "ja" ? "en_US" : "ja_JP"] },
-    alternates: { canonical: "/", languages: { ja: "/", en: "/?lang=en" } },
+    // NO `alternates` here. A literal one is inherited by every page in the
+    // app, which is how every URL on this site came to declare itself the home
+    // page. The canonical and hreflang links are rendered per request by
+    // <SeoLinks /> below — see lib/page-meta.tsx for why they cannot go here.
   };
 }
 
@@ -41,6 +45,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             always did. It renders nothing, so its position is free.
             lib/analytics.ts also waits for the queue, so this ordering is the
             fast path rather than the only defence. */}
+        {/* Canonical + hreflang for THIS path. React hoists these into <head>.
+            Rendered rather than returned as metadata because Next's resolver
+            strips the query from any "/" URL — lib/page-meta.tsx explains. */}
+        <SeoLinks />
         <AnalyticsProvider />
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-gold px-3 py-2 text-ink focus:left-2">{t("nav", "skip")}</a>
         <Header lang={lang} />
