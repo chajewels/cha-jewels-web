@@ -92,7 +92,7 @@ export const tokusho = {
   rows: [
     {
       k: { ja: "販売業者", en: "Seller" },
-      v: { ja: "株式会社チャジュエルズ（Cha Jewels Co., Ltd.）", en: "Cha Jewels Co., Ltd. (株式会社チャジュエルズ)" },
+      v: { ja: "Ｃｈａ　Ｊｅｗｅｌｓ株式会社", en: "Ｃｈａ　Ｊｅｗｅｌｓ株式会社" },
     },
     {
       k: { ja: "代表者", en: "Representative" },
@@ -187,17 +187,25 @@ export const privacyUpdated: Record<Lang, string> = {
  * お客様), but this is a legal document: a native reader must check it before
  * this page is treated as final. Flagged in the PR.
  *
- * NOTE THE COMPANY NAME. Article 1 and article 14 say "Cha Jewels株式会社",
- * as confirmed by Cynthia. /legal/tokusho says 株式会社チャジュエルズ. Two legal
- * pages, two different names — left as they are, deliberately, for Cynthia to
- * resolve against the registration certificate. Do not silently align them.
+ * THE COMPANY NAME IS "Ｃｈａ　Ｊｅｗｅｌｓ株式会社" (owner-confirmed
+ * 2026-09-16), and it is the SAME string on every legal surface: this policy's
+ * articles 1 and 14, and the tokusho 販売業者 row. The earlier discrepancy —
+ * article 1 saying "Cha Jewels株式会社" while tokusho said 株式会社チャジュエルズ
+ * — is resolved, and the answer was neither of them.
+ *
+ * THE FULL-WIDTH FORM IS DELIBERATE. Ｃｈａ and Ｊｅｗｅｌｓ are fullwidth Latin
+ * (U+FF23 …) separated by an IDEOGRAPHIC SPACE (U+3000), not ASCII. Full-width
+ * Latin is a normal Japanese corporate-registration convention, so do NOT
+ * "normalise" it to "Cha Jewels株式会社" — that is a different string and it is
+ * the wrong one. Still to be confirmed against the registration certificate
+ * before the compliance review signs off; see the PR.
  */
 export const privacyArticles: LegalArticle[] = [
   {
     n: 1,
     h: { ja: "当社について", en: "Who We Are" },
     blocks: [
-      { kind: "p", text: { ja: "Cha Jewels Co., Ltd.（Cha Jewels株式会社。以下「Cha Jewels」または「当社」といいます）は、本ウェブサイトを運営し、本プライバシーポリシーに記載する個人情報について責任を負います。", en: "Cha Jewels Co., Ltd. (Cha Jewels株式会社, “Cha Jewels,” “we,” “us,” or “our”) operates this website and is responsible for the personal information described in this Privacy Policy." } },
+      { kind: "p", text: { ja: "Cha Jewels Co., Ltd.（Ｃｈａ　Ｊｅｗｅｌｓ株式会社。以下「Cha Jewels」または「当社」といいます）は、本ウェブサイトを運営し、本プライバシーポリシーに記載する個人情報について責任を負います。", en: "Cha Jewels Co., Ltd. (Ｃｈａ　Ｊｅｗｅｌｓ株式会社, “Cha Jewels,” “we,” “us,” or “our”) operates this website and is responsible for the personal information described in this Privacy Policy." } },
       {
         kind: "lines",
         lines: { ja: ["登記上の所在地：", "〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Registered address:", "Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] },
@@ -507,7 +515,7 @@ export const privacyArticles: LegalArticle[] = [
       { kind: "p", text: { ja: "個人情報に関するご質問、ご請求または苦情は、次の連絡先までお願いします。", en: "For privacy questions, requests, or complaints, contact:" } },
       {
         kind: "lines",
-        lines: { ja: ["Cha Jewels株式会社", "〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Cha Jewels株式会社", "Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] },
+        lines: { ja: ["Ｃｈａ　Ｊｅｗｅｌｓ株式会社", "〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Ｃｈａ　Ｊｅｗｅｌｓ株式会社", "Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] },
       },
       { kind: "p", text: { ja: "メールアドレス：sales@chajewelsjp.com", en: "Email: sales@chajewelsjp.com" } },
       { kind: "p", text: { ja: "当社は、個人情報に関する苦情を確認し、合理的に可能な限り速やかに回答します。また、個人情報保護委員会（日本）その他お住まいの地域の所轄の監督機関にご連絡いただくこともできます。", en: "We will review privacy complaints and respond as promptly as reasonably possible. You may also contact the Personal Information Protection Commission of Japan or another competent privacy regulator where you live." } },
