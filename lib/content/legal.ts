@@ -22,8 +22,13 @@ export const legalTitles: Record<"terms" | "privacy", Record<Lang, string>> = {
 
 /**
  * 特定商取引法に基づく表記 — required by Japanese law for online sales and
- * rendered in Japanese only, whatever the language toggle says. Confirm every
- * line with a JP compliance review before launch.
+ * rendered in Japanese in BOTH languages, because the Japanese is the version
+ * the law governs. On EN the page now says so in English and points at
+ * /legal/terms and /legal/privacy, rather than leaving an English subtitle over
+ * a Japanese body (owner decision 2026-09-16 — see app/legal/tokusho/page.tsx
+ * for the reasoning and for how to add a labelled translation if the compliance
+ * reviewer wants one). Confirm every line with a JP compliance review before
+ * launch.
  *
  * LAYAWAY IS QUALIFIED HERE, NOT REMOVED (owner decision 2026-09-15, option C).
  * Layaway is no longer offered to a visitor reading the site in Japanese, but
@@ -100,10 +105,28 @@ export const privacySections: LegalSection[] = [
     },
   },
   {
+    // ONE STATEMENT, EVERY CUSTOMER, NO COUNTRY AND NO LAW NAMED.
+    // Owner decision 2026-09-16: Cha Jewels serves customers everywhere, so
+    // the rights sentence does not split them by where they are.
+    //
+    // This replaces two earlier versions, and the second never shipped:
+    //   - "Japanese customers are covered by the APPI; customers in the
+    //     Philippines by the Data Privacy Act" — split by what read as
+    //     nationality;
+    //   - a residence-based rewrite of the same split (branch only, never
+    //     merged to develop or main).
+    // The split itself is what is gone now, not just its test.
+    //
+    // FLAGGED FOR LEGAL REVIEW, NOT SETTLED — see the PR. Naming APPI and the
+    // Data Privacy Act was not decoration: both regimes expect a controller to
+    // say which law applies and how rights are exercised under it. Dropping the
+    // names makes this page simpler and less specific, and that trade belongs
+    // to whoever does the review this page already says it is pending. Do not
+    // re-argue it in the page copy.
     h: { ja: "お客様の権利", en: "Your rights" },
     body: {
-      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。日本のお客様には個人情報保護法（APPI）が、フィリピンのお客様にはData Privacy Actが適用されます。"],
-      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. Japanese customers are covered by the APPI; customers in the Philippines by the Data Privacy Act."],
+      ja: ["ご自身の情報の開示、訂正、削除をご請求いただけます。sales@chajewelsjp.com までご連絡ください。これはお住まいの地域を問わず、すべてのお客様に共通です。"],
+      en: ["You can ask us for a copy of your data, ask us to correct it, or ask us to delete it — email sales@chajewelsjp.com. This is the same for every customer, wherever you live."],
     },
   },
   {
