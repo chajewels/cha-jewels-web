@@ -79,15 +79,46 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // then. Never a hardcoded array of what the calculator used to offer.
   const termOptions: LayawayTerm[] = quote?.layaway?.allowed_terms ?? DEFAULT_TERMS;
   const plan = mode === "layaway" ? quote?.layaway ?? null : null;
+  // What this order will actually settle in. Paying in full is yen-only, so the
+  // toggle's position is irrelevant there. Same rule quoteInput() sends, kept in
+  // one place: a toggle left on pesos before switching to full payment must not
+  // put a peso sign on yen figures.
+  const intendedCurrency: SettlementCurrency = mode === "layaway" ? settlement : "JPY";
   // The currency the QUOTE was taken in, not the toggle's current position: the
   // figures on screen belong to the quote, and the toggle may have moved since.
-  const settlementCurrency: SettlementCurrency = quote?.settlement_currency ?? settlement;
-  const money = (n: number) => formatMoney(n, settlementCurrency);
-  // Totals follow the same rule. A yen quote has no settlement figures of its
-  // own, so the yen ones are already the right answer.
-  const shownSubtotal = quote?.subtotal_settlement ?? quote?.subtotal_jpy ?? subtotal;
-  const shownShipping = quote === null ? null : quote.shipping_settlement ?? quote.shipping_jpy;
-  const shownTotal = quote?.total_settlement ?? quote?.total_jpy ?? subtotal;
+  // A Hub deploy predating settlement currency omits the field and quotes in yen.
+  const quoteCurrency: SettlementCurrency = quote === null ? intendedCurrency : quote.settlement_currency ?? "JPY";
+  const money = (n: number) => formatMoney(n, quoteCurrency);
+
+  // The summary figures AND the currency they are genuinely in, as one value.
+  // Taking the symbol from the toggle and the number from the yen cart is what
+  // showed a 679,980 yen piece as 679,980 pesos — plausible, and 2.4x too high,
+  // at the moment the customer decides whether they can afford it.
+  //
+  // Peso figures are withheld here rather than converted, because they cannot be
+  // reproduced in the browser: the Hub derives subtotal_settlement as
+  // total_settlement - shipping_settlement, and shipping is its own server-side
+  // answer that does not exist yet at this step. Local arithmetic would land
+  // within a peso of the quote the customer is actually charged against, and a
+  // figure that is nearly right is worse than no figure at all.
+  const summary: {
+    currency: SettlementCurrency;
+    subtotal: number | null;
+    shipping: number | null;
+    total: number | null;
+  } = quote !== null && quoteCurrency === intendedCurrency
+    ? {
+        currency: intendedCurrency,
+        subtotal: quote.subtotal_settlement ?? quote.subtotal_jpy,
+        shipping: quote.shipping_settlement ?? quote.shipping_jpy,
+        total: quote.total_settlement ?? quote.total_jpy,
+      }
+    : intendedCurrency === "JPY"
+      // Yen is the cart's own currency, so the cart's own figures already stand.
+      ? { currency: "JPY", subtotal, shipping: null, total: subtotal }
+      // Pesos exist only once the Hub has priced them.
+      : { currency: "PHP", subtotal: null, shipping: null, total: null };
+  const summaryMoney = (n: number | null) => (n === null ? "\u2014" : formatMoney(n, summary.currency));
 
   const quoteInput = () => ({
     ship_to_address_id: addressId,
@@ -317,6 +348,13 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                     ))}
                   </div>
                   <p className="mt-2 text-xs text-champagne/55">{t("checkout", "settlementNote")}</p>
+                  {/* Below lg the summary stacks underneath and is off screen here, so
+                      switching to pesos would otherwise change nothing the customer can
+                      see. Repeated at the point of action on small screens only — on wide
+                      ones the summary is already beside this and says the same thing. */}
+                  {summary.total === null && (
+                    <p className="mt-2 text-xs text-champagne/55 lg:hidden">{t("checkout", "settlementPending")}</p>
+                  )}
                 </fieldset>
 
                 <fieldset>
@@ -383,7 +421,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                   ))}
                 </ul>
                 <p className="mt-4 text-xs text-champagne/55">{t("checkout", "layawayDeadline")}</p>
-                {settlementCurrency === "PHP" && quote.fx_rate_date && (
+                {quoteCurrency === "PHP" && quote.fx_rate_date && (
                   <p className="mt-2 text-xs text-champagne/45">
                     {t("checkout", "settlementRate", { date: quote.fx_rate_date.slice(0, 10) })}
                   </p>
@@ -444,17 +482,23 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           ))}
         </ul>
         <dl className="mt-5 space-y-2 border-t border-rule pt-4 text-sm">
-          <Line k={t("checkout", "subtotal")} v={money(shownSubtotal)} />
+          <Line k={t("checkout", "subtotal")} v={summaryMoney(summary.subtotal)} />
           <Line
             k={t("checkout", "shipping")}
-            v={shownShipping === null ? "—" : shownShipping === 0 ? t("checkout", "free") : money(shownShipping)}
+            v={summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping)}
           />
           {plan && <Line k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />}
         </dl>
         <div className="mt-4 flex items-baseline justify-between border-t border-gold pt-4">
           <span className="text-champagne/70">{t("checkout", "total")}</span>
-          <span className="font-display text-2xl text-gold-pale">{money(shownTotal)}</span>
+          <span className="font-display text-2xl text-gold-pale">{summaryMoney(summary.total)}</span>
         </div>
+        {/* Says why the figures are dashes, so a blank total reads as "coming"
+            rather than "broken". Only when pesos were asked for and not yet
+            priced -- never alongside a real figure. */}
+        {summary.total === null && (
+          <p className="mt-3 text-xs text-champagne/55">{t("checkout", "settlementPending")}</p>
+        )}
         <Link href="/cart" className="mt-4 inline-block text-xs text-champagne/55 underline underline-offset-4">
           {t("cart", "h1")}
         </Link>
