@@ -31,12 +31,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
       <body>
+        {/* FIRST IN THE TREE, DELIBERATELY. React runs effects in tree order,
+            and this component's effect is what creates `window.va` — the queue
+            that `track()` needs to exist before it will record anything. Mounted
+            after {children}, as it was until 2026-09-15, a page that reports an
+            event from its own mount effect fired into an undefined `window.va`
+            and the event was silently dropped: `product_view` never once
+            appeared in production while `add_to_cart`, which fires from a click,
+            always did. It renders nothing, so its position is free.
+            lib/analytics.ts also waits for the queue, so this ordering is the
+            fast path rather than the only defence. */}
+        <AnalyticsProvider />
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-gold px-3 py-2 text-ink focus:left-2">{t("nav", "skip")}</a>
         <Header lang={lang} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>
         <Footer lang={lang} />
-        <AnalyticsProvider />
       </body>
     </html>
   );

@@ -65,7 +65,12 @@ export default async function OrdersPage() {
                     <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
                     {closedNote && <p className="max-w-[36ch] text-xs text-champagne/55">{closedNote}</p>}
                   </div>
-                  <p className="font-display text-xl text-gold-pale">{formatMoney(Number(order.total_amount), order.currency)}</p>
+                  {/* #26's rule, which the plan rows already followed and these
+                      did not: a closed figure is never gold. Derived from the
+                      badge's own tone so the two can never disagree. */}
+                  <p className={`font-display text-xl ${status.tone === "dead" ? "text-champagne/55" : "text-gold-pale"}`}>
+                    {formatMoney(Number(order.total_amount), order.currency)}
+                  </p>
                   <Link href={`/account/orders/${order.id}`} className="text-sm text-gold-pale underline underline-offset-4">
                     {t("orders", "view")}
                   </Link>

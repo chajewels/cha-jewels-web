@@ -12,14 +12,27 @@ import type { HubOrder } from "@/lib/types";
  */
 export function orderStatusLabel(order: HubOrder, lang: Lang): { text: string; tone: "pending" | "good" | "dead" } {
   const k = (key: keyof typeof dict.orders) => dict.orders[key][lang];
-  if (order.shipped_at) return { text: k("statusShipped"), tone: "good" };
-  if (order.status === "cancelled") return { text: k("statusCancelled"), tone: "dead" };
+
+  // EVERY ENDED STATE IS TESTED BEFORE `shipped_at`, fixed 2026-09-15 alongside
+  // the closed-plan caption. `shipped_at` used to be checked first, so an order
+  // cancelled or refunded AFTER dispatch would have carried a good-tone
+  // "Shipped" badge directly above its own cancellation reason and refund
+  // decision — the badge and the line beneath it disagreeing on one row, the
+  // same defect the layaway rows had. No live order is in that state today
+  // (0 rows: no order has shipped_at set together with a cancelled, expired or
+  // cancelled-payment status), so this is closing the path, not repairing
+  // damage. A cancelled order is cancelled whether or not it shipped first.
+  if (order.status === "cancelled" || order.payment_status === "cancelled") {
+    return { text: k("statusCancelled"), tone: "dead" };
+  }
   if (order.status === "expired") return { text: k("statusExpired"), tone: "dead" };
+  if (order.payment_status === "refunded") return { text: k("statusRefunded"), tone: "dead" };
+  if (order.payment_status === "failed") return { text: k("statusFailed"), tone: "dead" };
+
+  if (order.shipped_at) return { text: k("statusShipped"), tone: "good" };
+
   switch (order.payment_status) {
     case "paid": return { text: k("statusPaid"), tone: "good" };
-    case "refunded": return { text: k("statusRefunded"), tone: "dead" };
-    case "failed": return { text: k("statusFailed"), tone: "dead" };
-    case "cancelled": return { text: k("statusCancelled"), tone: "dead" };
     case "pending_transfer": return { text: k("statusPendingTransfer"), tone: "pending" };
     default:
       return order.status === "completed"

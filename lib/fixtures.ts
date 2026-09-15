@@ -224,7 +224,56 @@ export const ordersFixture: HubOrder[] = [{
   created_at: new Date().toISOString(), completed_at: null, cancelled_at: null,
   tracking_number: null, shipped_at: null,
   cancellation_reason: null, refund_status: null, refund_note: null, expired_at: null,
-}];
+},
+  // The ended states, added 2026-09-15 so the badge-versus-caption rule on this
+  // page can actually be LOOKED at. Before this there was one pending order in
+  // the fixture set, so no closed order had ever been rendered here.
+  hubOrder({
+    id: "order-cancelled", invoice: "19502", status: "cancelled", payment: "cancelled",
+    currency: "PHP", total: 84200,
+    cancelled: true, reason: "Customer asked to cancel before the transfer arrived.",
+    refund: "no_refund",
+  }),
+  hubOrder({
+    id: "order-refunded", invoice: "19488", status: "completed", payment: "refunded",
+    currency: "JPY", total: 152300,
+    cancelled: true, reason: "Piece arrived damaged in transit.", refund: "refund_issued",
+  }),
+  hubOrder({ id: "order-expired", invoice: "19477", status: "expired", payment: null, currency: "JPY", total: 68900 }),
+  // THE LATENT CONTRADICTION THIS FIX CLOSES: shipped, then cancelled. With
+  // shipped_at tested first, this row showed a gold "Shipped" badge directly
+  // above its own cancellation reason and refund decision. No live order is in
+  // this state (0 rows), which is exactly why it needed a fixture.
+  hubOrder({
+    id: "order-shipped-then-cancelled", invoice: "19461", status: "cancelled", payment: "cancelled",
+    currency: "JPY", total: 98400, shipped: true,
+    cancelled: true, reason: "Returned to us and cancelled after dispatch.", refund: "store_credit_issued",
+  }),
+];
+
+/** An order in whatever state the Hub has it. Web fields left null as the Hub leaves them. */
+function hubOrder(o: {
+  id: string; invoice: string; status: HubOrder["status"]; payment: HubOrder["payment_status"];
+  currency: SettlementCurrency; total: number;
+  shipped?: boolean; cancelled?: boolean; reason?: string; refund?: HubOrder["refund_status"];
+}): HubOrder {
+  const day = (n: number) => new Date(Date.now() - n * 864e5).toISOString();
+  return {
+    id: o.id, web_reference: null, invoice_number: o.invoice,
+    status: o.status, payment_status: o.payment, payment_method: "transfer",
+    order_type: "SELF", currency: o.currency, total_amount: o.total, total_paid: 0,
+    remaining_balance: o.total, shipping_fee: null, transfer_due_at: null,
+    recipient_name: null, gift_note: null, order_date: day(30).slice(0, 10),
+    created_at: day(30), completed_at: null,
+    cancelled_at: o.cancelled ? day(3) : null,
+    tracking_number: o.shipped ? "JP1234567890" : null,
+    shipped_at: o.shipped ? day(10) : null,
+    cancellation_reason: o.reason ?? null,
+    refund_status: o.refund ?? null,
+    refund_note: null,
+    expired_at: o.status === "expired" ? day(2) : null,
+  };
+}
 
 export function orderFixture(id: string): HubOrderDetail | null {
   const order = ordersFixture.find((o) => o.id === id);
@@ -312,14 +361,27 @@ export const layawayPlansFixture: HubLayawayPlan[] = [{
   tracking_number: null, shipped_at: null,
   source_channel: "web",
 },
-  // The five states a Hub plan reaches that a web plan never did. Figures are
-  // taken from the real extremes so the layout is checked against them.
+  // EVERY state a Hub plan reaches that a web plan never did. Figures are taken
+  // from the real extremes so the layout is checked against them.
+  //
+  // `cancelled` and `final_forfeited` were added 2026-09-15: without them the
+  // closed set could not actually be rendered, so two of the five closed states
+  // had never been looked at. Every closed state now has a row.
   hubPlan({ id: "hub-active", invoice: "19311", status: "active", currency: "PHP", total: 523712, paid: 209484, remaining: 314228, months: 6 }),
   hubPlan({ id: "hub-overdue", invoice: "19207", status: "overdue", currency: "JPY", total: 73780, paid: 26314, remaining: 47466, months: 6 }),
   hubPlan({ id: "hub-extension", invoice: "19188", status: "extension_active", currency: "JPY", total: 92035, paid: 73628, remaining: 18407, months: 6 }),
   hubPlan({ id: "hub-forfeited", invoice: "18904", status: "forfeited", currency: "PHP", total: 612300, paid: 133744, remaining: 478556, months: 10 }),
+  hubPlan({ id: "hub-final-forfeited", invoice: "18760", status: "final_forfeited", currency: "JPY", total: 128400, paid: 32100, remaining: 96300, months: 8 }),
   hubPlan({ id: "hub-settlement", invoice: "18877", status: "final_settlement", currency: "JPY", total: 64200, paid: 45634, remaining: 18566, months: 8 }),
+  hubPlan({ id: "hub-cancelled", invoice: "18655", status: "cancelled", currency: "PHP", total: 41500, paid: 0, remaining: 41500, months: 6 }),
+  // THE ROW THIS FIX EXISTS FOR. Paid off and closed: remaining_balance is
+  // exactly 0, and 902 of the 954 closed real plans look like this. Before the
+  // fix it rendered "Paid in full" above "Unpaid when it closed ₱0".
   hubPlan({ id: "hub-completed", invoice: "18102", status: "completed", currency: "PHP", total: 83311, paid: 83311, remaining: 0, months: 3 }),
+  // Paid MORE than the total, which the Hub floors to remaining 0 — TEST-004
+  // really did take ₱17,500 against a ₱15,000 plan. Same branch as above, kept
+  // separate so an overpaid plan is never silently assumed to match.
+  hubPlan({ id: "hub-overpaid", invoice: "18044", status: "completed", currency: "PHP", total: 15000, paid: 17500, remaining: 0, months: 3 }),
 ];
 
 export function layawayPlanFixture(id: string): HubLayawayDetail | null {
