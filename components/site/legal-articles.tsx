@@ -19,14 +19,21 @@ function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
     case "p":
       return <p className="mt-4 text-champagne/80">{block.text[lang]}</p>;
     case "list":
+      // NATIVE MARKERS, NOT GENERATED CONTENT (fixed 2026-09-16).
+      //
+      // This rendered a literal "\2022" over the first characters of every
+      // bullet. The marker was a Tailwind arbitrary value whose backslash had
+      // been doubled, so Tailwind emitted `content:"\\2022"` and CSS read the
+      // pair as an escaped literal backslash -- the browser printed the five
+      // characters instead of resolving the escape to a bullet.
+      //
+      // list-disc + marker: cannot fail that way: there is no string to escape.
+      // Tailwind Preflight sets `list-style: none` on every ul, which is why a
+      // marker has to be asked for explicitly here and in legal-doc.tsx.
       return (
-        <ul className="mt-4 space-y-2 text-champagne/80">
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-champagne/80 marker:text-gold-pale">
           {block.items[lang].map((item) => (
-            // The gold marker is the same hairline accent used elsewhere; the
-            // list is a real <ul> so it is announced as one.
-            <li key={item} className="relative pl-5 before:absolute before:left-0 before:text-gold-pale before:content-['\\2022']">
-              {item}
-            </li>
+            <li key={item}>{item}</li>
           ))}
         </ul>
       );
