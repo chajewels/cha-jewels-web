@@ -10,7 +10,12 @@ import type { HubMe } from "@/lib/types";
 export const generateMetadata = () => pageMeta("addresses");
 export const dynamic = "force-dynamic";
 
-/** The customer's saved addresses, as the Hub holds them. Editing stays in checkout. */
+/**
+ * The customer's saved addresses, as the Hub holds them. READ-ONLY: the only
+ * write path in the whole site is checkout's saveAddressAction, which appends
+ * one and makes it the default. There is no edit, delete or set-default here or
+ * anywhere else, and the page copy says so rather than implying otherwise.
+ */
 export default async function AddressesPage() {
   const lang = await getLang();
   const t = tr(lang);

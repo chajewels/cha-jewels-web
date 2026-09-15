@@ -114,7 +114,16 @@ export const dict = {
     layawaySoon: { ja: "分割予約のご利用状況はまもなくこちらでご覧いただけます。それまでのお問い合わせは、ご注文時のメールへのご返信でお受けしています。", en: "Your layaway plans will appear here soon. Until then, reply to any order email and we will help." },
     layawayLearn: { ja: "分割予約について", en: "How layaway works" },
     addressesH: { ja: "お届け先住所", en: "Your addresses" },
-    addressesP: { ja: "ご注文時に選択できるお届け先です。追加・変更はご注文手続きの中で行えます。", en: "The addresses you can ship to. Add or change one during checkout." },
+    /**
+     * CORRECTED 2026-09-15: this said "Add or change one during checkout",
+     * which was false on the second half. Checkout only ever appends
+     * (saveAddressAction -> PUT /me/addresses with the existing list plus one),
+     * and this page is read-only — there is no edit, no delete and no
+     * set-default anywhere in the site. The new address silently becomes the
+     * default, which the old copy did not say either. Describe what actually
+     * happens, and point elsewhere for the rest.
+     */
+    addressesP: { ja: "ご注文時に選択できるお届け先です。新しいお届け先はご注文手続きの中で追加でき、最後に追加したものが既定のお届け先になります。変更・削除をご希望の場合はお問い合わせください。", en: "The addresses you can ship to. You can add a new one during checkout, and the most recent becomes your default. To change or remove an address, please contact us." },
   },
   cart: {
     h1: { ja: "カート", en: "Your cart" },
