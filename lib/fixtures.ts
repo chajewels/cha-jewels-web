@@ -312,14 +312,27 @@ export const layawayPlansFixture: HubLayawayPlan[] = [{
   tracking_number: null, shipped_at: null,
   source_channel: "web",
 },
-  // The five states a Hub plan reaches that a web plan never did. Figures are
-  // taken from the real extremes so the layout is checked against them.
+  // EVERY state a Hub plan reaches that a web plan never did. Figures are taken
+  // from the real extremes so the layout is checked against them.
+  //
+  // `cancelled` and `final_forfeited` were added 2026-09-15: without them the
+  // closed set could not actually be rendered, so two of the five closed states
+  // had never been looked at. Every closed state now has a row.
   hubPlan({ id: "hub-active", invoice: "19311", status: "active", currency: "PHP", total: 523712, paid: 209484, remaining: 314228, months: 6 }),
   hubPlan({ id: "hub-overdue", invoice: "19207", status: "overdue", currency: "JPY", total: 73780, paid: 26314, remaining: 47466, months: 6 }),
   hubPlan({ id: "hub-extension", invoice: "19188", status: "extension_active", currency: "JPY", total: 92035, paid: 73628, remaining: 18407, months: 6 }),
   hubPlan({ id: "hub-forfeited", invoice: "18904", status: "forfeited", currency: "PHP", total: 612300, paid: 133744, remaining: 478556, months: 10 }),
+  hubPlan({ id: "hub-final-forfeited", invoice: "18760", status: "final_forfeited", currency: "JPY", total: 128400, paid: 32100, remaining: 96300, months: 8 }),
   hubPlan({ id: "hub-settlement", invoice: "18877", status: "final_settlement", currency: "JPY", total: 64200, paid: 45634, remaining: 18566, months: 8 }),
+  hubPlan({ id: "hub-cancelled", invoice: "18655", status: "cancelled", currency: "PHP", total: 41500, paid: 0, remaining: 41500, months: 6 }),
+  // THE ROW THIS FIX EXISTS FOR. Paid off and closed: remaining_balance is
+  // exactly 0, and 902 of the 954 closed real plans look like this. Before the
+  // fix it rendered "Paid in full" above "Unpaid when it closed ₱0".
   hubPlan({ id: "hub-completed", invoice: "18102", status: "completed", currency: "PHP", total: 83311, paid: 83311, remaining: 0, months: 3 }),
+  // Paid MORE than the total, which the Hub floors to remaining 0 — TEST-004
+  // really did take ₱17,500 against a ₱15,000 plan. Same branch as above, kept
+  // separate so an overpaid plan is never silently assumed to match.
+  hubPlan({ id: "hub-overpaid", invoice: "18044", status: "completed", currency: "PHP", total: 15000, paid: 17500, remaining: 0, months: 3 }),
 ];
 
 export function layawayPlanFixture(id: string): HubLayawayDetail | null {

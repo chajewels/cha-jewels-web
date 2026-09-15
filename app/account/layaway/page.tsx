@@ -6,7 +6,7 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { planStatusLabel, remainingIsPayable, remainingLabel } from "@/lib/plan-status";
+import { planFigure, planStatusLabel } from "@/lib/plan-status";
 import { toneClass } from "@/lib/order-status";
 import type { HubLayawayPlan } from "@/lib/types";
 
@@ -65,6 +65,10 @@ export default async function AccountLayawayPage() {
             {plans.map((plan) => {
               const status = planStatusLabel(plan, lang);
               const money = (n: number) => formatMoney(n, plan.currency);
+              // What the big figure is, and what to call it. A closed plan that
+              // left nothing unpaid must not say anything about unpaid amounts
+              // — its badge already reads "Paid in full".
+              const figure = planFigure(plan, lang);
               return (
                 <li key={plan.id} className="flex flex-wrap items-center justify-between gap-4 bg-velvet p-5">
                   <div>
@@ -75,11 +79,12 @@ export default async function AccountLayawayPage() {
                   </div>
                   <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
                   <div className="text-right">
-                    <p className={`font-display text-xl ${remainingIsPayable(plan) ? "text-gold-pale" : "text-champagne/55"}`}>
-                      {money(Number(plan.remaining_balance))}
+                    <p className={`font-display text-xl ${figure.emphasise ? "text-gold-pale" : "text-champagne/55"}`}>
+                      {money(figure.amount)}
                     </p>
                     <p className="text-xs text-champagne/55">
-                      {remainingLabel(plan, lang)} · {t("plans", "total")} {money(Number(plan.total_amount))}
+                      {figure.label}
+                      {figure.withPlanTotal && <> · {t("plans", "total")} {money(Number(plan.total_amount))}</>}
                     </p>
                   </div>
                   <Link href={`/account/layaway/${plan.id}`} className="text-sm text-gold-pale underline underline-offset-4">

@@ -68,7 +68,7 @@ export const isClosedPlan = (plan: HubLayawayPlan) =>
 /**
  * Whether `remaining_balance` may be presented as an amount to pay.
  *
- * It may not, on a closed plan. Every one of the 53 forfeited plans still
+ * It may not, on a closed plan. Every one of the 50 forfeited plans still
  * carries a positive remaining_balance in the Hub — that is the Hub's own
  * bookkeeping and correct there — so a closed plan labels the figure
  * "Unpaid when it closed" instead of "Still to pay", and never puts a payment
@@ -76,7 +76,78 @@ export const isClosedPlan = (plan: HubLayawayPlan) =>
  */
 export const remainingIsPayable = (plan: HubLayawayPlan) => isLivePlan(plan);
 
-/** The honest label for whatever `remaining_balance` is on this plan. */
+/**
+ * Whether the plan has a remaining balance worth naming at all.
+ *
+ * FIXED 2026-09-15, found in acceptance. The label used to key on CLOSURE
+ * alone: any plan that was not live got "Unpaid when it closed". That is right
+ * for a forfeited plan and wrong for a completed one, and completed is by far
+ * the commonest closed state — 902 of the 954 closed real plans, every one of
+ * them with `remaining_balance` exactly 0.00. Those rows read:
+ *
+ *     [Paid in full]   ₱0   "Unpaid when it closed · Plan total ₱26,000"
+ *
+ * a badge and a caption contradicting each other on one row, shown to exactly
+ * the customers who had paid everything off.
+ *
+ * Closure is not the question. A balance above zero is. `> 0` rather than
+ * `!== 0` also keeps an overpaid plan out of the "unpaid" branch: TEST-004 paid
+ * ₱17,500 against a ₱15,000 total, and while the Hub floors remaining_balance
+ * at 0.00 today, a negative would otherwise print as an unpaid amount.
+ */
+export const hasOutstandingBalance = (plan: HubLayawayPlan) => Number(plan.remaining_balance) > 0;
+
+/**
+ * The headline figure for a plan row, and what to call it.
+ *
+ * Three cases, because a single figure cannot mean the same thing in all of
+ * them:
+ *
+ *   live                  remaining is money to pay      -> "Still to pay", gold
+ *   closed, balance > 0   remaining is what was lost     -> "Unpaid when it closed", dim
+ *   closed, nothing left  remaining is a meaningless 0   -> show the plan total, dim
+ *
+ * The third case says NOTHING about unpaid amounts, which is the whole point:
+ * the badge above it already says the plan is paid in full, and the figures
+ * must agree with it.
+ *
+ * `emphasise` keeps #26's rule intact — a closed plan's figure is never gold —
+ * and is derived here rather than at the call site so the caption and the
+ * colour cannot drift apart.
+ */
+export type PlanFigure = {
+  /** The amount to print large. */
+  amount: number;
+  /** What that amount is, already translated. */
+  label: string;
+  /** Whether to append "· Plan total X". False when the figure IS the total. */
+  withPlanTotal: boolean;
+  /** Gold only on a live plan. */
+  emphasise: boolean;
+};
+
+export function planFigure(plan: HubLayawayPlan, lang: Lang): PlanFigure {
+  if (isLivePlan(plan)) {
+    return { amount: Number(plan.remaining_balance), label: k("remaining", lang), withPlanTotal: true, emphasise: true };
+  }
+  if (hasOutstandingBalance(plan)) {
+    return { amount: Number(plan.remaining_balance), label: k("unpaidAtClosure", lang), withPlanTotal: true, emphasise: false };
+  }
+  return { amount: Number(plan.total_amount), label: k("total", lang), withPlanTotal: false, emphasise: false };
+}
+
+/**
+ * Whether the plan detail's third figure — the remaining-balance cell — should
+ * be rendered at all.
+ *
+ * On a settled closed plan it should not. The two cells beside it already read
+ * "Plan total ₱26,000 · Paid so far ₱26,000", which says everything; a third
+ * cell reading "Unpaid when it closed ₱0" only contradicts the badge.
+ */
+export const showsRemainingFigure = (plan: HubLayawayPlan) =>
+  isLivePlan(plan) || hasOutstandingBalance(plan);
+
+/** The honest label for `remaining_balance` wherever that figure is shown. */
 export const remainingLabel = (plan: HubLayawayPlan, lang: Lang) =>
   remainingIsPayable(plan) ? k("remaining", lang) : k("unpaidAtClosure", lang);
 
