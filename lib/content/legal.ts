@@ -1,6 +1,12 @@
 import type { Lang } from "@/lib/i18n";
+import { layawayOffered } from "@/lib/layaway-availability";
 
-export type LegalSection = { h: Record<Lang, string>; body: Record<Lang, string[]> };
+export type LegalSection = {
+  h: Record<Lang, string>;
+  body: Record<Lang, string[]>;
+  /** Only shown where layaway is offered — English only (owner decision 2026-09-15). */
+  layawayOnly?: true;
+};
 
 /**
  * DRAFT — not reviewed by a lawyer. Every page built from this renders the
@@ -96,6 +102,7 @@ export const termsSections: LegalSection[] = [
     },
   },
   {
+    layawayOnly: true,
     h: { ja: "分割予約", en: "Layaway" },
     body: {
       ja: ["商品代金の30%で商品を確保し、残額を3〜6か月（¥300,000以上は最長8か月）の均等払いでお支払いいただきます。金利は0%です。お支払い予定は書面でお渡しします。商品は最終回のお支払い後に発送します。詳細は分割予約のページをご覧ください。"],
@@ -138,3 +145,18 @@ export const termsSections: LegalSection[] = [
     },
   },
 ];
+
+/**
+ * The terms-of-sale sections to show a visitor reading the site in this
+ * language. The layaway section states binding terms — 30%, 0%, the schedule —
+ * for something a Japanese visitor cannot buy, so it goes with the rest of the
+ * offer rather than describing a product the site denies two clicks away.
+ *
+ * NOTE the deliberate asymmetry with /legal/tokusho, which is NOT filtered:
+ * tokusho is a statutory disclosure about the SELLER, rendered in Japanese
+ * whatever the toggle says, and still lists 分割予約 as a payment method. That
+ * one is flagged for Cynthia rather than changed — see the PR.
+ */
+export function termsSectionsFor(lang: Lang): LegalSection[] {
+  return termsSections.filter((s) => !s.layawayOnly || layawayOffered(lang));
+}

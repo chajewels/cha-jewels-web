@@ -6,7 +6,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [cols, prods] = await Promise.all([hub.collections().catch(() => []), hub.productSlugs().catch(() => [])]);
   return [
     { url: base, changeFrequency: "daily", priority: 1 },
-    { url: `${base}/layaway`, changeFrequency: "monthly", priority: 0.6 },
+    // /layaway is NOT listed. It 404s in Japanese (owner decision 2026-09-15)
+    // and a crawler arrives with no cj-lang cookie, so it is served Japanese —
+    // a sitemap entry for it would advertise a URL that 404s for the only
+    // visitor that reads this file. The cost is that the layaway page is no
+    // longer indexable at all; see the PR.
     { url: `${base}/loyalty`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/wholesale`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },

@@ -3,6 +3,8 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
 import { hub, HubError } from "@/lib/hub-api";
+import { LAYAWAY_UNAVAILABLE } from "@/lib/layaway-availability";
+import { layawayOfferedNow } from "@/lib/layaway-availability-server";
 import { readCart, hydrateCart } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
@@ -101,6 +103,15 @@ export async function quoteAction(input: {
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!input.ship_to_address_id) return { ok: false, code: "address_required" };
 
+  // LAYAWAY IS ENGLISH-ONLY (owner decision 2026-09-15). Hiding the toggle is
+  // not enough: `mode` is client state that survives a language switch, and
+  // this action is reachable directly. Refused here rather than sent to the
+  // Hub, so a Japanese session cannot hold a piece on a plan whose agreement
+  // exists only in English and Tagalog. One rule — lib/layaway-availability.
+  if (input.mode === "layaway" && !(await layawayOfferedNow())) {
+    return { ok: false, code: LAYAWAY_UNAVAILABLE };
+  }
+
   // Price the CART as the server sees it, not a basket posted by the client.
   const { items } = await hydrateCart(await readCart());
   if (items.length === 0) return { ok: false, code: "empty_cart" };
@@ -155,6 +166,11 @@ export async function payLayawayAction(quoteId: string): Promise<ActionResult<Hu
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!quoteId) return { ok: false, code: "failed" };
+
+  // The backstop for a language switch between taking the quote and paying.
+  // Nothing has moved yet — no money, no stock — so refusing here is clean:
+  // the cart is untouched and the shopper can pay in full or switch back.
+  if (!(await layawayOfferedNow())) return { ok: false, code: LAYAWAY_UNAVAILABLE };
 
   try {
     const result = await hub.payLayaway(jwt, quoteId, await getLang());

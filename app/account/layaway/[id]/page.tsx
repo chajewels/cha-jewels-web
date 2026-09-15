@@ -34,6 +34,10 @@ export const dynamic = "force-dynamic";
  *      would invite a payment the plan cannot accept.
  *   2. Only a plan that started here gets the payment form. Everything else is
  *      paid in the customer portal, which stays the primary surface.
+ *
+ * NOT GATED ON LANGUAGE, for the same reason as the list: layaway being
+ * English-only (owner decision 2026-09-15) decides whether a plan can be
+ * STARTED, never whether an existing one can be read or paid.
  */
 export default async function LayawayPlanPage({ params, searchParams }: {
   params: Promise<{ id: string }>;

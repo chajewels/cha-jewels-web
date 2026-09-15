@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { tr, type Lang } from "@/lib/i18n";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { readSession, customerFirstName } from "@/lib/session";
 import { LangSwitcher } from "./lang-switcher";
 import { MobileNav } from "./mobile-nav";
@@ -23,7 +24,10 @@ export async function Header({ lang }: { lang: Lang }) {
     { href: "/", label: t("nav", "home") },
     { href: "/about", label: t("nav", "about") },
     { href: "/collections", label: t("nav", "collections") },
-    { href: "/layaway", label: t("nav", "layaway") },
+    // Layaway is offered in English only (owner decision 2026-09-15) — one rule,
+    // in lib/layaway-availability. The ACCOUNT entry below is deliberately NOT
+    // gated: an existing plan must stay reachable in either language.
+    ...(layawayOffered(lang) ? [{ href: "/layaway", label: t("nav", "layaway") }] : []),
     { href: "/loyalty", label: t("nav", "loyalty") },
     { href: "/wholesale", label: t("nav", "wholesale") },
     { href: "/blog", label: t("nav", "blog") },

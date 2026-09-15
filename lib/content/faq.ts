@@ -1,6 +1,12 @@
 import type { Lang } from "@/lib/i18n";
+import { layawayOffered } from "@/lib/layaway-availability";
 
-export type FaqItem = { q: Record<Lang, string>; a: Record<Lang, string> };
+export type FaqItem = {
+  q: Record<Lang, string>;
+  a: Record<Lang, string>;
+  /** Only shown where layaway is offered — English only (owner decision 2026-09-15). */
+  layawayOnly?: true;
+};
 
 /**
  * Answers state policy, so they are written once here and reused by the page and
@@ -18,6 +24,7 @@ export const faqItems: FaqItem[] = [
     },
   },
   {
+    layawayOnly: true,
     q: { ja: "分割予約のしくみは？", en: "How does layaway work?" },
     a: {
       ja: "商品代金の30%をお支払いいただくと商品を確保します。残額は3〜6か月の均等払い、金利は0%です。¥300,000以上のご注文は最長8か月まで延長できます。お支払い予定は書面でお渡しし、各お支払日の3日前にご連絡します。商品は最終回のお支払い後に発送します。",
@@ -34,7 +41,10 @@ export const faqItems: FaqItem[] = [
   {
     q: { ja: "家族へのプレゼントとして送れますか？", en: "Can I buy for family back home?" },
     a: {
-      ja: "はい。「Para Sa Iba」でお支払いはお客様、お届けは日本またはフィリピンのご家族へ。メッセージも添えられます。分割予約の場合は最終回のお支払い後に発送します。ポイントはお支払いいただいた方に付与されます。",
+      // The ja answer drops the layaway sentence — layaway is English-only
+      // (2026-09-15) and this item is NOT layawayOnly, so it still shows on
+      // ja. The en answer keeps it. Found by sweeping the served HTML.
+      ja: "はい。「Para Sa Iba」でお支払いはお客様、お届けは日本またはフィリピンのご家族へ。メッセージも添えられます。ポイントはお支払いいただいた方に付与されます。",
       en: "Yes — Para Sa Iba. You pay here and we deliver to your family in Japan or the Philippines with your note. On layaway the piece ships after the final payment, and the points go to whoever paid.",
     },
   },
@@ -67,3 +77,14 @@ export const faqItems: FaqItem[] = [
     },
   },
 ];
+
+/**
+ * The questions to show a visitor reading the site in this language. Answers a
+ * shopper cannot act on are not answers — and the page renders this list twice
+ * (visibly, and as FAQPage JSON-LD), so filtering HERE is what keeps the
+ * structured data from advertising layaway in Japanese while the site hides it.
+ * One rule, in lib/layaway-availability.
+ */
+export function faqFor(lang: Lang): FaqItem[] {
+  return faqItems.filter((i) => !i.layawayOnly || layawayOffered(lang));
+}
