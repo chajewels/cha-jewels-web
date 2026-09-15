@@ -10,10 +10,226 @@ import { layawayOffered } from "@/lib/layaway-availability";
  */
 export type LegalBlock =
   | { kind: "p"; text: Record<Lang, string> }
+  | { kind: "h"; text: Record<Lang, string> }
   | { kind: "list"; items: Record<Lang, string[]> }
   | { kind: "lines"; lines: Record<Lang, string[]> };
 
-export type LegalArticle = { n: number; h: Record<Lang, string>; blocks: LegalBlock[] };
+/**
+ * `n` is optional: an article without one renders its heading unnumbered, which
+ * is what a summary block ahead of section 1 needs. `h` is a sub-heading inside
+ * an article ("Available resolutions", "Step 1: Prepare the information").
+ */
+export type LegalArticle = { n?: number; h: Record<Lang, string>; blocks: LegalBlock[] };
+
+/**
+ * THE REGISTERED COMPANY NAME, ONE STRING, ONE PLACE.
+ *
+ * Owner-confirmed 2026-09-16. Ｃｈａ and Ｊｅｗｅｌｓ are FULLWIDTH Latin
+ * (U+FF23 …) separated by an IDEOGRAPHIC SPACE (U+3000), not ASCII — a normal
+ * Japanese corporate-registration convention. Do NOT normalise it to
+ * "Cha Jewels株式会社": that is a different string and it is the wrong one.
+ *
+ * It is a constant because the alternative already failed. Before this, tokusho
+ * said 株式会社チャジュエルズ and the privacy policy said Cha Jewels株式会社 —
+ * two legal pages, two names, discovered only when someone read both (PR #36).
+ * Three documents now interpolate this, so they cannot drift again.
+ *
+ * STILL TO BE CONFIRMED against the registration certificate before the
+ * compliance review signs these pages off.
+ */
+export const COMPANY_NAME = "\uFF23\uFF48\uFF41\u3000\uFF2A\uFF45\uFF57\uFF45\uFF4C\uFF53\u682A\u5F0F\u4F1A\u793E";
+
+/**
+ * RETURN, CANCELLATION AND REFUND POLICY — owner-supplied text, 2026-09-15.
+ *
+ * The English is Cynthia's, verbatim. The Japanese is MY TRANSLATION and is a
+ * DRAFT: it needs a native read before merge. It is written in the same 敬体
+ * register as the privacy policy and the terms of sale so the three read as one
+ * set, and it borrows their settled renderings (ストアクレジット, プレラブド,
+ * 分割予約) rather than inventing new ones.
+ *
+ * IT CONTRADICTS /legal/tokusho AND /legal/terms ON RETURNS, and deliberately
+ * so — the contradictions are reported to Cynthia in the PR rather than
+ * resolved here. In short: both of those pages grant an unconditional 7-day
+ * unused-return right, and this policy says change-of-mind returns are not
+ * normally accepted. A statutory disclosure disagreeing with the policy it
+ * discloses is hers to decide, not mine to reconcile. Do not silently align any
+ * of the three; whichever way she rules, all three change together.
+ */
+export const returnsTitle: Record<Lang, string> = {
+  ja: "返品・キャンセル・返金ポリシー",
+  en: "Return, Cancellation and Refund Policy",
+};
+
+export const returnsUpdated: Record<Lang, string> = {
+  ja: "最終更新日：2026年9月15日",
+  en: "Last updated: September 15, 2026",
+};
+
+/** Blocks before article 1 — the company line and the two scope paragraphs. */
+export const returnsIntro: LegalBlock[] = [
+  { kind: "lines", lines: { ja: [`Cha Jewels Co., Ltd.（${COMPANY_NAME}）`], en: [`Cha Jewels Co., Ltd. (${COMPANY_NAME})`] } },
+  { kind: "p", text: { ja: "Cha Jewelsは、お客様からの信頼を大切にしており、ご注文の前にお取引の条件をご理解いただきたいと考えております。", en: "At Cha Jewels, we value our customers’ trust and want every customer to understand the conditions of purchase before placing an order." } },
+  { kind: "p", text: { ja: "本ポリシーは、当社のウェブサイト、ライブ販売、および公式メッセージ窓口を通じた小売のご購入に適用されます。卸売および事業者間のお取引については、別途の書面による条件が適用される場合があります。", en: "This policy applies to retail purchases made through our website, live-selling activities, and official messaging channels. Wholesale and business-to-business transactions may be governed by separate written terms." } },
+];
+
+export const returnsArticles: LegalArticle[] = [
+  {
+    h: { ja: "重要事項の要約", en: "Important Summary" },
+    blocks: [
+      { kind: "list", items: { ja: ["お客様のご都合による返品および現金でのご返金は、原則としてお受けしておりません。", "お客様のお申し出によるキャンセルをお受けする場合、原則としてストアクレジットでの対応となります。", "商品に誤り、到着時の破損、または商品説明との重大な相違がある場合、お客様は法令に基づき、修理、交換、代金の減額または返金を求めることができる場合があります。", "法令により金銭でのご返金が必要となる場合は、ストアクレジットに限定せず、元のお支払方法にご返金します。", "本ポリシーは、法令上除外することができない権利を制限するものではありません。"], en: ["We generally do not accept returns or provide cash refunds for a change of mind.", "Approved voluntary cancellations are normally issued as store credit.", "If an item is incorrect, damaged on arrival, or materially different from its description, the customer may be entitled to repair, replacement, price reduction, or a refund under applicable law.", "When a monetary refund is required by law, it will be returned through the original payment method rather than being restricted to store credit.", "Nothing in this policy limits any rights that cannot legally be excluded."] } },
+    ],
+  },
+  {
+    n: 1,
+    h: { ja: "商品の誤り、破損、説明との相違", en: "Incorrect, Damaged, or Misdescribed Items" },
+    blocks: [
+      { kind: "p", text: { ja: "次のいずれかに該当する場合は、お受け取り後5日以内（暦日）を目安に、速やかに当社までご連絡ください。", en: "Please contact us promptly, preferably within five calendar days after delivery, if:" } },
+      { kind: "list", items: { ja: ["異なる商品が届いた場合。", "お届け時に商品が破損していた場合。", "商品が商品ページの記載または合意した仕様と重大に相違する場合。", "必要な部品または付属品が欠けている場合。"], en: ["You received the wrong item.", "The item was damaged when delivered.", "The item is materially different from its product listing or agreed specifications.", "A required component or accessory is missing."] } },
+      { kind: "p", text: { ja: "この5日という期間は、当社が速やかに事実関係を確認するために設けているものです。ご連絡が遅れた場合であっても、法令上制限することができない権利が失われることはありません。", en: "The five-day period allows us to investigate the matter promptly. A delay in contacting us does not remove any rights that cannot legally be limited." } },
+      { kind: "h", text: { ja: "ご対応の方法", en: "Available resolutions" } },
+      { kind: "p", text: { ja: "お申し出の内容を確認のうえ、Cha Jewelsは次のいずれかを含む適切な対応を行う場合があります。", en: "After reviewing the request, Cha Jewels may provide an appropriate resolution, including:" } },
+      { kind: "list", items: { ja: ["商品の修理。", "在庫がある場合における同一商品との交換。", "代金の合理的な減額。", "お客様がご了承された場合におけるストアクレジットの付与。", "法令上必要な場合、またはその他当社が承認した場合における、当該ご購入の取消しおよび元のお支払方法でのご返金。"], en: ["Repairing the item.", "Replacing it with the same item, when available.", "Providing a reasonable reduction in price.", "Issuing store credit, if accepted by the customer.", "Cancelling the affected purchase and providing a refund through the original payment method when required by law or otherwise approved."] } },
+      { kind: "p", text: { ja: "当社のプレラブド商品は一点物が多く、同一商品との交換ができない場合には、別の適切な対応をご提案します。", en: "Many of our preloved pieces are unique. If an identical replacement is unavailable, we will offer another appropriate resolution." } },
+      { kind: "p", text: { ja: "商品の誤り、破損、または説明との重大な相違が当社において確認された場合、返送に要する合理的な費用は当社が負担します。", en: "When Cha Jewels confirms that we supplied an incorrect, damaged, or materially misdescribed item, we will cover the reasonable cost of returning it." } },
+    ],
+  },
+  {
+    n: 2,
+    h: { ja: "商品の状態とプレラブドジュエリー", en: "Product Condition and Preloved Jewelry" },
+    blocks: [
+      { kind: "p", text: { ja: "プレラブドジュエリーには、使用に伴う軽微な痕跡が見られる場合があります。商品説明または写真において明示している傷、汚れ、修理跡、色味の違い、寸法その他の特徴は、不具合とはみなしません。", en: "Preloved jewelry may show minor signs of previous wear. Scratches, marks, repairs, color variations, measurements, or other characteristics clearly disclosed in the product description or photographs are not considered defects." } },
+      { kind: "p", text: { ja: "次の事項についても、原則として不具合とはみなしません。", en: "The following are also not normally considered defects:" } },
+      { kind: "list", items: { ja: ["宝石、真珠、または手作りの宝石ブレスレットにおける自然な個体差。", "照明、撮影、または画面設定による軽微な見え方の違い。", "寸法またはサイズを正確に表示していた場合における、サイズが合わないというご事情。", "プレラブド商品として想定される通常の使用感または特徴。", "測定器具または測定方法による合理的な誤差。"], en: ["Natural variations in gemstones, pearls, or handmade gemstone bracelets.", "Minor differences caused by lighting, photography, or screen settings.", "Fit issues when the measurements or size were accurately disclosed.", "Normal wear or characteristics appropriate to a preloved item.", "Reasonable differences caused by measuring equipment or methods."] } },
+      { kind: "p", text: { ja: "本項は、商品が商品説明と重大に相違する場合には適用されません。", en: "This section does not apply when an item is materially different from its description." } },
+    ],
+  },
+  {
+    n: 3,
+    h: { ja: "破損または誤配送の証拠", en: "Evidence of Damage or Incorrect Delivery" },
+    blocks: [
+      { kind: "p", text: { ja: "次の内容が確認できる、開封の一連の様子を撮影した動画の記録を強くお勧めします。", en: "We strongly recommend recording a continuous unboxing video showing:" } },
+      { kind: "list", items: { ja: ["未開封の荷物および配送ラベル。", "梱包を開封する様子。", "梱包材および商品の全体。", "確認できる破損、欠品、または商品の誤り。"], en: ["The unopened parcel and shipping label.", "The opening of the package.", "The packaging and entire item.", "Any visible damage, missing component, or incorrect product."] } },
+      { kind: "p", text: { ja: "あわせて鮮明な写真を撮影いただき、元の梱包材、タグ、鑑定書および付属品を保管してください。", en: "Please also take clear photographs and keep the original packaging, tags, certificates, and accessories." } },
+      { kind: "p", text: { ja: "開封動画は、特に配送中に生じた可能性のある破損について、当社が事実関係を確認するうえで役立ちます。もっとも、動画がないことによって、法令上認められる権利が当然に失われるものではありません。当社は、写真、配送記録、梱包材、検品結果その他の合理的な資料を考慮します。", en: "An unboxing video helps us investigate claims, especially damage that may have occurred during delivery. However, the absence of a video does not automatically remove any right provided by applicable law. We may consider photographs, delivery records, packaging, inspection results, and other reasonable evidence." } },
+    ],
+  },
+  {
+    n: 4,
+    h: { ja: "お客様のご都合による返品", en: "Change-of-Mind Returns" },
+    blocks: [
+      { kind: "p", text: { ja: "日本における通信販売では、販売者が返品の条件を明示している場合、原則としてクーリング・オフの制度は適用されません。", en: "Online and mail-order purchases in Japan do not generally have an automatic cooling-off period when the seller has clearly disclosed its return conditions." } },
+      { kind: "p", text: { ja: "したがって、Cha Jewelsは、次の事由による返品、交換または現金でのご返金のお申し出は、原則としてお受けしておりません。", en: "Accordingly, Cha Jewels does not normally accept returns, exchanges, or cash-refund requests for:" } },
+      { kind: "list", items: { ja: ["お気持ちの変化。", "ご好みによるもの。", "他の商品または他の販売者をより低い価格で見つけられた場合。", "照明または画面設定による軽微な色の違い。", "寸法を正確に表示していた場合における、サイズが合わないというご事情。", "プレラブド商品について明示していた使用感。", "宝石、真珠、または手作り商品における自然な個体差。"], en: ["A change of mind.", "Personal preference.", "Finding another item or seller at a lower price.", "Minor color differences caused by lighting or screen settings.", "Fit issues when the measurements were correctly disclosed.", "Disclosed signs of wear on a preloved item.", "Natural variations in gemstones, pearls, or handmade products."] } },
+      { kind: "p", text: { ja: "例外的な対応はCha Jewelsの裁量により判断し、以下の条件に従いストアクレジットでの対応となる場合があります。", en: "Any exception is at Cha Jewels’ discretion and may be issued as store credit subject to the conditions below." } },
+    ],
+  },
+  {
+    n: 5,
+    h: { ja: "全額お支払い済みのご注文のキャンセル", en: "Paid-in-Full Order Cancellations" },
+    blocks: [
+      { kind: "h", text: { ja: "同日中のキャンセル", en: "Same-day cancellations" } },
+      { kind: "p", text: { ja: "ご注文と全額のお支払いが同一の暦日に完了した場合、当日の日本標準時23時59分までにキャンセルをお申し出いただけます。", en: "If the order and full payment are completed on the same calendar day, a cancellation request may be made before 11:59 p.m. Japan Standard Time on that day." } },
+      { kind: "p", text: { ja: "お受けした場合、お支払いいただいた全額をストアクレジットとして付与します。", en: "If approved, the full amount paid will be issued as store credit." } },
+      { kind: "p", text: { ja: "次の場合、同日中のキャンセルをお受けできないことがあります。", en: "Same-day cancellation is not guaranteed if:" } },
+      { kind: "list", items: { ja: ["商品を既に発送している場合。", "サイズ直し、刻印、研磨、鑑定、修理その他ご依頼いただいた作業を既に開始している場合。", "当社が既に仕入先に対して支払を確定している場合。", "仕入先のライブ販売、オークション、特別仕入れその他ご購入前に最終販売と明示した方法により調達した商品である場合。"], en: ["The order has already been shipped.", "Resizing, engraving, polishing, certification, repair, or another requested service has started.", "Cha Jewels has already committed funds to a supplier.", "The item was obtained through supplier live-selling, auction, special procurement, or another sale identified as final before purchase."] } },
+      { kind: "h", text: { ja: "翌日以降のキャンセル", en: "Cancellations requested after the same day" } },
+      { kind: "p", text: { ja: "ご注文日の翌日以降にお申し出いただくキャンセルは、お受けできることを保証しておりません。", en: "Cancellations requested after the order date are not guaranteed." } },
+      { kind: "p", text: { ja: "Cha Jewelsがキャンセルをお受けする場合、ご注文金額の合計の30%を上限とするキャンセル料を差し引いたうえで、ストアクレジットを付与することがあります。この差引きは、仕入先に対する確定支払、決済手数料、事務費用、既に実施した作業、再入庫の費用または商品価値の減少など、合理的な費用に充てられます。", en: "If Cha Jewels accepts the cancellation, we may issue store credit after deducting a cancellation charge of up to 30% of the total order price. The deduction may cover reasonable costs such as supplier commitments, payment fees, administrative costs, services already performed, restocking, or reduction in the item’s value." } },
+      { kind: "p", text: { ja: "キャンセル料は、法令上認められる合理的な範囲に限られます。法令上認められる金額が30%を下回る場合は、その低い金額を適用します。算定の根拠は、ご請求に応じてご説明します。", en: "Any cancellation charge will be limited to the reasonable amount permitted by applicable law. If the legally permitted amount is lower than 30%, the lower amount will apply. We will explain the basis of the charge upon request." } },
+      { kind: "p", text: { ja: "全額をストアクレジットとして付与する同日キャンセルの取扱いは、ご注文と全額のお支払いが同一の暦日に完了した場合に限り適用されます。", en: "The full store-credit option for same-day cancellations applies only when the order and full payment were completed on the same calendar day." } },
+    ],
+  },
+  {
+    n: 6,
+    h: { ja: "分割予約（レイアウェイ）のご注文", en: "Layaway Orders" },
+    blocks: [
+      { kind: "p", text: { ja: "分割予約のご注文は、特定の商品をお客様のためにお取り置きし、他のお客様への販売を行わないものです。", en: "A layaway order reserves a specific item for the customer and prevents it from being offered to other buyers." } },
+      { kind: "h", text: { ja: "予約金", en: "Down payment" } },
+      { kind: "p", text: { ja: "予約金は、お申込みの意思を示す預り金の性質を有します。お客様のご都合によりキャンセルされる場合、Cha Jewelsは、法令上認められる合理的な範囲において、予約金をキャンセル料として留保することがあります。", en: "The down payment serves as a commitment deposit. If the customer voluntarily cancels the order, Cha Jewels may retain the down payment as a cancellation charge, subject to the reasonable limits permitted by applicable law." } },
+      { kind: "p", text: { ja: "留保した金額は、当社が別途合意した場合を除き、ストアクレジットには振り替えません。", en: "The retained amount will not be converted into store credit unless Cha Jewels agrees otherwise." } },
+      { kind: "h", text: { ja: "お取り置き商品の変更", en: "Changing the reserved item" } },
+      { kind: "p", text: { ja: "予約金のお支払い後にお取り置き商品の変更をお申し出いただく場合、元のご注文のキャンセルおよび新たなご注文として取り扱います。", en: "A request to change the reserved product after the down payment has been made will be treated as cancellation of the original order and creation of a new order." } },
+      { kind: "p", text: { ja: "キャンセル料およびストアクレジットの残高は、本ポリシーおよび適用される分割予約規約に基づき算定します。", en: "Any cancellation charge or store-credit balance will be calculated under this policy and the applicable Layaway Terms." } },
+      { kind: "h", text: { ja: "お支払いの遅延または未了", en: "Missed or incomplete payments" } },
+      { kind: "p", text: { ja: "所定のお支払いが完了しない場合、Cha Jewelsは、ご通知のうえ、適用される場合には遅延分をお支払いいただく機会を設けたうえで、分割予約をキャンセルすることがあります。", en: "If required payments are not completed, Cha Jewels may cancel the layaway after providing notice and any applicable opportunity to correct the missed payment." } },
+      { kind: "p", text: { ja: "Cha Jewelsは、既にお支払いいただいた金額から、法令上認められるキャンセル料および合理的な費用を差し引くことがあります。これらの費用には、サイズ直し、研磨、鑑定、修理その他のカスタマイズなど、お客様のご依頼により実施した作業が含まれる場合があります。", en: "Cha Jewels may deduct a lawful cancellation charge and reasonable costs from the amount already paid. These costs may include services performed at the customer’s request, such as resizing, polishing, certification, repair, or other customization." } },
+      { kind: "p", text: { ja: "法令に基づく差引き後の残額は、法令により元のお支払方法でのご返金が必要な場合を除き、原則としてストアクレジットとして付与します。", en: "Any remaining balance after lawful deductions will normally be issued as store credit unless a refund through the original payment method is required by law." } },
+      { kind: "p", text: { ja: "当社に生じた実際のまたは合理的な損害の額にかかわらず、お支払いいただいた全額を当然に没収する取扱いは行いません。", en: "Automatically forfeiting every payment, regardless of the amount of Cha Jewels’ actual or reasonable loss, does not apply." } },
+      { kind: "h", text: { ja: "当社によるキャンセル", en: "Cancellation by Cha Jewels" } },
+      { kind: "p", text: { ja: "Cha Jewelsがお取り置き商品をご提供できない場合、お客様の責めによらない事由によりお取引をキャンセルする場合、または契約の内容に適合しない商品をご提供した場合、予約金その他お支払いいただいた金額は没収しません。", en: "If Cha Jewels cannot supply the reserved item, cancels the transaction for reasons not caused by the customer, or supplies an item that does not conform to the agreement, the down payment and other amounts paid will not be forfeited." } },
+      { kind: "p", text: { ja: "この場合、適切な代替品のご提供、修理、代金の減額、元のお支払方法でのご返金その他法令上必要な対応を行います。", en: "An appropriate replacement, repair, price reduction, original-payment refund, or other legally required resolution will be provided." } },
+    ],
+  },
+  {
+    n: 7,
+    h: { ja: "お客様のご都合による返品の対象外となる商品", en: "Items Not Eligible for Change-of-Mind Return" },
+    blocks: [
+      { kind: "p", text: { ja: "次の商品は、お客様のご都合による返品または交換の対象外となります。", en: "The following items are not eligible for change-of-mind returns or exchanges:" } },
+      { kind: "list", items: { ja: ["検品のために合理的に必要な範囲を超えて着用された商品。", "お客様により破損、毀損、改変または不適切に取り扱われた商品。", "サイズ直し、刻印、修理、研磨、鑑定、名入れその他の特別なご注文による商品。", "ピアスのうち、衛生シールまたは保護包装を開封されたもの。", "ギフト券およびストアクレジット。", "ご購入前に最終販売と明示した商品。"], en: ["Jewelry that has been worn beyond what is reasonably necessary for inspection.", "Items damaged, broken, altered, or improperly handled by the customer.", "Resized, engraved, repaired, polished, certified, personalized, or specially ordered items.", "Pierced earrings after hygiene seals or protective packaging have been opened.", "Gift certificates and store credits.", "Items clearly identified as final sale before purchase."] } },
+      { kind: "p", text: { ja: "これらの除外は、商品に誤りがあった場合、到着時に破損していた場合、説明と重大に相違していた場合、またはその他法令上除外することができない権利が及ぶ場合には適用されません。", en: "These exclusions do not apply when an item was incorrect, damaged on arrival, materially misdescribed, or otherwise subject to a non-excludable legal right." } },
+    ],
+  },
+  {
+    n: 8,
+    h: { ja: "返品のお申し出の手続", en: "Return Request Process" },
+    blocks: [
+      { kind: "h", text: { ja: "ステップ1：必要な情報のご準備", en: "Step 1: Prepare the information" } },
+      { kind: "p", text: { ja: "次の情報をご用意ください。", en: "Please prepare:" } },
+      { kind: "list", items: { ja: ["ご注文番号または請求書番号。", "問題の概要。", "商品および梱包材の鮮明な写真。", "開封動画（ある場合）。", "その他お申し出に関連する資料。"], en: ["Your order or invoice number.", "A brief explanation of the problem.", "Clear photographs of the item and packaging.", "An unboxing video, if available.", "Any other evidence relevant to the request."] } },
+      { kind: "h", text: { ja: "ステップ2：当社へのご連絡", en: "Step 2: Contact us" } },
+      { kind: "p", text: { ja: "お受け取り後5日以内（暦日）を目安に、速やかにCha Jewelsまでご連絡ください。", en: "Contact Cha Jewels promptly, preferably within five calendar days after delivery:" } },
+      { kind: "lines", lines: { ja: ["Messenger：m.me/chajewelsjapan", "メールアドレス：sales@chajewelsjp.com"], en: ["Messenger: m.me/chajewelsjapan", "Email: sales@chajewelsjp.com"] } },
+      { kind: "h", text: { ja: "ステップ3：返品の承認をお待ちいただく", en: "Step 3: Wait for return authorization" } },
+      { kind: "p", text: { ja: "当社担当者がお申し出の内容を確認し、次の事項をご案内します。", en: "Our team will review the request and provide:" } },
+      { kind: "list", items: { ja: ["承認またはご判断の結果。", "返送の方法。", "返送費用を当社が負担する場合における返送用ラベル。", "検品のために必要となる追加の情報。"], en: ["The approval or decision.", "Return instructions.", "A return label, when Cha Jewels is responsible for the return cost.", "Any additional information needed for inspection."] } },
+      { kind: "p", text: { ja: "承認を得ずに商品を返送されないようお願いします。承認のない返送または着払いでの返送は、法令上認められる範囲でお受けできない場合があります。", en: "Please do not return an item without authorization. Unauthorized or cash-on-delivery returns may be refused when legally permitted." } },
+      { kind: "h", text: { ja: "ステップ4：商品の返送", en: "Step 4: Return the item" } },
+      { kind: "p", text: { ja: "別途ご案内がない限り、承認後7日以内（暦日）に返送してください。", en: "Unless otherwise instructed, an approved return should be sent within seven calendar days after authorization." } },
+      { kind: "p", text: { ja: "商品は、合理的な検品による場合を除き、お受け取りいただいた状態で返送してください。元の梱包材、タグ、鑑定書および付属品は、お手元にある場合は同梱してください。", en: "The item should be returned in the condition in which it was received, except for reasonable inspection. Please include the original packaging, tags, certificates, and accessories where available." } },
+      { kind: "h", text: { ja: "ステップ5：検品とご対応", en: "Step 5: Inspection and resolution" } },
+      { kind: "p", text: { ja: "返送品を受領後、当社が商品を検品し、その結果をご連絡します。", en: "After receiving the return, we will inspect the item and notify you of the outcome." } },
+      { kind: "p", text: { ja: "承認された交換、ストアクレジットの付与またはご返金は、検品後7営業日以内に処理するのが通例です。金融機関または決済事業者の処理に、さらに日数を要する場合があります。", en: "Approved replacements, store credits, or refunds are normally processed within seven business days after inspection. Banks and payment providers may require additional processing time." } },
+    ],
+  },
+  {
+    n: 9,
+    h: { ja: "ストアクレジット", en: "Store Credit" },
+    blocks: [
+      { kind: "p", text: { ja: "本ポリシーに基づき付与するストアクレジットの取扱いは、次のとおりです。", en: "Store credit issued under this policy:" } },
+      { kind: "list", items: { ja: ["付与日から1年（12か月）間有効です。", "在庫のあるCha Jewelsの商品にご利用いただけます。", "ご購入されたお客様ご本人に付与します。", "当社が書面により承認した場合を除き、譲渡することはできません。", "法令により必要な場合を除き、売却または現金への交換はできません。", "法令上認められる範囲において、12か月の経過により自動的に失効します。", "失効後の再発行は、当社が合意した場合または法令上必要な場合を除き、行いません。"], en: ["Is valid for one year or 12 months from the date of issue.", "May be used for available Cha Jewels products.", "Is issued to the original customer.", "Is non-transferable unless Cha Jewels approves otherwise in writing.", "Cannot be sold or exchanged for cash, except when required by law.", "Automatically expires after 12 months, where permitted by applicable law.", "Cannot be reissued after expiration unless Cha Jewels agrees or applicable law requires otherwise."] } },
+      { kind: "p", text: { ja: "ストアクレジットには利息は付さず、法令に別段の定めがある場合を除き、現金としての価値を有しません。", en: "Store credit does not earn interest and has no cash value except where applicable law provides otherwise." } },
+    ],
+  },
+  {
+    n: 10,
+    h: { ja: "送料その他の費用", en: "Shipping and Other Charges" },
+    blocks: [
+      { kind: "p", text: { ja: "商品の誤り、破損または説明との重大な相違が当社において確認され、それに伴い返送が生じた場合、合理的な返送費用および法令上必要なその他の金額は当社が負担します。", en: "When the return results from an incorrect, damaged, or materially misdescribed item confirmed by Cha Jewels, we will cover reasonable return-delivery costs and any other amounts required by law." } },
+      { kind: "p", text: { ja: "お客様のお申し出による任意の返品またはキャンセルの場合の取扱いは、次のとおりです。", en: "For a discretionary return or cancellation requested by the customer:" } },
+      { kind: "list", items: { ja: ["返送料はお客様のご負担となります。", "当初の配送料、関税、税金および決済手数料は、ストアクレジットに含まれない場合があります。", "差引きは、法令上認められる範囲に限られます。"], en: ["Return shipping is the customer’s responsibility.", "Original delivery charges, customs duties, taxes, and payment fees may not be included in store credit.", "Any deduction must remain within the limits permitted by applicable law."] } },
+      { kind: "p", text: { ja: "海外のお客様は、Cha Jewelsがご案内する返送および通関の手続に従っていただく必要があります。", en: "International customers are responsible for following the return shipping and customs instructions provided by Cha Jewels." } },
+    ],
+  },
+  {
+    n: 11,
+    h: { ja: "適用される法令", en: "Applicable Law" },
+    blocks: [
+      { kind: "p", text: { ja: "本ポリシーは日本法に準拠します。ただし、適用される消費者の強行法規上の権利を制限するものではありません。", en: "This policy is governed by the laws of Japan, without limiting any mandatory consumer rights that may apply." } },
+      { kind: "p", text: { ja: "本ポリシーの一部が強行法規に反する場合、当該法令が優先し、その他の条項は引き続き有効に適用されます。", en: "If any part of this policy conflicts with a mandatory law, the applicable law will take priority and the remaining sections will continue to apply." } },
+    ],
+  },
+  {
+    n: 12,
+    h: { ja: "お問い合わせ", en: "Contact Us" },
+    blocks: [
+      { kind: "p", text: { ja: "ご質問または返品のお申し出は、次の窓口までご連絡ください。", en: "For questions or return requests, contact:" } },
+      { kind: "lines", lines: { ja: [COMPANY_NAME, "代表取締役：Cynthia Largo"], en: [COMPANY_NAME, "Representative Director: Cynthia Largo"] } },
+      { kind: "lines", lines: { ja: ["〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] } },
+      { kind: "lines", lines: { ja: ["Messenger：m.me/chajewelsjapan", "メールアドレス：sales@chajewelsjp.com"], en: ["Messenger: m.me/chajewelsjapan", "Email: sales@chajewelsjp.com"] } },
+    ],
+  },
+];
 
 export type LegalSection = {
   h: Record<Lang, string>;
@@ -92,7 +308,7 @@ export const tokusho = {
   rows: [
     {
       k: { ja: "販売業者", en: "Seller" },
-      v: { ja: "Ｃｈａ　Ｊｅｗｅｌｓ株式会社", en: "Ｃｈａ　Ｊｅｗｅｌｓ株式会社" },
+      v: { ja: COMPANY_NAME, en: COMPANY_NAME },
     },
     {
       k: { ja: "代表者", en: "Representative" },
@@ -205,7 +421,7 @@ export const privacyArticles: LegalArticle[] = [
     n: 1,
     h: { ja: "当社について", en: "Who We Are" },
     blocks: [
-      { kind: "p", text: { ja: "Cha Jewels Co., Ltd.（Ｃｈａ　Ｊｅｗｅｌｓ株式会社。以下「Cha Jewels」または「当社」といいます）は、本ウェブサイトを運営し、本プライバシーポリシーに記載する個人情報について責任を負います。", en: "Cha Jewels Co., Ltd. (Ｃｈａ　Ｊｅｗｅｌｓ株式会社, “Cha Jewels,” “we,” “us,” or “our”) operates this website and is responsible for the personal information described in this Privacy Policy." } },
+      { kind: "p", text: { ja: `Cha Jewels Co., Ltd.（${COMPANY_NAME}。以下「Cha Jewels」または「当社」といいます）は、本ウェブサイトを運営し、本プライバシーポリシーに記載する個人情報について責任を負います。`, en: `Cha Jewels Co., Ltd. (${COMPANY_NAME}, “Cha Jewels,” “we,” “us,” or “our”) operates this website and is responsible for the personal information described in this Privacy Policy.` } },
       {
         kind: "lines",
         lines: { ja: ["登記上の所在地：", "〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Registered address:", "Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] },
@@ -515,7 +731,7 @@ export const privacyArticles: LegalArticle[] = [
       { kind: "p", text: { ja: "個人情報に関するご質問、ご請求または苦情は、次の連絡先までお願いします。", en: "For privacy questions, requests, or complaints, contact:" } },
       {
         kind: "lines",
-        lines: { ja: ["Ｃｈａ　Ｊｅｗｅｌｓ株式会社", "〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Ｃｈａ　Ｊｅｗｅｌｓ株式会社", "Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] },
+        lines: { ja: [COMPANY_NAME, "〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: [COMPANY_NAME, "Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] },
       },
       { kind: "p", text: { ja: "メールアドレス：sales@chajewelsjp.com", en: "Email: sales@chajewelsjp.com" } },
       { kind: "p", text: { ja: "当社は、個人情報に関する苦情を確認し、合理的に可能な限り速やかに回答します。また、個人情報保護委員会（日本）その他お住まいの地域の所轄の監督機関にご連絡いただくこともできます。", en: "We will review privacy complaints and respond as promptly as reasonably possible. You may also contact the Personal Information Protection Commission of Japan or another competent privacy regulator where you live." } },

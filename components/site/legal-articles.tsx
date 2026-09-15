@@ -18,6 +18,16 @@ function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
   switch (block.kind) {
     case "p":
       return <p className="mt-4 text-champagne/80">{block.text[lang]}</p>;
+    case "h":
+      // A sub-heading INSIDE an article ("Available resolutions", "Step 2:
+      // Contact us"). Deliberately smaller and champagne rather than gold: the
+      // gold display face marks an article, and a sub-heading competing with it
+      // would make a twelve-section document read as twenty-eight.
+      return (
+        <h3 className="mt-8 font-display text-[clamp(16px,1.6vw,20px)] text-champagne">
+          {block.text[lang]}
+        </h3>
+      );
     case "list":
       // NATIVE MARKERS, NOT GENERATED CONTENT (fixed 2026-09-16).
       //
@@ -54,11 +64,14 @@ export function LegalArticles({
   lang,
   title,
   updated,
+  intro,
   articles,
 }: {
   lang: Lang;
   title: Record<Lang, string>;
   updated: Record<Lang, string>;
+  /** Blocks shown above the first article — a scope note, an identifying line. */
+  intro?: LegalBlock[];
   articles: LegalArticle[];
 }) {
   return (
@@ -70,11 +83,22 @@ export function LegalArticles({
             together would contradict each other on a legal page. */}
         <p className="mt-4 text-sm text-champagne/60">{updated[lang]}</p>
 
+        {intro ? (
+          <div className="mt-8">
+            {intro.map((block, i) => (
+              <Block key={i} block={block} lang={lang} />
+            ))}
+          </div>
+        ) : null}
+
         <div className="mt-12">
-          {articles.map((a) => (
-            <article key={a.n} className="border-t border-rule py-6">
+          {articles.map((a, ai) => (
+            // Index, not a.n: an article may legitimately have no number (a
+            // summary block ahead of section 1), and `key={undefined}` is a
+            // silent duplicate-key bug rather than a visible one.
+            <article key={ai} className="border-t border-rule py-6">
               <h2 className="font-display text-[clamp(20px,2.4vw,28px)] text-gold-pale">
-                {a.n}. {a.h[lang]}
+                {a.n === undefined ? a.h[lang] : `${a.n}. ${a.h[lang]}`}
               </h2>
               {a.blocks.map((block, i) => (
                 // Index is a safe key: the blocks of one article are a fixed,
