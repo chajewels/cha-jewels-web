@@ -224,7 +224,56 @@ export const ordersFixture: HubOrder[] = [{
   created_at: new Date().toISOString(), completed_at: null, cancelled_at: null,
   tracking_number: null, shipped_at: null,
   cancellation_reason: null, refund_status: null, refund_note: null, expired_at: null,
-}];
+},
+  // The ended states, added 2026-09-15 so the badge-versus-caption rule on this
+  // page can actually be LOOKED at. Before this there was one pending order in
+  // the fixture set, so no closed order had ever been rendered here.
+  hubOrder({
+    id: "order-cancelled", invoice: "19502", status: "cancelled", payment: "cancelled",
+    currency: "PHP", total: 84200,
+    cancelled: true, reason: "Customer asked to cancel before the transfer arrived.",
+    refund: "no_refund",
+  }),
+  hubOrder({
+    id: "order-refunded", invoice: "19488", status: "completed", payment: "refunded",
+    currency: "JPY", total: 152300,
+    cancelled: true, reason: "Piece arrived damaged in transit.", refund: "refund_issued",
+  }),
+  hubOrder({ id: "order-expired", invoice: "19477", status: "expired", payment: null, currency: "JPY", total: 68900 }),
+  // THE LATENT CONTRADICTION THIS FIX CLOSES: shipped, then cancelled. With
+  // shipped_at tested first, this row showed a gold "Shipped" badge directly
+  // above its own cancellation reason and refund decision. No live order is in
+  // this state (0 rows), which is exactly why it needed a fixture.
+  hubOrder({
+    id: "order-shipped-then-cancelled", invoice: "19461", status: "cancelled", payment: "cancelled",
+    currency: "JPY", total: 98400, shipped: true,
+    cancelled: true, reason: "Returned to us and cancelled after dispatch.", refund: "store_credit_issued",
+  }),
+];
+
+/** An order in whatever state the Hub has it. Web fields left null as the Hub leaves them. */
+function hubOrder(o: {
+  id: string; invoice: string; status: HubOrder["status"]; payment: HubOrder["payment_status"];
+  currency: SettlementCurrency; total: number;
+  shipped?: boolean; cancelled?: boolean; reason?: string; refund?: HubOrder["refund_status"];
+}): HubOrder {
+  const day = (n: number) => new Date(Date.now() - n * 864e5).toISOString();
+  return {
+    id: o.id, web_reference: null, invoice_number: o.invoice,
+    status: o.status, payment_status: o.payment, payment_method: "transfer",
+    order_type: "SELF", currency: o.currency, total_amount: o.total, total_paid: 0,
+    remaining_balance: o.total, shipping_fee: null, transfer_due_at: null,
+    recipient_name: null, gift_note: null, order_date: day(30).slice(0, 10),
+    created_at: day(30), completed_at: null,
+    cancelled_at: o.cancelled ? day(3) : null,
+    tracking_number: o.shipped ? "JP1234567890" : null,
+    shipped_at: o.shipped ? day(10) : null,
+    cancellation_reason: o.reason ?? null,
+    refund_status: o.refund ?? null,
+    refund_note: null,
+    expired_at: o.status === "expired" ? day(2) : null,
+  };
+}
 
 export function orderFixture(id: string): HubOrderDetail | null {
   const order = ordersFixture.find((o) => o.id === id);
