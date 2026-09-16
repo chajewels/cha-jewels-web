@@ -14,6 +14,27 @@ const originClaims = [/\bmade in japan\b/i, /日本製/];
 // toggle; only OriginBadge may render it.
 const originAllowed = new Set(["components/catalog/origin-badge.tsx", "lib/i18n.ts"]);
 
+// NARROW EXEMPTION, added 2026-09-16 with the authoritative FAQ.
+//
+// The rule above is right and stays: a hardcoded origin claim is an assertion
+// about pieces nobody checked. But this regex is line-based, so it cannot tell
+// a CLAIM from a QUESTION being answered "no". The owner-approved FAQ asks
+// "Are all Cha Jewels products made in Japan?" and answers that we offer
+// Japan-made and Japan-sourced jewelry AND selected preloved international
+// brands, with "the origin ... of each item stated in its listing" — which is
+// this rule restated in prose, pointing the reader at OriginBadge's data.
+//
+// So the exemption is by EXACT SENTENCE, not by file. Any other origin phrase
+// in lib/content/faq.ts still fails, as does any new sentence added here
+// without a decision. Add to this list only for copy an owner has approved,
+// and only when the surrounding text refuses the blanket claim.
+const originExempt = [
+  "Are all Cha Jewels products made in Japan?",
+  "Cha Jewelsの商品はすべて日本製ですか？",
+  "We offer Japan-made and Japan-sourced jewelry",
+  "日本製および日本で調達したジュエリーをお取り扱いしています",
+];
+
 const skip = new Set(["node_modules", ".next", ".git"]);
 let hits = 0;
 function walk(dir) {
@@ -26,7 +47,7 @@ function walk(dir) {
     const lines = readFileSync(p, "utf8").split("\n");
     lines.forEach((line, i) => {
       for (const re of forbidden) if (re.test(line)) { hits++; console.error(`${p}:${i + 1}: forbidden term -> ${line.trim()}`); }
-      if (!originAllowed.has(rel)) {
+      if (!originAllowed.has(rel) && !originExempt.some((phrase) => line.includes(phrase))) {
         for (const re of originClaims) if (re.test(line)) { hits++; console.error(`${p}:${i + 1}: hardcoded origin claim (only OriginBadge may render this, from product data) -> ${line.trim()}`); }
       }
     });

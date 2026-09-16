@@ -17,7 +17,13 @@ import type { LegalArticle, LegalBlock } from "@/lib/content/legal";
  * ONE LANGUAGE, THE SELECTED ONE. No second-language column, and no notice,
  * banner or disclaimer block of any kind. Both were asked for explicitly.
  */
-function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
+/**
+ * Exported so the FAQ renders its answers through the SAME code path. That is
+ * what guarantees a bullet on /faq is the identical native list-disc marker as
+ * a bullet on /legal/privacy, rather than a second implementation that can
+ * drift back into generated content.
+ */
+export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
   switch (block.kind) {
     case "p":
       return <p className="mt-4 text-champagne/80">{block.text[lang]}</p>;
