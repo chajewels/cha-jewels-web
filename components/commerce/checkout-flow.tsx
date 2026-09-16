@@ -483,7 +483,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                       unnumbered sentence is true, and "72 hours" was not. */}
                   <p className="mt-2">
                     {typeof quote.deposit_deadline_hours === "number"
-                      ? `${t("checkout", "deadlineWithin", { hours: String(quote.deposit_deadline_hours) })} `
+                      ? t("checkout", "deadlineWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
                       : ""}
                     {t("checkout", "deadlineNote")}
                   </p>
