@@ -39,3 +39,43 @@ export function layawayOffered(lang: Lang): boolean {
 
 /** The refusal code the checkout actions return, and the UI has copy for. */
 export const LAYAWAY_UNAVAILABLE = "layaway_unavailable";
+
+/**
+ * TERMS THAT EXIST BUT ARE NOT LAUNCHED (owner decision 2026-09-16).
+ *
+ * 10-month and 12-month plans are configured in the Hub's `plan_configurations`
+ * — the Hub sends them in `allowed_terms`, the DB trigger accepts them, and a
+ * staff member can create one — but they are NOT OPEN to web customers yet. The
+ * terms of service say what is: "three-month and six-month plans", with longer
+ * plans for qualifying purchases. 8M is a launched longer plan and stays
+ * selectable behind its own ¥300,000 minimum.
+ *
+ * MARKED, NOT REMOVED. The owner asked for them to stay visible as coming, so a
+ * customer sees that a 12-month plan exists and is not yet open, and so nobody
+ * later wonders whether the Hub's config and this list have quietly diverged.
+ * Filtering them out of the list would make the two look identical when they
+ * are not.
+ *
+ * TWO REASONS A TERM CAN BE UNSELECTABLE, and they must never share one label:
+ * `eligible: false` from the Hub means "this basket is under that term's
+ * minimum" and a bigger basket fixes it; not launched means "nobody can have
+ * this yet" and no basket fixes it.
+ *
+ * NOT A SECURITY BOUNDARY EITHER, and less of one than the language rule: the
+ * authoritative gate is `plan_configurations.is_active` in the Hub, which only
+ * Cynthia can change in SQL. Until she does, the Hub will still sell a 12-month
+ * plan to anything that asks it. The server refusal in checkout-actions closes
+ * the storefront's own path; see the PR for the one-line SQL that closes the
+ * Hub's.
+ *
+ * TO LAUNCH A TERM: remove it from this array. Nothing else in the storefront
+ * needs to change.
+ */
+export const UNLAUNCHED_TERMS: readonly number[] = [10, 12];
+
+export function termLaunched(months: number): boolean {
+  return !UNLAUNCHED_TERMS.includes(months);
+}
+
+/** The refusal code the checkout action returns, and the UI has copy for. */
+export const TERM_NOT_LAUNCHED = "term_not_launched";

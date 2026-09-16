@@ -11,7 +11,7 @@ import { payAction, payLayawayAction, quoteAction, saveAddressAction } from "@/l
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
-import { LAYAWAY_UNAVAILABLE, layawayOffered } from "@/lib/layaway-availability";
+import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } from "@/lib/layaway-availability";
 
 type Step = 1 | 2 | 3;
 
@@ -75,6 +75,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     : code === "below_plan_minimum" ? t("checkout", "belowMinimum")
     : code === "currency_unsupported" ? t("checkout", "currencyUnsupported")
     : code === "rate_unavailable" ? t("checkout", "rateUnavailable")
+    : code === TERM_NOT_LAUNCHED ? t("checkout", "termNotLaunchedHint")
     : code === LAYAWAY_UNAVAILABLE ? t("checkout", "layawayUnavailable")
     : t("checkout", "failed");
 
@@ -376,24 +377,39 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                   {/* Before the first quote there is no eligibility to show, so
                       every configured term is offered and the Hub decides. After
                       it, the terms this basket cannot reach are disabled with
-                      their minimum named. */}
+                      their minimum named.
+
+                      A NOT-LAUNCHED TERM IS SHOWN AND DISABLED, never hidden
+                      (owner decision 2026-09-16): a 12-month plan exists in the
+                      Hub and is not yet open to web customers, and the customer
+                      should be able to see that rather than wonder why the list
+                      stops at eight. Its reason is stated in its own words —
+                      "Coming soon", not the basket-too-small message — because
+                      the two are fixed by different things and only one of them
+                      is the customer's to fix. */}
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {termOptions.map((tm) => (
-                      <button
-                        key={tm.months} type="button" disabled={!tm.eligible}
-                        onClick={() => setTerm(tm.months)}
-                        aria-pressed={term === tm.months}
-                        title={tm.eligible ? undefined : t("checkout", "termUnavailable")}
-                        className={`border px-4 py-2 text-left text-sm disabled:opacity-40 ${term === tm.months && tm.eligible ? "border-gold text-gold-pale" : "border-rule text-champagne/65"}`}
-                      >
-                        <span className="block">{t("checkout", "termMonths", { n: String(tm.months) })}</span>
-                        {tm.min_amount > 0 && (
-                          <span className="block text-[11px] text-champagne/45">
-                            {t("checkout", "termMin", { amount: formatMoney(tm.min_amount, settlement) })}
-                          </span>
-                        )}
-                      </button>
-                    ))}
+                    {termOptions.map((tm) => {
+                      const launched = termLaunched(tm.months);
+                      const pickable = launched && tm.eligible;
+                      return (
+                        <button
+                          key={tm.months} type="button" disabled={!pickable}
+                          onClick={() => setTerm(tm.months)}
+                          aria-pressed={term === tm.months}
+                          title={launched ? (tm.eligible ? undefined : t("checkout", "termUnavailable")) : t("checkout", "termNotLaunchedHint")}
+                          className={`border px-4 py-2 text-left text-sm disabled:opacity-40 ${term === tm.months && pickable ? "border-gold text-gold-pale" : "border-rule text-champagne/65"}`}
+                        >
+                          <span className="block">{t("checkout", "termMonths", { n: String(tm.months) })}</span>
+                          {!launched ? (
+                            <span className="block text-[11px] text-champagne/45">{t("checkout", "termNotLaunched")}</span>
+                          ) : tm.min_amount > 0 ? (
+                            <span className="block text-[11px] text-champagne/45">
+                              {t("checkout", "termMin", { amount: formatMoney(tm.min_amount, settlement) })}
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
                   </div>
                 </fieldset>
               </>
