@@ -274,6 +274,17 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  * and the final row says who it is for. This is statutory wording: it needs a
  * JP compliance read before launch like every other line on this page.
  *
+ * LAYAWAY PLAN LENGTHS ADDED TO 支払時期 (2026-09-16). The row used to say only
+ * "on the dates set out in your agreement", while /faq now publishes the plan
+ * lengths — three, six, and eight months for ¥300,000 or more. 特商法 requires
+ * 支払時期 to be disclosed, and a statutory page vaguer than the public FAQ is
+ * what a compliance read stops on. Before and after are in the PR.
+ *
+ * NO CLAIM-HOLD ROW WAS ADDED, deliberately. The 24h/72h hold is a real term
+ * and it is on /faq, but 特商法 does not require it and this page never had such
+ * a row; inventing a statutory row is not "aligning" one. Flagged for the
+ * compliance read instead.
+ *
  * CONTACT ROWS ADDED 2026-09-15 (owner-supplied). 特商法 requires a telephone
  * number and an address for enquiries, and this page carried neither. The
  * numbers came from Cynthia as "03,6657 6129" and "070 8307 3318" and are
@@ -359,8 +370,8 @@ export const tokusho = {
     {
       k: { ja: "支払時期", en: "When payment is due" },
       v: {
-        ja: "注文時。分割予約※の場合は契約書記載の期日",
-        en: "At the time of order. For layaway※, on the dates set out in your agreement",
+        ja: "注文時。分割予約※の場合は3か月、6か月、または¥300,000以上のご注文で8か月の各プランに応じ、契約書記載の期日",
+        en: "At the time of order. For layaway※, on the dates set out in your agreement, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {
@@ -910,7 +921,7 @@ export const tosArticles: LegalArticle[] = [
       { kind: "h", text: { ja: "分割予約の契約内容", en: "Layaway agreement" } },
       { kind: "p", text: { ja: "次の事項は、請求書、カスタマーポータルまたは書面の分割予約確認に記載します。", en: "The following information will be shown in the invoice, customer portal, or written layaway confirmation:" } },
       { kind: "list", items: { ja: ["ご注文金額の合計。", "お支払いいただく予約金。", "お支払い予定。", "お支払いの回数および各回の金額。", "最終回のお支払期日。", "適用されるキャンペーン。", "キャンセルまたは不履行の場合の条件。"], en: ["Total order price.", "Required down payment.", "Payment schedule.", "Number and amount of payments.", "Final payment date.", "Any applicable promotion.", "Cancellation or default conditions."] } },
-      { kind: "p", text: { ja: "当社が通常ご用意しているのは3か月および6か月のプランです。一定の条件を満たすご購入については、より長期のプランをご案内する場合があります。ご注文について確定したプランの内容が優先します。", en: "Cha Jewels commonly offers three-month and six-month plans. Longer plans may be offered for qualifying purchases. The exact plan confirmed for the order will control." } },
+      { kind: "p", text: { ja: "当社は、3か月、6か月および8か月のプランをご用意しており、8か月のプランは¥300,000以上の対象となるご注文にご利用いただけます。ご注文について確定したプランの内容が優先します。", en: "Cha Jewels offers three-month, six-month and eight-month plans, the eight-month plan for qualifying orders of ¥300,000 or more. The exact plan confirmed for the order will control." } },
       { kind: "p", text: { ja: "特に別段の明示がない限り、当社の分割予約に金利は発生しません。", en: "Unless specifically disclosed otherwise, Cha Jewels layaway does not charge interest." } },
       { kind: "h", text: { ja: "お取り置きと所有権", en: "Reservation and ownership" } },
       { kind: "p", text: { ja: "分割予約の商品は、所定の予約金を当社が受領し、その内容を確認した後に、お客様のためにお取り置きします。", en: "A layaway item is reserved for the customer after the required down payment has been received and validated." } },

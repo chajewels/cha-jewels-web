@@ -13,8 +13,8 @@ import type { Lang } from "./i18n";
  *                regain the earned tier (null = none).
  * multiplier     points multiplier on every purchase.
  *
- * EVERY tier holds a claimed piece for 60 minutes. Hold time is NOT a tier
- * benefit and must never be advertised as one — see HOLD_MINUTES.
+ * HOLD TIME IS NOT A TIER BENEFIT and must never be advertised as one. It is
+ * also no longer sixty minutes — see CLAIM_HOLD_HOURS.
  */
 export type Tier = {
   slug: string;
@@ -26,8 +26,31 @@ export type Tier = {
   perks: Record<Lang, string[]>;
 };
 
-/** Uniform across every tier. State it once, never per tier. */
-export const HOLD_MINUTES = 60;
+/**
+ * HOW LONG A CLAIMED PIECE IS HELD (owner-confirmed 2026-09-16, via the FAQ).
+ *
+ * 24 hours for a new customer, 72 for a returning one, the same at every tier.
+ * It is NOT a per-tier number any more, which is why it does not live on `Tier`
+ * — it turns on the customer's history, not their level.
+ *
+ * The rendered copy is `dict.loyalty.holdNote`; these constants exist so the
+ * rule has one home and the numbers in the dictionary can be checked against
+ * something. Do not render them directly.
+ *
+ * THE HUB STILL SAYS 60 and is NOT authoritative. `loyalty_tiers.hold_minutes`
+ * defaults to 60 and GET /loyalty/tiers still serves it, so `HubTier` carries
+ * the field and `hold_minutes` below mirrors it — but NOTHING renders it, and
+ * nothing should. Worth knowing when reading that field: the Hub does not act
+ * on it either. `website_live_claims` has an `expires_at` and an index built
+ * for a sweep, but its only reader is a read-only GET, no cron touches it, and
+ * its 'expired' / 'released' statuses are never written. So no claim is
+ * released after 60 minutes today — and none is released after 24 or 72 hours
+ * either. Enforcing this rule is a Hub change and its own PR.
+ */
+export const CLAIM_HOLD_HOURS = { newCustomer: 24, returning: 72 } as const;
+
+/** The Hub's stale per-tier value, mirrored for the HubTier shape. Never shown. */
+const HUB_HOLD_MINUTES = 60;
 
 export const tiers: Tier[] = [
   {
@@ -36,7 +59,7 @@ export const tiers: Tier[] = [
     thresholdJpy: 0,
     requalifyJpy: null,
     multiplier: 1,
-    holdMinutes: HOLD_MINUTES,
+    holdMinutes: HUB_HOLD_MINUTES,
     perks: {
       ja: ["通常ポイント付与", "ロイヤルティ特典のご利用", "会員限定プロモーションのご案内"],
       en: ["Standard points accumulation", "Access to loyalty rewards", "Access to member promotions"],
@@ -48,7 +71,7 @@ export const tiers: Tier[] = [
     thresholdJpy: 1000000,
     requalifyJpy: 500000,
     multiplier: 2,
-    holdMinutes: HOLD_MINUTES,
+    holdMinutes: HUB_HOLD_MINUTES,
     perks: {
       ja: ["全商品ポイント2倍", "会員限定プロモーションの優先ご案内", "フラッシュセールへの優先ご参加"],
       en: [
@@ -64,7 +87,7 @@ export const tiers: Tier[] = [
     thresholdJpy: 4000000,
     requalifyJpy: 2000000,
     multiplier: 2,
-    holdMinutes: HOLD_MINUTES,
+    holdMinutes: HUB_HOLD_MINUTES,
     perks: {
       ja: [
         "全商品ポイント2倍",
@@ -86,7 +109,7 @@ export const tiers: Tier[] = [
     thresholdJpy: 8000000,
     requalifyJpy: 4000000,
     multiplier: 3,
-    holdMinutes: HOLD_MINUTES,
+    holdMinutes: HUB_HOLD_MINUTES,
     perks: {
       ja: [
         "全商品ポイント3倍",
@@ -105,5 +128,14 @@ export const tiers: Tier[] = [
     },
   },
 ];
-export const POINTS_PER_10K = 100;
+/**
+ * THE BASE EARNING RATE IS 1%, AT GLIMMER (owner-confirmed 2026-09-16). The
+ * higher tiers multiply it — see each tier's `multiplier`.
+ *
+ * 1% and the old "¥10,000 earns 100 points" are the same arithmetic, because a
+ * point is worth ¥1. The difference is that the old phrasing named no tier, so
+ * it read as the only rate a customer could ever earn. Stated as a percentage
+ * with the tier named, the multipliers below make sense.
+ */
+export const BASE_EARN_RATE = 0.01;
 export const INACTIVITY_MONTHS = 6;
