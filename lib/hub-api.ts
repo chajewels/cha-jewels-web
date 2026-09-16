@@ -173,3 +173,59 @@ export async function uploadProof(jwt: string, accountId: string, file: File): P
   }
   return String(body.proof_url);
 }
+
+/**
+ * Enrols the signed-in customer in the loyalty programme.
+ *
+ * Calls `join-loyalty-program` directly rather than going through the
+ * `website` function, for the same reason `uploadProof` does: that function
+ * already takes the customer's JWT, resolves it to their customer row via
+ * `resolvePortalAuth`, and is idempotent — it answers `already_enrolled` rather
+ * than creating a second membership. Routing it through a new `website` endpoint
+ * would add a Hub deploy and a second place for the ownership check to be wrong.
+ *
+ * No new secret: the URL comes from the Supabase project the site already signs
+ * customers in against, and `apikey` is the publishable anon key that ships in
+ * the browser bundle anyway. The customer's JWT is what authorises the write.
+ *
+ * NEVER throws. Enrolment happens after an order is paid for, and an order that
+ * exists must not be disturbed by a loyalty failure. The caller gets a result it
+ * can record, not an exception it has to remember to swallow.
+ */
+export type EnrolResult =
+  | { ok: true; already: boolean; memberId: string | null }
+  | { ok: false; status: number | null; reason: string };
+
+export async function loyaltyEnrol(jwt: string): Promise<EnrolResult> {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  if (!base || !anon) return { ok: false, status: null, reason: "not_configured" };
+
+  try {
+    const res = await fetch(`${base}/functions/v1/join-loyalty-program`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${jwt}`, apikey: anon, "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+      // The order is already placed; the confirmation screen is waiting on this
+      // call and must not wait long. A slow Hub becomes a recorded failure, not
+      // a checkout that hangs.
+      signal: AbortSignal.timeout(6000),
+    });
+    const body = (await res.json().catch(() => null)) as
+      | { enrolled?: boolean; already_enrolled?: boolean; member_id?: string; error?: string }
+      | null;
+    if (!res.ok) {
+      // 403 is the loyalty_enabled go-live gate, 401 an auth mismatch, 500 the
+      // Hub. All three mean the same thing here: not enrolled, say so plainly.
+      return { ok: false, status: res.status, reason: typeof body?.error === "string" ? body.error : `http_${res.status}` };
+    }
+    return {
+      ok: true,
+      already: body?.already_enrolled === true,
+      memberId: typeof body?.member_id === "string" ? body.member_id : null,
+    };
+  } catch (err) {
+    // Timeout, DNS, TLS — anything at all. The order stands.
+    return { ok: false, status: null, reason: err instanceof Error ? err.name : "unreachable" };
+  }
+}

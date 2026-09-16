@@ -8,6 +8,7 @@ import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { payAction, payLayawayAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { enrolInLoyaltyAction } from "@/lib/loyalty-actions";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
@@ -27,10 +28,16 @@ const DEFAULT_TERMS: LayawayTerm[] = [3, 6, 8, 10, 12].map((months) => ({
   months, label: `${months}`, min_amount: 0, dp_percentage: 0.3, eligible: true,
 }));
 
-export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full" }: {
+export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false }: {
   lang: Lang; items: CartItem[]; subtotal: number; initialAddresses: HubAddress[];
   /** "layaway" when the shopper arrived from Reserve on a product page. */
   initialMode?: CheckoutMode;
+  /**
+   * True only for a signed-in customer the Hub reports as NOT enrolled. A member
+   * sees nothing — no box, no note, no mention of the programme — and so does
+   * anyone whose loyalty state could not be read.
+   */
+  offerLoyalty?: boolean;
 }) {
   const t = tr(lang);
   const router = useRouter();
@@ -42,6 +49,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     initialAddresses.find((a) => a.is_default)?.id ?? initialAddresses[0]?.id ?? "",
   );
   const [showNew, setShowNew] = useState(initialAddresses.length === 0);
+  // Consent. Starts false and is never defaulted true anywhere.
+  const [joinLoyalty, setJoinLoyalty] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>("SELF");
   const [recipientName, setRecipientName] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
@@ -186,6 +195,25 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
         ? await payLayawayAction(quote.quote_id)
         : await payAction(quote.quote_id);
       if (res.ok) {
+        // ENROLMENT HAPPENS HERE AND NOWHERE EARLIER. The order or plan exists,
+        // the stock is committed, and nothing below can undo it — which is what
+        // makes "enrolment never fails the order" structural rather than
+        // careful. The action never throws and its result is deliberately not
+        // read: there is no failure the customer should be shown on a screen
+        // that is telling them their order went through.
+        //
+        // The 2.5s race is for the CLIENT, not the server. The action's request
+        // is already in flight and the server runs it to completion whether or
+        // not this page is still listening, so capping the wait cannot lose an
+        // enrolment — it only stops a slow Hub from holding a confirmation
+        // screen hostage after the order is safely placed.
+        if (joinLoyalty) {
+          const country = addresses.find((a) => a.id === addressId)?.country ?? undefined;
+          await Promise.race([
+            enrolInLoyaltyAction(country),
+            new Promise((resolve) => setTimeout(resolve, 2500)),
+          ]);
+        }
         router.push(mode === "layaway"
           ? `/account/layaway/${(res.data as { account_id: string }).account_id}?placed=1`
           : `/checkout/complete/${(res.data as { order_id: string }).order_id}`);
@@ -478,7 +506,15 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 <div className="border border-rule bg-velvet p-4 text-sm text-champagne/80">
                   <p>{t("checkout", "transferOnly")}</p>
                   <p className="mt-2">{t("checkout", "transferPreview")}</p>
-                  <p className="mt-2">{t("checkout", "deadlineNote")}</p>
+                  {/* The number the Hub will actually store, not a constant.
+                      Omitted rather than guessed when the Hub sent none: an
+                      unnumbered sentence is true, and "72 hours" was not. */}
+                  <p className="mt-2">
+                    {typeof quote.deposit_deadline_hours === "number"
+                      ? t("checkout", "deadlineWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
+                      : ""}
+                    {t("checkout", "deadlineNote")}
+                  </p>
                 </div>
                 {/* The Hub sends only this destination's region, so these are
                     the accounts this customer will actually pay into — and the
@@ -489,6 +525,30 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               <p role="alert" className="border border-gold px-4 py-3 text-sm text-gold-pale">
                 {t("checkout", "transferUnavailable")}
               </p>
+            )}
+            {/* Offered only to a signed-in non-member, and never pre-ticked:
+                this is consent. What they earn is on the label; what we do
+                with the details they just typed is in the note. The programme
+                itself is explained at /loyalty rather than here. */}
+            {offerLoyalty && (
+              <div className="mb-2 border border-rule bg-velvet p-4">
+                <label className="flex cursor-pointer items-start gap-3 text-sm text-champagne/80">
+                  <input
+                    type="checkbox"
+                    checked={joinLoyalty}
+                    onChange={(e) => setJoinLoyalty(e.target.checked)}
+                    disabled={pending}
+                    className="mt-1 h-4 w-4 shrink-0 accent-[var(--gold)]"
+                  />
+                  <span>{t("checkout", "joinLoyalty")}</span>
+                </label>
+                <p className="mt-2 pl-7 text-xs text-champagne/55">
+                  {t("checkout", "joinLoyaltyNote")}{" "}
+                  <Link href="/loyalty" className="underline underline-offset-4 hover:text-gold-pale">
+                    {t("checkout", "joinLoyaltyLink")}
+                  </Link>
+                </p>
+              </div>
             )}
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>

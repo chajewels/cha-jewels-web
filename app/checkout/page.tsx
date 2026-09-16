@@ -46,11 +46,22 @@ export default async function CheckoutPage({ searchParams }: {
   const { data: sessionData } = await supabase.auth.getSession();
   const jwt = sessionData.session?.access_token;
   let addresses: HubAddress[] = [];
+  // Whether to offer the loyalty box. A member must see nothing at all, so the
+  // default is "do not offer": if /me cannot be read we cannot tell a member
+  // from a non-member, and showing the box to someone already enrolled is the
+  // worse of the two mistakes.
+  let offerLoyalty = false;
   if (jwt) {
     // A customer who has never opened /account has no customers row yet, so
-    // link first. authCustomer is idempotent.
+    // link first. authCustomer is idempotent. This is also what guarantees the
+    // loyalty box has a customer record to attach to — by the time it renders,
+    // the row exists and carries this customer's verified email.
     try { await hub.authCustomer(jwt); } catch { /* /me below reports the failure */ }
-    try { addresses = (await hub.me(jwt)).addresses; } catch { addresses = []; }
+    try {
+      const me = await hub.me(jwt);
+      addresses = me.addresses;
+      offerLoyalty = me.loyalty?.enrolled === false;
+    } catch { addresses = []; }
   }
 
   return (
@@ -58,7 +69,7 @@ export default async function CheckoutPage({ searchParams }: {
       <div className="wrap">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
         <div className="mt-10">
-          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} />
+          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} offerLoyalty={offerLoyalty} />
         </div>
       </div>
     </section>

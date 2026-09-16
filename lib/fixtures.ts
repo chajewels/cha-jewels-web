@@ -166,6 +166,9 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
     transfer_region: "JP", transfer_methods: fixtureMethods, transfer_available: true,
     order_type: body.order_type,
     expires_at: new Date(Date.now() + 30 * 60e3).toISOString(),
+    // Preview shows the FIRST-ORDER deadline, because that is the case the copy
+    // used to get wrong. A returning customer gets 72 from the live Hub.
+    deposit_deadline_hours: 24,
     mode,
     settlement_currency: settlement,
     fx_rate: rate,
