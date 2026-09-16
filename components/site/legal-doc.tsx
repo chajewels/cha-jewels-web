@@ -52,7 +52,10 @@ export function LegalDoc({
             // languages — the key must not change when the toggle does.
             <div key={s.h.en} className="border-t border-rule py-6">
               <h2 className="font-display text-[clamp(20px,2.4vw,28px)] text-gold-pale">{s.h[lang]}</h2>
-              <ul className="mt-3 space-y-2 text-champagne/80">
+              {/* list-disc + marker, matching legal-articles.tsx. Preflight
+                  strips ul markers, so they are asked for explicitly. Never a
+                  generated-content escape -- see the note in that file. */}
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-champagne/80 marker:text-gold-pale">
                 {s.body[lang].map((line) => <li key={line}>{line}</li>)}
               </ul>
             </div>
