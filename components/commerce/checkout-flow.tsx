@@ -518,32 +518,32 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 {t("checkout", "transferUnavailable")}
               </p>
             )}
+            {/* Offered only to a signed-in non-member, and never pre-ticked:
+                this is consent. What they earn is on the label; what we do
+                with the details they just typed is in the note. The programme
+                itself is explained at /loyalty rather than here. */}
+            {offerLoyalty && (
+              <div className="mb-2 border border-rule bg-velvet p-4">
+                <label className="flex cursor-pointer items-start gap-3 text-sm text-champagne/80">
+                  <input
+                    type="checkbox"
+                    checked={joinLoyalty}
+                    onChange={(e) => setJoinLoyalty(e.target.checked)}
+                    disabled={pending}
+                    className="mt-1 h-4 w-4 shrink-0 accent-[var(--gold)]"
+                  />
+                  <span>{t("checkout", "joinLoyalty")}</span>
+                </label>
+                <p className="mt-2 pl-7 text-xs text-champagne/55">
+                  {t("checkout", "joinLoyaltyNote")}{" "}
+                  <Link href="/loyalty" className="underline underline-offset-4 hover:text-gold-pale">
+                    {t("checkout", "joinLoyaltyLink")}
+                  </Link>
+                </p>
+              </div>
+            )}
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
-              {/* Offered only to a signed-in non-member, and never pre-ticked:
-                  this is consent. What they earn is on the label; what we do
-                  with the details they just typed is in the note. The programme
-                  itself is explained at /loyalty rather than here. */}
-              {offerLoyalty && (
-                <div className="mb-2 border border-rule bg-velvet p-4">
-                  <label className="flex cursor-pointer items-start gap-3 text-sm text-champagne/80">
-                    <input
-                      type="checkbox"
-                      checked={joinLoyalty}
-                      onChange={(e) => setJoinLoyalty(e.target.checked)}
-                      disabled={pending}
-                      className="mt-1 h-4 w-4 shrink-0 accent-[var(--gold)]"
-                    />
-                    <span>{t("checkout", "joinLoyalty")}</span>
-                  </label>
-                  <p className="mt-2 pl-7 text-xs text-champagne/55">
-                    {t("checkout", "joinLoyaltyNote")}{" "}
-                    <Link href="/loyalty" className="underline underline-offset-4 hover:text-gold-pale">
-                      {t("checkout", "joinLoyaltyLink")}
-                    </Link>
-                  </p>
-                </div>
-              )}
               <Button onClick={placeOrder} disabled={pending || !quote.transfer_available}>
                 {mode === "layaway"
                   ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
