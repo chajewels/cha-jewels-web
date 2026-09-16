@@ -19,11 +19,11 @@ export const posts: Post[] = [
   },
   {
     slug: "layaway-explained", date: "2026-08-20", layawayOnly: true,
-    title: { ja: "分割予約のしくみ：30%、無利息、最長8か月", en: "Layaway explained: 30%, 0% interest, up to 8 months" },
+    title: { ja: "分割予約のしくみ：30%、無利息、3・6・8か月", en: "Layaway explained: 30%, 0% interest, three, six or eight months" },
     excerpt: { ja: "予約金、支払いスケジュール、リマインダー、そして支払いが遅れたときにどうなるか。", en: "The deposit, the schedule, the reminders, and what happens if a payment is late." },
     body: {
-      ja: ["30%をお支払いいただいた時点で商品は確保され、他のお客様には販売されません。", "残額は3〜6か月の均等払い。¥300,000以上のご注文は8か月まで延長できます。金利はかかりません。", "各支払日の3日前にMessenger、SMS、またはメールでお知らせします。遅延時の扱いは契約書に明記しています。"],
-      en: ["Once 30% is paid the piece is reserved and not sold to anyone else.", "The balance is split evenly over 3 to 6 months. Orders of ¥300,000 and above can extend to 8 months. There is no interest.", "You get a reminder three days before each due date by Messenger, SMS or email. Late-payment handling is written into your agreement."],
+      ja: ["30%をお支払いいただいた時点で商品は確保され、他のお客様には販売されません。", "残額は3か月または6か月の均等払い。¥300,000以上のご注文は8か月もお選びいただけます。金利はかかりません。", "各支払日の3日前にMessenger、SMS、またはメールでお知らせします。遅延時の扱いは契約書に明記しています。"],
+      en: ["Once 30% is paid the piece is reserved and not sold to anyone else.", "The balance is split evenly over three or six months, and orders of ¥300,000 and above can choose eight. There is no interest.", "You get a reminder three days before each due date by Messenger, SMS or email. Late-payment handling is written into your agreement."],
     },
   },
 ];
