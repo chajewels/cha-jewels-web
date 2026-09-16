@@ -3,7 +3,7 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
 import { hub, HubError } from "@/lib/hub-api";
-import { LAYAWAY_UNAVAILABLE } from "@/lib/layaway-availability";
+import { TERM_NOT_LAUNCHED, termLaunched, LAYAWAY_UNAVAILABLE } from "@/lib/layaway-availability";
 import { layawayOfferedNow } from "@/lib/layaway-availability-server";
 import { readCart, hydrateCart } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
@@ -110,6 +110,16 @@ export async function quoteAction(input: {
   // exists only in English and Tagalog. One rule — lib/layaway-availability.
   if (input.mode === "layaway" && !(await layawayOfferedNow())) {
     return { ok: false, code: LAYAWAY_UNAVAILABLE };
+  }
+
+  // 10M AND 12M ARE NOT LAUNCHED (owner decision 2026-09-16). Disabling the
+  // buttons is not enough for the same reason the language rule needed this:
+  // `term_months` is client state and this action is reachable directly. The
+  // Hub would accept the term — plan_configurations still has it active — so
+  // refusing here is what keeps the storefront from booking a plan the terms of
+  // service do not describe. One rule: lib/layaway-availability.
+  if (input.mode === "layaway" && input.term_months !== undefined && !termLaunched(input.term_months)) {
+    return { ok: false, code: TERM_NOT_LAUNCHED };
   }
 
   // Price the CART as the server sees it, not a basket posted by the client.
