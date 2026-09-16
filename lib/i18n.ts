@@ -277,7 +277,22 @@ export const dict = {
     transferPreview: { ja: "お振込先は以下のとおりです。ご注文確定後、この画面とメールでも改めてご案内します。", en: "You will transfer to the account below. We show it again after you place the order, and send it by email." },
     placeOrder: { ja: "ご注文を確定する", en: "Place order" },
     placing: { ja: "処理中…", en: "Placing your order…" },
-    deadlineNote: { ja: "ご注文後72時間以内にお振込ください。期限を過ぎたご注文は自動的にキャンセルとなり、商品は再び販売されます。", en: "Please transfer within 72 hours. After that the order is cancelled automatically and the piece goes back on sale." },
+    // THE DEADLINE IS THE CUSTOMER'S, NOT A CONSTANT (owner decision 2026-09-16).
+    // 24 hours on a first order, 72 when they have ordered before. The number
+    // comes from the quote, which reads the same Hub function the creation RPC
+    // defaults from — so what this says is what gets stored.
+    //
+    // Split in two on purpose. `deadlineWithin` names the number and is only
+    // rendered when the Hub actually sent one. `deadlineNote` carries the
+    // consequence and names no number at all, so it is safe on the confirmation
+    // page (where the exact date and time is already shown) and safe when the
+    // number is unknown. Its wording matches the confirmation email's, so the
+    // customer reads the same sentence twice rather than two near-misses.
+    deadlineWithin: {
+      ja: "ご注文後{hours}時間以内にお振込ください。",
+      en: "Please transfer within {hours} hours.",
+    },
+    deadlineNote: { ja: "期限を過ぎたご注文は自動的にキャンセルとなり、商品は再び販売されます。", en: "After the deadline the order is cancelled automatically and the piece goes back on sale." },
     soldOut: { ja: "申し訳ありません。ご注文手続き中にこの商品は売り切れとなりました。", en: "Sorry — that piece sold while you were checking out." },
     expired: { ja: "お見積りの有効期限が切れました。もう一度お試しください。", en: "Your quote expired. Please try again." },
     expiredRequoted: { ja: "お見積りの有効期限が切れたため、最新の内容でお見積りし直しました。ご確認のうえ、もう一度お進みください。", en: "Your quote had expired, so we priced your order again. Please review it and continue." },
