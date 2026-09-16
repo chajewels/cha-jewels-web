@@ -506,7 +506,15 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 <div className="border border-rule bg-velvet p-4 text-sm text-champagne/80">
                   <p>{t("checkout", "transferOnly")}</p>
                   <p className="mt-2">{t("checkout", "transferPreview")}</p>
-                  <p className="mt-2">{t("checkout", "deadlineNote")}</p>
+                  {/* The number the Hub will actually store, not a constant.
+                      Omitted rather than guessed when the Hub sent none: an
+                      unnumbered sentence is true, and "72 hours" was not. */}
+                  <p className="mt-2">
+                    {typeof quote.deposit_deadline_hours === "number"
+                      ? t("checkout", "deadlineWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
+                      : ""}
+                    {t("checkout", "deadlineNote")}
+                  </p>
                 </div>
                 {/* The Hub sends only this destination's region, so these are
                     the accounts this customer will actually pay into — and the

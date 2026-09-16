@@ -106,6 +106,16 @@ export type HubQuote = {
   shipping_settlement?: number | null;
   total_settlement?: number;
   layaway?: HubQuoteLayaway | null;
+  /**
+   * Hours the customer will have to send the deposit — 24 on a first order, 72
+   * when they have ordered before. Decided by the Hub's
+   * web_deposit_deadline_hours(), the same function the creation RPC defaults
+   * from, so the number shown at checkout is the number that gets stored.
+   *
+   * null or absent on an older Hub deploy, and that is not a 72: the copy drops
+   * the number entirely rather than naming one it cannot stand behind.
+   */
+  deposit_deadline_hours?: number | null;
 };
 /**
  * Transfer methods, built by the Hub from its own rows at request time — so a
