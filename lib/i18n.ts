@@ -285,6 +285,23 @@ export const dict = {
     failed: { ja: "ご注文を完了できませんでした。しばらくしてからもう一度お試しください。", en: "We could not complete your order. Please try again shortly." },
     emptyCart: { ja: "カートが空のためお手続きできません。", en: "There is nothing in your cart to check out." },
     addressRequired: { ja: "お届け先をご入力ください。", en: "Please enter a delivery address." },
+    // JOINING THE PROGRAMME AT CHECKOUT.
+    // Consent, so the box is never pre-ticked. The label says what they earn;
+    // the note says what we do with the details they have just entered. It does
+    // NOT say "we will create your account", because by this point the account
+    // already exists — /checkout is behind sign-in and the page links the
+    // customer record before it renders. Promising to create something that is
+    // already there would be the one sentence here a customer could catch us on.
+    // The programme itself is explained at /loyalty, never inline.
+    joinLoyalty: {
+      ja: "Cha Jewels Circleに入会する — 今回のご注文から、お買い上げ金額の1%をポイントとして進呈いたします。",
+      en: "Join Cha Jewels Circle — earn 1% back in points on this order and every order after it.",
+    },
+    joinLoyaltyNote: {
+      ja: "本注文にご入力いただいたお名前・ご住所・ご連絡先をもとに会員情報を作成いたします。会員ランクはGlimmerからのスタートです。",
+      en: "We set your membership up from the name, address and contact details on this order. Members start at Glimmer, the first level.",
+    },
+    joinLoyaltyLink: { ja: "プログラムの詳細", en: "About the programme" },
     // Phase 2 step 4 — paying in instalments.
     modeH: { ja: "お支払い方法をお選びください", en: "How would you like to pay?" },
     modeFull: { ja: "一括でお支払い", en: "Pay in full" },
