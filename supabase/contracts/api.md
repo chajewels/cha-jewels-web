@@ -45,7 +45,7 @@ an origin from metal, name or description, and site-wide copy may only say
 | `POST /claims/:code/checkout` (Phase 2) | order or plan | requires customer JWT in `Authorization`; idempotent |
 | `GET /loyalty/tiers` | `HubTier[]` | Hub loyalty_tiers ordered by rank: `{slug,name,threshold_jpy,requalify_spend,multiplier,hold_minutes,benefits_ja[],benefits_en[]}` |
 | `GET /fx` | `{ jpy_php: number, as_of: "YYYY-MM-DD" }` | Daily JPY→PHP rate; refreshed by cron. Website uses it for display only. |
-| `POST /loyalty/join` body `{name, contact, region, lang}` | `{ok:true}` | insert into `loyalty_signups` (migration 0002) |
+| `POST /loyalty/join` body `{name, contact, region, lang}` | `{ok:true}` | Failure fallback only: records a storefront enrollment that did NOT complete and raises Hub staff bell `loyalty_join_failed`. Never enrolls. Real enrollment = direct call to `join-loyalty-program` with the customer JWT and body `{ source: "storefront_checkout" \| "storefront_join" }`. |
 | `POST /wholesale/inquiry` body `{name, business, email, phone?, market, volume, notes?, lang}` | `{ok:true}` | insert into `wholesale_inquiries`. `market` `JP\|PH\|BOTH\|OTHER`; `volume` `TEST\|20_50\|50_200\|200_PLUS`; `lang` `ja\|en`. Optional fields are omitted, never sent as `""`. |
 
 ## Hub → website

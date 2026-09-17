@@ -191,12 +191,17 @@ export async function uploadProof(jwt: string, accountId: string, file: File): P
  * NEVER throws. Enrolment happens after an order is paid for, and an order that
  * exists must not be disturbed by a loyalty failure. The caller gets a result it
  * can record, not an exception it has to remember to swallow.
+ *
+ * `source` tells the Hub which storefront entry point enrolled the customer
+ * (stored on loyalty_members.enrollment_source).
  */
+export type EnrolSource = "storefront_checkout" | "storefront_join";
+
 export type EnrolResult =
   | { ok: true; already: boolean; memberId: string | null }
   | { ok: false; status: number | null; reason: string };
 
-export async function loyaltyEnrol(jwt: string): Promise<EnrolResult> {
+export async function loyaltyEnrol(jwt: string, source: EnrolSource): Promise<EnrolResult> {
   const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
   if (!base || !anon) return { ok: false, status: null, reason: "not_configured" };
@@ -205,7 +210,7 @@ export async function loyaltyEnrol(jwt: string): Promise<EnrolResult> {
     const res = await fetch(`${base}/functions/v1/join-loyalty-program`, {
       method: "POST",
       headers: { Authorization: `Bearer ${jwt}`, apikey: anon, "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ source }),
       // The order is already placed; the confirmation screen is waiting on this
       // call and must not wait long. A slow Hub becomes a recorded failure, not
       // a checkout that hangs.

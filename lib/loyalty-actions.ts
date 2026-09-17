@@ -2,12 +2,16 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
-import { hub, loyaltyEnrol } from "@/lib/hub-api";
+import { hub, loyaltyEnrol, type EnrolSource } from "@/lib/hub-api";
 
 /**
- * Enrolment at checkout.
+ * Enrolment from the storefront — at checkout, and on the /loyalty/join page.
  *
- * WHEN THIS RUNS: after the order or plan has been created, never before. The
+ * Both entry points call the SAME Hub function (join-loyalty-program) and differ
+ * only in the `source` they declare, so what the Hub records is where the
+ * customer actually joined from rather than a guess made later.
+ *
+ * WHEN THE CHECKOUT ONE RUNS: after the order or plan has been created, never before. The
  * money and the stock are already committed by the time this is called, which is
  * what makes the "enrolment must never fail the order" rule easy to keep rather
  * than delicate — there is no path from here back to the order.
@@ -30,7 +34,7 @@ export type EnrolOutcome =
 
 const REGIONS = new Set(["JP", "PH"]);
 
-export async function enrolInLoyaltyAction(countryCode?: string): Promise<EnrolOutcome> {
+async function enrol(source: EnrolSource, countryCode?: string): Promise<EnrolOutcome> {
   try {
     const supabase = await supabaseServer();
     const { data: sessionData } = await supabase.auth.getSession();
@@ -39,19 +43,18 @@ export async function enrolInLoyaltyAction(countryCode?: string): Promise<EnrolO
     // against, and nothing to record either — we do not know who they are.
     if (!jwt) return { state: "lost" };
 
-    const result = await loyaltyEnrol(jwt);
+    const result = await loyaltyEnrol(jwt, source);
     if (result.ok) return result.already ? { state: "already" } : { state: "enrolled" };
 
     // FAILURE PATH. The customer ticked the box, the order went through, and the
     // membership did not. Losing that silently is the one outcome worth work:
     // they asked to join and would have no way to know it did not happen.
     //
-    // WHAT THIS RECORDS AND WHAT IT DOES NOT. `loyalty_signups` is a real table
-    // with staff-only RLS and a `converted_customer_id` column, so the row is
-    // durable and a human can act on it. It is NOT yet surfaced anywhere in the
-    // Hub — no page reads it — so this is a record staff can find, not a
-    // notification that reaches them. Making it visible is a Hub change and its
-    // own PR; see the PR body.
+    // WHAT THIS RECORDS. `loyalty_signups` is a real table with staff-only RLS
+    // and a `converted_customer_id` column, so the row is durable. Since
+    // 2026-09-17 the Hub also raises staff bell `loyalty_join_failed` off this
+    // same call, so a failed enrolment now REACHES staff rather than merely
+    // being findable by someone who thinks to look.
     const { data: userData } = await supabase.auth.getUser();
     const email = (userData?.user?.email ?? "").trim();
     if (!email) return { state: "lost" };
@@ -72,4 +75,14 @@ export async function enrolInLoyaltyAction(countryCode?: string): Promise<EnrolO
   } catch {
     return { state: "lost" };
   }
+}
+
+/** Checkout: the customer ticked the box while placing an order. */
+export async function enrolInLoyaltyAction(countryCode?: string): Promise<EnrolOutcome> {
+  return enrol("storefront_checkout", countryCode);
+}
+
+/** /loyalty/join: the customer came to the page and asked to join. */
+export async function joinLoyaltyAction(): Promise<EnrolOutcome> {
+  return enrol("storefront_join");
 }

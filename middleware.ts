@@ -30,7 +30,7 @@ import { LANG_COOKIE, LANG_PARAM, PATH_HEADER, asLang, detectLang, type Lang } f
  */
 
 /** Paths that render customer data and therefore need a signed-in user. */
-const GATED = ["/account", "/checkout"];
+const GATED = ["/account", "/checkout", "/loyalty/join"];
 
 const isGated = (pathname: string) =>
   GATED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
