@@ -141,9 +141,11 @@ export const dict = {
     requalifyNone: { ja: "不要", en: "Not required" },
     holdNote: { ja: "ご予約いただいた商品は、はじめてのお客様は24時間、2回目以降のお客様は72時間お取り置きします。会員レベルによる違いはありません。", en: "A claimed piece is held for 24 hours for a new customer and 72 hours for a returning one. This does not vary by level." },
     join: { ja: "無料で入会する", en: "Join free" }, joinH: { ja: "入会はこちら", en: "Join the program" },
-    joinP: { ja: "入会は無料です。お名前と連絡先だけで、次回のお買い物からポイントが貯まります。", en: "Joining is free. Just a name and a way to reach you, and points start with your next purchase." },
+    joinP: { ja: "入会は無料です。メールアドレスでサインインすると、次回のお買い物からポイントが貯まります。", en: "Joining is free. Sign in with your email and points start with your next purchase." },
     name: { ja: "お名前", en: "Your name" }, contact: { ja: "携帯番号またはメール", en: "Mobile number or email" }, region: { ja: "お住まいの地域", en: "Where you live" }, submit: { ja: "入会する", en: "Join" },
-    ok: { ja: "ご入会ありがとうございます。担当者から1営業日以内にご連絡します。", en: "You are in. A team member will confirm within one business day." },
+    ok: { ja: "ご入会ありがとうございます。次回のお買い物からポイントが貯まります。", en: "Welcome, you are a member. Points start with your next purchase." },
+    alreadyMember: { ja: "すでに会員です。ポイントはアカウントページでご確認いただけます。", en: "You are already a member. See your points on your account page." },
+    joinFailed: { ja: "入会を完了できませんでした。担当者より1営業日以内にご連絡します。", en: "We could not complete your membership. A team member will contact you within one business day." },
     consent: { ja: "入会により利用規約とプライバシーポリシーに同意したものとみなします。", en: "By joining you agree to the terms of sale and privacy policy." },
   },
   wholesale: {
