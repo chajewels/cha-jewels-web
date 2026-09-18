@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
@@ -15,31 +16,83 @@ export default async function Home() {
   const [lang, collections, featured, fx] = await Promise.all([getLang(), getCollections().catch(() => []), getFeaturedProducts(8).catch(() => []), hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }))]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
+  const values = [
+    { title: t("home", "valueTimelessH"), body: t("home", "valueTimelessP") },
+    { title: t("home", "valueWorthH"), body: t("home", "valueWorthP") },
+    { title: t("home", "valueCraftH"), body: t("home", "valueCraftP") },
+    { title: t("home", "valueQualityH"), body: t("home", "valueQualityP") },
+  ];
   return (
     <>
       <JsonLd type="store" />
-      <section className="border-b border-rule-soft py-[clamp(56px,8vw,112px)]">
-        <div className="wrap grid items-end gap-12 md:grid-cols-2">
-          <div>
-            <h1 className="text-[clamp(40px,6.4vw,96px)]"><span className="gilt">{t("hero", "h1a")}</span><br /><em className={lang === "ja" ? "not-italic" : ""}>{t("hero", "h1b")}</em></h1>
-            <p className="mt-7 max-w-[50ch] text-[clamp(16px,1.3vw,19px)] text-champagne/85">{t("hero", "lede")}</p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
-              {layaway && <Button asChild variant="ghost"><Link href="/layaway">{t("hero", "cta2")}</Link></Button>}
-            </div>
+      <section className="pomelli-hero border-b border-rule-soft">
+        <Image
+          src="/images/home/pomelli-hero.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="pomelli-hero__image object-cover"
+        />
+        <div className="pomelli-hero__content wrap">
+          <h1 className="pomelli-hero__headline">
+            <span>{t("hero", "h1a")}</span><br />
+            <em className={lang === "ja" ? "not-italic" : ""}>{t("hero", "h1b")}</em>
+          </h1>
+          <div className="pomelli-ornament" aria-hidden="true"><span /></div>
+          <div className="pomelli-hero__lede">
+            <p>{t("hero", "lede")}</p>
+            <p>{t("hero", "lede2")}</p>
           </div>
-          {featured[0] && <ProductCard product={featured[0]} lang={lang} featured />}
+          <div className="mt-9 flex flex-wrap justify-center gap-3">
+            <Button asChild className="border-[#FFA500] bg-[#FFA500] text-[#333333] hover:bg-[#ffb733]"><Link href="/collections">{t("hero", "cta1")}</Link></Button>
+            {layaway && <Button asChild variant="ghost" className="border-white/70 text-white hover:border-white"><Link href="/layaway">{t("hero", "cta2")}</Link></Button>}
+          </div>
         </div>
       </section>
-      <section className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
-        <div className="wrap">
-          <h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "colsH")}</h2>
-          <p className="mt-4 max-w-[58ch] text-champagne/75">{t("home", "colsP")}</p>
-          <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
+
+      <section className="pomelli-values border-b border-rule-soft">
+        <div className="pomelli-values__grid wrap">
+          <div className="pomelli-values__image">
+            <Image
+              src="/images/home/pomelli-values.webp"
+              alt={t("home", "valuesImageAlt")}
+              fill
+              sizes="(max-width: 767px) 100vw, 46vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="pomelli-values__content">
+            <p className="pomelli-values__eyebrow">{t("home", "valuesEyebrow")}</p>
+            <h2>{t("home", "valuesH")}</h2>
+            <p className="pomelli-values__intro">{t("home", "valuesP")}</p>
+            <div className="pomelli-values__list">
+              {values.map((value, index) => (
+                <article key={value.title} className="pomelli-value">
+                  <span className="pomelli-value__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h3>{value.title}</h3>
+                    <p>{value.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pomelli-collections border-b border-rule-soft">
+        <div className="wrap relative z-[1]">
+          <div className="pomelli-collections__heading">
+            <h2>{t("home", "colsH")}</h2>
+            <div className="pomelli-ornament" aria-hidden="true"><span /></div>
+            <p>{t("home", "colsP")}</p>
+          </div>
+          <div className="pomelli-collections__grid mt-12 grid grid-cols-2 lg:grid-cols-3">
             {collections.map((c) => (
-              <Link key={c.id} href={`/collections/${c.slug}`} className="min-h-[220px] bg-velvet p-6 hover:underline underline-offset-8">
-                <h3 className="text-[28px] text-gold-pale">{collectionName(c, lang)}</h3>
-                {collectionDescription(c, lang) && <p className="mt-2 text-sm text-champagne/75">{collectionDescription(c, lang)}</p>}
+              <Link key={c.id} href={`/collections/${c.slug}`} className="pomelli-collection-card min-h-[220px] p-6">
+                <h3>{collectionName(c, lang)}</h3>
+                {collectionDescription(c, lang) && <p>{collectionDescription(c, lang)}</p>}
               </Link>
             ))}
           </div>
