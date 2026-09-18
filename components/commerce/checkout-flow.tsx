@@ -7,14 +7,44 @@ import { tr, type Lang } from "@/lib/i18n";
 import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { payAction, payLayawayAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { agreementStatusAction, payAction, payLayawayAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
 import { enrolInLoyaltyAction } from "@/lib/loyalty-actions";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
 import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } from "@/lib/layaway-availability";
+import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 
-type Step = 1 | 2 | 3;
+/**
+ * "sign" is not a numbered step and is not in the stepper.
+ *
+ * It is a GATE, not a stage of ordering: it appears for layaway only, between
+ * choosing the term and seeing Review, and a full-price order never meets it.
+ * Numbering it would either add a fourth item to a three-item stepper that the
+ * cash flow shares, or renumber Review and Payment — both worse than an
+ * unnumbered interstitial that says plainly what it wants.
+ */
+type Step = 1 | "sign" | 2 | 3;
+
+/** The signing page. Public — the customer navigates to it. */
+const AGREEMENT_SIGN_BASE = "https://agreement.chajewelsjp.com/";
+
+/**
+ * Where this customer signs, for THIS quote.
+ *
+ * `session` is the quote id, the only key that exists before the plan does: a
+ * web layaway's invoice number is drawn inside create_web_layaway_atomic, one
+ * statement before the row is written. `lang=tl` is fixed — the agreement is
+ * Tagalog only and there is nothing to choose.
+ */
+function signUrl(quoteId: string): string {
+  const u = new URL(AGREEMENT_SIGN_BASE);
+  u.searchParams.set("session", quoteId);
+  u.searchParams.set("lang", AGREEMENT_LANG);
+  return u.toString();
+}
+
+type AgreementState = { signed: boolean; version: string | null; signed_at: string | null } | null;
 
 const ORDER_TYPES: OrderType[] = ["SELF", "GIFT", "PROXY"];
 
@@ -28,8 +58,17 @@ const DEFAULT_TERMS: LayawayTerm[] = [3, 6, 8, 10, 12].map((months) => ({
   months, label: `${months}`, min_amount: 0, dp_percentage: 0.3, eligible: true,
 }));
 
-export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false }: {
+export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false, initialQuote = null, initialAgreement = null }: {
   lang: Lang; items: CartItem[]; subtotal: number; initialAddresses: HubAddress[];
+  /**
+   * The quote named by `?quote=`, already read back by the server. Present only
+   * when the customer returned from signing in the SAME TAB — the signing link
+   * opens a new one, so the usual path keeps its React state and never needs
+   * this. When present the flow opens on Review rather than Step 1.
+   */
+  initialQuote?: HubQuote | null;
+  /** That quote's signature, read in the same server pass. */
+  initialAgreement?: AgreementState;
   /** "layaway" when the shopper arrived from Reserve on a product page. */
   initialMode?: CheckoutMode;
   /**
@@ -43,7 +82,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   const router = useRouter();
   const [pending, start] = useTransition();
 
-  const [step, setStep] = useState<Step>(1);
+  // A rehydrated quote lands on Review; everyone else starts at the beginning.
+  const [step, setStep] = useState<Step>(initialQuote ? 2 : 1);
   const [addresses, setAddresses] = useState<HubAddress[]>(initialAddresses);
   const [addressId, setAddressId] = useState<string>(
     initialAddresses.find((a) => a.is_default)?.id ?? initialAddresses[0]?.id ?? "",
@@ -67,9 +107,19 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   const layawayOk = layawayOffered(lang);
   const [mode, setMode] = useState<CheckoutMode>(layawayOk ? initialMode : "full");
   useEffect(() => { if (!layawayOk && mode === "layaway") { setMode("full"); setQuote(null); } }, [layawayOk, mode]);
-  const [settlement, setSettlement] = useState<SettlementCurrency>("JPY");
-  const [term, setTerm] = useState(6);
-  const [quote, setQuote] = useState<HubQuote | null>(null);
+  // Seeded from the rehydrated quote when there is one, so that if it later
+  // expires the re-quote asks for the same plan the customer already signed for
+  // rather than silently reverting to the defaults.
+  const [settlement, setSettlement] = useState<SettlementCurrency>(initialQuote?.settlement_currency ?? "JPY");
+  const [term, setTerm] = useState(initialQuote?.layaway?.term_months ?? 6);
+  const [quote, setQuote] = useState<HubQuote | null>(initialQuote);
+  /**
+   * What the signing record says, as the SERVER read it. Never set from a
+   * customer's assertion — pressing "I have signed" re-asks the server, it does
+   * not set this directly. And this is not the gate: payLayawayAction checks
+   * again before the plan exists, because anything a browser knows is a claim.
+   */
+  const [agreement, setAgreement] = useState<AgreementState>(initialAgreement);
   const [error, setError] = useState<string | null>(null);
   // The Hub's request id for the failure on screen. Shown as "Ref: …" so the
   // next "could not complete" is one log lookup away instead of a mystery.
@@ -86,6 +136,11 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     : code === "rate_unavailable" ? t("checkout", "rateUnavailable")
     : code === TERM_NOT_LAUNCHED ? t("checkout", "termNotLaunchedHint")
     : code === LAYAWAY_UNAVAILABLE ? t("checkout", "layawayUnavailable")
+    // Two codes, never one message: "you have not signed" and "we could not
+    // check" need different next steps, and a customer who HAS signed must
+    // never be told they have not.
+    : code === AGREEMENT_REQUIRED ? t("checkout", "agreementRequired")
+    : code === AGREEMENT_UNVERIFIED ? t("checkout", "agreementUnverified")
     : t("checkout", "failed");
 
   function showError(code: string, requestId?: string | null) {
@@ -94,6 +149,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     setErrorRef(code === "failed" ? requestId ?? null : null);
   }
   function clearError() { setError(null); setErrorRef(null); }
+
+  // The signing gate is not a numbered step, so while it is showing the stepper
+  // keeps Delivery lit — the customer has not reached Review yet.
+  const stepperAt: 1 | 2 | 3 = step === "sign" ? 1 : step;
 
   // The Hub's own term list once a quote exists; the configured months until
   // then. Never a hardcoded array of what the calculator used to offer.
@@ -180,7 +239,41 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
       const res = await quoteAction(quoteInput());
       if (!res.ok) { showError(res.code, res.requestId); return; }
       setQuote(res.data);
-      setStep(2);
+      // A full-price order has no agreement to sign and goes straight to Review.
+      if (mode !== "layaway") { setAgreement(null); setStep(2); return; }
+      // The quote now exists, so there is a session id to sign against. Ask the
+      // server whether this one is already signed — a customer who came back
+      // and re-priced should not be sent to sign a second time.
+      const st = await agreementStatusAction(res.data.quote_id);
+      if (!st.ok) {
+        // We could not check. Say so, and hold them at the gate rather than
+        // letting them walk into a refusal at the last click.
+        setAgreement(null);
+        setStep("sign");
+        showError(st.code, st.requestId);
+        return;
+      }
+      setAgreement(st.data);
+      setStep(st.data.signed ? 2 : "sign");
+    });
+  }
+
+  /**
+   * "I have signed" — re-ask the server.
+   *
+   * The button does not assert anything; it re-reads the signing record. A
+   * customer who presses it without signing stays exactly where they are, with
+   * the reason on screen.
+   */
+  function recheckAgreement() {
+    if (!quote) return;
+    clearError();
+    start(async () => {
+      const st = await agreementStatusAction(quote.quote_id);
+      if (!st.ok) { showError(st.code, st.requestId); return; }
+      setAgreement(st.data);
+      if (st.data.signed) setStep(2);
+      else showError(AGREEMENT_REQUIRED);
     });
   }
 
@@ -226,6 +319,20 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
         const fresh = await quoteAction(quoteInput());
         if (fresh.ok) {
           setQuote(fresh.data);
+          // A SIGNATURE BELONGS TO ONE QUOTE. It is keyed on the quote id, so a
+          // fresh quote is a fresh session and the old signature does not carry
+          // over — a signing detour longer than the quote's 30 minutes means
+          // signing again. That is the honest outcome, and the customer is told
+          // it here rather than meeting agreement_required at the last click.
+          if (mode === "layaway") {
+            const st = await agreementStatusAction(fresh.data.quote_id);
+            const signed = st.ok && st.data.signed;
+            setAgreement(st.ok ? st.data : null);
+            setStep(signed ? 2 : "sign");
+            setError(signed ? t("checkout", "expiredRequoted") : t("checkout", "expiredResign"));
+            setErrorRef(null);
+            return;
+          }
           setStep(2);
           setError(t("checkout", "expiredRequoted"));
           setErrorRef(null);
@@ -234,6 +341,14 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           setStep(1);
           showError(fresh.code, fresh.requestId);
         }
+        return;
+      }
+      if (res.code === AGREEMENT_REQUIRED || res.code === AGREEMENT_UNVERIFIED) {
+        // The server refused at the gate. Back to it, with the reason — never a
+        // dead end on the payment screen.
+        if (res.code === AGREEMENT_REQUIRED) setAgreement({ signed: false, version: null, signed_at: null });
+        setStep("sign");
+        showError(res.code);
         return;
       }
       if (res.code === "sold_out") {
@@ -256,7 +371,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
       <div>
         <ol className="mb-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           {([[1, t("checkout", "step1")], [2, t("checkout", "step2")], [3, t("checkout", "step3")]] as const).map(([n, label]) => (
-            <li key={n} className={n === step ? "text-gold-pale" : "text-champagne/45"}>
+            <li key={n} className={n === stepperAt ? "text-gold-pale" : "text-champagne/45"}>
               <span className="font-display">{n}.</span> {label}
             </li>
           ))}
@@ -447,6 +562,40 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           </div>
         )}
 
+        {/* THE GATE. No plan is created until the agreement is signed (owner
+            decision), and this is the path to it — not the enforcement. The
+            enforcement is payLayawayAction, which re-checks server-side and
+            refuses, so a customer who skips this screen still cannot get a
+            plan. The agreement is Tagalog only; there is no language to pick. */}
+        {step === "sign" && quote && (
+          <div className="space-y-6">
+            <h2 className="font-display text-xl text-gold-pale">{t("checkout", "agreementHeading")}</h2>
+            <div className="border border-gold p-5 text-sm text-champagne/80">
+              <p>{t("checkout", "agreementIntro")}</p>
+              <p className="mt-3 text-xs text-champagne/55">{t("checkout", "agreementTagalogNote")}</p>
+              {/* A NEW TAB, deliberately. The checkout keeps its state — step,
+                  term, currency and quote are React state and a same-tab
+                  navigation loses all of it. The ?quote= path exists for the
+                  customer who leaves anyway; this is how most never need it. */}
+              <a
+                href={signUrl(quote.quote_id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-block border border-gold px-5 py-2 text-sm text-gold-pale hover:bg-gold/10"
+              >
+                {t("checkout", "agreementOpen")}
+              </a>
+              <p className="mt-3 text-xs text-champagne/55">{t("checkout", "agreementNewTabNote")}</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
+              <Button onClick={recheckAgreement} disabled={pending}>
+                {pending ? t("checkout", "agreementChecking") : t("checkout", "agreementDone")}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {step === 2 && quote && (
           <div className="space-y-6">
             <ul className="rule-grid grid gap-px">
@@ -459,6 +608,18 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             </ul>
             {quote.requires_manual_quote && (
               <p className="border border-gold px-4 py-3 text-sm text-gold-pale">{t("checkout", "manualQuote")}</p>
+            )}
+            {/* What the server read from the signing record — the version they
+                actually signed and when, the same two values the plan will
+                store. Shown rather than assumed, so a wrong version is visible
+                before the plan exists. */}
+            {mode === "layaway" && agreement?.signed && (
+              <p className="border border-rule bg-velvet px-4 py-3 text-sm text-champagne/80">
+                {t("checkout", "agreementSigned", {
+                  version: agreement.version ?? "",
+                  date: (agreement.signed_at ?? "").slice(0, 10),
+                })}
+              </p>
             )}
             {/* The plan exactly as the Hub computed it, in the currency it will
                 be written in. Nothing here is recalculated on this side. */}
