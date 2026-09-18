@@ -302,6 +302,51 @@ export const dict = {
     failed: { ja: "ご注文を完了できませんでした。しばらくしてからもう一度お試しください。", en: "We could not complete your order. Please try again shortly." },
     emptyCart: { ja: "カートが空のためお手続きできません。", en: "There is nothing in your cart to check out." },
     addressRequired: { ja: "お届け先をご入力ください。", en: "Please enter a delivery address." },
+    // ── THE LAYAWAY AGREEMENT GATE (2026-09-18) ──────────────────────────────
+    // No plan is created until the customer has signed. The AGREEMENT itself is
+    // TAGALOG ONLY (owner decision) — these strings are the site's own copy
+    // around it, in the site's own language, and they are not a translation of
+    // the agreement and never quote its terms.
+    agreementHeading: { ja: "分割予約契約書へのご署名", en: "Sign the layaway agreement" },
+    agreementIntro: {
+      ja: "お取り置きを確定する前に、分割予約契約書をお読みいただき、ご署名をお願いいたします。ご署名後、この画面に戻って「署名しました」を押してください。",
+      en: "Before we hold the piece, please read and sign the layaway agreement. When you have signed, come back to this page and press “I have signed”.",
+    },
+    agreementTagalogNote: {
+      ja: "契約書はタガログ語のみでご用意しています。",
+      en: "The agreement is provided in Tagalog only.",
+    },
+    agreementOpen: { ja: "契約書を開く", en: "Open the agreement" },
+    agreementNewTabNote: {
+      ja: "契約書は新しいタブで開きます。この画面はそのまま残りますので、ご署名後にお戻りください。",
+      en: "The agreement opens in a new tab. This page stays as it is — come back to it once you have signed.",
+    },
+    agreementDone: { ja: "署名しました", en: "I have signed" },
+    agreementChecking: { ja: "確認中…", en: "Checking…" },
+    // The version and date the signing record actually holds — the same two
+    // values stored on the plan, shown so a wrong one is visible beforehand.
+    agreementSigned: {
+      ja: "契約書へのご署名を確認しました（版 {version}・{date}）。",
+      en: "Agreement signed — version {version}, {date}.",
+    },
+    // TWO MESSAGES, NEVER ONE. The first is the customer's to fix; the second
+    // is ours, and telling someone who HAS signed that they have not would be
+    // both wrong and insulting.
+    agreementRequired: {
+      ja: "分割予約契約書へのご署名が確認できておりません。契約書を開いてご署名のうえ、もう一度お試しください。",
+      en: "We have not received your signed layaway agreement yet. Please open the agreement, sign it, and try again.",
+    },
+    agreementUnverified: {
+      ja: "ご署名の確認ができませんでした。お客様の操作に問題はございません。しばらくしてからもう一度お試しいただくか、sales@chajewelsjp.com までご連絡ください。",
+      en: "We could not check your signature just now — this is not something you did wrong. Please try again in a moment, or email sales@chajewelsjp.com and we will finish this for you.",
+    },
+    // A signature belongs to one quote, so a detour longer than the quote's
+    // 30 minutes means signing again. Said plainly rather than met as a
+    // refusal at the last click.
+    expiredResign: {
+      ja: "お見積りの有効期限が切れたため、最新の内容でお見積りし直しました。お手数ですが、新しいお見積りに対して契約書へ再度ご署名ください。",
+      en: "Your quote expired, so we priced your order again. Because a signature belongs to one quote, please sign the agreement once more for the new one.",
+    },
     // JOINING THE PROGRAMME AT CHECKOUT.
     // Consent, so the box is never pre-ticked. The label says what they earn;
     // the note says what we do with the details they have just entered. It does
