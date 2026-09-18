@@ -64,8 +64,16 @@ const DEFAULT_TERMS: LayawayTerm[] = [3, 6, 8, 10, 12].map((months) => ({
   months, label: `${months}`, min_amount: 0, dp_percentage: 0.3, eligible: true,
 }));
 
-export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false, initialQuote = null, initialAgreement = null }: {
+export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false, initialQuote = null, initialAgreement = null, jpyPhp = null }: {
   lang: Lang; items: CartItem[]; subtotal: number; initialAddresses: HubAddress[];
+  /**
+   * Pesos per yen from the Hub, read server-side by the page. Used ONLY to show
+   * peso figures on the Delivery step before a quote exists; once the Hub has
+   * priced the quote, the quote's own settlement figures win. null when the Hub
+   * could not supply a rate, in which case the peso figures stay as dashes.
+   * Never shown to the customer as a rate (owner decision 2026-09-18).
+   */
+  jpyPhp?: number | null;
   /**
    * The quote named by `?quote=`, already read back by the server. Present only
    * when the customer returned from signing in the SAME TAB — the signing link
@@ -180,12 +188,13 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // showed a 679,980 yen piece as 679,980 pesos — plausible, and 2.4x too high,
   // at the moment the customer decides whether they can afford it.
   //
-  // Peso figures are withheld here rather than converted, because they cannot be
-  // reproduced in the browser: the Hub derives subtotal_settlement as
-  // total_settlement - shipping_settlement, and shipping is its own server-side
-  // answer that does not exist yet at this step. Local arithmetic would land
-  // within a peso of the quote the customer is actually charged against, and a
-  // figure that is nearly right is worse than no figure at all.
+  // Before the quote exists the peso figures are PREVIEWED with the Hub's own
+  // arithmetic — Math.round(jpy * jpy_php), the same expression the website
+  // function uses for total_settlement — on the rate the page fetched. Shipping
+  // is still the Hub's answer and stays a dash, exactly as it does for yen, so
+  // this preview differs from the quote only by the shipping the quote adds.
+  // The rate itself is never displayed (owner decision 2026-09-18). Without a
+  // rate the figures stay dashes rather than guessing.
   const summary: {
     currency: SettlementCurrency;
     subtotal: number | null;
@@ -201,8 +210,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     : intendedCurrency === "JPY"
       // Yen is the cart's own currency, so the cart's own figures already stand.
       ? { currency: "JPY", subtotal, shipping: null, total: subtotal }
-      // Pesos exist only once the Hub has priced them.
-      : { currency: "PHP", subtotal: null, shipping: null, total: null };
+      : jpyPhp !== null && Number.isFinite(jpyPhp) && jpyPhp > 0
+        ? { currency: "PHP", subtotal: Math.round(subtotal * jpyPhp), shipping: null, total: Math.round(subtotal * jpyPhp) }
+        : { currency: "PHP", subtotal: null, shipping: null, total: null };
   const summaryMoney = (n: number | null) => (n === null ? "\u2014" : formatMoney(n, summary.currency));
 
   const quoteInput = () => ({
@@ -512,13 +522,6 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                     ))}
                   </div>
                   <p className="mt-2 text-xs text-champagne/55">{t("checkout", "settlementNote")}</p>
-                  {/* Below lg the summary stacks underneath and is off screen here, so
-                      switching to pesos would otherwise change nothing the customer can
-                      see. Repeated at the point of action on small screens only — on wide
-                      ones the summary is already beside this and says the same thing. */}
-                  {summary.total === null && (
-                    <p className="mt-2 text-xs text-champagne/55 lg:hidden">{t("checkout", "settlementPending")}</p>
-                  )}
                 </fieldset>
 
                 <fieldset>
@@ -646,11 +649,6 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                   ))}
                 </ul>
                 <p className="mt-4 text-xs text-champagne/55">{t("checkout", "layawayDeadline")}</p>
-                {quoteCurrency === "PHP" && quote.fx_rate_date && (
-                  <p className="mt-2 text-xs text-champagne/45">
-                    {t("checkout", "settlementRate", { date: quote.fx_rate_date.slice(0, 10) })}
-                  </p>
-                )}
               </div>
             )}
             <div className="flex gap-3">
@@ -750,12 +748,6 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           <span className="text-champagne/70">{t("checkout", "total")}</span>
           <span className="font-display text-2xl text-gold-pale">{summaryMoney(summary.total)}</span>
         </div>
-        {/* Says why the figures are dashes, so a blank total reads as "coming"
-            rather than "broken". Only when pesos were asked for and not yet
-            priced -- never alongside a real figure. */}
-        {summary.total === null && (
-          <p className="mt-3 text-xs text-champagne/55">{t("checkout", "settlementPending")}</p>
-        )}
         <Link href="/cart" className="mt-4 inline-block text-xs text-champagne/55 underline underline-offset-4">
           {t("cart", "h1")}
         </Link>
