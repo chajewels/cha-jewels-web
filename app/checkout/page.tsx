@@ -42,10 +42,40 @@ export default async function CheckoutPage({ searchParams }: {
   // not depend on it: the gate decides what to render, the Hub decides what is
   // allowed.
   const supabase = await supabaseServer();
-  const { data: auth } = await supabase.auth.getUser();
+  // Both read the same cookies; getUser also asks GoTrue. Neither needs the other.
+  const [{ data: auth }, { data: sessionData }] = await Promise.all([supabase.auth.getUser(), supabase.auth.getSession()]);
   if (!auth?.user) redirect("/login?next=/checkout");
+  const jwt = sessionData.session?.access_token;
 
-  const { items } = await hydrateCart(lines);
+  // EVERYTHING BELOW IS INDEPENDENT, SO IT RUNS AT ONCE. Until 2026-09-18 these
+  // were five awaits in a row — cart, link, /me, quote, signing record — and the
+  // ?quote= return from the signing page paid for each one in turn. The only
+  // real dependency is /me after authCustomer (the link must exist before /me
+  // can read it), and that pair stays chained inside its own slot.
+  //
+  // A customer who has never opened /account has no customers row yet, so link
+  // first. authCustomer is idempotent. This is also what guarantees the loyalty
+  // box has a customer record to attach to — by the time it renders, the row
+  // exists and carries this customer's verified email.
+  //
+  // REHYDRATION. The quote is fetched by id, not re-taken: the signature the
+  // customer just gave is keyed on THIS quote id, so a fresh quote would orphan
+  // it. A quote that is gone (spent, expired, or never theirs) yields null and
+  // the flow simply starts at Step 1, which is the honest outcome — the cart is
+  // still in the cookie, so nothing they chose is lost except the pricing.
+  //
+  // The agreement status is read in the same pass so Review can say "signed",
+  // with the version and date, without a client round trip on first paint. It
+  // is NOT the gate: payLayawayAction re-checks before the plan is created.
+  const [{ items }, me, initialQuote, agreementResult] = await Promise.all([
+    hydrateCart(lines),
+    jwt
+      ? hub.authCustomer(jwt).catch(() => undefined /* /me below reports the failure */).then(() => hub.me(jwt)).catch(() => null)
+      : Promise.resolve(null),
+    jwt && returningQuoteId ? hub.quoteById(jwt, returningQuoteId).catch(() => null) : Promise.resolve(null),
+    jwt && returningQuoteId ? agreementStatusAction(returningQuoteId) : Promise.resolve(null),
+  ]);
+
   if (items.length === 0) {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">
@@ -58,47 +88,18 @@ export default async function CheckoutPage({ searchParams }: {
     );
   }
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const jwt = sessionData.session?.access_token;
-  let addresses: HubAddress[] = [];
   // Whether to offer the loyalty box. A member must see nothing at all, so the
   // default is "do not offer": if /me cannot be read we cannot tell a member
   // from a non-member, and showing the box to someone already enrolled is the
   // worse of the two mistakes.
-  let offerLoyalty = false;
-  if (jwt) {
-    // A customer who has never opened /account has no customers row yet, so
-    // link first. authCustomer is idempotent. This is also what guarantees the
-    // loyalty box has a customer record to attach to — by the time it renders,
-    // the row exists and carries this customer's verified email.
-    try { await hub.authCustomer(jwt); } catch { /* /me below reports the failure */ }
-    try {
-      const me = await hub.me(jwt);
-      addresses = me.addresses;
-      offerLoyalty = me.loyalty?.enrolled === false;
-    } catch { addresses = []; }
-  }
+  const addresses: HubAddress[] = me?.addresses ?? [];
+  const offerLoyalty = me?.loyalty?.enrolled === false;
 
-  // REHYDRATION. The quote is fetched by id, not re-taken: the signature the
-  // customer just gave is keyed on THIS quote id, so a fresh quote would orphan
-  // it. A quote that is gone (spent, expired, or never theirs) yields null and
-  // the flow simply starts at Step 1, which is the honest outcome — the cart is
-  // still in the cookie, so nothing they chose is lost except the pricing.
-  //
-  // The agreement status is read in the same pass so Review can say "signed",
-  // with the version and date, without a client round trip on first paint. It
-  // is NOT the gate: payLayawayAction re-checks before the plan is created.
-  let initialQuote: HubQuote | null = null;
-  let initialAgreement: { signed: boolean; version: string | null; signed_at: string | null } | null = null;
-  if (jwt && returningQuoteId) {
-    try { initialQuote = await hub.quoteById(jwt, returningQuoteId); } catch { initialQuote = null; }
-    if (initialQuote) {
-      const st = await agreementStatusAction(returningQuoteId);
-      // A failed lookup leaves this null: Review then shows the signing step
-      // again rather than claiming a signature nobody could confirm.
-      if (st.ok) initialAgreement = st.data;
-    }
-  }
+  // A failed lookup leaves this null: Review then shows the signing step again
+  // rather than claiming a signature nobody could confirm. Only meaningful when
+  // the quote itself was found.
+  const initialAgreement: { signed: boolean; version: string | null; signed_at: string | null } | null =
+    initialQuote && agreementResult && agreementResult.ok ? agreementResult.data : null;
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
