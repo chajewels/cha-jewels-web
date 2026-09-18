@@ -96,8 +96,14 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   const router = useRouter();
   const [pending, start] = useTransition();
 
-  // A rehydrated quote lands on Review; everyone else starts at the beginning.
-  const [step, setStep] = useState<Step>(initialQuote ? 2 : 1);
+  // A rehydrated LAYAWAY quote lands on the signing step — always, signed or
+  // not (owner decision 2026-09-19): the customer has just come back from the
+  // agreement, and this is the page whose "I have signed" carries them on. A
+  // rehydrated full-payment quote has nothing to sign and lands on Review.
+  // Everyone else starts at the beginning.
+  const [step, setStep] = useState<Step>(
+    initialQuote ? (initialQuote.mode === "layaway" ? "sign" : 2) : 1,
+  );
   const [addresses, setAddresses] = useState<HubAddress[]>(initialAddresses);
   const [addressId, setAddressId] = useState<string>(
     initialAddresses.find((a) => a.is_default)?.id ?? initialAddresses[0]?.id ?? "",
@@ -119,7 +125,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // would otherwise still be in layaway mode with the toggle gone. Coerce back
   // to full when it is not offered, and the server refuses as the backstop.
   const layawayOk = layawayOffered(lang);
-  const [mode, setMode] = useState<CheckoutMode>(layawayOk ? initialMode : "full");
+  // A rehydrated quote fixes the mode too: the quote was taken in it, and the
+  // step above was chosen from it.
+  const [mode, setMode] = useState<CheckoutMode>(layawayOk ? (initialQuote?.mode ?? initialMode) : "full");
   useEffect(() => { if (!layawayOk && mode === "layaway") { setMode("full"); setQuote(null); } }, [layawayOk, mode]);
   // Seeded from the rehydrated quote when there is one, so that if it later
   // expires the re-quote asks for the same plan the customer already signed for
@@ -278,6 +286,11 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   function recheckAgreement() {
     if (!quote) return;
     clearError();
+    // Already read as signed by the server on this same page load (the ?quote=
+    // return): nothing to ask again. Straight to Review. payLayawayAction still
+    // verifies before the plan exists, so this shortcut moves a screen, not the
+    // gate.
+    if (agreement?.signed) { setStep(2); return; }
     start(async () => {
       const st = await agreementStatusAction(quote.quote_id);
       if (!st.ok) { showError(st.code, st.requestId); return; }
@@ -590,6 +603,17 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               </a>
               <p className="mt-3 text-xs text-champagne/55">{t("checkout", "agreementNewTabNote")}</p>
             </div>
+            {/* What the server already read from the signing record on the way
+                back in — shown here so the customer sees the signature landed
+                before pressing on; "I have signed" then goes straight to Review. */}
+            {agreement?.signed && (
+              <p className="border border-rule bg-velvet px-4 py-3 text-sm text-champagne/80">
+                {t("checkout", "agreementSigned", {
+                  version: agreement.version ?? "",
+                  date: (agreement.signed_at ?? "").slice(0, 10),
+                })}
+              </p>
+            )}
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={recheckAgreement} disabled={pending}>
