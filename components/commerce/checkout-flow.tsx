@@ -32,14 +32,20 @@ const AGREEMENT_SIGN_BASE = "https://agreement.chajewelsjp.com/";
 /**
  * Where this customer signs, for THIS quote.
  *
- * `session` is the quote id, the only key that exists before the plan does: a
- * web layaway's invoice number is drawn inside create_web_layaway_atomic, one
- * statement before the row is written. `lang=tl` is fixed — the agreement is
- * Tagalog only and there is nothing to choose.
+ * `session` is the quote id — the key the signature is looked up by. `invoice`
+ * is the plan's invoice number, which the Hub reserves the moment a layaway
+ * quote is created and carries through to the plan unchanged; the signing page
+ * prefills and locks its invoice field when it is present. It is omitted, not
+ * sent empty, when the Hub did not return one (an older Hub deploy, or a quote
+ * made before numbers were reserved) so the page falls back to asking.
+ * `lang=tl` is fixed — the agreement is Tagalog only and there is nothing to
+ * choose.
  */
-function signUrl(quoteId: string): string {
+function signUrl(quoteId: string, invoiceNumber: string | null): string {
   const u = new URL(AGREEMENT_SIGN_BASE);
   u.searchParams.set("session", quoteId);
+  const inv = (invoiceNumber ?? "").trim();
+  if (inv) u.searchParams.set("invoice", inv);
   u.searchParams.set("lang", AGREEMENT_LANG);
   return u.toString();
 }
@@ -578,7 +584,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                   navigation loses all of it. The ?quote= path exists for the
                   customer who leaves anyway; this is how most never need it. */}
               <a
-                href={signUrl(quote.quote_id)}
+                href={signUrl(quote.quote_id, quote.invoice_number ?? null)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-5 inline-block border border-gold px-5 py-2 text-sm text-gold-pale hover:bg-gold/10"
