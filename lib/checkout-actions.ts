@@ -5,6 +5,8 @@ import { getLang } from "@/lib/i18n-server";
 import { hub, HubError } from "@/lib/hub-api";
 import { TERM_NOT_LAUNCHED, termLaunched, LAYAWAY_UNAVAILABLE } from "@/lib/layaway-availability";
 import { layawayOfferedNow } from "@/lib/layaway-availability-server";
+import { AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
+import { agreementStatus, type AgreementStatus } from "@/lib/agreement-lookup";
 import { readCart, hydrateCart } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
@@ -182,8 +184,31 @@ export async function payLayawayAction(quoteId: string): Promise<ActionResult<Hu
   // the cart is untouched and the shopper can pay in full or switch back.
   if (!(await layawayOfferedNow())) return { ok: false, code: LAYAWAY_UNAVAILABLE };
 
+  // NO UNSIGNED PLAN MAY EVER EXIST (owner decision). The refusal lives HERE,
+  // not only in the checkout step machine, for the same reason the two above
+  // do: this action is reachable directly, and a future claim-driven checkout
+  // (POST /claims/:code/checkout, 501 today) would never touch
+  // checkout-flow.tsx at all. A gate that only a React component enforces is
+  // invisible to the next caller.
+  //
+  // Checked again here even though the step machine already checked it — the
+  // client's "I have signed" is a claim, and this is the last point before the
+  // piece leaves the shelf.
+  const agreement = await agreementStatus(quoteId);
+  if (!agreement.ok) {
+    // WE DO NOT KNOW. Fail CLOSED, and say so with its own code: a Sheets
+    // outage is not the customer failing to sign, and the two need different
+    // words on screen. The reason is logged, never shown.
+    console.error("[payLayawayAction] agreement lookup failed:", agreement.reason);
+    return { ok: false, code: AGREEMENT_UNVERIFIED };
+  }
+  if (!agreement.signed) return { ok: false, code: AGREEMENT_REQUIRED };
+
   try {
-    const result = await hub.payLayaway(jwt, quoteId, await getLang());
+    const result = await hub.payLayaway(jwt, quoteId, await getLang(), {
+      version: agreement.version,
+      signed_at: agreement.signedAt,
+    });
     // The plan holds the stock now, so the basket has served its purpose.
     // Cleared only on success — a refused plan leaves the cart intact.
     await writeCart([]);
@@ -191,4 +216,43 @@ export async function payLayawayAction(quoteId: string): Promise<ActionResult<Hu
   } catch (err) {
     return fail(err);
   }
+}
+
+/**
+ * Has this customer signed the agreement for this quote?
+ *
+ * The checkout step machine calls this to decide whether to show the signing
+ * step or the Review step, and again when the customer comes back and says
+ * they have signed. It is a SERVER action: the Apps Script URL and its token
+ * live in server-only env vars read inside lib/agreement-lookup.ts, and
+ * neither value is in this return.
+ *
+ * WHAT THIS IS NOT. It is not the gate. payLayawayAction re-checks before the
+ * plan is created, because anything a client component knows is a claim. This
+ * exists so the customer is shown the right screen, not so the plan is safe.
+ *
+ * Ownership is not verified against the Hub, deliberately. The storefront may
+ * not read `checkout_quotes` (CLAUDE.md: the Website API is the only door), and
+ * the alternative — a Hub round trip — would double the latency of a gate that
+ * already sits on the critical path. What a caller could learn by presenting
+ * someone else's quote id is one boolean about an unguessable v4 uuid, while a
+ * signed-in session is still required; and nothing can be CREATED that way,
+ * because create_web_layaway_atomic answers quote_not_found when the quote
+ * belongs to another customer.
+ */
+export async function agreementStatusAction(
+  quoteId: string,
+): Promise<ActionResult<{ signed: boolean; version: string | null; signed_at: string | null }>> {
+  const jwt = await jwtOrNull();
+  if (!jwt) return { ok: false, code: "signed_out" };
+  if (!quoteId) return { ok: false, code: "failed" };
+
+  const status: AgreementStatus = await agreementStatus(quoteId);
+  if (!status.ok) {
+    console.error("[agreementStatusAction] agreement lookup failed:", status.reason);
+    return { ok: false, code: AGREEMENT_UNVERIFIED };
+  }
+  return status.signed
+    ? { ok: true, data: { signed: true, version: status.version, signed_at: status.signedAt } }
+    : { ok: true, data: { signed: false, version: null, signed_at: null } };
 }
