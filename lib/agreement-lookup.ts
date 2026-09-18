@@ -43,19 +43,25 @@ export type AgreementStatus =
 const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
 
 /**
- * 5 s per attempt, at most two attempts.
+ * 15 s per attempt, at most two attempts.
  *
- * Apps Script cold-starts, so the first call after a quiet spell can take
- * seconds through no fault of the customer's. But this sits on the critical
- * path of someone finishing a plan, and the gate fails closed — so a long wait
- * spends the customer's patience and then refuses them anyway.
+ * MEASURED, NOT GUESSED (2026-09-19). This started at 5 s and timed out in
+ * production: Vercel logged "agreement lookup failed: TimeoutError" while Apps
+ * Script's own Executions log showed the same doGet finishing in 1.2–1.8 s.
+ * The difference is the transport — Apps Script answers `/exec` with a 302 to
+ * script.googleusercontent.com, so one lookup is two TLS connections from
+ * Vercel's region (hnd1) into Google, plus the script's own cold start — and
+ * that regularly exceeded 5 s end to end. A budget the real path cannot meet
+ * turns a signed customer into `agreement_unverified`, and that is the worse
+ * outcome by far.
  *
- * Two attempts at 5 s is the compromise: a cold start gets its second chance,
- * and the worst case is ~10 s before a clear refusal rather than an indefinite
- * spinner. The house precedent is `AbortSignal.timeout(6000)` in hub-api.ts;
- * this is tighter per attempt because it can retry and that one cannot.
+ * Two attempts at 15 s: a cold start gets its second chance, and the worst case
+ * for a genuinely unreachable script is ~30 s before a clear refusal. Accepted
+ * (owner decision 2026-09-19): a slow answer beats a false "we could not check".
+ * The house precedent is `AbortSignal.timeout(6000)` in hub-api.ts; this one is
+ * looser because its destination is Apps Script behind a redirect, not the Hub.
  */
-const TIMEOUT_MS = 5000;
+const TIMEOUT_MS = 15000;
 const ATTEMPTS = 2;
 
 /** A uuid, checked here so a malformed id never costs a round trip. */
