@@ -40,7 +40,10 @@ export default async function Home() {
             <em className={lang === "ja" ? "not-italic" : ""}>{t("hero", "h1b")}</em>
           </h1>
           <div className="pomelli-ornament" aria-hidden="true"><span /></div>
-          <p className="pomelli-hero__lede">{t("hero", "lede")}</p>
+          <div className="pomelli-hero__lede">
+            <p>{t("hero", "lede")}</p>
+            <p>{t("hero", "lede2")}</p>
+          </div>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Button asChild className="border-[#FFA500] bg-[#FFA500] text-[#333333] hover:bg-[#ffb733]"><Link href="/collections">{t("hero", "cta1")}</Link></Button>
             {layaway && <Button asChild variant="ghost" className="border-white/70 text-white hover:border-white"><Link href="/layaway">{t("hero", "cta2")}</Link></Button>}
