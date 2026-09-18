@@ -257,20 +257,14 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
       setQuote(res.data);
       // A full-price order has no agreement to sign and goes straight to Review.
       if (mode !== "layaway") { setAgreement(null); setStep(2); return; }
-      // The quote now exists, so there is a session id to sign against. Ask the
-      // server whether this one is already signed — a customer who came back
-      // and re-priced should not be sent to sign a second time.
-      const st = await agreementStatusAction(res.data.quote_id);
-      if (!st.ok) {
-        // We could not check. Say so, and hold them at the gate rather than
-        // letting them walk into a refusal at the last click.
-        setAgreement(null);
-        setStep("sign");
-        showError(st.code, st.requestId);
-        return;
-      }
-      setAgreement(st.data);
-      setStep(st.data.signed ? 2 : "sign");
+      // The quote was created a moment ago, so nobody can have signed against
+      // its id yet: there is nothing to look up. Go straight to the signing
+      // step. (Until 2026-09-18 this asked the signing record here as well —
+      // a second server round trip and an Apps Script call on every Continue,
+      // whose answer could only ever be "not signed".) "I have signed" and
+      // payLayawayAction still read the record themselves; this is not the gate.
+      setAgreement({ signed: false, version: null, signed_at: null });
+      setStep("sign");
     });
   }
 
