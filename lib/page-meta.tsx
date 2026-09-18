@@ -15,7 +15,7 @@ type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, strin
  * `alternates` inherited it — and none did. The served HTML of /faq, /about,
  * /legal/privacy and every product page therefore carried
  *
- *     <link rel="canonical" href="https://www.chajewelsjapan.com"/>
+ *     <link rel="canonical" href="https://www.chajewelsjp.com"/>
  *
  * which tells Google that none of those URLs should be indexed in its own
  * right. The hreflang pair was broken for a second reason: the two values
