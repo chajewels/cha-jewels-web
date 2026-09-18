@@ -13,6 +13,167 @@
 @layer components {
   .gilt { background: linear-gradient(100deg,#8A6B12 0%,#E8D28A 30%,#C9A227 50%,#E8D28A 70%,#8A6B12 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .wrap { @apply max-w-site mx-auto px-[clamp(18px,4vw,48px)]; }
+
+  /* Pomelli-inspired home introduction. Deliberately scoped to the hero and
+     values sections so the storefront, checkout and account UI keep their
+     established colours and behaviour. */
+  .pomelli-hero {
+    position: relative;
+    isolation: isolate;
+    min-height: min(860px, calc(100svh - 68px));
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .pomelli-hero__image {
+    z-index: -2;
+    object-position: 82% center;
+  }
+  .pomelli-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(135deg, rgba(51,51,51,.82) 0%, rgba(26,188,156,.54) 100%);
+  }
+  .pomelli-hero__content {
+    width: 100%;
+    padding-block: clamp(88px, 12vw, 160px);
+    text-align: center;
+    color: #fff;
+  }
+  .pomelli-hero__headline {
+    margin-inline: auto;
+    max-width: 17ch;
+    color: #FFA500;
+    font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.16;
+    letter-spacing: .01em;
+    text-shadow: 0 4px 20px rgba(0,0,0,.5);
+  }
+  :lang(ja) .pomelli-hero__headline {
+    font-family: var(--font-jp), "Hiragino Kaku Gothic ProN", sans-serif;
+    font-weight: 500;
+  }
+  .pomelli-hero__lede {
+    margin-inline: auto;
+    max-width: 800px;
+    color: rgba(255,255,255,.95);
+    font-size: clamp(16px, 1.35vw, 19px);
+    line-height: 1.8;
+    text-shadow: 0 2px 10px rgba(0,0,0,.5);
+  }
+  .pomelli-ornament {
+    margin: 28px auto 30px;
+    display: flex;
+    width: min(164px, 42vw);
+    align-items: center;
+    gap: 13px;
+  }
+  .pomelli-ornament::before,
+  .pomelli-ornament::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: #FFA500;
+  }
+  .pomelli-ornament span {
+    width: 12px;
+    height: 12px;
+    transform: rotate(45deg);
+    background: #1ABC9C;
+  }
+
+  .pomelli-values {
+    background: #333333;
+    color: #fff;
+    padding-block: clamp(72px, 9vw, 120px);
+  }
+  .pomelli-values__grid {
+    display: grid;
+    align-items: center;
+    gap: clamp(48px, 6vw, 80px);
+  }
+  .pomelli-values__image {
+    position: relative;
+    min-height: clamp(440px, 72vw, 700px);
+    overflow: hidden;
+    box-shadow: 24px 24px 0 rgba(26,188,156,.17);
+  }
+  .pomelli-values__content h2 {
+    margin-top: 10px;
+    color: #fff;
+    font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+    font-size: clamp(38px, 4.4vw, 58px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: .02em;
+  }
+  :lang(ja) .pomelli-values__content h2 {
+    font-family: var(--font-jp), "Hiragino Kaku Gothic ProN", sans-serif;
+    font-weight: 500;
+  }
+  .pomelli-values__eyebrow {
+    color: #FFA500;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+  .pomelli-values__intro {
+    margin-top: 22px;
+    max-width: 56ch;
+    color: rgba(255,255,255,.72);
+    line-height: 1.75;
+  }
+  .pomelli-values__list {
+    margin-top: 36px;
+    border-top: 1px solid rgba(255,255,255,.16);
+  }
+  .pomelli-value {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 18px;
+    padding-block: 20px;
+    border-bottom: 1px solid rgba(255,255,255,.16);
+  }
+  .pomelli-value__number {
+    padding-top: 4px;
+    color: #1ABC9C;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .14em;
+  }
+  .pomelli-value h3 {
+    color: #FFA500;
+    font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+    font-size: clamp(21px, 2vw, 28px);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  :lang(ja) .pomelli-value h3 {
+    font-family: var(--font-jp), "Hiragino Kaku Gothic ProN", sans-serif;
+    font-weight: 500;
+  }
+  .pomelli-value p {
+    margin-top: 7px;
+    color: rgba(255,255,255,.7);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  @media (min-width: 768px) {
+    .pomelli-values__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .pomelli-values__image { min-height: 700px; }
+  }
+  @media (max-width: 767px) {
+    .pomelli-hero { min-height: 680px; }
+    .pomelli-hero__image { object-position: 68% center; }
+    .pomelli-hero__content { padding-block: 76px; }
+    .pomelli-values__image { box-shadow: 14px 14px 0 rgba(26,188,156,.17); }
+  }
+
   /* Hairlines only between cards. The old olive fill (background + gap) bled
      into every empty cell of an incomplete last row; now each card draws its
      own 1px ring into a 1px gap and the container clips the outer edge, so an
