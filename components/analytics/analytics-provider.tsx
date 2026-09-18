@@ -24,7 +24,6 @@ const BLOCKED_PREFIXES = [
   "/account",            // every /account/* path is customer-scoped; /account/orders/<id>
                          // and /account/layaway/<id> put an order identifier in the path
   "/checkout/complete/", // the order id is the last path segment
-  "/live/claim/",        // a single-use claim code is the last path segment
   "/login",              // ?error= and ?next= describe a specific person's sign-in attempt
 ];
 

@@ -20,7 +20,6 @@ export type Origin = "JAPAN" | "BRAND" | "OTHER" | "UNKNOWN";
 /** `metals`: every stamp on the piece in the Hub's order (PT900/K18); `karat` is the one-release bridge (= metals[0]) kept until the Hub drops it. */
 export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; product_variants: ProductVariant[] };
 export type Collection = { id: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; hero_media: string | null; description: string | null; description_en?: string | null; description_ja?: string | null };
-export type LiveClaim = { id: string; code: string; price_locked: number; status: "held" | "paid" | "layaway" | "expired" | "released"; expires_at: string; product_variant_id: string };
 /**
  * What the shared SQL function returns. `allowed_terms` is the business's real
  * term list with this amount's eligibility already decided, so the calculator

@@ -6,7 +6,6 @@ import { LangSwitcher } from "./lang-switcher";
 import { MobileNav } from "./mobile-nav";
 import { CartButton } from "./cart-button";
 import { AccountMenu } from "./account-menu";
-import { Button } from "@/components/ui/button";
 
 /**
  * Signed out: the nav's last link is "Account" → /login. Signed in: that link
@@ -51,8 +50,7 @@ export async function Header({ lang }: { lang: Lang }) {
           <LangSwitcher lang={lang} />
           <CartButton lang={lang} />
           {account && <div className="hidden xl:block"><AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} /></div>}
-          <Button asChild variant="ghost" className="hidden min-h-10 whitespace-nowrap px-4 text-sm xl:inline-flex"><Link href="/live">{t("nav", "claim")}</Link></Button>
-          <MobileNav links={links} claim={t("nav", "claim")} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
+          <MobileNav links={links} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
         </div>
       </div>
     </header>
