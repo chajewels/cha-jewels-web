@@ -8,19 +8,32 @@ import { hub } from "@/lib/hub-api";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { CheckoutFlow } from "@/components/commerce/checkout-flow";
 import { Button } from "@/components/ui/button";
-import type { HubAddress } from "@/lib/types";
+import { agreementStatusAction } from "@/lib/checkout-actions";
+import type { HubAddress, HubQuote } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("checkout");
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage({ searchParams }: {
-  searchParams: Promise<{ mode?: string }>;
+  searchParams: Promise<{ mode?: string; quote?: string }>;
 }) {
   const [lang, lines, params] = await Promise.all([getLang(), readCart(), searchParams]);
   // Reserve on a product page lands here with ?mode=layaway pre-selected. It is
   // only the step's starting position — the shopper can still switch, and the
   // Hub prices whichever they end on.
   const initialMode = params.mode === "layaway" ? "layaway" : "full";
+  // COMING BACK FROM SIGNING THE AGREEMENT.
+  //
+  // The signing page is another site, so a customer who follows it in the same
+  // tab loses the whole step machine — step, term, currency and quote live in
+  // React state and nothing else. `?quote=` is how they get back to Review
+  // instead of Step 1, and it is read HERE, server-side, the same way `?mode=`
+  // already is. `middleware.ts` keeps the query string across a sign-in bounce,
+  // so it survives a session that lapsed while they were away.
+  //
+  // The common path never needs this: the signing link opens in a new tab, so
+  // the checkout tab is still sitting on Review untouched. This is the recovery.
+  const returningQuoteId = typeof params.quote === "string" ? params.quote.trim() : "";
   const t = tr(lang);
 
   // middleware also gates /checkout, but a page that reads customer data must
@@ -64,12 +77,33 @@ export default async function CheckoutPage({ searchParams }: {
     } catch { addresses = []; }
   }
 
+  // REHYDRATION. The quote is fetched by id, not re-taken: the signature the
+  // customer just gave is keyed on THIS quote id, so a fresh quote would orphan
+  // it. A quote that is gone (spent, expired, or never theirs) yields null and
+  // the flow simply starts at Step 1, which is the honest outcome — the cart is
+  // still in the cookie, so nothing they chose is lost except the pricing.
+  //
+  // The agreement status is read in the same pass so Review can say "signed",
+  // with the version and date, without a client round trip on first paint. It
+  // is NOT the gate: payLayawayAction re-checks before the plan is created.
+  let initialQuote: HubQuote | null = null;
+  let initialAgreement: { signed: boolean; version: string | null; signed_at: string | null } | null = null;
+  if (jwt && returningQuoteId) {
+    try { initialQuote = await hub.quoteById(jwt, returningQuoteId); } catch { initialQuote = null; }
+    if (initialQuote) {
+      const st = await agreementStatusAction(returningQuoteId);
+      // A failed lookup leaves this null: Review then shows the signing step
+      // again rather than claiming a signature nobody could confirm.
+      if (st.ok) initialAgreement = st.data;
+    }
+  }
+
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
         <div className="mt-10">
-          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} offerLoyalty={offerLoyalty} />
+          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} offerLoyalty={offerLoyalty} initialQuote={initialQuote} initialAgreement={initialAgreement} />
         </div>
       </div>
     </section>

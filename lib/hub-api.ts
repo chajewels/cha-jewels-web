@@ -97,6 +97,22 @@ export const hub = {
       : call("/checkout/quote", { method: "POST", body: JSON.stringify({ mode: "full", ...body }), jwt, revalidate: false }),
   /** Turns a quote into a real order. Transfer only in this step; Square is 501. */
   /** `lang` is stored on the order: the confirmation and every later email about it are written in it. */
+  /**
+   * Read back a quote this customer already took.
+   *
+   * The layaway agreement is signed on another site, so the customer leaves and
+   * returns. `quote_id` is what the signature is keyed on, so the SAME quote has
+   * to be the one paid against — re-quoting would mint a new id and orphan the
+   * signature. Checkout state lives in React only, so on a same-tab return the
+   * id from the URL is all there is, and this turns it back into the figures.
+   *
+   * 404 is another customer's quote as well as a missing one; 409 is spent or
+   * expired. Both come back as HubError for the caller to map.
+   */
+  quoteById: (jwt: string, quote_id: string): Promise<HubQuote | null> =>
+    FIXTURES
+      ? Promise.resolve(null)
+      : notFoundToNull(call(`/checkout/quote/${encodeURIComponent(quote_id)}`, { jwt, revalidate: false })),
   pay: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubPayResult> =>
     FIXTURES
       ? Promise.resolve(fx.payFixture())
@@ -106,10 +122,33 @@ export const hub = {
    * the quote which it is; the two answers differ, so they are typed apart
    * rather than merged into one shape with everything optional.
    */
-  payLayaway: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubLayawayPayResult> =>
+  payLayaway: (
+    jwt: string,
+    quote_id: string,
+    lang: "ja" | "en",
+    /**
+     * The agreement the customer actually signed, verified server-side against
+     * the signing record before this is called (lib/agreement-lookup.ts). The
+     * Hub stores both on the plan. Never a literal and never client state: the
+     * Hub's own NewCashOrder.tsx hardcodes 'v1' and has been wrong against the
+     * live agreement ever since, which is the defect not to repeat.
+     */
+    agreement: { version: string; signed_at: string },
+  ): Promise<HubLayawayPayResult> =>
     FIXTURES
       ? Promise.resolve(fx.layawayPayFixture())
-      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer", lang }), jwt, revalidate: false }),
+      : call("/checkout/pay", {
+          method: "POST",
+          body: JSON.stringify({
+            quote_id,
+            method: "transfer",
+            lang,
+            agreement_version: agreement.version,
+            agreement_signed_at: agreement.signed_at,
+          }),
+          jwt,
+          revalidate: false,
+        }),
   /** The customer's own plans, newest first. */
   layawayPlans: (jwt: string): Promise<HubLayawayPlan[]> =>
     FIXTURES ? Promise.resolve(fx.layawayPlansFixture) : call("/layaway", { jwt, revalidate: false }),
