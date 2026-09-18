@@ -161,7 +161,11 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
   const rate = settlement === "PHP" ? 0.39 : null;
   const inSettlement = (jpy: number) => (rate === null ? jpy : Math.round(jpy * rate));
   return {
-    quote_id: "quote-fixture", items, subtotal_jpy: subtotal, shipping_jpy: shipping,
+    quote_id: "quote-fixture",
+    // Reserved on the Hub at quote time for a layaway; nothing for full payment.
+    invoice_number: mode === "layaway" ? "900123" : null,
+    web_reference: mode === "layaway" ? "CJ-W-900123" : null,
+    items, subtotal_jpy: subtotal, shipping_jpy: shipping,
     total_jpy: total, requires_manual_quote: false,
     transfer_region: "JP", transfer_methods: fixtureMethods, transfer_available: true,
     order_type: body.order_type,

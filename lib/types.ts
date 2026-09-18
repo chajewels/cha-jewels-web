@@ -95,6 +95,15 @@ export type HubQuote = {
   transfer_available: boolean;
   order_type: OrderType;
   expires_at: string;
+  /**
+   * The plan's invoice number, reserved on the Hub the moment a LAYAWAY quote
+   * is created (checkout_quotes.reserved_invoice_seq) and carried through
+   * create_web_layaway_atomic unchanged — so the agreement can be signed
+   * against the number the plan will actually get. Both null for a
+   * full-payment quote. web_reference is 'CJ-W-' + the number, 6-digit padded.
+   */
+  invoice_number: string | null;
+  web_reference: string | null;
   /** Phase 2 step 4. Absent on an older Hub deploy — read defensively. */
   mode?: CheckoutMode;
   settlement_currency?: SettlementCurrency;

@@ -34,32 +34,6 @@ import "server-only";
  * ever returned to a caller.
  */
 
-/**
- * The signing page. PUBLIC — the customer navigates to it, so it is a constant
- * rather than a secret. The Hub links to the same host from PolicyHub and the
- * customer portal. Not an env var on purpose: a URL every customer sees is not
- * configuration, and one fewer Vercel variable is one fewer thing to set wrong.
- */
-const SIGN_BASE = "https://agreement.chajewelsjp.com/";
-
-/**
- * Where the customer goes to sign.
- *
- * `session` is `checkout_quotes.id` — the only key that can exist at this point.
- * A web layaway's invoice number is drawn by `nextval` inside
- * `create_web_layaway_atomic`, one statement before the row is inserted, so
- * there is no invoice number to pass until the plan already exists.
- *
- * `lang=tl` is fixed. The agreement is Tagalog only (owner decision); there is
- * no other version to ask for and no toggle to offer.
- */
-export function signingUrl(quoteId: string): string {
-  const u = new URL(SIGN_BASE);
-  u.searchParams.set("session", quoteId);
-  u.searchParams.set("lang", "tl");
-  return u.toString();
-}
-
 export type AgreementStatus =
   | { ok: true; signed: true; version: string; signedAt: string }
   | { ok: true; signed: false }
