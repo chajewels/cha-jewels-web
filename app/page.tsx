@@ -78,15 +78,18 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
-        <div className="wrap">
-          <h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "colsH")}</h2>
-          <p className="mt-4 max-w-[58ch] text-champagne/75">{t("home", "colsP")}</p>
-          <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
+      <section className="pomelli-collections border-b border-rule-soft">
+        <div className="wrap relative z-[1]">
+          <div className="pomelli-collections__heading">
+            <h2>{t("home", "colsH")}</h2>
+            <div className="pomelli-ornament" aria-hidden="true"><span /></div>
+            <p>{t("home", "colsP")}</p>
+          </div>
+          <div className="pomelli-collections__grid mt-12 grid grid-cols-2 lg:grid-cols-3">
             {collections.map((c) => (
-              <Link key={c.id} href={`/collections/${c.slug}`} className="min-h-[220px] bg-velvet p-6 hover:underline underline-offset-8">
-                <h3 className="text-[28px] text-gold-pale">{collectionName(c, lang)}</h3>
-                {collectionDescription(c, lang) && <p className="mt-2 text-sm text-champagne/75">{collectionDescription(c, lang)}</p>}
+              <Link key={c.id} href={`/collections/${c.slug}`} className="pomelli-collection-card min-h-[220px] p-6">
+                <h3>{collectionName(c, lang)}</h3>
+                {collectionDescription(c, lang) && <p>{collectionDescription(c, lang)}</p>}
               </Link>
             ))}
           </div>
