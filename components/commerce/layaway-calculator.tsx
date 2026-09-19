@@ -54,7 +54,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
         </label>
       </div>
       <div role="group" aria-label={c.currency[lang]} className="flex w-fit overflow-hidden rounded-sm border border-rule text-xs">
-        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? "bg-gold text-charcoal-deep" : "text-chalk/75"}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
+        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? "bg-orange text-charcoal-deep" : "text-chalk/75"}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
       <output aria-live="polite" className="grid grid-cols-3 gap-3">
         <Cell k={c.dp[lang]} v={quote ? fmt(quote.down_payment) : "—"} />

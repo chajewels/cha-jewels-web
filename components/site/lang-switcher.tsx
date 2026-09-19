@@ -10,7 +10,7 @@ export function LangSwitcher({ lang }: { lang: Lang }) {
   return (
     <div role="group" aria-label={t("nav", "language")} className="flex overflow-hidden rounded-sm border border-rule text-xs">
       {(["ja", "en"] as const).map((l) => (
-        <button key={l} type="button" lang={l} disabled={pending} aria-pressed={lang === l} onClick={() => set(l)} className={`min-h-9 whitespace-nowrap px-3 ${lang === l ? "bg-gold text-charcoal-deep" : "text-chalk/75"}`}>{l === "ja" ? t("nav", "langJa") : t("nav", "langEn")}</button>
+        <button key={l} type="button" lang={l} disabled={pending} aria-pressed={lang === l} onClick={() => set(l)} className={`min-h-9 whitespace-nowrap px-3 ${lang === l ? "bg-orange text-charcoal-deep" : "text-chalk/75"}`}>{l === "ja" ? t("nav", "langJa") : t("nav", "langEn")}</button>
       ))}
     </div>
   );
