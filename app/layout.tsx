@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { siteUrl } from "@/lib/site";
-import { Bodoni_Moda, Archivo, Noto_Serif_JP } from "next/font/google";
+import { Playfair_Display, Inter, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
@@ -11,8 +11,8 @@ import { SeoLinks } from "@/lib/page-meta";
 import { dict, tr } from "@/lib/i18n";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 
-const display = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
-const sans = Archivo({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans", display: "swap" });
+const display = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
+const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans", display: "swap" });
 const jp = Noto_Serif_JP({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jp", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
