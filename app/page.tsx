@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { HeroVideo } from "@/components/site/hero-video";
 import Link from "next/link";
 import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
@@ -26,14 +27,7 @@ export default async function Home() {
     <>
       <JsonLd type="store" />
       <section className="pomelli-hero border-b border-rule-soft">
-        <Image
-          src="/images/home/pomelli-hero.webp"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="pomelli-hero__image object-cover"
-        />
+        <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
         <div className="pomelli-hero__content wrap">
           <h1 className="pomelli-hero__headline">
             <span>{t("hero", "h1a")}</span><br />
