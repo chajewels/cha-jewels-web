@@ -11,7 +11,7 @@ export default {
         garnet: "#7A1E2B",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Didot", "serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
         jp: ["var(--font-jp)", "Hiragino Mincho ProN", "serif"],
         sans: ["var(--font-sans)", "Helvetica Neue", "Arial", "sans-serif"],
       },
