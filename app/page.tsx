@@ -107,7 +107,7 @@ export default async function Home() {
       {layaway && (
         <section id="layaway" className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
           <div className="wrap grid gap-12 md:grid-cols-2">
-            <div><h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "layH")}</h2><p className="mt-4 max-w-[46ch] text-champagne/75">{t("home", "layP")}</p></div>
+            <div><h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "layH")}</h2><p className="mt-4 max-w-[46ch] text-chalk/75">{t("home", "layP")}</p></div>
             <LayawayCalculator lang={lang} phpRate={fx.jpy_php} />
           </div>
         </section>

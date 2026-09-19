@@ -29,7 +29,7 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[46ch]">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("account", "confirmH")}</h1>
-        <p className="mt-4 text-champagne/75">{t("account", "confirmP")}</p>
+        <p className="mt-4 text-chalk/75">{t("account", "confirmP")}</p>
         <ConfirmSignIn tokenHash={tokenHash} type={type} next={next} lang={lang} />
       </div>
     </section>

@@ -26,14 +26,14 @@ import type { LegalArticle, LegalBlock } from "@/lib/content/legal";
 export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
   switch (block.kind) {
     case "p":
-      return <p className="mt-4 text-champagne/80">{block.text[lang]}</p>;
+      return <p className="mt-4 text-chalk/80">{block.text[lang]}</p>;
     case "h":
       // A sub-heading INSIDE an article ("Available resolutions", "Step 2:
       // Contact us"). Deliberately smaller and champagne rather than gold: the
       // gold display face marks an article, and a sub-heading competing with it
       // would make a twelve-section document read as twenty-eight.
       return (
-        <h3 className="mt-8 font-display text-[clamp(16px,1.6vw,20px)] text-champagne">
+        <h3 className="mt-8 font-display text-[clamp(16px,1.6vw,20px)] text-chalk">
           {block.text[lang]}
         </h3>
       );
@@ -50,7 +50,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // Tailwind Preflight sets `list-style: none` on every ul, which is why a
       // marker has to be asked for explicitly here and in legal-doc.tsx.
       return (
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-champagne/80 marker:text-gold-pale">
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-chalk/80 marker:text-gold-pale">
           {block.items[lang].map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -61,7 +61,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // linked phrase does not sit in the same place in both sentences.
       // Index is a safe key: a block's runs are a fixed, ordered list.
       return (
-        <p className="mt-4 text-champagne/80">
+        <p className="mt-4 text-chalk/80">
           {block.runs[lang].map((run, i) =>
             run.href ? (
               <Link
@@ -81,7 +81,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // Line breaks carry meaning here (a postal address), so each line is its
       // own row rather than wrapped prose.
       return (
-        <div className="mt-4 text-champagne/80">
+        <div className="mt-4 text-chalk/80">
           {block.lines[lang].map((line) => (
             <div key={line}>{line}</div>
           ))}
@@ -111,7 +111,7 @@ export function LegalArticles({
         {/* The document carries its own last-updated line, so the shared draft
             banner is not rendered here -- it states an older date and the two
             together would contradict each other on a legal page. */}
-        <p className="mt-4 text-sm text-champagne/60">{updated[lang]}</p>
+        <p className="mt-4 text-sm text-chalk/60">{updated[lang]}</p>
 
         {intro ? (
           <div className="mt-8">

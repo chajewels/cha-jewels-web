@@ -30,7 +30,7 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
     stripRef.current?.querySelector<HTMLElement>(`[data-i="${i}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [i]);
 
-  if (n === 0) return <div className="relative aspect-[4/5] bg-velvet-deep" aria-hidden="true" />;
+  if (n === 0) return <div className="relative aspect-[4/5] bg-charcoal-deep" aria-hidden="true" />;
   const current = images[i];
   const alt = (img: GalleryImage) => img.alt?.trim() || name;
 
@@ -51,7 +51,7 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
       className="outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-pale"
     >
       <div
-        className="relative aspect-[4/5] overflow-hidden bg-velvet-deep"
+        className="relative aspect-[4/5] overflow-hidden bg-charcoal-deep"
         onTouchStart={(e) => { touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
         onTouchEnd={(e) => {
           const s = touch.current; touch.current = null;
@@ -75,14 +75,14 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
         {n > 1 && (
           <>
             <button type="button" onClick={() => go(-1)} aria-label={t("product", "prevPhoto")}
-              className="absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-rule bg-velvet/80 text-gold-pale backdrop-blur hover:border-gold">
+              className="absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-rule bg-charcoal/80 text-gold-pale backdrop-blur hover:border-gold">
               <span aria-hidden="true">&lsaquo;</span>
             </button>
             <button type="button" onClick={() => go(1)} aria-label={t("product", "nextPhoto")}
-              className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-rule bg-velvet/80 text-gold-pale backdrop-blur hover:border-gold">
+              className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-rule bg-charcoal/80 text-gold-pale backdrop-blur hover:border-gold">
               <span aria-hidden="true">&rsaquo;</span>
             </button>
-            <p aria-live="polite" className="absolute bottom-2 right-2 rounded-sm bg-velvet/80 px-2 py-0.5 text-xs text-champagne/80 backdrop-blur">
+            <p aria-live="polite" className="absolute bottom-2 right-2 rounded-sm bg-charcoal/80 px-2 py-0.5 text-xs text-chalk/80 backdrop-blur">
               {t("product", "photoOf", { n: String(i + 1), total: String(n) })}
             </p>
           </>
@@ -100,7 +100,7 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
               aria-selected={k === i}
               aria-label={t("product", "photoOf", { n: String(k + 1), total: String(n) })}
               onClick={() => setI(k)}
-              className={`relative h-16 w-16 shrink-0 snap-start overflow-hidden border bg-velvet-deep sm:h-20 sm:w-20 ${k === i ? "border-gold" : "border-rule opacity-70 hover:opacity-100"}`}
+              className={`relative h-16 w-16 shrink-0 snap-start overflow-hidden border bg-charcoal-deep sm:h-20 sm:w-20 ${k === i ? "border-gold" : "border-rule opacity-70 hover:opacity-100"}`}
             >
               <Image src={img.url} alt="" fill sizes="80px" className="object-cover" loading="lazy" unoptimized={passthrough(img.url)} />
             </button>

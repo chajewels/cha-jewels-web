@@ -62,5 +62,5 @@ export const isClosedOrder = (order: HubOrder) =>
 
 export const toneClass = (tone: "pending" | "good" | "dead") =>
   tone === "good" ? "border-gold text-gold-pale"
-  : tone === "dead" ? "border-rule text-champagne/45"
-  : "border-gold/60 text-champagne/80";
+  : tone === "dead" ? "border-rule text-chalk/55"
+  : "border-gold/60 text-chalk/80";

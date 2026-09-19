@@ -41,12 +41,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <ProductView sku={p.sku} lang={lang} />
       <section className="py-[clamp(40px,6vw,80px)]">
         <div className="wrap grid gap-10 md:grid-cols-2">
-          <figure className="border border-gold bg-velvet-deep p-1.5">
+          <figure className="border border-gold bg-charcoal-deep p-1.5">
             <ProductGallery images={images} name={name} lang={lang} />
-            <dl className="grid grid-cols-3 border-t border-gold bg-velvet-deep">
-              <div className="border-r border-rule p-4"><dt className="text-xs text-champagne/55">{t("product", "metal")}</dt><dd className="font-display text-2xl text-gold-pale">{metalsLabel(metals, lang)}</dd></div>
-              <div className="border-r border-rule p-4"><dt className="text-xs text-champagne/55">{t("product", "weight")}</dt><dd className="font-display text-2xl text-gold-pale">{p.weight_g ? `${p.weight_g} g` : "—"}</dd></div>
-              <div className="p-4"><dt className="text-xs text-champagne/55">{t("product", "stone")}</dt><dd className="font-display text-2xl text-gold-pale">{variant?.stone ?? "—"}</dd></div>
+            <dl className="grid grid-cols-3 border-t border-gold bg-charcoal-deep">
+              <div className="border-r border-rule p-4"><dt className="text-xs text-chalk/55">{t("product", "metal")}</dt><dd className="font-display text-2xl text-gold-pale">{metalsLabel(metals, lang)}</dd></div>
+              <div className="border-r border-rule p-4"><dt className="text-xs text-chalk/55">{t("product", "weight")}</dt><dd className="font-display text-2xl text-gold-pale">{p.weight_g ? `${p.weight_g} g` : "—"}</dd></div>
+              <div className="p-4"><dt className="text-xs text-chalk/55">{t("product", "stone")}</dt><dd className="font-display text-2xl text-gold-pale">{variant?.stone ?? "—"}</dd></div>
             </dl>
           </figure>
           <div>
@@ -57,8 +57,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
             <h1 className="mt-4 text-[clamp(32px,4.2vw,60px)]">{name}</h1>
             {price != null && <PriceBlock price={price} lang={lang} className="mt-6" />}
-            {desc && <p className="mt-6 max-w-[52ch] text-champagne/80">{desc}</p>}
-            <p className="mt-4 text-sm text-champagne/60">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
+            {desc && <p className="mt-6 max-w-[52ch] text-chalk/80">{desc}</p>}
+            <p className="mt-4 text-sm text-chalk/60">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
             {/* Two ways to buy the same piece, one basket — but only where
                 layaway is offered (English only, owner decision 2026-09-15).
                 On ja the piece is cash-only, so Reserve and the calculator both

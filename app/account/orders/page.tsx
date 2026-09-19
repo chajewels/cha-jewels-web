@@ -35,14 +35,14 @@ export default async function OrdersPage() {
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("orders", "h1")}</h1>
-          <Link href="/account" className="text-sm text-champagne/60 underline underline-offset-4">{t("account", "h1")}</Link>
+          <Link href="/account" className="text-sm text-chalk/60 underline underline-offset-4">{t("account", "h1")}</Link>
         </div>
 
         {failed && (
-          <p className="mt-8 border border-garnet/60 bg-velvet-deep p-5 text-sm text-champagne/85">{t("account", "unavailable")}</p>
+          <p className="mt-8 border border-garnet-light/60 bg-charcoal-deep p-5 text-sm text-chalk/85">{t("account", "unavailable")}</p>
         )}
 
-        {!failed && orders.length === 0 && <p className="mt-10 text-champagne/75">{t("orders", "empty")}</p>}
+        {!failed && orders.length === 0 && <p className="mt-10 text-chalk/75">{t("orders", "empty")}</p>}
 
         {orders.length > 0 && (
           <ul className="rule-grid mt-10 grid gap-px">
@@ -54,21 +54,21 @@ export default async function OrdersPage() {
                 ? [order.cancellation_reason, refundLabel(order.refund_status, lang)].filter(Boolean).join(" · ")
                 : "";
               return (
-                <li key={order.id} className="flex flex-wrap items-center justify-between gap-4 bg-velvet p-5">
+                <li key={order.id} className="flex flex-wrap items-center justify-between gap-4 bg-charcoal p-5">
                   <div>
                     <p className="font-mono text-gold-pale">{order.web_reference ?? order.invoice_number ?? "—"}</p>
-                    <p className="mt-1 text-xs text-champagne/55">
+                    <p className="mt-1 text-xs text-chalk/55">
                       {t("orders", "placed")} {(order.order_date ?? order.created_at).slice(0, 10)}
                     </p>
                   </div>
                   <div className="flex flex-col items-start gap-1">
                     <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
-                    {closedNote && <p className="max-w-[36ch] text-xs text-champagne/55">{closedNote}</p>}
+                    {closedNote && <p className="max-w-[36ch] text-xs text-chalk/55">{closedNote}</p>}
                   </div>
                   {/* #26's rule, which the plan rows already followed and these
                       did not: a closed figure is never gold. Derived from the
                       badge's own tone so the two can never disagree. */}
-                  <p className={`font-display text-xl ${status.tone === "dead" ? "text-champagne/55" : "text-gold-pale"}`}>
+                  <p className={`font-display text-xl ${status.tone === "dead" ? "text-chalk/55" : "text-gold-pale"}`}>
                     {formatMoney(Number(order.total_amount), order.currency)}
                   </p>
                   <Link href={`/account/orders/${order.id}`} className="text-sm text-gold-pale underline underline-offset-4">

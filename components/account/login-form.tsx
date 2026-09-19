@@ -49,23 +49,23 @@ export function LoginForm({ lang }: { lang: Lang }) {
   }
 
   if (state === "sent") {
-    return <div className="border border-gold bg-velvet-deep p-6 text-gold-pale">{c.sent[lang]}</div>;
+    return <div className="border border-gold bg-charcoal-deep p-6 text-gold-pale">{c.sent[lang]}</div>;
   }
   return (
-    <form onSubmit={submit} noValidate className="grid gap-4 border border-gold bg-velvet-deep p-6 text-sm">
+    <form onSubmit={submit} noValidate className="grid gap-4 border border-gold bg-charcoal-deep p-6 text-sm">
       {configError && (
-        <p role="alert" className="border border-garnet/60 p-3 text-champagne/85">{c.configErr[lang]}</p>
+        <p role="alert" className="border border-garnet-light/60 p-3 text-chalk/85">{c.configErr[lang]}</p>
       )}
       {!configError && linkErrorCopy && (
-        <p role="alert" className="border border-gold/60 p-3 text-champagne/85">{linkErrorCopy}</p>
+        <p role="alert" className="border border-gold/60 p-3 text-chalk/85">{linkErrorCopy}</p>
       )}
-      <label className="grid gap-1.5 text-champagne/75">
+      <label className="grid gap-1.5 text-chalk/75">
         {c.email[lang]}
-        <input name="email" type="email" required autoComplete="email" className="min-h-11 w-full rounded-sm border border-rule bg-velvet px-3 text-champagne" />
+        <input name="email" type="email" required autoComplete="email" className="min-h-11 w-full rounded-sm border border-rule bg-charcoal px-3 text-chalk" />
       </label>
       <Button type="submit" disabled={state === "sending"}>{c.sendLink[lang]}</Button>
-      {state === "err" && <p className="text-garnet">{c.err[lang]}</p>}
-      <p className="text-xs text-champagne/55">{c.note[lang]}</p>
+      {state === "err" && <p className="text-garnet-light">{c.err[lang]}</p>}
+      <p className="text-xs text-chalk/55">{c.note[lang]}</p>
     </form>
   );
 }

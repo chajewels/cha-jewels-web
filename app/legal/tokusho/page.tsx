@@ -32,7 +32,7 @@ export default async function Tokusho() {
             // Keyed on the Japanese label because it is stable — the key must
             // not change when the toggle does.
             <div key={k.ja} className="grid gap-2 py-4 sm:grid-cols-[200px_1fr]">
-              <dt className="text-champagne/60">{k[lang]}</dt>
+              <dt className="text-chalk/60">{k[lang]}</dt>
               <dd>{v[lang]}</dd>
             </div>
           ))}
