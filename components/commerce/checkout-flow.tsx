@@ -721,7 +721,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                     checked={joinLoyalty}
                     onChange={(e) => setJoinLoyalty(e.target.checked)}
                     disabled={pending}
-                    className="mt-1 h-4 w-4 shrink-0 accent-[var(--gold)]"
+                    className="mt-1 h-4 w-4 shrink-0 accent-gold"
                   />
                   <span>{t("checkout", "joinLoyalty")}</span>
                 </label>

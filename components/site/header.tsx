@@ -42,10 +42,13 @@ export async function Header({ lang }: { lang: Lang }) {
   const account = session && name ? { name, menuLabel: t("accountMenu", "menu"), items: accountItems, signOut: t("accountMenu", "signOut") } : null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-rule bg-velvet/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-rule bg-charcoal/90 backdrop-blur">
       <div className="wrap flex h-[68px] items-center justify-between gap-4">
-        <Link href="/" className="gilt whitespace-nowrap font-display text-[26px] font-medium tracking-wide" aria-label="Cha Jewels">Cha Jewels</Link>
-        <nav aria-label={t("nav", "primary")} className="hidden xl:block"><ul className="flex gap-5 whitespace-nowrap text-sm text-champagne/75">{links.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-pale">{l.label}</Link></li>)}</ul></nav>
+        <Link href="/" className="flex items-center gap-3 whitespace-nowrap" aria-label="Cha Jewels">
+          <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={44} height={44} alt="" className="h-11 w-11 shrink-0" />
+          <span className="gilt font-display text-[26px] font-medium tracking-wide">Cha Jewels</span>
+        </Link>
+        <nav aria-label={t("nav", "primary")} className="hidden xl:block"><ul className="flex gap-5 whitespace-nowrap text-sm text-chalk/75">{links.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-pale">{l.label}</Link></li>)}</ul></nav>
         <div className="flex items-center gap-2 sm:gap-3">
           <LangSwitcher lang={lang} />
           <CartButton lang={lang} />
