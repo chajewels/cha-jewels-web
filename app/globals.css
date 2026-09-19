@@ -4,7 +4,7 @@
 @layer base {
   :root { --rule: rgba(201,162,39,.32); }
   html { scroll-behavior: smooth; scroll-padding-top: 80px; }
-  body { @apply bg-velvet text-champagne font-sans antialiased; }
+  body { @apply bg-charcoal text-chalk font-sans antialiased; }
   h1, h2, h3 { @apply font-display font-normal leading-[1.02] tracking-[-0.01em]; }
   :lang(ja) h1, :lang(ja) h2, :lang(ja) h3 { @apply font-jp font-medium tracking-[0.01em]; }
   *:focus-visible { @apply outline outline-2 outline-gold-pale outline-offset-[3px]; }
@@ -70,7 +70,7 @@
   .pomelli-hero__headline {
     margin-inline: auto;
     max-width: 17ch;
-    color: #FFA500;
+    color: theme('colors.orange.DEFAULT');
     font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
     font-size: clamp(40px, 5vw, 64px);
     font-weight: 600;
@@ -103,17 +103,17 @@
     content: "";
     height: 1px;
     flex: 1;
-    background: #FFA500;
+    background: theme('colors.orange.DEFAULT');
   }
   .pomelli-ornament span {
     width: 12px;
     height: 12px;
     transform: rotate(45deg);
-    background: #1ABC9C;
+    background: theme('colors.teal');
   }
 
   .pomelli-values {
-    background: #333333;
+    background: theme('colors.charcoal.DEFAULT');
     color: #fff;
     padding-block: clamp(72px, 9vw, 120px);
   }
@@ -142,7 +142,7 @@
     font-weight: 500;
   }
   .pomelli-values__eyebrow {
-    color: #FFA500;
+    color: theme('colors.orange.DEFAULT');
     font-size: 12px;
     font-weight: 600;
     letter-spacing: .2em;
@@ -167,13 +167,13 @@
   }
   .pomelli-value__number {
     padding-top: 4px;
-    color: #1ABC9C;
+    color: theme('colors.teal');
     font-size: 12px;
     font-weight: 600;
     letter-spacing: .14em;
   }
   .pomelli-value h3 {
-    color: #FFA500;
+    color: theme('colors.orange.DEFAULT');
     font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
     font-size: clamp(21px, 2vw, 28px);
     font-weight: 600;
@@ -207,8 +207,8 @@
     background:
       radial-gradient(circle at 38% 42%, rgba(255,165,0,.13), transparent 31%),
       radial-gradient(circle at 78% 24%, rgba(26,188,156,.07), transparent 27%),
-      #F5F5F2;
-    color: #333333;
+      theme('colors.chalk');
+    color: theme('colors.charcoal.DEFAULT');
   }
   .pomelli-collections::before {
     content: "";
@@ -230,7 +230,7 @@
     text-align: center;
   }
   .pomelli-collections__heading h2 {
-    color: #333333;
+    color: theme('colors.charcoal.DEFAULT');
     font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
     font-size: clamp(38px, 4.4vw, 60px);
     font-weight: 600;
@@ -259,7 +259,7 @@
     justify-content: flex-end;
     overflow: hidden;
     border: 1px solid rgba(51,51,51,.12);
-    background: #444444;
+    background: theme('colors.charcoal.mid');
     box-shadow: 0 16px 34px rgba(51,51,51,.12);
     transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
   }
@@ -268,10 +268,10 @@
     position: absolute;
     inset: 0 auto 0 0;
     width: 4px;
-    background: linear-gradient(#FFA500, #1ABC9C);
+    background: linear-gradient(theme('colors.orange.DEFAULT'), theme('colors.teal'));
   }
   .pomelli-collection-card h3 {
-    color: #FFA500;
+    color: theme('colors.orange.DEFAULT');
     font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
     font-size: clamp(23px, 2.2vw, 30px);
     font-weight: 600;
