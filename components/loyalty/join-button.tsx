@@ -35,7 +35,7 @@ export function JoinButton({ lang }: { lang: Lang }) {
     setBusy(result.state !== "lost");
   }
 
-  const box = "border border-gold bg-velvet-deep p-6 text-gold-pale";
+  const box = "border border-gold bg-charcoal-deep p-6 text-gold-pale";
 
   if (outcome === "enrolled") {
     return <div className={box}>{c.ok[lang]}</div>;
@@ -44,7 +44,7 @@ export function JoinButton({ lang }: { lang: Lang }) {
     return (
       <div className={box}>
         {c.alreadyMember[lang]}{" "}
-        <Link href="/account" className="underline hover:text-champagne">
+        <Link href="/account" className="underline hover:text-chalk">
           {dict.nav.account[lang]}
         </Link>
       </div>
@@ -55,12 +55,12 @@ export function JoinButton({ lang }: { lang: Lang }) {
   }
 
   return (
-    <div className="grid gap-4 border border-gold bg-velvet-deep p-6 text-sm">
+    <div className="grid gap-4 border border-gold bg-charcoal-deep p-6 text-sm">
       <Button type="button" onClick={join} disabled={busy}>
         {c.submit[lang]}
       </Button>
-      {outcome === "lost" && <p className="text-garnet">{c.err[lang]}</p>}
-      <p className="text-xs text-champagne/55">
+      {outcome === "lost" && <p className="text-garnet-light">{c.err[lang]}</p>}
+      <p className="text-xs text-chalk/55">
         {c.consent[lang]}{" "}
         <a href="/legal/terms" className="underline hover:text-gold-pale">{dict.footer.sale[lang]}</a>
         {" · "}

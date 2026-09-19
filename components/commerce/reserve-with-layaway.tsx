@@ -46,7 +46,7 @@ export function ReserveWithLayaway({ variantId, slug, sku, stockQty, lang, class
       >
         {pending ? t("checkout", "reserving") : t("product", "reserveCta")}
       </Button>
-      <p className="mt-2 text-xs text-champagne/55">{t("product", "reserveNote")}</p>
+      <p className="mt-2 text-xs text-chalk/55">{t("product", "reserveNote")}</p>
     </div>
   );
 }

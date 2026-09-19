@@ -6,7 +6,7 @@ export function PriceBlock({ price, lang, className }: { price: number; lang: La
   return (
     <div className={cn("border-y border-rule py-4", className)}>
       <p className="font-display text-4xl text-gold-pale">{formatMoney(price)}</p>
-      <p className="mt-1 text-sm text-champagne/70">{t("product", "orReserve", { dp: formatMoney(Math.round(price * 0.3)) })}</p>
+      <p className="mt-1 text-sm text-chalk/70">{t("product", "orReserve", { dp: formatMoney(Math.round(price * 0.3)) })}</p>
     </div>
   );
 }

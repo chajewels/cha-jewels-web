@@ -15,9 +15,9 @@ export default async function CollectionsIndex() {
         <h1 className="text-[clamp(36px,5.5vw,80px)]">{t("nav", "collections")}</h1>
         <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
           {collections.map((c) => (
-            <Link key={c.id} href={`/collections/${c.slug}`} className="min-h-[200px] bg-velvet p-6 hover:underline underline-offset-8">
+            <Link key={c.id} href={`/collections/${c.slug}`} className="min-h-[200px] bg-charcoal p-6 hover:underline underline-offset-8">
               <h2 className="text-[28px] text-gold-pale">{collectionName(c, lang)}</h2>
-              {collectionDescription(c, lang) && <p className="mt-2 text-sm text-champagne/75">{collectionDescription(c, lang)}</p>}
+              {collectionDescription(c, lang) && <p className="mt-2 text-sm text-chalk/75">{collectionDescription(c, lang)}</p>}
             </Link>
           ))}
         </div>

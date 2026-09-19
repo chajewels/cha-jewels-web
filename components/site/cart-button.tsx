@@ -29,7 +29,7 @@ export async function CartButton({ lang }: { lang: Lang }) {
       </svg>
       <span className="hidden sm:inline">{t("nav", "cart")}</span>
       {count > 0 && (
-        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[11px] font-medium text-ink">
+        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-orange px-1 text-[11px] font-medium text-charcoal-deep">
           {count}
         </span>
       )}

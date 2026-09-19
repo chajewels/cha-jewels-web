@@ -14,9 +14,9 @@ export default async function Blog() {
         <ul className="mt-12 divide-y divide-[rgba(201,162,39,.16)] border-y border-rule-soft">
           {postsFor(lang).map((p) => (
             <li key={p.slug} className="py-8">
-              <time dateTime={p.date} className="text-xs text-champagne/55">{new Date(p.date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" })}</time>
+              <time dateTime={p.date} className="text-xs text-chalk/55">{new Date(p.date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" })}</time>
               <h2 className="mt-2 text-[clamp(24px,2.6vw,36px)]"><Link href={`/blog/${p.slug}`} className="hover:text-gold-pale">{p.title[lang]}</Link></h2>
-              <p className="mt-2 max-w-[62ch] text-champagne/75">{p.excerpt[lang]}</p>
+              <p className="mt-2 max-w-[62ch] text-chalk/75">{p.excerpt[lang]}</p>
             </li>
           ))}
         </ul>

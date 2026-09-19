@@ -19,43 +19,43 @@ export default async function LoyaltyPage() {
       <section className="border-b border-rule-soft py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("loyalty", "h1")}</h1>
-          <p className="mt-5 max-w-[58ch] text-champagne/80">{t("loyalty", "lede")}</p>
+          <p className="mt-5 max-w-[58ch] text-chalk/80">{t("loyalty", "lede")}</p>
           <div className="mt-8"><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></div>
         </div>
       </section>
       <section className="border-b border-rule-soft py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h2 className="max-w-[20ch] text-[clamp(30px,4vw,56px)]">{t("loyalty", "levelsH")}</h2>
-          <p className="mt-4 max-w-[58ch] text-champagne/75">{t("loyalty", "levelsP")}</p>
-          <p className="mt-2 max-w-[58ch] text-sm text-champagne/60">{t("loyalty", "inactivityP")}</p>
+          <p className="mt-4 max-w-[58ch] text-chalk/75">{t("loyalty", "levelsP")}</p>
+          <p className="mt-2 max-w-[58ch] text-sm text-chalk/60">{t("loyalty", "inactivityP")}</p>
           <ol className="rule-grid mt-12 grid sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier, i) => (
-              <li key={tier.slug} className="flex flex-col bg-velvet p-6">
-                <span className="text-xs text-champagne/55">{t("loyalty", "level", { n: String(i + 1) })}</span>
+              <li key={tier.slug} className="flex flex-col bg-charcoal p-6">
+                <span className="text-xs text-chalk/55">{t("loyalty", "level", { n: String(i + 1) })}</span>
                 <h3 className="mt-1 text-[28px] text-gold-pale">{tier.name}</h3>
                 <div className="my-4 h-0.5 bg-[linear-gradient(90deg,#8A6B12,#E8D28A)]" style={{ width: `${25 + i * 25}%` }} />
-                <p className="text-xs text-champagne/55">{t("loyalty", "threshold")}</p>
-                <p className="font-display text-2xl text-champagne">{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</p>
+                <p className="text-xs text-chalk/55">{t("loyalty", "threshold")}</p>
+                <p className="font-display text-2xl text-chalk">{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</p>
                 <dl className="mt-4 space-y-2 text-xs">
                   <div className="flex items-baseline justify-between gap-3">
-                    <dt className="text-champagne/55">{t("loyalty", "multiplier")}</dt>
+                    <dt className="text-chalk/55">{t("loyalty", "multiplier")}</dt>
                     <dd className="font-display text-base text-gold-pale">{tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}</dd>
                   </div>
                   <div className="flex items-baseline justify-between gap-3">
-                    <dt className="text-champagne/55">{t("loyalty", "requalify")}</dt>
-                    <dd className="text-champagne/80">{tier.requalify_spend === null ? t("loyalty", "requalifyNone") : formatMoney(tier.requalify_spend, "JP")}</dd>
+                    <dt className="text-chalk/55">{t("loyalty", "requalify")}</dt>
+                    <dd className="text-chalk/80">{tier.requalify_spend === null ? t("loyalty", "requalifyNone") : formatMoney(tier.requalify_spend, "JP")}</dd>
                   </div>
                 </dl>
-                <p className="mt-4 text-xs text-champagne/55">{t("loyalty", "perks")}</p>
-                <ul className="mt-1 space-y-1.5 text-sm text-champagne/80">{(lang === "ja" ? tier.benefits_ja : tier.benefits_en).map((p) => <li key={p} className="relative pl-4 before:absolute before:left-0 before:top-2.5 before:h-px before:w-2 before:bg-gold">{p}</li>)}</ul>
+                <p className="mt-4 text-xs text-chalk/55">{t("loyalty", "perks")}</p>
+                <ul className="mt-1 space-y-1.5 text-sm text-chalk/80">{(lang === "ja" ? tier.benefits_ja : tier.benefits_en).map((p) => <li key={p} className="relative pl-4 before:absolute before:left-0 before:top-2.5 before:h-px before:w-2 before:bg-gold">{p}</li>)}</ul>
               </li>
             ))}
           </ol>
-          <p className="mt-8 max-w-[58ch] text-sm text-champagne/60">{t("loyalty", "holdNote")}</p>
+          <p className="mt-8 max-w-[58ch] text-sm text-chalk/60">{t("loyalty", "holdNote")}</p>
         </div>
       </section>
       <section className="py-[clamp(48px,7vw,96px)] text-center">
-        <div className="wrap"><h2 className="mx-auto text-[clamp(30px,4vw,56px)]">{t("loyalty", "joinH")}</h2><p className="mx-auto mt-4 max-w-[48ch] text-champagne/75">{t("loyalty", "joinP")}</p><div className="mt-8"><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></div></div>
+        <div className="wrap"><h2 className="mx-auto text-[clamp(30px,4vw,56px)]">{t("loyalty", "joinH")}</h2><p className="mx-auto mt-4 max-w-[48ch] text-chalk/75">{t("loyalty", "joinP")}</p><div className="mt-8"><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></div></div>
       </section>
     </>
   );

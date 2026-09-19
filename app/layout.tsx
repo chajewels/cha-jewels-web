@@ -50,7 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             strips the query from any "/" URL — lib/page-meta.tsx explains. */}
         <SeoLinks />
         <AnalyticsProvider />
-        <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-gold px-3 py-2 text-ink focus:left-2">{t("nav", "skip")}</a>
+        <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
         <Header lang={lang} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>
