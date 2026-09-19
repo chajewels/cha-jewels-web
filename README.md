@@ -1,6 +1,6 @@
 # Cha Jewels website
 
-Implements Phase 0 and Phase 1 of the implementation plan (foundations, catalog and brand) and the entry points for Phase 3 (live claims). Products are managed in the Cha Jewels Hub; this site reads them through the Hub's Website API (`supabase/contracts/api.md`). It has no direct database connection.
+Implements Phase 0 and Phase 1 of the implementation plan (foundations, catalog and brand) plus the Phase 2 cart, checkout and account surfaces. Products are managed in the Cha Jewels Hub; this site reads them through the Hub's Website API (`supabase/contracts/api.md`). It has no direct database connection.
 
 ## Setup
 1. Give Lovable `supabase/contracts/LOVABLE_PROMPT.md` (with `api.md` and the two migrations). It returns `HUB_API_URL`, `HUB_API_KEY`, `REVALIDATE_SECRET`.
@@ -16,7 +16,7 @@ Implements Phase 0 and Phase 1 of the implementation plan (foundations, catalog 
 - `npm run typecheck`
 
 ## Routes
-`/` · `/about` · `/blog` · `/blog/[slug]` · `/loyalty` · `/loyalty/join` · `/collections/[slug]` · `/products/[slug]` · `/layaway` · `/live/claim/[code]` · `/legal/tokusho` · `/sitemap.xml` · `/robots.txt` · `POST /api/revalidate` · `POST /api/region`
+`/` · `/about` · `/blog` · `/blog/[slug]` · `/loyalty` · `/loyalty/join` · `/collections/[slug]` · `/products/[slug]` · `/layaway` · `/legal/tokusho` · `/sitemap.xml` · `/robots.txt` · `POST /api/revalidate` · `POST /api/region`
 
 ## Deliberately not here
 - No product editor (Hub only).
@@ -25,4 +25,4 @@ Implements Phase 0 and Phase 1 of the implementation plan (foundations, catalog 
 - No AI voice agent (decision: not building).
 
 ## Still to add in Phase 1
-`/wholesale`, `/loyalty`, `/faq`, `/about`, `/gold-guide`, `/legal/privacy`, `/legal/terms`, `/live` landing page. Use the copy from the design comp (`cha-jewels-home.html`) as the source for these.
+`/wholesale`, `/loyalty`, `/faq`, `/about`, `/gold-guide`, `/legal/privacy`, `/legal/terms`. Use the copy from the design comp (`cha-jewels-home.html`) as the source for these.

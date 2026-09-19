@@ -17,7 +17,7 @@ export type DrawerAccount = { name: string; menuLabel: string; items: { href: st
  * nothing — the links spilled out unstyled over the page. Outside the header
  * the panel fills the viewport below the bar as intended.
  */
-export function MobileNav({ links, claim, openLabel, closeLabel, account }: { links: { href: string; label: string }[]; claim: string; openLabel: string; closeLabel: string; account?: DrawerAccount | null }) {
+export function MobileNav({ links, openLabel, closeLabel, account }: { links: { href: string; label: string }[]; openLabel: string; closeLabel: string; account?: DrawerAccount | null }) {
   const [open, setOpen] = useState(false);
   useEffect(() => { document.body.style.overflow = open ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [open]);
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false); window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
@@ -42,7 +42,6 @@ export function MobileNav({ links, claim, openLabel, closeLabel, account }: { li
               </form>
             </section>
           )}
-          <Link href="/live" onClick={() => setOpen(false)} className="mt-6 border border-gold px-6 py-3 text-center text-gold-pale">{claim}</Link>
         </div>,
         document.body,
       )}
