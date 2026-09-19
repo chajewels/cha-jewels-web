@@ -5,7 +5,7 @@ Repo: `chajewels/cha-jewels-web`, branch `main`. Read `CLAUDE.md` first and foll
 Site conventions to reuse: `getLang()` from `lib/i18n-server`, `tr()` / `dict` from `lib/i18n`, `hub` from `lib/hub-api`, `Button` from `components/ui/button`, section wrapper classes `wrap`, `rule-grid`, `display`. Japanese is the default language; every new page needs `ja` and `en` copy. Use the `.display` heading style and the existing velvet/gold palette. No new dependencies.
 
 ## 1. Calculator: show the rate date
-`components/commerce/layaway-calculator.tsx` receives `phpRate`. Add an optional `phpRateAsOf?: string` prop; the pages that render the calculator already fetch `hub.fx()` — pass `fx.as_of` through. When the ₱ display is active, render under the note: JA `レート基準日 {date}` / EN `Rate as of {date}`, date formatted `YYYY-MM-DD`.
+`components/commerce/layaway-calculator.tsx` receives `phpRate`. ~~The rate-date prop and the "Rate as of {date}" line under the ₱ display~~ were removed by owner decision 2026-09-19; the calculator shows no rate date.
 
 ## 2. `/wholesale` — lead page
 Server page with copy + a client form.

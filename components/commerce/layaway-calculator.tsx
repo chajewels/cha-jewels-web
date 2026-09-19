@@ -6,7 +6,7 @@ import { dict, type Lang } from "@/lib/i18n";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
 /** Renders numbers returned by the shared RPC. Peso figures are display conversions at the Hub's rate; no layaway math here. */
-export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRateAsOf, className }: { lang: Lang; initialPrice?: number; phpRate: number; phpRateAsOf?: string; className?: string }) {
+export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, className }: { lang: Lang; initialPrice?: number; phpRate: number; className?: string }) {
   const c = dict.calc;
   const [display, setDisplay] = useState<Currency>("JPY");
   const [price, setPrice] = useState(initialPrice);
@@ -65,7 +65,6 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRat
         {pending ? c.updating[lang]
           : error ?? (quote?.term_downgraded ? c.unavailableTerm[lang] : display === "PHP" ? c.phpNote[lang] : c.note[lang])}
       </p>
-      {display === "PHP" && phpRateAsOf && <p className="text-xs text-champagne/45">{c.rateAsOf[lang].replace("{date}", phpRateAsOf.slice(0, 10))}</p>}
     </form>
   );
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { HeroVideo } from "@/components/site/hero-video";
 import Link from "next/link";
 import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
@@ -26,14 +27,7 @@ export default async function Home() {
     <>
       <JsonLd type="store" />
       <section className="pomelli-hero border-b border-rule-soft">
-        <Image
-          src="/images/home/pomelli-hero.webp"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="pomelli-hero__image object-cover"
-        />
+        <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
         <div className="pomelli-hero__content wrap">
           <h1 className="pomelli-hero__headline">
             <span>{t("hero", "h1a")}</span><br />
@@ -114,7 +108,7 @@ export default async function Home() {
         <section id="layaway" className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
           <div className="wrap grid gap-12 md:grid-cols-2">
             <div><h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "layH")}</h2><p className="mt-4 max-w-[46ch] text-champagne/75">{t("home", "layP")}</p></div>
-            <LayawayCalculator lang={lang} phpRate={fx.jpy_php} phpRateAsOf={fx.as_of} />
+            <LayawayCalculator lang={lang} phpRate={fx.jpy_php} />
           </div>
         </section>
       )}
