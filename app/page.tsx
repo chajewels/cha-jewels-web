@@ -65,18 +65,21 @@ export default async function Home() {
           bleed, video at full opacity, the single vertical scrim (.hero-scrim)
           between video and content.
 
-          The 19:6 band is desktop-only. Below lg the section is h-auto and the
-          content wrapper sets the height, so the headline and both CTAs are
-          never clipped — if the copy runs taller than the viewport the page
-          just scrolls. From lg up the height follows the band (31.58vw),
-          capped at the viewport and floored at 520px — no max-height and no
-          aspect-ratio utility, both shrink the width. The video is absolute
-          inset-0 object-cover at every width, so it fills whatever height the
-          section takes; the band is narrower than the 16:9 source, so on
-          desktop it cover-crops, and the crucible sits centred in every shot,
-          so the crop takes only sky and floor. The 1440px max width applies to
-          the content wrapper only. Copy from hero.*. */}
-      <section className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-20 lg:h-[min(31.58vw,100svh)] lg:min-h-[520px] lg:py-0">
+          The desktop height is 16:9, matching the source, so the full video
+          frame shows on wide screens. It replaces the 19:6 band, which was
+          only 56% as tall as the frame at the same width and threw away 44%
+          of it. Below lg the section is h-auto and the content wrapper sets
+          the height, so the headline and both CTAs are never clipped — if the
+          copy runs taller than the viewport the page just scrolls. From lg up
+          the height follows 56.25vw, capped at the viewport and floored at
+          560px — no max-height and no aspect-ratio utility, both shrink the
+          width. The video is absolute inset-0 object-cover at every width, so
+          it fills whatever height the section takes; at 16:9 that means the
+          full width with no crop until the viewport cap or the 560px floor
+          bites, and both crop top and bottom only, around a centred crucible.
+          The 1440px max width applies to the content wrapper only. Copy from
+          hero.*. */}
+      <section className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-20 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0">
         <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
         <div aria-hidden="true" className="hero-scrim" />
         <div className="wrap relative z-10 w-full py-16 text-center lg:py-24 lg:text-left">
