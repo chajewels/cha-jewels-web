@@ -40,6 +40,18 @@
     z-index: 1;
     background: linear-gradient(180deg, rgba(20,18,16,.80) 0%, rgba(20,18,16,.62) 42%, rgba(20,18,16,.52) 100%);
   }
+  /* Per-slide scrim for a full-bleed category photo. Horizontal, not vertical:
+     the copy sits in the left column and the photo's subject in the right, so
+     the darkening is heaviest where the text is and clears entirely before the
+     subject. Measured against both extremes the deck actually carries — the
+     cream Fine Jewelry frame (top-left luma 235) and the near-black Watches
+     one (luma 40) — at the .82 stop, in scripts/check-contrast.mjs. */
+  .hero-slide-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(20,18,16,.82) 0%, rgba(20,18,16,.55) 45%, rgba(20,18,16,.10) 75%, transparent 100%);
+  }
   .hero-video__toggle {
     position: absolute;
     right: clamp(18px, 4vw, 48px);

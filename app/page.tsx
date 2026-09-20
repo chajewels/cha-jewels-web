@@ -6,12 +6,14 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
-import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/site/json-ld";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
+import { categoryCta, categoryDescription, categoryName } from "@/lib/catalog-i18n";
+import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
 import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
@@ -29,9 +31,10 @@ export const revalidate = 60;
  */
 
 export default async function Home() {
-  const [lang, collections, featured, fx, testimonials] = await Promise.all([
+  const [lang, collections, categories, featured, fx, testimonials] = await Promise.all([
     getLang(),
     getCollections().catch(() => []),
+    hub.categories().catch(() => []),
     getFeaturedProducts(8).catch(() => []),
     hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" })),
     hub.testimonials(),
@@ -46,6 +49,25 @@ export default async function Home() {
     image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
   const placeholders = Math.max(0, 4 - featured.length);
+
+  // Hero deck: the intro, then one slide per category in the Hub's sort_order.
+  // The order is the Hub's and nothing rearranges it here — the deck used to
+  // put "preloved-" slugs first, which is a merchandising decision the owner
+  // now makes in the Hub by setting sort_order. The image is the category's
+  // own hero_media, else the placeholder for that slug; never a product photo.
+  const slides: HeroSlide[] = [
+    { kind: "intro", layaway },
+    ...[...categories]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((c) => ({
+        kind: "category" as const,
+        slug: c.slug,
+        name: categoryName(c, lang),
+        description: categoryDescription(c, lang),
+        image: c.hero_media ?? CATEGORY_PLACEHOLDER[c.slug] ?? null,
+        cta: categoryCta(c, lang),
+      })),
+  ];
 
   const tabs: Tab[] = [
     { href: "/", label: t("home", "tabHome"), icon: "home" },
@@ -82,19 +104,17 @@ export default async function Home() {
       <section className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-20 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0">
         <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
         <div aria-hidden="true" className="hero-scrim" />
-        <div className="wrap relative z-10 w-full py-16 text-center lg:py-24 lg:text-left">
-          <div className="mx-auto max-w-[820px] lg:mx-0">
-            <h1 className="text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
-              {t("hero", "h1a")}<br />
-              <span className="text-gold-pale">{t("hero", "h1b")}</span>
-            </h1>
-            <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("hero", "lede")}</p>
-            <p className="mt-3 line-clamp-5 text-[15px] leading-relaxed text-chalk/75 lg:line-clamp-none lg:text-base">{t("hero", "lede2")}</p>
-            <div className="mt-9 flex flex-wrap justify-center gap-3 lg:justify-start">
-              <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
-              {layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
-            </div>
-          </div>
+        {/* Slide 0 is the hero copy as before; slides 1..n are the categories.
+            Swipe, arrows (md+), dots, ← →; see components/home/hero-slides.tsx.
+
+            No `.wrap` here any more, and no padding: a category slide is
+            full-bleed, so its photo has to reach the section's edges. Each
+            slide carries its own `.wrap` around its copy instead, so the text
+            still lines up with the rest of the page. `self-stretch` makes the
+            layer fill the section's height from `lg` up, where the section has
+            one, and collapse to the content height below it. */}
+        <div className="relative z-10 w-full self-stretch">
+          <HeroSlides lang={lang} slides={slides} />
         </div>
       </section>
 

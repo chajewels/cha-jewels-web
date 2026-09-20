@@ -11,4 +11,5 @@ export const COLLECTION_PLACEHOLDER: Record<string, string> = {
   rings: "/images/collections/rings.webp",
   anklets: "/images/collections/anklets.webp",
   pearls: "/images/collections/pearls.webp",
+  "handmade-gemstone-bracelets": "/images/collections/handmade-gemstone-bracelets.webp",
 };
