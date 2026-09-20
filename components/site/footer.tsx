@@ -7,7 +7,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
 /**
  * The Stitch footer (docs/stitch/cha-desktop.html §12): charcoal, four columns
  * — brand, collections, customer care & legal, newsletter — orange column
- * headings, a bank-transfer-only pill and the company line at the bottom.
+ * headings and the company line at the bottom.
  *
  * Collection links come from the Hub's jewelry types, in the language of the
  * page. Nothing here names a collection: add or rename one in the Hub and the
@@ -30,9 +30,6 @@ export async function Footer({ lang }: { lang: Lang }) {
             <p className="gilt font-display text-2xl">Cha Jewels</p>
           </div>
           <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{t("footer", "blurb")}</p>
-          <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-teal/40 px-3 py-1 text-xs text-chalk/85">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-teal" />{t("footer", "checkedEach")}
-          </span>
         </div>
         <div className="lg:col-span-2">
           <h4 className={heading}>{t("footer", "collections")}</h4>
@@ -66,12 +63,9 @@ export async function Footer({ lang }: { lang: Lang }) {
           <p id="newsletter-soon" className="mt-2 text-xs text-chalk/55">{t("footer", "newsletterSoon")}</p>
         </div>
       </div>
-      <div className="wrap mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-charcoal-mid pt-6 text-xs text-chalk/55">
-        <span className="inline-flex items-center gap-2 rounded-full border border-orange/40 px-3 py-1 text-orange">{t("footer", "bankOnly")}</span>
-        <div className="flex flex-wrap gap-x-4 gap-y-1">
-          <span>© {new Date().getFullYear()} {t("footer", "company")}</span>
-          <span>{t("footer", "invoiceReg")}</span>
-        </div>
+      <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-charcoal-mid pt-6 text-xs text-chalk/55">
+        <span>© {new Date().getFullYear()} {t("footer", "company")}</span>
+        <span>{t("footer", "invoiceReg")}</span>
       </div>
     </footer>
   );
