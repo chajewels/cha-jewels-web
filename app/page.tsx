@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HeroVideo } from "@/components/site/hero-video";
-import { getCollections, getFeaturedProducts, getCollectionWithProducts, primaryImage } from "@/lib/queries/products";
+import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { getLang } from "@/lib/i18n-server";
@@ -16,7 +16,6 @@ import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
 import { InquiryBanner } from "@/components/home/inquiry-banner";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
-import type { Collection } from "@/lib/types";
 export const revalidate = 60;
 
 /**
@@ -31,17 +30,6 @@ export const revalidate = 60;
  * newH, viewAll, layH/layP). Product and collection data is the Hub's only.
  */
 
-/** Card image: the collection's own hero, else its first product photo, else none. */
-async function collectionImage(c: Collection): Promise<string | null> {
-  if (c.hero_media) return c.hero_media;
-  const col = await getCollectionWithProducts(c.slug).catch(() => null);
-  for (const p of col?.products ?? []) {
-    const img = primaryImage(p);
-    if (img) return img.url;
-  }
-  return null;
-}
-
 export default async function Home() {
   const [lang, collections, featured, fx] = await Promise.all([
     getLang(),
@@ -51,7 +39,9 @@ export default async function Home() {
   ]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
-  const cards: CollectionCardData[] = await Promise.all(collections.map(async (c) => ({ c, image: await collectionImage(c) })));
+  // A card shows the collection's own hero_media or the typographic state. A
+  // product photo never stands in for a category.
+  const cards: CollectionCardData[] = collections.map((c) => ({ c, image: c.hero_media }));
   const placeholders = Math.max(0, 4 - featured.length);
 
   const tabs: Tab[] = [
