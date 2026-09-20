@@ -12,6 +12,7 @@ import { TrustBar } from "@/components/home/trust-bar";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
+import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
 import { InquiryBanner } from "@/components/home/inquiry-banner";
@@ -40,9 +41,13 @@ export default async function Home() {
   ]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
-  // A card shows the collection's own hero_media or the typographic state. A
-  // product photo never stands in for a category.
-  const cards: CollectionCardData[] = collections.map((c) => ({ c, image: c.hero_media }));
+  // A card shows the collection's own hero_media, else the Stitch placeholder
+  // for that slug, else the typographic state. A product photo never stands in
+  // for a category.
+  const cards: CollectionCardData[] = collections.map((c) => ({
+    c,
+    image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
+  }));
   const placeholders = Math.max(0, 4 - featured.length);
 
   const tabs: Tab[] = [
