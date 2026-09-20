@@ -81,7 +81,7 @@ export default async function CheckoutPage({ searchParams }: {
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
-          <p className="mt-8 text-champagne/75">{t("checkout", "emptyCart")}</p>
+          <p className="mt-8 text-chalk/75">{t("checkout", "emptyCart")}</p>
           <Button asChild variant="ghost" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
         </div>
       </section>

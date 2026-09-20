@@ -6,7 +6,7 @@ import { dict, type Lang } from "@/lib/i18n";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
 /** Renders numbers returned by the shared RPC. Peso figures are display conversions at the Hub's rate; no layaway math here. */
-export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRateAsOf, className }: { lang: Lang; initialPrice?: number; phpRate: number; phpRateAsOf?: string; className?: string }) {
+export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, className }: { lang: Lang; initialPrice?: number; phpRate: number; className?: string }) {
   const c = dict.calc;
   const [display, setDisplay] = useState<Currency>("JPY");
   const [price, setPrice] = useState(initialPrice);
@@ -30,14 +30,14 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRat
     months: m, label: `${m}`, min_amount: 0, dp_percentage: 0.3, eligible: m <= maxTerm,
   }));
   const fmt = (jpy: number) => (display === "PHP" ? formatMoney(toPhp(jpy, phpRate), "PHP") : formatMoney(jpy, "JPY"));
-  const field = "min-h-11 rounded-sm border border-rule bg-velvet px-3 text-champagne";
+  const field = "min-h-11 rounded-sm border border-rule bg-charcoal px-3 text-chalk";
   return (
-    <form className={cn("grid gap-4 border border-rule bg-velvet-deep p-5 text-sm", className)} onSubmit={(e) => e.preventDefault()}>
+    <form className={cn("grid gap-4 border border-rule bg-charcoal-deep p-5 text-sm", className)} onSubmit={(e) => e.preventDefault()}>
       <div className="grid grid-cols-2 gap-3">
-        <label className="grid gap-1.5 text-champagne/75">{c.price[lang]} (¥)
+        <label className="grid gap-1.5 text-chalk/75">{c.price[lang]} (¥)
           <input type="number" inputMode="numeric" min={1000} step={1000} value={price} onChange={(e) => setPrice(Number(e.target.value) || 0)} className={field} />
         </label>
-        <label className="grid gap-1.5 text-champagne/75">{c.term[lang]}
+        <label className="grid gap-1.5 text-chalk/75">{c.term[lang]}
           <select value={term} onChange={(e) => setTerm(Number(e.target.value))} className={field}>
             {/* A term the Hub has but has not launched is listed and disabled
                 rather than dropped (owner decision 2026-09-16) — same rule as
@@ -54,22 +54,21 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, phpRat
         </label>
       </div>
       <div role="group" aria-label={c.currency[lang]} className="flex w-fit overflow-hidden rounded-sm border border-rule text-xs">
-        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? "bg-gold text-ink" : "text-champagne/75"}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
+        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? "bg-orange text-charcoal-deep" : "text-chalk/75"}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
       <output aria-live="polite" className="grid grid-cols-3 gap-3">
         <Cell k={c.dp[lang]} v={quote ? fmt(quote.down_payment) : "—"} />
         <Cell k={c.monthly[lang]} v={quote ? fmt(quote.monthly) : "—"} />
         <Cell k={c.total[lang]} v={quote ? fmt(quote.total) : "—"} />
       </output>
-      <p className="text-xs text-champagne/55">
+      <p className="text-xs text-chalk/55">
         {pending ? c.updating[lang]
           : error ?? (quote?.term_downgraded ? c.unavailableTerm[lang] : display === "PHP" ? c.phpNote[lang] : c.note[lang])}
       </p>
-      {display === "PHP" && phpRateAsOf && <p className="text-xs text-champagne/45">{c.rateAsOf[lang].replace("{date}", phpRateAsOf.slice(0, 10))}</p>}
     </form>
   );
 }
 /** Only reached against a Hub that predates allowed_terms. */
 const FALLBACK_TERMS = [3, 6, 8, 10, 12];
 
-function Cell({ k, v }: { k: string; v: string }) { return <div><span className="text-xs text-champagne/55">{k}</span><b className="mt-1 block font-display text-2xl font-normal text-gold-pale">{v}</b></div>; }
+function Cell({ k, v }: { k: string; v: string }) { return <div><span className="text-xs text-chalk/55">{k}</span><b className="mt-1 block font-display text-2xl font-normal text-gold-pale">{v}</b></div>; }

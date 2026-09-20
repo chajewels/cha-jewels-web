@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { siteUrl } from "@/lib/site";
-import { Bodoni_Moda, Archivo, Noto_Serif_JP } from "next/font/google";
+import { Playfair_Display, Inter, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
@@ -11,8 +11,8 @@ import { SeoLinks } from "@/lib/page-meta";
 import { dict, tr } from "@/lib/i18n";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 
-const display = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
-const sans = Archivo({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans", display: "swap" });
+const display = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
+const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans", display: "swap" });
 const jp = Noto_Serif_JP({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jp", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,7 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             strips the query from any "/" URL — lib/page-meta.tsx explains. */}
         <SeoLinks />
         <AnalyticsProvider />
-        <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-gold px-3 py-2 text-ink focus:left-2">{t("nav", "skip")}</a>
+        <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
         <Header lang={lang} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>

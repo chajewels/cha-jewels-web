@@ -23,7 +23,7 @@ export default async function FaqPage() {
       <section className="border-b border-rule-soft py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("faq", "h1")}</h1>
-          <p className="mt-5 max-w-[58ch] text-champagne/80">{t("faq", "lede")}</p>
+          <p className="mt-5 max-w-[58ch] text-chalk/80">{t("faq", "lede")}</p>
         </div>
       </section>
       <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
@@ -40,9 +40,9 @@ export default async function FaqPage() {
               </h2>
               {section.items.map((item) => (
                 <details key={item.q.en} className="group border-b border-rule-soft py-5">
-                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 font-display text-[clamp(17px,2vw,22px)] text-champagne marker:hidden">
+                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 font-display text-[clamp(17px,2vw,22px)] text-chalk marker:hidden">
                     {item.q[lang]}
-                    <span aria-hidden="true" className="shrink-0 text-champagne/45 transition-transform group-open:rotate-45">+</span>
+                    <span aria-hidden="true" className="shrink-0 text-chalk/55 transition-transform group-open:rotate-45">+</span>
                   </summary>
                   {item.a.map((block, i) => (
                     // Index is a safe key: an answer's blocks are a fixed,

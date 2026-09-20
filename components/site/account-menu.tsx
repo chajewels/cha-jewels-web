@@ -49,7 +49,7 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: string;
     else if (e.key === "Tab") close(false);
   }
 
-  const itemClass = "block w-full px-4 py-2.5 text-left text-sm text-champagne/85 hover:bg-velvet hover:text-gold-pale focus-visible:bg-velvet focus-visible:text-gold-pale";
+  const itemClass = "block w-full px-4 py-2.5 text-left text-sm text-charcoal/85 hover:bg-chalk hover:text-gold-dark focus-visible:bg-chalk focus-visible:text-gold-dark";
 
   return (
     <div className="relative">
@@ -61,7 +61,7 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: string;
         aria-controls={open ? id : undefined}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => { if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !open) { e.preventDefault(); setOpen(true); } }}
-        className={`inline-flex min-h-9 max-w-[16ch] items-center gap-1.5 whitespace-nowrap rounded-sm border px-3 text-xs ${open ? "border-gold-pale bg-velvet-deep text-gold-pale" : "border-rule text-gold-pale hover:border-gold-pale"}`}
+        className={`inline-flex min-h-9 max-w-[16ch] items-center gap-1.5 whitespace-nowrap rounded-sm border px-3 text-xs ${open ? "border-gold-dark bg-white text-gold-dark" : "border-charcoal/30 text-charcoal hover:border-gold-dark hover:text-gold-dark"}`}
       >
         <span className="truncate">{name}</span>
         <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-3 w-3 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -75,12 +75,12 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: string;
           role="menu"
           aria-label={menuLabel}
           onKeyDown={onMenuKeyDown}
-          className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] rounded-sm border border-rule bg-velvet-deep py-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.5)]"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] rounded-sm border border-hairline bg-white py-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
         >
           {items.map((it) => (
             <Link key={it.href} role="menuitem" tabIndex={-1} href={it.href} onClick={() => close(false)} className={itemClass}>{it.label}</Link>
           ))}
-          <form action={signOutAction} className="mt-1.5 border-t border-rule pt-1.5">
+          <form action={signOutAction} className="mt-1.5 border-t border-hairline pt-1.5">
             <button type="submit" role="menuitem" tabIndex={-1} className={itemClass}>{signOut}</button>
           </form>
         </div>

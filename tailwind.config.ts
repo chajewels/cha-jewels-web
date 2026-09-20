@@ -4,14 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        velvet: { DEFAULT: "#0F2A22", deep: "#0A1D17", soft: "#143A2F" },
+        charcoal: { DEFAULT: "#333333", deep: "#222222", mid: "#444444" },
+        chalk: "#F5F5F2",
         gold: { DEFAULT: "#C9A227", pale: "#E8D28A", dark: "#8A6B12" },
-        champagne: "#F3EBDB",
-        ink: "#17130E",
-        garnet: "#7A1E2B",
+        orange: { DEFAULT: "#FFA500", hover: "#FFB733" },
+        teal: "#1ABC9C",
+        garnet: { DEFAULT: "#7A1E2B", light: "#F28B94" },
+        hairline: "#E5E5E0",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Didot", "serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
         jp: ["var(--font-jp)", "Hiragino Mincho ProN", "serif"],
         sans: ["var(--font-sans)", "Helvetica Neue", "Arial", "sans-serif"],
       },
