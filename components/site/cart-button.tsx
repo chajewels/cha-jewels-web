@@ -21,7 +21,7 @@ export async function CartButton({ lang }: { lang: Lang }) {
     <Link
       href="/cart"
       aria-label={label}
-      className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-sm border border-charcoal/30 px-3 text-sm text-charcoal hover:border-gold-dark hover:text-gold-dark"
+      className="inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-charcoal/30 px-2 text-sm text-charcoal hover:border-gold-dark hover:text-gold-dark sm:gap-2 sm:px-3"
     >
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8Z" />

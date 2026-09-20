@@ -61,6 +61,15 @@ add("gold-dark text on chalk (light band)", "gold-dark", "chalk", TEXT);
 add("gold-dark text on white (card)", "gold-dark", "white", TEXT);
 add("charcoal text on white (card)", "charcoal", "white", TEXT);
 add("gold-dark heading >=24px on chalk", "gold-dark", "chalk", LARGE);
+// Light calculator card (tone="light" in components/commerce/layaway-calculator.tsx).
+add("charcoal-deep figures on white (light calculator)", "charcoal-deep", "white", TEXT);
+add("gold-dark monthly figure on white (light calculator)", "gold-dark", "white", TEXT);
+// charcoal/60 on white is 3.5:1 and FAILS — the light card uses /70 (4.9:1) for
+// keys, labels and the note; /60 is in the must-fail set below.
+add("charcoal/70 keys, labels and note on white (light calculator)", "charcoal", "white", TEXT, 0.7);
+add("charcoal on chalk input (light calculator)", "charcoal", "chalk", TEXT);
+add("white on charcoal-deep (selected term)", "white", "charcoal-deep", TEXT);
+add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "orange", TEXT);
 
 // Hero scrim (app/globals.css .hero-scrim) on the hero video's bright frames.
 // The headline sits under the .80 stop; body copy reaches the .52 stop.
@@ -93,7 +102,7 @@ add("gold-dark heading >=24px on chalk", "gold-dark", "chalk", LARGE);
 }
 
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
-const mustFail = [["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT], ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT], ["orange", "chalk", 1, TEXT]];
+const mustFail = [["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT], ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT], ["orange", "chalk", 1, TEXT], ["charcoal", "white", 0.6, TEXT]];
 
 let bad = 0;
 const w = Math.max(...pairs.map((p) => p.label.length));

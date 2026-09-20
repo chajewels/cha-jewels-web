@@ -1,13 +1,68 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { layawayQuote } from "@/lib/layaway";
 import { formatMoney, toPhp, cn, type Currency } from "@/lib/utils";
 import { dict, type Lang } from "@/lib/i18n";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
-/** Renders numbers returned by the shared RPC. Peso figures are display conversions at the Hub's rate; no layaway math here. */
-export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, className }: { lang: Lang; initialPrice?: number; phpRate: number; className?: string }) {
+
+export type CalculatorTone = "dark" | "light";
+
+/**
+ * Surface classes by tone. "dark" is the calculator exactly as it has always
+ * rendered (/layaway, product pages) — the strings below are the original
+ * literals, unchanged, so that output is byte-identical. "light" is the white
+ * card the homepage's charcoal band calls for. Colour lives here and nowhere
+ * else in the component. charcoal/60 on white is 3.69:1 and fails, so the
+ * light card's secondary text is /70 (4.95:1) — see scripts/check-contrast.mjs.
+ */
+const TONES = {
+  dark: {
+    form: "grid gap-4 border border-rule bg-charcoal-deep p-5 text-sm",
+    label: "grid gap-1.5 text-chalk/75",
+    field: "min-h-11 rounded-sm border border-rule bg-charcoal px-3 text-chalk",
+    toggle: "flex w-fit overflow-hidden rounded-sm border border-rule text-xs",
+    toggleOn: "bg-orange text-charcoal-deep",
+    toggleOff: "text-chalk/75",
+    cellKey: "text-xs text-chalk/55",
+    cellValue: "mt-1 block font-display text-2xl font-normal text-gold-pale",
+    cellMonthly: "mt-1 block font-display text-2xl font-normal text-gold-pale",
+    note: "text-xs text-chalk/55",
+  },
+  light: {
+    form: "grid gap-4 rounded-sm border border-hairline bg-white p-5 text-sm text-charcoal shadow-sm",
+    label: "grid gap-1.5 text-charcoal/70",
+    field: "min-h-11 rounded-sm border border-hairline bg-chalk px-3 text-charcoal",
+    toggle: "flex w-fit overflow-hidden rounded-sm border border-hairline text-xs",
+    toggleOn: "bg-orange text-charcoal-deep",
+    toggleOff: "text-charcoal/70",
+    cellKey: "text-xs text-charcoal/70",
+    cellValue: "mt-1 block font-display text-2xl font-normal text-charcoal-deep",
+    cellMonthly: "mt-1 block font-display text-2xl font-normal text-gold-dark",
+    note: "text-xs text-charcoal/70",
+  },
+} as const;
+
+/**
+ * Renders numbers returned by the shared RPC. Peso figures are display
+ * conversions at the Hub's rate; no layaway math here.
+ *
+ * `tone` picks the surface only. `header` and `cta` are optional card
+ * furniture (the homepage passes them); with neither, and tone "dark", the
+ * markup is exactly what it was before the prop existed.
+ */
+export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, className, tone = "dark", header, cta }: {
+  lang: Lang;
+  initialPrice?: number;
+  phpRate: number;
+  className?: string;
+  tone?: CalculatorTone;
+  header?: { title: string; sub: string; chip: string };
+  cta?: { label: string; href: string };
+}) {
   const c = dict.calc;
+  const s = TONES[tone];
   const [display, setDisplay] = useState<Currency>("JPY");
   const [price, setPrice] = useState(initialPrice);
   const [term, setTerm] = useState(6);
@@ -30,38 +85,75 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
     months: m, label: `${m}`, min_amount: 0, dp_percentage: 0.3, eligible: m <= maxTerm,
   }));
   const fmt = (jpy: number) => (display === "PHP" ? formatMoney(toPhp(jpy, phpRate), "PHP") : formatMoney(jpy, "JPY"));
-  const field = "min-h-11 rounded-sm border border-rule bg-charcoal px-3 text-chalk";
+  // A term the Hub has but has not launched is listed and disabled rather
+  // than dropped (owner decision 2026-09-16) — same rule as the reservation
+  // flow, one source in lib/layaway-availability.
+  const termOff = (tm: (typeof terms)[number]) => !termLaunched(tm.months) || !tm.eligible;
+  const termSuffix = (tm: (typeof terms)[number]) =>
+    !termLaunched(tm.months) ? ` · ${c.notLaunched[lang]}` : tm.min_amount > 0 ? ` · ${c.minFrom[lang].replace("{amount}", fmt(tm.min_amount))}` : "";
+  const field = s.field;
   return (
-    <form className={cn("grid gap-4 border border-rule bg-charcoal-deep p-5 text-sm", className)} onSubmit={(e) => e.preventDefault()}>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="grid gap-1.5 text-chalk/75">{c.price[lang]} (¥)
+    <form className={cn(s.form, className)} onSubmit={(e) => e.preventDefault()}>
+      {header && (
+        <div className="flex items-start justify-between gap-3 border-b border-hairline pb-4">
+          <div>
+            <p className="font-display text-xl text-charcoal-deep">{header.title}</p>
+            <p className="mt-0.5 text-xs text-charcoal/70">{header.sub}</p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-chalk px-2.5 py-1 text-[11px] font-semibold text-charcoal">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-teal" />{header.chip}
+          </span>
+        </div>
+      )}
+      <div className={tone === "light" ? "grid gap-3" : "grid grid-cols-2 gap-3"}>
+        <label className={s.label}>{c.price[lang]} (¥)
           <input type="number" inputMode="numeric" min={1000} step={1000} value={price} onChange={(e) => setPrice(Number(e.target.value) || 0)} className={field} />
         </label>
-        <label className="grid gap-1.5 text-chalk/75">{c.term[lang]}
-          <select value={term} onChange={(e) => setTerm(Number(e.target.value))} className={field}>
-            {/* A term the Hub has but has not launched is listed and disabled
-                rather than dropped (owner decision 2026-09-16) — same rule as
-                the reservation flow, one source in lib/layaway-availability. */}
-            {terms.map((tm) => (
-              <option key={tm.months} value={tm.months} disabled={!termLaunched(tm.months) || !tm.eligible}>
-                {tm.months}
-                {!termLaunched(tm.months)
-                  ? ` · ${c.notLaunched[lang]}`
-                  : tm.min_amount > 0 ? ` · ${c.minFrom[lang].replace("{amount}", fmt(tm.min_amount))}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+        {tone === "light" ? (
+          <fieldset className={s.label}>
+            <legend className="mb-1.5">{c.term[lang]}</legend>
+            <div className="flex flex-wrap gap-2">
+              {terms.map((tm) => (
+                <button
+                  key={tm.months}
+                  type="button"
+                  disabled={termOff(tm)}
+                  aria-pressed={term === tm.months}
+                  onClick={() => setTerm(tm.months)}
+                  className={`min-h-10 rounded-sm border px-3 text-sm ${term === tm.months ? "border-charcoal-deep bg-charcoal-deep text-white" : "border-hairline bg-chalk text-charcoal hover:border-charcoal/40"} disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  {tm.months}{termSuffix(tm)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        ) : (
+          <label className={s.label}>{c.term[lang]}
+            <select value={term} onChange={(e) => setTerm(Number(e.target.value))} className={field}>
+              {terms.map((tm) => (
+                <option key={tm.months} value={tm.months} disabled={termOff(tm)}>
+                  {tm.months}
+                  {termSuffix(tm)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
-      <div role="group" aria-label={c.currency[lang]} className="flex w-fit overflow-hidden rounded-sm border border-rule text-xs">
-        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? "bg-orange text-charcoal-deep" : "text-chalk/75"}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
+      <div role="group" aria-label={c.currency[lang]} className={s.toggle}>
+        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? s.toggleOn : s.toggleOff}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
       <output aria-live="polite" className="grid grid-cols-3 gap-3">
-        <Cell k={c.dp[lang]} v={quote ? fmt(quote.down_payment) : "—"} />
-        <Cell k={c.monthly[lang]} v={quote ? fmt(quote.monthly) : "—"} />
-        <Cell k={c.total[lang]} v={quote ? fmt(quote.total) : "—"} />
+        <Cell k={c.dp[lang]} v={quote ? fmt(quote.down_payment) : "—"} keyClass={s.cellKey} valueClass={s.cellValue} />
+        <Cell k={c.monthly[lang]} v={quote ? fmt(quote.monthly) : "—"} keyClass={s.cellKey} valueClass={s.cellMonthly} />
+        <Cell k={c.total[lang]} v={quote ? fmt(quote.total) : "—"} keyClass={s.cellKey} valueClass={s.cellValue} />
       </output>
-      <p className="text-xs text-chalk/55">
+      {cta && (
+        <Link href={cta.href} className="inline-flex min-h-12 items-center justify-center rounded-sm border border-transparent bg-orange px-6 py-3 text-[15px] font-medium text-charcoal-deep transition-[background-color] duration-300 hover:bg-orange-hover">
+          {cta.label}
+        </Link>
+      )}
+      <p className={s.note}>
         {pending ? c.updating[lang]
           : error ?? (quote?.term_downgraded ? c.unavailableTerm[lang] : display === "PHP" ? c.phpNote[lang] : c.note[lang])}
       </p>
@@ -71,4 +163,4 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
 /** Only reached against a Hub that predates allowed_terms. */
 const FALLBACK_TERMS = [3, 6, 8, 10, 12];
 
-function Cell({ k, v }: { k: string; v: string }) { return <div><span className="text-xs text-chalk/55">{k}</span><b className="mt-1 block font-display text-2xl font-normal text-gold-pale">{v}</b></div>; }
+function Cell({ k, v, keyClass, valueClass }: { k: string; v: string; keyClass: string; valueClass: string }) { return <div><span className={keyClass}>{k}</span><b className={valueClass}>{v}</b></div>; }
