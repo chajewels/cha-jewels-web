@@ -108,14 +108,32 @@ export default async function Home() {
           section and the calculator go together — a calculator with no
           explanation is worse than neither. See lib/layaway-availability. */}
       {layaway && (
-        <section id="layaway" className="scroll-mt-20 border-t border-hairline bg-hairline/40 py-16 lg:py-20">
-          <div className="wrap grid gap-10 lg:grid-cols-12 lg:gap-12">
-            <div className="lg:col-span-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "layEyebrow")}</p>
-              <h2 className="mt-3 max-w-[20ch] text-[clamp(28px,3.6vw,44px)]">{t("home", "layH")}</h2>
-              <p className="mt-4 max-w-[46ch] text-charcoal/75">{t("home", "layP")}</p>
+        <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
+          <div className="wrap grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-6">
+              <span className="inline-block rounded-full bg-orange px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{t("home", "layPill")}</span>
+              <h2 className="mt-5 max-w-[20ch] font-display text-[clamp(28px,3.6vw,44px)] text-gold-pale">{t("home", "layH")}</h2>
+              <p className="mt-4 max-w-[46ch] text-chalk/75">{t("home", "layP")}</p>
+              <ol className="mt-8 grid gap-5">
+                {([1, 2, 3] as const).map((n) => (
+                  <li key={n} className="flex gap-4">
+                    <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-orange font-display text-sm font-medium text-charcoal-deep">{n}</span>
+                    <div>
+                      <p className="font-medium text-chalk">{t("home", `layStep${n}H`)}</p>
+                      <p className="mt-1 text-sm text-chalk/75">{t("home", `layStep${n}P`)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
-            <LayawayCalculator lang={lang} phpRate={fx.jpy_php} className="lg:col-span-7" />
+            <LayawayCalculator
+              lang={lang}
+              phpRate={fx.jpy_php}
+              tone="light"
+              header={{ title: t("home", "layCalcH"), sub: t("home", "layCalcP"), chip: t("home", "layCalcChip") }}
+              cta={{ label: t("home", "layCta"), href: "/layaway" }}
+              className="lg:col-span-6"
+            />
           </div>
         </section>
       )}
