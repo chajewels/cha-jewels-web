@@ -31,11 +31,12 @@ export const revalidate = 60;
  */
 
 export default async function Home() {
-  const [lang, collections, featured, fx] = await Promise.all([
+  const [lang, collections, featured, fx, testimonials] = await Promise.all([
     getLang(),
     getCollections().catch(() => []),
     getFeaturedProducts(8).catch(() => []),
     hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" })),
+    hub.testimonials(),
   ]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
@@ -122,8 +123,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* §9 Testimonials — placeholder cards until verified quotes exist */}
-      <Testimonials lang={lang} />
+      {/* §9 Testimonials — from the Hub; placeholder cards until it publishes one */}
+      <Testimonials lang={lang} items={testimonials} />
 
       {/* §10 New arrivals — Hub data only; dashed placeholders fill to four */}
       <section className="border-t border-hairline bg-hairline/40 py-16 lg:py-20">

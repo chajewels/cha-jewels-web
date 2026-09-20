@@ -1,5 +1,5 @@
 import "server-only";
-import type { CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, SettlementCurrency } from "@/lib/types";
+import type { CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, SettlementCurrency, Testimonial } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 
 /**
@@ -61,6 +61,15 @@ export const hub = {
   /** Quote is always computed in JPY by the Hub. Peso display uses hub.fx(). */
   layawayQuote: (price: number, term_months: number): Promise<LayawayQuote> =>
     FIXTURES ? Promise.resolve(fx.quote(price, term_months, "JPY")) : call("/layaway/quote", { method: "POST", body: JSON.stringify({ price, term_months, currency: "JPY" }), revalidate: false }),
+  /**
+   * Published testimonials. Tolerant of the route not existing yet: a 404 (or
+   * any failure) while the Hub has not deployed /testimonials renders the
+   * homepage placeholders and never breaks the page. Nothing is logged.
+   */
+  testimonials: async (): Promise<Testimonial[]> => {
+    if (FIXTURES) return [];
+    try { return await call("/testimonials"); } catch { return []; }
+  },
   fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: 0.39, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"] }),
   loyaltyTiers: (): Promise<HubTier[]> =>
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
