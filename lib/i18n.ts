@@ -148,10 +148,15 @@ export const dict = {
     testiEyebrow: { ja: "ご愛用者様の声", en: "Voices" },
     testiH: { ja: "お客様の声", en: "Customer stories" },
     testiP: { ja: "Cha Jewelsでお選びいただいたお客様からのご感想をご紹介します。", en: "Notes from customers who chose Cha Jewels." },
-    testiPhQuote: { ja: "「確認済みのお客様の声をここに掲載」", en: "“Verified customer quote goes here”" },
-    testiPhName: { ja: "お客様名", en: "Customer name" },
-    testiPhItem: { ja: "ご購入商品またはご利用サービス", en: "Item or service" },
-    testiPhPill: { ja: "日本国内検品済み・ご購入者様", en: "Checked in Japan · Verified buyer" },
+    // Three ILLUSTRATIVE placeholder testimonials from the Stitch mock. They render
+    // only while hub.testimonials() is empty and are replaced by the first
+    // published Hub testimonial (components/home/testimonials.tsx).
+    testiPh1Quote: { ja: "アコヤ真珠のペンダントは、書類一式と封印付きでマニラに届きました。レイアウェイのおかげで、純度の高いK18を無理なく手にできました。", en: "The Akoya pearl pendant arrived in Manila with full documentation and a tamper-proof seal. The layaway plan made investing in pure K18 accessible without any pressure." },
+    testiPh1Name: { ja: "Maria Christina V.", en: "Maria Christina V." }, testiPh1Loc: { ja: "Makati City, Philippines", en: "Makati City, Philippines" }, testiPh1Item: { ja: "Akoya Solitaire", en: "Akoya Solitaire" },
+    testiPh2Quote: { ja: "日本国内でのホールマーク刻印確認と正確なグラム表記があり、とても信頼できるサロンです。ヴィンテージ喜平ネックレスの磨き上げも完璧で、新品同様の輝きでした。", en: "Hallmark verified in Japan with exact gram weights — a salon I can trust. The vintage Kihei necklace was polished to a like-new shine." },
+    testiPh2Name: { ja: "Kenji Sato (佐藤 健二)", en: "Kenji Sato (佐藤 健二)" }, testiPh2Loc: { ja: "Yokohama, Japan", en: "Yokohama, Japan" }, testiPh2Item: { ja: "K18 Cuban 50cm", en: "K18 Cuban 50cm" },
+    testiPh3Quote: { ja: "6か月のレイアウェイで三色のバングルを購入しました。東京でルーペ越しの動画で状態を確認させてもらえて、本当に安心できました。", en: "I ordered the tri-color interlocking bangle through their 6-month layaway. Customer service provided video updates under the loupe in Tokyo. Truly authentic, seamless cross-border service." },
+    testiPh3Name: { ja: "Therese Angela D.", en: "Therese Angela D." }, testiPh3Loc: { ja: "Cebu City, Philippines", en: "Cebu City, Philippines" }, testiPh3Item: { ja: "Tri-Color Bangle", en: "Tri-Color Bangle" },
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },
   },
   product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, reserved: { ja: "予約済み", en: "Currently reserved" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout." } },
