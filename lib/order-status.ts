@@ -3,6 +3,16 @@ import { dict } from "@/lib/i18n";
 import type { HubOrder } from "@/lib/types";
 
 /**
+ * The three states a status badge can be in, and the only place this union is
+ * spelled out. It was written inline in four signatures across two modules
+ * before the badge needed it as a prop, which would have made five.
+ *
+ * `pending` is waiting on someone, `good` is settled in the customer's favour,
+ * `dead` is ended without one — cancelled, expired, refunded, forfeited.
+ */
+export type Tone = "pending" | "good" | "dead";
+
+/**
  * One label for the two status columns the Hub keeps.
  *
  * `status` is the Hub's own cash_order_status, which every internal surface
@@ -10,7 +20,7 @@ import type { HubOrder } from "@/lib/types";
  * plain sentence, so shipped beats paid, and a cancelled order says cancelled
  * whichever column recorded it.
  */
-export function orderStatusLabel(order: HubOrder, lang: Lang): { text: string; tone: "pending" | "good" | "dead" } {
+export function orderStatusLabel(order: HubOrder, lang: Lang): { text: string; tone: Tone } {
   const k = (key: keyof typeof dict.orders) => dict.orders[key][lang];
 
   // EVERY ENDED STATE IS TESTED BEFORE `shipped_at`, fixed 2026-09-15 alongside
@@ -60,7 +70,7 @@ export function refundLabel(status: HubOrder["refund_status"], lang: Lang): stri
 export const isClosedOrder = (order: HubOrder) =>
   order.status === "cancelled" || order.status === "expired" || order.payment_status === "cancelled";
 
-export const toneClass = (tone: "pending" | "good" | "dead") =>
+export const toneClass = (tone: Tone) =>
   tone === "good" ? "border-gold text-gold-pale"
   : tone === "dead" ? "border-rule text-chalk/55"
   : "border-gold/60 text-chalk/80";

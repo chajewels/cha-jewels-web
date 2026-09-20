@@ -22,7 +22,8 @@ import { DEFAULT_LANG } from "@/lib/i18n";
  * PROPERTY BUDGET — Vercel Pro allows TWO custom properties per event.
  * `product_view` and `add_to_cart` spend them on `sku` and `lang`; `search`
  * spends them on `q` (the normalized term, at most 64 characters) and
- * `results`; `hero_slide_cta` spends them on `slug` and `lang`. Adding a third
+ * `results`; `hero_slide_cta` spends them on `slug` and `lang`;
+ * `service_request` spends them on `kind` and `lang`. Adding a third
  * silently costs money (Web Analytics Plus), so it is an owner decision, not a
  * code decision — emit() drops any event that carries more than the ceiling
  * rather than let one slip through.
@@ -260,4 +261,16 @@ export function trackHeroSlideCta(slug: string): void {
   if (!slug) return;
   const lang = (typeof document !== "undefined" && document.documentElement.lang) || DEFAULT_LANG;
   emit("hero_slide_cta", { slug, lang });
+}
+
+/**
+ * A service request that actually landed. Called after the Server Action has
+ * resolved ok — never from the click, or the number measures intent rather
+ * than requests, the same rule as trackAddToCart. `kind` is one of the five
+ * request kinds (resize, cleaning, repair, appraisal, other); `lang` is the
+ * language the form was filled in. Two properties: the budget, spent.
+ */
+export function trackServiceRequest(kind: string, lang: string): void {
+  if (!kind) return;
+  emit("service_request", { kind, lang });
 }

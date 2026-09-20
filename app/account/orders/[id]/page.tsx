@@ -7,9 +7,14 @@ import { orderLineTitle } from "@/lib/catalog-i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { orderStatusLabel, refundLabel, toneClass } from "@/lib/order-status";
+import { orderStatusLabel, refundLabel } from "@/lib/order-status";
+import type { ServiceRequest } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
+import { StatusBadge } from "@/components/account/status-badge";
+import { PrintButton } from "@/components/account/print-button";
+import { PrintHeader } from "@/components/account/print-header";
+import { ServiceRequestForm } from "@/components/account/service-request-form";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -24,7 +29,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const { data: sessionData } = await supabase.auth.getSession();
   const jwt = sessionData.session?.access_token;
 
-  const detail = jwt ? await hub.order(jwt, id).catch(() => null) : null;
+  // The requests are read alongside the order; a Hub that cannot answer for
+  // them must not take the order page down with it, so they fall back to none.
+  const [detail, requests] = jwt
+    ? await Promise.all([hub.order(jwt, id).catch(() => null), hub.serviceRequests(jwt).catch((): ServiceRequest[] => [])])
+    : [null, [] as ServiceRequest[]];
   if (!detail) {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">
@@ -44,15 +53,23 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { dateStyle: "medium" });
   const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
   const refund = refundLabel(order.refund_status, lang);
+  const ownRequests = requests.filter((r) => r.cash_order_id === order.id);
+
+  const placed = (order.order_date ?? order.created_at).slice(0, 10);
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
-        <Link href="/account/orders" className="text-sm text-chalk/55 underline underline-offset-4">{t("orders", "back")}</Link>
+        <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
+
+        <Link href="/account/orders" className="print-hide text-sm text-chalk/55 underline underline-offset-4">{t("orders", "back")}</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-gold-pale">{order.web_reference ?? order.invoice_number ?? "—"}</h1>
-          <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <StatusBadge tone={status.tone} text={status.text} />
+            <PrintButton label={t("account", "print")} />
+          </div>
         </div>
 
         {/* A Hub-arranged order records its pieces on the invoice, not in this
@@ -85,6 +102,16 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           )}
           <Row k={t("orders", "total")} v={formatMoney(Number(order.total_amount), order.currency)} />
         </dl>
+
+        {/* Work on the piece — a resize, a cleaning, a repair — asked for here,
+            next to the order it came with. Not offered on a closed order. */}
+        <ServiceRequestForm
+          lang={lang}
+          target={{ cash_order_id: order.id }}
+          items={items.map((line) => ({ value: line.title, label: orderLineTitle(line, lang) }))}
+          initial={ownRequests}
+          canRequest={status.tone !== "dead"}
+        />
 
         {address && (
           <div className="mt-10 border border-rule p-5 text-sm text-chalk/80">

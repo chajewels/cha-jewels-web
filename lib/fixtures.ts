@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, SettlementCurrency, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 /** Plans in `layawayPlansFixture`, stated here because `meFixture` is declared first. */
@@ -465,4 +465,36 @@ export function layawayPlanFixture(id: string): HubLayawayDetail | null {
     transfer_region: "JP",
     transfer_methods: fixtureMethods,
   };
+}
+
+/**
+ * Service requests: one answered request on each fixture record, plus whatever
+ * the preview raises. Module state, so a request made in the preview shows up
+ * in the list on the next render the way a real one would.
+ */
+const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
+const serviceRequestsStore: ServiceRequest[] = [
+  {
+    id: "sr-1", cash_order_id: FIXTURE_ORDER_ID, layaway_plan_id: null, item_title: "Twist bangle", kind: "cleaning",
+    details: "The clasp has dulled. Please clean it and check the hinge.", ring_size: null, status: "in_progress",
+    customer_note: "Received on Tuesday. It will be back with you within the week.", created_at: daysAgo(6), updated_at: daysAgo(2),
+  },
+  {
+    id: "sr-2", cash_order_id: null, layaway_plan_id: FIXTURE_PLAN_ID, item_title: null, kind: "resize",
+    details: "Please size the ring down before it ships.", ring_size: "11", status: "completed",
+    customer_note: null, created_at: daysAgo(20), updated_at: daysAgo(12),
+  },
+];
+export function serviceRequestsFixture(): ServiceRequest[] {
+  return [...serviceRequestsStore].sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+export function createServiceRequestFixture(body: ServiceRequestInput): ServiceRequest {
+  const now = new Date().toISOString();
+  const row: ServiceRequest = {
+    id: `sr-${Date.now()}`, cash_order_id: body.cash_order_id ?? null, layaway_plan_id: body.layaway_plan_id ?? null,
+    item_title: body.item_title ?? null, kind: body.kind, details: body.details, ring_size: body.ring_size ?? null,
+    status: "requested", customer_note: null, created_at: now, updated_at: now,
+  };
+  serviceRequestsStore.unshift(row);
+  return row;
 }

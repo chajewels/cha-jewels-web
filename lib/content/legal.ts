@@ -51,6 +51,20 @@ export type LegalArticle = { n?: number; h: Record<Lang, string>; blocks: LegalB
 export const COMPANY_NAME = "\uFF23\uFF48\uFF41\u3000\uFF2A\uFF45\uFF57\uFF45\uFF4C\uFF53\u682A\u5F0F\u4F1A\u793E";
 
 /**
+ * The registered address, factored out for the same reason COMPANY_NAME is:
+ * it is an identifier, and every surface that prints it must print the same
+ * characters. The tokusho row below is the statutory disclosure and reads from
+ * here; so does the invoice header on the account pages.
+ *
+ * English is written in the order Japan Post accepts from abroad — building
+ * and room first, then block, ward, city, postal code, country.
+ */
+export const COMPANY_ADDRESS: Record<Lang, string> = {
+  ja: "\u3012124-0012 \u6771\u4eac\u90fd\u845b\u98fe\u533a\u7acb\u77f36-5-1 \u30bf\u30a4\u30e0\u30de\u30f3\u30b7\u30e7\u30f3301",
+  en: "Time Mansion 301, 6-5-1 Tateishi, Katsushika-ku, Tokyo 124-0012, Japan",
+};
+
+/**
  * RETURN, CANCELLATION AND REFUND POLICY — owner-supplied text, 2026-09-15.
  *
  * The English is Cynthia's, verbatim. The Japanese is MY TRANSLATION and is a
@@ -332,10 +346,7 @@ export const tokusho = {
     },
     {
       k: { ja: "所在地", en: "Address" },
-      v: {
-        ja: "〒124-0012 東京都葛飾区立石6-5-1 タイムマンション301",
-        en: "Time Mansion 301, 6-5-1 Tateishi, Katsushika-ku, Tokyo 124-0012, Japan",
-      },
+      v: COMPANY_ADDRESS,
     },
     {
       k: { ja: "電話番号", en: "Telephone" },
