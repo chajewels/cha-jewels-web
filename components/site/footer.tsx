@@ -13,8 +13,8 @@ import { layawayOffered } from "@/lib/layaway-availability";
  * page. Nothing here names a collection: add or rename one in the Hub and the
  * footer follows. If the Hub is unreachable the list is just "All".
  *
- * The file's 配送・返品について link pointed at /shipping-returns, which does not
- * exist; it goes to the existing legal route (/legal/returns) instead.
+ * The Stitch file's shipping-and-returns link pointed at /shipping-returns,
+ * which does not exist; it maps to the existing /legal/returns route.
  */
 export async function Footer({ lang }: { lang: Lang }) {
   const t = tr(lang);

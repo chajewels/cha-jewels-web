@@ -131,7 +131,7 @@ export default async function Home() {
       </section>
 
       {/* §9 Testimonials — placeholder cards until verified quotes exist */}
-      <Testimonials />
+      <Testimonials lang={lang} />
 
       {/* §10 New arrivals — Hub data only; dashed placeholders fill to four */}
       <section className="border-t border-hairline bg-hairline/40 py-16 lg:py-20">
