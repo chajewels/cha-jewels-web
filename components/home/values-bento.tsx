@@ -1,11 +1,16 @@
 import Image from "next/image";
-import { BadgeCheck, Hammer, Scale, ShieldCheck, Sparkles } from "lucide-react";
+import { Hammer, Scale, ShieldCheck, Sparkles } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 
 /**
  * Our Values (Stitch §5): header, then the 7/5 bento — four charcoal cards
- * (01–04) and the workshop photo card. All copy from the dictionary's
+ * (01–04) and the artisan photo card. All copy from the dictionary's
  * home.value* keys; the Stitch wording differed slightly and the dictionary won.
+ *
+ * The photo card is the photo alone: the caption bar and the pill/location
+ * overlay are gone, and the gradient with them — it existed only to keep that
+ * overlay legible. object-position 60% center holds the hands and the pearls
+ * in frame as the card crops to its tall shape.
  */
 export function ValuesBento({ lang }: { lang: Lang }) {
   const t = tr(lang);
@@ -38,16 +43,7 @@ export function ValuesBento({ lang }: { lang: Lang }) {
           </div>
           <div className="flex flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm lg:col-span-5">
             <div className="relative min-h-[220px] flex-1 lg:min-h-[320px]">
-              <Image src="/images/home/pomelli-values.webp" alt={t("home", "valuesImageAlt")} fill sizes="(max-width: 1023px) 100vw, 40vw" className="object-cover" />
-              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent" />
-              <div className="absolute inset-x-3 bottom-2.5 flex items-center justify-between text-chalk">
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-teal" />{t("home", "valuesPill")}</span>
-                <span className="rounded-sm bg-charcoal/60 px-2 py-0.5 text-[11px] backdrop-blur-sm">{t("home", "valuesPlace")}</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between gap-3 bg-chalk p-3 text-sm text-charcoal">
-              <p className="font-medium">{t("home", "valuesCaption")}</p>
-              <BadgeCheck aria-hidden="true" className="h-4 w-4 shrink-0 text-charcoal" />
+              <Image src="/images/home/values-artisan.webp" alt={t("home", "valuesImageAlt")} fill sizes="(max-width: 1023px) 100vw, 40vw" className="object-cover object-[60%_center]" />
             </div>
           </div>
         </div>

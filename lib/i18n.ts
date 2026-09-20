@@ -115,7 +115,7 @@ export const dict = {
     valuesEyebrow: { ja: "Cha Jewelsが大切にすること", en: "What guides every piece" },
     valuesH: { ja: "私たちの価値観", en: "Our Values" },
     valuesP: { ja: "私たちが選ぶすべてのジュエリーには、流行を超える美しさ、分かりやすい価値、丁寧な仕立て、そして信頼できる品質という4つの基準があります。", en: "Every piece we choose is guided by four standards: beauty beyond trends, value you can understand, careful workmanship and quality you can trust." },
-    valuesImageAlt: { ja: "ジュエリー職人の道具と金の削り粉", en: "Jeweler's tools and gold filings on a workbench" },
+    valuesImageAlt: { ja: "真珠を糸に通す職人の手元", en: "An artisan's hands stringing pearls at a workbench" },
     valueTimelessH: { ja: "普遍性", en: "Timeless" },
     valueTimelessP: { ja: "流行に左右されず、世代を超えて身につけられるデザインを選びます。", en: "We choose designs made to stay relevant beyond seasons and trends." },
     valueWorthH: { ja: "価値", en: "Value" },
@@ -132,7 +132,6 @@ export const dict = {
     // Phase 4 (Stitch homepage). New keys only where the design had text with no
     // existing key; where the file's Japanese differed from a key above, the key won.
     trust1H: { ja: "日本国内検品済み", en: "Checked in Japan" },
-    valuesPill: { ja: "工房での国内検品", en: "Checked in our workshop" }, valuesPlace: { ja: "東京・葛飾", en: "Katsushika, Tokyo" }, valuesCaption: { ja: "東京・葛飾区 検品・品質確認", en: "Inspection and quality check, Katsushika, Tokyo" },
     colsEyebrow: { ja: "カテゴリーから選ぶ", en: "Browse by category" }, colsLink: { ja: "コレクションを見る", en: "View collection" },
     layEyebrow: { ja: "無金利レイアウェイ", en: "0% interest layaway" },
     newEyebrow: { ja: "一点物・新着品", en: "One-of-a-kind, newly listed" }, newDetail: { ja: "詳細を見る", en: "View details" },
