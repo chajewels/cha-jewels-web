@@ -12,6 +12,8 @@ import { canPayHere, isLivePlan, planNote, planStatusLabel, remainingIsPayable, 
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { LayawayPayForm } from "@/components/commerce/layaway-pay-form";
+import { PrintButton } from "@/components/account/print-button";
+import { PrintHeader } from "@/components/account/print-header";
 
 export const generateMetadata = () => pageMeta("layaway");
 export const dynamic = "force-dynamic";
@@ -97,14 +99,21 @@ export default async function LayawayPlanPage({ params, searchParams }: {
     ? Number(plan.downpayment_amount)
     : Number(nextRow?.actual_remaining ?? plan.remaining_balance);
 
+  const placed = (plan.order_date ?? plan.created_at).slice(0, 10);
+
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
-        <Link href="/account/layaway" className="text-sm text-chalk/55 underline underline-offset-4">{t("plans", "back")}</Link>
+        <PrintHeader lang={lang} invoiceNumber={plan.invoice_number} reference={plan.web_reference} date={placed} />
+
+        <Link href="/account/layaway" className="print-hide text-sm text-chalk/55 underline underline-offset-4">{t("plans", "back")}</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-gold-pale">{plan.web_reference ?? plan.invoice_number ?? "—"}</h1>
-          <StatusBadge tone={status.tone} text={status.text} />
+          <div className="flex flex-wrap items-center gap-3">
+            <StatusBadge tone={status.tone} text={status.text} />
+            <PrintButton label={t("account", "print")} />
+          </div>
         </div>
 
         {/* What this state means, in one sentence. Closed plans get no
@@ -225,13 +234,17 @@ export default async function LayawayPlanPage({ params, searchParams }: {
             </div>
 
             {payHere ? (
-              <LayawayPayForm
-                accountId={plan.id}
-                lang={lang}
-                currency={plan.currency}
-                suggestedAmount={Math.max(0, Math.round(suggested))}
-                methods={methods}
-              />
+              /* The pay form and its proof upload are an action, not a
+                 record of one: they have no place on a printed statement. */
+              <div className="print-hide">
+                <LayawayPayForm
+                  accountId={plan.id}
+                  lang={lang}
+                  currency={plan.currency}
+                  suggestedAmount={Math.max(0, Math.round(suggested))}
+                  methods={methods}
+                />
+              </div>
             ) : (
               /* Reporting a transfer for a Hub-arranged plan happens in the
                  portal. The link is the Hub's own — bare for a customer with a

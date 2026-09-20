@@ -217,6 +217,9 @@ export const dict = {
   faq: { h1: { ja: "よくある質問", en: "Frequently asked questions" }, lede: { ja: "お問い合わせの多いご質問をまとめました。ほかにご不明な点があればお気軽にご連絡ください。", en: "The questions we are asked most. If yours is not here, please get in touch." } },
   gold: { h1: { ja: "ゴールドの基礎知識", en: "The gold guide" }, lede: { ja: "K18の意味、刻印の読み方、長く美しく保つためのお手入れ。購入前に知っておいていただきたいことをまとめました。", en: "What K18 means, how to read a stamp, and how to keep a piece looking right. The things worth knowing before you buy." }, cta: { ja: "コレクションを見る", en: "Shop the collections" } },
   account: {
+    print: { ja: "印刷 / PDFで保存", en: "Print / save as PDF" },
+    invoiceNo: { ja: "請求書番号", en: "Invoice no." },
+    issuedBy: { ja: "発行者", en: "Issued by" },
     h1: { ja: "アカウント", en: "Your account" },
     loginH: { ja: "サインイン", en: "Sign in" },
     loginP: { ja: "メールアドレスにサインイン用のリンクをお送りします。パスワードは不要です。", en: "We email you a sign-in link. No password to remember." },

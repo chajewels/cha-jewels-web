@@ -79,3 +79,102 @@
   .rule-grid > * { box-shadow: 0 0 0 1px var(--rule); }
   .rule-grid > *:focus-visible { outline-offset: -4px; }
 }
+
+/* ---------------------------------------------------------------------------
+   PRINT: the two account detail pages as an invoice / statement.
+
+   Scoped with `body:has(.print-invoice)` rather than applied to every page.
+   The site header, footer and nav live in the layout, OUTSIDE the page root,
+   so a rule written inside `.print-invoice` could never reach them — and a
+   rule written without the `:has()` would strip the chrome off every page in
+   the site the moment anyone pressed Ctrl-P anywhere.
+
+   The screen theme is dark. Printing it as-is costs a page of toner and reads
+   worse than the screen did, so the whole surface is inverted to paper: white
+   behind, charcoal-deep in front, one hairline where the screen used a fill.
+   --------------------------------------------------------------------------- */
+@media print {
+  @page { margin: 16mm; }
+
+  body:has(.print-invoice) {
+    background: #fff !important;
+    color: #222222 !important;
+    font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  }
+
+  /* Chrome and anything that is an action rather than a record. The pay form
+     and its proof-upload controls carry .print-hide from the page. */
+  body:has(.print-invoice) header,
+  body:has(.print-invoice) footer,
+  body:has(.print-invoice) nav,
+  body:has(.print-invoice) .print-hide { display: none !important; }
+
+  /* Every chalk / gold-pale / gold-dark token at once, including the alpha
+     variants (text-chalk/55 and friends), which are too many to name. */
+  .print-invoice,
+  .print-invoice * { color: #222222 !important; }
+
+  .print-invoice h1,
+  .print-invoice h2,
+  .print-invoice h3,
+  .print-invoice .font-display { font-family: var(--font-display), Georgia, serif; }
+
+  /* Card fills become paper. `.rule-grid` draws its dividers as a box-shadow
+     ring, which prints as a grey slab, so it is swapped for a real border. */
+  .print-invoice [class*="bg-charcoal"],
+  .print-invoice [class*="bg-chalk"] {
+    background: #fff !important;
+    border: 1px solid #E5E5E0 !important;
+  }
+  .print-invoice .rule-grid { gap: 0 !important; }
+  .print-invoice .rule-grid > * {
+    box-shadow: none !important;
+    border: 1px solid #E5E5E0 !important;
+  }
+  .print-invoice [class*="border-"] { border-color: #E5E5E0 !important; }
+
+  /* A product photo is evidence of the piece, not the subject of the page. */
+  .print-invoice img { max-width: 64px !important; height: auto !important; }
+
+  /* The layaway schedule prints in full, and no row is split across a page
+     break — a row cut in half is a figure nobody can trust. */
+  .print-invoice ul,
+  .print-invoice dl { break-inside: auto; }
+  .print-invoice li,
+  .print-invoice dl > div { break-inside: avoid; page-break-inside: avoid; }
+  .print-invoice h2 { break-after: avoid; }
+
+  /* The letterhead. Hidden on screen (Tailwind `hidden print:block`), so these
+     rules only ever describe paper. */
+  .print-invoice .print-head { margin-bottom: 10mm; }
+  .print-invoice .print-head__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20pt;
+  }
+  .print-invoice .print-head__brand img { width: 40px; height: 40px; }
+  .print-invoice .print-head__meta {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    column-gap: 12px;
+    row-gap: 2px;
+    margin-top: 6mm;
+    font-size: 10pt;
+  }
+  .print-invoice .print-head__meta dt { color: #444444 !important; }
+  .print-invoice .print-head__meta dd { font-variant-numeric: tabular-nums; }
+  .print-invoice .print-head__issuer {
+    margin-top: 6mm;
+    padding-top: 3mm;
+    border-top: 1px solid #E5E5E0;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+  .print-invoice .print-head__issuer p:first-child { color: #444444 !important; }
+
+  /* The page wrapper's screen padding is the printer's margin's job. */
+  .print-invoice { padding: 0 !important; }
+  .print-invoice .wrap { max-width: none !important; padding: 0 !important; }
+}

@@ -11,6 +11,8 @@ import { orderStatusLabel, refundLabel } from "@/lib/order-status";
 import { StatusBadge } from "@/components/account/status-badge";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
+import { PrintButton } from "@/components/account/print-button";
+import { PrintHeader } from "@/components/account/print-header";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -46,14 +48,21 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
   const refund = refundLabel(order.refund_status, lang);
 
+  const placed = (order.order_date ?? order.created_at).slice(0, 10);
+
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
-        <Link href="/account/orders" className="text-sm text-chalk/55 underline underline-offset-4">{t("orders", "back")}</Link>
+        <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
+
+        <Link href="/account/orders" className="print-hide text-sm text-chalk/55 underline underline-offset-4">{t("orders", "back")}</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-gold-pale">{order.web_reference ?? order.invoice_number ?? "—"}</h1>
-          <StatusBadge tone={status.tone} text={status.text} />
+          <div className="flex flex-wrap items-center gap-3">
+            <StatusBadge tone={status.tone} text={status.text} />
+            <PrintButton label={t("account", "print")} />
+          </div>
         </div>
 
         {/* A Hub-arranged order records its pieces on the invoice, not in this
