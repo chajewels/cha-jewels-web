@@ -1,5 +1,5 @@
 import "server-only";
-import type { CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, SettlementCurrency, Testimonial } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, SettlementCurrency, Testimonial } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 
 /**
@@ -50,6 +50,23 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
 const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404) return null; throw e; } };
 
 export const hub = {
+  /**
+   * Merchandising categories, in the Hub's sort_order. The homepage hero and
+   * /categories are both built from this, so the deck's contents and its order
+   * are an owner decision made in the Hub rather than a list in this repo.
+   */
+  categories: (): Promise<Category[]> =>
+    FIXTURES
+      ? Promise.resolve([...fx.categories].sort((a, b) => a.sort_order - b.sort_order))
+      : call("/catalog/categories"),
+  /** One category and the pieces in it. 404 → null, like collection(). */
+  category: (slug: string): Promise<(Category & { products: Product[] }) | null> =>
+    FIXTURES
+      ? Promise.resolve((() => {
+          const c = fx.categories.find((x) => x.slug === slug);
+          return c ? { ...c, products: fx.products.filter((p) => (p.category_slugs ?? []).includes(slug)) } : null;
+        })())
+      : notFoundToNull(call(`/catalog/categories/${encodeURIComponent(slug)}`)),
   collections: (): Promise<Collection[]> => FIXTURES ? Promise.resolve(fx.collections) : call("/catalog/collections"),
   collection: (slug: string): Promise<(Collection & { products: Product[] }) | null> =>
     FIXTURES ? Promise.resolve((() => { const c = fx.collections.find((x) => x.slug === slug); return c ? { ...c, products: fx.products.filter((p) => p.col === slug) } : null; })())

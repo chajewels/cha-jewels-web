@@ -59,7 +59,7 @@ export async function Header({ lang }: { lang: Lang }) {
           <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={44} height={44} alt="" className="h-11 w-11 shrink-0" />
           <span className="gilt font-display text-[22px] font-medium tracking-wide sm:text-[26px]">Cha Jewels</span>
         </Link>
-        <nav aria-label={t("nav", "primary")} className="hidden xl:block"><ul className="flex gap-5 whitespace-nowrap text-sm text-charcoal/80">{links.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-dark">{l.label}</Link></li>)}</ul></nav>
+        <nav aria-label={t("nav", "primary")} className="hidden xl:block"><ul className="flex gap-4 whitespace-nowrap text-sm text-charcoal/80 2xl:gap-5">{links.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-dark">{l.label}</Link></li>)}</ul></nav>
         <div className="flex items-center gap-2 sm:gap-3">
           <SearchBox lang={lang} />
           <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>

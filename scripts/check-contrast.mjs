@@ -101,6 +101,36 @@ add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "oran
   for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `scrim@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
 }
 
+// Hero SLIDE scrim (app/globals.css .hero-slide-scrim) on a full-bleed category
+// photo. Horizontal, so the copy sits under the .82 stop at the left edge while
+// the photo clears to nothing on the right.
+//
+// A horizontal scrim over an arbitrary photo is only as good as its worst
+// frame, and the photo is DATA — the Hub can replace any of these tomorrow. So
+// the deck's real extremes are measured and a pure-white frame is measured with
+// them, as the floor no uploaded photo can go under. Left-third mean luma,
+// sampled with `ffmpeg -vf crop=iw/3:ih:0:0,format=gray`:
+//    39  preloved-branded-jewelry.webp — the darkest
+//    44  preloved-watches.webp
+//   222  fine-jewelry.webp — the brightest (its lightest pixels reach 241)
+// 235 stands in for that bright end with margin, 40 for the dark one. 255 is
+// the bound: at the .82 stop even a pure white photo holds gold-pale at 7.2:1,
+// so the stop does not have to be revisited when a photo changes.
+{
+  const scrim = [20, 18, 16];
+  const surface = (a, luma) => blend(scrim, [luma, luma, luma], a);
+  const over = (fgName, a, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  const rows = [
+    ["hero slide .82 @ luma 235 (cream photo): gold-pale name", "gold-pale", 0.82, 1, TEXT, 235],
+    ["hero slide .82 @ luma 235 (cream photo): chalk copy", "chalk", 0.82, 1, TEXT, 235],
+    ["hero slide .82 @ luma 40 (dark photo): gold-pale name", "gold-pale", 0.82, 1, TEXT, 40],
+    ["hero slide .82 @ luma 40 (dark photo): chalk copy", "chalk", 0.82, 1, TEXT, 40],
+    ["hero slide .82 @ luma 255 (white bound): gold-pale name", "gold-pale", 0.82, 1, TEXT, 255],
+    ["hero slide .82 @ luma 255 (white bound): chalk copy", "chalk", 0.82, 1, TEXT, 255],
+  ];
+  for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `slide@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
+}
+
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
 const mustFail = [["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT], ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT], ["orange", "chalk", 1, TEXT], ["charcoal", "white", 0.6, TEXT]];
 
