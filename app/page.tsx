@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HeroVideo } from "@/components/site/hero-video";
-import { getCollections, getFeaturedProducts, getCollectionWithProducts, primaryImage } from "@/lib/queries/products";
+import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { getLang } from "@/lib/i18n-server";
@@ -16,7 +16,6 @@ import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
 import { InquiryBanner } from "@/components/home/inquiry-banner";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
-import type { Collection } from "@/lib/types";
 export const revalidate = 60;
 
 /**
@@ -31,27 +30,19 @@ export const revalidate = 60;
  * newH, viewAll, layH/layP). Product and collection data is the Hub's only.
  */
 
-/** Card image: the collection's own hero, else its first product photo, else none. */
-async function collectionImage(c: Collection): Promise<string | null> {
-  if (c.hero_media) return c.hero_media;
-  const col = await getCollectionWithProducts(c.slug).catch(() => null);
-  for (const p of col?.products ?? []) {
-    const img = primaryImage(p);
-    if (img) return img.url;
-  }
-  return null;
-}
-
 export default async function Home() {
-  const [lang, collections, featured, fx] = await Promise.all([
+  const [lang, collections, featured, fx, testimonials] = await Promise.all([
     getLang(),
     getCollections().catch(() => []),
     getFeaturedProducts(8).catch(() => []),
     hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" })),
+    hub.testimonials(),
   ]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
-  const cards: CollectionCardData[] = await Promise.all(collections.map(async (c) => ({ c, image: await collectionImage(c) })));
+  // A card shows the collection's own hero_media or the typographic state. A
+  // product photo never stands in for a category.
+  const cards: CollectionCardData[] = collections.map((c) => ({ c, image: c.hero_media }));
   const placeholders = Math.max(0, 4 - featured.length);
 
   const tabs: Tab[] = [
@@ -68,11 +59,13 @@ export default async function Home() {
     <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
       <JsonLd type="store" />
 
-      {/* §3 Hero — video on both breakpoints, dark scrim, copy from hero.* */}
-      <section className="relative isolate flex min-h-[580px] items-center overflow-hidden bg-charcoal lg:aspect-[16/9] lg:max-h-[820px] lg:min-h-[680px]">
+      {/* §3 Hero — the Phase 1 video treatment, not the Stitch image one: full
+          bleed, video at full opacity, the single vertical scrim (.hero-scrim)
+          between video and content. The 1440px max width applies to the
+          content wrapper only. Copy from hero.*. */}
+      <section className="relative isolate flex w-full min-h-[clamp(560px,86vh,860px)] items-center overflow-hidden bg-charcoal">
         <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
-        <div aria-hidden="true" className="absolute inset-0 z-[1] bg-gradient-to-t from-charcoal-deep via-charcoal-deep/85 to-charcoal-deep/60" />
-        <div aria-hidden="true" className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(34,34,34,0.7)_100%)]" />
+        <div aria-hidden="true" className="hero-scrim" />
         <div className="wrap relative z-10 w-full py-16 text-center lg:py-24 lg:text-left">
           <div className="mx-auto max-w-[820px] lg:mx-0">
             <span className="inline-flex items-center gap-2 rounded-full border border-orange/50 bg-charcoal-deep/60 px-4 py-1.5 text-xs font-medium tracking-wide text-orange backdrop-blur">
@@ -130,8 +123,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* §9 Testimonials — placeholder cards until verified quotes exist */}
-      <Testimonials lang={lang} />
+      {/* §9 Testimonials — from the Hub; placeholder cards until it publishes one */}
+      <Testimonials lang={lang} items={testimonials} />
 
       {/* §10 New arrivals — Hub data only; dashed placeholders fill to four */}
       <section className="border-t border-hairline bg-hairline/40 py-16 lg:py-20">

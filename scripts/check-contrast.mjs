@@ -62,13 +62,29 @@ add("gold-dark text on white (card)", "gold-dark", "white", TEXT);
 add("charcoal text on white (card)", "charcoal", "white", TEXT);
 add("gold-dark heading >=24px on chalk", "gold-dark", "chalk", LARGE);
 
+// Hero scrim (app/globals.css .hero-scrim) on the video's brightest frame:
+// top-third luma peaks at 127 (0:10 and 0:27). The headline sits under the
+// .80 stop; body copy reaches the .52 stop. Measured against the scrim
+// composited over #7F7F7F, not against a palette surface.
+{
+  const scrim = [20, 18, 16], frame = [127, 127, 127];
+  const surface = (a) => blend(scrim, frame, a);
+  const over = (fgName, a, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  const rows = [
+    ["hero scrim .80 @ luma 127: gold-pale headline", "gold-pale", 0.80, 1, TEXT],
+    ["hero scrim .80 @ luma 127: white/chalk headline", "chalk", 0.80, 1, TEXT],
+    ["hero scrim .52 @ luma 127: chalk/75 body", "chalk", 0.52, 0.75, TEXT],
+  ];
+  for (const [label, fg, stop, alpha, need] of rows) pairs.push({ label, fg, bg: `scrim@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop), alpha) });
+}
+
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
 const mustFail = [["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT], ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT], ["orange", "chalk", 1, TEXT]];
 
 let bad = 0;
 const w = Math.max(...pairs.map((p) => p.label.length));
 for (const p of pairs) {
-  const r = ratio(p.fg, p.bg, p.alpha);
+  const r = p.ratio ?? ratio(p.fg, p.bg, p.alpha);
   const ok = r >= p.need;
   if (!ok) bad++;
   console.log(`${ok ? "PASS" : "FAIL"}  ${p.label.padEnd(w)}  on ${p.bg.padEnd(13)}  ${r.toFixed(2).padStart(6)}  need ${p.need}`);

@@ -9,8 +9,8 @@ export type CollectionCardData = { c: Collection; image: string | null };
 /**
  * Collections (Stitch §8), dynamic from the Hub. Four per row on desktop with
  * the remainder centred; on mobile the file's row card with a square thumbnail.
- * Image: c.hero_media, else the first product image, else a chalk block with the
- * name in Playfair. Description is the Hub's or nothing — never invented.
+ * Image: c.hero_media when the Hub has one, else a chalk block with the name in
+ * Playfair — never a product photo. Description is the Hub's or nothing.
  * Plain <img>: Hub media may come from hosts next/image is not configured for.
  */
 export function CollectionCards({ items, lang }: { items: CollectionCardData[]; lang: Lang }) {
