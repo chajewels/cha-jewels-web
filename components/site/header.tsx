@@ -48,6 +48,7 @@ export async function Header({ lang }: { lang: Lang }) {
     { href: "/account/orders", label: t("accountMenu", "orders") },
     { href: "/account/layaway", label: t("accountMenu", "layaway") },
     { href: "/account/addresses", label: t("accountMenu", "addresses") },
+    { href: "/account/service-requests", label: t("accountMenu", "service") },
     { href: "/account#loyalty", label: t("accountMenu", "points") },
   ];
   const account = session && name ? { name, menuLabel: t("accountMenu", "menu"), items: accountItems, signOut: t("accountMenu", "signOut") } : null;
