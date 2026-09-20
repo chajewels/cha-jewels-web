@@ -1,4 +1,5 @@
 import { track } from "@vercel/analytics";
+import { normalize } from "@/lib/search-normalize";
 
 /**
  * The single door to the analytics provider. Every call site goes through the
@@ -16,15 +17,19 @@ import { track } from "@vercel/analytics";
  * events carry no order reference, because a visitor browsing products does not
  * have one yet. The two sides are read as aggregates side by side.
  *
- * PROPERTY BUDGET — Vercel Pro allows TWO custom properties per event. Both
- * events spend them on `sku` and `lang`. Adding a third silently costs money
- * (Web Analytics Plus), so it is an owner decision, not a code decision.
+ * PROPERTY BUDGET — Vercel Pro allows TWO custom properties per event.
+ * `product_view` and `add_to_cart` spend them on `sku` and `lang`; `search`
+ * spends them on `q` (the normalized term, at most 64 characters) and
+ * `results`. Adding a third silently costs money (Web Analytics Plus), so it
+ * is an owner decision, not a code decision — emit() drops any event that
+ * carries more than the ceiling rather than let one slip through.
  */
 
 /** Vercel Pro's ceiling. Exported so the guard below can be asserted in a test. */
 export const MAX_EVENT_PROPERTIES = 2;
 
-type EventProps = { sku: string; lang: string };
+/** At most MAX_EVENT_PROPERTIES keys — emit() enforces it. */
+type EventProps = Record<string, string | number>;
 
 /**
  * Whether this browser should emit at all.
@@ -99,10 +104,11 @@ const queueReady = () => typeof (window as unknown as { va?: unknown }).va === "
  */
 function emit(name: string, props: EventProps, onSent?: () => void): void {
   if (!analyticsEnabled()) return;
+  if (Object.keys(props).length > MAX_EVENT_PROPERTIES) return; // Over budget: never sent, never billed.
 
   const send = () => {
     try {
-      track(name, { sku: props.sku, lang: props.lang });
+      track(name, props);
       onSent?.();
     } catch {
       // Intentionally silent. See above.
@@ -181,4 +187,22 @@ export function trackProductView(sku: string, lang: string): void {
 export function trackAddToCart(sku: string, lang: string): void {
   if (!sku) return;
   emit("add_to_cart", { sku, lang });
+}
+
+/** Longest `q` the search event carries. Enough for any real query; short enough to keep property values small. */
+export const SEARCH_QUERY_MAX = 64;
+
+/**
+ * A search that was actually run: the results page on load, and the header
+ * combobox when Enter or "See all" submits the raw term. `q` is normalized the
+ * same way lib/search matches it (NFKC, lower-case, spaces stripped, katakana
+ * folded to hiragana) and cut to SEARCH_QUERY_MAX, so two spellings of one
+ * query aggregate together and no property value can grow without bound.
+ * `results` is the total the search returned for that term, not the number of
+ * suggestions shown. Exactly two properties — see the budget above.
+ */
+export function trackSearch(q: string, results: number): void {
+  const term = normalize(q).slice(0, SEARCH_QUERY_MAX);
+  if (!term) return;
+  emit("search", { q: term, results: Math.max(0, Math.floor(Number.isFinite(results) ? results : 0)) });
 }

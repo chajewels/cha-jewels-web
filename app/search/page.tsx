@@ -4,6 +4,7 @@ import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { normalize, search } from "@/lib/search";
 import { ProductCard } from "@/components/catalog/product-card";
+import { SearchView } from "@/components/analytics/search-view";
 
 /**
  * Results for a search submitted from the header box, or linked to directly.
@@ -26,6 +27,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
+        {hasQuery && <SearchView q={q} total={total} />}
         <h1 className="text-[clamp(32px,5vw,64px)]">{hasQuery ? t("search", "title", { q }) : t("search", "placeholder")}</h1>
 
         {!hasQuery && <p className="mt-6 max-w-[58ch] text-chalk/75">{t("search", "prompt")}</p>}
