@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, SettlementCurrency, Testimonial } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, Testimonial } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 
 /**
@@ -204,6 +204,18 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(fx.orderFixture(id))
       : notFoundToNull(call(`/orders/${encodeURIComponent(id)}`, { jwt, revalidate: false })),
+  /** The customer's own service requests, every order and plan, newest first. */
+  serviceRequests: (jwt: string): Promise<ServiceRequest[]> =>
+    FIXTURES ? Promise.resolve(fx.serviceRequestsFixture()) : call("/me/service-requests", { jwt, revalidate: false }),
+  /**
+   * Raises one request against one order or one plan. The Hub checks that the
+   * reference belongs to this customer and answers with the stored row; status
+   * starts at "requested" and only staff move it from there.
+   */
+  createServiceRequest: (jwt: string, body: ServiceRequestInput): Promise<ServiceRequest> =>
+    FIXTURES
+      ? Promise.resolve(fx.createServiceRequestFixture(body))
+      : call("/me/service-requests", { method: "POST", body: JSON.stringify(body), jwt, revalidate: false }),
   wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };

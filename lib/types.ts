@@ -343,3 +343,39 @@ export type HubLayawayDetail = {
   /** This customer's portal link, from the Hub's own builder. */
   portal_url?: string | null;
 };
+
+/**
+ * SERVICE REQUESTS. A customer asks for work on a piece they bought — a resize,
+ * a cleaning, a repair, an appraisal — from the order or the plan it came with.
+ * It is a REQUEST, not a booking: the Hub's staff read it and answer through
+ * `status` and `customer_note`. The Hub's `staff_note` is internal and never
+ * crosses this API. Exactly one of `cash_order_id` / `layaway_plan_id` is set.
+ */
+export type ServiceRequestKind = "resize" | "cleaning" | "repair" | "appraisal" | "other";
+export type ServiceRequestStatus = "requested" | "received" | "in_progress" | "completed" | "declined";
+export type ServiceRequest = {
+  id: string;
+  cash_order_id: string | null;
+  layaway_plan_id: string | null;
+  /** The order line it concerns, as the English title frozen at order time; null for the whole order. */
+  item_title: string | null;
+  kind: ServiceRequestKind;
+  details: string | null;
+  ring_size: string | null;
+  status: ServiceRequestStatus;
+  /** What staff wrote back to the customer. Null until they do. */
+  customer_note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+/** What the customer sends. Optional fields are omitted, never sent as "". */
+export type ServiceRequestInput = {
+  cash_order_id?: string;
+  layaway_plan_id?: string;
+  item_title?: string;
+  kind: ServiceRequestKind;
+  details: string;
+  ring_size?: string;
+  /** The language the customer wrote in, so staff can answer in it. */
+  lang: "ja" | "en";
+};
