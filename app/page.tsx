@@ -68,11 +68,13 @@ export default async function Home() {
     <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
       <JsonLd type="store" />
 
-      {/* §3 Hero — video on both breakpoints, dark scrim, copy from hero.* */}
-      <section className="relative isolate flex min-h-[580px] items-center overflow-hidden bg-charcoal lg:aspect-[16/9] lg:max-h-[820px] lg:min-h-[680px]">
+      {/* §3 Hero — the Phase 1 video treatment, not the Stitch image one: full
+          bleed, video at full opacity, the single vertical scrim (.hero-scrim)
+          between video and content. The 1440px max width applies to the
+          content wrapper only. Copy from hero.*. */}
+      <section className="relative isolate flex w-full min-h-[clamp(560px,86vh,860px)] items-center overflow-hidden bg-charcoal">
         <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
-        <div aria-hidden="true" className="absolute inset-0 z-[1] bg-gradient-to-t from-charcoal-deep via-charcoal-deep/85 to-charcoal-deep/60" />
-        <div aria-hidden="true" className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(34,34,34,0.7)_100%)]" />
+        <div aria-hidden="true" className="hero-scrim" />
         <div className="wrap relative z-10 w-full py-16 text-center lg:py-24 lg:text-left">
           <div className="mx-auto max-w-[820px] lg:mx-0">
             <span className="inline-flex items-center gap-2 rounded-full border border-orange/50 bg-charcoal-deep/60 px-4 py-1.5 text-xs font-medium tracking-wide text-orange backdrop-blur">
