@@ -196,6 +196,7 @@ Two, and no more without a paid decision.
 |---|---|---|
 | `product_view` | `sku`, `lang` | Product page, once per SKU per page-load session |
 | `add_to_cart` | `sku`, `lang` | After a cart addition resolves successfully — both the plain cart button and "reserve with layaway", which also adds to the cart |
+| `service_request` | `kind`, `lang` | After a service request (resize, cleaning, repair, appraisal, other) is stored by the Hub — from the order or plan page, never from the click |
 
 Vercel Pro allows **two** custom properties per event and both are spent. A
 third (for example, telling a layaway reservation apart from a plain addition)
