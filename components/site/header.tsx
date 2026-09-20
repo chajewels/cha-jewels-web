@@ -3,6 +3,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { readSession, customerFirstName } from "@/lib/session";
 import { LangSwitcher } from "./lang-switcher";
+import { SearchBox } from "./search-box";
 import { MobileNav } from "./mobile-nav";
 import { CartButton } from "./cart-button";
 import { AccountMenu } from "./account-menu";
@@ -56,10 +57,11 @@ export async function Header({ lang }: { lang: Lang }) {
         </Link>
         <nav aria-label={t("nav", "primary")} className="hidden xl:block"><ul className="flex gap-5 whitespace-nowrap text-sm text-charcoal/80">{links.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-dark">{l.label}</Link></li>)}</ul></nav>
         <div className="flex items-center gap-2 sm:gap-3">
+          <SearchBox lang={lang} />
           <LangSwitcher lang={lang} />
           <CartButton lang={lang} />
           {account && <div className="hidden xl:block"><AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} /></div>}
-          <MobileNav links={links} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
+          <MobileNav lang={lang} links={links} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
         </div>
       </div>
     </header>
