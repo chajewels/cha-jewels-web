@@ -33,7 +33,7 @@ export function FlashNotice({ messages }: { messages: Record<string, string> }) 
   }, [shown]);
 
   return (
-    <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 top-[68px] z-30 flex justify-center px-4">
+    <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 top-[104px] z-30 flex justify-center px-4">
       {shown && (
         <p className="pointer-events-auto mt-3 rounded-sm border border-gold bg-charcoal-deep px-5 py-2.5 text-sm text-gold-pale shadow-[0_10px_30px_rgba(0,0,0,0.45)]">{shown}</p>
       )}

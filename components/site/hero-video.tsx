@@ -30,7 +30,7 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
     <>
       <video
         ref={ref}
-        className="pomelli-hero__video"
+        className="hero-video"
         autoPlay
         muted
         loop
@@ -44,7 +44,7 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
       </video>
       <button
         type="button"
-        className="pomelli-hero__toggle"
+        className="hero-video__toggle"
         aria-label={paused ? playLabel : pauseLabel}
         aria-pressed={paused}
         onClick={toggle}

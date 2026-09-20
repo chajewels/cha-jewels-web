@@ -1,0 +1,567 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_tab" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-primary-container": "#9c9b9b", "on-surface-variant": "#444748", "on-primary-fixed": "#1b1c1c", "on-primary-fixed-variant": "#474747", "secondary-container": "#ffa504", "surface-dim": "#dadad7", "primary-fixed": "#e4e2e1", "primary-container": "#333333", "surface-tint": "#5f5e5e", "outline-variant": "#c4c7c7", "secondary-fixed": "#ffddb7", "surface-container-lowest": "#ffffff", "error": "#ba1a1a", "tertiary-container": "#003b2f", "inverse-on-surface": "#f1f1ee", "surface-container-high": "#e8e8e5", "on-tertiary-fixed": "#002019", "outline": "#747878", "error-container": "#ffdad6", "on-error-container": "#93000a", "on-surface": "#1a1c1b", "on-primary": "#ffffff", "secondary-fixed-dim": "#ffb95c", "on-secondary": "#ffffff", "background": "#f9f9f6", "on-tertiary": "#ffffff", "primary-fixed-dim": "#c8c6c6", "tertiary": "#00231b", "on-secondary-fixed-variant": "#653e00", "surface-bright": "#f9f9f6", "inverse-surface": "#2f312f", "inverse-primary": "#c8c6c6", "surface-container-highest": "#e2e3e0", "surface-container-low": "#f4f4f1", "surface-container": "#eeeeeb", "on-secondary-container": "#684100", "secondary": "#855400", "tertiary-fixed-dim": "#4eddbb", "surface": "#f9f9f6", "on-background": "#1a1c1b", "primary": "#1e1e1e", "on-error": "#ffffff", "on-tertiary-fixed-variant": "#005141", "surface-variant": "#e2e3e0", "on-secondary-fixed": "#2a1700", "on-tertiary-container": "#00b091", "tertiary-fixed": "#6ff9d6" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-sm": "0.5rem", "margin": "2rem", "space-xs": "0.25rem", "space-md": "1rem", "space-lg": "1.5rem", "gutter": "1.5rem", "space-xl": "2.5rem" }, "fontFamily": { "body-sm": ["Inter"], "title-md": ["Inter"], "headline-lg": ["Playfair Display"], "label-sm": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Playfair Display"], "headline-sm": ["Playfair Display"], "title-lg": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "display-lg-mobile": ["Playfair Display"], "display-lg": ["Playfair Display"], "body-lg": ["Inter"], "headline-md": ["Playfair Display"] }, "fontSize": { "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "400" }], "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.1em", "fontWeight": "700" }], "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.06em", "fontWeight": "600" }], "headline-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "0em", "fontWeight": "500" }], "headline-sm": ["22px", { "lineHeight": "30px", "letterSpacing": "0.01em", "fontWeight": "600" }], "title-lg": ["18px", { "lineHeight": "26px", "letterSpacing": "0.01em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0.01em", "fontWeight": "400" }], "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600" }], "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "display-lg": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-md": ["28px", { "lineHeight": "36px", "letterSpacing": "0em", "fontWeight": "500" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen flex flex-col selection:bg-secondary-container/20"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.03)]"><div class="h-16 px-space-md flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0 flex-shrink-0"><button aria-label="Menu" class="w-11 h-11 flex items-center justify-center text-on-surface hover:text-secondary active:scale-95 transition-transform duration-150"><span class="material-symbols-outlined text-[24px]">menu</span></button><div class="flex items-center gap-space-xs"><img alt="Brand logo. - Primary color: #333333
+- Font: playfairDisplay
+- Mode: light
+- Roundness: rounded-sm
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XvgzhAJ_zi4-jAy1nqDNwLh804eJgkoE9dvpvktxaUDHx34mhnT4qoK4cYXly-E06ZJA554r6NIgGq1NK3q0s2DebCvnq4ptrKCx5XpZyamTClg9GaM-_bg9Rmh0vWUuAATOO2oiWCpW-gm1o43L4cn-9aPcAJvUUniuu7_ZfxV_lBy3fqd-QAZoDaYQkgxakbuJFvI8Wzfo85Qi5b_WAEyYvfByoXZ2R4xwGvNYpixKBzP3OWIz77_noP"><span class="font-headline-sm text-headline-sm text-primary tracking-tight truncate hidden xs:inline">Cha</span></div></div><div class="flex items-center justify-center px-space-xs"><span class="font-headline-md text-headline-md text-primary tracking-tight truncate max-w-[120px]">Home</span></div><div class="flex items-center gap-1 flex-shrink-0"><div class="flex items-center bg-surface-container-low px-2 py-1 rounded-full text-label-sm font-label-sm"><span class="text-primary font-bold">JA</span><span class="w-1 h-1 bg-on-tertiary-container rotate-45 mx-1"></span><span class="text-on-surface-variant">EN</span></div><button aria-label="Search" class="w-11 h-11 flex items-center justify-center text-on-surface hover:text-secondary active:scale-95 transition-transform duration-150"><span class="material-symbols-outlined text-[22px]">search</span></button><button aria-label="Shopping Bag" class="relative w-11 h-11 flex items-center justify-center text-on-surface hover:text-secondary active:scale-95 transition-transform duration-150"><span class="material-symbols-outlined text-[22px]">shopping_bag</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-secondary-container"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 w-full bg-surface pt-16 pb-24"><div class="flex flex-col w-full selection:bg-secondary-container/20">
+<!-- Top Trust Strip -->
+<div class="w-full bg-primary-container px-space-md py-2 text-center text-on-primary">
+<p class="font-label-sm text-label-sm tracking-widest text-surface-container-low flex items-center justify-center gap-1.5 opacity-90">
+<span class="text-on-tertiary-container text-[8px]">◆</span>
+<span class="">日本国内検品済み (Hallmark Checked in Japan)</span>
+<span class="text-outline-variant/60 mx-1">|</span>
+<span class="text-secondary-fixed font-semibold">JA</span>
+<span class="text-on-primary-container">/ EN</span>
+</p>
+</div>
+<!-- Hero Section -->
+<section class="relative w-full overflow-hidden bg-primary text-on-primary min-h-[580px] flex flex-col justify-end">
+<!-- Background Image with cinematic overlay -->
+<div class="absolute inset-0 w-full h-full transition-transform duration-1000 ease-out scale-100" id="hero-media-bg">
+<img alt="Craftsman hand-finishing fine gold jewelry" class="w-full h-full object-cover object-center brightness-95 filter" src="https://lh3.googleusercontent.com/aida/AEtjO1WLXUAji5m4izKencpFBFl6uotmxwDjN1_ZFuLasDe7Octs_BqpdmQqLxLuGdEF8_PlfguqTZLmtZS1WaIBs6fnicoMah70Ayv3jjSUWQS6nG1ws9wO2n-o7a5-AJ7etUFxnMCpkMIL56ExEC_HJJGGqYiSEk1bk2nda9f5vaGYiUBgBwFJ4q3i6nWOR_egHoTUj20YpLobBdoWPIJYIMlcFcCBo8q-NoWIQzTijkvegunjNsfI9ll-6S5S">
+<div class="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#1a1c1b]/85 to-[#1a1c1b]/60"></div>
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_20%,_rgba(0,0,0,0.6)_100%)]"></div>
+</div>
+<!-- Content Container -->
+<div class="relative z-10 p-space-md pb-space-lg flex flex-col gap-space-md">
+<!-- Studio Location Pill & Pause Button -->
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface/10 backdrop-blur-md text-surface-bright">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+<span class="font-label-sm text-label-sm tracking-wider">東京・葛飾 / 熟練の金工技法</span>
+</div>
+<button aria-label="Toggle media ambient motion" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface/10 backdrop-blur-md text-surface-bright font-label-sm text-label-sm hover:bg-surface/20 active:scale-95 transition-all" id="hero-pause-btn">
+<span class="material-symbols-outlined text-[14px]">pause</span>
+<span id="hero-pause-text" class="">一時停止</span>
+</button>
+</div>
+<!-- Headline -->
+<div class="space-y-1">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile tracking-tight text-surface-container-lowest leading-tight">
+<span class="Apple-converted-space">          </span>身につける、<br>
+<span class="bg-gradient-to-r from-surface-container-lowest via-secondary-fixed to-surface-container-lowest bg-clip-text text-transparent">時を超える美しさ。</span><br>
+<span class="Apple-converted-space">          </span>受け継がれる、確かな価値。
+<span class="Apple-converted-space">        </span></h1>
+</div>
+<!-- Verified Japanese Verbatim Copy -->
+<p class="font-body-sm text-body-sm text-surface-container-high/90 leading-relaxed line-clamp-5">
+<span class="Apple-converted-space">        </span>Cha Jewelsは、厳選したファインジュエリーを通して、時を超える美しさと永く続く価値をお届けします。日本で仕立てられた上質なゴールド、パール、ダイヤモンドジュエリーから、世界を代表するラグジュアリーブランドの厳選プレラブドアイテムまで。すべての一点を、品質、気品、そして変わらない価値を基準に選んでいます。私たちは、ジュエリーは美しいだけのものではなく、大切に受け継ぎ、自信を持って身につけ、次の世代へつないでいけるものであるべきだと考えています。特にゴールドが持つ永続的な価値を大切にし、ネックレス、リング、ブレスレット、そして唯一無二の一点ものまで、お客様の人生の物語に寄り添い続けるジュエリーをご提案します。
+<span class="Apple-converted-space">      </span></p>
+<!-- CTAs -->
+<div class="flex flex-col gap-2.5 pt-1">
+<a class="w-full relative overflow-hidden bg-secondary-container hover:bg-secondary-fixed text-primary font-title-md text-title-md py-3.5 px-space-md rounded text-center flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all" href="#collections-section">
+<span class="relative z-10 font-bold tracking-wide">コレクションを見る</span>
+<span class="material-symbols-outlined text-[20px] relative z-10">arrow_forward</span>
+<div class="absolute inset-0 -translate-x-full hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+</a>
+<a class="w-full bg-surface-container-highest/20 hover:bg-surface-container-highest/30 backdrop-blur-md text-surface-container-lowest font-title-md text-title-md py-3.5 px-space-md rounded text-center flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all" href="#layaway-calculator">
+<span class="material-symbols-outlined text-[18px] text-on-tertiary-container">calculate</span>
+<span class="">レイアウェイを計算する</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Trust Bar -->
+<section class="w-full bg-surface-container-low px-space-md py-4">
+<div class="grid grid-cols-3 gap-2">
+<div class="scroll-reveal flex flex-col items-center text-center p-2 rounded bg-surface-container-lowest shadow-sm transition-all duration-500 duration-700 ease-out opacity-100 translate-y-0">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center mb-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold">日本国内検品済み</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant scale-90">全品比重・純度確認</span>
+</div>
+<div class="scroll-reveal flex flex-col items-center text-center p-2 rounded bg-surface-container-lowest shadow-sm transition-all duration-500 delay-75 duration-700 ease-out opacity-100 translate-y-0">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center mb-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">account_balance</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold">銀行振込対応</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant scale-90">確実・安全なお取引</span>
+</div>
+<div class="scroll-reveal flex flex-col items-center text-center p-2 rounded bg-surface-container-lowest shadow-sm transition-all duration-500 delay-150 duration-700 ease-out opacity-100 translate-y-0">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center mb-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">location_city</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold">東京・葛飾区</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant scale-90">完全予約制アトリエ</span>
+</div>
+</div>
+</section>
+<!-- Section Break Accent -->
+<div class="w-full py-4 flex items-center justify-center bg-surface">
+<div class="w-16 h-px bg-surface-container-highest"></div>
+<span class="inline-block w-1.5 h-1.5 bg-on-tertiary-container rotate-45 mx-2"></span>
+<div class="w-16 h-px bg-surface-container-highest"></div>
+</div>
+<!-- Our Values (私たちの価値観) -->
+<section class="w-full px-space-md py-space-md flex flex-col gap-space-md">
+<div class="scroll-reveal space-y-1 transition-all duration-700 ease-out opacity-100 translate-y-0">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">一つひとつを選ぶ基準</span>
+<h2 class="font-headline-md text-headline-md text-primary tracking-tight">私たちの価値観</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+<span class="Apple-converted-space">        </span>私たちがジュエリーを選ぶ際に大切にしているのは、流行に左右されない美しさ、理解できる価値、丁寧なものづくり、そして信頼できる品質という4つの基準です。
+<span class="Apple-converted-space">      </span></p>
+</div>
+<!-- Artisan Workbench Feature Card -->
+<div class="scroll-reveal relative rounded overflow-hidden shadow-sm bg-surface-container-lowest transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="relative w-full h-48 overflow-hidden">
+<img alt="Craftsman in Tokyo Katsushika workshop" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WLXUAji5m4izKencpFBFl6uotmxwDjN1_ZFuLasDe7Octs_BqpdmQqLxLuGdEF8_PlfguqTZLmtZS1WaIBs6fnicoMah70Ayv3jjSUWQS6nG1ws9wO2n-o7a5-AJ7etUFxnMCpkMIL56ExEC_HJJGGqYiSEk1bk2nda9f5vaGYiUBgBwFJ4q3i6nWOR_egHoTUj20YpLobBdoWPIJYIMlcFcCBo8q-NoWIQzTijkvegunjNsfI9ll-6S5S">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-surface-bright">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wide">工房での国内検品</span>
+</div>
+<span class="font-label-sm text-label-sm bg-primary/60 px-2 py-0.5 rounded backdrop-blur-sm">東京・葛飾</span>
+</div>
+</div>
+<div class="p-3 bg-surface-container-low text-on-surface flex items-center justify-between">
+<p class="font-body-sm text-body-sm text-on-surface font-medium">東京都葛飾区の工房にて一品ずつ確認</p>
+<span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span>
+</div>
+</div>
+<!-- 4 Values Cards Grid -->
+<div class="grid grid-cols-1 gap-2.5">
+<!-- Card 01 -->
+<div class="scroll-reveal p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col gap-1 active:bg-surface-container-low transition-colors transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-secondary">01</span>
+<span class="material-symbols-outlined text-[20px] text-secondary">flare</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">普遍の美</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<span class="Apple-converted-space">          </span>流行に左右されない、永く愛せる洗練された造形美。日常と特別なひとときを静かに引き立てます。
+<span class="Apple-converted-space">        </span></p>
+</div>
+<!-- Card 02 -->
+<div class="scroll-reveal p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col gap-1 active:bg-surface-container-low transition-colors transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-secondary">02</span>
+<span class="material-symbols-outlined text-[20px] text-on-tertiary-container">balance</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">確かな純度</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<span class="Apple-converted-space">          </span>K18ゴールドの厳格な品位管理。精密比重検査による品質証明を行い、不変の安心をお約束します。
+<span class="Apple-converted-space">        </span></p>
+</div>
+<!-- Card 03 -->
+<div class="scroll-reveal p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col gap-1 active:bg-surface-container-low transition-colors transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-secondary">03</span>
+<span class="material-symbols-outlined text-[20px] text-primary">construction</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">熟練の手仕事</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<span class="Apple-converted-space">          </span>熟練職人による精緻な石留めと丁寧な仕上げ。細部に宿る手仕事の温もりをご体感ください。
+<span class="Apple-converted-space">        </span></p>
+</div>
+<!-- Card 04 -->
+<div class="scroll-reveal p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col gap-1 active:bg-surface-container-low transition-colors transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-secondary">04</span>
+<span class="material-symbols-outlined text-[20px] text-on-tertiary-container">verified_user</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">品質と誠実</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<span class="Apple-converted-space">          </span>日本国内での丁寧な検品と確認。一品一品の真正性を確かめた上でお客様へ送り出します。
+<span class="Apple-converted-space">        </span></p>
+</div>
+</div>
+</section>
+<!-- Jewelry Types (ジュエリーの種類から探す) -->
+<section class="w-full px-space-md py-space-lg bg-surface-container-low flex flex-col gap-space-md" id="collections-section">
+<div class="scroll-reveal space-y-1 transition-all duration-700 ease-out opacity-100 translate-y-0">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">カテゴリーから選ぶ</span>
+<h2 class="font-headline-md text-headline-md text-primary tracking-tight">ジュエリーの種類から探す</h2>
+</div>
+<!-- 7 Collection Category Cards -->
+<div class="flex flex-col gap-3">
+<!-- 1. ネックレス -->
+<a class="scroll-reveal group flex items-center bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.99] transition-all duration-700 ease-out opacity-100 translate-y-0" href="/collections/necklaces">
+<div class="w-28 h-28 flex-shrink-0 overflow-hidden relative">
+<img alt="Japanese model wearing curated K18 yellow gold necklace" class="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1VlJEPg4oTjnwnysy4o5idfyxdxb8lGZMHQo8EIyzrEqTP-VnOo5YFa8tnX1lijlUC7RNG2-1XGxt9RnrJMejm7gVz32NwQbqu3TL8CZf8bQpA8yt47HsMnFyjcXhu4xbq0wZT9RmzWrvmrScA-GWu_p4pOK89FoGyzNon-8Jdkf7EPk8OFoLZrdhztFGcPhITq8inKWINT-eijeE3chPeURuGBi3LGA8ldreaRzp6mWBO77wMuzR4uSY4">
+</div>
+<div class="p-3 flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary font-bold">ネックレス</h3>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+<span class="Apple-converted-space">              </span>K18とパールのチェーン・ネックレス。毎日身につけやすい長さでご用意しています。
+<span class="Apple-converted-space">            </span></p>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-1">一覧を見る</span>
+</div>
+</a>
+<!-- 2. ペンダント -->
+<a class="scroll-reveal group flex items-center bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.99] transition-all duration-700 ease-out opacity-100 translate-y-0" href="/collections/pendants">
+<div class="w-28 h-28 flex-shrink-0 overflow-hidden relative">
+<img alt="Curated K18 gold, diamond and pearl pendants" class="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1VR2qfqRJu9EPrIjxAnIaB3eKgyEBYpbMF3mPmiy5fDz6RRm8qyf8xYGp_9ofQxp7huFEEoKg9ZAqrK9mWar-P3FCqFt3JEBc0jaDVkM0CeAp6VWrvKL6spu-TsDqdOAQgrKXh_4DFNACAySIb92pDvtq1zCxHSvFVIvOM5fSV6lByFkT2gI1D96bCa4JjG0qpTPprfqTPye82u2dv5a_23pvSW__ExDbFgwdOf7A7mOX6bxf8S6oWccWmI">
+</div>
+<div class="p-3 flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary font-bold">ペンダント</h3>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+<span class="Apple-converted-space">              </span>ダイヤモンド、パール、ゴールドのペンダント。お手持ちのチェーンにも、当店のチェーンにも。
+<span class="Apple-converted-space">            </span></p>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-1">一覧を見る</span>
+</div>
+</a>
+<!-- 3. ピアス・イヤリング -->
+<a class="scroll-reveal group flex items-center bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.99] transition-all duration-700 ease-out opacity-100 translate-y-0" href="/collections/earrings">
+<div class="w-28 h-28 flex-shrink-0 overflow-hidden relative">
+<img alt="Japanese woman wearing gold hoop and stud earrings" class="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1XtdAKQWhoT0kfT1_L0QuHnmYFU-rXom3yaVDiS3mQxVN_QOZXHHNLTsreq-E_BGAEoeFhDjpN7iZbIGNpklSwlCHOdPkcWzgbY3GVCq9oqOr4jxOhDhzu8jvztAvyy7Zlv5OweEQKCUFcrKPNFeMEeW3KntlyjTnOr8O49VXA60YwoKLaEHDRM_hGAQ1lyVdBoYI2E1wudTMATpNipKnd_l5D7RiKCaofsYFK5aQ022a_MLKEl_i_6wnw">
+</div>
+<div class="p-3 flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary font-bold">ピアス・イヤリング</h3>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+<span class="Apple-converted-space">              </span>K18とプラチナのフープ、スタッド、ドロップタイプ。
+<span class="Apple-converted-space">            </span></p>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-1">一覧を見る</span>
+</div>
+</a>
+<!-- 4. ブレスレット -->
+<a class="scroll-reveal group flex items-center bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.99] transition-all duration-700 ease-out opacity-100 translate-y-0" href="/collections/bracelets">
+<div class="w-28 h-28 flex-shrink-0 overflow-hidden relative">
+<img alt="Wrist wearing gold chain bracelet and bangle" class="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1Xivt-0raSSZVDBVuZR-wE4yTHALOt9nqCdihGMqcCnhpx-Dzylfb-M6Pe_-XxCoC6tSu-3pUZr1VEXUATD9izABr789sOXwHcmTCzERatstJOO2CErQXO6IRunkpINwZOFII7DuMxPT1UD1Q017oaZdk9qTm5BXG4dOdRMbqAB7Y4DLZc20o0AuVPXT6I6N_uu79MLl5FkReMVSXjoSS9jAeYEj-ZBVi_xCDdlK-FCSA-tChYl4X-gFQDI">
+</div>
+<div class="p-3 flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary font-bold">ブレスレット</h3>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+<span class="Apple-converted-space">              </span>バングルとチェーンブレスレット。すべての商品に重量を表示しています。
+<span class="Apple-converted-space">            </span></p>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-1">一覧を見る</span>
+</div>
+</a>
+<!-- 5. リング -->
+<a class="scroll-reveal group flex items-center bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.99] transition-all duration-700 ease-out opacity-100 translate-y-0" href="/collections/rings">
+<div class="w-28 h-28 flex-shrink-0 overflow-hidden relative">
+<img alt="Hand resting gracefully wearing K18 gold and solitaire rings" class="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1XZnC-HheM5ZeLMfvZLl6KJu7P65RXaBYyOUIPceAZspcp7-yMN_j_Z3RLUvz05KPuj8wUXdHiVi_NjThz7Ht3niqha1F8Fr6Qz9Uj2ASeG-2wBpFOIHJZbfyBRWWNL3hJnLVJrjKEJ5JBEcMmoolWinrJOw3uuDtq48Or3H2rOZf4mFBDxckKI8sT8j2UWOEkp_g-vPGM6h-MjHLc1mR6jr2kx5Bewt3gEB_yza91-Sip-8KqWeP-l67PY">
+</div>
+<div class="p-3 flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary font-bold">リング</h3>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+<span class="Apple-converted-space">              </span>ソリティア、バンド、ステートメントリング。日本国内でサイズ直しを承ります。
+<span class="Apple-converted-space">            </span></p>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-1">一覧を見る</span>
+</div>
+</a>
+<!-- 6. アンクレット -->
+<a class="scroll-reveal group flex items-center bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.99] transition-all duration-700 ease-out opacity-100 translate-y-0" href="/collections/anklets">
+<div class="w-28 h-28 flex-shrink-0 overflow-hidden relative">
+<img alt="Minimalist ankle wearing delicate fine-link K18 gold anklet" class="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1UqU6QE7Qz2sl4fH6JfVtX91JwLWN3fitQp9bnvh5_FKvCHJ8htnzFNUHG2eGA_gSjIE9lvP_eXntNBnv42oUYgjaUSj5K0OV8Bw8Nv8A0grhtfbh3U_UU5EIWNnaVxO1waxtLVnRriMiffeTEPZ0pqk0sV8ujLoWjEEwHSocwj-W9iE2b0biwIb7a4DTEehkvOQA700vn8P3HhhXzTpawoxb-eq0rnzT-l3Mz2ThuF-gpHgZu-iddB7JA">
+</div>
+<div class="p-3 flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary font-bold">アンクレット</h3>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+<span class="Apple-converted-space">              </span>毎日身につけられる華奢なK18アンクレット。
+<span class="Apple-converted-space">            </span></p>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-1">一覧を見る</span>
+</div>
+</a>
+<!-- 7. パール -->
+<a class="scroll-reveal group flex items-center bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.99] transition-all duration-700 ease-out opacity-100 translate-y-0" href="/collections/pearls">
+<div class="w-28 h-28 flex-shrink-0 overflow-hidden relative">
+<img alt="Akoya and South Sea pearl necklaces and fine pearl drops" class="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1UhYBn1aCIe199VORXPRSOYBAjFvPHWZZM0XdnOnBCgErKa38n2SIAJ-ywwgQGH5LGi0bo1jrra4adyvytDPvd3JUMFo3-EJocZ_iXil87-hzF9FjJmpw1h_Y_lV2-1Ulfjh2UOI4YMoC-FM_82Mel8qj50i-C6Ps_YoxwD_xA1jFhhR6EDYYL0CVyHnonbfF6Qq9Ft_Ezj46QGNCHQfNm5bhS8Sc10854s5s5xVzKFmMzsLPhvaMFk4BN8">
+</div>
+<div class="p-3 flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary font-bold">パール</h3>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
+<span class="Apple-converted-space">              </span>美しい光沢、上品な表情、そして時を超える優雅さを基準に厳選した、アコヤ真珠と南洋真珠のジュエリーです。
+<span class="Apple-converted-space">            </span></p>
+</div>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold mt-1">一覧を見る</span>
+</div>
+</a>
+</div>
+</section>
+<!-- Layaway Micro-Calculator Anchor -->
+<section class="w-full px-space-md py-space-lg bg-surface flex flex-col gap-space-md" id="layaway-calculator"><div class="scroll-reveal space-y-1"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span><span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">無金利レイアウェイ</span></div><h2 class="font-headline-md text-headline-md text-primary tracking-tight">あなたに合ったお支払いプランを確認</h2><p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">商品価格とご希望の期間を入力すると、頭金と毎月のお支払い目安をご確認いただけます。</p></div><div class="scroll-reveal bg-surface-container-lowest p-space-md rounded shadow-sm flex flex-col gap-space-md border border-surface-container-high"><div class="flex items-center justify-between pb-1 border-b border-surface-container"><div class="flex flex-col"><span class="font-title-md text-title-md text-primary font-bold">Layaway Calculator Preview</span><span class="font-label-sm text-label-sm text-on-surface-variant">Estimate your custom monthly plan</span></div><span class="px-2 py-0.5 rounded bg-surface-container text-on-tertiary-container font-label-sm text-label-sm font-semibold tracking-wide">金利 0% (手数料なし)</span></div><div class="flex flex-col gap-2"><div class="flex items-center justify-between"><label for="calc-price-input" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">商品価格 (円)</label><div class="flex items-baseline gap-1"><span class="text-title-lg font-bold text-primary">¥</span><input id="calc-price-input" type="number" min="50000" max="600000" step="1000" value="150000" class="w-32 text-right font-title-lg font-bold text-primary bg-surface-container-low px-2 py-1 rounded outline-none border border-outline-variant/60 focus:border-secondary"></div></div><input id="calc-price-range" type="range" min="50000" max="600000" step="5000" value="150000" class="w-full accent-secondary cursor-pointer h-2 bg-surface-container-highest rounded-full"><div class="flex justify-between text-label-sm font-label-sm text-on-surface-variant"><span class="">¥50,000</span><span class="">¥300,000</span><span class="">¥600,000</span></div></div><div class="flex flex-col gap-2 pt-1"><span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">分割期間 (MONTHS)</span><div class="grid grid-cols-3 gap-2" id="term-btn-group"><button type="button" data-term="3" class="term-btn h-11 rounded font-label-md text-label-md font-semibold transition-all border border-surface-container-highest bg-surface-container-low text-on-surface active:scale-95">3か月</button><button type="button" data-term="6" class="term-btn h-11 rounded font-label-md text-label-md font-semibold transition-all bg-primary text-on-primary active:scale-95">6か月</button><button type="button" data-term="8" id="term-btn-8" class="term-btn h-11 rounded font-label-md text-label-md font-semibold transition-all border border-surface-container-highest bg-surface-container-low text-outline cursor-not-allowed opacity-50">8か月</button></div><p id="term-8-hint" class="font-label-sm text-label-sm text-outline">※ 8か月プランは ¥300,000 以上の商品が対象です</p></div><div class="p-space-md rounded bg-surface-container-low flex flex-col gap-2.5"><div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant"><span class="">頭金 (30%):</span><span id="calc-downpayment" class="font-semibold text-on-surface">¥45,000</span></div><div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant"><span class="">残額:</span><span id="calc-balance" class="font-semibold text-on-surface">¥105,000</span></div><div class="h-px bg-outline-variant/40 my-0.5"></div><div class="flex items-baseline justify-between"><div class="flex flex-col"><span class="font-label-md text-label-md text-secondary font-bold uppercase">毎月のお支払い目安</span><span class="font-label-sm text-label-sm text-on-tertiary-container font-medium">0% Extra Fees</span></div><div class="text-right"><span id="calc-monthly" class="font-headline-sm text-headline-sm font-bold text-secondary-container">¥17,500</span><span class="font-body-sm text-body-sm text-on-surface-variant"> / 月</span></div></div></div><div class="flex flex-col gap-2 pt-1"><a href="/layaway" class="w-full h-12 bg-secondary-container hover:bg-secondary-fixed text-primary font-title-md text-title-md rounded flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all font-bold"><span class="material-symbols-outlined text-[20px]">calculate</span><span class="">レイアウェイを計算する</span></a><a href="/layaway" class="text-center font-label-md text-label-md text-secondary hover:underline py-1 font-semibold">レイアウェイについて詳しく見る →</a><p class="font-label-sm text-label-sm text-on-surface-variant leading-relaxed text-center">表示される金額はお支払い目安です。最終的なプラン、頭金、支払日、対象条件は、ご注文時に確定します。</p></div></div></section>
+<!-- New Arrivals (新着ジュエリー) 2x2 Grid -->
+<section class="w-full px-space-md py-space-md flex flex-col gap-space-md">
+<div class="flex items-end justify-between">
+<div class="space-y-0.5">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">一点物・新着品</span>
+<h2 class="font-headline-md text-headline-md text-primary tracking-tight">新着ジュエリー</h2>
+</div>
+<a class="font-label-md text-label-md text-secondary font-semibold hover:underline flex items-center gap-0.5 pb-1" href="/collections/all">
+<span class="">すべての一点物を見る</span>
+<span class="text-[14px]">→</span>
+</a>
+</div>
+<!-- 2x2 Mobile Grid -->
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Card 1 -->
+<div class="scroll-reveal group flex flex-col bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.98] transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="relative w-full aspect-square overflow-hidden bg-surface-container">
+<img alt="South Sea pearls macro view" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1VM-GZn9r_hYsG-_3dDXDIWbQXNGARrWfweZ0IyazMC3wpXo8jvUNN-jXAx20Ey5M6e39u3SFleJHoLkIUo9qB1jE4NeybgVzYVwC_mf2BUFxUKvHkksbKa13Uh9o4aysuEpBD6AdLkZJDrttwOmB5TjcarYelKeeptjURjegjIT2EVzACagKXa-NlxM7vihFhHlgCsg6ScC3iHcaA8jFJR_PH9gH8GNcFPBqg6ZYMjMfwoBImhfP2vCdja">
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm tracking-tight flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-on-tertiary-container"></span>
+<span class="">日本国内検品済み</span>
+</span>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">K18 · 0.00g</span>
+<h4 class="font-title-md text-title-md text-primary truncate">商品名</h4>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-title-md text-title-md text-primary font-bold">¥—</span>
+<button class="font-label-sm text-label-sm text-secondary font-semibold group-hover:translate-x-0.5 transition-transform">
+<span class="Apple-converted-space">              </span>詳細を見る ›
+<span class="Apple-converted-space">            </span></button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="scroll-reveal group flex flex-col bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.98] transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="relative w-full aspect-square overflow-hidden bg-surface-container">
+<img alt="White Akoya pearls with sharp reflective luster" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1XkqhTbssZZQsWxCW8IrMTR1N38j1VqUk8GeIu4JPUsoQUjJNhQ9h8XVHISkG2xFpR-otkobHwVBl96QCEmGOIYC0xfa2xU7wPrXNcrLYybAswlUDXvGwkAh2veRCJ71JHuLy6ZW45MLTUlbOfYC0oPb_pGWjCJO1eGcOp7RYjgssOjQOFCJQ_3EYUe2qrEVKGro1sNyUaGJA3SUKyqFMRMQOo4CkvFBH6kw90u0nbWIreNmaoRgXDjm-Y">
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm tracking-tight flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-on-tertiary-container"></span>
+<span class="">日本国内検品済み</span>
+</span>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">K18 · 0.00g</span>
+<h4 class="font-title-md text-title-md text-primary truncate">商品名</h4>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-title-md text-title-md text-primary font-bold">¥—</span>
+<button class="font-label-sm text-label-sm text-secondary font-semibold group-hover:translate-x-0.5 transition-transform">
+<span class="Apple-converted-space">              </span>詳細を見る ›
+<span class="Apple-converted-space">            </span></button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="scroll-reveal group flex flex-col bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.98] transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="relative w-full aspect-square overflow-hidden bg-surface-container">
+<img alt="Assorted yellow gold and platinum earrings collection" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1WmnMHobw-OejRQDvzM_fCiloMFWdJA7H5tGXhTrNpCgUlFdJAMoIQJkssQ1i0ZgCmLRgjU4cFt2Af11LEIHm4f76bfW3mD1d7Zj4ayULPE3Oxn6lhU1hx7pUSb85YZI9LFi-u3j-MV5oBO9WmDGGif1yKsC5R3tjPQUsxUcAfx592InhfKOKdr1tX1u6iTnAEdMgKfDqDJfog5QRdRu-5RFikhbsTXoTwkA27Oc2O508RPPkw9itzqEqeX">
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm tracking-tight flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-on-tertiary-container"></span>
+<span class="">日本国内検品済み</span>
+</span>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">K18 · 0.00g</span>
+<h4 class="font-title-md text-title-md text-primary truncate">商品名</h4>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-title-md text-title-md text-primary font-bold">¥—</span>
+<button class="font-label-sm text-label-sm text-secondary font-semibold group-hover:translate-x-0.5 transition-transform">
+<span class="Apple-converted-space">              </span>詳細を見る ›
+<span class="Apple-converted-space">            </span></button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="scroll-reveal group flex flex-col bg-surface-container-lowest rounded overflow-hidden shadow-sm active:scale-[0.98] transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="relative w-full aspect-square overflow-hidden bg-surface-container">
+<img alt="Yellow gold and pearl delicate pendant" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1UV6SDApKnmkysIcdjcASFsq0YQWjOj2eo3vfpvZpofH7ITEibMH85zJaJK8s7GKdrVmIKFoWONR8t6asWUnzd01fKfjsxTwHTavvGgqjGIP0nfRPyRiuloiDMYrGlm1dTb4OevzlLStWk6965YS-I8E-pQGSsJkGZie3TgRfAZhHzCrlanW9b_nRpSk8Ow4gnm0GKROnJL4IMWWJ7KqXekdZIdMuywP0TzcdWJvZ6hClYqOvVQvmBQrSaJ">
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface/90 backdrop-blur-sm text-primary font-label-sm text-label-sm tracking-tight flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-on-tertiary-container"></span>
+<span class="">日本国内検品済み</span>
+</span>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">K18 · 0.00g</span>
+<h4 class="font-title-md text-title-md text-primary truncate">商品名</h4>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-title-md text-title-md text-primary font-bold">¥—</span>
+<button class="font-label-sm text-label-sm text-secondary font-semibold group-hover:translate-x-0.5 transition-transform">
+<span class="Apple-converted-space">              </span>詳細を見る ›
+<span class="Apple-converted-space">            </span></button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Customer Stories / Voices (お客様の声) -->
+<section class="w-full px-space-md py-space-lg bg-surface-container-low flex flex-col gap-space-md">
+<div class="scroll-reveal space-y-1 transition-all duration-700 ease-out opacity-100 translate-y-0">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">ご愛用者様の声</span>
+<h2 class="font-headline-md text-headline-md text-primary tracking-tight">お客様の声</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<span class="Apple-converted-space">        </span>Cha Jewelsでお選びいただいたお客様からのご感想をご紹介します。
+<span class="Apple-converted-space">      </span></p>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Review Card 1 -->
+<div class="scroll-reveal p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col gap-2 transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-on-tertiary-container font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+<span class="">日本国内検品済み・ご購入者様</span>
+</span>
+<div class="flex text-secondary-container text-sm">
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface italic leading-relaxed pt-1">
+<span class="Apple-converted-space">          </span>「確認済みのお客様の声をここに掲載」
+<span class="Apple-converted-space">        </span></p>
+<div class="pt-2 flex items-center justify-between">
+<span class="font-title-md text-title-md text-primary font-medium">お客様名</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">ご購入商品またはご利用サービス</span>
+</div>
+</div>
+<!-- Review Card 2 -->
+<div class="scroll-reveal p-space-md bg-surface-container-lowest rounded shadow-sm flex flex-col gap-2 transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-on-tertiary-container font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+<span class="">日本国内検品済み・ご購入者様</span>
+</span>
+<div class="flex text-secondary-container text-sm">
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="material-symbols-outlined text-[16px]">star</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface italic leading-relaxed pt-1">
+<span class="Apple-converted-space">          </span>「確認済みのお客様の声をここに掲載」
+<span class="Apple-converted-space">        </span></p>
+<div class="pt-2 flex items-center justify-between">
+<span class="font-title-md text-title-md text-primary font-medium">お客様名</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">ご購入商品またはご利用サービス</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Atelier Bespoke Inquiry & Map / Atelier Desk -->
+<section class="w-full px-space-md py-space-lg flex flex-col gap-space-md">
+<!-- Dark Charcoal Bespoke Inquiry Card -->
+<div class="scroll-reveal bg-primary-container text-on-primary p-space-md rounded shadow-sm flex flex-col gap-3 transition-all duration-700 ease-out opacity-100 translate-y-0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-on-tertiary-container">support_agent</span>
+<span class="font-label-sm text-label-sm text-surface-container-high tracking-widest uppercase">Concierge Desk</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-surface-container-lowest">個別の相談・ご注文</h3>
+<p class="font-body-sm text-body-sm text-on-primary-container leading-relaxed">
+<span class="Apple-converted-space">        </span>お探しの地金・サイズ・石のご要望について、東京アトリエの専任担当が丁寧にご案内いたします。銀行振込でのお支払いに対応しております。
+<span class="Apple-converted-space">      </span></p>
+<button class="w-full mt-1 bg-secondary-container hover:bg-secondary-fixed text-primary font-title-md text-title-md py-3 px-space-md rounded text-center flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+<span class="">工房へ問い合わせる</span>
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</button>
+</div>
+<!-- Tokyo Atelier Salon card with map -->
+<div class="scroll-reveal bg-surface-container-lowest rounded shadow-sm overflow-hidden transition-all duration-700 ease-out opacity-100 translate-y-0">
+<!-- Static Map Component -->
+<div class="w-full h-44 bg-cover bg-center relative" data-location="Katsushika, Tokyo, Japan" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBxk5hUYs49c4DjEaNrPX9nhA3cLyDS_H7seG80pLxOXu3-0GPP1Flk23wrUbeA5hBXIKLtZSa7SagJDA0eUyF0hFpJ9TFREVmMLQaLD4FCLgwaPQsiALyuI08RYKy2UnW3qGI8nsPvdVfTCtsJ0h0BjVHANlCpm94H-7yC61jf-ff-zr-5PPSMU50lV2DoY98GQJLHIBCaOUsK5il96cPNLGlcgMr0WP8IHc0Npb47hvJ3ZlW63iJf2g')">
+<div class="absolute inset-0 bg-primary/20 backdrop-brightness-95"></div>
+<div class="absolute top-3 left-3 bg-surface/90 backdrop-blur-md px-2.5 py-1 rounded text-primary font-label-sm text-label-sm flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-error">pin_drop</span>
+<span class="font-bold">CHA JEWELS ATELIER</span>
+</div>
+</div>
+<div class="p-space-md flex flex-col gap-2">
+<h4 class="font-title-lg text-title-lg text-primary">東京工房・サロン (完全予約制)</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<span class="Apple-converted-space">          </span>〒124-0000 東京都葛飾区 / 対面での検品・地金確認のご予約も承っております。
+<span class="Apple-converted-space">        </span></p>
+<div class="pt-1 flex items-center gap-2 text-on-tertiary-container font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[16px]">calendar_month</span>
+<span class="">事前アポイントメント枠を確認する ›</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="w-full bg-[#1B1B1B] text-[#EDEDE8] border-t border-[#2E2E2E] px-space-md py-space-xl flex flex-col gap-space-xl"><div class="flex flex-col gap-space-lg"><div class="flex flex-col gap-2.5 pb-2 border-b border-[#2E2E2E]"><div class="flex items-center gap-2"><span class="font-headline-sm text-headline-sm text-surface-container-lowest font-serif tracking-wide">CHA JEWELS</span></div><p class="font-body-sm text-body-sm text-[#C8C8C3] leading-relaxed">Cha Jewels株式会社は、東京・葛飾区立石を拠点に、K18ゴールド、パール、ダイヤモンドジュエリー、厳選されたプレラブドジュエリー、ハンドメイド天然石ブレスレットをご紹介しています。</p><div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#2A2A2A] text-on-tertiary-container w-fit font-label-sm text-label-sm font-semibold"><span class="material-symbols-outlined text-[14px]">verified</span><span class="">日本で一点ずつ確認</span></div></div><div class="grid grid-cols-2 gap-space-md"><div class="flex flex-col gap-2"><span class="font-label-md text-label-md text-surface-container-lowest font-bold tracking-wider uppercase">コレクション</span><ul class="flex flex-col gap-1.5 font-body-sm text-body-sm text-[#C8C8C3]"><li class=""><a href="/collections/necklaces" class="hover:text-secondary-fixed transition-colors">ネックレス</a></li><li class=""><a href="/collections/pendants" class="hover:text-secondary-fixed transition-colors">ペンダント</a></li><li class=""><a href="/collections/earrings" class="hover:text-secondary-fixed transition-colors">ピアス・イヤリング</a></li><li class=""><a href="/collections/bracelets" class="hover:text-secondary-fixed transition-colors">ブレスレット</a></li><li class=""><a href="/collections/rings" class="hover:text-secondary-fixed transition-colors">リング</a></li><li class=""><a href="/collections/anklets" class="hover:text-secondary-fixed transition-colors">アンクレット</a></li><li class=""><a href="/collections/pearls" class="hover:text-secondary-fixed transition-colors">パール</a></li></ul></div><div class="flex flex-col gap-2"><span class="font-label-md text-label-md text-surface-container-lowest font-bold tracking-wider uppercase">カスタマーケア・法的情報</span><ul class="flex flex-col gap-1.5 font-body-sm text-body-sm text-[#C8C8C3]"><li class=""><a href="/layaway" class="hover:text-secondary-fixed transition-colors">無金利レイアウェイ</a></li><li class=""><a href="/gold-guide" class="hover:text-secondary-fixed transition-colors">ゴールド純度ガイド</a></li><li class=""><a href="/legal/tokusho" class="hover:text-secondary-fixed transition-colors">特定商取引法に基づく表記</a></li><li class=""><a href="/shipping-returns" class="hover:text-secondary-fixed transition-colors">配送・返品について</a></li><li class=""><a href="/legal/privacy" class="hover:text-secondary-fixed transition-colors">プライバシーポリシー</a></li><li class=""><a href="/legal/terms" class="hover:text-secondary-fixed transition-colors">利用規約</a></li><li class=""><a href="/faq" class="hover:text-secondary-fixed transition-colors">よくあるご質問</a></li></ul></div></div><div class="flex flex-col gap-2.5 pt-2 border-t border-[#2E2E2E]"><div class="flex flex-col gap-1"><span class="font-label-md text-label-md text-surface-container-lowest font-bold tracking-wider uppercase">最新情報をお届け</span><p class="font-body-sm text-body-sm text-[#C8C8C3] leading-relaxed">新着ジュエリー、会員限定のお知らせ、Cha Jewelsからの最新情報をお届けします。</p></div><form onsubmit="event.preventDefault();" class="flex flex-col gap-2"><div class="flex gap-2"><input type="email" placeholder="メールアドレスを入力" aria-label="メールアドレス" class="flex-1 h-11 bg-[#2A2A2A] border border-[#3E3E3E] rounded px-3 text-body-sm text-[#EDEDE8] placeholder-[#747878] focus:border-secondary outline-none"><button type="submit" class="h-11 px-5 bg-secondary-container hover:bg-secondary-fixed text-primary font-label-md text-label-md font-bold rounded active:scale-95 transition-all flex items-center justify-center min-w-[56px]">登録</button></div><p class="font-label-sm text-label-sm text-[#8E8E8A]">ご登録いただいた情報は、プライバシーポリシーに基づいて管理します。</p></form></div></div><div class="pt-4 border-t border-[#2E2E2E] flex flex-col gap-2.5 text-center items-center"><div class="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-[#2A2A2A] text-xs text-[#C8C8C3]"><span class="material-symbols-outlined text-[16px] text-on-tertiary-container">account_balance</span><span class="">お支払い方法：銀行振込 (Bank Transfer Only)</span></div><p class="font-label-sm text-label-sm text-[#8E8E8A]">© 2026 Cha Jewels株式会社. All Rights Reserved.</p></div></footer>
+</div>
+<script>
+<span class="Apple-converted-space">  </span>(function() {
+<span class="Apple-converted-space">    </span>// 1. Scroll-reveal Observer with Stagger
+<span class="Apple-converted-space">    </span>const revealElements = document.querySelectorAll('.scroll-reveal');
+<span class="Apple-converted-space">    </span>if ('IntersectionObserver' in window) {
+<span class="Apple-converted-space">      </span>const observer = new IntersectionObserver((entries) => {
+<span class="Apple-converted-space">        </span>entries.forEach((entry) => {
+<span class="Apple-converted-space">          </span>if (entry.isIntersecting) {
+<span class="Apple-converted-space">            </span>entry.target.classList.remove('opacity-0', 'translate-y-4');
+<span class="Apple-converted-space">            </span>entry.target.classList.add('opacity-100', 'translate-y-0');
+<span class="Apple-converted-space">            </span>observer.unobserve(entry.target);
+<span class="Apple-converted-space">          </span>}
+<span class="Apple-converted-space">        </span>});
+<span class="Apple-converted-space">      </span>}, {
+<span class="Apple-converted-space">        </span>root: null,
+<span class="Apple-converted-space">        </span>rootMargin: '0px 0px -40px 0px',
+<span class="Apple-converted-space">        </span>threshold: 0.1
+<span class="Apple-converted-space">      </span>});
+
+
+<span class="Apple-converted-space">      </span>revealElements.forEach((el) => {
+<span class="Apple-converted-space">        </span>el.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-700', 'ease-out');
+<span class="Apple-converted-space">        </span>observer.observe(el);
+<span class="Apple-converted-space">      </span>});
+<span class="Apple-converted-space">    </span>}
+
+
+<span class="Apple-converted-space">    </span>// 2. Hero ambient motion toggle button
+<span class="Apple-converted-space">    </span>const heroBtn = document.getElementById('hero-pause-btn');
+<span class="Apple-converted-space">    </span>const heroText = document.getElementById('hero-pause-text');
+<span class="Apple-converted-space">    </span>const heroMedia = document.getElementById('hero-media-bg');
+<span class="Apple-converted-space">    </span>let isPaused = false;
+
+
+<span class="Apple-converted-space">    </span>if (heroBtn && heroMedia && heroText) {
+<span class="Apple-converted-space">      </span>heroBtn.addEventListener('click', () => {
+<span class="Apple-converted-space">        </span>isPaused = !isPaused;
+<span class="Apple-converted-space">        </span>if (isPaused) {
+<span class="Apple-converted-space">          </span>heroMedia.classList.remove('scale-100');
+<span class="Apple-converted-space">          </span>heroMedia.classList.add('scale-105');
+<span class="Apple-converted-space">          </span>heroText.textContent = '再生';
+<span class="Apple-converted-space">          </span>heroBtn.querySelector('.material-symbols-outlined').textContent = 'play_arrow';
+<span class="Apple-converted-space">        </span>} else {
+<span class="Apple-converted-space">          </span>heroMedia.classList.remove('scale-105');
+<span class="Apple-converted-space">          </span>heroMedia.classList.add('scale-100');
+<span class="Apple-converted-space">          </span>heroText.textContent = '一時停止';
+<span class="Apple-converted-space">          </span>heroBtn.querySelector('.material-symbols-outlined').textContent = 'pause';
+<span class="Apple-converted-space">        </span>}
+<span class="Apple-converted-space">      </span>});
+<span class="Apple-converted-space">    </span>}
+<span class="Apple-converted-space">  </span>})();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.04)]" data-active-classes="text-secondary"><div class="h-16 flex items-center justify-around px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] h-12 active:scale-95 transition-all duration-150 gap-0.5 text-secondary" data-path="home" href="#"><span class="material-symbols-outlined text-[22px]">home</span><span class="font-label-sm text-label-sm tracking-wide">ホーム</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all duration-150 gap-0.5" data-path="pieces" href="#"><span class="material-symbols-outlined text-[22px]">diamond</span><span class="font-label-sm text-label-sm tracking-wide">作品一覧</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all duration-150 gap-0.5" data-path="layaway" href="#"><span class="material-symbols-outlined text-[22px]">payments</span><span class="font-label-sm text-label-sm tracking-wide">分割購入</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all duration-150 gap-0.5" data-path="loyalty" href="#"><span class="material-symbols-outlined text-[22px]">workspace_premium</span><span class="font-label-sm text-label-sm tracking-wide">特典</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all duration-150 gap-0.5" data-path="account" href="#"><span class="material-symbols-outlined text-[22px]">person_outline</span><span class="font-label-sm text-label-sm tracking-wide">マイページ</span></a></div></nav>
+
+
+<script>(function(){const priceInput=document.getElementById('calc-price-input');const priceRange=document.getElementById('calc-price-range');const termBtns=document.querySelectorAll('.term-btn');const term8Btn=document.getElementById('term-btn-8');const term8Hint=document.getElementById('term-8-hint');const downpaymentEl=document.getElementById('calc-downpayment');const balanceEl=document.getElementById('calc-balance');const monthlyEl=document.getElementById('calc-monthly');if(!priceInput||!priceRange)return;let selectedTerm=6;function updateEligibility(price){if(price<300000){term8Btn.classList.add('opacity-50','cursor-not-allowed');term8Btn.disabled=true;if(term8Hint)term8Hint.classList.remove('hidden');if(selectedTerm===8){selectedTerm=6;updateTermButtons();}}else{term8Btn.classList.remove('opacity-50','cursor-not-allowed');term8Btn.disabled=false;if(term8Hint)term8Hint.classList.add('hidden');}}function updateTermButtons(){termBtns.forEach(b=>{const t=parseInt(b.dataset.term,10);if(t===selectedTerm){b.classList.remove('bg-surface-container-low','text-on-surface','border','border-surface-container-highest');b.classList.add('bg-primary','text-on-primary');}else{b.classList.add('bg-surface-container-low','text-on-surface','border','border-surface-container-highest');b.classList.remove('bg-primary','text-on-primary');}});}function calculate(){let price=parseInt(priceInput.value,10);if(isNaN(price)||price<0)price=50000;updateEligibility(price);const downPayment=Math.round(price*0.3);const balance=price-downPayment;const monthly=Math.round(balance/selectedTerm);downpaymentEl.textContent='¥'+downPayment.toLocaleString();balanceEl.textContent='¥'+balance.toLocaleString();monthlyEl.textContent='¥'+monthly.toLocaleString();}priceInput.addEventListener('input',()=>{priceRange.value=priceInput.value;calculate();});priceRange.addEventListener('input',()=>{priceInput.value=priceRange.value;calculate();});termBtns.forEach(btn=>{btn.addEventListener('click',()=>{const term=parseInt(btn.dataset.term,10);if(term===8&&parseInt(priceInput.value,10)<300000)return;selectedTerm=term;updateTermButtons();calculate();});});updateTermButtons();calculate();})();</script></body></html>

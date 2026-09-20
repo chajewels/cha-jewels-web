@@ -13,11 +13,14 @@ const C = {
   chalk: "#F5F5F2", gold: "#C9A227", "gold-pale": "#E8D28A",
   orange: "#FFA500", "orange-hover": "#FFB733", teal: "#1ABC9C",
   garnet: "#7A1E2B", "garnet-light": "#F28B94",
+  "gold-dark": "#8A6B12", white: "#FFFFFF", hairline: "#E5E5E0",
 };
 
 // Guard: the table above must agree with tailwind.config.ts.
 const cfg = readFileSync(new URL("../tailwind.config.ts", import.meta.url), "utf8");
+const TAILWIND_BUILTIN = new Set(["white"]); // not spelled out in the config
 for (const [name, hex] of Object.entries(C)) {
+  if (TAILWIND_BUILTIN.has(name)) continue;
   if (!cfg.toLowerCase().includes(hex.toLowerCase())) { console.error(`check-contrast: ${name} ${hex} is not in tailwind.config.ts — table is stale`); process.exit(1); }
 }
 
@@ -52,9 +55,15 @@ add("charcoal-deep on orange (CTA label)", "charcoal-deep", "orange", TEXT);
 add("charcoal-deep on orange-hover", "charcoal-deep", "orange-hover", TEXT);
 add("charcoal on orange (hero CTA label)", "charcoal", "orange", TEXT);
 add("charcoal text on chalk band", "charcoal", "chalk", TEXT);
+// GOLD TEXT RULE (Phase 4): gold-pale on dark bands, gold-dark on light bands.
+// gold-pale on chalk is 1.37:1 and must never be used there.
+add("gold-dark text on chalk (light band)", "gold-dark", "chalk", TEXT);
+add("gold-dark text on white (card)", "gold-dark", "white", TEXT);
+add("charcoal text on white (card)", "charcoal", "white", TEXT);
+add("gold-dark heading >=24px on chalk", "gold-dark", "chalk", LARGE);
 
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
-const mustFail = [["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT], ["chalk", "orange", 1, TEXT]];
+const mustFail = [["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT], ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT], ["orange", "chalk", 1, TEXT]];
 
 let bad = 0;
 const w = Math.max(...pairs.map((p) => p.label.length));
