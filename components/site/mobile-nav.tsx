@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { signOutAction } from "@/lib/session-actions";
+import { SearchBox } from "./search-box";
+import type { Lang } from "@/lib/i18n";
 
 export type DrawerAccount = { name: string; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
 
@@ -17,7 +19,7 @@ export type DrawerAccount = { name: string; menuLabel: string; items: { href: st
  * nothing — the links spilled out unstyled over the page. Outside the header
  * the panel fills the viewport below the bar as intended.
  */
-export function MobileNav({ links, openLabel, closeLabel, account }: { links: { href: string; label: string }[]; openLabel: string; closeLabel: string; account?: DrawerAccount | null }) {
+export function MobileNav({ lang, links, openLabel, closeLabel, account }: { lang: Lang; links: { href: string; label: string }[]; openLabel: string; closeLabel: string; account?: DrawerAccount | null }) {
   const [open, setOpen] = useState(false);
   useEffect(() => { document.body.style.overflow = open ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [open]);
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false); window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
@@ -28,6 +30,7 @@ export function MobileNav({ links, openLabel, closeLabel, account }: { links: { 
       </button>
       {open && createPortal(
         <div className="fixed inset-x-0 bottom-0 top-[68px] z-30 flex flex-col gap-1 overflow-y-auto bg-chalk px-[clamp(18px,4vw,48px)] py-8 text-charcoal xl:hidden">
+          <div className="mb-4"><SearchBox lang={lang} variant="drawer" /></div>
           {links.map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="border-b border-hairline py-3 font-display text-3xl text-charcoal hover:text-gold-dark">{l.label}</Link>)}
           {account && (
             <section aria-label={account.menuLabel} className="mt-8 border-t border-hairline pt-6">

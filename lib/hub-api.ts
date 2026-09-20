@@ -57,6 +57,15 @@ export const hub = {
   product: (slug: string): Promise<Product | null> =>
     FIXTURES ? Promise.resolve(fx.products.find((p) => p.slug === slug) ?? null) : notFoundToNull(call(`/catalog/products/${encodeURIComponent(slug)}`)),
   featured: (limit = 8): Promise<Product[]> => FIXTURES ? Promise.resolve(fx.products.slice(0, limit)) : call(`/catalog/products?featured=1&limit=${limit}`),
+  /**
+   * The whole active catalog, for the storefront's own search index
+   * (lib/search.ts). The Hub's /catalog/products has no `q` parameter, so
+   * matching is done on this side against a cached copy of the catalog rather
+   * than per keystroke against the Hub. Cached like every other catalog read:
+   * 60s, tag "catalog", so the Hub's notify_website webhook busts it too.
+   */
+  allProducts: (limit = 5000): Promise<Product[]> =>
+    FIXTURES ? Promise.resolve(fx.products) : call(`/catalog/products?limit=${limit}`),
   productSlugs: (): Promise<{ slug: string; updated_at: string }[]> => FIXTURES ? Promise.resolve(fx.products.map((p) => ({ slug: p.slug, updated_at: "2026-09-01" }))) : call("/catalog/products?fields=slug,updated_at&limit=5000"),
   /** Quote is always computed in JPY by the Hub. Peso display uses hub.fx(). */
   layawayQuote: (price: number, term_months: number): Promise<LayawayQuote> =>
