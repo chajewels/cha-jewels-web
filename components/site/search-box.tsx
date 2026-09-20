@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { tr, type Lang } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
-import { trackSearch } from "@/lib/analytics";
+import { markSearchFromBox } from "@/lib/search-origin";
 
 type Suggestion = { slug: string; sku: string; name: string; price: number | null; image: string | null };
 
@@ -106,11 +106,20 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
     return () => document.removeEventListener("mousedown", onDown);
   }, [open, expanded, close, inDrawer]);
 
+  /**
+   * Enter on the raw text, or "See all N results". Both land on /search, which
+   * is the single emitter of the `search` event — this no longer reports one
+   * of its own, because doing so counted every search typed here twice while a
+   * pasted link counted once. It leaves a one-shot marker instead, so the page
+   * it navigates to can still tell a typed search from a pasted link.
+   *
+   * Enter on a highlighted suggestion does not come through here: it opens the
+   * product directly and reports nothing, exactly as before.
+   */
   function submit() {
     const term = q.trim();
     if (term === "") return;
-    // `total` is the last completed lookup for this term (0 if none finished).
-    trackSearch(term, total);
+    markSearchFromBox(term);
     go(`/search?q=${encodeURIComponent(term)}`);
   }
 
