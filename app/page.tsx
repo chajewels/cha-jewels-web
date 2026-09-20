@@ -6,12 +6,13 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
-import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/site/json-ld";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
+import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
 import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
@@ -46,6 +47,21 @@ export default async function Home() {
     image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
   const placeholders = Math.max(0, 4 - featured.length);
+
+  // Hero slides: the intro first, then one per collection — preloved lines
+  // (slugs starting "preloved-") first in Hub order, then the rest. The image
+  // is the collection's own hero_media or nothing; never a product photo.
+  const isPreloved = (slug: string) => slug.startsWith("preloved-");
+  const slides: HeroSlide[] = [
+    { kind: "intro", layaway },
+    ...[...collections.filter((c) => isPreloved(c.slug)), ...collections.filter((c) => !isPreloved(c.slug))].map((c) => ({
+      kind: "collection" as const,
+      slug: c.slug,
+      name: collectionName(c, lang),
+      description: collectionDescription(c, lang) || null,
+      image: c.hero_media,
+    })),
+  ];
 
   const tabs: Tab[] = [
     { href: "/", label: t("home", "tabHome"), icon: "home" },
@@ -82,19 +98,10 @@ export default async function Home() {
       <section className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-20 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0">
         <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
         <div aria-hidden="true" className="hero-scrim" />
-        <div className="wrap relative z-10 w-full py-16 text-center lg:py-24 lg:text-left">
-          <div className="mx-auto max-w-[820px] lg:mx-0">
-            <h1 className="text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
-              {t("hero", "h1a")}<br />
-              <span className="text-gold-pale">{t("hero", "h1b")}</span>
-            </h1>
-            <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("hero", "lede")}</p>
-            <p className="mt-3 line-clamp-5 text-[15px] leading-relaxed text-chalk/75 lg:line-clamp-none lg:text-base">{t("hero", "lede2")}</p>
-            <div className="mt-9 flex flex-wrap justify-center gap-3 lg:justify-start">
-              <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
-              {layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
-            </div>
-          </div>
+        {/* Slide 0 is the hero copy as before; slides 1..n are the collections.
+            Swipe, arrows (md+), dots, ← →; see components/home/hero-slides.tsx. */}
+        <div className="wrap relative z-10 w-full py-16 lg:py-24">
+          <HeroSlides lang={lang} slides={slides} />
         </div>
       </section>
 
