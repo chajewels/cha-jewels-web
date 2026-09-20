@@ -133,7 +133,12 @@ export const dict = {
     // existing key; where the file's Japanese differed from a key above, the key won.
     trust1H: { ja: "日本国内検品済み", en: "Checked in Japan" },
     colsEyebrow: { ja: "カテゴリーから選ぶ", en: "Browse by category" }, colsLink: { ja: "コレクションを見る", en: "View collection" },
-    layEyebrow: { ja: "無金利レイアウェイ", en: "0% interest layaway" },
+    layPill: { ja: "無利息 · 銀行ローン不要 · 3〜8か月", en: "0% interest · No bank loans · 3 to 8 months" },
+    layStep1H: { ja: "頭金30%で取り置き", en: "Reserve with a 30% deposit" }, layStep1P: { ja: "頭金の入金確認後、すぐに商品を確保します。", en: "Your piece is set aside the moment the deposit clears." },
+    layStep2H: { ja: "残額を3〜8か月で分割", en: "Spread the balance over 3 to 8 months" }, layStep2P: { ja: "無利息・手数料なし。8か月プランは30万円以上のご注文が対象です。", en: "0% interest, no fees. Eight months on orders of ¥300,000 and above." },
+    layStep3H: { ja: "最終回のお支払い後にお届け", en: "Delivered on the final payment" }, layStep3P: { ja: "各回は銀行振込。プラン完了後に発送します。", en: "Pay each instalment by bank transfer; the piece ships once the plan completes." },
+    layCalcH: { ja: "レイアウェイ計算", en: "Layaway calculator" }, layCalcP: { ja: "毎月のお支払い目安", en: "Estimate your monthly plan" }, layCalcChip: { ja: "無利息", en: "0% interest" },
+    layCta: { ja: "レイアウェイを申し込む", en: "Start a layaway" },
     newEyebrow: { ja: "一点物・新着品", en: "One-of-a-kind, newly listed" }, newDetail: { ja: "詳細を見る", en: "View details" },
     phName: { ja: "商品名", en: "Product name" }, phMeta: { ja: "K18 · 0.00g", en: "K18 · 0.00g" }, phPrice: { ja: "¥—", en: "¥—" },
     testiEyebrow: { ja: "ご愛用者様の声", en: "Voices" },
