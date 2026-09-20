@@ -8,7 +8,6 @@ import { hub } from "@/lib/hub-api";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/site/json-ld";
-import { TrustBar } from "@/components/home/trust-bar";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
@@ -20,9 +19,8 @@ export const revalidate = 60;
 
 /**
  * Homepage — the Stitch redesign (docs/stitch/cha-desktop.html and
- * cha-mobile.html), JA-first. Section order follows the file: hero, trust bar,
- * values, layaway calculator (EN only), collections, testimonials, new
- * arrivals, inquiry. The page is the one chalk (light) surface on the site;
+ * cha-mobile.html), JA-first. Section order follows the file: hero, values,
+ * layaway calculator (EN only), collections, testimonials, new arrivals. The page is the one chalk (light) surface on the site;
  * the header is global and light, the footer stays charcoal.
  *
  * Every string comes from lib/i18n. Where the file's Japanese differs from an
@@ -65,18 +63,16 @@ export default async function Home() {
 
       {/* §3 Hero — the Phase 1 video treatment, not the Stitch image one: full
           bleed, video at full opacity, the single vertical scrim (.hero-scrim)
-          between video and content. The 1440px max width applies to the
-          content wrapper only. Copy from hero.*. */}
-      <section className="relative isolate flex w-full min-h-[clamp(560px,86vh,860px)] items-center overflow-hidden bg-charcoal">
+          between video and content. The section's height follows the 16:9
+          video (56.25vw), capped at the viewport and floored at 560px — no
+          max-height and no aspect-ratio utility, both shrink the width. The
+          1440px max width applies to the content wrapper only. Copy from hero.*. */}
+      <section className="relative isolate flex h-[min(56.25vw,100svh)] min-h-[560px] w-full items-center overflow-hidden bg-charcoal">
         <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
         <div aria-hidden="true" className="hero-scrim" />
         <div className="wrap relative z-10 w-full py-16 text-center lg:py-24 lg:text-left">
           <div className="mx-auto max-w-[820px] lg:mx-0">
-            <span className="inline-flex items-center gap-2 rounded-full border border-orange/50 bg-charcoal-deep/60 px-4 py-1.5 text-xs font-medium tracking-wide text-orange backdrop-blur">
-              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-orange" />
-              {t("home", "heroPill")}
-            </span>
-            <h1 className="mt-6 text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
+            <h1 className="text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
               {t("hero", "h1a")}<br />
               <span className="text-gold-pale">{t("hero", "h1b")}</span>
             </h1>
@@ -90,9 +86,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* §4 Trust bar */}
-      <TrustBar lang={lang} />
-
       {/* §6 Diamond divider */}
       <DiamondDivider className="wrap" />
 
@@ -103,7 +96,7 @@ export default async function Home() {
           section and the calculator go together — a calculator with no
           explanation is worse than neither. See lib/layaway-availability. */}
       {layaway && (
-        <section id="layaway" className="scroll-mt-28 border-t border-hairline bg-hairline/40 py-16 lg:py-20">
+        <section id="layaway" className="scroll-mt-20 border-t border-hairline bg-hairline/40 py-16 lg:py-20">
           <div className="wrap grid gap-10 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-5">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "layEyebrow")}</p>

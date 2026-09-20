@@ -27,7 +27,7 @@ export function MobileNav({ links, openLabel, closeLabel, account }: { links: { 
         <span className="block h-px w-[18px] bg-current" /><span className={`my-1 block h-px w-[18px] bg-current ${open ? "opacity-0" : ""}`} /><span className="block h-px w-[18px] bg-current" />
       </button>
       {open && createPortal(
-        <div className="fixed inset-x-0 bottom-0 top-[104px] z-30 flex flex-col gap-1 overflow-y-auto bg-chalk px-[clamp(18px,4vw,48px)] py-8 text-charcoal xl:hidden">
+        <div className="fixed inset-x-0 bottom-0 top-[68px] z-30 flex flex-col gap-1 overflow-y-auto bg-chalk px-[clamp(18px,4vw,48px)] py-8 text-charcoal xl:hidden">
           {links.map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="border-b border-hairline py-3 font-display text-3xl text-charcoal hover:text-gold-dark">{l.label}</Link>)}
           {account && (
             <section aria-label={account.menuLabel} className="mt-8 border-t border-hairline pt-6">

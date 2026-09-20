@@ -3,7 +3,7 @@
 @tailwind utilities;
 @layer base {
   :root { --rule: rgba(201,162,39,.32); }
-  html { scroll-behavior: smooth; scroll-padding-top: 112px; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
   body { @apply bg-charcoal text-chalk font-sans antialiased; }
   h1, h2, h3 { @apply font-display font-normal leading-[1.02] tracking-[-0.01em]; }
   :lang(ja) h1, :lang(ja) h2, :lang(ja) h3 { @apply font-jp font-medium tracking-[0.01em]; }
