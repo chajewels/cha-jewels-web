@@ -10,6 +10,7 @@ export default {
         orange: { DEFAULT: "#FFA500", hover: "#FFB733" },
         teal: "#1ABC9C",
         garnet: { DEFAULT: "#7A1E2B", light: "#F28B94" },
+        hairline: "#E5E5E0",
       },
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],
