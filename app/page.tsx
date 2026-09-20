@@ -1,117 +1,160 @@
-import Image from "next/image";
-import { HeroVideo } from "@/components/site/hero-video";
 import Link from "next/link";
-import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
+import { HeroVideo } from "@/components/site/hero-video";
+import { getCollections, getFeaturedProducts, getCollectionWithProducts, primaryImage } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
-import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
-import { ProductCard } from "@/components/catalog/product-card";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/site/json-ld";
+import { TrustBar } from "@/components/home/trust-bar";
+import { DiamondDivider } from "@/components/home/diamond-divider";
+import { ValuesBento } from "@/components/home/values-bento";
+import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
+import { Testimonials } from "@/components/home/testimonials";
+import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
+import { InquiryBanner } from "@/components/home/inquiry-banner";
+import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
+import type { Collection } from "@/lib/types";
 export const revalidate = 60;
 
+/**
+ * Homepage — the Stitch redesign (docs/stitch/cha-desktop.html and
+ * cha-mobile.html), JA-first. Section order follows the file: hero, trust bar,
+ * values, layaway calculator (EN only), collections, testimonials, new
+ * arrivals, inquiry. The page is the one chalk (light) surface on the site;
+ * the header is global and light, the footer stays charcoal.
+ *
+ * Every string comes from lib/i18n. Where the file's Japanese differs from an
+ * existing dictionary key, the existing key wins (hero.*, home.values*, colsH,
+ * newH, viewAll, layH/layP). Product and collection data is the Hub's only.
+ */
+
+/** Card image: the collection's own hero, else its first product photo, else none. */
+async function collectionImage(c: Collection): Promise<string | null> {
+  if (c.hero_media) return c.hero_media;
+  const col = await getCollectionWithProducts(c.slug).catch(() => null);
+  for (const p of col?.products ?? []) {
+    const img = primaryImage(p);
+    if (img) return img.url;
+  }
+  return null;
+}
+
 export default async function Home() {
-  const [lang, collections, featured, fx] = await Promise.all([getLang(), getCollections().catch(() => []), getFeaturedProducts(8).catch(() => []), hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }))]);
+  const [lang, collections, featured, fx] = await Promise.all([
+    getLang(),
+    getCollections().catch(() => []),
+    getFeaturedProducts(8).catch(() => []),
+    hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" })),
+  ]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
-  const values = [
-    { title: t("home", "valueTimelessH"), body: t("home", "valueTimelessP") },
-    { title: t("home", "valueWorthH"), body: t("home", "valueWorthP") },
-    { title: t("home", "valueCraftH"), body: t("home", "valueCraftP") },
-    { title: t("home", "valueQualityH"), body: t("home", "valueQualityP") },
-  ];
-  return (
-    <>
-      <JsonLd type="store" />
-      <section className="pomelli-hero border-b border-rule-soft">
-        <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
-        <div className="pomelli-hero__content wrap">
-          <h1 className="pomelli-hero__headline">
-            <span>{t("hero", "h1a")}</span><br />
-            <em className={lang === "ja" ? "not-italic" : ""}>{t("hero", "h1b")}</em>
-          </h1>
-          <div className="pomelli-ornament" aria-hidden="true"><span /></div>
-          <div className="pomelli-hero__lede">
-            <p>{t("hero", "lede")}</p>
-            <p>{t("hero", "lede2")}</p>
-          </div>
-          <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Button asChild className="border-[#FFA500] bg-[#FFA500] text-[#333333] hover:bg-[#ffb733]"><Link href="/collections">{t("hero", "cta1")}</Link></Button>
-            {layaway && <Button asChild variant="ghost" className="border-white/70 text-white hover:border-white"><Link href="/layaway">{t("hero", "cta2")}</Link></Button>}
-          </div>
-        </div>
-      </section>
+  const cards: CollectionCardData[] = await Promise.all(collections.map(async (c) => ({ c, image: await collectionImage(c) })));
+  const placeholders = Math.max(0, 4 - featured.length);
 
-      <section className="pomelli-values border-b border-rule-soft">
-        <div className="pomelli-values__grid wrap">
-          <div className="pomelli-values__image">
-            <Image
-              src="/images/home/pomelli-values.webp"
-              alt={t("home", "valuesImageAlt")}
-              fill
-              sizes="(max-width: 767px) 100vw, 46vw"
-              className="object-cover"
-            />
-          </div>
-          <div className="pomelli-values__content">
-            <p className="pomelli-values__eyebrow">{t("home", "valuesEyebrow")}</p>
-            <h2>{t("home", "valuesH")}</h2>
-            <p className="pomelli-values__intro">{t("home", "valuesP")}</p>
-            <div className="pomelli-values__list">
-              {values.map((value, index) => (
-                <article key={value.title} className="pomelli-value">
-                  <span className="pomelli-value__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                  <div>
-                    <h3>{value.title}</h3>
-                    <p>{value.body}</p>
-                  </div>
-                </article>
-              ))}
+  const tabs: Tab[] = [
+    { href: "/", label: t("home", "tabHome"), icon: "home" },
+    { href: "/collections", label: t("home", "tabPieces"), icon: "pieces" },
+    // Layaway is offered in English only (owner decision 2026-09-15) — one rule,
+    // in lib/layaway-availability. The JA tab bar has four tabs.
+    ...(layaway ? [{ href: "/layaway", label: t("home", "tabLayaway"), icon: "layaway" as const }] : []),
+    { href: "/loyalty", label: t("home", "tabLoyalty"), icon: "loyalty" },
+    { href: "/account", label: t("home", "tabAccount"), icon: "account" },
+  ];
+
+  return (
+    <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
+      <JsonLd type="store" />
+
+      {/* §3 Hero — video on both breakpoints, dark scrim, copy from hero.* */}
+      <section className="relative isolate flex min-h-[580px] items-center overflow-hidden bg-charcoal lg:aspect-[16/9] lg:max-h-[820px] lg:min-h-[680px]">
+        <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
+        <div aria-hidden="true" className="absolute inset-0 z-[1] bg-gradient-to-t from-charcoal-deep via-charcoal-deep/85 to-charcoal-deep/60" />
+        <div aria-hidden="true" className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(34,34,34,0.7)_100%)]" />
+        <div className="wrap relative z-10 w-full py-16 text-center lg:py-24 lg:text-left">
+          <div className="mx-auto max-w-[820px] lg:mx-0">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange/50 bg-charcoal-deep/60 px-4 py-1.5 text-xs font-medium tracking-wide text-orange backdrop-blur">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-orange" />
+              {t("home", "heroPill")}
+            </span>
+            <h1 className="mt-6 text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
+              {t("hero", "h1a")}<br />
+              <span className="text-gold-pale">{t("hero", "h1b")}</span>
+            </h1>
+            <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("hero", "lede")}</p>
+            <p className="mt-3 line-clamp-5 text-[15px] leading-relaxed text-chalk/75 lg:line-clamp-none lg:text-base">{t("hero", "lede2")}</p>
+            <div className="mt-9 flex flex-wrap justify-center gap-3 lg:justify-start">
+              <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
+              {layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="pomelli-collections border-b border-rule-soft">
-        <div className="wrap relative z-[1]">
-          <div className="pomelli-collections__heading">
-            <h2>{t("home", "colsH")}</h2>
-            <div className="pomelli-ornament" aria-hidden="true"><span /></div>
-            <p>{t("home", "colsP")}</p>
-          </div>
-          <div className="pomelli-collections__grid mt-12 grid grid-cols-2 lg:grid-cols-3">
-            {collections.map((c) => (
-              <Link key={c.id} href={`/collections/${c.slug}`} className="pomelli-collection-card min-h-[220px] p-6">
-                <h3>{collectionName(c, lang)}</h3>
-                {collectionDescription(c, lang) && <p>{collectionDescription(c, lang)}</p>}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
-        <div className="wrap">
-          <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
-            <h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "newH")}</h2>
-            <Link className="text-gold-pale underline underline-offset-4" href="/collections">{t("home", "viewAll")}</Link>
-          </div>
-          <div className="rule-grid grid grid-cols-2 lg:grid-cols-4">{featured.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}</div>
-        </div>
-      </section>
-      {/* Layaway is English-only (owner decision 2026-09-15). The section and the
-          calculator go together — a calculator with no explanation is worse
-          than neither. See lib/layaway-availability. */}
+      {/* §4 Trust bar */}
+      <TrustBar lang={lang} />
+
+      {/* §6 Diamond divider */}
+      <DiamondDivider className="wrap" />
+
+      {/* §5 Values bento */}
+      <ValuesBento lang={lang} />
+
+      {/* §7 Layaway calculator — English only (owner decision 2026-09-15). The
+          section and the calculator go together — a calculator with no
+          explanation is worse than neither. See lib/layaway-availability. */}
       {layaway && (
-        <section id="layaway" className="border-b border-rule-soft py-[clamp(64px,9vw,120px)]">
-          <div className="wrap grid gap-12 md:grid-cols-2">
-            <div><h2 className="max-w-[20ch] text-[clamp(32px,4.4vw,60px)]">{t("home", "layH")}</h2><p className="mt-4 max-w-[46ch] text-chalk/75">{t("home", "layP")}</p></div>
-            <LayawayCalculator lang={lang} phpRate={fx.jpy_php} />
+        <section id="layaway" className="scroll-mt-28 border-t border-hairline bg-hairline/40 py-16 lg:py-20">
+          <div className="wrap grid gap-10 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "layEyebrow")}</p>
+              <h2 className="mt-3 max-w-[20ch] text-[clamp(28px,3.6vw,44px)]">{t("home", "layH")}</h2>
+              <p className="mt-4 max-w-[46ch] text-charcoal/75">{t("home", "layP")}</p>
+            </div>
+            <LayawayCalculator lang={lang} phpRate={fx.jpy_php} className="lg:col-span-7" />
           </div>
         </section>
       )}
-    </>
+
+      {/* §8 Collections — dynamic from the Hub */}
+      <section id="collections" className="border-t border-hairline py-16 lg:py-20">
+        <div className="wrap">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "colsEyebrow")}</p>
+            <h2 className="mt-3 text-[clamp(28px,3.6vw,44px)]">{t("home", "colsH")}</h2>
+            <p className="mx-auto mt-4 max-w-[52ch] text-charcoal/75">{t("home", "colsP")}</p>
+          </div>
+          <CollectionCards items={cards} lang={lang} />
+        </div>
+      </section>
+
+      {/* §9 Testimonials — placeholder cards until verified quotes exist */}
+      <Testimonials />
+
+      {/* §10 New arrivals — Hub data only; dashed placeholders fill to four */}
+      <section className="border-t border-hairline bg-hairline/40 py-16 lg:py-20">
+        <div className="wrap">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "newEyebrow")}</p>
+              <h2 className="mt-3 text-[clamp(28px,3.6vw,44px)]">{t("home", "newH")}</h2>
+            </div>
+            <Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-dark underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+            {featured.map((p) => <ArrivalCard key={p.id} product={p} lang={lang} />)}
+            {Array.from({ length: placeholders }, (_, i) => <ArrivalPlaceholder key={`ph-${i}`} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* §11 Inquiry banner */}
+      <InquiryBanner lang={lang} />
+
+      {/* §13 Mobile-only bottom tab bar */}
+      <MobileTabBar tabs={tabs} />
+    </div>
   );
 }
