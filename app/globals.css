@@ -3,7 +3,7 @@
 @tailwind utilities;
 @layer base {
   :root { --rule: rgba(201,162,39,.32); }
-  html { scroll-behavior: smooth; scroll-padding-top: 112px; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
   body { @apply bg-charcoal text-chalk font-sans antialiased; }
   h1, h2, h3 { @apply font-display font-normal leading-[1.02] tracking-[-0.01em]; }
   :lang(ja) h1, :lang(ja) h2, :lang(ja) h3 { @apply font-jp font-medium tracking-[0.01em]; }
@@ -27,11 +27,13 @@
     object-fit: cover;
     object-position: center;
   }
-  /* The Phase 1 scrim. Vertical, weighted to the top where the headline sits.
-     Measured: top-third luma peaks at 127 during the pour (0:10) and the
-     quench (0:27); at the .80 stop over luma 127 gold-pale reads 9.8:1 and
-     white 14.7:1 (scripts/check-contrast.mjs, "hero scrim" rows). A flat
-     scrim that holds text there kills the fire at the base. */
+  /* The Phase 1 scrim, unchanged by the melt-and-pour clip. Vertical,
+     weighted to the top where the headline sits. Re-measured against that
+     clip: top-third luma is 68 on the poster, 98 at 0:15 and peaks at 160 in
+     the pour flare at 0:21. At the .80 stop over luma 160 gold-pale still
+     reads 9.0:1 and chalk 12.4:1 (scripts/check-contrast.mjs, "hero scrim"
+     rows), so the stop stays at .80. A flat scrim that holds text there
+     kills the fire at the base. */
   .hero-scrim {
     position: absolute;
     inset: 0;

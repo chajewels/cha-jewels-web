@@ -100,7 +100,6 @@ export function resolveLang(
 
 export const dict = {
   nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
-  topbar: { checked: { ja: "日本国内検品済み (Hallmark Checked in Japan)", en: "Hallmark checked in Japan" }, payment: { ja: "お支払い方法：銀行振込のみ", en: "Payment: bank transfer only" } },
   hero: {
     h1a: { ja: "身につける、時を超える美しさ。", en: "Timeless beauty to wear." }, h1b: { ja: "受け継がれる、確かな価値。", en: "Lasting value to pass on." },
     // Keep layaway out of the Japanese hero: it is English-only (owner
@@ -116,7 +115,7 @@ export const dict = {
     valuesEyebrow: { ja: "Cha Jewelsが大切にすること", en: "What guides every piece" },
     valuesH: { ja: "私たちの価値観", en: "Our Values" },
     valuesP: { ja: "私たちが選ぶすべてのジュエリーには、流行を超える美しさ、分かりやすい価値、丁寧な仕立て、そして信頼できる品質という4つの基準があります。", en: "Every piece we choose is guided by four standards: beauty beyond trends, value you can understand, careful workmanship and quality you can trust." },
-    valuesImageAlt: { ja: "ジュエリー職人の道具と金の削り粉", en: "Jeweler's tools and gold filings on a workbench" },
+    valuesImageAlt: { ja: "真珠を糸に通す職人の手元", en: "An artisan's hands stringing pearls at a workbench" },
     valueTimelessH: { ja: "普遍性", en: "Timeless" },
     valueTimelessP: { ja: "流行に左右されず、世代を超えて身につけられるデザインを選びます。", en: "We choose designs made to stay relevant beyond seasons and trends." },
     valueWorthH: { ja: "価値", en: "Value" },
@@ -132,11 +131,7 @@ export const dict = {
     layP: { ja: "30%のお支払いで商品を確保。残額は無利息で月々均等払い。3か月、6か月、または¥300,000以上のご注文なら8か月からお選びいただけます。", en: "Pay 30% to take the piece off the shelf, then the balance in equal monthly amounts at 0% interest. Choose three months, six months, or eight for orders of ¥300,000 and above." },
     // Phase 4 (Stitch homepage). New keys only where the design had text with no
     // existing key; where the file's Japanese differed from a key above, the key won.
-    heroPill: { ja: "東京・葛飾 / 熟練の金工技法", en: "Tokyo, Katsushika / skilled goldsmithing" },
-    trust1H: { ja: "日本国内検品済み", en: "Checked in Japan" }, trust1P: { ja: "全品比重・純度確認", en: "Every piece weighed and purity-checked" },
-    trust2H: { ja: "銀行振込対応", en: "Bank transfer" }, trust2P: { ja: "確実・安全なお取引", en: "Secure, traceable payment" },
-    trust3H: { ja: "東京・葛飾区", en: "Katsushika, Tokyo" }, trust3P: { ja: "完全予約制アトリエ", en: "Atelier by appointment only" },
-    valuesPill: { ja: "工房での国内検品", en: "Checked in our workshop" }, valuesPlace: { ja: "東京・葛飾", en: "Katsushika, Tokyo" }, valuesCaption: { ja: "東京・葛飾区 検品・品質確認", en: "Inspection and quality check, Katsushika, Tokyo" },
+    trust1H: { ja: "日本国内検品済み", en: "Checked in Japan" },
     colsEyebrow: { ja: "カテゴリーから選ぶ", en: "Browse by category" }, colsLink: { ja: "コレクションを見る", en: "View collection" },
     layEyebrow: { ja: "無金利レイアウェイ", en: "0% interest layaway" },
     newEyebrow: { ja: "一点物・新着品", en: "One-of-a-kind, newly listed" }, newDetail: { ja: "詳細を見る", en: "View details" },
@@ -163,7 +158,7 @@ export const dict = {
     filterLabel: { ja: "状態でしぼり込む", en: "Filter by condition" },
     filterAll: { ja: "すべて", en: "All" }, filterNew: { ja: "新品", en: "New" }, filterPreloved: { ja: "プレラブド", en: "Preloved" },
   },
-  footer: { tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, company: { ja: "株式会社チャジュエルズ Cha Jewels Co., Ltd. · 東京都葛飾区立石", en: "Cha Jewels Co., Ltd. · Tateishi, Katsushika-ku, Tokyo" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, blurb: { ja: "日本で真贋確認済みのK18ゴールド、パール、ダイヤモンドジュエリーと、厳選したプレラブド・ラグジュアリー。東京のお客様と、世界中のフィリピン人ファミリーのために。", en: "K18 gold, pearl and diamond jewelry, hallmark checked in Japan, and curated preloved luxury. For our neighbours in Tokyo and Filipino families everywhere." }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletterH: { ja: "最新情報をお届け", en: "Stay in touch" }, newsletterP: { ja: "新着ジュエリー、会員限定のお知らせ、Cha Jewelsからの最新情報をお届けします。", en: "New pieces, member-only news and updates from Cha Jewels." }, newsletterPlaceholder: { ja: "メールアドレスを入力", en: "Enter your email" }, newsletterCta: { ja: "登録", en: "Sign up" }, newsletterSoon: { ja: "ニュースレターは準備中です。", en: "Newsletter sign-up is coming soon." }, bankOnly: { ja: "お支払い方法：銀行振込 (Bank Transfer Only)", en: "Payment: bank transfer only" }, checkedEach: { ja: "日本で一点ずつ確認", en: "Checked one by one in Japan" } },
+  footer: { tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, company: { ja: "株式会社チャジュエルズ Cha Jewels Co., Ltd. · 東京都葛飾区立石", en: "Cha Jewels Co., Ltd. · Tateishi, Katsushika-ku, Tokyo" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, blurb: { ja: "日本で真贋確認済みのK18ゴールド、パール、ダイヤモンドジュエリーと、厳選したプレラブド・ラグジュアリー。東京のお客様と、世界中のフィリピン人ファミリーのために。", en: "K18 gold, pearl and diamond jewelry, hallmark checked in Japan, and curated preloved luxury. For our neighbours in Tokyo and Filipino families everywhere." }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletterH: { ja: "最新情報をお届け", en: "Stay in touch" }, newsletterP: { ja: "新着ジュエリー、会員限定のお知らせ、Cha Jewelsからの最新情報をお届けします。", en: "New pieces, member-only news and updates from Cha Jewels." }, newsletterPlaceholder: { ja: "メールアドレスを入力", en: "Enter your email" }, newsletterCta: { ja: "登録", en: "Sign up" }, newsletterSoon: { ja: "ニュースレターは準備中です。", en: "Newsletter sign-up is coming soon." } },
   loyalty: {
     level: { ja: "レベル {n}", en: "Level {n}" }, onJoining: { ja: "入会時", en: "On joining" }, times: { ja: "{n}倍", en: "{n}x" },
     regionJp: { ja: "日本", en: "Japan" }, regionPh: { ja: "フィリピン", en: "Philippines" }, regionOther: { ja: "その他", en: "Elsewhere" },

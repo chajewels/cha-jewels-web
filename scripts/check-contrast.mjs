@@ -62,20 +62,34 @@ add("gold-dark text on white (card)", "gold-dark", "white", TEXT);
 add("charcoal text on white (card)", "charcoal", "white", TEXT);
 add("gold-dark heading >=24px on chalk", "gold-dark", "chalk", LARGE);
 
-// Hero scrim (app/globals.css .hero-scrim) on the video's brightest frame:
-// top-third luma peaks at 127 (0:10 and 0:27). The headline sits under the
-// .80 stop; body copy reaches the .52 stop. Measured against the scrim
-// composited over #7F7F7F, not against a palette surface.
+// Hero scrim (app/globals.css .hero-scrim) on the hero video's bright frames.
+// The headline sits under the .80 stop; body copy reaches the .52 stop.
+// Measured against the scrim composited over a flat grey of the stated luma,
+// not against a palette surface.
+//
+// Luma figures are the mean of the top third of the frame (the headline band),
+// sampled with `ffmpeg -vf crop=iw:ih/3:0:0,format=gray`:
+//   68  public/images/home/hero-poster.webp
+//   98  hero-artisan.mp4 at 0:15
+//  160  hero-artisan.mp4 at 0:21.3 — the pour flare, the clip's brightest
+//       top-third frame. 0:15 is NOT the peak; the flare is 60% brighter.
 {
-  const scrim = [20, 18, 16], frame = [127, 127, 127];
-  const surface = (a) => blend(scrim, frame, a);
+  const scrim = [20, 18, 16];
+  const surface = (a, luma) => blend(scrim, [luma, luma, luma], a);
   const over = (fgName, a, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
   const rows = [
-    ["hero scrim .80 @ luma 127: gold-pale headline", "gold-pale", 0.80, 1, TEXT],
-    ["hero scrim .80 @ luma 127: white/chalk headline", "chalk", 0.80, 1, TEXT],
-    ["hero scrim .52 @ luma 127: chalk/75 body", "chalk", 0.52, 0.75, TEXT],
+    // Poster: the first paint, before any frame decodes.
+    ["hero scrim .80 @ luma 68 (poster): gold-pale headline", "gold-pale", 0.80, 1, TEXT, 68],
+    ["hero scrim .80 @ luma 68 (poster): white/chalk headline", "chalk", 0.80, 1, TEXT, 68],
+    // 0:15.
+    ["hero scrim .80 @ luma 98 (0:15): gold-pale headline", "gold-pale", 0.80, 1, TEXT, 98],
+    ["hero scrim .80 @ luma 98 (0:15): white/chalk headline", "chalk", 0.80, 1, TEXT, 98],
+    // 0:21.3, the pour flare — the brightest top-third frame in the clip.
+    ["hero scrim .80 @ luma 160 (flare): gold-pale headline", "gold-pale", 0.80, 1, TEXT, 160],
+    ["hero scrim .80 @ luma 160 (flare): white/chalk headline", "chalk", 0.80, 1, TEXT, 160],
+    ["hero scrim .52 @ luma 160 (flare): chalk/75 body", "chalk", 0.52, 0.75, TEXT, 160],
   ];
-  for (const [label, fg, stop, alpha, need] of rows) pairs.push({ label, fg, bg: `scrim@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop), alpha) });
+  for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `scrim@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
 }
 
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
