@@ -3,6 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { tr, type Lang } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
+import { trackSearch } from "@/lib/analytics";
 
 type Suggestion = { slug: string; sku: string; name: string; price: number | null; image: string | null };
 
@@ -13,14 +14,12 @@ const MAX_SUGGESTIONS = 6;
  * Header search with instant suggestions.
  *
  * Shape: from `lg` up the input is always visible, like the rest of the header
- * controls. Between `sm` and `lg` a magnifier button expands it over the row,
- * which has no space for a permanent field. Below `sm` there is no magnifier at
- * all: at 375px the row already carries the wordmark, the language toggle, the
- * cart and the menu trigger, and a fifth control pushed the last two off the
- * screen. That width reaches search through the drawer instead, which is where
- * the spec puts the mobile box anyway. In the drawer (`variant="drawer"`) it is
- * always expanded — the drawer has the room and a collapsed magnifier inside an
- * open menu is a riddle.
+ * controls. Below `lg` a magnifier button expands it over the row, which has no
+ * space for a permanent field. Below `sm` the magnifier is one of the four
+ * controls the row keeps (badge + wordmark, magnifier, cart, menu); the
+ * language toggle is the one that moves into the drawer at that width. In the
+ * drawer (`variant="drawer"`) the box is always expanded — the drawer has the
+ * room and a collapsed magnifier inside an open menu is a riddle.
  *
  * The expanded field is positioned against the HEADER, not against this
  * component. Anchoring it to the component (`absolute right-0`) pinned it to
@@ -110,6 +109,8 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
   function submit() {
     const term = q.trim();
     if (term === "") return;
+    // `total` is the last completed lookup for this term (0 if none finished).
+    trackSearch(term, total);
     go(`/search?q=${encodeURIComponent(term)}`);
   }
 
@@ -142,7 +143,7 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
   }
 
   return (
-    <div ref={rootRef} className={`relative ${inDrawer ? "w-full" : "hidden items-center sm:flex"}`}>
+    <div ref={rootRef} className={`relative ${inDrawer ? "w-full" : "flex items-center"}`}>
       {!inDrawer && (
         <button
           type="button"
@@ -154,7 +155,7 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
             if (next) window.setTimeout(() => inputRef.current?.focus(), 0);
             else close();
           }}
-          className="hidden h-10 w-10 shrink-0 place-items-center rounded-sm border border-charcoal/30 text-charcoal hover:border-gold-dark hover:text-gold-dark sm:grid lg:hidden"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-charcoal/30 text-charcoal hover:border-gold-dark hover:text-gold-dark lg:hidden"
         >
           <MagnifierIcon />
         </button>

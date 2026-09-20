@@ -11,8 +11,12 @@ import { AccountMenu } from "./account-menu";
 /**
  * The Stitch header (docs/stitch/cha-desktop.html §2) without its top bar
  * (owner decision 2026-09-20): one light chalk 68px row with the badge, the
- * wordmark, the primary nav, the EN/JA toggle and the cart. No currency
- * toggle. mobile-nav.tsx and flash-notice.tsx offset by the 68px row.
+ * wordmark, the primary nav, search, the EN/JA toggle and the cart. No
+ * currency toggle. mobile-nav.tsx and flash-notice.tsx offset by the 68px row.
+ *
+ * Below `sm` the row keeps four controls — badge + wordmark, magnifier, cart,
+ * menu — and the language toggle moves into the drawer, next to the search
+ * box. Five controls overflowed a 375px viewport by 52px (scrollWidth 427).
  *
  * Signed out: the nav's last link is "Account" → /account, which redirects to
  * /login?next=/account itself (the file's route). Signed in: that link
@@ -50,15 +54,15 @@ export async function Header({ lang }: { lang: Lang }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-chalk/95 text-charcoal shadow-[0_1px_8px_rgba(0,0,0,0.03)] backdrop-blur-md">
-      <div className="wrap flex h-[68px] items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-3 whitespace-nowrap" aria-label="Cha Jewels">
+      <div className="wrap flex h-[68px] items-center justify-between gap-3 sm:gap-4">
+        <Link href="/" className="flex items-center gap-1.5 whitespace-nowrap sm:gap-3" aria-label="Cha Jewels">
           <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={44} height={44} alt="" className="h-11 w-11 shrink-0" />
-          <span className="gilt font-display text-[26px] font-medium tracking-wide">Cha Jewels</span>
+          <span className="gilt font-display text-[22px] font-medium tracking-wide sm:text-[26px]">Cha Jewels</span>
         </Link>
         <nav aria-label={t("nav", "primary")} className="hidden xl:block"><ul className="flex gap-5 whitespace-nowrap text-sm text-charcoal/80">{links.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-dark">{l.label}</Link></li>)}</ul></nav>
         <div className="flex items-center gap-2 sm:gap-3">
           <SearchBox lang={lang} />
-          <LangSwitcher lang={lang} />
+          <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>
           <CartButton lang={lang} />
           {account && <div className="hidden xl:block"><AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} /></div>}
           <MobileNav lang={lang} links={links} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
