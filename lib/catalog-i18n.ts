@@ -31,6 +31,10 @@ export const categoryName = (c: Pick<Category, "name" | "name_ja">, lang: Lang) 
 export const categoryDescription = (c: Pick<Category, "description" | "description_ja">, lang: Lang) =>
   pick(lang, c.description_ja, c.description) || null;
 
+/** The category's own button wording. Null when the Hub carries none, so the caller falls back to the dictionary. */
+export const categoryCta = (c: Pick<Category, "cta_label" | "cta_label_ja">, lang: Lang) =>
+  pick(lang, c.cta_label_ja, c.cta_label) || null;
+
 export const quoteItemName = (i: Pick<HubQuoteItem, "name" | "name_en" | "name_ja">, lang: Lang) =>
   pick(lang, i.name_ja, i.name_en ?? i.name);
 export const cartItemName = (i: Pick<CartItem, "name" | "name_ja">, lang: Lang) =>

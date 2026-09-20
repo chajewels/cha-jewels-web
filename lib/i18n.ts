@@ -153,7 +153,7 @@ export const dict = {
     testiPh2Name: { ja: "Kenji Sato (佐藤 健二)", en: "Kenji Sato (佐藤 健二)" }, testiPh2Loc: { ja: "Yokohama, Japan", en: "Yokohama, Japan" }, testiPh2Item: { ja: "K18 Cuban 50cm", en: "K18 Cuban 50cm" },
     testiPh3Quote: { ja: "6か月のレイアウェイで三色のバングルを購入しました。東京でルーペ越しの動画で状態を確認させてもらえて、本当に安心できました。", en: "I ordered the tri-color interlocking bangle through their 6-month layaway. Customer service provided video updates under the loupe in Tokyo. Truly authentic, seamless cross-border service." },
     testiPh3Name: { ja: "Therese Angela D.", en: "Therese Angela D." }, testiPh3Loc: { ja: "Cebu City, Philippines", en: "Cebu City, Philippines" }, testiPh3Item: { ja: "Tri-Color Bangle", en: "Tri-Color Bangle" },
-    slideEyebrow: { ja: "コレクション", en: "Collection" }, slideShop: { ja: "{name}を見る", en: "Shop {name}" },
+    slideEyebrow: { ja: "カテゴリー", en: "Category" }, slideShop: { ja: "{name}を見る", en: "Shop {name}" },
     slidePrev: { ja: "前のスライド", en: "Previous slide" }, slideNext: { ja: "次のスライド", en: "Next slide" },
     slideDot: { ja: "{n}枚目へ", en: "Go to slide {n}" }, slideOf: { ja: "{total}枚中{n}枚目", en: "{n} of {total}" },
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },

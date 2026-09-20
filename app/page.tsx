@@ -11,7 +11,8 @@ import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
-import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
+import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
+import { categoryCta, categoryDescription, categoryName, collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
 import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
@@ -30,9 +31,10 @@ export const revalidate = 60;
  */
 
 export default async function Home() {
-  const [lang, collections, featured, fx, testimonials] = await Promise.all([
+  const [lang, collections, categories, featured, fx, testimonials] = await Promise.all([
     getLang(),
     getCollections().catch(() => []),
+    hub.categories().catch(() => []),
     getFeaturedProducts(8).catch(() => []),
     hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" })),
     hub.testimonials(),
@@ -48,19 +50,23 @@ export default async function Home() {
   }));
   const placeholders = Math.max(0, 4 - featured.length);
 
-  // Hero slides: the intro first, then one per collection — preloved lines
-  // (slugs starting "preloved-") first in Hub order, then the rest. The image
-  // is the collection's own hero_media or nothing; never a product photo.
-  const isPreloved = (slug: string) => slug.startsWith("preloved-");
+  // Hero deck: the intro, then one slide per category in the Hub's sort_order.
+  // The order is the Hub's and nothing rearranges it here — the deck used to
+  // put "preloved-" slugs first, which is a merchandising decision the owner
+  // now makes in the Hub by setting sort_order. The image is the category's
+  // own hero_media, else the placeholder for that slug; never a product photo.
   const slides: HeroSlide[] = [
     { kind: "intro", layaway },
-    ...[...collections.filter((c) => isPreloved(c.slug)), ...collections.filter((c) => !isPreloved(c.slug))].map((c) => ({
-      kind: "collection" as const,
-      slug: c.slug,
-      name: collectionName(c, lang),
-      description: collectionDescription(c, lang) || null,
-      image: c.hero_media,
-    })),
+    ...[...categories]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((c) => ({
+        kind: "category" as const,
+        slug: c.slug,
+        name: categoryName(c, lang),
+        description: categoryDescription(c, lang),
+        image: c.hero_media ?? CATEGORY_PLACEHOLDER[c.slug] ?? null,
+        cta: categoryCta(c, lang),
+      })),
   ];
 
   const tabs: Tab[] = [
@@ -98,9 +104,16 @@ export default async function Home() {
       <section className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-20 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0">
         <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
         <div aria-hidden="true" className="hero-scrim" />
-        {/* Slide 0 is the hero copy as before; slides 1..n are the collections.
-            Swipe, arrows (md+), dots, ← →; see components/home/hero-slides.tsx. */}
-        <div className="wrap relative z-10 w-full py-16 lg:py-24">
+        {/* Slide 0 is the hero copy as before; slides 1..n are the categories.
+            Swipe, arrows (md+), dots, ← →; see components/home/hero-slides.tsx.
+
+            No `.wrap` here any more, and no padding: a category slide is
+            full-bleed, so its photo has to reach the section's edges. Each
+            slide carries its own `.wrap` around its copy instead, so the text
+            still lines up with the rest of the page. `self-stretch` makes the
+            layer fill the section's height from `lg` up, where the section has
+            one, and collapse to the content height below it. */}
+        <div className="relative z-10 w-full self-stretch">
           <HeroSlides lang={lang} slides={slides} />
         </div>
       </section>

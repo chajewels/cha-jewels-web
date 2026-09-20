@@ -1,0 +1,431 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Cha Jewels" [ref=e5] [cursor=pointer]:
+        - /url: /
+      - navigation "Primary" [ref=e7]:
+        - list [ref=e8]:
+          - listitem [ref=e9]:
+            - link "Home" [ref=e10] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=e11]:
+            - link "About Us" [ref=e12] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e13]:
+            - link "Collections" [ref=e14] [cursor=pointer]:
+              - /url: /collections
+          - listitem [ref=e15]:
+            - link "Layaway" [ref=e16] [cursor=pointer]:
+              - /url: /layaway
+          - listitem [ref=e17]:
+            - link "Loyalty" [ref=e18] [cursor=pointer]:
+              - /url: /loyalty
+          - listitem [ref=e19]:
+            - link "Wholesale" [ref=e20] [cursor=pointer]:
+              - /url: /wholesale
+          - listitem [ref=e21]:
+            - link "Blog" [ref=e22] [cursor=pointer]:
+              - /url: /blog
+          - listitem [ref=e23]:
+            - link "Account" [ref=e24] [cursor=pointer]:
+              - /url: /account
+      - generic [ref=e25]:
+        - combobox "Search jewelry" [ref=e33]
+        - group "Language" [ref=e35]:
+          - button "日本語" [ref=e36] [cursor=pointer]
+          - button "EN" [pressed] [ref=e37] [cursor=pointer]
+        - link "Cart" [ref=e38] [cursor=pointer]:
+          - /url: /cart
+  - status
+  - main [ref=e43]:
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - button "Pause background video" [ref=e47] [cursor=pointer]: ❚❚
+        - generic "Category" [ref=e50]:
+          - generic [ref=e51]:
+            - group "1 of 6" [ref=e52]:
+              - generic [ref=e54]:
+                - heading "Timeless beauty to wear. Lasting value to pass on." [level=1] [ref=e55]: Timeless beauty to wear.Lasting value to pass on.
+                - paragraph [ref=e56]: Cha Jewels brings together timeless beauty and lasting value through a carefully selected collection of fine jewelry. From high-quality gold, pearl, and diamond pieces crafted in Japan to curated preloved treasures from iconic luxury brands, every piece is chosen for its quality, elegance, and enduring worth.
+                - paragraph [ref=e57]: We believe jewelry should be more than beautiful—it should be something you can cherish, wear with confidence, and pass on for generations. With a special focus on the lasting value of gold, Cha Jewels offers necklaces, rings, bracelets, and one-of-a-kind pieces designed to become part of your story for a lifetime.
+                - generic [ref=e58]:
+                  - link "Shop the collections" [ref=e59] [cursor=pointer]:
+                    - /url: /collections
+                  - link "Calculate layaway" [ref=e60] [cursor=pointer]:
+                    - /url: "#layaway"
+            - group "2 of 6" [ref=e61]:
+              - generic [ref=e64]:
+                - paragraph [ref=e65]: Category
+                - heading "Fine Jewelry" [level=2] [ref=e66]
+                - paragraph [ref=e67]: K18 gold, pearls and diamonds, hallmark checked in Japan and priced by weight.
+                - link "Shop fine jewelry" [ref=e69] [cursor=pointer]:
+                  - /url: /categories/fine-jewelry
+            - group "3 of 6" [ref=e70]:
+              - generic [ref=e73]:
+                - paragraph [ref=e74]: Category
+                - heading "Preloved Jewelry" [level=2] [ref=e75]
+                - paragraph [ref=e76]: Carefully chosen second-hand pieces, each one checked before it is offered.
+                - link "Shop preloved" [ref=e78] [cursor=pointer]:
+                  - /url: /categories/preloved-jewelry
+            - group "4 of 6" [ref=e79]:
+              - generic [ref=e82]:
+                - paragraph [ref=e83]: Category
+                - heading "Preloved Branded Jewelry" [level=2] [ref=e84]
+                - paragraph [ref=e85]: Pieces from iconic houses, with the brand stated and the origin left to the listing.
+                - link "Shop branded" [ref=e87] [cursor=pointer]:
+                  - /url: /categories/preloved-branded-jewelry
+            - group "5 of 6" [ref=e88]:
+              - generic [ref=e91]:
+                - paragraph [ref=e92]: Category
+                - heading "Preloved Watches" [level=2] [ref=e93]
+                - paragraph [ref=e94]: Second-hand watches, movement and condition described on every listing.
+                - link "Shop watches" [ref=e96] [cursor=pointer]:
+                  - /url: /categories/preloved-watches
+            - group "6 of 6" [ref=e97]:
+              - generic [ref=e100]:
+                - paragraph [ref=e101]: Category
+                - heading "Preloved Designer Accessories" [level=2] [ref=e102]
+                - paragraph [ref=e103]: Bags and small leather goods from the houses our customers ask for.
+                - link "Shop accessories" [ref=e105] [cursor=pointer]:
+                  - /url: /categories/preloved-designer-accessories
+          - button "Previous slide" [ref=e106] [cursor=pointer]
+          - button "Next slide" [ref=e109] [cursor=pointer]
+          - tablist "Category" [ref=e112]:
+            - tab "Go to slide 1" [selected] [ref=e113] [cursor=pointer]
+            - tab "Go to slide 2" [ref=e115] [cursor=pointer]
+            - tab "Go to slide 3" [ref=e117] [cursor=pointer]
+            - tab "Go to slide 4" [ref=e119] [cursor=pointer]
+            - tab "Go to slide 5" [ref=e121] [cursor=pointer]
+            - tab "Go to slide 6" [ref=e123] [cursor=pointer]
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - paragraph [ref=e132]: What guides every piece
+          - heading "Our Values" [level=2] [ref=e133]
+          - paragraph [ref=e134]: "Every piece we choose is guided by four standards: beauty beyond trends, value you can understand, careful workmanship and quality you can trust."
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - article [ref=e137]:
+              - generic [aria-hidden] [ref=e139]: "01"
+              - heading "Timeless" [level=3] [ref=e142]
+              - paragraph [ref=e143]: We choose designs made to stay relevant beyond seasons and trends.
+            - article [ref=e144]:
+              - generic [aria-hidden] [ref=e146]: "02"
+              - heading "Value" [level=3] [ref=e151]
+              - paragraph [ref=e152]: Purity, gram weight and stone details are shown clearly, so you understand what you are buying.
+            - article [ref=e153]:
+              - generic [aria-hidden] [ref=e155]: "03"
+              - heading "Craftsmanship" [level=3] [ref=e160]
+              - paragraph [ref=e161]: We select careful workmanship and finishing intended for years of wear.
+            - article [ref=e162]:
+              - generic [aria-hidden] [ref=e164]: "04"
+              - heading "Quality" [level=3] [ref=e168]
+              - paragraph [ref=e169]: Every piece is checked individually in Japan before it is offered.
+          - img "An artisan's hands stringing pearls at a workbench" [ref=e172]
+      - generic [ref=e174]:
+        - generic [ref=e175]:
+          - generic [ref=e176]: 0% interest · No bank loans · 3 to 8 months
+          - heading "Reserve it now, pay it off monthly" [level=2] [ref=e177]
+          - paragraph [ref=e178]: Pay 30% to take the piece off the shelf, then the balance in equal monthly amounts at 0% interest. Choose three months, six months, or eight for orders of ¥300,000 and above.
+          - list [ref=e179]:
+            - listitem [ref=e180]:
+              - generic [aria-hidden] [ref=e181]: "1"
+              - generic [ref=e182]:
+                - paragraph [ref=e183]: Reserve with a 30% deposit
+                - paragraph [ref=e184]: Your piece is set aside the moment the deposit clears.
+            - listitem [ref=e185]:
+              - generic [aria-hidden] [ref=e186]: "2"
+              - generic [ref=e187]:
+                - paragraph [ref=e188]: Spread the balance over 3 to 8 months
+                - paragraph [ref=e189]: 0% interest, no fees. Eight months on orders of ¥300,000 and above.
+            - listitem [ref=e190]:
+              - generic [aria-hidden] [ref=e191]: "3"
+              - generic [ref=e192]:
+                - paragraph [ref=e193]: Delivered on the final payment
+                - paragraph [ref=e194]: Pay each instalment by bank transfer; the piece ships once the plan completes.
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - paragraph [ref=e198]: Layaway calculator
+              - paragraph [ref=e199]: Estimate your monthly plan
+            - generic [ref=e200]: 0% interest
+          - generic [ref=e202]:
+            - generic [ref=e203]:
+              - text: Piece price (¥)
+              - spinbutton "Piece price (¥)" [ref=e204]: "150000"
+            - group "Term (months)" [ref=e205]:
+              - generic [ref=e207]:
+                - button "3" [ref=e208] [cursor=pointer]
+                - button "6" [pressed] [ref=e209] [cursor=pointer]
+                - button "8" [disabled] [ref=e210]
+                - button "10 · coming soon" [disabled] [ref=e211]
+                - button "12 · coming soon" [disabled] [ref=e212]
+          - group "Currency" [ref=e213]:
+            - button "¥ JPY" [pressed] [ref=e214] [cursor=pointer]
+            - button "₱ PHP" [ref=e215] [cursor=pointer]
+          - status [ref=e216]:
+            - generic [ref=e217]:
+              - text: Down payment (30%)
+              - generic [ref=e218]: —
+            - generic [ref=e219]:
+              - text: Monthly
+              - generic [ref=e220]: —
+            - generic [ref=e221]:
+              - text: Total
+              - generic [ref=e222]: —
+          - link "Start a layaway" [ref=e223] [cursor=pointer]:
+            - /url: /layaway
+          - paragraph [ref=e224]: Estimate. Your signed agreement shows exact dates and amounts.
+      - generic [ref=e226]:
+        - generic [ref=e227]:
+          - paragraph [ref=e228]: Browse by category
+          - heading "Shop by type" [level=2] [ref=e229]
+          - paragraph [ref=e230]: Every gold piece is K18, stamped and hallmark checked in Japan. Every listing shows weight, purity and stones.
+        - generic [ref=e231]:
+          - link "Necklaces Necklaces Chains and strands in K18 and pearl, sized for daily wear. View collection" [ref=e232] [cursor=pointer]:
+            - /url: /collections/necklaces
+            - img "Necklaces" [ref=e234]
+            - generic [ref=e235]:
+              - generic [ref=e236]:
+                - heading "Necklaces" [level=3] [ref=e238]
+                - paragraph [ref=e241]: Chains and strands in K18 and pearl, sized for daily wear.
+              - generic [ref=e242]: View collection
+          - link "Pendants Pendants Diamond, pearl and gold pendants to hang on your own chain or ours. View collection" [ref=e243] [cursor=pointer]:
+            - /url: /collections/pendants
+            - img "Pendants" [ref=e245]
+            - generic [ref=e246]:
+              - generic [ref=e247]:
+                - heading "Pendants" [level=3] [ref=e249]
+                - paragraph [ref=e252]: Diamond, pearl and gold pendants to hang on your own chain or ours.
+              - generic [ref=e253]: View collection
+          - link "Earrings Earrings Hoops, studs and drops in K18 and platinum. View collection" [ref=e254] [cursor=pointer]:
+            - /url: /collections/earrings
+            - img "Earrings" [ref=e256]
+            - generic [ref=e257]:
+              - generic [ref=e258]:
+                - heading "Earrings" [level=3] [ref=e260]
+                - paragraph [ref=e263]: Hoops, studs and drops in K18 and platinum.
+              - generic [ref=e264]: View collection
+          - link "Bracelets Bracelets Bangles and chain bracelets, weight stated on every piece. View collection" [ref=e265] [cursor=pointer]:
+            - /url: /collections/bracelets
+            - img "Bracelets" [ref=e267]
+            - generic [ref=e268]:
+              - generic [ref=e269]:
+                - heading "Bracelets" [level=3] [ref=e271]
+                - paragraph [ref=e274]: Bangles and chain bracelets, weight stated on every piece.
+              - generic [ref=e275]: View collection
+          - link "Rings Rings Solitaires, bands and statement rings, resizable in Japan. View collection" [ref=e276] [cursor=pointer]:
+            - /url: /collections/rings
+            - img "Rings" [ref=e278]
+            - generic [ref=e279]:
+              - generic [ref=e280]:
+                - heading "Rings" [level=3] [ref=e282]
+                - paragraph [ref=e285]: Solitaires, bands and statement rings, resizable in Japan.
+              - generic [ref=e286]: View collection
+          - link "Anklets Anklets Fine K18 anklets for everyday wear. View collection" [ref=e287] [cursor=pointer]:
+            - /url: /collections/anklets
+            - img "Anklets" [ref=e289]
+            - generic [ref=e290]:
+              - generic [ref=e291]:
+                - heading "Anklets" [level=3] [ref=e293]
+                - paragraph [ref=e296]: Fine K18 anklets for everyday wear.
+              - generic [ref=e297]: View collection
+          - link "Sets Sets Matched pieces sold together at a set price. View collection" [ref=e298] [cursor=pointer]:
+            - /url: /collections/sets
+            - generic [ref=e299]: Sets
+            - generic [ref=e302]:
+              - generic [ref=e303]:
+                - heading "Sets" [level=3] [ref=e305]
+                - paragraph [ref=e308]: Matched pieces sold together at a set price.
+              - generic [ref=e309]: View collection
+      - generic [ref=e311]:
+        - generic [ref=e312]:
+          - paragraph [ref=e313]: Voices
+          - heading "Customer stories" [level=2] [ref=e314]
+          - paragraph [ref=e315]: Notes from customers who chose Cha Jewels.
+        - generic [ref=e316]:
+          - article [ref=e317]:
+            - generic [ref=e318]:
+              - generic [ref=e319]: Akoya Solitaire
+              - generic "5 / 5" [ref=e323]
+              - paragraph [ref=e334]: The Akoya pearl pendant arrived in Manila with full documentation and a tamper-proof seal. The layaway plan made investing in pure K18 accessible without any pressure.
+            - generic [ref=e335]:
+              - paragraph [ref=e336]: Maria Christina V.
+              - paragraph [ref=e337]: Makati City, Philippines
+          - article [ref=e338]:
+            - generic [ref=e339]:
+              - generic [ref=e340]: K18 Cuban 50cm
+              - generic "5 / 5" [ref=e344]
+              - paragraph [ref=e355]: Hallmark verified in Japan with exact gram weights — a salon I can trust. The vintage Kihei necklace was polished to a like-new shine.
+            - generic [ref=e356]:
+              - paragraph [ref=e357]: Kenji Sato (佐藤 健二)
+              - paragraph [ref=e358]: Yokohama, Japan
+          - article [ref=e359]:
+            - generic [ref=e360]:
+              - generic [ref=e361]: Tri-Color Bangle
+              - generic "5 / 5" [ref=e365]
+              - paragraph [ref=e376]: I ordered the tri-color interlocking bangle through their 6-month layaway. Customer service provided video updates under the loupe in Tokyo. Truly authentic, seamless cross-border service.
+            - generic [ref=e377]:
+              - paragraph [ref=e378]: Therese Angela D.
+              - paragraph [ref=e379]: Cebu City, Philippines
+      - generic [ref=e381]:
+        - generic [ref=e382]:
+          - generic [ref=e383]:
+            - paragraph [ref=e384]: One-of-a-kind, newly listed
+            - heading "New on the bench" [level=2] [ref=e385]
+          - link "View all pieces →" [ref=e386] [cursor=pointer]:
+            - /url: /collections
+        - generic [ref=e387]:
+          - link "Double-sided diamond pendant, photo 1 Checked in Japan PT900 / K18 · 16.9 g Double-sided diamond pendant ￥1,480,000 View details ›" [ref=e388] [cursor=pointer]:
+            - /url: /products/double-sided-diamond-pendant
+            - generic [ref=e389]:
+              - img "Double-sided diamond pendant, photo 1" [ref=e390]
+              - generic [ref=e391]: Checked in Japan
+            - generic [ref=e393]:
+              - generic [ref=e394]:
+                - generic [ref=e395]: PT900 / K18 · 16.9 g
+                - heading "Double-sided diamond pendant" [level=3] [ref=e396]
+              - generic [ref=e397]:
+                - generic [ref=e398]: ￥1,480,000
+                - generic [ref=e399]: View details ›
+          - link "Kihei chain 50 cm Checked in Japan K18 · 20.4 g Kihei chain 50 cm Made in Japan ￥398,000 View details ›" [ref=e400] [cursor=pointer]:
+            - /url: /products/kihei-chain-50-cm
+            - generic [ref=e401]:
+              - img "Kihei chain 50 cm" [ref=e402]
+              - generic [ref=e403]: Checked in Japan
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - generic [ref=e407]: K18 · 20.4 g
+                - heading "Kihei chain 50 cm" [level=3] [ref=e408]
+                - generic [ref=e409]: Made in Japan
+              - generic [ref=e411]:
+                - generic [ref=e412]: ￥398,000
+                - generic [ref=e413]: View details ›
+          - link "Checked in Japan K18 · 12.1 g Twist bangle Tiffany & Co. ￥236,000 View details ›" [ref=e414] [cursor=pointer]:
+            - /url: /products/twist-bangle
+            - generic [ref=e415]: Checked in Japan
+            - generic [ref=e418]:
+              - generic [ref=e419]:
+                - generic [ref=e420]: K18 · 12.1 g
+                - heading "Twist bangle" [level=3] [ref=e421]
+                - generic [ref=e422]: Tiffany & Co.
+              - generic [ref=e424]:
+                - generic [ref=e425]: ￥236,000
+                - generic [ref=e426]: View details ›
+          - link "Checked in Japan K18 · 4.2 g Akoya strand 7.5 mm ￥168,000 View details ›" [ref=e427] [cursor=pointer]:
+            - /url: /products/akoya-strand-7-5-mm
+            - generic [ref=e428]: Checked in Japan
+            - generic [ref=e431]:
+              - generic [ref=e432]:
+                - generic [ref=e433]: K18 · 4.2 g
+                - heading "Akoya strand 7.5 mm" [level=3] [ref=e434]
+              - generic [ref=e435]:
+                - generic [ref=e436]: ￥168,000
+                - generic [ref=e437]: View details ›
+          - link "Checked in Japan PT950 · 3.8 g Solitaire ring ￥312,000 View details ›" [ref=e438] [cursor=pointer]:
+            - /url: /products/solitaire-ring
+            - generic [ref=e439]: Checked in Japan
+            - generic [ref=e442]:
+              - generic [ref=e443]:
+                - generic [ref=e444]: PT950 · 3.8 g
+                - heading "Solitaire ring" [level=3] [ref=e445]
+              - generic [ref=e446]:
+                - generic [ref=e447]: ￥312,000
+                - generic [ref=e448]: View details ›
+          - link "Checked in Japan K18 · 5.6 g Hoop earrings ￥118,000 View details ›" [ref=e449] [cursor=pointer]:
+            - /url: /products/hoop-earrings
+            - generic [ref=e450]: Checked in Japan
+            - generic [ref=e453]:
+              - generic [ref=e454]:
+                - generic [ref=e455]: K18 · 5.6 g
+                - heading "Hoop earrings" [level=3] [ref=e456]
+              - generic [ref=e457]:
+                - generic [ref=e458]: ￥118,000
+                - generic [ref=e459]: View details ›
+          - link "Checked in Japan K18 · 6.3 g Baby bangle ￥124,000 View details ›" [ref=e460] [cursor=pointer]:
+            - /url: /products/baby-bangle
+            - generic [ref=e461]: Checked in Japan
+            - generic [ref=e464]:
+              - generic [ref=e465]:
+                - generic [ref=e466]: K18 · 6.3 g
+                - heading "Baby bangle" [level=3] [ref=e467]
+              - generic [ref=e468]:
+                - generic [ref=e469]: ￥124,000
+                - generic [ref=e470]: View details ›
+          - link "Checked in Japan K18 · 3.1 g Freshwater drop earrings ￥62,000 View details ›" [ref=e471] [cursor=pointer]:
+            - /url: /products/freshwater-drop-earrings
+            - generic [ref=e472]: Checked in Japan
+            - generic [ref=e475]:
+              - generic [ref=e476]:
+                - generic [ref=e477]: K18 · 3.1 g
+                - heading "Freshwater drop earrings" [level=3] [ref=e478]
+              - generic [ref=e479]:
+                - generic [ref=e480]: ￥62,000
+                - generic [ref=e481]: View details ›
+  - contentinfo [ref=e482]:
+    - generic [ref=e483]:
+      - generic [ref=e484]:
+        - paragraph [ref=e486]: Cha Jewels
+        - paragraph [ref=e487]: K18 gold, pearl and diamond jewelry, hallmark checked in Japan, and curated preloved luxury. For our neighbours in Tokyo and Filipino families everywhere.
+      - generic [ref=e488]:
+        - heading "Collections" [level=4] [ref=e489]
+        - list [ref=e490]:
+          - listitem [ref=e491]:
+            - link "Necklaces" [ref=e492] [cursor=pointer]:
+              - /url: /collections/necklaces
+          - listitem [ref=e493]:
+            - link "Pendants" [ref=e494] [cursor=pointer]:
+              - /url: /collections/pendants
+          - listitem [ref=e495]:
+            - link "Earrings" [ref=e496] [cursor=pointer]:
+              - /url: /collections/earrings
+          - listitem [ref=e497]:
+            - link "Bracelets" [ref=e498] [cursor=pointer]:
+              - /url: /collections/bracelets
+          - listitem [ref=e499]:
+            - link "Rings" [ref=e500] [cursor=pointer]:
+              - /url: /collections/rings
+          - listitem [ref=e501]:
+            - link "Anklets" [ref=e502] [cursor=pointer]:
+              - /url: /collections/anklets
+          - listitem [ref=e503]:
+            - link "Sets" [ref=e504] [cursor=pointer]:
+              - /url: /collections/sets
+          - listitem [ref=e505]:
+            - link "All" [ref=e506] [cursor=pointer]:
+              - /url: /collections
+      - generic [ref=e507]:
+        - heading "Customer care and legal" [level=4] [ref=e508]
+        - list [ref=e509]:
+          - listitem [ref=e510]:
+            - link "Layaway terms" [ref=e511] [cursor=pointer]:
+              - /url: /layaway
+          - listitem [ref=e512]:
+            - link "Gold guide" [ref=e513] [cursor=pointer]:
+              - /url: /gold-guide
+          - listitem [ref=e514]:
+            - link "Legal notice (Specified Commercial Transactions Act)" [ref=e515] [cursor=pointer]:
+              - /url: /legal/tokusho
+          - listitem [ref=e516]:
+            - link "Returns and refunds" [ref=e517] [cursor=pointer]:
+              - /url: /legal/returns
+          - listitem [ref=e518]:
+            - link "Privacy policy" [ref=e519] [cursor=pointer]:
+              - /url: /legal/privacy
+          - listitem [ref=e520]:
+            - link "Terms of Service" [ref=e521] [cursor=pointer]:
+              - /url: /legal/terms
+          - listitem [ref=e522]:
+            - link "FAQ" [ref=e523] [cursor=pointer]:
+              - /url: /faq
+      - generic [ref=e524]:
+        - heading "Stay in touch" [level=4] [ref=e525]
+        - paragraph [ref=e526]: New pieces, member-only news and updates from Cha Jewels.
+        - generic [ref=e527]:
+          - textbox "Enter your email" [disabled] [ref=e528]
+          - button "Sign up" [disabled] [ref=e529]
+        - paragraph [ref=e530]: Newsletter sign-up is coming soon.
+    - generic [ref=e531]:
+      - generic [ref=e532]: © 2026 Cha Jewels Co., Ltd. · Tateishi, Katsushika-ku, Tokyo
+      - generic [ref=e533]: Qualified invoice issuer registration no. T7011801044120
