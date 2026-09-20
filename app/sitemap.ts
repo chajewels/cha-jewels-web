@@ -3,7 +3,7 @@ import { siteUrl } from "@/lib/site";
 import { hub } from "@/lib/hub-api";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const [cols, prods] = await Promise.all([hub.collections().catch(() => []), hub.productSlugs().catch(() => [])]);
+  const [cols, cats, prods] = await Promise.all([hub.collections().catch(() => []), hub.categories().catch(() => []), hub.productSlugs().catch(() => [])]);
   return [
     { url: base, changeFrequency: "daily", priority: 1 },
     // /layaway is NOT listed, and this is not an oversight — read this before
@@ -34,6 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/legal/terms`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/legal/returns`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
+    ...cats.map((c) => ({ url: `${base}/categories/${c.slug}`, changeFrequency: "daily" as const, priority: 0.8 })),
     ...cols.map((c) => ({ url: `${base}/collections/${c.slug}`, changeFrequency: "daily" as const, priority: 0.8 })),
     ...prods.map((p) => ({ url: `${base}/products/${p.slug}`, lastModified: p.updated_at, changeFrequency: "weekly" as const, priority: 0.7 })),
   ];

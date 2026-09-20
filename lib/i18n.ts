@@ -170,6 +170,9 @@ export const dict = {
     open: { ja: "検索を開く", en: "Open search" },
     close: { ja: "検索を閉じる", en: "Close search" },
   },
+  categories: {
+    eyebrow: { ja: "カテゴリー", en: "Category" },
+  },
   collection: {
     empty: { ja: "まだ商品が登録されていません。Hubで追加された商品は1分以内に表示されます。", en: "No pieces are listed here yet. New pieces are added from the Hub and appear within a minute." },
     emptyFiltered: { ja: "この条件に該当する商品はありません。", en: "No pieces match this filter." },
