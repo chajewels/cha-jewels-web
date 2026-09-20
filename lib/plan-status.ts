@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import type { Tone } from "@/lib/order-status";
 import { dict } from "@/lib/i18n";
 import type { HubLayawayPlan, HubLayawayScheduleRow } from "@/lib/types";
 
@@ -16,7 +17,7 @@ const k = (key: Key, lang: Lang) => dict.plans[key][lang];
  * closures: money was paid, and what happens next differs. Each says what it
  * is, and `planNote` supplies the sentence that explains it.
  */
-export function planStatusLabel(plan: HubLayawayPlan, lang: Lang): { text: string; tone: "pending" | "good" | "dead" } {
+export function planStatusLabel(plan: HubLayawayPlan, lang: Lang): { text: string; tone: Tone } {
   switch (plan.status) {
     case "completed":
       return { text: k("statusCompleted", lang), tone: "good" };

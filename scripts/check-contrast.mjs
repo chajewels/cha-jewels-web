@@ -55,6 +55,17 @@ add("charcoal-deep on orange (CTA label)", "charcoal-deep", "orange", TEXT);
 add("charcoal-deep on orange-hover", "charcoal-deep", "orange-hover", TEXT);
 add("charcoal on orange (hero CTA label)", "charcoal", "orange", TEXT);
 add("charcoal text on chalk band", "charcoal", "chalk", TEXT);
+// Status badge tone dots (components/account/status-badge.tsx) on the account
+// pages, which are still the dark theme. NON-TEXT (3:1): the dot carries no
+// information the badge's own words do not — it is a second, non-colour channel
+// for a customer who cannot separate gold from teal — so it is measured as a
+// graphical object, not as text.
+for (const [label, fg, alpha] of [
+  ["status dot good (teal)", "teal", 1],
+  ["status dot pending (gold-pale)", "gold-pale", 1],
+  ["status dot dead (chalk/40)", "chalk", 0.4],
+]) add(`${label} on charcoal`, fg, "charcoal", NONTEXT, alpha);
+
 // GOLD TEXT RULE (Phase 4): gold-pale on dark bands, gold-dark on light bands.
 // gold-pale on chalk is 1.37:1 and must never be used there.
 add("gold-dark text on chalk (light band)", "gold-dark", "chalk", TEXT);

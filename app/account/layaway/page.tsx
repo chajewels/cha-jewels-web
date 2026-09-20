@@ -7,7 +7,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { planFigure, planStatusLabel } from "@/lib/plan-status";
-import { toneClass } from "@/lib/order-status";
+import { StatusBadge } from "@/components/account/status-badge";
 import type { HubLayawayPlan } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("layaway");
@@ -85,7 +85,7 @@ export default async function AccountLayawayPage() {
                       {t("plans", "term")} {t("plans", "months", { n: String(plan.payment_plan_months) })}
                     </p>
                   </div>
-                  <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
+                  <StatusBadge tone={status.tone} text={status.text} />
                   <div className="text-right">
                     <p className={`font-display text-xl ${figure.emphasise ? "text-gold-pale" : "text-chalk/55"}`}>
                       {money(figure.amount)}

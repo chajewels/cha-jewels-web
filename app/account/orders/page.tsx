@@ -6,7 +6,8 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { isClosedOrder, orderStatusLabel, refundLabel, toneClass } from "@/lib/order-status";
+import { isClosedOrder, orderStatusLabel, refundLabel } from "@/lib/order-status";
+import { StatusBadge } from "@/components/account/status-badge";
 import type { HubOrder } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("orders");
@@ -62,7 +63,7 @@ export default async function OrdersPage() {
                     </p>
                   </div>
                   <div className="flex flex-col items-start gap-1">
-                    <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
+                    <StatusBadge tone={status.tone} text={status.text} />
                     {closedNote && <p className="max-w-[36ch] text-xs text-chalk/55">{closedNote}</p>}
                   </div>
                   {/* #26's rule, which the plan rows already followed and these

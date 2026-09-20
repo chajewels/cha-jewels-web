@@ -7,7 +7,7 @@ import { orderLineTitle } from "@/lib/catalog-i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { toneClass } from "@/lib/order-status";
+import { StatusBadge } from "@/components/account/status-badge";
 import { canPayHere, isLivePlan, planNote, planStatusLabel, remainingIsPayable, remainingLabel, rowStatusLabel, showsRemainingFigure } from "@/lib/plan-status";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
@@ -104,7 +104,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-gold-pale">{plan.web_reference ?? plan.invoice_number ?? "—"}</h1>
-          <span className={`border px-3 py-1 text-xs ${toneClass(status.tone)}`}>{status.text}</span>
+          <StatusBadge tone={status.tone} text={status.text} />
         </div>
 
         {/* What this state means, in one sentence. Closed plans get no
