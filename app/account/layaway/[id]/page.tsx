@@ -7,13 +7,15 @@ import { orderLineTitle } from "@/lib/catalog-i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { StatusBadge } from "@/components/account/status-badge";
 import { canPayHere, isLivePlan, planNote, planStatusLabel, remainingIsPayable, remainingLabel, rowStatusLabel, showsRemainingFigure } from "@/lib/plan-status";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { LayawayPayForm } from "@/components/commerce/layaway-pay-form";
+import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
+import { ServiceRequestForm } from "@/components/account/service-request-form";
+import type { ServiceRequest } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("layaway");
 export const dynamic = "force-dynamic";
@@ -54,7 +56,11 @@ export default async function LayawayPlanPage({ params, searchParams }: {
   const { data: sessionData } = await supabase.auth.getSession();
   const jwt = sessionData.session?.access_token;
 
-  const detail = jwt ? await hub.layawayPlan(jwt, id).catch(() => null) : null;
+  // Service requests ride alongside the plan; a failure reading them leaves
+  // the plan page standing with none listed rather than taking it down.
+  const [detail, requests] = jwt
+    ? await Promise.all([hub.layawayPlan(jwt, id).catch(() => null), hub.serviceRequests(jwt).catch((): ServiceRequest[] => [])])
+    : [null, [] as ServiceRequest[]];
   if (!detail) {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">
@@ -68,6 +74,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
 
   const { plan, schedule, items, payments, pending_submissions: pendingSubs, transfer_methods: methods } = detail;
   const status = planStatusLabel(plan, lang);
+  const ownRequests = requests.filter((r) => r.layaway_plan_id === plan.id);
   const money = (n: number) => formatMoney(n, plan.currency);
   const locale = lang === "ja" ? "ja-JP" : "en-GB";
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { dateStyle: "medium" });
@@ -169,6 +176,16 @@ export default async function LayawayPlanPage({ params, searchParams }: {
             ))}
           </ul>
         )}
+
+        {/* Work on the piece, asked for next to the plan it is on. A closed plan
+            — forfeited, settled, cancelled — is not offered the form. */}
+        <ServiceRequestForm
+          lang={lang}
+          target={{ layaway_plan_id: plan.id }}
+          items={items.map((line) => ({ value: line.title, label: orderLineTitle(line, lang) }))}
+          initial={ownRequests}
+          canRequest={status.tone !== "dead"}
+        />
 
         <h2 className="mt-12 font-display text-xl text-gold-pale">{t("plans", "schedule")}</h2>
         <ul className="rule-grid mt-4 grid gap-px">

@@ -129,6 +129,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <div className="mt-10 flex flex-wrap items-center gap-4">
           <Link href="/account/orders" className="text-gold-pale underline underline-offset-4">{t("orders", "h1")}</Link>
           <Link href="/account/layaway" className="text-gold-pale underline underline-offset-4">{t("plans", "h1")}</Link>
+          <Link href="/account/service-requests" className="text-gold-pale underline underline-offset-4">{t("service", "h1")}</Link>
           <span className="text-sm text-chalk/55">{t("account", "soon")}</span>
         </div>
 
