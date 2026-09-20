@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { trackHeroSlideCta } from "@/lib/analytics";
 
 export type HeroSlide =
   | { kind: "intro"; layaway: boolean }
@@ -151,7 +152,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
                     <h2 className="mt-4 font-display text-[clamp(32px,4.5vw,56px)] leading-[1.1] text-gold-pale">{s.name}</h2>
                     {s.description && <p className="mt-5 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{s.description}</p>}
                     <div className="mt-8 flex">
-                      <Button asChild><Link href={`/categories/${s.slug}`}>{s.cta ?? t("home", "slideShop", { name: s.name })}</Link></Button>
+                      <Button asChild><Link href={`/categories/${s.slug}`} onClick={() => trackHeroSlideCta(s.slug)}>{s.cta ?? t("home", "slideShop", { name: s.name })}</Link></Button>
                     </div>
                   </div>
                 </div>
@@ -171,8 +172,14 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
           </button>
           {/* Overlaid rather than stacked below: the section has a fixed height
               from `lg` up, so a row added under the track would be pushed out
-              of it. */}
-          <div className="absolute inset-x-0 bottom-5 z-20 flex justify-center gap-2" role="tablist" aria-label={t("home", "slideEyebrow")}>
+              of it.
+
+              Lifted clear of the mobile tab bar below `lg`. That bar is fixed
+              to the bottom of the VIEWPORT while these dots sit at the bottom
+              of the SECTION, so at the top of the page the two land on the
+              same pixels and the dots cannot be tapped — measured at 375px,
+              dots 776–800 under a bar occupying 747–812. */}
+          <div className="absolute inset-x-0 bottom-24 z-20 flex justify-center gap-2 lg:bottom-5" role="tablist" aria-label={t("home", "slideEyebrow")}>
             {slides.map((s, i) => (
               <button
                 key={s.kind === "intro" ? "intro" : s.slug}

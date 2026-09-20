@@ -12,7 +12,7 @@ import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
-import { categoryCta, categoryDescription, categoryName, collectionDescription, collectionName } from "@/lib/catalog-i18n";
+import { categoryCta, categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
 import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";

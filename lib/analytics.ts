@@ -1,5 +1,6 @@
 import { track } from "@vercel/analytics";
 import { normalize } from "@/lib/search-normalize";
+import { DEFAULT_LANG } from "@/lib/i18n";
 
 /**
  * The single door to the analytics provider. Every call site goes through the
@@ -20,9 +21,10 @@ import { normalize } from "@/lib/search-normalize";
  * PROPERTY BUDGET — Vercel Pro allows TWO custom properties per event.
  * `product_view` and `add_to_cart` spend them on `sku` and `lang`; `search`
  * spends them on `q` (the normalized term, at most 64 characters) and
- * `results`. Adding a third silently costs money (Web Analytics Plus), so it
- * is an owner decision, not a code decision — emit() drops any event that
- * carries more than the ceiling rather than let one slip through.
+ * `results`; `hero_slide_cta` spends them on `slug` and `lang`. Adding a third
+ * silently costs money (Web Analytics Plus), so it is an owner decision, not a
+ * code decision — emit() drops any event that carries more than the ceiling
+ * rather than let one slip through.
  */
 
 /** Vercel Pro's ceiling. Exported so the guard below can be asserted in a test. */
@@ -205,4 +207,28 @@ export function trackSearch(q: string, results: number): void {
   const term = normalize(q).slice(0, SEARCH_QUERY_MAX);
   if (!term) return;
   emit("search", { q: term, results: Math.max(0, Math.floor(Number.isFinite(results) ? results : 0)) });
+}
+
+/**
+ * A hero slide's button was pressed, named by the category it leads to.
+ *
+ * This is the deck's own measure: which category earns the click, and in which
+ * language. Paired with the category page's own traffic it answers whether a
+ * slide is doing work or just occupying the fold — which is the question that
+ * decides a category's sort_order in the Hub.
+ *
+ * `lang` is read from the document rather than passed in. The language is
+ * already on <html lang>, set by the same server render that chose the slide's
+ * copy, so taking it from there cannot disagree with the words the visitor
+ * actually clicked; threading it through the component would add a second
+ * source for the same fact. Falls back to the site default before hydration or
+ * if the attribute is ever missing.
+ *
+ * Fired on the click itself, not on the navigation that follows: the click is
+ * the intent, and a slow route change must not decide whether it was counted.
+ */
+export function trackHeroSlideCta(slug: string): void {
+  if (!slug) return;
+  const lang = (typeof document !== "undefined" && document.documentElement.lang) || DEFAULT_LANG;
+  emit("hero_slide_cta", { slug, lang });
 }
