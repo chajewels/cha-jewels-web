@@ -15,7 +15,6 @@ import { CollectionCards, type CollectionCardData } from "@/components/home/coll
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
-import { InquiryBanner } from "@/components/home/inquiry-banner";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
 export const revalidate = 60;
 
@@ -147,9 +146,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      {/* §11 Inquiry banner */}
-      <InquiryBanner lang={lang} />
 
       {/* §13 Mobile-only bottom tab bar */}
       <MobileTabBar tabs={tabs} />
