@@ -1,5 +1,6 @@
 import { track } from "@vercel/analytics";
 import { normalize } from "@/lib/search-normalize";
+import type { SearchOrigin } from "@/lib/search-origin";
 import { DEFAULT_LANG } from "@/lib/i18n";
 
 /**
@@ -203,9 +204,37 @@ export const SEARCH_QUERY_MAX = 64;
  * `results` is the total the search returned for that term, not the number of
  * suggestions shown. Exactly two properties — see the budget above.
  */
-export function trackSearch(q: string, results: number): void {
+/**
+ * How the last recorded search was reached. Not a property of the event: the
+ * budget above is two and `q` and `results` spend both, and a third is silently
+ * billable. It is kept here so the distinction survives — promoting it to a
+ * property is a one-line change the day an owner decides to pay for it, and
+ * until then a debug session can still ask which path a search came in by.
+ */
+let lastOrigin: SearchOrigin | null = null;
+export const lastSearchOrigin = (): SearchOrigin | null => lastOrigin;
+
+/**
+ * A search that was actually run. THE RESULTS PAGE IS THE ONLY CALLER — see
+ * components/analytics/search-view.tsx, and the assertion in
+ * scripts/check-analytics.mjs that keeps it that way.
+ *
+ * It used to be called from the header combobox as well, which meant a search
+ * typed there was counted twice (once on submit, once when the page it
+ * navigated to loaded) while a pasted /search link was counted once. The total
+ * was therefore neither searches nor results-page views, and no amount of
+ * reading it could tell you which. One emitter, one search, one event.
+ *
+ * `q` is normalized the same way lib/search matches it (NFKC, lower-case,
+ * spaces stripped, katakana folded to hiragana) and cut to SEARCH_QUERY_MAX, so
+ * two spellings of one query aggregate together and no property value can grow
+ * without bound. `results` is the total the search returned for that term, not
+ * the number of suggestions shown.
+ */
+export function trackSearch(q: string, results: number, origin: SearchOrigin = "direct"): void {
   const term = normalize(q).slice(0, SEARCH_QUERY_MAX);
   if (!term) return;
+  lastOrigin = origin;
   emit("search", { q: term, results: Math.max(0, Math.floor(Number.isFinite(results) ? results : 0)) });
 }
 
