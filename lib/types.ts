@@ -18,9 +18,36 @@ export type Origin = "JAPAN" | "BRAND" | "OTHER" | "UNKNOWN";
  * language's column directly in a component.
  */
 /** `metals`: every stamp on the piece in the Hub's order (PT900/K18); `karat` is the one-release bridge (= metals[0]) kept until the Hub drops it. */
-export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; product_variants: ProductVariant[] };
+export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; category_slugs?: string[]; product_variants: ProductVariant[] };
 /** A published customer testimonial from the Hub (GET /testimonials). Quotes are per language; either may be null. */
 export type Testimonial = { id: string; customer_name: string; location: string | null; quote_en: string | null; quote_ja: string | null; item: string | null; rating: number | null };
+/**
+ * A merchandising category — the top level the homepage hero and /categories
+ * are built from. Categories are the Hub's, like everything else in the
+ * catalog: the slugs, the order and the button label are DATA, not a list in
+ * this repo, so adding one is a Hub edit and not a deploy.
+ *
+ * `sort_order` is the order the Hub wants them shown in; the hero and any
+ * listing sort by it rather than inventing a rule of their own (the old deck
+ * hardcoded "preloved lines first", which is exactly the kind of merchandising
+ * decision that belongs to the owner).
+ *
+ * `cta_label` / `cta_label_ja` let a category carry its own button wording
+ * ("Shop watches" reads better than a generic label). Both may be null, and the
+ * caller falls back to the dictionary.
+ *
+ * Bilingual fields follow the Collection pattern: `name` is the base/English
+ * column and `name_ja` the Japanese. Read them through lib/catalog-i18n, never
+ * directly.
+ */
+export type Category = {
+  id: string; slug: string;
+  name: string; name_ja: string | null;
+  description: string | null; description_ja: string | null;
+  hero_media: string | null;
+  cta_label: string | null; cta_label_ja: string | null;
+  sort_order: number;
+};
 export type Collection = { id: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; hero_media: string | null; description: string | null; description_en?: string | null; description_ja?: string | null };
 /**
  * What the shared SQL function returns. `allowed_terms` is the business's real

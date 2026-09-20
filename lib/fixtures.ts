@@ -1,4 +1,4 @@
-import type { CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, SettlementCurrency, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, SettlementCurrency, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 /** Plans in `layawayPlansFixture`, stated here because `meFixture` is declared first. */
@@ -17,6 +17,9 @@ const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: nu
   id: `p${i}`, sku: `CJ-${1000 + i}`, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_en: name, name_ja, karat, metals: karat ? [karat] : [], weight_g: w, status: "active", col,
   // Rings are the preloved line in preview data; everything else is New.
   condition: col === "rings" ? "Preloved" : "New",
+  // Category membership mirrors that: the preloved ring sits under the preloved
+  // line, the branded piece under the branded one, the rest under fine jewelry.
+  category_slugs: col === "rings" ? ["preloved-jewelry"] : i === 3 ? ["preloved-branded-jewelry"] : ["fine-jewelry"],
   description_en: `${name}. ${karat} ${stone ? "with " + stone + ", " : ""}hallmark checked in Japan and priced by weight.`, description_ja: null, description_tl: null,
   // Preview origins: p2 is confirmed Japanese, p3 is a branded piece, the rest
   // are UNKNOWN — so the preview exercises every OriginBadge branch honestly.
@@ -24,6 +27,19 @@ const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: nu
   brand: i === 3 ? "Tiffany & Co." : null,
   product_variants: [{ id: `v${i}`, size: null, stone, price_jpy: jpy, price_php: Math.round(jpy * 0.39), stock_qty: i % 5 === 0 ? 0 : 3, product_media: [] }],
 });
+/**
+ * Preview categories, in sort_order. hero_media is null throughout so the
+ * preview exercises the placeholder path (lib/category-placeholders.ts) — the
+ * Hub's own media always wins over it, and that branch is covered the moment a
+ * real category carries a photo.
+ */
+export const categories: Category[] = [
+  { id: "cat1", slug: "fine-jewelry", name: "Fine Jewelry", name_ja: "ファインジュエリー", description: "K18 gold, pearls and diamonds, hallmark checked in Japan and priced by weight.", description_ja: "K18ゴールド、パール、ダイヤモンド。日本で刻印を確認し、重量に基づいた価格でご案内します。", hero_media: null, cta_label: "Shop fine jewelry", cta_label_ja: "ファインジュエリーを見る", sort_order: 1 },
+  { id: "cat2", slug: "preloved-jewelry", name: "Preloved Jewelry", name_ja: "プレラブドジュエリー", description: "Carefully chosen second-hand pieces, each one checked before it is offered.", description_ja: "丁寧に選んだ中古ジュエリー。一点ずつ確認したうえでご紹介しています。", hero_media: null, cta_label: "Shop preloved", cta_label_ja: "プレラブドを見る", sort_order: 2 },
+  { id: "cat3", slug: "preloved-branded-jewelry", name: "Preloved Branded Jewelry", name_ja: "プレラブド ブランドジュエリー", description: "Pieces from iconic houses, with the brand stated and the origin left to the listing.", description_ja: "著名ブランドのジュエリー。ブランド名を明記し、由来は各商品ページに記載しています。", hero_media: null, cta_label: "Shop branded", cta_label_ja: "ブランドジュエリーを見る", sort_order: 3 },
+  { id: "cat4", slug: "preloved-watches", name: "Preloved Watches", name_ja: "プレラブドウォッチ", description: "Second-hand watches, movement and condition described on every listing.", description_ja: "中古時計。ムーブメントと状態を各商品ページに記載しています。", hero_media: null, cta_label: "Shop watches", cta_label_ja: "ウォッチを見る", sort_order: 4 },
+  { id: "cat5", slug: "preloved-designer-accessories", name: "Preloved Designer Accessories", name_ja: "プレラブド デザイナーアクセサリー", description: "Bags and small leather goods from the houses our customers ask for.", description_ja: "お客様からご要望の多いブランドのバッグや革小物。", hero_media: null, cta_label: "Shop accessories", cta_label_ja: "アクセサリーを見る", sort_order: 5 },
+];
 export const products = [
   mk(1, "Double-sided diamond pendant", "PT900", 16.9, 1480000, "2.62 ct diamonds", "pendants", "両面ダイヤモンドペンダント"),
   mk(2, "Kihei chain 50 cm", "K18", 20.4, 398000, null, "necklaces", "喜平チェーン 50 cm"),
