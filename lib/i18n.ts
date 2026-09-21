@@ -119,6 +119,8 @@ export const dict = {
     aboutDesc: { ja: "私たちの歩みと基準、東京の拠点。", en: "Our story, our standards, our Tokyo base." },
     why: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" },
     whyDesc: { ja: "お選びいただく理由と、私たちのお約束。", en: "What you can expect from us, and why it matters." },
+    faq: { ja: "よくある質問", en: "FAQ" },
+    faqDesc: { ja: "レイアウェイ・配送・返品・ロイヤルティのご質問に。", en: "Answers on layaway, delivery, returns and loyalty." },
     blog: { ja: "ブログ", en: "Blog" },
     blogDesc: { ja: "ジュエリーの選び方、お手入れ、読みもの。", en: "Choosing, caring for and living with jewelry." },
     news: { ja: "お知らせ", en: "News & Updates" },
