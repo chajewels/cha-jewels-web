@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Info, Gem, BookOpen, Megaphone, MessageCircle } from "lucide-react";
+import { Info, Gem, BookOpen, Megaphone, MessageCircle, Landmark } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import { getCollections } from "@/lib/queries/products";
 import { hub } from "@/lib/hub-api";
@@ -51,6 +51,7 @@ export async function Header({ lang }: { lang: Lang }) {
     { key: "blog", href: "/blog", label: t("navMenu", "blog"), desc: t("navMenu", "blogDesc"), icon: <BookOpen className="h-5 w-5" /> },
     { key: "news", href: "/blog", label: t("navMenu", "news"), desc: t("navMenu", "newsDesc"), icon: <Megaphone className="h-5 w-5" /> },
     { key: "contact", href: "/contact", label: t("navMenu", "contact"), desc: t("navMenu", "contactDesc"), icon: <MessageCircle className="h-5 w-5" /> },
+    { key: "affiliations", href: "/affiliations", label: t("navMenu", "affiliations"), desc: t("navMenu", "affiliationsDesc"), icon: <Landmark className="h-5 w-5" /> },
   ];
 
   const typeItems = collections.map((c) => ({ key: c.slug, href: `/collections/${c.slug}`, label: collectionName(c, lang) }));
