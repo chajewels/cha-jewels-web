@@ -52,8 +52,8 @@ export function ArrivalPlaceholder({ lang }: { lang: Lang }) {
     <div aria-hidden="true" className="flex flex-col overflow-hidden rounded-sm border border-dashed border-charcoal/25 bg-white">
       <div className="grid aspect-square place-items-center bg-chalk"><span className="h-16 w-16 rounded-full border-2 border-dashed border-charcoal/30" /></div>
       <div className="flex flex-1 flex-col justify-between gap-1.5 p-2.5 lg:p-4">
-        <div><span className="block text-[10px] text-charcoal/50 lg:text-xs">{t("home", "phMeta")}</span><p className="font-display text-base text-charcoal/50 lg:text-lg">{t("home", "phName")}</p></div>
-        <span className="text-base font-bold text-charcoal/50">{t("home", "phPrice")}</span>
+        <div><span className="block text-[10px] text-charcoal/70 lg:text-xs">{t("home", "phMeta")}</span><p className="font-display text-base text-charcoal/70 lg:text-lg">{t("home", "phName")}</p></div>
+        <span className="text-base font-bold text-charcoal/70">{t("home", "phPrice")}</span>
       </div>
     </div>
   );

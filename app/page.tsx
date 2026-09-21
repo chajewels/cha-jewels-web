@@ -151,10 +151,10 @@ export default async function Home() {
         <div className="wrap">
           <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "newEyebrow")}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-deep">{t("home", "newEyebrow")}</p>
               <h2 className="mt-3 text-[clamp(28px,3.6vw,44px)]">{t("home", "newH")}</h2>
             </div>
-            <Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-dark underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link>
+            <Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link>
           </div>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
             {featured.map((p) => <ArrivalCard key={p.id} product={p} lang={lang} />)}

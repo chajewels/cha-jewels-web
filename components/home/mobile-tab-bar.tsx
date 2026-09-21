@@ -20,7 +20,7 @@ export function MobileTabBar({ tabs }: { tabs: Tab[] }) {
           const Icon = ICONS[icon];
           const active = href === "/" ? path === "/" : path.startsWith(href);
           return (
-            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex h-12 min-w-[56px] flex-col items-center justify-center gap-0.5 text-[10px] tracking-wide ${active ? "text-gold-dark" : "text-charcoal/70 hover:text-charcoal"}`}>
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex h-12 min-w-[56px] flex-col items-center justify-center gap-0.5 text-[10px] tracking-wide ${active ? "text-gold-deep" : "text-charcoal/70 hover:text-charcoal"}`}>
               <Icon aria-hidden="true" className="h-5 w-5" />
               <span>{label}</span>
             </Link>
