@@ -498,3 +498,17 @@ export function createServiceRequestFixture(body: ServiceRequestInput): ServiceR
   serviceRequestsStore.unshift(row);
   return row;
 }
+
+/**
+ * Preview newsletter memory: the first sign-up for an address is "subscribed",
+ * a second is "already_subscribed", so both branches of the form can be seen
+ * without a Hub. Module-scope, so it resets whenever the server does — which
+ * is the right lifetime for a fixture.
+ */
+const subscribers = new Set<string>();
+export function rememberSubscriber(email: string): boolean {
+  const key = email.trim().toLowerCase();
+  if (subscribers.has(key)) return true;
+  subscribers.add(key);
+  return false;
+}

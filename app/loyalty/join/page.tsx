@@ -6,6 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { Button } from "@/components/ui/button";
 import { JoinButton } from "@/components/loyalty/join-button";
+import { MemberGroups } from "@/components/loyalty/member-groups";
 
 export const generateMetadata = () => pageMeta("join");
 export const dynamic = "force-dynamic";
@@ -48,6 +49,7 @@ export default async function JoinPage() {
           <div className="border border-hairline bg-white p-6 text-charcoal-deep">
             {t("loyalty", "alreadyMember")}{" "}
             <Link href="/account" className="underline hover:text-charcoal-deep">{t("nav", "account")}</Link>
+            <MemberGroups lang={lang} className="mt-6 border-t border-hairline pt-5" />
           </div>
         ) : (
           <JoinButton lang={lang} />

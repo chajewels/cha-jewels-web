@@ -8,6 +8,7 @@ import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
+import { MemberGroups } from "@/components/loyalty/member-groups";
 
 export const generateMetadata = () => pageMeta("complete");
 export const dynamic = "force-dynamic";
@@ -24,7 +25,13 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
 
   // Read the order back rather than trusting anything passed through the URL —
   // the Hub scopes /orders/:id to the signed-in customer.
-  const detail = jwt ? await hub.order(jwt, order_id).catch(() => null) : null;
+  // The order response carries no membership field; `loyalty.enrolled` on
+  // GET /me is the one signal. Read alongside the order; a failed /me only
+  // hides the member block, never the order.
+  const [detail, me] = jwt
+    ? await Promise.all([hub.order(jwt, order_id).catch(() => null), hub.me(jwt).catch(() => null)])
+    : [null, null];
+  const isMember = me?.loyalty?.enrolled === true;
 
   if (!detail) {
     return (
@@ -68,6 +75,12 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
         <p className="mt-8 text-sm text-charcoal/70">{t("checkout", "deadlineNote")}</p>
 
         <Button asChild className="mt-8"><Link href={`/account/orders/${order.id}`}>{t("complete", "viewOrder")}</Link></Button>
+
+        {isMember && (
+          <div className="mt-10 border border-hairline bg-white p-6">
+            <MemberGroups lang={lang} />
+          </div>
+        )}
       </div>
     </section>
   );
