@@ -4,6 +4,7 @@ import { getCollections } from "@/lib/queries/products";
 import { collectionName } from "@/lib/catalog-i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { FOLLOW } from "@/lib/social";
+import { COMPANY_NAME } from "@/lib/content/legal";
 import { SocialIcons } from "@/components/site/social-icons";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 
@@ -63,7 +64,14 @@ export async function Footer({ lang }: { lang: Lang }) {
         </div>
       </div>
       <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-charcoal-mid pt-6 text-xs text-chalk/55">
-        <span>© {new Date().getFullYear()} {t("footer", "company")}</span>
+        {/* The REGISTERED name, from the one constant that holds it. The i18n
+            key this replaced carried the kabushiki-gaisha-first variant of the
+            name in its Japanese string — the exact wrong form PR #36 found on
+            the legal pages, and the reason COMPANY_NAME exists — plus a
+            locality suffix that the registered address on /contact and
+            /legal/tokusho both state properly. An identifier is not
+            translated, so this reads the same in either language. */}
+        <span>© {new Date().getFullYear()} {COMPANY_NAME}</span>
         <span>{t("footer", "invoiceReg")}</span>
       </div>
     </footer>

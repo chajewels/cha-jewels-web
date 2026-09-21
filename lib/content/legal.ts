@@ -65,6 +65,22 @@ export const COMPANY_ADDRESS: Record<Lang, string> = {
 };
 
 /**
+ * THE TWO TELEPHONE NUMBERS, factored out for the reason COMPANY_NAME and
+ * COMPANY_ADDRESS are: they are identifiers, and every surface that prints one
+ * must print the same digits. The statutory tokusho row below builds its
+ * combined display string from these, and /contact links each separately —
+ * so there is no second copy to drift, and no parsing a display string back
+ * into its parts.
+ *
+ * Digits owner-confirmed 2026-09-21. Written unformatted for `tel:`; the
+ * display form (（代表）/（携帯）) is built where it is shown.
+ */
+export const COMPANY_PHONE = {
+  office: "03-6657-6129",
+  mobile: "070-8307-3318",
+} as const;
+
+/**
  * RETURN, CANCELLATION AND REFUND POLICY — owner-supplied text, 2026-09-15.
  *
  * The English is Cynthia's, verbatim. The Japanese is MY TRANSLATION and is a
@@ -302,10 +318,10 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  *
  * CONTACT ROWS ADDED 2026-09-15 (owner-supplied). 特商法 requires a telephone
  * number and an address for enquiries, and this page carried neither. The
- * numbers came from Cynthia as "03,6657 6129" and "070 8307 3318" and are
- * written here in the conventional Japanese form; the comma was read as a
- * hyphen. If either digit is wrong it is wrong on a statutory page, so check
- * them at the compliance read.
+ * numbers came from Cynthia as "03,6657 6129" and "070 8307 3318", with the
+ * comma read as a hyphen; they are written here in the conventional Japanese
+ * form. OWNER-CONFIRMED DIGIT BY DIGIT 2026-09-21, so /contact now publishes
+ * them as tel: links from this same row rather than holding them back.
  */
 /**
  * ADDED 2026-09-21, with the returns alignment. The other three legal
@@ -341,11 +357,10 @@ export const tokusho = {
    * need to be sure.
    *
    * Still pending a JP compliance review, as the page has always said. Two
-   * things to put in front of it: the English wording below, which is a
+   * one thing to put in front of it: the English wording below, which is a
    * statutory disclosure rendered in a second language and therefore carries
-   * the risk that the two columns say different things; and the two phone
-   * numbers, which came in as "03,6657 6129" and "070 8307 3318" and have not
-   * been confirmed digit by digit.
+   * the risk that the two columns say different things. (The two phone numbers
+   * were the other; the owner confirmed them digit by digit on 2026-09-21.)
    */
   rows: [
     {
@@ -362,7 +377,10 @@ export const tokusho = {
     },
     {
       k: { ja: "電話番号", en: "Telephone" },
-      v: { ja: "03-6657-6129（代表）／070-8307-3318（携帯）", en: "03-6657-6129 (office) / 070-8307-3318 (mobile)" },
+      v: {
+        ja: `${COMPANY_PHONE.office}（代表）／${COMPANY_PHONE.mobile}（携帯）`,
+        en: `${COMPANY_PHONE.office} (office) / ${COMPANY_PHONE.mobile} (mobile)`,
+      },
     },
     {
       k: { ja: "メールアドレス", en: "Email" },

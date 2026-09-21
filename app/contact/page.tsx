@@ -2,7 +2,7 @@ import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr, type Lang } from "@/lib/i18n";
-import { COMPANY_ADDRESS, COMPANY_NAME, tokusho } from "@/lib/content/legal";
+import { COMPANY_ADDRESS, COMPANY_NAME, COMPANY_PHONE, tokusho } from "@/lib/content/legal";
 import { FOLLOW } from "@/lib/social";
 import { SocialIcons } from "@/components/site/social-icons";
 
@@ -17,16 +17,13 @@ export const generateMetadata = () => pageMeta("contact");
  * out of the tokusho rows by its key. A contact detail that changes changes in
  * one file, and this page cannot drift from the statutory one.
  *
- * NO TELEPHONE AND NO OPENING HOURS, both deliberately:
+ * The two telephone numbers were held off this page while their digits were
+ * unconfirmed. The owner confirmed them on 2026-09-21, so they are published
+ * here as tel: links, from COMPANY_PHONE — the same constant the statutory
+ * tokusho row builds its combined display string from.
  *
- *   The tokusho telephone row exists, but its two numbers came in as
- *   "03,6657 6129" and "070 8307 3318" with the comma read as a hyphen, and
- *   have not been confirmed digit by digit — the legal file says so itself.
- *   That risk currently sits on one statutory page; the owner held the number
- *   off this one until the digits are checked (2026-09-21). A follow-up adds
- *   it, from the same source, once they are.
- *
- *   Hours are in no source file. They are not invented here.
+ * STILL NO OPENING HOURS: they are in no source file, and are not invented
+ * here.
  */
 function tokushoValue(keyEn: string, lang: Lang): string | null {
   return tokusho.rows.find((r) => r.k.en === keyEn)?.v[lang] ?? null;
@@ -74,6 +71,20 @@ export default async function Contact() {
               </dd>
             </div>
           )}
+          {/* tel: needs the digits unpunctuated; the label carries which line
+              it is, so the number itself is not repeated in words. */}
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">{t("contact", "phoneOffice")}</dt>
+            <dd className="mt-1.5 text-[17px]">
+              <a href={`tel:${COMPANY_PHONE.office.replace(/-/g, "")}`} className="text-gold-dark underline-offset-4 hover:underline">{COMPANY_PHONE.office}</a>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">{t("contact", "phoneMobile")}</dt>
+            <dd className="mt-1.5 text-[17px]">
+              <a href={`tel:${COMPANY_PHONE.mobile.replace(/-/g, "")}`} className="text-gold-dark underline-offset-4 hover:underline">{COMPANY_PHONE.mobile}</a>
+            </dd>
+          </div>
         </dl>
 
         <div className="mt-10 border-t border-hairline pt-8">
