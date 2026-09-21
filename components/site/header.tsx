@@ -78,7 +78,8 @@ export async function Header({ lang }: { lang: Lang }) {
     ...(layawayOffered(lang) ? [{ href: "/layaway", label: t("nav", "layaway") }] : []),
     { href: "/loyalty", label: t("nav", "loyalty") },
     { href: "/wholesale", label: t("nav", "wholesale") },
-    { href: "/blog", label: t("nav", "blog") },
+    // Blog is NOT here: it is a Company item now, and carrying it in both
+    // places gave the same destination two rows in one nav.
     ...(session ? [] : [{ href: "/account", label: t("nav", "account") }]),
   ];
   const tailLinks = links.filter((l) => l.href !== "/");
