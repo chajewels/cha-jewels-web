@@ -22,5 +22,5 @@ export function OriginBadge({ origin, brand, lang }: { origin: Origin | undefine
       ? brand.trim()
       : null;
   if (!label) return null;
-  return <span className="inline-block border border-gold px-3 py-1 text-xs tracking-wide text-gold-pale">{label}</span>;
+  return <span className="inline-block border border-gold-dark px-3 py-1 text-xs tracking-wide text-gold-dark">{label}</span>;
 }

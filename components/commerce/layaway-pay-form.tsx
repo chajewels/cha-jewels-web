@@ -6,6 +6,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { SettlementCurrency, TransferMethod } from "@/lib/types";
+import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 
 /**
  * Reporting a transfer against a plan.
@@ -55,43 +56,43 @@ export function LayawayPayForm({ accountId, lang, currency, suggestedAmount, met
     });
   }
 
-  const field = "mt-1 w-full border border-rule bg-charcoal-deep px-3 py-2 text-chalk";
+  const field = `mt-1 w-full px-3 py-2 ${inputLight}`;
   // Today in the customer's own clock is the sensible default and the latest
   // date that can be true; a transfer cannot have been sent tomorrow.
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="mt-10 border border-rule p-6">
-      <h2 className="font-display text-xl text-gold-pale">{t("plans", "payH")}</h2>
-      <p className="mt-2 max-w-[56ch] text-sm text-chalk/70">{t("plans", "payP")}</p>
+    <div className="mt-10 border border-hairline p-6">
+      <h2 className="font-display text-xl text-charcoal-deep">{t("plans", "payH")}</h2>
+      <p className="mt-2 max-w-[56ch] text-sm text-charcoal/70">{t("plans", "payP")}</p>
 
       {error && (
-        <p role="alert" className="mt-4 border border-garnet-light/60 bg-charcoal-deep p-4 text-sm text-chalk/85">{error}</p>
+        <p role="alert" className={`mt-4 ${alertLight} p-4 text-sm`}>{error}</p>
       )}
       {sent && !error && (
-        <p className="mt-4 border border-gold px-4 py-3 text-sm text-gold-pale">{t("plans", "paySent")}</p>
+        <p className="mt-4 border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("plans", "paySent")}</p>
       )}
 
       <form ref={formRef} action={submit} className="mt-6 grid gap-4 sm:grid-cols-2">
-        <label className="text-sm text-chalk/70">
-          {t("plans", "payAmount")} <span className="text-gold-pale">*</span>
+        <label className="text-sm text-charcoal/70">
+          {t("plans", "payAmount")} <span className="text-gold-dark">*</span>
           <input
             name="amount" type="number" inputMode="numeric" min={1} step={1}
             defaultValue={suggestedAmount > 0 ? suggestedAmount : undefined}
             required className={field}
           />
-          <span className="mt-1 block text-[11px] text-chalk/55">
+          <span className="mt-1 block text-[11px] text-charcoal/70">
             {formatMoney(suggestedAmount, currency)}
           </span>
         </label>
 
-        <label className="text-sm text-chalk/70">
-          {t("plans", "payDate")} <span className="text-gold-pale">*</span>
+        <label className="text-sm text-charcoal/70">
+          {t("plans", "payDate")} <span className="text-gold-dark">*</span>
           <input name="payment_date" type="date" max={today} defaultValue={today} required className={field} />
         </label>
 
-        <label className="text-sm text-chalk/70">
-          {t("plans", "payMethod")} <span className="text-gold-pale">*</span>
+        <label className="text-sm text-charcoal/70">
+          {t("plans", "payMethod")} <span className="text-gold-dark">*</span>
           {/* The same methods shown above, so what the customer picks here is
               one of the accounts they were actually given. */}
           <select name="payment_method" required defaultValue="" className={field}>
@@ -104,15 +105,15 @@ export function LayawayPayForm({ accountId, lang, currency, suggestedAmount, met
           </select>
         </label>
 
-        <label className="text-sm text-chalk/70">
+        <label className="text-sm text-charcoal/70">
           {t("plans", "payReference")}
           <input name="reference_number" autoComplete="off" className={field} />
         </label>
 
-        <label className="text-sm text-chalk/70 sm:col-span-2">
-          {t("plans", "payProof")} <span className="text-gold-pale">*</span>
+        <label className="text-sm text-charcoal/70 sm:col-span-2">
+          {t("plans", "payProof")} <span className="text-gold-dark">*</span>
           <input name="proof" type="file" accept="image/*,application/pdf" required className={field} />
-          <span className="mt-1 block text-[11px] text-chalk/55">{t("plans", "payProofNote")}</span>
+          <span className="mt-1 block text-[11px] text-charcoal/70">{t("plans", "payProofNote")}</span>
         </label>
 
         <div className="sm:col-span-2">

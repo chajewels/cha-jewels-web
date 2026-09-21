@@ -18,30 +18,30 @@ export function ServiceRequestRow({ request, lang, showTarget = false }: { reque
   const status = serviceStatusLabel(request.status, lang);
   const target = showTarget ? serviceRequestHref(request) : null;
   return (
-    <li className="bg-charcoal p-5 text-sm">
+    <li className="bg-white p-5 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-chalk">
+          <p className="text-charcoal-deep">
             {serviceKindLabel(request.kind, lang)}
-            {request.item_title ? <span className="text-chalk/70"> · {request.item_title}</span> : null}
+            {request.item_title ? <span className="text-charcoal/70"> · {request.item_title}</span> : null}
           </p>
-          <p className="mt-1 text-xs text-chalk/55">
+          <p className="mt-1 text-xs text-charcoal/70">
             {t("service", "requestedOn", { date: request.created_at.slice(0, 10) })}
             {request.ring_size ? ` · ${t("service", "ringSize")} ${request.ring_size}` : ""}
           </p>
         </div>
         <StatusBadge tone={status.tone} text={status.text} />
       </div>
-      {request.details && <p className="mt-3 whitespace-pre-line text-chalk/75">{request.details}</p>}
+      {request.details && <p className="mt-3 whitespace-pre-line text-charcoal">{request.details}</p>}
       {/* Staff's answer, set apart so it reads as a reply rather than as more of the request. */}
       {request.customer_note && (
-        <div className="mt-3 border-l-2 border-gold pl-3">
-          <p className="text-xs uppercase tracking-[0.14em] text-chalk/55">{t("service", "noteFrom")}</p>
-          <p className="mt-1 whitespace-pre-line text-chalk">{request.customer_note}</p>
+        <div className="mt-3 border-l-2 border-gold-dark pl-3">
+          <p className="text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("service", "noteFrom")}</p>
+          <p className="mt-1 whitespace-pre-line text-charcoal-deep">{request.customer_note}</p>
         </div>
       )}
       {target && (
-        <Link href={target.href} className="mt-3 inline-block text-gold-pale underline underline-offset-4">
+        <Link href={target.href} className="mt-3 inline-block text-gold-dark underline underline-offset-4">
           {t("service", target.kind === "order" ? "viewOrder" : "viewPlan")}
         </Link>
       )}

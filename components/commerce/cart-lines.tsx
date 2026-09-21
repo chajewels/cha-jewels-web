@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/utils";
 import { tr, type Lang } from "@/lib/i18n";
 import type { CartItem } from "@/lib/cart";
 import { cartItemName } from "@/lib/catalog-i18n";
+import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 
 export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
   const t = tr(lang);
@@ -21,28 +22,28 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
         const oneOfAKind = item.stock_qty <= 1;
         const name = cartItemName(item, lang);
         return (
-          <li key={item.variant_id} className="flex flex-wrap items-start gap-4 bg-charcoal p-5">
-            <div className="relative h-24 w-20 shrink-0 overflow-hidden border border-rule bg-charcoal-deep">
+          <li key={item.variant_id} className="flex flex-wrap items-start gap-4 bg-white p-5">
+            <div className="relative h-24 w-20 shrink-0 overflow-hidden border border-hairline bg-chalk">
               {item.image && (
                 <Image src={item.image.url} alt={item.image.alt ?? name} fill sizes="80px" className="object-cover" />
               )}
             </div>
             <div className="min-w-[180px] flex-1">
-              <Link href={`/products/${item.slug}`} className="font-display text-lg text-gold-pale hover:underline">
+              <Link href={`/products/${item.slug}`} className="font-display text-lg text-gold-dark hover:underline">
                 {name}
               </Link>
-              <p className="mt-1 text-xs text-chalk/55">
+              <p className="mt-1 text-xs text-charcoal/70">
                 SKU {item.sku}
                 {item.size ? ` · ${item.size}` : ""}
                 {item.stone ? ` · ${item.stone}` : ""}
               </p>
               {oneOfAKind ? (
-                <p className="mt-2 text-xs text-chalk/55">{t("cart", "oneOfAKind")}</p>
+                <p className="mt-2 text-xs text-charcoal/70">{t("cart", "oneOfAKind")}</p>
               ) : (
-                <label className="mt-2 flex items-center gap-2 text-xs text-chalk/70">
+                <label className="mt-2 flex items-center gap-2 text-xs text-charcoal/70">
                   {t("cart", "qty")}
                   <select
-                    className="border border-rule bg-charcoal-deep px-2 py-1 text-chalk"
+                    className={`px-2 py-1 ${inputLight}`}
                     value={item.qty}
                     disabled={pending}
                     onChange={(e) => start(() => setCartQty(item.variant_id, Number(e.target.value)).then(() => undefined))}
@@ -55,12 +56,12 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
               )}
             </div>
             <div className="text-right">
-              <p className="font-display text-xl text-gold-pale">{formatMoney(item.line_total_jpy)}</p>
+              <p className="font-display text-xl text-gold-dark">{formatMoney(item.line_total_jpy)}</p>
               <button
                 type="button"
                 disabled={pending}
                 onClick={() => start(() => removeFromCart(item.variant_id).then(() => undefined))}
-                className="mt-2 text-xs text-chalk/55 underline underline-offset-4 hover:text-chalk"
+                className="mt-2 text-xs text-charcoal/70 underline underline-offset-4 hover:text-charcoal-deep"
               >
                 {t("cart", "remove")}
               </button>

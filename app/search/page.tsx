@@ -30,16 +30,16 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         {hasQuery && <SearchView q={q} total={total} />}
         <h1 className="text-[clamp(32px,5vw,64px)]">{hasQuery ? t("search", "title", { q }) : t("search", "placeholder")}</h1>
 
-        {!hasQuery && <p className="mt-6 max-w-[58ch] text-chalk/75">{t("search", "prompt")}</p>}
+        {!hasQuery && <p className="mt-6 max-w-[58ch] text-charcoal">{t("search", "prompt")}</p>}
 
         {hasQuery && total > 0 && (
-          <p className="mt-4 text-sm text-chalk/70">{t("search", "count", { n: String(total) })}</p>
+          <p className="mt-4 text-sm text-charcoal/70">{t("search", "count", { n: String(total) })}</p>
         )}
 
         {hasQuery && total === 0 && (
-          <div className="mt-12 border border-rule p-6">
-            <p className="text-chalk/75">{t("search", "none", { q })}</p>
-            <Link href="/collections" className="mt-4 inline-block text-gold-pale underline underline-offset-4 hover:text-gold">
+          <div className="mt-12 border border-hairline p-6">
+            <p className="text-charcoal">{t("search", "none", { q })}</p>
+            <Link href="/collections" className="mt-4 inline-block text-gold-dark underline underline-offset-4 hover:text-gold-dark">
               {t("footer", "collections")}
             </Link>
           </div>

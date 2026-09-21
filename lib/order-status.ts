@@ -70,7 +70,18 @@ export function refundLabel(status: HubOrder["refund_status"], lang: Lang): stri
 export const isClosedOrder = (order: HubOrder) =>
   order.status === "cancelled" || order.status === "expired" || order.payment_status === "cancelled";
 
+/**
+ * The badge's classes. There is ONE set: the body is light from Phase 4 Group
+ * E, and the dark pair it used to carry (gold-pale on a gold border) was
+ * 1.37:1 on chalk with nowhere left to render, so it went with the dark button
+ * variants. A badge inside a `.band-dark` would need its own set again; none
+ * exists today.
+ *
+ * `good` is gold-dark (4.59:1 on chalk), `pending` borrows the charcoal border
+ * rather than a hue, and `dead` is the grey hairline with charcoal/70 text
+ * (4.74:1) — the quietest of the three.
+ */
 export const toneClass = (tone: Tone) =>
-  tone === "good" ? "border-gold text-gold-pale"
-  : tone === "dead" ? "border-rule text-chalk/55"
-  : "border-gold/60 text-chalk/80";
+  tone === "good" ? "border-gold-dark text-gold-dark"
+  : tone === "dead" ? "border-hairline text-charcoal/70"
+  : "border-charcoal/60 text-charcoal-deep";

@@ -12,5 +12,5 @@ import type { Condition } from "@/lib/types";
 export function ConditionBadge({ condition, lang }: { condition: Condition | undefined; lang: Lang }) {
   if (condition !== "Preloved") return null;
   const label = dict.product.preloved[lang];
-  return <span className="inline-block border border-gold px-3 py-1 text-xs tracking-wide text-gold-pale">{label}</span>;
+  return <span className="inline-block border border-gold-dark px-3 py-1 text-xs tracking-wide text-gold-dark">{label}</span>;
 }

@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 @layer base {
-  :root { --rule: rgba(201,162,39,.32); }
+  :root { --rule: #E5E5E0; }
   html { scroll-behavior: smooth; scroll-padding-top: 76px; }
-  body { @apply bg-charcoal text-chalk font-sans antialiased; }
+  body { @apply bg-chalk text-charcoal-deep font-sans antialiased; }
   h1, h2, h3 { @apply font-display font-normal leading-[1.02] tracking-[-0.01em]; }
   :lang(ja) h1, :lang(ja) h2, :lang(ja) h3 { @apply font-jp font-medium tracking-[0.01em]; }
   *:focus-visible { @apply outline outline-2 outline-gold-pale outline-offset-[3px]; }
@@ -13,6 +13,16 @@
 @layer components {
   .gilt { background: linear-gradient(100deg,#8A6B12 0%,#E8D28A 30%,#C9A227 50%,#E8D28A 70%,#8A6B12 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .wrap { @apply max-w-site mx-auto px-[clamp(18px,4vw,48px)]; }
+
+  /* `--rule` is the hairline colour, read by `.rule-grid > *` and by anything
+     else drawing the divider of the surface it sits on.
+
+     The base is light, so `:root` carries the grey hairline and `.band-dark`
+     is the single override: a dark band nested in a light page — the product
+     price block, the layaway band — puts the gold rule back for its own
+     subtree. `.surface-light` existed only to light a page ahead of this
+     flip and is gone; the body does that now. */
+  .band-dark { --rule: rgba(201,162,39,.32); }
 
   /* Homepage hero video (components/site/hero-video.tsx). The hero section is
      the positioning context (relative, isolate); the scrim sits at z-index 1
@@ -89,16 +99,21 @@
    rule written without the `:has()` would strip the chrome off every page in
    the site the moment anyone pressed Ctrl-P anywhere.
 
-   The screen theme is dark. Printing it as-is costs a page of toner and reads
-   worse than the screen did, so the whole surface is inverted to paper: white
-   behind, charcoal-deep in front, one hairline where the screen used a fill.
+   These pages are LIGHT on screen from Group D, so most of what this block
+   used to do is now already true and has been removed: the body colour rule
+   (it restated the screen) and the `[class*="bg-charcoal"]` fill override
+   (nothing on these pages carries that class any more).
+
+   What is kept is what print still needs and the screen does not. `.rule-grid`
+   draws its dividers as a box-shadow ring, which a printer renders as a grey
+   slab, so it is swapped for a real border; and every remaining border is
+   forced to the hairline so a gold one does not print as a muddy band.
    --------------------------------------------------------------------------- */
 @media print {
   @page { margin: 16mm; }
 
+  /* Only the font changes for print; the colours are the screen's already. */
   body:has(.print-invoice) {
-    background: #fff !important;
-    color: #222222 !important;
     font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
   }
 
@@ -109,22 +124,16 @@
   body:has(.print-invoice) nav,
   body:has(.print-invoice) .print-hide { display: none !important; }
 
-  /* Every chalk / gold-pale / gold-dark token at once, including the alpha
-     variants (text-chalk/55 and friends), which are too many to name. */
-  .print-invoice,
-  .print-invoice * { color: #222222 !important; }
-
   .print-invoice h1,
   .print-invoice h2,
   .print-invoice h3,
   .print-invoice .font-display { font-family: var(--font-display), Georgia, serif; }
 
-  /* Card fills become paper. `.rule-grid` draws its dividers as a box-shadow
-     ring, which prints as a grey slab, so it is swapped for a real border. */
-  .print-invoice [class*="bg-charcoal"],
+  /* `.rule-grid` draws its dividers as a box-shadow ring, which prints as a
+     grey slab, so it is swapped for a real border. The chalk image wells and
+     band fills still flatten to paper. */
   .print-invoice [class*="bg-chalk"] {
     background: #fff !important;
-    border: 1px solid #E5E5E0 !important;
   }
   .print-invoice .rule-grid { gap: 0 !important; }
   .print-invoice .rule-grid > * {

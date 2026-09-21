@@ -35,19 +35,19 @@ export default async function JoinPage() {
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap grid gap-12 md:grid-cols-2">
-        <div><h1 className="text-[clamp(36px,5.5vw,80px)]">{t("loyalty", "joinH")}</h1><p className="mt-5 max-w-[48ch] text-chalk/80">{t("loyalty", "joinP")}</p><p className="mt-4 max-w-[48ch] text-chalk/60">{t("loyalty", "lede")}</p></div>
+        <div><h1 className="text-[clamp(36px,5.5vw,80px)]">{t("loyalty", "joinH")}</h1><p className="mt-5 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><p className="mt-4 max-w-[48ch] text-charcoal/70">{t("loyalty", "lede")}</p></div>
         {!jwt ? (
           // middleware should have redirected already; if it somehow did not,
           // offer the way in rather than a button that cannot work.
-          <div className="grid gap-4 border border-gold bg-charcoal-deep p-6 text-sm">
+          <div className="grid gap-4 border border-hairline bg-white p-6 text-sm">
             <Button asChild><Link href="/login?next=/loyalty/join">{t("loyalty", "submit")}</Link></Button>
           </div>
         ) : enrolled ? (
           // Known member: no button at all. Asking someone to join a programme
           // they are already in is the mistake worth spending a /me call on.
-          <div className="border border-gold bg-charcoal-deep p-6 text-gold-pale">
+          <div className="border border-hairline bg-white p-6 text-charcoal-deep">
             {t("loyalty", "alreadyMember")}{" "}
-            <Link href="/account" className="underline hover:text-chalk">{t("nav", "account")}</Link>
+            <Link href="/account" className="underline hover:text-charcoal-deep">{t("nav", "account")}</Link>
           </div>
         ) : (
           <JoinButton lang={lang} />

@@ -44,7 +44,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[720px]">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("complete", "h1")}</h1>
-        <p className="mt-4 text-chalk/80">{t("complete", "lede")}</p>
+        <p className="mt-4 text-charcoal">{t("complete", "lede")}</p>
 
         <dl className="rule-grid mt-10 grid gap-px sm:grid-cols-3">
           <Cell k={t("complete", "reference")} v={order.web_reference ?? "—"} mono />
@@ -56,16 +56,16 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
         </dl>
 
         <div className="mt-10">
-          <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-chalk/55">
+          <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">
             {t("complete", "instructions")}
           </h2>
           <TransferDetails methods={methods} lang={lang} />
           {methods.length > 0 && (
-            <p className="mt-4 text-sm text-chalk/60">{t("complete", "keepRef")}</p>
+            <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>
           )}
         </div>
 
-        <p className="mt-8 text-sm text-chalk/60">{t("checkout", "deadlineNote")}</p>
+        <p className="mt-8 text-sm text-charcoal/70">{t("checkout", "deadlineNote")}</p>
 
         <Button asChild className="mt-8"><Link href={`/account/orders/${order.id}`}>{t("complete", "viewOrder")}</Link></Button>
       </div>
@@ -75,9 +75,9 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
 
 function Cell({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="bg-charcoal p-5">
-      <dt className="text-xs text-chalk/55">{k}</dt>
-      <dd className={`mt-1 text-gold-pale ${mono ? "font-mono text-lg" : "font-display text-xl"}`}>{v}</dd>
+    <div className="bg-white p-5">
+      <dt className="text-xs text-charcoal/70">{k}</dt>
+      <dd className={`mt-1 text-gold-dark ${mono ? "font-mono text-lg" : "font-display text-xl"}`}>{v}</dd>
     </div>
   );
 }

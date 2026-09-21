@@ -12,13 +12,20 @@ import { toneClass, type Tone } from "@/lib/order-status";
  * stays authoritative either way. It is aria-hidden because it says nothing
  * the adjacent text does not.
  *
- * `Tone` is imported rather than restated; lib/order-status.ts is the one
- * place that union is written.
+ * `Tone` and `Surface` are imported rather than restated; lib/order-status.ts
+ * is the one place those unions are written.
  */
 const dot: Record<Tone, string> = {
-  good: "bg-teal",
-  pending: "bg-gold-pale",
-  dead: "bg-chalk/40",
+  good: "bg-gold-dark",
+  /**
+   * An ORANGE FILL INSIDE A CHARCOAL-DEEP RING, and the ring is load-bearing
+   * rather than decorative: orange on chalk measures 1.81:1, under the 3.0 a
+   * non-text indicator needs, while the ring is 14.57. Drop the ring and the
+   * dot stops being perceivable — the contrast gate has a row for the ring.
+   */
+  pending: "bg-orange ring-1 ring-charcoal-deep",
+  /** Hollow: absence of fill is the third channel, after hue and the wording. */
+  dead: "border border-charcoal/70",
 };
 
 export function StatusBadge({ tone, text }: { tone: Tone; text: string }) {

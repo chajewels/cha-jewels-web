@@ -47,7 +47,7 @@ export default async function CollectionPage({
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         <h1 className="text-[clamp(40px,6vw,88px)]">{collectionName(col, lang)}</h1>
-        {collectionDescription(col, lang) && <p className="mt-4 max-w-[58ch] text-chalk/75">{collectionDescription(col, lang)}</p>}
+        {collectionDescription(col, lang) && <p className="mt-4 max-w-[58ch] text-charcoal">{collectionDescription(col, lang)}</p>}
         <nav aria-label={t("collection", "filterLabel")} className="mt-8 flex flex-wrap gap-2 text-sm">
           {FILTERS.map((f) => {
             const on = f.key === active;
@@ -56,7 +56,7 @@ export default async function CollectionPage({
                 key={f.key}
                 href={f.key === "all" ? `/collections/${col.slug}` : `/collections/${col.slug}?condition=${f.key}`}
                 aria-current={on ? "page" : undefined}
-                className={`border px-4 py-2 ${on ? "border-gold text-gold-pale" : "border-rule text-chalk/70 hover:text-gold-pale"}`}
+                className={`border px-4 py-2 ${on ? "border-gold-dark text-gold-dark" : "border-hairline text-charcoal/70 hover:text-gold-dark"}`}
               >
                 {t("collection", f.label)}
               </Link>
@@ -64,7 +64,7 @@ export default async function CollectionPage({
           })}
         </nav>
         {products.length === 0 ? (
-          <p className="mt-12 border border-rule p-6 text-chalk/75">
+          <p className="mt-12 border border-hairline p-6 text-charcoal">
             {t("collection", active === "all" ? "empty" : "emptyFiltered")}
           </p>
         ) : (

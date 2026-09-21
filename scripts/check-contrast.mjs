@@ -142,8 +142,67 @@ add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "oran
   for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `slide@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
 }
 
+// ---------------------------------------------------------------------------
+// PHASE 4 GROUP A — the light surfaces.
+//
+// Chalk (#F5F5F2) is a band; white is a card on it. Rows already covered above
+// by the light calculator and the gold text rule are NOT repeated here:
+// gold-dark on chalk and on white, charcoal on chalk and on white,
+// charcoal-deep on white, and charcoal/70 on white all have rows already.
+// ---------------------------------------------------------------------------
+
+// Text.
+add("charcoal-deep text on chalk", "charcoal-deep", "chalk", TEXT);
+add("charcoal/70 text on chalk", "charcoal", "chalk", TEXT, 0.7);
+add("garnet error text on chalk", "garnet", "chalk", TEXT);
+add("garnet error text on white", "garnet", "white", TEXT);
+
+// Non-text: the light form rule (lib/form-classes.ts).
+// Both of these clear 3.0 by under a point. Lightening either one needs a
+// re-run, not a judgement call.
+add("charcoal/60 input border on white", "charcoal", "white", NONTEXT, 0.6);
+add("gold-dark focus ring on white", "gold-dark", "white", NONTEXT);
+add("garnet/60 alert border on white", "garnet", "white", NONTEXT, 0.6);
+
+// Non-text: the light status dots (components/account/status-badge.tsx).
+//
+// THE PENDING DOT IS MEASURED BY ITS RING, NOT ITS FILL. Orange on chalk is
+// 1.81:1 — under the 3.0 a graphical object needs — so a bare orange dot is
+// not perceivable on a light surface. The charcoal-deep ring is what carries
+// it, and the must-fail set below pins the bare fill at NONTEXT so the ring
+// cannot be dropped as decoration later.
+//
+// Teal has no row here on purpose: it is ornament-only (decision 4) and never
+// carries state, so it does not cross to the light surface at all. `good` on
+// light is a gold-dark fill.
+// The gallery arrow's edge, measured against its own bg-white/85 fill — the
+// hairline it replaced was 1.12:1 there and disappeared on a pale photo.
+add("gallery arrow border charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
+add("status dot good (gold-dark) on chalk", "gold-dark", "chalk", NONTEXT);
+add("status dot pending RING (charcoal-deep) on chalk", "charcoal-deep", "chalk", NONTEXT);
+add("status dot dead hollow (charcoal/70 border) on chalk", "charcoal", "chalk", NONTEXT, 0.7);
+
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
-const mustFail = [["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT], ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT], ["orange", "chalk", 1, TEXT], ["charcoal", "white", 0.6, TEXT]];
+// The Phase 4 additions are the tokens that look like they would be fine on a
+// light surface and are not:
+//   teal on white          2.41 — ornament-only, never text, never a ring
+//   gold #C9A227 on white  2.42 — the DARK focus ring; the light one is
+//                                 gold-dark, by owner decision
+//   charcoal/60 on chalk   3.57 — passes 3.0 as a border and FAILS 4.5 as
+//                                 text, which is exactly the trap: it is
+//                                 registered at TEXT for that reason
+//   garnet-light on chalk  2.16 — the DARK error colour; on light it is garnet
+//   orange on chalk        1.81 — at NONTEXT: the bare pending dot without its
+//                                 charcoal-deep ring
+// gold-pale on chalk (1.37) was already here and stays.
+const mustFail = [
+  ["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT],
+  ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT],
+  ["orange", "chalk", 1, TEXT], ["charcoal", "white", 0.6, TEXT],
+  ["teal", "white", 1, TEXT], ["gold", "white", 1, NONTEXT],
+  ["charcoal", "chalk", 0.6, TEXT], ["garnet-light", "chalk", 1, TEXT],
+  ["orange", "chalk", 1, NONTEXT],
+];
 
 let bad = 0;
 const w = Math.max(...pairs.map((p) => p.label.length));

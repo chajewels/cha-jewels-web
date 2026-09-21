@@ -6,6 +6,7 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
 import type { HubMe } from "@/lib/types";
+import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("addresses");
 export const dynamic = "force-dynamic";
@@ -38,25 +39,25 @@ export default async function AddressesPage() {
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("account", "addressesH")}</h1>
-          <Link href="/account" className="text-sm text-chalk/60 underline underline-offset-4">{t("account", "h1")}</Link>
+          <Link href="/account" className="text-sm text-charcoal/70 underline underline-offset-4">{t("account", "h1")}</Link>
         </div>
-        <p className="mt-4 max-w-[58ch] text-chalk/75">{t("account", "addressesP")}</p>
+        <p className="mt-4 max-w-[58ch] text-charcoal">{t("account", "addressesP")}</p>
 
         {failed && (
-          <p className="mt-8 border border-garnet-light/60 bg-charcoal-deep p-5 text-sm text-chalk/85">{t("account", "unavailable")}</p>
+          <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
         )}
 
-        {me && me.addresses.length === 0 && <p className="mt-10 text-chalk/75">{t("account", "noAddresses")}</p>}
+        {me && me.addresses.length === 0 && <p className="mt-10 text-charcoal">{t("account", "noAddresses")}</p>}
 
         {me && me.addresses.length > 0 && (
           <ul className="mt-10 grid gap-4 sm:grid-cols-2">
             {me.addresses.map((a, i) => (
-              <li key={a.id ?? i} className="border border-rule p-4 text-sm text-chalk/80">
-                {a.is_default && <span className="mb-2 inline-block border border-gold px-2 py-0.5 text-[11px] text-gold-pale">{t("account", "default")}</span>}
+              <li key={a.id ?? i} className="border border-hairline p-4 text-sm text-charcoal">
+                {a.is_default && <span className="mb-2 inline-block border border-gold-dark px-2 py-0.5 text-[11px] text-gold-dark">{t("account", "default")}</span>}
                 <p>{a.recipient_name ?? me.customer.full_name}</p>
                 <p>{a.line1}{a.line2 ? `, ${a.line2}` : ""}</p>
                 <p>{[a.city, a.region, a.postal_code].filter(Boolean).join(" ")}</p>
-                <p className="text-chalk/55">{a.country}</p>
+                <p className="text-charcoal/70">{a.country}</p>
               </li>
             ))}
           </ul>
