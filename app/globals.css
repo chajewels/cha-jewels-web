@@ -14,6 +14,28 @@
   .gilt { background: linear-gradient(100deg,#8A6B12 0%,#E8D28A 30%,#C9A227 50%,#E8D28A 70%,#8A6B12 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .wrap { @apply max-w-site mx-auto px-[clamp(18px,4vw,48px)]; }
 
+  /* Surface scopes for the light pass.
+
+     `--rule` is the hairline colour, read today by `.rule-grid > *` and by
+     anything else that wants the divider of whatever surface it sits on. It
+     is declared once in `:root` (gold at 32%, the dark-band value) and
+     overridden per surface here, so a component does not need to know which
+     surface it was dropped onto in order to draw the right divider.
+
+     `.surface-light` is a light page or section: the gold hairline is
+     invisible on chalk and white, so the rule becomes the grey hairline.
+     `.band-dark` is a dark band nested inside one — a hero, a CTA strip —
+     and puts the gold rule back for its own subtree.
+
+     Neither class is applied to any markup yet; Group E does that when the
+     base theme flips and moves the light value to `:root`. Until then
+     Tailwind tree-shakes both rules and they are ABSENT from the compiled
+     CSS — that is expected, not a broken build. They start being emitted the
+     moment a component carries the class, exactly as `.wrap` and
+     `.rule-grid` do today. */
+  .surface-light { --rule: #E5E5E0; }
+  .band-dark { --rule: rgba(201,162,39,.32); }
+
   /* Homepage hero video (components/site/hero-video.tsx). The hero section is
      the positioning context (relative, isolate); the scrim sits at z-index 1
      and the content at z-10 in app/page.tsx. Full opacity — the scrim does
@@ -89,9 +111,11 @@
    rule written without the `:has()` would strip the chrome off every page in
    the site the moment anyone pressed Ctrl-P anywhere.
 
-   The screen theme is dark. Printing it as-is costs a page of toner and reads
-   worse than the screen did, so the whole surface is inverted to paper: white
-   behind, charcoal-deep in front, one hairline where the screen used a fill.
+   The base theme is light from Group E; these rules normalise the remaining
+   dark bands for print — white behind, charcoal-deep in front, one hairline
+   where the screen used a fill. Every rule is kept for now even where the
+   light base already satisfies it: Group D trims the ones that have gone
+   dead, once there is a rendered page to check them against.
    --------------------------------------------------------------------------- */
 @media print {
   @page { margin: 16mm; }

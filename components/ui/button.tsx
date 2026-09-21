@@ -11,6 +11,14 @@ const buttonVariants = cva(
       // a secondary action does not compete with the gold-pale headings it
       // sits beside. Both tokens are already in the contrast table.
       outline: "border-gold bg-transparent text-chalk hover:border-gold-pale hover:text-gold-pale",
+      // The light-surface counterparts of the two above. They are separate
+      // variants rather than a change to `ghost` / `outline` because both
+      // surfaces exist at once until Group E: gold-pale is the readable gold
+      // on charcoal and fails on white, gold-dark is the reverse. Group E
+      // decides whether the dark pair survives as `-dark` variants or goes.
+      // Nothing renders these yet.
+      "ghost-light": "border-gold-dark text-gold-dark hover:border-charcoal-deep hover:text-charcoal-deep",
+      "outline-light": "border-charcoal/60 text-charcoal-deep hover:border-charcoal-deep",
     } }, defaultVariants: { variant: "solid" } }
 );
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> { asChild?: boolean }

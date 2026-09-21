@@ -1,5 +1,7 @@
 # Phase 3 — Palette: velvet green → charcoal. Dark theme, plan
 
+> **Decisions 1 and 5 are superseded by `phase4-light-plan.md`** (2026-09-21): the inner pages go light, so the site no longer stays dark and chalk is no longer confined to the homepage collections band. Everything else below stands.
+
 Supersedes the light-theme plan of the same name (2026-09-19, earlier). Read from `origin/develop` = `7a9529d`. Investigation only: no branch, no edits, no commits.
 
 ## Owner decisions 2026-09-19 (settled — applied here, not re-opened)
