@@ -26,6 +26,9 @@ export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[]
     quote_ja: t("home", `testiPh${n}Quote`),
     item: t("home", `testiPh${n}Item`),
     rating: 5,
+    // Only the first placeholder carries a date, so the omitted case is on
+    // screen too rather than only in theory.
+    testimonial_date: n === 1 ? "2026-09-01" : null,
   }));
   const shown = real.length > 0 ? real : placeholders;
 
@@ -61,6 +64,7 @@ export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[]
                 <div className="flex flex-col gap-0.5 border-t border-hairline pt-4">
                   <p className="text-sm font-semibold text-charcoal">{x.customer_name}</p>
                   {x.location && <p className="text-xs text-charcoal/70">{x.location}</p>}
+                  <TestimonialDate date={x.testimonial_date} lang={lang} />
                 </div>
               </article>
             );
@@ -68,5 +72,26 @@ export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[]
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * When the testimonial was given, as month and year — never the day.
+ *
+ * A quote is not an event, and a precise date invites the reader to work out
+ * how old it is. `<time dateTime>` still carries the machine-readable value,
+ * so the shortened display costs nothing a parser needs.
+ *
+ * `null` renders nothing: a missing date is not "unknown", it is simply a
+ * line this card does not have.
+ */
+function TestimonialDate({ date, lang }: { date: string | null; lang: Lang }) {
+  if (!date) return null;
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return null; // a malformed date is no date
+  return (
+    <time dateTime={date} className="text-xs text-charcoal/70">
+      {d.toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long" })}
+    </time>
   );
 }

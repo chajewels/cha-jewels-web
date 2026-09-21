@@ -20,7 +20,9 @@ export type Origin = "JAPAN" | "BRAND" | "OTHER" | "UNKNOWN";
 /** `metals`: every stamp on the piece in the Hub's order (PT900/K18); `karat` is the one-release bridge (= metals[0]) kept until the Hub drops it. */
 export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; category_slugs?: string[]; product_variants: ProductVariant[] };
 /** A published customer testimonial from the Hub (GET /testimonials). Quotes are per language; either may be null. */
-export type Testimonial = { id: string; customer_name: string; location: string | null; quote_en: string | null; quote_ja: string | null; item: string | null; rating: number | null };
+export type Testimonial = { id: string; customer_name: string; location: string | null; quote_en: string | null; quote_ja: string | null; item: string | null; rating: number | null;
+  /** ISO date the testimonial was given. Rendered as month + year; null hides the line. */
+  testimonial_date: string | null };
 /**
  * A merchandising category — the top level the homepage hero and /categories
  * are built from. Categories are the Hub's, like everything else in the
