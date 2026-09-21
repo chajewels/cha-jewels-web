@@ -272,7 +272,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
                 <h2 className="font-display text-xl text-charcoal-deep">{t("plans", "payElsewhereH")}</h2>
                 <p className="mt-2 max-w-[60ch] text-sm text-charcoal/70">{t("plans", "payElsewhereP")}</p>
                 {detail.portal_url && (
-                  <Button asChild className="mt-5">
+                  <Button asChild className="print-hide mt-5">
                     <a href={detail.portal_url} target="_blank" rel="noopener noreferrer">{t("plans", "portalCta")}</a>
                   </Button>
                 )}
