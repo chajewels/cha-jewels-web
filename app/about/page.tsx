@@ -1,11 +1,13 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { getLang } from "@/lib/i18n-server";
+import { tr } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { aboutCopy } from "@/lib/content/about";
 export const generateMetadata = () => pageMeta("about");
 export default async function About() {
   const lang = await getLang();
+  const t = tr(lang);
   const c = aboutCopy[lang];
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
@@ -37,6 +39,13 @@ export default async function About() {
             <p>{c.closing[0]}</p>
             <p className="font-display text-2xl text-charcoal-deep">{c.closing[1]}</p>
           </div>
+          {/* One line to the memberships, rather than listing them here: they
+              are facts about the business, and /affiliations is where the
+              business's facts live next to the address and the registration
+              number. */}
+          <p className="mt-8 max-w-[58ch] text-[17px] text-charcoal-deep">
+            <Link href="/affiliations" className="text-gold-dark underline underline-offset-4">{t("contact", "affiliationsFromAbout")}</Link>
+          </p>
           <div className="mt-8"><Button asChild><Link href="/collections">{c.cta}</Link></Button></div>
         </div>
         {/* Replaces the former facts grid in the same column, same panel treatment. */}

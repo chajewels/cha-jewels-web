@@ -125,6 +125,8 @@ export const dict = {
     newsDesc: { ja: "新着情報とお知らせ。", en: "New arrivals and announcements." },
     contact: { ja: "お問い合わせ", en: "Contact" },
     contactDesc: { ja: "ご連絡先と所在地。", en: "How to reach us, and where we are." },
+    affiliations: { ja: "所属団体", en: "Affiliations" },
+    affiliationsDesc: { ja: "東京の経済団体への所属。", en: "Our memberships in Tokyo's business community." },
   },
   /**
    * /why-cha-jewels. The ENGLISH IS THE OWNER'S, VERBATIM — do not reword it,
@@ -177,6 +179,16 @@ export const dict = {
     map: { ja: "Googleマップで見る", en: "View on Google Maps" },
     follow: { ja: "フォローする", en: "Follow us" },
     legalNote: { ja: "特定商取引法に基づく表記に、事業者情報の全文を掲載しています。", en: "Full business details are on our legal notice." },
+    // /affiliations. Memberships are FACTS about the business, so the two
+    // entries state what they are and nothing more — no logos, no member
+    // numbers, no claim that a membership certifies anything about a piece.
+    affiliationsH: { ja: "所属団体", en: "Affiliations" },
+    affiliationsLede: { ja: "Cha Jewelsが所属している東京の経済団体です。", en: "The business organisations Cha Jewels belongs to in Tokyo." },
+    afCciName: { ja: "東京商工会議所", en: "Tokyo Chamber of Commerce and Industry" },
+    afCciDetail: { ja: "2026年3月入会 · 葛飾支部・商業部会", en: "Member since March 2026 · Katsushika Branch, Commerce Division" },
+    afRotaryName: { ja: "東京葛飾中央ロータリークラブ", en: "Tokyo Katsushika Central Rotary Club" },
+    afRotaryDetail: { ja: "2026年9月入会", en: "Member since September 2026" },
+    affiliationsFromAbout: { ja: "所属する経済団体については、所属団体のページをご覧ください。", en: "The business organisations we belong to are listed on our affiliations page." },
   },
   hero: {
     h1a: { ja: "身につける、時を超える美しさ。", en: "Timeless beauty to wear." }, h1b: { ja: "受け継がれる、確かな価値。", en: "Lasting value to pass on." },
@@ -788,6 +800,7 @@ export const dict = {
     about: { title: { ja: "私たちについて", en: "About Us" } },
     why: { title: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" }, description: { ja: "心を込めて選んだジュエリー、明確な情報、お一人おひとりへの丁寧な対応。東京を拠点とするCha Jewelsが選ばれる理由。", en: "Thoughtfully chosen jewelry, clear details and personal care — why customers choose Tokyo-based Cha Jewels." } },
     contact: { title: { ja: "お問い合わせ", en: "Contact" }, description: { ja: "Cha Jewelsの所在地とご連絡先。メールおよびSNSからお問い合わせいただけます。", en: "How to reach Cha Jewels: our registered address, email and social channels." } },
+    affiliations: { title: { ja: "所属団体", en: "Affiliations" }, description: { ja: "Cha Jewelsが所属している東京の経済団体。東京商工会議所および東京葛飾中央ロータリークラブ。", en: "The business organisations Cha Jewels belongs to in Tokyo: the Tokyo Chamber of Commerce and Industry and the Tokyo Katsushika Central Rotary Club." } },
     faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
     collections: { title: { ja: "コレクション", en: "Collections" } },
     terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、分割予約、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },
