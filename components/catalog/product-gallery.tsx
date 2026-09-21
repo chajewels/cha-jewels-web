@@ -75,11 +75,11 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
         {n > 1 && (
           <>
             <button type="button" onClick={() => go(-1)} aria-label={t("product", "prevPhoto")}
-              className="absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-hairline bg-white/85 text-charcoal-deep backdrop-blur hover:border-gold-dark">
+              className="absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-charcoal/60 bg-white/85 text-charcoal-deep backdrop-blur hover:border-gold-dark">
               <span aria-hidden="true">&lsaquo;</span>
             </button>
             <button type="button" onClick={() => go(1)} aria-label={t("product", "nextPhoto")}
-              className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-hairline bg-white/85 text-charcoal-deep backdrop-blur hover:border-gold-dark">
+              className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-charcoal/60 bg-white/85 text-charcoal-deep backdrop-blur hover:border-gold-dark">
               <span aria-hidden="true">&rsaquo;</span>
             </button>
             <p aria-live="polite" className="absolute bottom-2 right-2 rounded-sm border border-hairline bg-white/85 px-2 py-0.5 text-xs text-charcoal backdrop-blur">

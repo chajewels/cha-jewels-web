@@ -175,6 +175,9 @@ add("garnet/60 alert border on white", "garnet", "white", NONTEXT, 0.6);
 // Teal has no row here on purpose: it is ornament-only (decision 4) and never
 // carries state, so it does not cross to the light surface at all. `good` on
 // light is a gold-dark fill.
+// The gallery arrow's edge, measured against its own bg-white/85 fill — the
+// hairline it replaced was 1.12:1 there and disappeared on a pale photo.
+add("gallery arrow border charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
 add("status dot good (gold-dark) on chalk", "gold-dark", "chalk", NONTEXT);
 add("status dot pending RING (charcoal-deep) on chalk", "charcoal-deep", "chalk", NONTEXT);
 add("status dot dead hollow (charcoal/70 border) on chalk", "charcoal", "chalk", NONTEXT, 0.7);

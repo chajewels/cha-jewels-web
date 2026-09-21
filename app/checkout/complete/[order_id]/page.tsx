@@ -28,10 +28,10 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
 
   if (!detail) {
     return (
-      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+      <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("orders", "notFound")}</h1>
-          <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
+          <Button asChild variant="ghost" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
         </div>
       </section>
     );
@@ -41,7 +41,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
   const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
 
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[720px]">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("complete", "h1")}</h1>
         <p className="mt-4 text-charcoal">{t("complete", "lede")}</p>

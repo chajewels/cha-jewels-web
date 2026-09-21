@@ -18,7 +18,7 @@ export default async function CartPage() {
   const subtotal = cartSubtotal(items);
 
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[900px]">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("cart", "h1")}</h1>
 
@@ -29,7 +29,7 @@ export default async function CartPage() {
         {items.length === 0 ? (
           <div className="mt-10">
             <p className="text-charcoal">{t("cart", "empty")}</p>
-            <Button asChild variant="ghost-light" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
+            <Button asChild variant="ghost" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
           </div>
         ) : (
           <>

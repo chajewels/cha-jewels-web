@@ -1,5 +1,7 @@
 # Phase 4 — Inner pages go light. Plan and record
 
+**STATUS: COMPLETE.** Groups A–E shipped as PRs #90, #92, #93, #94 and the Group E PR.
+
 Supersedes **decisions 1 and 5** of `phase3-palette-plan.md`: the site no longer
 stays dark, and chalk is no longer confined to the homepage collections band.
 Everything else in that document — decisions 2, 3, 4, 6, 7, the token set, the
@@ -204,7 +206,9 @@ The print block's opening comment previously said the screen theme is dark.
 From Group E it is not, so it now reads: the base theme is light from Group E,
 and these rules normalise the *remaining* dark bands for print. **Every print
 rule is kept for now**, including the ones the light base already satisfies;
-**Group D trims the dead ones**, once there is a rendered page to check against.
+**Group D trimmed the dead ones** (PR #94): the body colour rule, the
+`.print-invoice *` colour override and the `[class*="bg-charcoal"]` fill
+override all went, once there was a rendered page to check against.
 
 **`components/ui/button.tsx`** — two variants:
 
@@ -323,14 +327,56 @@ is per-selector.
 
 ---
 
-## Groups B–E
+## Groups B–E — records
 
-**Defined in §3 of the investigation above** (groups B, C, D and E, their files,
-the rename table, the anchors and the gates). What Group A already commits them
-to:
+### B — catalog (PR #92)
 
-- **B, C** consume `ghost-light` / `outline-light` and `lib/form-classes.ts`.
-  Group C is named in `form-classes.ts` as the group that moves the forms.
-- **D** trims the print rules that the light base makes dead.
-- **E** flips the base theme, moves `--rule`'s light value to `:root`, and
-  decides whether the dark `ghost` / `outline` variants survive as `-dark` or go.
+13 files: the five catalog routes, `product-card`, `product-gallery`, `price-block`, the three badges, `add-to-cart`, `reserve-with-layaway`. `search-view` is in the group and returns `null`, so it has no diff.
+
+**Measured, not assumed:** `bg-white/85` on the gallery overlays, over the worst case a photo can be (pure black), composites to rgb(217,217,217) — arrow glyph 11.27:1, counter 8.95:1.
+
+**Found:** the `border-hairline` on those overlays was 1.12:1 against its own fill and disappeared on a pale photo. Carried to E, which made it `border-charcoal/60` (3.69:1).
+
+**PriceBlock stays dark** — the one dark element on the product page, and why `gold-pale` survives there at all.
+
+### C — content (PR #93)
+
+15 changed paths of the group's 16 files, plus `layaway-band` and `app/page.tsx` (band extraction only). `app/legal/{privacy,returns,terms}` needed no edit: their root and all 11 tokens live in `legal-articles`.
+
+**Defect found and fixed:** six classes read `-gold-dark-dark`, from a sed whose replacement contained its own pattern (`hover:text-gold-pale` → `hover:text-gold-dark`, then a second pass over `hover:text-gold` rewrote it again). Tailwind generates no such class, so the blog title hover, both join-button consent links and the legal list markers, underline and hover were rendering nothing.
+
+**Verified:** the layaway band's markup is byte-identical across the extraction (5,216 bytes), so the homepage did not move.
+
+### D — commerce and account (PR #94)
+
+22 files. Twelve route roots, the `border-gold` state/divider split, `lib/form-classes` across eight forms, the StatusBadge surfaces, and the print trim. The JPY/PHP toggle took an orange active state (8.06:1) rather than a gold border (2.21:1 on chalk).
+
+**Two failures axe caught that the gates could not:** a fifth `<StatusBadge/>` call site in `service-request-row` rendering dark tones at 1.07:1 and 1.49:1, and `sign-out-button` — outside the stated file list — left at 1.37:1 by lighting the page beneath it.
+
+**Two verification failures caught in the run itself:** `/cart` and `/checkout` were rendering their EMPTY states, so `checkout-flow` was never exercised until a cart cookie was seeded; and the two `[id]` detail routes were still redirecting, so those runs were measuring `/login`. A green run against the wrong markup proves nothing.
+
+### E — the body flip
+
+`body` is `bg-chalk text-charcoal-deep`; `--rule` carries the grey hairline on `:root`; `.band-dark` is the only override left. **38 root classes removed from 28 files** — 37 in `app/` and one in `legal-articles`.
+
+The button variants collapsed to one pair. **`hero-slides` does use the variant**, contrary to the plan's expectation: it overrode border, text and hover:border but not `hover:text`, and `cn` is tailwind-merge, so the collapse would have turned its label dark on a dark hero on hover. It now overrides all four.
+
+The sweep found two more dark class sets that no longer rendered but were still the DEFAULT — `toneClass`/`StatusBadge` and the calculator's `tone` — so the next call site to omit the prop would have got a dark component on a light page. Both collapsed the way the buttons did.
+
+**Accepted exceptions** — every remaining anchor hit outside `components/home`, `components/site` and `app/page.tsx`:
+
+| where | what | why |
+|---|---|---|
+| `price-block.tsx` | the product price block | a `.band-dark` band by design |
+| `layaway-band.tsx` | the layaway band | dark band; `.band-dark` is applied by `/layaway`, not inside the shared component |
+| `hero-slides.tsx` | hero CTA | explicit dark-band classes at the call site |
+| `layaway-calculator.tsx` | the SELECTED term pill, `bg-charcoal-deep text-white` | a deliberate dark fill (15.91:1) on the white card, like the orange toggle |
+
+**axe, all 31 routes × 375/1440 = 62 runs: 4,681 passing nodes, 5 violations — all on `/`, and all five are IDENTICAL on `develop`** (same selectors, same 4.34/4.34/4.19 ratios). They are `gold-dark` on the homepage's own tinted surfaces, in `components/home` / `components/site`, which the phase excluded. Phase 4 introduces none.
+
+**Homepage delta: −45 bytes, fully accounted for.** `+17` is the hero CTA's new `hover:text-chalk`; `−62` is `\"tone\":\"light\"` leaving the serialized client payload (present once on develop, zero times now). The layaway band's own markup is byte-identical at 5,197 bytes. Nothing moved on screen.
+
+## Still open, outside this phase
+
+- The homepage's five `gold-dark`-on-tint failures above, plus the two the report flagged at the start (`text-charcoal/50` on the arrival placeholders, 2.78, and the search placeholder).
+- The orange status dot still prints as an orange fill. Kept by decision.

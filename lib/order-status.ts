@@ -71,30 +71,17 @@ export const isClosedOrder = (order: HubOrder) =>
   order.status === "cancelled" || order.status === "expired" || order.payment_status === "cancelled";
 
 /**
- * Which surface a badge is being drawn on.
+ * The badge's classes. There is ONE set: the body is light from Phase 4 Group
+ * E, and the dark pair it used to carry (gold-pale on a gold border) was
+ * 1.37:1 on chalk with nowhere left to render, so it went with the dark button
+ * variants. A badge inside a `.band-dark` would need its own set again; none
+ * exists today.
  *
- * Both exist at once until Group E flips the base theme, and the tokens do not
- * survive the crossing: gold-pale is the readable gold on charcoal (8.43 : 1)
- * and is 1.37 : 1 on chalk, while gold-dark is the reverse. A badge therefore
- * cannot be surface-agnostic; it has to be told.
+ * `good` is gold-dark (4.59:1 on chalk), `pending` borrows the charcoal border
+ * rather than a hue, and `dead` is the grey hairline with charcoal/70 text
+ * (4.74:1) — the quietest of the three.
  */
-export type Surface = "dark" | "light";
-
-/**
- * `dark` is the default and its output is unchanged, so every existing call
- * site keeps rendering exactly what it rendered before.
- *
- * On light, `good` is gold-dark (4.59 : 1 on chalk), `pending` borrows the
- * charcoal border rather than a hue, and `dead` is the grey hairline with
- * charcoal/70 text (4.74 : 1) — the quietest of the three, as on dark.
- */
-export const toneClass = (tone: Tone, surface: Surface = "dark") => {
-  if (surface === "light") {
-    return tone === "good" ? "border-gold-dark text-gold-dark"
-      : tone === "dead" ? "border-hairline text-charcoal/70"
-      : "border-charcoal/60 text-charcoal-deep";
-  }
-  return tone === "good" ? "border-gold text-gold-pale"
-    : tone === "dead" ? "border-rule text-chalk/55"
-    : "border-gold/60 text-chalk/80";
-};
+export const toneClass = (tone: Tone) =>
+  tone === "good" ? "border-gold-dark text-gold-dark"
+  : tone === "dead" ? "border-hairline text-charcoal/70"
+  : "border-charcoal/60 text-charcoal-deep";

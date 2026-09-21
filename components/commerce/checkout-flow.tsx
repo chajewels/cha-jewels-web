@@ -616,7 +616,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               </p>
             )}
             <div className="flex gap-3">
-              <Button variant="ghost-light" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
+              <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={recheckAgreement} disabled={pending}>
                 {pending ? t("checkout", "agreementChecking") : t("checkout", "agreementDone")}
               </Button>
@@ -671,7 +671,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               </div>
             )}
             <div className="flex gap-3">
-              <Button variant="ghost-light" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
+              <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={() => setStep(3)} disabled={pending || quote.requires_manual_quote}>{t("checkout", "continue")}</Button>
             </div>
           </div>
@@ -735,7 +735,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               </div>
             )}
             <div className="flex gap-3">
-              <Button variant="ghost-light" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
+              <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={placeOrder} disabled={pending || !quote.transfer_available}>
                 {mode === "layaway"
                   ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))

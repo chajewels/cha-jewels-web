@@ -30,7 +30,7 @@ export function ServiceRequestRow({ request, lang, showTarget = false }: { reque
             {request.ring_size ? ` · ${t("service", "ringSize")} ${request.ring_size}` : ""}
           </p>
         </div>
-        <StatusBadge tone={status.tone} text={status.text} surface="light" />
+        <StatusBadge tone={status.tone} text={status.text} />
       </div>
       {request.details && <p className="mt-3 whitespace-pre-line text-charcoal">{request.details}</p>}
       {/* Staff's answer, set apart so it reads as a reply rather than as more of the request. */}

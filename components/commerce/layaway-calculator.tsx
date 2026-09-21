@@ -7,29 +7,15 @@ import { dict, type Lang } from "@/lib/i18n";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
 
-export type CalculatorTone = "dark" | "light";
-
 /**
- * Surface classes by tone. "dark" is the calculator exactly as it has always
- * rendered (/layaway, product pages) — the strings below are the original
- * literals, unchanged, so that output is byte-identical. "light" is the white
- * card the homepage's charcoal band calls for. Colour lives here and nowhere
- * else in the component. charcoal/60 on white is 3.69:1 and fails, so the
- * light card's secondary text is /70 (4.95:1) — see scripts/check-contrast.mjs.
+ * The card's surface classes, in one place. There is only the light card now:
+ * the dark tone was the pre-flip calculator, and after Phase 4 Group E every
+ * caller passes a light surface — the product page directly, and the layaway
+ * band as the white card that reads against its charcoal. charcoal/60 on
+ * white is 3.69:1 and fails as text, so secondary text is /70 (4.95:1) — see
+ * scripts/check-contrast.mjs.
  */
 const TONES = {
-  dark: {
-    form: "grid gap-4 border border-rule bg-charcoal-deep p-5 text-sm",
-    label: "grid gap-1.5 text-chalk/75",
-    field: "min-h-11 rounded-sm border border-rule bg-charcoal px-3 text-chalk",
-    toggle: "flex w-fit overflow-hidden rounded-sm border border-rule text-xs",
-    toggleOn: "bg-orange text-charcoal-deep",
-    toggleOff: "text-chalk/75",
-    cellKey: "text-xs text-chalk/55",
-    cellValue: "mt-1 block font-display text-2xl font-normal text-gold-pale",
-    cellMonthly: "mt-1 block font-display text-2xl font-normal text-gold-pale",
-    note: "text-xs text-chalk/55",
-  },
   light: {
     form: "grid gap-4 rounded-sm border border-hairline bg-white p-5 text-sm text-charcoal shadow-sm",
     label: "grid gap-1.5 text-charcoal/70",
@@ -52,17 +38,16 @@ const TONES = {
  * furniture (the homepage passes them); with neither, and tone "dark", the
  * markup is exactly what it was before the prop existed.
  */
-export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, className, tone = "dark", header, cta }: {
+export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, className, header, cta }: {
   lang: Lang;
   initialPrice?: number;
   phpRate: number;
   className?: string;
-  tone?: CalculatorTone;
   header?: { title: string; sub: string; chip: string };
   cta?: { label: string; href: string };
 }) {
   const c = dict.calc;
-  const s = TONES[tone];
+  const s = TONES.light;
   const [display, setDisplay] = useState<Currency>("JPY");
   const [price, setPrice] = useState(initialPrice);
   const [term, setTerm] = useState(6);
@@ -105,12 +90,11 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
           </span>
         </div>
       )}
-      <div className={tone === "light" ? "grid gap-3" : "grid grid-cols-2 gap-3"}>
+      <div className="grid gap-3">
         <label className={s.label}>{c.price[lang]} (¥)
           <input type="number" inputMode="numeric" min={1000} step={1000} value={price} onChange={(e) => setPrice(Number(e.target.value) || 0)} className={field} />
         </label>
-        {tone === "light" ? (
-          <fieldset className={s.label}>
+                  <fieldset className={s.label}>
             <legend className="mb-1.5">{c.term[lang]}</legend>
             <div className="flex flex-wrap gap-2">
               {terms.map((tm) => (
@@ -127,18 +111,6 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
               ))}
             </div>
           </fieldset>
-        ) : (
-          <label className={s.label}>{c.term[lang]}
-            <select value={term} onChange={(e) => setTerm(Number(e.target.value))} className={field}>
-              {terms.map((tm) => (
-                <option key={tm.months} value={tm.months} disabled={termOff(tm)}>
-                  {tm.months}
-                  {termSuffix(tm)}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
       </div>
       <div role="group" aria-label={c.currency[lang]} className={s.toggle}>
         {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? s.toggleOn : s.toggleOff}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}

@@ -105,7 +105,7 @@ export function LegalArticles({
   articles: LegalArticle[];
 }) {
   return (
-    <section lang={lang} className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[72ch]">
         <h1 className="text-[clamp(32px,4.6vw,64px)]">{title[lang]}</h1>
         {/* The document carries its own last-updated line, so the shared draft

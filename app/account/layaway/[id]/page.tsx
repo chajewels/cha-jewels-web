@@ -63,10 +63,10 @@ export default async function LayawayPlanPage({ params, searchParams }: {
     : [null, [] as ServiceRequest[]];
   if (!detail) {
     return (
-      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+      <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("plans", "notFound")}</h1>
-          <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/layaway">{t("plans", "back")}</Link></Button>
+          <Button asChild variant="ghost" className="mt-6"><Link href="/account/layaway">{t("plans", "back")}</Link></Button>
         </div>
       </section>
     );
@@ -109,7 +109,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
   const placed = (plan.order_date ?? plan.created_at).slice(0, 10);
 
   return (
-    <section className="print-invoice surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
         <PrintHeader lang={lang} invoiceNumber={plan.invoice_number} reference={plan.web_reference} date={placed} />
 
@@ -118,7 +118,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-charcoal-deep">{plan.web_reference ?? plan.invoice_number ?? "—"}</h1>
           <div className="flex flex-wrap items-center gap-3">
-            <StatusBadge tone={status.tone} text={status.text} surface="light" />
+            <StatusBadge tone={status.tone} text={status.text} />
             <PrintButton label={t("account", "print")} />
           </div>
         </div>
@@ -272,7 +272,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
                 <h2 className="font-display text-xl text-charcoal-deep">{t("plans", "payElsewhereH")}</h2>
                 <p className="mt-2 max-w-[60ch] text-sm text-charcoal/70">{t("plans", "payElsewhereP")}</p>
                 {detail.portal_url && (
-                  <Button asChild className="mt-5">
+                  <Button asChild className="print-hide mt-5">
                     <a href={detail.portal_url} target="_blank" rel="noopener noreferrer">{t("plans", "portalCta")}</a>
                   </Button>
                 )}

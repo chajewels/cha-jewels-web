@@ -33,7 +33,7 @@ export default async function JoinPage() {
   }
 
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap grid gap-12 md:grid-cols-2">
         <div><h1 className="text-[clamp(36px,5.5vw,80px)]">{t("loyalty", "joinH")}</h1><p className="mt-5 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><p className="mt-4 max-w-[48ch] text-charcoal/70">{t("loyalty", "lede")}</p></div>
         {!jwt ? (

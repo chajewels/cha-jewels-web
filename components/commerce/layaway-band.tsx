@@ -48,7 +48,7 @@ export function LayawayBand({ lang, phpRate }: { lang: Lang; phpRate: number }) 
         <LayawayCalculator
           lang={lang}
           phpRate={phpRate}
-          tone="light"
+         
           header={{ title: t("home", "layCalcH"), sub: t("home", "layCalcP"), chip: t("home", "layCalcChip") }}
           cta={{ label: t("home", "layCta"), href: "/layaway" }}
           className="lg:col-span-6"

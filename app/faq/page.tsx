@@ -20,13 +20,13 @@ export default async function FaqPage() {
   return (
     <>
       <JsonLd type="faq" items={jsonLdItems} />
-      <section className="surface-light bg-chalk text-charcoal-deep border-b border-hairline py-[clamp(48px,7vw,96px)]">
+      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("faq", "h1")}</h1>
           <p className="mt-5 max-w-[58ch] text-charcoal">{t("faq", "lede")}</p>
         </div>
       </section>
-      <section lang={lang} className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+      <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[72ch]">
           {/* Category heading in the legal pages' display face, over their gold
               hairline, so /faq reads as part of the same set. The accordion is

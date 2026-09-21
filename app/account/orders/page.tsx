@@ -33,7 +33,7 @@ export default async function OrdersPage() {
   }
 
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("orders", "h1")}</h1>
@@ -64,7 +64,7 @@ export default async function OrdersPage() {
                     </p>
                   </div>
                   <div className="flex flex-col items-start gap-1">
-                    <StatusBadge tone={status.tone} text={status.text} surface="light" />
+                    <StatusBadge tone={status.tone} text={status.text} />
                     {closedNote && <p className="max-w-[36ch] text-xs text-charcoal/70">{closedNote}</p>}
                   </div>
                   {/* #26's rule, which the plan rows already followed and these

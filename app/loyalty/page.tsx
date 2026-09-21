@@ -16,14 +16,14 @@ export default async function LoyaltyPage() {
   const tiers: HubTier[] = await hub.loyaltyTiers().catch(() => fallbackTiers.map((x) => ({ slug: x.slug, name: x.name, threshold_jpy: x.thresholdJpy, requalify_spend: x.requalifyJpy, multiplier: x.multiplier, hold_minutes: x.holdMinutes, benefits_ja: x.perks.ja, benefits_en: x.perks.en })));
   return (
     <>
-      <section className="surface-light bg-chalk text-charcoal-deep border-b border-hairline py-[clamp(48px,7vw,96px)]">
+      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("loyalty", "h1")}</h1>
           <p className="mt-5 max-w-[58ch] text-charcoal">{t("loyalty", "lede")}</p>
           <div className="mt-8"><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></div>
         </div>
       </section>
-      <section className="surface-light bg-chalk text-charcoal-deep border-b border-hairline py-[clamp(48px,7vw,96px)]">
+      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h2 className="max-w-[20ch] text-[clamp(30px,4vw,56px)]">{t("loyalty", "levelsH")}</h2>
           <p className="mt-4 max-w-[58ch] text-charcoal">{t("loyalty", "levelsP")}</p>
@@ -54,7 +54,7 @@ export default async function LoyaltyPage() {
           <p className="mt-8 max-w-[58ch] text-sm text-charcoal/70">{t("loyalty", "holdNote")}</p>
         </div>
       </section>
-      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)] text-center">
+      <section className="py-[clamp(48px,7vw,96px)] text-center">
         <div className="wrap"><h2 className="mx-auto text-[clamp(30px,4vw,56px)]">{t("loyalty", "joinH")}</h2><p className="mx-auto mt-4 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><div className="mt-8"><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></div></div>
       </section>
     </>
