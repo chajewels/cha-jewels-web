@@ -39,7 +39,7 @@ export function AddToCart({ variantId, slug, sku, stockQty, lang, className }: {
           {added ? t("cart", "added") : t("cart", "add")}
         </Button>
         {added && (
-          <Link href="/cart" className="text-sm text-gold-pale underline underline-offset-4">
+          <Link href="/cart" className="text-sm text-gold-dark underline underline-offset-4">
             {t("cart", "viewCart")}
           </Link>
         )}

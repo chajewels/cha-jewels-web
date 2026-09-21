@@ -40,20 +40,20 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const banner = cat.hero_media ?? CATEGORY_PLACEHOLDER[cat.slug] ?? null;
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         {banner && (
-          <div className="relative mb-10 aspect-[21/9] overflow-hidden rounded-sm border border-rule">
+          <div className="relative mb-10 aspect-[21/9] overflow-hidden rounded-sm border border-hairline">
             {/* Hub media may come from hosts next/image is not configured for. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
           </div>
         )}
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange">{t("categories", "eyebrow")}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("categories", "eyebrow")}</p>
         <h1 className="mt-3 text-[clamp(40px,6vw,88px)]">{name}</h1>
-        {description && <p className="mt-4 max-w-[58ch] text-chalk/75">{description}</p>}
+        {description && <p className="mt-4 max-w-[58ch] text-charcoal">{description}</p>}
         {cat.products.length === 0 ? (
-          <p className="mt-12 border border-rule p-6 text-chalk/75">{t("collection", "empty")}</p>
+          <p className="mt-12 border border-hairline p-6 text-charcoal">{t("collection", "empty")}</p>
         ) : (
           <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">
             {cat.products.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}
