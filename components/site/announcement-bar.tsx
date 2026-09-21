@@ -37,7 +37,7 @@ import { tr, type Lang } from "@/lib/i18n";
 const STORAGE_KEY = "cj-announcement-dismissed";
 
 /** Runs during HTML parse. Kept to one expression so it cannot outgrow review. */
-const PREPAINT = `try{if(sessionStorage.getItem(${JSON.stringify(STORAGE_KEY)})===document.currentScript.dataset.t)document.documentElement.setAttribute("data-cj-announcement","dismissed")}catch(e){}`;
+const PREPAINT = `try{if(sessionStorage.getItem(${JSON.stringify(STORAGE_KEY)})===document.currentScript.dataset.t)document.body.setAttribute("data-cj-announcement","dismissed")}catch(e){}`;
 
 export function AnnouncementBar({ text, href, lang }: { text: string; href: string | null; lang: Lang }) {
   const t = tr(lang);
@@ -58,19 +58,20 @@ export function AnnouncementBar({ text, href, lang }: { text: string; href: stri
     } catch {
       // The bar still closes for this page view; it just comes back on the next.
     }
-    // Clear the pre-paint attribute's counterpart so a later announcement in the
-    // same session is not hidden by a stale flag on <html>.
-    document.documentElement.setAttribute("data-cj-announcement", "dismissed");
+    // Keep the pre-paint flag in step, so a client-side navigation that
+    // re-renders this layout does not paint the bar again.
+    document.body.setAttribute("data-cj-announcement", "dismissed");
   }
 
   if (dismissed) return null;
 
   return (
     <>
-      <div
-        data-cj-announcement-bar
-        className="bg-charcoal-deep text-chalk"
-      >
+      {/* An <aside>, not a <div>: it is a complementary landmark, so the
+          sentence is inside one. Content outside every landmark is what axe's
+          `region` rule reports, and a strip bolted above the header is exactly
+          the thing that ends up orphaned there. */}
+      <aside data-cj-announcement-bar className="bg-charcoal-deep text-chalk">
         <div className="wrap flex items-center justify-center gap-3 py-2.5">
           <p className="text-center text-[13px] leading-snug">
             {href ? (
@@ -94,7 +95,7 @@ export function AnnouncementBar({ text, href, lang }: { text: string; href: stri
             <X size={16} strokeWidth={1.8} aria-hidden="true" />
           </button>
         </div>
-      </div>
+      </aside>
       <script data-t={text} dangerouslySetInnerHTML={{ __html: PREPAINT }} />
     </>
   );

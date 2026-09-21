@@ -55,7 +55,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang) : null;
   return (
     <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
-      <body>
+      {/* The announcement bar's pre-paint script sets a data attribute here
+          before React hydrates (components/site/announcement-bar.tsx), which is
+          a mismatch React reports. Suppressed on <body> precisely because it
+          carries nothing else: the same line on <html> would also silence a
+          wrong `lang`. It covers this element's own attributes, not the tree. */}
+      <body suppressHydrationWarning>
         {/* FIRST IN THE TREE, DELIBERATELY. React runs effects in tree order,
             and this component's effect is what creates `window.va` — the queue
             that `track()` needs to exist before it will record anything. Mounted
