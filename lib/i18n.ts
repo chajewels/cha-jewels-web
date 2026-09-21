@@ -744,7 +744,7 @@ export const dict = {
     errFailed: { ja: "送信できませんでした。もう一度お試しください。", en: "We could not send that. Please try again." },
   },
   about: { h1: { ja: "私たちについて", en: "About Us" } },
-  blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" } },
+  blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" }, empty: { ja: "この分類の記事はまだありません。", en: "Nothing here yet." } },
   notFound: { h1: { ja: "そのお品物はここにはありません。", en: "That piece is not here." }, p: { ja: "すでに売れたか、リンクが古い可能性があります。", en: "It may have sold, or the link is old." }, back: { ja: "コレクションに戻る", en: "Back to the collections" } },
   /** Header account menu (signed in) and the drawer's account section. */
   /** Service requests — raised from an order or plan, answered by staff in the Hub. */
