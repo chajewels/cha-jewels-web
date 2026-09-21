@@ -52,18 +52,18 @@ export default async function AccountLayawayPage() {
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("plans", "h1")}</h1>
-          <Link href="/account" className="text-sm text-chalk/60 underline underline-offset-4">{t("account", "h1")}</Link>
+          <Link href="/account" className="text-sm text-charcoal/70 underline underline-offset-4">{t("account", "h1")}</Link>
         </div>
 
-        <p className="mt-6 max-w-[70ch] text-sm text-chalk/65">{t("plans", "readOnlyNote")}</p>
+        <p className="mt-6 max-w-[70ch] text-sm text-charcoal/70">{t("plans", "readOnlyNote")}</p>
 
         {failed && (
-          <p className="mt-8 border border-garnet-light/60 bg-charcoal-deep p-5 text-sm text-chalk/85">{t("account", "unavailable")}</p>
+          <p className="mt-8 border border-garnet/60 bg-charcoal-deep p-5 text-sm text-charcoal-deep">{t("account", "unavailable")}</p>
         )}
 
         {!failed && plans.length === 0 && (
           <>
-            <p className="mt-10 text-chalk/75">{t("plans", "empty")}</p>
+            <p className="mt-10 text-charcoal">{t("plans", "empty")}</p>
             <Link href="/layaway" className="mt-6 inline-block text-gold-pale underline underline-offset-4">{t("account", "layawayLearn")}</Link>
           </>
         )}
@@ -81,16 +81,16 @@ export default async function AccountLayawayPage() {
                 <li key={plan.id} className="flex flex-wrap items-center justify-between gap-4 bg-charcoal p-5">
                   <div>
                     <p className="font-mono text-gold-pale">{plan.web_reference ?? plan.invoice_number ?? "—"}</p>
-                    <p className="mt-1 text-xs text-chalk/55">
+                    <p className="mt-1 text-xs text-charcoal/70">
                       {t("plans", "term")} {t("plans", "months", { n: String(plan.payment_plan_months) })}
                     </p>
                   </div>
                   <StatusBadge tone={status.tone} text={status.text} />
                   <div className="text-right">
-                    <p className={`font-display text-xl ${figure.emphasise ? "text-gold-pale" : "text-chalk/55"}`}>
+                    <p className={`font-display text-xl ${figure.emphasise ? "text-gold-pale" : "text-charcoal/70"}`}>
                       {money(figure.amount)}
                     </p>
-                    <p className="text-xs text-chalk/55">
+                    <p className="text-xs text-charcoal/70">
                       {figure.label}
                       {figure.withPlanTotal && <> · {t("plans", "total")} {money(Number(plan.total_amount))}</>}
                     </p>

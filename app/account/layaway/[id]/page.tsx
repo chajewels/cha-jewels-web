@@ -66,7 +66,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("plans", "notFound")}</h1>
-          <Button asChild variant="ghost" className="mt-6"><Link href="/account/layaway">{t("plans", "back")}</Link></Button>
+          <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/layaway">{t("plans", "back")}</Link></Button>
         </div>
       </section>
     );
@@ -113,7 +113,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
       <div className="wrap max-w-[820px]">
         <PrintHeader lang={lang} invoiceNumber={plan.invoice_number} reference={plan.web_reference} date={placed} />
 
-        <Link href="/account/layaway" className="print-hide text-sm text-chalk/55 underline underline-offset-4">{t("plans", "back")}</Link>
+        <Link href="/account/layaway" className="print-hide text-sm text-charcoal/70 underline underline-offset-4">{t("plans", "back")}</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-gold-pale">{plan.web_reference ?? plan.invoice_number ?? "—"}</h1>
@@ -126,7 +126,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         {/* What this state means, in one sentence. Closed plans get no
             encouragement here — see planNote. */}
         {note && (
-          <p className="mt-6 border border-rule bg-charcoal-deep p-4 text-sm text-chalk/80">{note}</p>
+          <p className="mt-6 border border-hairline bg-charcoal-deep p-4 text-sm text-charcoal">{note}</p>
         )}
 
         {/* Straight off the checkout, before any deposit exists. */}
@@ -134,7 +134,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
           <p className="mt-6 border border-gold px-4 py-3 text-sm text-gold-pale">{t("complete", "layawayLede")}</p>
         )}
 
-        <dl className="mt-10 grid gap-4 border border-rule p-5 sm:grid-cols-3">
+        <dl className="mt-10 grid gap-4 border border-hairline p-5 sm:grid-cols-3">
           <Figure k={t("plans", "total")} v={money(Number(plan.total_amount))} />
           <Figure k={t("plans", "paid")} v={money(Number(plan.total_paid))} />
           {/* Hidden on a closed plan that left nothing unpaid: the two cells
@@ -155,11 +155,11 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         </dl>
 
         {awaitingDeposit && (
-          <p className="mt-6 text-sm text-chalk/70">{t("plans", "awaitingDeposit")}</p>
+          <p className="mt-6 text-sm text-charcoal/70">{t("plans", "awaitingDeposit")}</p>
         )}
 
         {items.length === 0 && (
-          <p className="mt-10 text-sm text-chalk/70">{t("plans", "arrangedWithUs")}</p>
+          <p className="mt-10 text-sm text-charcoal/70">{t("plans", "arrangedWithUs")}</p>
         )}
 
         {items.length > 0 && (
@@ -167,8 +167,8 @@ export default async function LayawayPlanPage({ params, searchParams }: {
             {items.map((line) => (
               <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-charcoal p-5">
                 <div>
-                  <p className="text-chalk">{orderLineTitle(line, lang)}</p>
-                  <p className="mt-1 text-xs text-chalk/55">
+                  <p className="text-charcoal-deep">{orderLineTitle(line, lang)}</p>
+                  <p className="mt-1 text-xs text-charcoal/70">
                     {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
                   </p>
                 </div>
@@ -191,10 +191,10 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         <ul className="rule-grid mt-4 grid gap-px">
           {schedule.map((row) => (
             <li key={row.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-charcoal p-4 text-sm">
-              <span className="text-chalk/75">
+              <span className="text-charcoal">
                 {t("plans", "installment", { n: String(row.installment_number) })} · {fmtDate(row.due_date)}
               </span>
-              <span className="text-xs text-chalk/55">{rowStatusLabel(row, lang)}</span>
+              <span className="text-xs text-charcoal/70">{rowStatusLabel(row, lang)}</span>
               {/*
                 WHAT THE FIGURE MEANS depends on whether the row still owes.
                 A row with something left shows what is left; a settled or
@@ -203,7 +203,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
                 against every paid row. No web plan had paid rows yet, so it
                 never showed; a Hub plan is mostly paid rows.
               */}
-              <span className={`font-display text-lg ${owes(row) ? "text-gold-pale" : "text-chalk/55"}`}>
+              <span className={`font-display text-lg ${owes(row) ? "text-gold-pale" : "text-charcoal/70"}`}>
                 {money(Number(owes(row) ? row.actual_remaining : row.total_due_amount))}
               </span>
             </li>
@@ -213,7 +213,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         {pendingSubs.length > 0 && (
           <div className="mt-10 border border-gold/60 p-5">
             <h2 className="font-display text-lg text-gold-pale">{t("plans", "pending")}</h2>
-            <ul className="mt-3 space-y-1 text-sm text-chalk/70">
+            <ul className="mt-3 space-y-1 text-sm text-charcoal/70">
               {pendingSubs.map((sub) => (
                 <li key={sub.id}>
                   {t("plans", "pendingNote", {
@@ -232,7 +232,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
             <ul className="rule-grid mt-4 grid gap-px">
               {payments.map((p) => (
                 <li key={p.id} className="flex items-baseline justify-between gap-4 bg-charcoal p-4 text-sm">
-                  <span className="text-chalk/70">{fmtDate(p.date_paid)}{p.payment_method ? ` · ${p.payment_method}` : ""}</span>
+                  <span className="text-charcoal/70">{fmtDate(p.date_paid)}{p.payment_method ? ` · ${p.payment_method}` : ""}</span>
                   <span className="font-display text-lg text-gold-pale">{money(Number(p.amount_paid))}</span>
                 </li>
               ))}
@@ -245,9 +245,9 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         {live && (
           <>
             <div className="mt-12">
-              <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-chalk/55">{t("complete", "instructions")}</h2>
+              <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h2>
               <TransferDetails methods={methods} lang={lang} />
-              {methods.length > 0 && <p className="mt-4 text-sm text-chalk/60">{t("complete", "keepRef")}</p>}
+              {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
             </div>
 
             {payHere ? (
@@ -268,15 +268,15 @@ export default async function LayawayPlanPage({ params, searchParams }: {
                  linked account, their token for a legacy one, and the portal
                  home when no valid token is left, which is why the fallback
                  line below is not optional. */
-              <div className="mt-10 border border-rule p-6">
+              <div className="mt-10 border border-hairline p-6">
                 <h2 className="font-display text-xl text-gold-pale">{t("plans", "payElsewhereH")}</h2>
-                <p className="mt-2 max-w-[60ch] text-sm text-chalk/70">{t("plans", "payElsewhereP")}</p>
+                <p className="mt-2 max-w-[60ch] text-sm text-charcoal/70">{t("plans", "payElsewhereP")}</p>
                 {detail.portal_url && (
                   <Button asChild className="mt-5">
                     <a href={detail.portal_url} target="_blank" rel="noopener noreferrer">{t("plans", "portalCta")}</a>
                   </Button>
                 )}
-                <p className="mt-4 text-xs text-chalk/55">{t("plans", "portalFallback")}</p>
+                <p className="mt-4 text-xs text-charcoal/70">{t("plans", "portalFallback")}</p>
               </div>
             )}
           </>
@@ -289,8 +289,8 @@ export default async function LayawayPlanPage({ params, searchParams }: {
 function Figure({ k, v, dim }: { k: string; v: string; dim?: boolean }) {
   return (
     <div>
-      <dt className="text-xs text-chalk/55">{k}</dt>
-      <dd className={`mt-1 font-display text-2xl ${dim ? "text-chalk/55" : "text-gold-pale"}`}>{v}</dd>
+      <dt className="text-xs text-charcoal/70">{k}</dt>
+      <dd className={`mt-1 font-display text-2xl ${dim ? "text-charcoal/70" : "text-gold-pale"}`}>{v}</dd>
     </div>
   );
 }
@@ -298,8 +298,8 @@ function Figure({ k, v, dim }: { k: string; v: string; dim?: boolean }) {
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-chalk/55">{k}</dt>
-      <dd className="text-chalk">{v}</dd>
+      <dt className="text-charcoal/70">{k}</dt>
+      <dd className="text-charcoal-deep">{v}</dd>
     </div>
   );
 }

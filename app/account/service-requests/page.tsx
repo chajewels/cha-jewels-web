@@ -40,16 +40,16 @@ export default async function ServiceRequestsPage() {
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("service", "h1")}</h1>
-          <Link href="/account" className="text-sm text-chalk/60 underline underline-offset-4">{t("account", "h1")}</Link>
+          <Link href="/account" className="text-sm text-charcoal/70 underline underline-offset-4">{t("account", "h1")}</Link>
         </div>
-        <p className="mt-4 max-w-[62ch] text-chalk/75">{t("service", "lede")}</p>
+        <p className="mt-4 max-w-[62ch] text-charcoal">{t("service", "lede")}</p>
 
         {failed && (
-          <p className="mt-8 border border-garnet-light/60 bg-charcoal-deep p-5 text-sm text-chalk/85">{t("account", "unavailable")}</p>
+          <p className="mt-8 border border-garnet/60 bg-charcoal-deep p-5 text-sm text-charcoal-deep">{t("account", "unavailable")}</p>
         )}
 
         {!failed && requests.length === 0 && (
-          <p className="mt-10 text-chalk/75">
+          <p className="mt-10 text-charcoal">
             {t("service", "empty")}{" "}
             <Link href="/account/orders" className="text-gold-pale underline underline-offset-4">{t("orders", "h1")}</Link>
             {" · "}

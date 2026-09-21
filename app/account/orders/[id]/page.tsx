@@ -39,7 +39,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("orders", "notFound")}</h1>
-          <Button asChild variant="ghost" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
+          <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
         </div>
       </section>
     );
@@ -62,7 +62,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       <div className="wrap max-w-[820px]">
         <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
-        <Link href="/account/orders" className="print-hide text-sm text-chalk/55 underline underline-offset-4">{t("orders", "back")}</Link>
+        <Link href="/account/orders" className="print-hide text-sm text-charcoal/70 underline underline-offset-4">{t("orders", "back")}</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-gold-pale">{order.web_reference ?? order.invoice_number ?? "—"}</h1>
@@ -77,7 +77,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             address. Rendering an empty list left the page showing a total and
             nothing else. */}
         {items.length === 0 && (
-          <p className="mt-10 text-sm text-chalk/70">{t("orders", "arrangedWithUs")}</p>
+          <p className="mt-10 text-sm text-charcoal/70">{t("orders", "arrangedWithUs")}</p>
         )}
 
         {items.length > 0 && (
@@ -85,8 +85,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           {items.map((line) => (
             <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-charcoal p-5">
               <div>
-                <p className="text-chalk">{orderLineTitle(line, lang)}</p>
-                <p className="mt-1 text-xs text-chalk/55">
+                <p className="text-charcoal-deep">{orderLineTitle(line, lang)}</p>
+                <p className="mt-1 text-xs text-charcoal/70">
                   {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
                 </p>
               </div>
@@ -114,36 +114,36 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         />
 
         {address && (
-          <div className="mt-10 border border-rule p-5 text-sm text-chalk/80">
+          <div className="mt-10 border border-hairline p-5 text-sm text-charcoal">
             <h2 className="font-display text-lg text-gold-pale">{t("orders", "shipTo")}</h2>
             <p className="mt-2">{address.recipient_name ?? "—"}</p>
             <p>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p>
             <p>{[address.city, address.region, address.postal_code].filter(Boolean).join(" ")}</p>
-            <p className="text-chalk/55">{address.country}</p>
+            <p className="text-charcoal/70">{address.country}</p>
           </div>
         )}
 
         {/* The Hub decided the cancellation and the refund; this block only reports them. */}
         {cancelled && (
-          <div className="mt-10 border border-rule p-6 text-sm text-chalk/80">
+          <div className="mt-10 border border-hairline p-6 text-sm text-charcoal">
             <h2 className="font-display text-xl text-gold-pale">{t("orders", "statusCancelled")}</h2>
             <dl className="mt-4 space-y-2">
               {order.cancelled_at && <Row k={t("orders", "cancelledOn")} v={fmtDate(order.cancelled_at)} />}
               {order.cancellation_reason && <Row k={t("orders", "cancelReason")} v={order.cancellation_reason} />}
               {refund && <Row k={t("orders", "refund")} v={refund} />}
             </dl>
-            {order.refund_note && <p className="mt-4 whitespace-pre-line text-chalk/55">{order.refund_note}</p>}
+            {order.refund_note && <p className="mt-4 whitespace-pre-line text-charcoal/70">{order.refund_note}</p>}
           </div>
         )}
 
         {order.status === "expired" && (
-          <p className="mt-10 text-sm text-chalk/55">
+          <p className="mt-10 text-sm text-charcoal/70">
             {t("orders", "statusExpired")}{order.expired_at ? ` · ${fmtDate(order.expired_at)}` : ""}
           </p>
         )}
 
         {order.tracking_number && (
-          <p className="mt-6 text-sm text-chalk/75">
+          <p className="mt-6 text-sm text-charcoal">
             {t("orders", "tracking")} <span className="font-mono text-gold-pale">{order.tracking_number}</span>
           </p>
         )}
@@ -151,17 +151,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         {/* Instructions only while the money is still outstanding. */}
         {order.payment_status === "pending_transfer" && (
           <div className="mt-10">
-            <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-chalk/55">
+            <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">
               {t("complete", "instructions")}
             </h2>
             {due && (
-              <p className="mb-3 text-sm text-chalk/70">
+              <p className="mb-3 text-sm text-charcoal/70">
                 {t("complete", "deadline")} {due.toLocaleString(lang === "ja" ? "ja-JP" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}
               </p>
             )}
             <TransferDetails methods={methods} lang={lang} />
             {methods.length > 0 && (
-              <p className="mt-4 text-sm text-chalk/60">{t("complete", "keepRef")}</p>
+              <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>
             )}
           </div>
         )}
@@ -173,8 +173,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-chalk/55">{k}</dt>
-      <dd className="text-chalk">{v}</dd>
+      <dt className="text-charcoal/70">{k}</dt>
+      <dd className="text-charcoal-deep">{v}</dd>
     </div>
   );
 }

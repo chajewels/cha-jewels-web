@@ -43,9 +43,9 @@ export function TransferDetails({
       {/* Fixed under every list, both regions: a sender name that does not match
           the order is the single most common reason a transfer cannot be
           matched. Said once at the end, not repeated on every card. */}
-      <p className="border border-rule bg-charcoal px-5 py-4 text-sm text-chalk/75">
+      <p className="border border-hairline bg-charcoal px-5 py-4 text-sm text-charcoal">
         <span lang="ja">{t.nameNotice.ja}</span>
-        <span className="text-chalk/55"> / {t.nameNotice.en}</span>
+        <span className="text-charcoal/70"> / {t.nameNotice.en}</span>
       </p>
     </div>
   );
@@ -85,16 +85,16 @@ function MethodCard({ method, lang }: { method: TransferMethod; lang: Lang }) {
         </dl>
       )}
 
-      {note && <p className="mt-4 whitespace-pre-line text-sm text-chalk/70">{note}</p>}
+      {note && <p className="mt-4 whitespace-pre-line text-sm text-charcoal/70">{note}</p>}
     </section>
   );
 }
 
 function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="flex flex-wrap justify-between gap-x-6 gap-y-0.5 border-b border-rule pb-1.5">
-      <dt className="text-chalk/55">{k}</dt>
-      <dd className={`text-right text-chalk ${mono ? "font-mono" : ""}`}>{v}</dd>
+    <div className="flex flex-wrap justify-between gap-x-6 gap-y-0.5 border-b border-hairline pb-1.5">
+      <dt className="text-charcoal/70">{k}</dt>
+      <dd className={`text-right text-charcoal-deep ${mono ? "font-mono" : ""}`}>{v}</dd>
     </div>
   );
 }

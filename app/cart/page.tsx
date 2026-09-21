@@ -28,18 +28,18 @@ export default async function CartPage() {
 
         {items.length === 0 ? (
           <div className="mt-10">
-            <p className="text-chalk/75">{t("cart", "empty")}</p>
-            <Button asChild variant="ghost" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
+            <p className="text-charcoal">{t("cart", "empty")}</p>
+            <Button asChild variant="ghost-light" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
           </div>
         ) : (
           <>
             <div className="mt-10"><CartLines items={items} lang={lang} /></div>
             <div className="mt-8 border-t border-gold pt-6">
               <div className="flex items-baseline justify-between">
-                <span className="text-chalk/70">{t("cart", "subtotal")}</span>
+                <span className="text-charcoal/70">{t("cart", "subtotal")}</span>
                 <span className="font-display text-3xl text-gold-pale">{formatMoney(subtotal)}</span>
               </div>
-              <p className="mt-2 text-sm text-chalk/55">{t("cart", "shippingNote")}</p>
+              <p className="mt-2 text-sm text-charcoal/70">{t("cart", "shippingNote")}</p>
               <Button asChild className="mt-6 w-full sm:w-auto"><Link href="/checkout">{t("cart", "checkout")}</Link></Button>
             </div>
           </>
