@@ -126,6 +126,35 @@ export const dict = {
     contact: { ja: "お問い合わせ", en: "Contact" },
     contactDesc: { ja: "ご連絡先と所在地。", en: "How to reach us, and where we are." },
   },
+  /**
+   * /why-cha-jewels. The ENGLISH IS THE OWNER'S, VERBATIM — do not reword it,
+   * tighten it, or "fix" its punctuation. The JAPANESE IS MY DRAFT and needs a
+   * native read before merge; it is written in the same 敬体 register as the
+   * about page and borrows the site's settled renderings (プレラブド, 分割予約).
+   *
+   * s4 is the layaway section and renders only where layaway is offered
+   * (English only, owner decision 2026-09-15) — lib/layaway-availability is the
+   * one rule. The Japanese is kept here anyway so the day layaway opens in JA
+   * the copy is not the thing blocking it.
+   */
+  why: {
+    h1: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels Is the Right Choice for You!" },
+    sub: { ja: "心を込めて選んだジュエリー。明確な情報。お一人おひとりへの丁寧な対応。", en: "Thoughtfully chosen jewelry. Clear details. Personal care." },
+    intro: { ja: "ジュエリーは、お客様の物語の一部になります。Cha Jewelsでは、お客様らしさを映し、人生の節目を彩り、長く大切に思っていただける一点をお選びいただけるようお手伝いします。", en: "Jewelry becomes part of your story. At Cha Jewels, we help you choose pieces that reflect your style, celebrate your milestones, and feel meaningful for years to come." },
+    s1h: { ja: "日本を拠点とした、お一人おひとりとのつながり", en: "A Personal Connection, Rooted in Japan" },
+    s1p: { ja: "2021年からお客様にご愛顧いただき、2024年に法人化しました。東京を拠点とするCha Jewelsは、お客様お一人おひとりとの関係を大切にしています。", en: "Serving our community since 2021 and incorporated in 2024, Tokyo-based Cha Jewels brings a personal approach to every customer relationship." },
+    s2h: { ja: "お探しの一点に出会う、より多くの選択肢", en: "More Ways to Find Your Perfect Piece" },
+    s2p: { ja: "新品のファインジュエリーに加え、厳選したプレラブドの時計、ブランドジュエリー、デザイナーアクセサリー、ノーブランドジュエリーをご用意しています。", en: "Discover new fine jewelry alongside carefully selected preloved watches, branded jewelry, designer accessories, and unbranded jewelry." },
+    s3h: { ja: "納得してお選びいただくための情報", en: "Details That Help You Choose Confidently" },
+    s3p: { ja: "素材、寸法、状態、ご用意できる書類について明確にお伝えし、見た目だけではわからない一点一点の違いをご理解いただけるようにしています。", en: "We make relevant materials, measurements, condition, and available documentation clear, helping you understand each piece beyond its appearance." },
+    s4h: { ja: "お求めやすくするための柔軟なお支払い方法", en: "Flexible Ways to Make It Yours" },
+    s4p: { ja: "無金利の分割予約をご利用いただけます。適用される条件は、お申し込み前にご説明します。", en: "Our interest-free layaway options help you plan your purchase, with applicable terms explained before you commit." },
+    s5h: { ja: "ご購入後も続くサポート", en: "Support Beyond Your Purchase" },
+    s5p: { ja: "商品の比較から、お手入れの方法まで。ご質問にお答えし、ご利用いただけるサービスをご案内します。", en: "From comparing pieces to understanding their care, we're here to answer your questions and guide you through available services." },
+    close: { ja: "お客様の物語の一部となる一点を、ぜひ見つけてください。", en: "Find a piece that becomes part of your story." },
+    cta: { ja: "コレクションを見る", en: "Explore Our Collections" },
+    imageAlt: { ja: "クリーム色の布の上に並べたCha Jewelsのゴールドネックレス、リング、パールピアス", en: "A Cha Jewels gold necklace, ring and pearl earrings arranged on cream fabric" },
+  },
   hero: {
     h1a: { ja: "身につける、時を超える美しさ。", en: "Timeless beauty to wear." }, h1b: { ja: "受け継がれる、確かな価値。", en: "Lasting value to pass on." },
     // Keep layaway out of the Japanese hero: it is English-only (owner
@@ -734,6 +763,8 @@ export const dict = {
     cart: { title: { ja: "カート", en: "Cart" } },
     login: { title: { ja: "サインイン", en: "Sign in" } },
     about: { title: { ja: "私たちについて", en: "About Us" } },
+    why: { title: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" }, description: { ja: "心を込めて選んだジュエリー、明確な情報、お一人おひとりへの丁寧な対応。東京を拠点とするCha Jewelsが選ばれる理由。", en: "Thoughtfully chosen jewelry, clear details and personal care — why customers choose Tokyo-based Cha Jewels." } },
+    contact: { title: { ja: "お問い合わせ", en: "Contact" }, description: { ja: "Cha Jewelsの所在地とご連絡先。メールおよびSNSからお問い合わせいただけます。", en: "How to reach Cha Jewels: our registered address, email and social channels." } },
     faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
     collections: { title: { ja: "コレクション", en: "Collections" } },
     terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、分割予約、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },

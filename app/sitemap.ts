@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/gold-guide`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/about`, changeFrequency: "yearly", priority: 0.5 },
+    { url: `${base}/why-cha-jewels`, changeFrequency: "yearly", priority: 0.6 },
     { url: `${base}/legal/privacy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/legal/terms`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/legal/returns`, changeFrequency: "yearly", priority: 0.3 },
