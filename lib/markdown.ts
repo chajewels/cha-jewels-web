@@ -117,12 +117,18 @@ function block(lines: string[]): string {
 /** Markdown → HTML. Empty in, empty out; never throws. */
 export function renderMarkdown(source: string): string {
   const escaped = escapeHtml(source.replace(/\u0000/g, "").replace(/\r\n?/g, "\n"));
-  return escaped
+  const html = escaped
     .split(/\n{2,}/)
     .map((chunk) => chunk.split("\n").map((l) => l.trimEnd()).filter((l) => l.trim() !== ""))
     .filter((lines) => lines.length > 0)
     .map(block)
     .join("");
+  // ADJACENT LISTS OF THE SAME KIND ARE ONE LIST. An author who puts a blank
+  // line between bullets means one list — CommonMark reads it that way too —
+  // and block-at-a-time parsing would otherwise emit three lists of one item,
+  // which a screen reader announces as "list, 1 item" three times over. The
+  // seam is the only thing that has to go; the items are already correct.
+  return html.replace(/<\/ul><ul>/g, "").replace(/<\/ol><ol>/g, "");
 }
 
 /**

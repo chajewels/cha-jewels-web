@@ -54,8 +54,13 @@ export async function POST(req: Request) {
   // and a settings notification must not quietly stop doing that.
   const tag = TAGS.find((t) => t === body.tag);
   if (tag) revalidateTag(tag);
-  // An unrecognised tag is reported rather than swallowed — a Hub that starts
-  // sending "settings" instead of "content" should find that out from the
-  // response, not from a footer that never updates.
-  return NextResponse.json({ ok: true, ...(body.tag && !tag ? { ignoredTag: body.tag } : {}) });
+  // An unrecognised tag or slug is REPORTED rather than swallowed — a Hub that
+  // starts sending "settings" instead of "content", or a slug this refuses to
+  // put in a path, should find that out from the response and not from a page
+  // that never updates. Same reason both are named rather than one flag.
+  return NextResponse.json({
+    ok: true,
+    ...(body.tag && !tag ? { ignoredTag: body.tag } : {}),
+    ...(body.postSlug !== undefined && !isSlug(body.postSlug) ? { ignoredPostSlug: String(body.postSlug).slice(0, 64) } : {}),
+  });
 }
