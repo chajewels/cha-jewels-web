@@ -6,7 +6,11 @@ export default {
       colors: {
         charcoal: { DEFAULT: "#333333", deep: "#222222", mid: "#444444" },
         chalk: "#F5F5F2",
-        gold: { DEFAULT: "#C9A227", pale: "#E8D28A", dark: "#8A6B12" },
+        gold: { DEFAULT: "#C9A227", pale: "#E8D28A", dark: "#8A6B12", deep: "#6F5510" },  // `deep` is `dark` taken one step down for the homepage's TINTED
+        // surfaces: gold-dark is 4.59 on chalk and 5.01 on white, but only
+        // 4.35 on bg-hairline/40 and 4.19 behind the mobile tab bar's
+        // chalk/95. #7A5E10 is the smallest step that clears 4.5 (5.12
+        // worst case); this one is 5.89, for headroom against a new tint.
         orange: { DEFAULT: "#FFA500", hover: "#FFB733" },
         teal: "#1ABC9C",
         garnet: { DEFAULT: "#7A1E2B", light: "#F28B94" },

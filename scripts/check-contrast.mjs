@@ -13,12 +13,19 @@ const C = {
   chalk: "#F5F5F2", gold: "#C9A227", "gold-pale": "#E8D28A",
   orange: "#FFA500", "orange-hover": "#FFB733", teal: "#1ABC9C",
   garnet: "#7A1E2B", "garnet-light": "#F28B94",
-  "gold-dark": "#8A6B12", white: "#FFFFFF", hairline: "#E5E5E0",
+  "gold-dark": "#8A6B12", "gold-deep": "#6F5510", white: "#FFFFFF", hairline: "#E5E5E0",
+  // Composited homepage tints, measured rather than named in the config:
+  // hairline at 40% over chalk, and chalk at 95% over the page beneath.
+  tintA: "#EFEFEB", tintB: "#EBEBE8",
 };
 
 // Guard: the table above must agree with tailwind.config.ts.
 const cfg = readFileSync(new URL("../tailwind.config.ts", import.meta.url), "utf8");
-const TAILWIND_BUILTIN = new Set(["white"]); // not spelled out in the config
+// Not spelled out in the config: `white` is Tailwind's own, and the two tints
+// are COMPOSITED surfaces (bg-hairline/40 over chalk; the tab bar's
+// chalk/95), so there is no token for the guard to find. They are measured
+// values, recorded here because that is what the text actually sits on.
+const TAILWIND_BUILTIN = new Set(["white", "tintA", "tintB"]);
 for (const [name, hex] of Object.entries(C)) {
   if (TAILWIND_BUILTIN.has(name)) continue;
   if (!cfg.toLowerCase().includes(hex.toLowerCase())) { console.error(`check-contrast: ${name} ${hex} is not in tailwind.config.ts — table is stale`); process.exit(1); }
@@ -152,6 +159,12 @@ add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "oran
 // ---------------------------------------------------------------------------
 
 // Text.
+// The homepage's TINTED surfaces: bg-hairline/40 over chalk, and the mobile
+// tab bar's chalk/95. gold-dark is 4.35 and 4.19 there — both under 4.5 — so
+// those three elements use gold-deep. Measured on the composited tints.
+add("gold-deep on hairline/40 over chalk", "gold-deep", "tintA", TEXT);
+add("gold-deep behind the mobile tab bar", "gold-deep", "tintB", TEXT);
+add("charcoal/70 placeholder text on chalk", "charcoal", "chalk", TEXT, 0.7);
 add("charcoal-deep text on chalk", "charcoal-deep", "chalk", TEXT);
 add("charcoal/70 text on chalk", "charcoal", "chalk", TEXT, 0.7);
 add("garnet error text on chalk", "garnet", "chalk", TEXT);
