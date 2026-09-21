@@ -8,6 +8,7 @@ import { hub } from "@/lib/hub-api";
 import { newestFirst } from "@/lib/service-requests";
 import type { ServiceRequest } from "@/lib/types";
 import { ServiceRequestRow } from "@/components/account/service-request-row";
+import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("serviceRequests");
 export const dynamic = "force-dynamic";
@@ -36,24 +37,24 @@ export default async function ServiceRequestsPage() {
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("service", "h1")}</h1>
-          <Link href="/account" className="text-sm text-chalk/60 underline underline-offset-4">{t("account", "h1")}</Link>
+          <Link href="/account" className="text-sm text-charcoal/70 underline underline-offset-4">{t("account", "h1")}</Link>
         </div>
-        <p className="mt-4 max-w-[62ch] text-chalk/75">{t("service", "lede")}</p>
+        <p className="mt-4 max-w-[62ch] text-charcoal">{t("service", "lede")}</p>
 
         {failed && (
-          <p className="mt-8 border border-garnet-light/60 bg-charcoal-deep p-5 text-sm text-chalk/85">{t("account", "unavailable")}</p>
+          <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
         )}
 
         {!failed && requests.length === 0 && (
-          <p className="mt-10 text-chalk/75">
+          <p className="mt-10 text-charcoal">
             {t("service", "empty")}{" "}
-            <Link href="/account/orders" className="text-gold-pale underline underline-offset-4">{t("orders", "h1")}</Link>
+            <Link href="/account/orders" className="text-gold-dark underline underline-offset-4">{t("orders", "h1")}</Link>
             {" · "}
-            <Link href="/account/layaway" className="text-gold-pale underline underline-offset-4">{t("plans", "h1")}</Link>
+            <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>
           </p>
         )}
 

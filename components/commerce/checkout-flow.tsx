@@ -14,6 +14,7 @@ import type { CartItem } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
 import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } from "@/lib/layaway-availability";
 import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
+import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 
 /**
  * "sign" is not a numbered step and is not in the stepper.
@@ -394,17 +395,17 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
       <div>
         <ol className="mb-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           {([[1, t("checkout", "step1")], [2, t("checkout", "step2")], [3, t("checkout", "step3")]] as const).map(([n, label]) => (
-            <li key={n} className={n === stepperAt ? "text-gold-pale" : "text-chalk/55"}>
+            <li key={n} className={n === stepperAt ? "text-gold-dark" : "text-charcoal/70"}>
               <span className="font-display">{n}.</span> {label}
             </li>
           ))}
         </ol>
 
         {error && (
-          <div role="alert" className="mb-6 border border-garnet-light/60 bg-charcoal-deep p-4 text-sm text-chalk/85">
+          <div role="alert" className={`mb-6 ${alertLight} p-4 text-sm`}>
             <p>{error}</p>
             {errorRef && (
-              <p className="mt-2 font-mono text-xs text-chalk/55">{t("checkout", "ref")}: {errorRef}</p>
+              <p className="mt-2 font-mono text-xs text-charcoal/70">{t("checkout", "ref")}: {errorRef}</p>
             )}
           </div>
         )}
@@ -412,12 +413,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
         {step === 1 && (
           <div className="space-y-8">
             <fieldset>
-              <legend className="font-display text-xl text-gold-pale">{t("checkout", "chooseAddress")}</legend>
+              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "chooseAddress")}</legend>
               {addresses.length > 0 && (
                 <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                   {addresses.map((a, i) => (
                     <li key={a.id ?? i}>
-                      <label className={`block cursor-pointer border p-4 text-sm ${addressId === a.id ? "border-gold text-chalk" : "border-rule text-chalk/70"}`}>
+                      <label className={`block cursor-pointer border p-4 text-sm ${addressId === a.id ? "border-gold-dark text-charcoal-deep" : "border-hairline text-charcoal/70"}`}>
                         <input
                           type="radio" name="address" className="sr-only"
                           checked={addressId === a.id}
@@ -426,19 +427,19 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                         <span className="block">{a.recipient_name ?? "—"}</span>
                         <span className="block">{a.line1}{a.line2 ? `, ${a.line2}` : ""}</span>
                         <span className="block">{[a.city, a.region, a.postal_code].filter(Boolean).join(" ")}</span>
-                        <span className="block text-chalk/55">{a.country}</span>
+                        <span className="block text-charcoal/70">{a.country}</span>
                       </label>
                     </li>
                   ))}
                 </ul>
               )}
               {!showNew ? (
-                <button type="button" onClick={() => setShowNew(true)} className="mt-4 text-sm text-gold-pale underline underline-offset-4">
+                <button type="button" onClick={() => setShowNew(true)} className="mt-4 text-sm text-gold-dark underline underline-offset-4">
                   {t("checkout", "newAddress")}
                 </button>
               ) : (
                 <form
-                  className="mt-4 grid gap-3 border border-rule p-4 sm:grid-cols-2"
+                  className="mt-4 grid gap-3 border border-hairline p-4 sm:grid-cols-2"
                   action={saveAddress}
                 >
                   <Field name="recipient_name" label={t("checkout", "recipientName")} />
@@ -457,12 +458,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             </fieldset>
 
             <fieldset>
-              <legend className="font-display text-xl text-gold-pale">{t("checkout", "orderType")}</legend>
+              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "orderType")}</legend>
               <div className="mt-4 flex flex-wrap gap-2">
                 {ORDER_TYPES.map((type) => (
                   <button
                     key={type} type="button" onClick={() => setOrderType(type)}
-                    className={`border px-4 py-2 text-sm ${orderType === type ? "border-gold text-gold-pale" : "border-rule text-chalk/65"}`}
+                    className={`border px-4 py-2 text-sm ${orderType === type ? "border-gold-dark text-gold-dark" : "border-hairline text-charcoal/70"}`}
                   >
                     {type === "SELF" ? t("checkout", "self") : type === "GIFT" ? t("checkout", "gift") : t("checkout", "proxy")}
                   </button>
@@ -470,18 +471,18 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               </div>
               {orderType !== "SELF" && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <label className="text-sm text-chalk/70">
+                  <label className="text-sm text-charcoal/70">
                     {t("checkout", "recipientName")}
-                    <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="mt-1 w-full border border-rule bg-charcoal-deep px-3 py-2 text-chalk" />
+                    <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
                   </label>
-                  <label className="text-sm text-chalk/70">
+                  <label className="text-sm text-charcoal/70">
                     {t("checkout", "recipientPhone")}
-                    <input value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} className="mt-1 w-full border border-rule bg-charcoal-deep px-3 py-2 text-chalk" />
+                    <input value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
                   </label>
                   {orderType === "GIFT" && (
-                    <label className="text-sm text-chalk/70 sm:col-span-2">
+                    <label className="text-sm text-charcoal/70 sm:col-span-2">
                       {t("checkout", "giftNote")}
-                      <textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} rows={3} className="mt-1 w-full border border-rule bg-charcoal-deep px-3 py-2 text-chalk" />
+                      <textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} rows={3} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
                     </label>
                   )}
                 </div>
@@ -492,16 +493,16 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 to choose between and the fieldset goes entirely. */}
             {layawayOk && (
             <fieldset>
-              <legend className="font-display text-xl text-gold-pale">{t("checkout", "modeH")}</legend>
+              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "modeH")}</legend>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {(["full", "layaway"] as const).map((m) => (
                   <button
                     key={m} type="button" onClick={() => setMode(m)}
                     aria-pressed={mode === m}
-                    className={`border p-4 text-left text-sm ${mode === m ? "border-gold text-chalk" : "border-rule text-chalk/65"}`}
+                    className={`border p-4 text-left text-sm ${mode === m ? "border-gold-dark text-charcoal-deep" : "border-hairline text-charcoal/70"}`}
                   >
-                    <span className="block text-gold-pale">{m === "full" ? t("checkout", "modeFull") : t("checkout", "modeLayaway")}</span>
-                    <span className="mt-1 block text-xs text-chalk/60">
+                    <span className="block text-gold-dark">{m === "full" ? t("checkout", "modeFull") : t("checkout", "modeLayaway")}</span>
+                    <span className="mt-1 block text-xs text-charcoal/70">
                       {m === "full" ? t("checkout", "modeFullNote") : t("checkout", "modeLayawayNote")}
                     </span>
                   </button>
@@ -516,23 +517,23 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             {mode === "layaway" && (
               <>
                 <fieldset>
-                  <legend className="font-display text-xl text-gold-pale">{t("checkout", "settlementH")}</legend>
+                  <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "settlementH")}</legend>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {(["JPY", "PHP"] as const).map((cur) => (
                       <button
                         key={cur} type="button" onClick={() => setSettlement(cur)}
                         aria-pressed={settlement === cur}
-                        className={`border px-4 py-2 text-sm ${settlement === cur ? "border-gold text-gold-pale" : "border-rule text-chalk/65"}`}
+                        className={`border px-4 py-2 text-sm ${settlement === cur ? "border-orange bg-orange text-charcoal-deep" : "border-hairline text-charcoal/70"}`}
                       >
                         {cur === "JPY" ? t("checkout", "settlementJpy") : t("checkout", "settlementPhp")}
                       </button>
                     ))}
                   </div>
-                  <p className="mt-2 text-xs text-chalk/55">{t("checkout", "settlementNote")}</p>
+                  <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "settlementNote")}</p>
                 </fieldset>
 
                 <fieldset>
-                  <legend className="font-display text-xl text-gold-pale">{t("checkout", "termH")}</legend>
+                  <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "termH")}</legend>
                   {/* Before the first quote there is no eligibility to show, so
                       every configured term is offered and the Hub decides. After
                       it, the terms this basket cannot reach are disabled with
@@ -556,13 +557,13 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                           onClick={() => setTerm(tm.months)}
                           aria-pressed={term === tm.months}
                           title={launched ? (tm.eligible ? undefined : t("checkout", "termUnavailable")) : t("checkout", "termNotLaunchedHint")}
-                          className={`border px-4 py-2 text-left text-sm disabled:opacity-40 ${term === tm.months && pickable ? "border-gold text-gold-pale" : "border-rule text-chalk/65"}`}
+                          className={`border px-4 py-2 text-left text-sm disabled:opacity-40 ${term === tm.months && pickable ? "border-gold-dark text-gold-dark" : "border-hairline text-charcoal/70"}`}
                         >
                           <span className="block">{t("checkout", "termMonths", { n: String(tm.months) })}</span>
                           {!launched ? (
-                            <span className="block text-[11px] text-chalk/55">{t("checkout", "termNotLaunched")}</span>
+                            <span className="block text-[11px] text-charcoal/70">{t("checkout", "termNotLaunched")}</span>
                           ) : tm.min_amount > 0 ? (
-                            <span className="block text-[11px] text-chalk/55">
+                            <span className="block text-[11px] text-charcoal/70">
                               {t("checkout", "termMin", { amount: formatMoney(tm.min_amount, settlement) })}
                             </span>
                           ) : null}
@@ -585,10 +586,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             plan. The agreement is Tagalog only; there is no language to pick. */}
         {step === "sign" && quote && (
           <div className="space-y-6">
-            <h2 className="font-display text-xl text-gold-pale">{t("checkout", "agreementHeading")}</h2>
-            <div className="border border-gold p-5 text-sm text-chalk/80">
+            <h2 className="font-display text-xl text-charcoal-deep">{t("checkout", "agreementHeading")}</h2>
+            <div className="border border-hairline p-5 text-sm text-charcoal">
               <p>{t("checkout", "agreementIntro")}</p>
-              <p className="mt-3 text-xs text-chalk/55">{t("checkout", "agreementTagalogNote")}</p>
+              <p className="mt-3 text-xs text-charcoal/70">{t("checkout", "agreementTagalogNote")}</p>
               {/* A NEW TAB, deliberately. The checkout keeps its state — step,
                   term, currency and quote are React state and a same-tab
                   navigation loses all of it. The ?quote= path exists for the
@@ -597,17 +598,17 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 href={signUrl(quote.quote_id, quote.invoice_number ?? null)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 inline-block border border-gold px-5 py-2 text-sm text-gold-pale hover:bg-gold/10"
+                className="mt-5 inline-block border border-gold-dark px-5 py-2 text-sm text-gold-dark hover:bg-gold-dark/10"
               >
                 {t("checkout", "agreementOpen")}
               </a>
-              <p className="mt-3 text-xs text-chalk/55">{t("checkout", "agreementNewTabNote")}</p>
+              <p className="mt-3 text-xs text-charcoal/70">{t("checkout", "agreementNewTabNote")}</p>
             </div>
             {/* What the server already read from the signing record on the way
                 back in — shown here so the customer sees the signature landed
                 before pressing on; "I have signed" then goes straight to Review. */}
             {agreement?.signed && (
-              <p className="border border-rule bg-charcoal px-4 py-3 text-sm text-chalk/80">
+              <p className="border border-hairline bg-white px-4 py-3 text-sm text-charcoal">
                 {t("checkout", "agreementSigned", {
                   version: agreement.version ?? "",
                   date: (agreement.signed_at ?? "").slice(0, 10),
@@ -615,7 +616,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               </p>
             )}
             <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
+              <Button variant="ghost-light" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={recheckAgreement} disabled={pending}>
                 {pending ? t("checkout", "agreementChecking") : t("checkout", "agreementDone")}
               </Button>
@@ -627,21 +628,21 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           <div className="space-y-6">
             <ul className="rule-grid grid gap-px">
               {quote.items.map((line) => (
-                <li key={line.variant_id} className="flex items-baseline justify-between gap-4 bg-charcoal p-4 text-sm">
+                <li key={line.variant_id} className="flex items-baseline justify-between gap-4 bg-white p-4 text-sm">
                   <span>{quoteItemName(line, lang)} × {line.qty}</span>
-                  <span className="font-display text-lg text-gold-pale">{formatMoney(line.line_total_jpy)}</span>
+                  <span className="font-display text-lg text-gold-dark">{formatMoney(line.line_total_jpy)}</span>
                 </li>
               ))}
             </ul>
             {quote.requires_manual_quote && (
-              <p className="border border-gold px-4 py-3 text-sm text-gold-pale">{t("checkout", "manualQuote")}</p>
+              <p className="border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("checkout", "manualQuote")}</p>
             )}
             {/* What the server read from the signing record — the version they
                 actually signed and when, the same two values the plan will
                 store. Shown rather than assumed, so a wrong version is visible
                 before the plan exists. */}
             {mode === "layaway" && agreement?.signed && (
-              <p className="border border-rule bg-charcoal px-4 py-3 text-sm text-chalk/80">
+              <p className="border border-hairline bg-white px-4 py-3 text-sm text-charcoal">
                 {t("checkout", "agreementSigned", {
                   version: agreement.version ?? "",
                   date: (agreement.signed_at ?? "").slice(0, 10),
@@ -651,26 +652,26 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             {/* The plan exactly as the Hub computed it, in the currency it will
                 be written in. Nothing here is recalculated on this side. */}
             {plan && (
-              <div className="border border-gold p-5">
+              <div className="border border-hairline p-5">
                 <dl className="grid gap-4 sm:grid-cols-3">
                   <PlanFigure k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />
                   <PlanFigure k={t("checkout", "layawayMonthly")} v={money(plan.monthly)} />
                   <PlanFigure k={t("checkout", "layawayLast")} v={money(plan.last_month)} />
                 </dl>
-                <h3 className="mt-6 text-xs uppercase tracking-[0.14em] text-chalk/55">{t("checkout", "layawaySchedule")}</h3>
-                <ul className="mt-3 space-y-1 text-sm text-chalk/75">
+                <h3 className="mt-6 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("checkout", "layawaySchedule")}</h3>
+                <ul className="mt-3 space-y-1 text-sm text-charcoal">
                   {plan.schedule.map((row) => (
                     <li key={row.installment_number} className="flex justify-between gap-4">
                       <span>{row.due_date}</span>
-                      <span className="text-chalk">{money(row.amount)}</span>
+                      <span className="text-charcoal-deep">{money(row.amount)}</span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-xs text-chalk/55">{t("checkout", "layawayDeadline")}</p>
+                <p className="mt-4 text-xs text-charcoal/70">{t("checkout", "layawayDeadline")}</p>
               </div>
             )}
             <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
+              <Button variant="ghost-light" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={() => setStep(3)} disabled={pending || quote.requires_manual_quote}>{t("checkout", "continue")}</Button>
             </div>
           </div>
@@ -678,7 +679,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
 
         {step === 3 && quote && (
           <div className="space-y-6">
-            <h2 className="font-display text-xl text-gold-pale">{t("checkout", "payHeading")}</h2>
+            <h2 className="font-display text-xl text-charcoal-deep">{t("checkout", "payHeading")}</h2>
             {/* A region with no complete, active method in the Hub is not
                 offered transfer at all. Showing the method and failing at the
                 last click — or worse, taking an order we cannot be paid for —
@@ -686,7 +687,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 server-side; this is the courteous half of it. */}
             {quote.transfer_available ? (
               <>
-                <div className="border border-rule bg-charcoal p-4 text-sm text-chalk/80">
+                <div className="border border-hairline bg-white p-4 text-sm text-charcoal">
                   <p>{t("checkout", "transferOnly")}</p>
                   <p className="mt-2">{t("checkout", "transferPreview")}</p>
                   {/* The number the Hub will actually store, not a constant.
@@ -705,7 +706,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 <TransferDetails methods={quote.transfer_methods} lang={lang} />
               </>
             ) : (
-              <p role="alert" className="border border-gold px-4 py-3 text-sm text-gold-pale">
+              <p role="alert" className={`${alertLight} px-4 py-3 text-sm`}>
                 {t("checkout", "transferUnavailable")}
               </p>
             )}
@@ -714,8 +715,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 with the details they just typed is in the note. The programme
                 itself is explained at /loyalty rather than here. */}
             {offerLoyalty && (
-              <div className="mb-2 border border-rule bg-charcoal p-4">
-                <label className="flex cursor-pointer items-start gap-3 text-sm text-chalk/80">
+              <div className="mb-2 border border-hairline bg-white p-4">
+                <label className="flex cursor-pointer items-start gap-3 text-sm text-charcoal">
                   <input
                     type="checkbox"
                     checked={joinLoyalty}
@@ -725,16 +726,16 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                   />
                   <span>{t("checkout", "joinLoyalty")}</span>
                 </label>
-                <p className="mt-2 pl-7 text-xs text-chalk/55">
+                <p className="mt-2 pl-7 text-xs text-charcoal/70">
                   {t("checkout", "joinLoyaltyNote")}{" "}
-                  <Link href="/loyalty" className="underline underline-offset-4 hover:text-gold-pale">
+                  <Link href="/loyalty" className="underline underline-offset-4 hover:text-gold-dark">
                     {t("checkout", "joinLoyaltyLink")}
                   </Link>
                 </p>
               </div>
             )}
             <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
+              <Button variant="ghost-light" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={placeOrder} disabled={pending || !quote.transfer_available}>
                 {mode === "layaway"
                   ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
@@ -745,8 +746,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
         )}
       </div>
 
-      <aside className="h-fit border border-rule bg-charcoal p-6">
-        <ul className="space-y-2 text-sm text-chalk/75">
+      <aside className="h-fit border border-hairline bg-white p-6">
+        <ul className="space-y-2 text-sm text-charcoal">
           {items.map((i) => (
             <li key={i.variant_id} className="flex justify-between gap-4">
               <span>{cartItemName(i, lang)}{i.qty > 1 ? ` × ${i.qty}` : ""}</span>
@@ -754,7 +755,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             </li>
           ))}
         </ul>
-        <dl className="mt-5 space-y-2 border-t border-rule pt-4 text-sm">
+        <dl className="mt-5 space-y-2 border-t border-hairline pt-4 text-sm">
           <Line k={t("checkout", "subtotal")} v={summaryMoney(summary.subtotal)} />
           <Line
             k={t("checkout", "shipping")}
@@ -762,11 +763,11 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           />
           {plan && <Line k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />}
         </dl>
-        <div className="mt-4 flex items-baseline justify-between border-t border-gold pt-4">
-          <span className="text-chalk/70">{t("checkout", "total")}</span>
-          <span className="font-display text-2xl text-gold-pale">{summaryMoney(summary.total)}</span>
+        <div className="mt-4 flex items-baseline justify-between border-t border-hairline pt-4">
+          <span className="text-charcoal/70">{t("checkout", "total")}</span>
+          <span className="font-display text-2xl text-gold-dark">{summaryMoney(summary.total)}</span>
         </div>
-        <Link href="/cart" className="mt-4 inline-block text-xs text-chalk/55 underline underline-offset-4">
+        <Link href="/cart" className="mt-4 inline-block text-xs text-charcoal/70 underline underline-offset-4">
           {t("cart", "h1")}
         </Link>
       </aside>
@@ -778,9 +779,9 @@ function Field({ name, label, required, defaultValue, className }: {
   name: string; label: string; required?: boolean; defaultValue?: string; className?: string;
 }) {
   return (
-    <label className={`text-sm text-chalk/70 ${className ?? ""}`}>
-      {label}{required && <span className="text-gold-pale"> *</span>}
-      <input name={name} required={required} defaultValue={defaultValue} className="mt-1 w-full border border-rule bg-charcoal-deep px-3 py-2 text-chalk" />
+    <label className={`text-sm ${labelLight} ${className ?? ""}`}>
+      {label}{required && <span className="text-gold-dark"> *</span>}
+      <input name={name} required={required} defaultValue={defaultValue} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
     </label>
   );
 }
@@ -788,8 +789,8 @@ function Field({ name, label, required, defaultValue, className }: {
 function PlanFigure({ k, v }: { k: string; v: string }) {
   return (
     <div>
-      <dt className="text-xs text-chalk/55">{k}</dt>
-      <dd className="mt-1 font-display text-2xl text-gold-pale">{v}</dd>
+      <dt className="text-xs text-charcoal/70">{k}</dt>
+      <dd className="mt-1 font-display text-2xl text-gold-dark">{v}</dd>
     </div>
   );
 }
@@ -797,8 +798,8 @@ function PlanFigure({ k, v }: { k: string; v: string }) {
 function Line({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-chalk/55">{k}</dt>
-      <dd className="text-chalk">{v}</dd>
+      <dt className="text-charcoal/70">{k}</dt>
+      <dd className="text-charcoal-deep">{v}</dd>
     </div>
   );
 }

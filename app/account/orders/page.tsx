@@ -9,6 +9,7 @@ import { formatMoney } from "@/lib/utils";
 import { isClosedOrder, orderStatusLabel, refundLabel } from "@/lib/order-status";
 import { StatusBadge } from "@/components/account/status-badge";
 import type { HubOrder } from "@/lib/types";
+import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("orders");
 export const dynamic = "force-dynamic";
@@ -32,18 +33,18 @@ export default async function OrdersPage() {
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("orders", "h1")}</h1>
-          <Link href="/account" className="text-sm text-chalk/60 underline underline-offset-4">{t("account", "h1")}</Link>
+          <Link href="/account" className="text-sm text-charcoal/70 underline underline-offset-4">{t("account", "h1")}</Link>
         </div>
 
         {failed && (
-          <p className="mt-8 border border-garnet-light/60 bg-charcoal-deep p-5 text-sm text-chalk/85">{t("account", "unavailable")}</p>
+          <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
         )}
 
-        {!failed && orders.length === 0 && <p className="mt-10 text-chalk/75">{t("orders", "empty")}</p>}
+        {!failed && orders.length === 0 && <p className="mt-10 text-charcoal">{t("orders", "empty")}</p>}
 
         {orders.length > 0 && (
           <ul className="rule-grid mt-10 grid gap-px">
@@ -55,24 +56,24 @@ export default async function OrdersPage() {
                 ? [order.cancellation_reason, refundLabel(order.refund_status, lang)].filter(Boolean).join(" · ")
                 : "";
               return (
-                <li key={order.id} className="flex flex-wrap items-center justify-between gap-4 bg-charcoal p-5">
+                <li key={order.id} className="flex flex-wrap items-center justify-between gap-4 bg-white p-5">
                   <div>
-                    <p className="font-mono text-gold-pale">{order.web_reference ?? order.invoice_number ?? "—"}</p>
-                    <p className="mt-1 text-xs text-chalk/55">
+                    <p className="font-mono text-gold-dark">{order.web_reference ?? order.invoice_number ?? "—"}</p>
+                    <p className="mt-1 text-xs text-charcoal/70">
                       {t("orders", "placed")} {(order.order_date ?? order.created_at).slice(0, 10)}
                     </p>
                   </div>
                   <div className="flex flex-col items-start gap-1">
-                    <StatusBadge tone={status.tone} text={status.text} />
-                    {closedNote && <p className="max-w-[36ch] text-xs text-chalk/55">{closedNote}</p>}
+                    <StatusBadge tone={status.tone} text={status.text} surface="light" />
+                    {closedNote && <p className="max-w-[36ch] text-xs text-charcoal/70">{closedNote}</p>}
                   </div>
                   {/* #26's rule, which the plan rows already followed and these
                       did not: a closed figure is never gold. Derived from the
                       badge's own tone so the two can never disagree. */}
-                  <p className={`font-display text-xl ${status.tone === "dead" ? "text-chalk/55" : "text-gold-pale"}`}>
+                  <p className={`font-display text-xl ${status.tone === "dead" ? "text-charcoal/70" : "text-gold-dark"}`}>
                     {formatMoney(Number(order.total_amount), order.currency)}
                   </p>
-                  <Link href={`/account/orders/${order.id}`} className="text-sm text-gold-pale underline underline-offset-4">
+                  <Link href={`/account/orders/${order.id}`} className="text-sm text-gold-dark underline underline-offset-4">
                     {t("orders", "view")}
                   </Link>
                 </li>

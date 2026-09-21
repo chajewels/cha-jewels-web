@@ -111,18 +111,21 @@
    rule written without the `:has()` would strip the chrome off every page in
    the site the moment anyone pressed Ctrl-P anywhere.
 
-   The base theme is light from Group E; these rules normalise the remaining
-   dark bands for print — white behind, charcoal-deep in front, one hairline
-   where the screen used a fill. Every rule is kept for now even where the
-   light base already satisfies it: Group D trims the ones that have gone
-   dead, once there is a rendered page to check them against.
+   These pages are LIGHT on screen from Group D, so most of what this block
+   used to do is now already true and has been removed: the body colour rule
+   (it restated the screen) and the `[class*="bg-charcoal"]` fill override
+   (nothing on these pages carries that class any more).
+
+   What is kept is what print still needs and the screen does not. `.rule-grid`
+   draws its dividers as a box-shadow ring, which a printer renders as a grey
+   slab, so it is swapped for a real border; and every remaining border is
+   forced to the hairline so a gold one does not print as a muddy band.
    --------------------------------------------------------------------------- */
 @media print {
   @page { margin: 16mm; }
 
+  /* Only the font changes for print; the colours are the screen's already. */
   body:has(.print-invoice) {
-    background: #fff !important;
-    color: #222222 !important;
     font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
   }
 
@@ -133,22 +136,16 @@
   body:has(.print-invoice) nav,
   body:has(.print-invoice) .print-hide { display: none !important; }
 
-  /* Every chalk / gold-pale / gold-dark token at once, including the alpha
-     variants (text-chalk/55 and friends), which are too many to name. */
-  .print-invoice,
-  .print-invoice * { color: #222222 !important; }
-
   .print-invoice h1,
   .print-invoice h2,
   .print-invoice h3,
   .print-invoice .font-display { font-family: var(--font-display), Georgia, serif; }
 
-  /* Card fills become paper. `.rule-grid` draws its dividers as a box-shadow
-     ring, which prints as a grey slab, so it is swapped for a real border. */
-  .print-invoice [class*="bg-charcoal"],
+  /* `.rule-grid` draws its dividers as a box-shadow ring, which prints as a
+     grey slab, so it is swapped for a real border. The chalk image wells and
+     band fills still flatten to paper. */
   .print-invoice [class*="bg-chalk"] {
     background: #fff !important;
-    border: 1px solid #E5E5E0 !important;
   }
   .print-invoice .rule-grid { gap: 0 !important; }
   .print-invoice .rule-grid > * {

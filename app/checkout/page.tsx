@@ -78,11 +78,11 @@ export default async function CheckoutPage({ searchParams }: {
 
   if (items.length === 0) {
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
+      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
-          <p className="mt-8 text-chalk/75">{t("checkout", "emptyCart")}</p>
-          <Button asChild variant="ghost" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
+          <p className="mt-8 text-charcoal">{t("checkout", "emptyCart")}</p>
+          <Button asChild variant="ghost-light" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
         </div>
       </section>
     );
@@ -102,7 +102,7 @@ export default async function CheckoutPage({ searchParams }: {
     initialQuote && agreementResult && agreementResult.ok ? agreementResult.data : null;
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
         <div className="mt-10">
