@@ -8,5 +8,5 @@ import { metalsLabel } from "@/lib/metals";
  */
 export function KaratBadge({ metals, lang }: { metals: string[]; lang: Lang }) {
   if (!metals.length) return null;
-  return <span className="inline-block border border-gold px-3 py-1 text-xs tracking-wide text-gold-pale">{metalsLabel(metals, lang)}</span>;
+  return <span className="inline-block border border-gold-dark px-3 py-1 text-xs tracking-wide text-gold-dark">{metalsLabel(metals, lang)}</span>;
 }

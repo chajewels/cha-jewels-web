@@ -18,30 +18,30 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
   // before the shopper opens a page whose button is disabled anyway.
   const soldOut = product.product_variants.length > 0 && product.product_variants.every((pv) => pv.stock_qty <= 0);
   return (
-    <Link href={`/products/${product.slug}`} className={`flex flex-col bg-charcoal ${featured ? "border border-gold p-1.5" : ""}`}>
-      <div className={`relative overflow-hidden bg-charcoal-deep ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
+    <Link href={`/products/${product.slug}`} className={`flex flex-col bg-white ${featured ? "border border-gold-dark p-1.5" : ""}`}>
+      <div className={`relative overflow-hidden bg-chalk ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
         {img ? <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:1024px) 25vw, 50vw" className={`object-cover ${soldOut ? "opacity-50" : ""}`} /> : <GoldMotif />}
         {soldOut && (
-          <span className="absolute left-3 top-3 border border-gold bg-charcoal-deep/90 px-2.5 py-1 text-xs tracking-wide text-gold-pale">
+          <span className="absolute left-3 top-3 border border-charcoal-deep bg-white/90 px-2.5 py-1 text-xs tracking-wide text-charcoal-deep">
             {t("cart", "soldOut")}
           </span>
         )}
       </div>
       {featured && v && (
-        <dl className="grid grid-cols-3 border-t border-gold bg-charcoal-deep">
+        <dl className="grid grid-cols-3 border-t border-hairline bg-white">
           <Spec k={t("product", "metal")} v={metal} /><Spec k={t("product", "weight")} v={product.weight_g ? `${product.weight_g} g` : "—"} /><Spec k={t("product", "stone")} v={v.stone ?? "—"} last />
         </dl>
       )}
       <div className="flex flex-1 flex-col p-5">
         {product.condition === "Preloved" && <div className="mb-2"><ConditionBadge condition={product.condition} lang={lang} /></div>}
-        <h3 className="font-display text-2xl text-gold-pale">{name}</h3>
-        {product.weight_g && <p className="mt-1 text-sm text-chalk/60">{metal} · {product.weight_g} g</p>}
+        <h3 className="font-display text-2xl text-charcoal-deep">{name}</h3>
+        {product.weight_g && <p className="mt-1 text-sm text-charcoal/70">{metal} · {product.weight_g} g</p>}
         {price != null && (
-          <p className="mt-auto pt-4 text-sm text-chalk/75">
+          <p className="mt-auto pt-4 text-sm text-charcoal">
             {formatMoney(price)}
             {soldOut
-              ? <span className="text-chalk/55"> · {t("cart", "soldOut")}</span>
-              : <span className="text-chalk/55"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span>}
+              ? <span className="text-charcoal/70"> · {t("cart", "soldOut")}</span>
+              : <span className="text-charcoal/70"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span>}
           </p>
         )}
       </div>
@@ -49,8 +49,8 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
   );
 }
 function Spec({ k, v, last = false }: { k: string; v: string; last?: boolean }) {
-  return <div className={`p-3 ${last ? "" : "border-r border-rule"}`}><dt className="text-[11px] text-chalk/55">{k}</dt><dd className="font-display text-xl text-gold-pale">{v}</dd></div>;
+  return <div className={`p-3 ${last ? "" : "border-r border-hairline"}`}><dt className="text-[11px] text-charcoal/70">{k}</dt><dd className="font-display text-xl text-gold-dark">{v}</dd></div>;
 }
 function GoldMotif() {
-  return <svg viewBox="0 0 200 200" fill="none" stroke="#C9A227" strokeWidth="1" aria-hidden="true" className="absolute inset-0 m-auto h-[46%] w-[46%] opacity-55"><circle cx="100" cy="100" r="62" /><circle cx="100" cy="100" r="54" strokeOpacity=".5" /><path d="M100 30 L108 44 L100 52 L92 44 Z" strokeWidth="1.2" /></svg>;
+  return <svg viewBox="0 0 200 200" fill="none" stroke="#8A6B12" strokeWidth="1" aria-hidden="true" className="absolute inset-0 m-auto h-[46%] w-[46%] opacity-55"><circle cx="100" cy="100" r="62" /><circle cx="100" cy="100" r="54" strokeOpacity=".5" /><path d="M100 30 L108 44 L100 52 L92 44 Z" strokeWidth="1.2" /></svg>;
 }
