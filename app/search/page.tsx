@@ -25,7 +25,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const { products, total } = hasQuery ? await search(q, lang, 60) : { products: [], total: 0 };
 
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         {hasQuery && <SearchView q={q} total={total} />}
         <h1 className="text-[clamp(32px,5vw,64px)]">{hasQuery ? t("search", "title", { q }) : t("search", "placeholder")}</h1>

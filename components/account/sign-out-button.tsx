@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export function SignOutButton({ lang }: { lang: Lang }) {
   return (
     <form action={signOutAction}>
-      <Button type="submit" variant="ghost-light">{dict.account.signOut[lang]}</Button>
+      <Button type="submit" variant="ghost">{dict.account.signOut[lang]}</Button>
     </form>
   );
 }

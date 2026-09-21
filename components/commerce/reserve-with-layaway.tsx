@@ -32,7 +32,7 @@ export function ReserveWithLayaway({ variantId, slug, sku, stockQty, lang, class
   return (
     <div className={className}>
       <Button
-        variant="ghost-light"
+        variant="ghost"
         disabled={pending}
         className="w-full sm:w-auto"
         onClick={() => start(async () => {

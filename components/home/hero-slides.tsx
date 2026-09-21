@@ -132,7 +132,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
                   <p className="mt-3 line-clamp-5 text-[15px] leading-relaxed text-chalk/75 lg:line-clamp-none lg:text-base">{t("hero", "lede2")}</p>
                   <div className="mt-9 flex flex-wrap justify-center gap-3 lg:justify-start">
                     <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
-                    {s.layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
+                    {s.layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk hover:text-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
                   </div>
                 </div>
               </div>

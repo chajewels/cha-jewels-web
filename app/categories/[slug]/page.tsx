@@ -40,7 +40,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const banner = cat.hero_media ?? CATEGORY_PLACEHOLDER[cat.slug] ?? null;
 
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         {banner && (
           <div className="relative mb-10 aspect-[21/9] overflow-hidden rounded-sm border border-hairline">

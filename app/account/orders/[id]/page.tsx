@@ -36,10 +36,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     : [null, [] as ServiceRequest[]];
   if (!detail) {
     return (
-      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+      <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("orders", "notFound")}</h1>
-          <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
+          <Button asChild variant="ghost" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
         </div>
       </section>
     );
@@ -58,7 +58,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const placed = (order.order_date ?? order.created_at).slice(0, 10);
 
   return (
-    <section className="print-invoice surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
         <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 

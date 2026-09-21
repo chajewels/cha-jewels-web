@@ -63,10 +63,10 @@ export default async function LayawayPlanPage({ params, searchParams }: {
     : [null, [] as ServiceRequest[]];
   if (!detail) {
     return (
-      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+      <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("plans", "notFound")}</h1>
-          <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/layaway">{t("plans", "back")}</Link></Button>
+          <Button asChild variant="ghost" className="mt-6"><Link href="/account/layaway">{t("plans", "back")}</Link></Button>
         </div>
       </section>
     );
@@ -109,7 +109,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
   const placed = (plan.order_date ?? plan.created_at).slice(0, 10);
 
   return (
-    <section className="print-invoice surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
         <PrintHeader lang={lang} invoiceNumber={plan.invoice_number} reference={plan.web_reference} date={placed} />
 

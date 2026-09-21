@@ -8,7 +8,7 @@ export default async function Blog() {
   const lang = await getLang();
   const t = tr(lang);
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         <h1 className="text-[clamp(36px,5.5vw,80px)]">{t("blog", "h1")}</h1>
         <ul className="mt-12 divide-y divide-hairline border-y border-hairline">

@@ -8,7 +8,7 @@ export default async function About() {
   const lang = await getLang();
   const c = aboutCopy[lang];
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap grid gap-12 md:grid-cols-[1.2fr_.8fr]">
         <div>
           <h1 className="text-[clamp(36px,5.5vw,80px)]">{c.h1}</h1>

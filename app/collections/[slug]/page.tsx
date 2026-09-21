@@ -44,7 +44,7 @@ export default async function CollectionPage({
     active === "all" ? true : active === "preloved" ? p.condition === "Preloved" : p.condition !== "Preloved",
   );
   return (
-    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         <h1 className="text-[clamp(40px,6vw,88px)]">{collectionName(col, lang)}</h1>
         {collectionDescription(col, lang) && <p className="mt-4 max-w-[58ch] text-charcoal">{collectionDescription(col, lang)}</p>}

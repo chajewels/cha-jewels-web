@@ -24,7 +24,7 @@ export default async function Tokusho() {
   const lang = await getLang();
 
   return (
-    <section lang={lang} className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
         <h1 className="text-[clamp(32px,4vw,56px)]">{tokusho.title[lang]}</h1>
         <dl className="mt-10 divide-y divide-hairline border-y border-hairline">

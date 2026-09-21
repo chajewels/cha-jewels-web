@@ -19,7 +19,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   if (!p) notFound();
   const t = tr(lang);
   return (
-    <article className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+    <article className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[760px]">
         <Link href="/blog" className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
         <time dateTime={p.date} className="mt-6 block text-xs text-charcoal/70">{p.date}</time>

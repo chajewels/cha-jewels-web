@@ -21,7 +21,7 @@ export default async function LayawayPage() {
   const t = tr(lang);
   return (
     <>
-      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
+      <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h1 className="text-[clamp(36px,5.5vw,80px)]">{t("home", "layH")}</h1>
           <p className="mt-5 max-w-[52ch] text-charcoal">{t("home", "layP")}</p>

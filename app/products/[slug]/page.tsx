@@ -39,7 +39,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       <JsonLd type="product" product={p} />
       <ProductView sku={p.sku} lang={lang} />
-      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(40px,6vw,80px)]">
+      <section className="py-[clamp(40px,6vw,80px)]">
         <div className="wrap grid gap-10 md:grid-cols-2">
           <figure className="border border-gold-dark bg-white p-1.5">
             <ProductGallery images={images} name={name} lang={lang} />
