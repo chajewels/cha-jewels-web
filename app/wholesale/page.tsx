@@ -11,13 +11,13 @@ export default async function WholesalePage() {
   const t = tr(lang);
   return (
     <>
-      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
+      <section className="surface-light bg-chalk text-charcoal-deep border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("wholesale", "h1")}</h1>
           <p className="mt-5 max-w-[58ch] text-charcoal">{t("wholesale", "lede")}</p>
         </div>
       </section>
-      <section className="py-[clamp(48px,7vw,96px)]">
+      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
         <div className="wrap grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <ul className="space-y-4 text-charcoal">
             {wholesaleBullets[lang].map((b) => (
@@ -25,7 +25,7 @@ export default async function WholesalePage() {
             ))}
           </ul>
           <div>
-            <h2 className="mb-5 font-display text-[clamp(24px,3vw,36px)] text-gold-pale">{t("wholesale", "formH")}</h2>
+            <h2 className="mb-5 font-display text-[clamp(24px,3vw,36px)] text-charcoal-deep">{t("wholesale", "formH")}</h2>
             <InquiryForm lang={lang} />
           </div>
         </div>

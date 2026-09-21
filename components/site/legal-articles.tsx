@@ -50,7 +50,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // Tailwind Preflight sets `list-style: none` on every ul, which is why a
       // marker has to be asked for explicitly here and in legal-doc.tsx.
       return (
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-charcoal marker:text-gold-dark-dark">
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-charcoal marker:text-gold-dark">
           {block.items[lang].map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -67,7 +67,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
               <Link
                 key={i}
                 href={run.href}
-                className="underline decoration-gold-dark-dark/50 underline-offset-4 hover:text-gold-dark-dark"
+                className="underline decoration-gold-dark/50 underline-offset-4 hover:text-gold-dark"
               >
                 {run.t}
               </Link>
@@ -105,7 +105,7 @@ export function LegalArticles({
   articles: LegalArticle[];
 }) {
   return (
-    <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
+    <section lang={lang} className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[72ch]">
         <h1 className="text-[clamp(32px,4.6vw,64px)]">{title[lang]}</h1>
         {/* The document carries its own last-updated line, so the shared draft
@@ -127,7 +127,7 @@ export function LegalArticles({
             // summary block ahead of section 1), and `key={undefined}` is a
             // silent duplicate-key bug rather than a visible one.
             <article key={ai} className="border-t border-hairline py-6">
-              <h2 className="font-display text-[clamp(20px,2.4vw,28px)] text-gold-pale">
+              <h2 className="font-display text-[clamp(20px,2.4vw,28px)] text-charcoal-deep">
                 {a.n === undefined ? a.h[lang] : `${a.n}. ${a.h[lang]}`}
               </h2>
               {a.blocks.map((block, i) => (
