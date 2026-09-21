@@ -279,6 +279,29 @@ export function trackHeroSlideCta(slug: string): void {
 }
 
 /**
+ * A contact-form submission and how it ended.
+ *
+ * Same shape and same reasoning as trackNewsletterSubscribe: `result` is the
+ * form's own state word — sent, invalid, rate_limited, error — so the failures
+ * are countable too, because a form that only reports its successes cannot
+ * tell you it has stopped working.
+ *
+ * NOTHING THE PERSON TYPED IS A PROPERTY. Not the name, not the address, not a
+ * word of the message. The baseline needs none of it to answer whether the
+ * form works, and a contact form is the one place on the site where a visitor
+ * hands over a sentence meant for a human rather than a database.
+ *
+ * `lang` is read from the document rather than passed in, like
+ * trackHeroSlideCta: it is already on <html lang>, set by the same render that
+ * chose the form's labels. Two properties: the budget, spent.
+ */
+export function trackContactSubmit(result: string): void {
+  if (!result) return;
+  const lang = (typeof document !== "undefined" && document.documentElement.lang) || DEFAULT_LANG;
+  emit("contact_submit", { result, lang });
+}
+
+/**
  * A service request that actually landed. Called after the Server Action has
  * resolved ok — never from the click, or the number measures intent rather
  * than requests, the same rule as trackAddToCart. `kind` is one of the five

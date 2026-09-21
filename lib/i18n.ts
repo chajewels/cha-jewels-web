@@ -119,6 +119,8 @@ export const dict = {
     aboutDesc: { ja: "私たちの歩みと基準、東京の拠点。", en: "Our story, our standards, our Tokyo base." },
     why: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" },
     whyDesc: { ja: "お選びいただく理由と、私たちのお約束。", en: "What you can expect from us, and why it matters." },
+    faq: { ja: "よくある質問", en: "FAQ" },
+    faqDesc: { ja: "レイアウェイ・配送・返品・ロイヤルティのご質問に。", en: "Answers on layaway, delivery, returns and loyalty." },
     blog: { ja: "ブログ", en: "Blog" },
     blogDesc: { ja: "ジュエリーの選び方、お手入れ、読みもの。", en: "Choosing, caring for and living with jewelry." },
     news: { ja: "お知らせ", en: "News & Updates" },
@@ -182,6 +184,20 @@ export const dict = {
     // /affiliations. Memberships are FACTS about the business, so the two
     // entries state what they are and nothing more — no logos, no member
     // numbers, no claim that a membership certifies anything about a piece.
+    // The two-panel section and its form.
+    h1Panel: { ja: "お問い合わせ", en: "Get in touch" },
+    panelLede: { ja: "ご質問、お見積り、ご来店のご予約など、下のフォームからお気軽にご連絡ください。1営業日以内にご返信します。", en: "Questions, quotes or arranging a visit — send us a note below and we'll reply within one business day." },
+    fullName: { ja: "お名前", en: "Full name" },
+    phoneOptional: { ja: "電話番号（任意）", en: "Phone (optional)" },
+    message: { ja: "お問い合わせ内容", en: "Message" },
+    messageCount: { ja: "{n} / {max} 文字", en: "{n} / {max} characters" },
+    newsletterOptIn: { ja: "ニュースレターを受け取る", en: "Send me the newsletter" },
+    send: { ja: "送信する", en: "Send" },
+    sending: { ja: "送信中…", en: "Sending…" },
+    sent: { ja: "ありがとうございます。1営業日以内にご返信します。", en: "Thank you — we'll reply within one business day." },
+    invalid: { ja: "入力内容をご確認ください。お名前、メールアドレス、10文字以上のお問い合わせ内容が必要です。", en: "Please check the form. We need your name, a valid email address and a message of at least 10 characters." },
+    rateLimited: { ja: "しばらく時間をおいてからお試しください。", en: "Too many attempts — please try again shortly." },
+    error: { ja: "送信できませんでした。時間をおいてお試しいただくか、メールでご連絡ください。", en: "We couldn't send your message. Please try again shortly, or email us instead." },
     affiliationsH: { ja: "所属団体", en: "Affiliations" },
     affiliationsLede: { ja: "Cha Jewelsが所属している東京の経済団体です。", en: "The business organisations Cha Jewels belongs to in Tokyo." },
     afCciName: { ja: "東京商工会議所", en: "Tokyo Chamber of Commerce and Industry" },

@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, Testimonial } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
@@ -106,6 +106,25 @@ export const hub = {
    *
    * `revalidate: false` because this is a write; nothing about it is cacheable.
    */
+  /**
+   * A contact-form message. x-api-key only: a signed-out visitor is exactly
+   * who this form is for, so there is no customer auth on it.
+   *
+   * `page` is the path the message was sent from, so a reply can see what the
+   * person was looking at. `newsletter` is the opt-in checkbox, passed through
+   * for the Hub to act on — this side never subscribes anyone itself, because
+   * one message must not become two writes that can half-fail.
+   *
+   * `revalidate: false` because this is a write; nothing about it is cacheable.
+   */
+  contact: (body: {
+    full_name: string; email: string; phone?: string; message: string;
+    lang?: string; page?: string; newsletter?: boolean;
+  }): Promise<ContactResult> =>
+    FIXTURES
+      ? Promise.resolve({ status: "received" as const })
+      : call("/contact", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+
   subscribe: (body: { email: string; lang?: string; source?: string }): Promise<NewsletterSubscribeResult> =>
     FIXTURES
       ? Promise.resolve({ status: fx.rememberSubscriber(body.email) ? "already_subscribed" : "subscribed" })

@@ -381,6 +381,9 @@ export type ServiceRequestInput = {
 };
 
 /** POST /newsletter. `already_subscribed` is a success — see hub.subscribe. */
+/** What POST /contact answers. One word, because the form needs nothing else. */
+export type ContactResult = { status: "received" };
+
 export type NewsletterSubscribeResult = { status: "subscribed" | "already_subscribed" };
 /** GET /newsletter/unsubscribe. Always `unsubscribed`, whatever the token was. */
 export type NewsletterUnsubscribeResult = { status: "unsubscribed" };
