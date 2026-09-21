@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, Testimonial, ContactResult } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
@@ -113,6 +113,27 @@ export const hub = {
    */
   settings: (): Promise<SiteSettings> =>
     FIXTURES ? Promise.resolve(fx.settingsFixture) : call("/content/settings", { tags: ["content"] }),
+
+  /**
+   * Editorial posts, newest first. `type` narrows to one kind; omitted, both
+   * come back, because /blog lists them together.
+   *
+   * Tag "content", like the settings: an owner publishing a post and an owner
+   * editing the footer are the same kind of event, and the Hub busts them with
+   * the same POST. The 60s revalidate is the backstop under it.
+   *
+   * THROWS. lib/posts.ts is the one place that decides what a Hub failure
+   * means, and it means the static posts still render.
+   */
+  posts: (type?: PostType): Promise<HubPost[]> =>
+    FIXTURES
+      ? Promise.resolve(type ? fx.postsFixture.filter((p) => p.type === type) : fx.postsFixture)
+      : call(`/content/posts${type ? `?type=${encodeURIComponent(type)}` : ""}`, { tags: ["content"] }),
+  /** One post. 404 → null, like collection() — an unknown slug is not an error. */
+  post: (slug: string): Promise<HubPost | null> =>
+    FIXTURES
+      ? Promise.resolve(fx.postsFixture.find((p) => p.slug === slug) ?? null)
+      : notFoundToNull(call(`/content/posts/${encodeURIComponent(slug)}`, { tags: ["content"] })),
 
   /**
    * Newsletter sign-up. x-api-key only — there is no customer auth here, so a

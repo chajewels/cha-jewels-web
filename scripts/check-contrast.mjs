@@ -214,6 +214,12 @@ add("social icon ring charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
 add("social icon glyph charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
 add("social icon glyph gold-dark (hover) on white", "gold-dark", "white", NONTEXT);
 
+// Post body links (.post-body a in app/globals.css). The resting gold-dark on
+// chalk already has a row above; the HOVER is gold-deep, which is new on this
+// surface — gold-deep existed only over the two composited tints until now.
+// Underlined at rest as well, so colour is not the only thing carrying them.
+add("post body link hover (gold-deep) on chalk", "gold-deep", "chalk", TEXT);
+
 // The announcement bar (components/site/announcement-bar.tsx): a charcoal-deep
 // strip above the header, chalk sentence, orange link when the Hub's row
 // carries an href, and a chalk/75 close glyph.

@@ -45,14 +45,15 @@ export async function Header({ lang }: { lang: Lang }) {
   ]);
   const name = session ? (await customerFirstName(session)) ?? t("accountMenu", "fallback") : null;
 
-  // Two items point at /blog until News is filtered (plan §2), so the key is
-  // explicit rather than the href.
+  // Blog and News are the same route with different `type` filters — one posts
+  // table in the Hub, one cache here. The key is explicit rather than the href
+  // because the two hrefs share a path and differ only by query.
   const companyItems = [
     { key: "about", href: "/about", label: t("navMenu", "about"), desc: t("navMenu", "aboutDesc"), icon: <Info className="h-5 w-5" /> },
     { key: "why", href: "/why-cha-jewels", label: t("navMenu", "why"), desc: t("navMenu", "whyDesc"), icon: <Gem className="h-5 w-5" /> },
     { key: "faq", href: "/faq", label: t("navMenu", "faq"), desc: t("navMenu", "faqDesc"), icon: <CircleHelp className="h-5 w-5" /> },
     { key: "blog", href: "/blog", label: t("navMenu", "blog"), desc: t("navMenu", "blogDesc"), icon: <BookOpen className="h-5 w-5" /> },
-    { key: "news", href: "/blog", label: t("navMenu", "news"), desc: t("navMenu", "newsDesc"), icon: <Megaphone className="h-5 w-5" /> },
+    { key: "news", href: "/blog?type=news", label: t("navMenu", "news"), desc: t("navMenu", "newsDesc"), icon: <Megaphone className="h-5 w-5" /> },
     { key: "contact", href: "/contact", label: t("navMenu", "contact"), desc: t("navMenu", "contactDesc"), icon: <MessageCircle className="h-5 w-5" /> },
     { key: "affiliations", href: "/affiliations", label: t("navMenu", "affiliations"), desc: t("navMenu", "affiliationsDesc"), icon: <Landmark className="h-5 w-5" /> },
   ];

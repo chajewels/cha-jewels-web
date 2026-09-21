@@ -24,6 +24,22 @@
      flip and is gone; the body does that now. */
   .band-dark { --rule: rgba(201,162,39,.32); }
 
+  /* Post bodies (app/blog/[slug]/page.tsx). The HTML comes from
+     lib/markdown.ts, which emits bare tags and no classes, so the styling for
+     the six constructs it supports lives here rather than being repeated as
+     utilities the renderer would have to know about.
+
+     No @tailwindcss/typography: it styles two dozen elements this renderer can
+     never produce, and its defaults would then be the thing deciding how a
+     post reads. Six rules for six constructs. */
+  .post-body { @apply text-[17px] leading-relaxed text-charcoal-deep; }
+  .post-body > * + * { @apply mt-5; }
+  .post-body h2 { @apply mt-10 font-display text-[clamp(24px,2.4vw,32px)] leading-tight; }
+  .post-body h3 { @apply mt-8 font-display text-[clamp(20px,1.9vw,24px)] leading-tight; }
+  .post-body ul { @apply list-disc space-y-2 pl-6; }
+  .post-body ol { @apply list-decimal space-y-2 pl-6; }
+  .post-body a { @apply text-gold-dark underline underline-offset-4 hover:text-gold-deep; }
+
   /* The announcement bar, hidden BEFORE FIRST PAINT for a visitor who already
      dismissed it this session. components/site/announcement-bar.tsx renders a
      one-expression inline script that sets this attribute on <body> during
