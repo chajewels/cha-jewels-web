@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
-import { tr, type Lang } from "@/lib/i18n";
-import { COMPANY_ADDRESS, COMPANY_NAME, COMPANY_PHONE, tokusho } from "@/lib/content/legal";
-import { FOLLOW } from "@/lib/social";
+import { tr } from "@/lib/i18n";
+import { COMPANY_ADDRESS, COMPANY_NAME, COMPANY_PHONE } from "@/lib/content/legal";
+import { contactEmail, follow } from "@/lib/settings";
 import { SocialIcons } from "@/components/site/social-icons";
 import { ContactForm } from "@/components/site/contact-form";
 
@@ -12,12 +12,17 @@ export const generateMetadata = () => pageMeta("contact");
 /**
  * Contact — a dark panel of ways to reach us, and a white card to write in.
  *
- * Every VALUE in the panel comes from lib/content/legal.ts; nothing is typed.
- * The company name, the registered address and both phone numbers are the same
- * constants the statutory tokusho page and the invoice header print
- * (components/account/print-header.tsx does the same), and the email is read
- * out of the tokusho rows by its key. A contact detail changes in one file, and
- * this page cannot drift from the statutory one.
+ * The company name, the registered address and both phone numbers come from
+ * lib/content/legal.ts — the same constants the statutory tokusho page and the
+ * invoice header print (components/account/print-header.tsx does the same), so
+ * nothing here is typed and this page cannot drift from the statutory one.
+ *
+ * THE EMAIL AND THE FOLLOW ROW ARE THE EXCEPTION, and deliberately: they are
+ * owner-editable in the Hub (lib/settings.ts). /legal/tokusho keeps printing
+ * its own email from legal.ts, because a statutory disclosure is not editable
+ * copy. The fallback here is the same address legal.ts states, so the two agree
+ * until someone changes one on purpose — and if they ever disagree, the tokusho
+ * row is the one that is right.
  *
  * From lg the card overlaps the panel's edge, which is the reference's look.
  * The overlap is a NEGATIVE MARGIN on the card rather than a transform: a
@@ -29,15 +34,11 @@ export const generateMetadata = () => pageMeta("contact");
  * STILL NO OPENING HOURS: they are in no source file, and are not invented
  * here.
  */
-function tokushoValue(keyEn: string, lang: Lang): string | null {
-  return tokusho.rows.find((r) => r.k.en === keyEn)?.v[lang] ?? null;
-}
-
 export default async function Contact() {
   const lang = await getLang();
   const t = tr(lang);
   const address = COMPANY_ADDRESS[lang];
-  const email = tokushoValue("Email", lang);
+  const [email, followLinks] = await Promise.all([contactEmail(), follow()]);
   // Built from the address rather than a stored place id, so it follows the
   // address if that ever changes.
   const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -92,7 +93,7 @@ export default async function Contact() {
 
             <div className="mt-10 border-t border-chalk/20 pt-6">
               <p className={panelLabel}>{t("contact", "follow")}</p>
-              <SocialIcons items={FOLLOW} tone="dark" lang={lang} className="mt-3" />
+              <SocialIcons items={followLinks} tone="dark" lang={lang} className="mt-3" />
             </div>
           </div>
 

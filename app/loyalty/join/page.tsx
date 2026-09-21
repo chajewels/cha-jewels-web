@@ -7,6 +7,7 @@ import { hub } from "@/lib/hub-api";
 import { Button } from "@/components/ui/button";
 import { JoinButton } from "@/components/loyalty/join-button";
 import { MemberGroups } from "@/components/loyalty/member-groups";
+import { loyaltyGroups } from "@/lib/settings";
 
 export const generateMetadata = () => pageMeta("join");
 export const dynamic = "force-dynamic";
@@ -14,6 +15,9 @@ export const dynamic = "force-dynamic";
 export default async function JoinPage() {
   const lang = await getLang();
   const t = tr(lang);
+  // Owner-editable in the Hub; falls back to lib/social.ts. Resolved here
+  // because JoinButton is a client component and lib/settings.ts is server-only.
+  const groups = await loyaltyGroups();
 
   // middleware gates /loyalty/join, but a page that reads customer state must
   // not depend on it: the gate decides what to render, the Hub decides what is
@@ -49,10 +53,10 @@ export default async function JoinPage() {
           <div className="border border-hairline bg-white p-6 text-charcoal-deep">
             {t("loyalty", "alreadyMember")}{" "}
             <Link href="/account" className="underline hover:text-charcoal-deep">{t("nav", "account")}</Link>
-            <MemberGroups lang={lang} className="mt-6 border-t border-hairline pt-5" />
+            <MemberGroups items={groups} lang={lang} className="mt-6 border-t border-hairline pt-5" />
           </div>
         ) : (
-          <JoinButton lang={lang} />
+          <JoinButton lang={lang} groups={groups} />
         )}
       </div>
     </section>

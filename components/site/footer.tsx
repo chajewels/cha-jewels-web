@@ -3,7 +3,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { getCollections } from "@/lib/queries/products";
 import { collectionName } from "@/lib/catalog-i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
-import { FOLLOW } from "@/lib/social";
+import { follow, footerTagline } from "@/lib/settings";
 import { COMPANY_NAME } from "@/lib/content/legal";
 import { SocialIcons } from "@/components/site/social-icons";
 import { NewsletterForm } from "@/components/site/newsletter-form";
@@ -12,7 +12,10 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
  * The Stitch footer (docs/stitch/cha-desktop.html §12): charcoal, four columns
  * — brand, collections, customer care & legal, follow us — orange column
  * headings and the company line at the bottom. The fourth column holds the
- * social icon row (lib/social.ts) where the newsletter form used to be.
+ * social icon row where the newsletter form used to be. The row and the brand
+ * paragraph are owner-editable in the Hub (lib/settings.ts); lib/social.ts and
+ * dict.footer.blurb are what they fall back to, so a Hub that cannot answer
+ * costs the footer nothing.
  *
  * Collection links come from the Hub's jewelry types, in the language of the
  * page. Nothing here names a collection: add or rename one in the Hub and the
@@ -23,7 +26,14 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
  */
 export async function Footer({ lang }: { lang: Lang }) {
   const t = tr(lang);
-  const collections = await getCollections().catch(() => []);
+  // The three reads are independent, so they go together rather than in
+  // sequence. None of them can reject: getCollections is caught here and both
+  // settings getters fall back rather than throw.
+  const [collections, followLinks, tagline] = await Promise.all([
+    getCollections().catch(() => []),
+    follow(),
+    footerTagline(lang),
+  ]);
   const heading = "mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-orange";
   const link = "text-chalk/75 hover:text-chalk";
   return (
@@ -34,7 +44,7 @@ export async function Footer({ lang }: { lang: Lang }) {
             <img src="/images/brand/logo-badge-192.webp" width={48} height={48} alt="" className="h-12 w-12" />
             <p className="gilt font-display text-2xl">Cha Jewels</p>
           </div>
-          <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{t("footer", "blurb")}</p>
+          <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{tagline}</p>
         </div>
         <div className="lg:col-span-3">
           <h2 className={heading}>{t("footer", "collections")}</h2>
@@ -60,7 +70,7 @@ export async function Footer({ lang }: { lang: Lang }) {
           <p className="leading-relaxed text-chalk/75">{t("footer", "newsletterNote")}</p>
           <NewsletterForm lang={lang} tone="dark" />
           <h2 className={`${heading} mt-8`}>{t("footer", "follow")}</h2>
-          <SocialIcons items={FOLLOW} tone="dark" lang={lang} />
+          <SocialIcons items={followLinks} tone="dark" lang={lang} />
         </div>
       </div>
       <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-charcoal-mid pt-6 text-xs text-chalk/55">

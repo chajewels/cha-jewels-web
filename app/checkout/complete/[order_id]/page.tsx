@@ -9,12 +9,13 @@ import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { MemberGroups } from "@/components/loyalty/member-groups";
+import { loyaltyGroups } from "@/lib/settings";
 
 export const generateMetadata = () => pageMeta("complete");
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutCompletePage({ params }: { params: Promise<{ order_id: string }> }) {
-  const [lang, { order_id }] = await Promise.all([getLang(), params]);
+  const [lang, { order_id }, groups] = await Promise.all([getLang(), params, loyaltyGroups()]);
   const t = tr(lang);
 
   const supabase = await supabaseServer();
@@ -78,7 +79,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
 
         {isMember && (
           <div className="mt-10 border border-hairline bg-white p-6">
-            <MemberGroups lang={lang} />
+            <MemberGroups items={groups} lang={lang} />
           </div>
         )}
       </div>

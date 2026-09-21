@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, Testimonial, ContactResult } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
@@ -97,6 +97,23 @@ export const hub = {
     if (FIXTURES) return [];
     try { return await call("/testimonials"); } catch { return []; }
   },
+  /**
+   * The owner-editable strings and links for this site (lib/settings.ts reads
+   * them by key). A flat map, so a key either side has not learned yet is
+   * absent rather than an error.
+   *
+   * Cached on tag "content", NOT "catalog": a product change and a settings
+   * change are different events and must not bust each other's cache. The 60s
+   * revalidate is a BACKSTOP — the Hub busts the tag through /api/revalidate
+   * when the owner saves, and this is only what happens if that POST is lost.
+   *
+   * THROWS like any other call. It has to: lib/settings.ts is the one place
+   * that decides what a failure means, and a `catch { return {} }` here would
+   * make "the Hub is down" indistinguishable from "the Hub has no settings".
+   */
+  settings: (): Promise<SiteSettings> =>
+    FIXTURES ? Promise.resolve(fx.settingsFixture) : call("/content/settings", { tags: ["content"] }),
+
   /**
    * Newsletter sign-up. x-api-key only — there is no customer auth here, so a
    * signed-out visitor can subscribe from the footer. `already_subscribed` is

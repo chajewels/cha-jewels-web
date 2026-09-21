@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { joinLoyaltyAction } from "@/lib/loyalty-actions";
 import type { EnrolOutcome } from "@/lib/loyalty-actions";
 import { MemberGroups } from "@/components/loyalty/member-groups";
+import type { SocialLink } from "@/lib/social";
 
 /**
  * Joining from /loyalty/join.
@@ -16,12 +17,16 @@ import { MemberGroups } from "@/components/loyalty/member-groups";
  * regardless. The page is behind sign-in now, so the Hub already knows who this
  * is: the only thing left to collect is the decision, which is one button.
  *
+ * `groups` is resolved on the server by the page and passed down: the member
+ * group links come from the Hub through lib/settings.ts, which is server-only
+ * and cannot be imported here.
+ *
  * Every outcome the server can return is rendered. `recorded` is the one worth
  * reading twice: the enrolment itself failed, the attempt was written down, and
  * the Hub has raised a staff bell — so the honest thing to tell the customer is
  * that a person will finish it, not that they are a member.
  */
-export function JoinButton({ lang }: { lang: Lang }) {
+export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] }) {
   const c = dict.loyalty;
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<EnrolOutcome["state"] | null>(null);
@@ -44,7 +49,7 @@ export function JoinButton({ lang }: { lang: Lang }) {
     return (
       <div className={box}>
         {c.ok[lang]}
-        <MemberGroups lang={lang} className="mt-6 border-t border-hairline pt-5" />
+        <MemberGroups items={groups} lang={lang} className="mt-6 border-t border-hairline pt-5" />
       </div>
     );
   }
@@ -55,7 +60,7 @@ export function JoinButton({ lang }: { lang: Lang }) {
         <Link href="/account" className="underline hover:text-charcoal-deep">
           {dict.nav.account[lang]}
         </Link>
-        <MemberGroups lang={lang} className="mt-6 border-t border-hairline pt-5" />
+        <MemberGroups items={groups} lang={lang} className="mt-6 border-t border-hairline pt-5" />
       </div>
     );
   }
