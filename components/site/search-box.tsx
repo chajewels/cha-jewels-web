@@ -193,7 +193,7 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKeyDown}
             onFocus={() => { if (items.length > 0) setOpen(true); }}
-            className="min-h-9 w-full bg-transparent text-sm text-charcoal outline-none placeholder:text-charcoal/50"
+            className="min-h-9 w-full bg-transparent text-sm text-charcoal outline-none placeholder:text-charcoal/70"
           />
         </div>
 
