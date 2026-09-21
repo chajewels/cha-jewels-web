@@ -3,11 +3,14 @@ import { tr, type Lang } from "@/lib/i18n";
 import { getCollections } from "@/lib/queries/products";
 import { collectionName } from "@/lib/catalog-i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
+import { FOLLOW } from "@/lib/social";
+import { SocialIcons } from "@/components/site/social-icons";
 
 /**
  * The Stitch footer (docs/stitch/cha-desktop.html §12): charcoal, four columns
- * — brand, collections, customer care & legal — orange column
- * headings and the company line at the bottom.
+ * — brand, collections, customer care & legal, follow us — orange column
+ * headings and the company line at the bottom. The fourth column holds the
+ * social icon row (lib/social.ts) where the newsletter form used to be.
  *
  * Collection links come from the Hub's jewelry types, in the language of the
  * page. Nothing here names a collection: add or rename one in the Hub and the
@@ -24,22 +27,22 @@ export async function Footer({ lang }: { lang: Lang }) {
   return (
     <footer className="border-t border-charcoal-mid bg-charcoal-deep py-14 text-sm text-chalk">
       <div className="wrap grid gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-4">
           <div className="flex items-center gap-3">
             <img src="/images/brand/logo-badge-192.webp" width={48} height={48} alt="" className="h-12 w-12" />
             <p className="gilt font-display text-2xl">Cha Jewels</p>
           </div>
           <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{t("footer", "blurb")}</p>
         </div>
-        <div className="lg:col-span-4">
-          <h4 className={heading}>{t("footer", "collections")}</h4>
+        <div className="lg:col-span-3">
+          <h2 className={heading}>{t("footer", "collections")}</h2>
           <ul className="space-y-2">
             {collections.map((c) => <li key={c.id}><Link href={`/collections/${c.slug}`} className={link}>{collectionName(c, lang)}</Link></li>)}
             <li><Link href="/collections" className={link}>{t("footer", "all")}</Link></li>
           </ul>
         </div>
         <div className="lg:col-span-3">
-          <h4 className={heading}>{t("footer", "care")}</h4>
+          <h2 className={heading}>{t("footer", "care")}</h2>
           <ul className="space-y-2">
             {layawayOffered(lang) && <li><Link href="/layaway" className={link}>{t("footer", "terms")}</Link></li>}
             <li><Link href="/gold-guide" className={link}>{t("footer", "goldGuide")}</Link></li>
@@ -49,6 +52,10 @@ export async function Footer({ lang }: { lang: Lang }) {
             <li><Link href="/legal/terms" className={link}>{t("footer", "sale")}</Link></li>
             <li><Link href="/faq" className={link}>{t("footer", "faq")}</Link></li>
           </ul>
+        </div>
+        <div className="lg:col-span-2">
+          <h2 className={heading}>{t("footer", "follow")}</h2>
+          <SocialIcons items={FOLLOW} tone="dark" lang={lang} />
         </div>
       </div>
       <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-charcoal-mid pt-6 text-xs text-chalk/55">

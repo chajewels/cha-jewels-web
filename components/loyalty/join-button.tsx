@@ -6,6 +6,7 @@ import { dict, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { joinLoyaltyAction } from "@/lib/loyalty-actions";
 import type { EnrolOutcome } from "@/lib/loyalty-actions";
+import { MemberGroups } from "@/components/loyalty/member-groups";
 
 /**
  * Joining from /loyalty/join.
@@ -37,8 +38,15 @@ export function JoinButton({ lang }: { lang: Lang }) {
 
   const box = "border border-hairline bg-white p-6 text-charcoal-deep";
 
+  // The two outcomes in which this customer IS a member — freshly, or already.
+  // The groups are member-only, so they appear here and nowhere else on the page.
   if (outcome === "enrolled") {
-    return <div className={box}>{c.ok[lang]}</div>;
+    return (
+      <div className={box}>
+        {c.ok[lang]}
+        <MemberGroups lang={lang} className="mt-6 border-t border-hairline pt-5" />
+      </div>
+    );
   }
   if (outcome === "already") {
     return (
@@ -47,6 +55,7 @@ export function JoinButton({ lang }: { lang: Lang }) {
         <Link href="/account" className="underline hover:text-charcoal-deep">
           {dict.nav.account[lang]}
         </Link>
+        <MemberGroups lang={lang} className="mt-6 border-t border-hairline pt-5" />
       </div>
     );
   }
