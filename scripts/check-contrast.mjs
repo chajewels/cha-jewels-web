@@ -195,6 +195,18 @@ add("status dot good (gold-dark) on chalk", "gold-dark", "chalk", NONTEXT);
 add("status dot pending RING (charcoal-deep) on chalk", "charcoal-deep", "chalk", NONTEXT);
 add("status dot dead hollow (charcoal/70 border) on chalk", "charcoal", "chalk", NONTEXT, 0.7);
 
+// Social icon buttons (components/site/social-icons.tsx): a 40px ring around a
+// currentColor glyph. Dark tone on the footer, light tone on white cards and
+// the chalk page. The ring is a component boundary and the glyph the whole
+// visible label, so both are measured at NONTEXT. A hairline ring on light was
+// the first draft and measures 1.16 — hence charcoal/60, the input-border edge.
+add("social icon ring chalk/40 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.4);
+add("social icon glyph chalk/75 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.75);
+add("social icon ring charcoal/60 on chalk", "charcoal", "chalk", NONTEXT, 0.6);
+add("social icon ring charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
+add("social icon glyph charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
+add("social icon glyph gold-dark (hover) on white", "gold-dark", "white", NONTEXT);
+
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
 // The Phase 4 additions are the tokens that look like they would be fine on a
 // light surface and are not:

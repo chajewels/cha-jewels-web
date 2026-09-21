@@ -8,6 +8,7 @@ import { hubMe } from "@/lib/session";
 import type { HubMe } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { SignOutButton } from "@/components/account/sign-out-button";
+import { MemberGroups } from "@/components/loyalty/member-groups";
 import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("account");
@@ -76,6 +77,9 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                       </dl>
                     </div>
                   )}
+                  {/* Member-only chat groups: `loyalty.enrolled` from GET /me is
+                      the one membership signal this site has. */}
+                  <MemberGroups lang={lang} className="mt-6 border-t border-hairline pt-5" />
                   <p className="mt-4 text-xs text-charcoal/70">
                     {t("account", "levelRule")}{" "}
                     <Link href="/loyalty" className="underline hover:text-gold-dark">{t("nav", "loyalty")}</Link>
