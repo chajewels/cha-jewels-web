@@ -1,6 +1,6 @@
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
-import { tokusho } from "@/lib/content/legal";
+import { tokusho, tokushoUpdated } from "@/lib/content/legal";
 
 export const generateMetadata = () => pageMeta("tokusho");
 
@@ -27,6 +27,7 @@ export default async function Tokusho() {
     <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
         <h1 className="text-[clamp(32px,4vw,56px)]">{tokusho.title[lang]}</h1>
+        <p className="mt-4 text-sm text-charcoal/70">{tokushoUpdated[lang]}</p>
         <dl className="mt-10 divide-y divide-hairline border-y border-hairline">
           {tokusho.rows.map(({ k, v }) => (
             // Keyed on the Japanese label because it is stable — the key must
