@@ -1,6 +1,7 @@
 import "server-only";
 import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, Testimonial } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
+import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
 /**
  * The website's only door into Cha Jewels Hub.
@@ -96,6 +97,31 @@ export const hub = {
     if (FIXTURES) return [];
     try { return await call("/testimonials"); } catch { return []; }
   },
+  /**
+   * Newsletter sign-up. x-api-key only — there is no customer auth here, so a
+   * signed-out visitor can subscribe from the footer. `already_subscribed` is
+   * a SUCCESS, not an error: re-submitting an address must not tell a stranger
+   * whether it is already on the list, and must not read as a failure to the
+   * person who simply forgot.
+   *
+   * `revalidate: false` because this is a write; nothing about it is cacheable.
+   */
+  subscribe: (body: { email: string; lang?: string; source?: string }): Promise<NewsletterSubscribeResult> =>
+    FIXTURES
+      ? Promise.resolve({ status: fx.rememberSubscriber(body.email) ? "already_subscribed" : "subscribed" })
+      : call("/newsletter", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+
+  /**
+   * Unsubscribe by token. ALWAYS answers `unsubscribed`, whether the token was
+   * live, spent or nonsense — the page exists to end the relationship, and a
+   * token that turns out to be invalid is not something to make a visitor
+   * argue with.
+   */
+  unsubscribe: (token: string): Promise<NewsletterUnsubscribeResult> =>
+    FIXTURES
+      ? Promise.resolve({ status: "unsubscribed" })
+      : call(`/newsletter/unsubscribe?token=${encodeURIComponent(token)}`, { revalidate: false }),
+
   fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: 0.39, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"] }),
   loyaltyTiers: (): Promise<HubTier[]> =>
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),

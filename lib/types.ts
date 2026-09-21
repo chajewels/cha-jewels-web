@@ -379,3 +379,8 @@ export type ServiceRequestInput = {
   /** The language the customer wrote in, so staff can answer in it. */
   lang: "ja" | "en";
 };
+
+/** POST /newsletter. `already_subscribed` is a success — see hub.subscribe. */
+export type NewsletterSubscribeResult = { status: "subscribed" | "already_subscribed" };
+/** GET /newsletter/unsubscribe. Always `unsubscribed`, whatever the token was. */
+export type NewsletterUnsubscribeResult = { status: "unsubscribed" };
