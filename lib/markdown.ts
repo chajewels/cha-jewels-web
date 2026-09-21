@@ -16,8 +16,10 @@
  * keep up to date — which is the failure mode of every sanitiser that has ever
  * been bypassed. A post that wants a table gets the words for one.
  *
- * The only HTML in the output is the tags this file writes, and the only
- * attribute is `href`, whose value is scheme-checked below.
+ * The only HTML in the output is the tags this file writes, and `href` is the
+ * ONLY attribute it ever emits — scheme-checked below. No classes either: how a
+ * post looks is `.post-body` in globals.css, not a decision this file makes, so
+ * a restyle never means touching the thing that produces the markup.
  *
  * NOT A GENERAL-PURPOSE RENDERER. It is deliberately strict and deliberately
  * small: unsupported syntax renders as the literal characters the author typed,
@@ -72,7 +74,7 @@ function inline(text: string): string {
     // An empty label would be a link with no accessible name, which axe reports
     // and a screen reader announces as the URL anyway. Showing the URL is the
     // same information, said out loud.
-    const i = links.push(`<a href="${safe}" class="underline underline-offset-4 hover:text-gold-dark">${emphasis(label.trim() || safe)}</a>`) - 1;
+    const i = links.push(`<a href="${safe}">${emphasis(label.trim() || safe)}</a>`) - 1;
     return `\u0000${i}\u0000`;
   });
   out = emphasis(out);

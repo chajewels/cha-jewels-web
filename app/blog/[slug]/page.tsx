@@ -3,28 +3,58 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-import { getPostFor, posts } from "@/lib/blog";
-export function generateStaticParams() { return posts.map((p) => ({ slug: p.slug })); }
+import { allPostSlugs, getPost } from "@/lib/posts";
+import { JsonLd } from "@/components/site/json-ld";
+
+/**
+ * BOTH SOURCES, AND NEITHER LANGUAGE'S RULES. A param list says which URLs
+ * exist, not who may read them — lib/posts.ts decides that per request, and the
+ * page 404s a reader who may not. That is the behaviour lib/blog.ts already had
+ * for the layaway posts and it is why their slugs stay listed here.
+ *
+ * A Hub that cannot answer during the build yields the static slugs alone;
+ * `dynamicParams` is on by default, so a Hub post published after the build is
+ * still rendered on demand.
+ */
+export async function generateStaticParams() {
+  return (await allPostSlugs()).map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const lang = await getLang();
-  const p = getPostFor((await params).slug, lang);
-  return p ? { title: p.title[lang], description: p.excerpt[lang] } : {};
+  const p = await getPost((await params).slug, lang);
+  return p ? { title: p.title, description: p.excerpt || undefined } : {};
 }
+
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  // getPostFor, not getPost: a layaway post 404s where layaway is not offered.
-  // The slug stays in generateStaticParams, so without this the Japanese site
-  // would serve a Japanese layaway explainer it hides everywhere else.
+  // getPost applies the layaway rule, so a layaway post 404s where layaway is
+  // not offered. The slug stays in generateStaticParams, so without this the
+  // Japanese site would serve a Japanese layaway explainer it hides everywhere
+  // else. It is also what answers a slug that only the other language has.
   const [{ slug }, lang] = await Promise.all([params, getLang()]);
-  const p = getPostFor(slug, lang);
+  const p = await getPost(slug, lang);
   if (!p) notFound();
   const t = tr(lang);
+
   return (
     <article className="py-[clamp(48px,7vw,96px)]">
+      <JsonLd type="post" post={{ slug: p.slug, title: p.title, excerpt: p.excerpt, date: p.date, cover: p.cover, lang }} />
       <div className="wrap max-w-[760px]">
         <Link href="/blog" className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
+        {p.cover && (
+          // Hub media may come from hosts next/image is not configured for.
+          // Decorative: the <h1> below is the page's name, and an alt repeating
+          // it is the title read twice.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={p.cover} alt="" className="mt-6 aspect-[16/9] w-full rounded-sm border border-hairline object-cover" />
+        )}
         <time dateTime={p.date} className="mt-6 block text-xs text-charcoal/70">{p.date}</time>
-        <h1 className="mt-2 text-[clamp(32px,4.5vw,64px)]">{p.title[lang]}</h1>
-        <div className="mt-8 space-y-5 text-[17px] leading-relaxed text-charcoal-deep">{p.body[lang].map((para, i) => <p key={i}>{para}</p>)}</div>
+        <h1 className="mt-2 text-[clamp(32px,4.5vw,64px)]">{p.title}</h1>
+        {/* The body is rendered HTML from lib/markdown.ts, which escapes its
+            input before parsing it — there is no path from a post body to a
+            tag. `.post-body` in globals.css is what styles the elements it
+            emits; nothing inside carries a class of its own except links. */}
+        <div className="post-body mt-8" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} />
       </div>
     </article>
   );
