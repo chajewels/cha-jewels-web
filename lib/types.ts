@@ -426,3 +426,45 @@ export type SettingsAnnouncement = {
   href?: string | null;
   until?: string | null;
 };
+
+/**
+ * GET /content/posts, GET /content/posts/:slug — editorial written in the Hub.
+ *
+ * TWO KINDS IN ONE TABLE. `article` is the evergreen explainer (what K18 means,
+ * how layaway works); `news` is the dated notice the Company menu points at.
+ * They differ only by this field, because they are the same thing to a reader
+ * and splitting them into two routes would mean two caches, two revalidations
+ * and two chances for one of them to go stale on its own.
+ *
+ * TITLES AND BODIES ARE PER LANGUAGE AND EITHER MAY BE NULL. A post written
+ * only in English is not a post with an empty Japanese page — lib/posts.ts
+ * drops it from the language it has no words in, the same way a Japanese-only
+ * announcement is simply absent for an English reader.
+ *
+ * `body_*` is MARKDOWN, rendered by lib/markdown.ts. The Hub's editor writes
+ * text, not HTML, and the renderer emits no raw HTML from it under any input —
+ * see that file for why that is the rule rather than a sanitiser.
+ */
+export type PostType = "article" | "news";
+
+export type HubPost = {
+  id: string;
+  slug: string;
+  type: PostType;
+  /** ISO date or timestamp. Only the date is ever shown. */
+  published_at: string;
+  /** Hero image. Absent is normal and renders no header image at all. */
+  cover_url?: string | null;
+  /**
+   * Listed and readable only where layaway is offered — English only
+   * (lib/layaway-availability.ts, owner decision 2026-09-15). The same rule the
+   * static posts already carry, moved to a column the owner can set.
+   */
+  layaway_only?: boolean;
+  title_en?: string | null;
+  title_ja?: string | null;
+  excerpt_en?: string | null;
+  excerpt_ja?: string | null;
+  body_en?: string | null;
+  body_ja?: string | null;
+};

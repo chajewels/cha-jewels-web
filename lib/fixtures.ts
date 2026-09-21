@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 /** Plans in `layawayPlansFixture`, stated here because `meFixture` is declared first. */
@@ -550,3 +550,72 @@ export const settingsFixture: SiteSettings = {
     until: null,
   },
 };
+
+/**
+ * Preview editorial. TWO ROWS, chosen so the preview exercises every branch of
+ * lib/posts.ts rather than just the happy one:
+ *
+ *  - `what-k18-means` SHADOWS the static post of the same slug. Its title and
+ *    excerpt are deliberately not identical to lib/blog.ts's, so "the Hub row
+ *    wins by slug" is something you can see rather than something you have to
+ *    trust. It also carries a cover, which the static post cannot.
+ *  - `eight-month-layaway-now-open` is `news` and `layaway_only`, so it covers
+ *    the ?type=news filter and the Japanese hiding rule at once — and leaves
+ *    /blog?type=news EMPTY on Japanese, which is the state the list has to
+ *    render rather than crash on.
+ *
+ * Bodies are MARKDOWN, as the Hub's will be: a heading, a list, a link and
+ * emphasis between them, so lib/markdown.ts is exercised by looking at a page.
+ */
+export const postsFixture: HubPost[] = [
+  {
+    id: "post-1",
+    slug: "what-k18-means",
+    type: "article",
+    published_at: "2026-09-18",
+    cover_url: "/fixtures/pendant-1.svg",
+    layaway_only: false,
+    title_en: "What K18 means, and how to read the stamp",
+    title_ja: "K18の意味と、刻印の読み方",
+    excerpt_en: "Seventy-five per cent gold, twenty-five per cent alloy, and what that trade-off buys you in a piece worn every day.",
+    excerpt_ja: "金75%、合金25%。毎日身につけるジュエリーにとって、その配合が何を意味するのか。",
+    body_en: [
+      "K18 means the metal is **75% gold**. The remaining quarter is an alloy of silver and copper, and it is what decides hardness and colour.",
+      "## Why not K24",
+      "Pure gold is soft. As a ring or a chain it bends out of shape and picks up scratches from ordinary wear, which is why it is kept for bars rather than jewelry.",
+      "## Reading the stamp",
+      "- **K18** — the Japanese mark",
+      "- **AU750** — the same purity, written the European way",
+      "- A maker's mark, often beside it",
+      "Any jeweler can read these. If you are not sure what is on a piece you already own, [send us a photo](/contact) and we will tell you.",
+    ].join("\n\n"),
+    body_ja: [
+      "K18は金の含有率が**75%**であることを示します。残りの25%は銀や銅などの合金で、これが硬さと色を決めます。",
+      "## K24ではない理由",
+      "純金は柔らかく、指輪やチェーンでは日常の着用で曲がり、傷がつきます。インゴットには向いていても、ジュエリーには向きません。",
+      "## 刻印の読み方",
+      "- **K18** — 日本の表記",
+      "- **AU750** — 同じ純度のヨーロッパ式の表記",
+      "- メーカーの刻印が並ぶこともあります",
+      "どの宝飾店でも読み取れます。お手持ちの品の刻印がわからない場合は、[写真をお送りください](/contact)。",
+    ].join("\n\n"),
+  },
+  {
+    id: "post-2",
+    slug: "eight-month-layaway-now-open",
+    type: "news",
+    published_at: "2026-09-12",
+    cover_url: null,
+    layaway_only: true,
+    title_en: "Eight-month layaway is now open on orders of ¥300,000 and above",
+    title_ja: null,
+    excerpt_en: "The longer plan is live, with the same 30% deposit and the same 0% interest.",
+    excerpt_ja: null,
+    body_en: [
+      "Orders of ¥300,000 and above can now be spread over *eight* months instead of six.",
+      "Everything else is unchanged: 30% on the day, no interest, and a reminder three days before each due date.",
+      "See the [layaway terms](/layaway) for the full schedule.",
+    ].join("\n\n"),
+    body_ja: null,
+  },
+];
