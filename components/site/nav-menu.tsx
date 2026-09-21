@@ -116,20 +116,35 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
 }
 
 /**
- * One row in a menu panel: icon, title, one-line description. The icon is
- * decorative — the title already says where the link goes.
+ * One row in a menu panel: a thumbnail OR an icon, a title, and an optional
+ * one-line description.
+ *
+ * Both the icon and the thumbnail are decorative — the title already says
+ * where the link goes — so the image carries alt="" rather than repeating the
+ * name a screen reader is about to read anyway.
+ *
+ * A plain <img>, not next/image: a collection's thumbnail is `hero_media` from
+ * the Hub, whose host next/image is not configured for, falling back to a
+ * local placeholder. One element that handles both beats branching on where
+ * the URL came from.
+ *
+ * Rows with a description align to the top so the icon sits with the title;
+ * rows without one centre, so a 40px thumbnail and a single line of text share
+ * a middle.
  */
-export function NavMenuItem({ href, title, description, icon }: { href: string; title: string; description?: string; icon?: ReactNode }) {
+export function NavMenuItem({ href, title, description, icon, thumb }: { href: string; title: string; description?: string; icon?: ReactNode; thumb?: string | null }) {
   return (
     <Link
       role="menuitem"
       tabIndex={-1}
       href={href}
-      className="flex items-start gap-3 rounded-sm px-3 py-2.5 hover:bg-chalk focus-visible:bg-chalk focus-visible:outline-none"
+      className={`group flex gap-3 rounded-sm px-3 py-2.5 hover:bg-chalk focus-visible:bg-chalk focus-visible:outline-none ${description ? "items-start" : "items-center"}`}
     >
-      {icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-gold-dark">{icon}</span>}
+      {thumb
+        ? <img src={thumb} alt="" width={40} height={40} loading="lazy" className="h-10 w-10 shrink-0 rounded-sm border border-hairline object-cover" />
+        : icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-gold-dark">{icon}</span>}
       <span className="min-w-0">
-        <span className="block font-medium text-charcoal-deep">{title}</span>
+        <span className="block font-medium text-charcoal-deep group-hover:text-gold-dark">{title}</span>
         {description && <span className="mt-0.5 block text-[13px] leading-snug text-charcoal/70">{description}</span>}
       </span>
     </Link>

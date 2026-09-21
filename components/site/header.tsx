@@ -4,6 +4,8 @@ import { tr, type Lang } from "@/lib/i18n";
 import { getCollections } from "@/lib/queries/products";
 import { hub } from "@/lib/hub-api";
 import { collectionName } from "@/lib/catalog-i18n";
+import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
 import { NavMenu, NavMenuItem } from "./nav-menu";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { readSession, customerFirstName } from "@/lib/session";
@@ -55,8 +57,21 @@ export async function Header({ lang }: { lang: Lang }) {
     { key: "affiliations", href: "/affiliations", label: t("navMenu", "affiliations"), desc: t("navMenu", "affiliationsDesc"), icon: <Landmark className="h-5 w-5" /> },
   ];
 
-  const typeItems = collections.map((c) => ({ key: c.slug, href: `/collections/${c.slug}`, label: collectionName(c, lang) }));
-  const categoryItems = categories.map((c) => ({ key: c.slug, href: `/categories/${c.slug}`, label: lang === "ja" ? c.name_ja ?? c.name : c.name }));
+  // The Hub's own photo wins; the placeholder map covers a slug it has not been
+  // given one for; a slug in neither simply has no thumbnail, and the row still
+  // renders as a name — better than borrowing another category's picture.
+  const typeItems = collections.map((c) => ({
+    key: c.slug,
+    href: `/collections/${c.slug}`,
+    label: collectionName(c, lang),
+    thumb: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
+  }));
+  const categoryItems = categories.map((c) => ({
+    key: c.slug,
+    href: `/categories/${c.slug}`,
+    label: lang === "ja" ? c.name_ja ?? c.name : c.name,
+    thumb: c.hero_media ?? CATEGORY_PLACEHOLDER[c.slug] ?? null,
+  }));
 
   // The drawer carries the same destinations without the descriptions.
   const groups = [
@@ -120,11 +135,11 @@ export async function Header({ lang }: { lang: Lang }) {
                 <div className="grid w-[min(92vw,560px)] gap-x-4 md:grid-cols-2">
                   <div>
                     <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{t("navMenu", "shopByType")}</p>
-                    {typeItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} />)}
+                    {typeItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} thumb={it.thumb} />)}
                   </div>
                   <div>
                     <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{t("navMenu", "categories")}</p>
-                    {categoryItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} />)}
+                    {categoryItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} thumb={it.thumb} />)}
                   </div>
                 </div>
                 <div className="mt-2 border-t border-hairline pt-2">
