@@ -5,6 +5,7 @@ import { collectionName } from "@/lib/catalog-i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { FOLLOW } from "@/lib/social";
 import { SocialIcons } from "@/components/site/social-icons";
+import { NewsletterForm } from "@/components/site/newsletter-form";
 
 /**
  * The Stitch footer (docs/stitch/cha-desktop.html §12): charcoal, four columns
@@ -54,7 +55,10 @@ export async function Footer({ lang }: { lang: Lang }) {
           </ul>
         </div>
         <div className="lg:col-span-2">
-          <h2 className={heading}>{t("footer", "follow")}</h2>
+          <h2 className={heading}>{t("footer", "newsletter")}</h2>
+          <p className="leading-relaxed text-chalk/75">{t("footer", "newsletterNote")}</p>
+          <NewsletterForm lang={lang} tone="dark" />
+          <h2 className={`${heading} mt-8`}>{t("footer", "follow")}</h2>
           <SocialIcons items={FOLLOW} tone="dark" lang={lang} />
         </div>
       </div>

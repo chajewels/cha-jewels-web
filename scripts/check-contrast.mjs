@@ -207,6 +207,15 @@ add("social icon ring charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
 add("social icon glyph charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
 add("social icon glyph gold-dark (hover) on white", "gold-dark", "white", NONTEXT);
 
+// The newsletter field in the DARK footer (components/site/newsletter-form.tsx
+// tone="dark"). The light form rule does not cross: its white fill would be a
+// hole in the band, and its gold-dark ring clears 3:1 on charcoal-deep by only
+// 0.18 (3.18). gold-pale is 10.62 — the ring is chosen for margin, not because
+// the other one is invalid.
+add("newsletter input text (chalk) on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+add("newsletter input border chalk/40 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.4);
+add("newsletter focus ring gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
+
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
 // The Phase 4 additions are the tokens that look like they would be fine on a
 // light surface and are not:

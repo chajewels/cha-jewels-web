@@ -193,6 +193,21 @@ export function trackAddToCart(sku: string, lang: string): void {
   emit("add_to_cart", { sku, lang });
 }
 
+/**
+ * A newsletter sign-up attempt and how it ended.
+ *
+ * `result` is the form's own state word — subscribed, already, invalid,
+ * rate_limited, error — so the failures are countable too: a form that only
+ * reports its successes cannot tell you it has stopped working. The email is
+ * NEVER a property; it is the one thing about this event that identifies a
+ * person, and the baseline does not need it to answer any question worth
+ * asking.
+ */
+export function trackNewsletterSubscribe(result: string, lang: string): void {
+  if (!result) return;
+  emit("newsletter_subscribe", { result, lang });
+}
+
 /** Longest `q` the search event carries. Enough for any real query; short enough to keep property values small. */
 export const SEARCH_QUERY_MAX = 64;
 
