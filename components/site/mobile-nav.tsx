@@ -8,6 +8,8 @@ import { LangSwitcher } from "./lang-switcher";
 import type { Lang } from "@/lib/i18n";
 
 export type DrawerAccount = { name: string; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
+export type DrawerItem = { key: string; href: string; label: string };
+export type DrawerGroup = { key: string; label: string; sections: { heading?: string; items: DrawerItem[] }[] };
 
 /**
  * The drawer below `xl`. When the customer is signed in, `account` adds a
@@ -20,8 +22,12 @@ export type DrawerAccount = { name: string; menuLabel: string; items: { href: st
  * nothing — the links spilled out unstyled over the page. Outside the header
  * the panel fills the viewport below the bar as intended.
  */
-export function MobileNav({ lang, links, openLabel, closeLabel, account }: { lang: Lang; links: { href: string; label: string }[]; openLabel: string; closeLabel: string; account?: DrawerAccount | null }) {
+export function MobileNav({ lang, links, groups = [], openLabel, closeLabel, account }: { lang: Lang; links: { href: string; label: string }[]; groups?: DrawerGroup[]; openLabel: string; closeLabel: string; account?: DrawerAccount | null }) {
   const [open, setOpen] = useState(false);
+  // One group open at a time is NOT enforced: Collections is long, and a
+  // customer who opened it to compare types should not lose it by glancing at
+  // Company. Both start closed, so the drawer opens at its shortest.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   useEffect(() => { document.body.style.overflow = open ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [open]);
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false); window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
   return (
@@ -37,7 +43,45 @@ export function MobileNav({ lang, links, openLabel, closeLabel, account }: { lan
             <SearchBox lang={lang} variant="drawer" />
             <div className="shrink-0 sm:hidden"><LangSwitcher lang={lang} /></div>
           </div>
-          {links.map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="border-b border-hairline py-3 font-display text-3xl text-charcoal hover:text-gold-dark">{l.label}</Link>)}
+          {links.filter((l) => l.href === "/").map((l) => (
+            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="border-b border-hairline py-3 font-display text-3xl text-charcoal hover:text-gold-dark">{l.label}</Link>
+          ))}
+          {/* Company and Collections as disclosures. No descriptions here: the
+              drawer is a list of destinations, and a second line under each of
+              a dozen rows turns it into a page to read. */}
+          {groups.map((g) => (
+            <div key={g.key} className="border-b border-hairline">
+              <button
+                type="button"
+                aria-expanded={!!expanded[g.key]}
+                aria-controls={`drawer-${g.key}`}
+                onClick={() => setExpanded((e) => ({ ...e, [g.key]: !e[g.key] }))}
+                className="flex w-full items-center justify-between py-3 text-left font-display text-3xl text-charcoal hover:text-gold-dark"
+              >
+                {g.label}
+                <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-4 w-4 shrink-0 transition-transform ${expanded[g.key] ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M2.5 4.5 6 8l3.5-3.5" />
+                </svg>
+              </button>
+              {expanded[g.key] && (
+                <div id={`drawer-${g.key}`} className="pb-3">
+                  {g.sections.map((sec, i) => (
+                    <div key={sec.heading ?? `s${i}`} className={i > 0 ? "mt-3" : ""}>
+                      {sec.heading && <p className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{sec.heading}</p>}
+                      <ul>
+                        {sec.items.map((it) => (
+                          <li key={it.key}>
+                            <Link href={it.href} onClick={() => setOpen(false)} className="block py-2 pl-1 text-lg text-charcoal/85 hover:text-gold-dark">{it.label}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          {links.filter((l) => l.href !== "/").map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="border-b border-hairline py-3 font-display text-3xl text-charcoal hover:text-gold-dark">{l.label}</Link>)}
           {account && (
             <section aria-label={account.menuLabel} className="mt-8 border-t border-hairline pt-6">
               <p className="font-display text-2xl text-gold-dark">{account.name}</p>

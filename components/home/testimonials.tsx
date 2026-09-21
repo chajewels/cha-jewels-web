@@ -52,7 +52,7 @@ export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[]
                     )}
                   </div>
                   {rating != null && (
-                    <span className="flex text-gold-dark" aria-label={`${rating} / 5`}>
+                    <span role="img" className="flex text-gold-dark" aria-label={`${rating} / 5`}>
                       {[0, 1, 2, 3, 4].map((s) => <Star key={s} aria-hidden="true" className={`h-4 w-4 ${s < rating ? "fill-current" : "opacity-30"}`} />)}
                     </span>
                   )}

@@ -65,6 +65,22 @@ export const COMPANY_ADDRESS: Record<Lang, string> = {
 };
 
 /**
+ * THE TWO TELEPHONE NUMBERS, factored out for the reason COMPANY_NAME and
+ * COMPANY_ADDRESS are: they are identifiers, and every surface that prints one
+ * must print the same digits. The statutory tokusho row below builds its
+ * combined display string from these, and /contact links each separately —
+ * so there is no second copy to drift, and no parsing a display string back
+ * into its parts.
+ *
+ * Digits owner-confirmed 2026-09-21. Written unformatted for `tel:`; the
+ * display form (（代表）/（携帯）) is built where it is shown.
+ */
+export const COMPANY_PHONE = {
+  office: "03-6657-6129",
+  mobile: "070-8307-3318",
+} as const;
+
+/**
  * RETURN, CANCELLATION AND REFUND POLICY — owner-supplied text, 2026-09-15.
  *
  * The English is Cynthia's, verbatim. The Japanese is MY TRANSLATION and is a
@@ -73,13 +89,14 @@ export const COMPANY_ADDRESS: Record<Lang, string> = {
  * set, and it borrows their settled renderings (ストアクレジット, プレラブド,
  * 分割予約) rather than inventing new ones.
  *
- * IT CONTRADICTS /legal/tokusho AND /legal/terms ON RETURNS, and deliberately
- * so — the contradictions are reported to Cynthia in the PR rather than
- * resolved here. In short: both of those pages grant an unconditional 7-day
- * unused-return right, and this policy says change-of-mind returns are not
- * normally accepted. A statutory disclosure disagreeing with the policy it
- * discloses is hers to decide, not mine to reconcile. Do not silently align any
- * of the three; whichever way she rules, all three change together.
+ * 2026-09-21: owner ruled A — policy governs; tokusho and terms aligned.
+ *
+ * The three documents now say one thing: no change-of-mind returns, and a
+ * defect, wrong item or material mis-description reported within five days of
+ * delivery. The terms of sale already read that way by the time the ruling
+ * came — they were rewritten with the thirty-one-section rewrite — so the only
+ * page that actually moved was the tokusho returns row, which still granted an
+ * unconditional seven-day unused-return right.
  */
 export const returnsTitle: Record<Lang, string> = {
   ja: "返品・キャンセル・返金ポリシー",
@@ -301,11 +318,22 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  *
  * CONTACT ROWS ADDED 2026-09-15 (owner-supplied). 特商法 requires a telephone
  * number and an address for enquiries, and this page carried neither. The
- * numbers came from Cynthia as "03,6657 6129" and "070 8307 3318" and are
- * written here in the conventional Japanese form; the comma was read as a
- * hyphen. If either digit is wrong it is wrong on a statutory page, so check
- * them at the compliance read.
+ * numbers came from Cynthia as "03,6657 6129" and "070 8307 3318", with the
+ * comma read as a hyphen; they are written here in the conventional Japanese
+ * form. OWNER-CONFIRMED DIGIT BY DIGIT 2026-09-21, so /contact now publishes
+ * them as tel: links from this same row rather than holding them back.
  */
+/**
+ * ADDED 2026-09-21, with the returns alignment. The other three legal
+ * documents each carry a last-updated line; this one carried none, so the day
+ * its returns row changed there was nothing on the page to say so. Same shape
+ * and same wording as returnsUpdated / privacyUpdated / tosUpdated.
+ */
+export const tokushoUpdated: Record<Lang, string> = {
+  ja: "最終更新日：2026年9月21日",
+  en: "Last updated: September 21, 2026",
+};
+
 export const tokusho = {
   title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" },
   /**
@@ -329,11 +357,10 @@ export const tokusho = {
    * need to be sure.
    *
    * Still pending a JP compliance review, as the page has always said. Two
-   * things to put in front of it: the English wording below, which is a
+   * one thing to put in front of it: the English wording below, which is a
    * statutory disclosure rendered in a second language and therefore carries
-   * the risk that the two columns say different things; and the two phone
-   * numbers, which came in as "03,6657 6129" and "070 8307 3318" and have not
-   * been confirmed digit by digit.
+   * the risk that the two columns say different things. (The two phone numbers
+   * were the other; the owner confirmed them digit by digit on 2026-09-21.)
    */
   rows: [
     {
@@ -350,7 +377,10 @@ export const tokusho = {
     },
     {
       k: { ja: "電話番号", en: "Telephone" },
-      v: { ja: "03-6657-6129（代表）／070-8307-3318（携帯）", en: "03-6657-6129 (office) / 070-8307-3318 (mobile)" },
+      v: {
+        ja: `${COMPANY_PHONE.office}（代表）／${COMPANY_PHONE.mobile}（携帯）`,
+        en: `${COMPANY_PHONE.office} (office) / ${COMPANY_PHONE.mobile} (mobile)`,
+      },
     },
     {
       k: { ja: "メールアドレス", en: "Email" },
@@ -394,9 +424,14 @@ export const tokusho = {
     },
     {
       k: { ja: "返品・交換", en: "Returns and exchanges" },
+      // PLAIN TEXT, not a link: a tokusho row's `v` is Record<Lang, string>,
+      // and the page renders it as a bare <dd>. Making the policy name a link
+      // would mean a rich-run model on the rows and a renderer to match —
+      // a change to the statutory page's shape, for one cross-reference that
+      // the footer and /legal/returns both already carry.
       v: {
-        ja: "商品到着後7日以内、未使用に限り。オーダー品・サイズ直し品は不可",
-        en: "Within seven days of delivery and unused only. Made-to-order pieces and pieces resized for you cannot be returned",
+        ja: "お客様都合による返品・交換はお受けしておりません。商品の誤配送・破損・記載内容との著しい相違があった場合は、お届け後5日以内にご連絡ください。詳細は返品・キャンセル・返金ポリシーをご覧ください。",
+        en: "Change-of-mind returns and exchanges are not accepted. If an item arrives incorrect, damaged or materially different from its description, contact us within 5 days of delivery; see the Return, Cancellation and Refund Policy.",
       },
     },
     {
@@ -802,8 +837,8 @@ export const tosTitle: Record<Lang, string> = {
 };
 
 export const tosUpdated: Record<Lang, string> = {
-  ja: "最終更新日：2026年9月15日",
-  en: "Last updated: September 15, 2026",
+  ja: "最終更新日：2026年9月21日",
+  en: "Last updated: September 21, 2026",
 };
 
 export const tosArticles: LegalArticle[] = [
