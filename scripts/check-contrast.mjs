@@ -53,6 +53,13 @@ for (const bg of DARK) for (const a of [1, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55
 for (const a of [1, 0.85, 0.8, 0.75, 0.72, 0.7, 0.65]) add(`chalk/${a * 100} text`, "chalk", "charcoal-mid", TEXT, a);
 // Gold text and gold rules — kept exactly as today.
 for (const bg of [...DARK, "charcoal-mid"]) { add("gold-pale text", "gold-pale", bg, TEXT); add("gold border", "gold", bg, NONTEXT); add("gold-pale focus ring", "gold-pale", bg, NONTEXT); }
+// Muted labels on the LIGHT surfaces, added 2026-09-21 with the Company nav
+// and /contact. Both shipped at an alpha that measured under 4.5 and axe caught
+// it: charcoal/55 is 3.16 on chalk, and the menu panel's charcoal/50 is 2.85 on
+// white. /70 is the floor on both, so these pin it.
+for (const a of [0.7, 0.75, 0.8, 0.85, 1]) add(`charcoal/${a * 100} label on chalk`, "charcoal", "chalk", TEXT, a);
+for (const a of [0.7, 0.75, 0.8, 0.85, 1]) add(`charcoal/${a * 100} label on white`, "charcoal", "white", TEXT, a);
+
 // Error colour on dark surfaces.
 for (const bg of DARK) add("garnet-light text", "garnet-light", bg, TEXT);
 add("garnet-light/60 border", "garnet-light", "charcoal-deep", NONTEXT, 0.6);

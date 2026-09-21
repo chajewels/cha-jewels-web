@@ -101,6 +101,31 @@ export function resolveLang(
 export const dict = {
   newsletter: { placeholder: { ja: "メールアドレス", en: "Email address" }, submit: { ja: "登録", en: "Sign up" }, success: { ja: "ご登録ありがとうございます。", en: "Thank you — you're on the list." }, already: { ja: "すでにご登録いただいています。", en: "You're already subscribed." }, invalid: { ja: "メールアドレスをご確認ください。", en: "Please check the email address." }, rateLimited: { ja: "しばらく時間をおいてからお試しください。", en: "Too many attempts — please try again shortly." }, error: { ja: "登録できませんでした。時間をおいてお試しください。", en: "We couldn't sign you up. Please try again later." }, unsubscribed: { ja: "配信を停止しました。", en: "You're unsubscribed." } },
   nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
+  /**
+   * Header menu copy. `tr` reads dict[section][key] as a {ja,en} leaf, so these
+   * are flat keys in their own section rather than a nested nav.company object,
+   * which that helper cannot index. The Japanese descriptions are MY DRAFT and
+   * want a native read before merge.
+   */
+  navMenu: {
+    company: { ja: "会社情報", en: "Company" },
+    companyMenu: { ja: "会社情報メニュー", en: "Company menu" },
+    collections: { ja: "コレクション", en: "Collections" },
+    collectionsMenu: { ja: "コレクションメニュー", en: "Collections menu" },
+    shopByType: { ja: "種類から探す", en: "Shop by type" },
+    categories: { ja: "カテゴリー", en: "Categories" },
+    viewAll: { ja: "コレクションをすべて見る", en: "View all collections" },
+    about: { ja: "ブランドについて", en: "About Us" },
+    aboutDesc: { ja: "私たちの歩みと基準、東京の拠点。", en: "Our story, our standards, our Tokyo base." },
+    why: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" },
+    whyDesc: { ja: "お選びいただく理由と、私たちのお約束。", en: "What you can expect from us, and why it matters." },
+    blog: { ja: "ブログ", en: "Blog" },
+    blogDesc: { ja: "ジュエリーの選び方、お手入れ、読みもの。", en: "Choosing, caring for and living with jewelry." },
+    news: { ja: "お知らせ", en: "News & Updates" },
+    newsDesc: { ja: "新着情報とお知らせ。", en: "New arrivals and announcements." },
+    contact: { ja: "お問い合わせ", en: "Contact" },
+    contactDesc: { ja: "ご連絡先と所在地。", en: "How to reach us, and where we are." },
+  },
   hero: {
     h1a: { ja: "身につける、時を超える美しさ。", en: "Timeless beauty to wear." }, h1b: { ja: "受け継がれる、確かな価値。", en: "Lasting value to pass on." },
     // Keep layaway out of the Japanese hero: it is English-only (owner
