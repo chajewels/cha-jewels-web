@@ -155,6 +155,27 @@ export const dict = {
     cta: { ja: "コレクションを見る", en: "Explore Our Collections" },
     imageAlt: { ja: "クリーム色の布の上に並べたCha Jewelsのゴールドネックレス、リング、パールピアス", en: "A Cha Jewels gold necklace, ring and pearl earrings arranged on cream fabric" },
   },
+  /**
+   * /contact. Every VALUE on that page is read from lib/content/legal.ts —
+   * these keys are labels only. No address, email or number is typed here, so
+   * there is one place a contact detail can be wrong.
+   *
+   * No phone and no opening hours. tokusho carries a telephone row, but its
+   * two numbers arrived as "03,6657 6129" / "070 8307 3318" with the comma
+   * read as a hyphen and are not yet confirmed digit by digit; the owner held
+   * them off this page until they are (2026-09-21). Hours are not in tokusho
+   * at all and are not invented here.
+   */
+  contact: {
+    h1: { ja: "お問い合わせ", en: "Contact" },
+    intro: { ja: "ご質問、お見積り、ご来店のご予約など、お気軽にご連絡ください。", en: "Questions, quotes or arranging a visit — we're glad to hear from you." },
+    company: { ja: "会社名", en: "Company" },
+    address: { ja: "所在地", en: "Address" },
+    email: { ja: "メールアドレス", en: "Email" },
+    map: { ja: "Googleマップで見る", en: "View on Google Maps" },
+    follow: { ja: "フォローする", en: "Follow us" },
+    legalNote: { ja: "特定商取引法に基づく表記に、事業者情報の全文を掲載しています。", en: "Full business details are on our legal notice." },
+  },
   hero: {
     h1a: { ja: "身につける、時を超える美しさ。", en: "Timeless beauty to wear." }, h1b: { ja: "受け継がれる、確かな価値。", en: "Lasting value to pass on." },
     // Keep layaway out of the Japanese hero: it is English-only (owner
