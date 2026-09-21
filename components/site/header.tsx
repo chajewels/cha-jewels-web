@@ -123,7 +123,7 @@ export async function Header({ lang }: { lang: Lang }) {
             <li><Link href="/" className="hover:text-gold-dark">{t("nav", "home")}</Link></li>
             <li>
               <NavMenu label={t("navMenu", "company")} menuLabel={t("navMenu", "companyMenu")}>
-                <div className="grid w-[min(92vw,560px)] gap-0.5 md:grid-cols-2">
+                <div className="grid gap-0.5 md:grid-cols-2">
                   {companyItems.map((it) => (
                     <NavMenuItem key={it.key} href={it.href} title={it.label} description={it.desc} icon={it.icon} />
                   ))}
@@ -132,12 +132,12 @@ export async function Header({ lang }: { lang: Lang }) {
             </li>
             <li>
               <NavMenu label={t("navMenu", "collections")} menuLabel={t("navMenu", "collectionsMenu")}>
-                <div className="grid w-[min(92vw,560px)] gap-x-4 md:grid-cols-2">
-                  <div>
+                <div className="grid gap-x-4 md:grid-cols-2">
+                  <div className="min-w-0">
                     <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{t("navMenu", "shopByType")}</p>
                     {typeItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} thumb={it.thumb} />)}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{t("navMenu", "categories")}</p>
                     {categoryItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} thumb={it.thumb} />)}
                   </div>

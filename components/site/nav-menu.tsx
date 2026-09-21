@@ -105,7 +105,15 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
             role="menu"
             aria-label={menuLabel}
             onKeyDown={onMenuKeyDown}
-            className="rounded-sm border border-hairline bg-white p-3 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
+            // THE WIDTH LIVES HERE, not on each panel's own grid, so both
+            // menus are bounded by one number. `whitespace-normal` is not
+            // decoration: the header's nav <ul> carries `whitespace-nowrap`
+            // for the link row, every descendant INHERITS it, and the panel is
+            // rendered inside one of that list's <li> elements — so the
+            // descriptions were painting as single lines straight through the
+            // panel's right border. Nothing in this file ever set nowrap; it
+            // arrived from two levels up, which is why it was invisible.
+            className="w-[min(40rem,calc(100vw-2rem))] whitespace-normal rounded-sm border border-hairline bg-white p-3 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
           >
             {children}
           </div>
@@ -138,14 +146,14 @@ export function NavMenuItem({ href, title, description, icon, thumb }: { href: s
       role="menuitem"
       tabIndex={-1}
       href={href}
-      className={`group flex gap-3 rounded-sm px-3 py-2.5 hover:bg-chalk focus-visible:bg-chalk focus-visible:outline-none ${description ? "items-start" : "items-center"}`}
+      className={`group flex min-w-0 gap-3 rounded-sm px-3 py-2.5 hover:bg-chalk focus-visible:bg-chalk focus-visible:outline-none ${description ? "items-start" : "items-center"}`}
     >
       {thumb
         ? <img src={thumb} alt="" width={40} height={40} loading="lazy" className="h-10 w-10 shrink-0 rounded-sm border border-hairline object-cover" />
         : icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-gold-dark">{icon}</span>}
       <span className="min-w-0">
         <span className="block font-medium text-charcoal-deep group-hover:text-gold-dark">{title}</span>
-        {description && <span className="mt-0.5 block text-[13px] leading-snug text-charcoal/70">{description}</span>}
+        {description && <span className="mt-0.5 block whitespace-normal break-words text-[13px] leading-snug text-charcoal/70">{description}</span>}
       </span>
     </Link>
   );
