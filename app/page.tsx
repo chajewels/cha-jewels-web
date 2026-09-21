@@ -5,7 +5,7 @@ import { tr } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
-import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
+import { LayawayBand } from "@/components/commerce/layaway-band";
 import { JsonLd } from "@/components/site/json-ld";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
@@ -124,39 +124,12 @@ export default async function Home() {
       {/* §5 Values bento */}
       <ValuesBento lang={lang} />
 
-      {/* §7 Layaway calculator — English only (owner decision 2026-09-15). The
-          section and the calculator go together — a calculator with no
-          explanation is worse than neither. See lib/layaway-availability. */}
-      {layaway && (
-        <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
-          <div className="wrap grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
-            <div className="lg:col-span-6">
-              <span className="inline-block rounded-full bg-orange px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{t("home", "layPill")}</span>
-              <h2 className="mt-5 max-w-[20ch] font-display text-[clamp(28px,3.6vw,44px)] text-gold-pale">{t("home", "layH")}</h2>
-              <p className="mt-4 max-w-[46ch] text-chalk/75">{t("home", "layP")}</p>
-              <ol className="mt-8 grid gap-5">
-                {([1, 2, 3] as const).map((n) => (
-                  <li key={n} className="flex gap-4">
-                    <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-orange font-display text-sm font-medium text-charcoal-deep">{n}</span>
-                    <div>
-                      <p className="font-medium text-chalk">{t("home", `layStep${n}H`)}</p>
-                      <p className="mt-1 text-sm text-chalk/75">{t("home", `layStep${n}P`)}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-            <LayawayCalculator
-              lang={lang}
-              phpRate={fx.jpy_php}
-              tone="light"
-              header={{ title: t("home", "layCalcH"), sub: t("home", "layCalcP"), chip: t("home", "layCalcChip") }}
-              cta={{ label: t("home", "layCta"), href: "/layaway" }}
-              className="lg:col-span-6"
-            />
-          </div>
-        </section>
-      )}
+      {/* §7 Layaway band — the pill, the pitch, the three steps and the
+          calculator, now shared with /layaway (components/commerce/layaway-band).
+          English only (owner decision 2026-09-15): the section and the
+          calculator go together, and a calculator with no explanation is worse
+          than neither. See lib/layaway-availability. */}
+      {layaway && <LayawayBand lang={lang} phpRate={fx.jpy_php} />}
 
       {/* §8 Collections — dynamic from the Hub */}
       <section id="collections" className="border-t border-hairline py-16 lg:py-20">

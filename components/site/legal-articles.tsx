@@ -26,14 +26,14 @@ import type { LegalArticle, LegalBlock } from "@/lib/content/legal";
 export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
   switch (block.kind) {
     case "p":
-      return <p className="mt-4 text-chalk/80">{block.text[lang]}</p>;
+      return <p className="mt-4 text-charcoal">{block.text[lang]}</p>;
     case "h":
       // A sub-heading INSIDE an article ("Available resolutions", "Step 2:
       // Contact us"). Deliberately smaller and champagne rather than gold: the
       // gold display face marks an article, and a sub-heading competing with it
       // would make a twelve-section document read as twenty-eight.
       return (
-        <h3 className="mt-8 font-display text-[clamp(16px,1.6vw,20px)] text-chalk">
+        <h3 className="mt-8 font-display text-[clamp(16px,1.6vw,20px)] text-charcoal-deep">
           {block.text[lang]}
         </h3>
       );
@@ -50,7 +50,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // Tailwind Preflight sets `list-style: none` on every ul, which is why a
       // marker has to be asked for explicitly here and in legal-doc.tsx.
       return (
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-chalk/80 marker:text-gold-pale">
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-charcoal marker:text-gold-dark">
           {block.items[lang].map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -61,13 +61,13 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // linked phrase does not sit in the same place in both sentences.
       // Index is a safe key: a block's runs are a fixed, ordered list.
       return (
-        <p className="mt-4 text-chalk/80">
+        <p className="mt-4 text-charcoal">
           {block.runs[lang].map((run, i) =>
             run.href ? (
               <Link
                 key={i}
                 href={run.href}
-                className="underline decoration-gold-pale/50 underline-offset-4 hover:text-gold-pale"
+                className="underline decoration-gold-dark/50 underline-offset-4 hover:text-gold-dark"
               >
                 {run.t}
               </Link>
@@ -81,7 +81,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // Line breaks carry meaning here (a postal address), so each line is its
       // own row rather than wrapped prose.
       return (
-        <div className="mt-4 text-chalk/80">
+        <div className="mt-4 text-charcoal">
           {block.lines[lang].map((line) => (
             <div key={line}>{line}</div>
           ))}
@@ -105,13 +105,13 @@ export function LegalArticles({
   articles: LegalArticle[];
 }) {
   return (
-    <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
+    <section lang={lang} className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[72ch]">
         <h1 className="text-[clamp(32px,4.6vw,64px)]">{title[lang]}</h1>
         {/* The document carries its own last-updated line, so the shared draft
             banner is not rendered here -- it states an older date and the two
             together would contradict each other on a legal page. */}
-        <p className="mt-4 text-sm text-chalk/60">{updated[lang]}</p>
+        <p className="mt-4 text-sm text-charcoal/70">{updated[lang]}</p>
 
         {intro ? (
           <div className="mt-8">
@@ -126,8 +126,8 @@ export function LegalArticles({
             // Index, not a.n: an article may legitimately have no number (a
             // summary block ahead of section 1), and `key={undefined}` is a
             // silent duplicate-key bug rather than a visible one.
-            <article key={ai} className="border-t border-rule py-6">
-              <h2 className="font-display text-[clamp(20px,2.4vw,28px)] text-gold-pale">
+            <article key={ai} className="border-t border-hairline py-6">
+              <h2 className="font-display text-[clamp(20px,2.4vw,28px)] text-charcoal-deep">
                 {a.n === undefined ? a.h[lang] : `${a.n}. ${a.h[lang]}`}
               </h2>
               {a.blocks.map((block, i) => (
