@@ -310,6 +310,15 @@ export const dict = {
     groupH: { ja: "会員グループに参加", en: "Join the member group" },
     groupP: { ja: "会員限定のお知らせ・先行案内・サポート", en: "Members-only updates, early previews and support." },
   },
+  /**
+   * The announcement bar (components/site/announcement-bar.tsx). Its SENTENCE
+   * is owner-written in the Hub and is not a dictionary key; the only string
+   * this repo owns is the close button's accessible name, because the button
+   * is an icon and carries no visible label.
+   */
+  announcement: {
+    dismiss: { ja: "閉じる", en: "Dismiss" },
+  },
   /** Accessible names for the social icon buttons (components/site/social-icons.tsx). The icons carry no visible text. */
   social: {
     email: { ja: "メールで問い合わせる", en: "Email us" },

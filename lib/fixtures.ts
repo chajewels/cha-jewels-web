@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 /** Plans in `layawayPlansFixture`, stated here because `meFixture` is declared first. */
@@ -512,3 +512,41 @@ export function rememberSubscriber(email: string): boolean {
   subscribers.add(key);
   return false;
 }
+
+/**
+ * The seeded site settings — what the Hub's `website_settings` rows hold on the
+ * day this shipped, so the preview exercises the SETTINGS path rather than the
+ * fallback path. The values are deliberately today's values: a preview that
+ * looks different from production would be testing the fixture, not the code.
+ *
+ * The one exception is `announcement`, which is seeded ACTIVE with no end date.
+ * Nothing in production is announcing anything yet, and a bar that cannot be
+ * seen cannot be reviewed — this is the flag the accessibility pass and the
+ * screenshots are taken against (`NEXT_PUBLIC_PREVIEW_FIXTURES=1`).
+ */
+export const settingsFixture: SiteSettings = {
+  "social.follow": [
+    { key: "email", href: "mailto:sales@chajewelsjp.com" },
+    { key: "facebook", href: "https://www.facebook.com/chajewelsjapan" },
+    { key: "messenger", href: "https://m.me/chajewelsjapan" },
+  ],
+  "social.loyalty_groups": [
+    { key: "whatsapp", href: "https://chat.whatsapp.com/ENdMNvF8N3jB3iG963f6EF" },
+    { key: "line", href: "https://line.me/ti/g/5fb8KyBCCJ" },
+    { key: "messenger", href: "https://m.me/ch/AbYF1EaEkypQc5Jk/?send_source=cm:copy_invite_link" },
+  ],
+  "contact.email": "sales@chajewelsjp.com",
+  "footer.tagline": {
+    ja: "日本で真贋確認済みのK18ゴールド、パール、ダイヤモンドジュエリーと、厳選したプレラブド・ラグジュアリー。東京のお客様と、世界中のフィリピン人ファミリーのために。",
+    en: "K18 gold, pearl and diamond jewelry, hallmark checked in Japan, and curated preloved luxury. For our neighbours in Tokyo and Filipino families everywhere.",
+  },
+  announcement: {
+    active: true,
+    text: {
+      ja: "年末年始の発送スケジュールについてのお知らせ。",
+      en: "Holiday shipping dates for Japan and the Philippines.",
+    },
+    href: "/faq",
+    until: null,
+  },
+};

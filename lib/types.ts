@@ -389,3 +389,40 @@ export type ContactResult = { status: "received" };
 export type NewsletterSubscribeResult = { status: "subscribed" | "already_subscribed" };
 /** GET /newsletter/unsubscribe. Always `unsubscribed`, whatever the token was. */
 export type NewsletterUnsubscribeResult = { status: "unsubscribed" };
+
+/**
+ * GET /content/settings — the owner-editable strings and links the Hub holds
+ * for this site. A FLAT MAP, deliberately: a key the Hub has not been taught
+ * yet is simply absent, and a key this repo does not read yet is simply
+ * ignored, so neither side has to deploy in step with the other.
+ *
+ * Nothing here is required. Every key has a fallback in lib/settings.ts, which
+ * is the file that decides what a missing or malformed value means — this type
+ * only says what a WELL-FORMED value looks like.
+ */
+export type SiteSettings = {
+  /** Public social links, footer and /contact. Falls back to FOLLOW. */
+  "social.follow"?: SettingsSocialLink[];
+  /** Member-only chat groups. Falls back to LOYALTY_GROUPS. */
+  "social.loyalty_groups"?: SettingsSocialLink[];
+  /** The address a customer writes to. Falls back to the mailto in FOLLOW. */
+  "contact.email"?: string;
+  /** The footer's brand paragraph. Falls back to dict.footer.blurb. */
+  "footer.tagline"?: Partial<Record<"ja" | "en", string>>;
+  "announcement"?: SettingsAnnouncement;
+} & Record<string, unknown>;
+
+/** One row of `social.follow` / `social.loyalty_groups`; `key` picks the glyph. */
+export type SettingsSocialLink = { key: string; href: string };
+
+/**
+ * The announcement bar. `until` is an inclusive END DATE in YYYY-MM-DD, not a
+ * timestamp: the owner means "show it through the 30th", and a timestamp would
+ * turn that into a question about whose midnight.
+ */
+export type SettingsAnnouncement = {
+  active?: boolean;
+  text?: Partial<Record<"ja" | "en", string>>;
+  href?: string | null;
+  until?: string | null;
+};

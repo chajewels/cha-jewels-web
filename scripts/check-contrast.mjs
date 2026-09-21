@@ -214,6 +214,21 @@ add("social icon ring charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
 add("social icon glyph charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
 add("social icon glyph gold-dark (hover) on white", "gold-dark", "white", NONTEXT);
 
+// The announcement bar (components/site/announcement-bar.tsx): a charcoal-deep
+// strip above the header, chalk sentence, orange link when the Hub's row
+// carries an href, and a chalk/75 close glyph.
+//
+// The LINK ROW IS THE ONE THAT MATTERS. Orange is registered elsewhere in this
+// file only as a fill edge (3:1) and as a heading of 24px or more (the pomelli
+// exemption) — neither of which covers a 13px sentence. It is measured here at
+// 4.5, which it clears on charcoal-deep at 8.06; the exemption is not borrowed
+// and the bar's type size is not free to grow into it.
+add("announcement text (chalk) on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+add("announcement link (orange 13px) on charcoal-deep", "orange", "charcoal-deep", TEXT);
+add("announcement link hover (orange-hover) on charcoal-deep", "orange-hover", "charcoal-deep", TEXT);
+add("announcement close glyph chalk/75 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.75);
+add("announcement close focus ring gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
+
 // The newsletter field in the DARK footer (components/site/newsletter-form.tsx
 // tone="dark"). The light form rule does not cross: its white fill would be a
 // hole in the band, and its gold-dark ring clears 3:1 on charcoal-deep by only
