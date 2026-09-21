@@ -8,6 +8,18 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
  * gone; the query param is stripped at once so a reload or a shared link does
  * not repeat it. The status region stays mounted so assistive tech announces
  * the text when it appears.
+ *
+ * THE OFFSET IS 68px (the header row) PLUS THE ANNOUNCEMENT BAR, which
+ * components/site/announcement-bar.tsx publishes as `--announcement-h` while it
+ * is mounted and sets to 0px otherwise. Hardcoded at 68px, as it was until now,
+ * the notice landed on top of the header on any page showing a bar — and
+ * `/?notice=signed_out` is exactly such a page, at scroll 0, which is where the
+ * notice appears. The fallback in the var() is what every page without a bar
+ * gets, so nothing depends on the bar having run.
+ *
+ * It is a plain style rather than an arbitrary Tailwind value because the
+ * expression has a comma and a default in it, and a class that long is harder
+ * to read than the thing it is computing.
  */
 export function FlashNotice({ messages }: { messages: Record<string, string> }) {
   const params = useSearchParams();
@@ -33,7 +45,8 @@ export function FlashNotice({ messages }: { messages: Record<string, string> }) 
   }, [shown]);
 
   return (
-    <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 top-[68px] z-30 flex justify-center px-4">
+    <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4"
+      style={{ top: "calc(68px + var(--announcement-h, 0px))" }}>
       {shown && (
         <p className="pointer-events-auto mt-3 rounded-sm border border-gold bg-charcoal-deep px-5 py-2.5 text-sm text-gold-pale shadow-[0_10px_30px_rgba(0,0,0,0.45)]">{shown}</p>
       )}
