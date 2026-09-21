@@ -24,6 +24,14 @@
      flip and is gone; the body does that now. */
   .band-dark { --rule: rgba(201,162,39,.32); }
 
+  /* The announcement bar, hidden BEFORE FIRST PAINT for a visitor who already
+     dismissed it this session. components/site/announcement-bar.tsx renders a
+     one-expression inline script that sets this attribute on <html> during
+     parse; React then catches up in an effect. Without it the bar paints, the
+     effect removes it, and the page jumps up by its height on every hard
+     navigation — which is worse than the bar itself. */
+  :root[data-cj-announcement="dismissed"] [data-cj-announcement-bar] { display: none; }
+
   /* Homepage hero video (components/site/hero-video.tsx). The hero section is
      the positioning context (relative, isolate); the scrim sits at z-index 1
      and the content at z-10 in app/page.tsx. Full opacity — the scrim does

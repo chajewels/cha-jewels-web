@@ -8,7 +8,10 @@ import { FlashNotice } from "@/components/site/flash-notice";
 import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
-import { dict, tr } from "@/lib/i18n";
+import { dict, tr, PATH_HEADER } from "@/lib/i18n";
+import { headers } from "next/headers";
+import { announcement } from "@/lib/settings";
+import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 
 const display = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
@@ -29,9 +32,27 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/**
+ * NO BANNER ON /legal/*. The tokusho page is a statutory disclosure: the
+ * Specified Commercial Transactions Act requires the required matters to be
+ * displayed plainly and without anything competing for the reader, and the
+ * neighbouring policy pages are read on the same terms. A marketing strip over
+ * the top of one is exactly what that forbids.
+ *
+ * The path comes from the header the middleware sets, because a layout is never
+ * told the pathname. NO HEADER MEANS NO BAR: a path the middleware did not
+ * match is a path we cannot classify, and the safe answer to "is this the legal
+ * notice?" is the one that cannot put a banner on it.
+ */
+const bannerAllowed = (path: string | null) =>
+  !!path && path.startsWith("/") && path !== "/legal" && !path.startsWith("/legal/");
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const lang = await getLang();
+  const [lang, h] = await Promise.all([getLang(), headers()]);
   const t = tr(lang);
+  // `announcement()` answers null for inactive, empty-in-this-language and
+  // expired alike, and never throws — so this is the whole decision.
+  const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang) : null;
   return (
     <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
       <body>
@@ -51,6 +72,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SeoLinks />
         <AnalyticsProvider />
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
+        {/* Above the header and in normal flow, so it scrolls away and the
+            sticky header takes the top once it has. */}
+        {notice && <AnnouncementBar text={notice.text} href={notice.href} lang={lang} />}
         <Header lang={lang} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>
