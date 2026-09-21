@@ -8,6 +8,7 @@ import { hubMe } from "@/lib/session";
 import type { HubMe } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { SignOutButton } from "@/components/account/sign-out-button";
+import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("account");
 // Customer data is per-request by definition; never cache this page.
@@ -32,7 +33,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("account", "h1")}</h1>
@@ -40,15 +41,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         </div>
 
         {failure && (
-          <p className="mt-8 border border-garnet/60 bg-charcoal-deep p-5 text-sm text-charcoal-deep">
+          <p className={`mt-8 ${alertLight} p-5 text-sm`}>
             {t("account", "unavailable")}
           </p>
         )}
 
         {me && (
           <div className="rule-grid mt-10 grid gap-px md:grid-cols-2">
-            <div className="bg-charcoal p-6">
-              <h2 className="font-display text-xl text-gold-pale">{t("account", "profile")}</h2>
+            <div className="bg-white p-6">
+              <h2 className="font-display text-xl text-charcoal-deep">{t("account", "profile")}</h2>
               <dl className="mt-4 space-y-2 text-sm">
                 <Row k={t("account", "name")} v={me.customer.full_name ?? "—"} />
                 <Row k={t("account", "email")} v={me.customer.email ?? "—"} />
@@ -56,8 +57,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
               </dl>
             </div>
 
-            <div id="loyalty" className="bg-charcoal p-6">
-              <h2 className="font-display text-xl text-gold-pale">{t("account", "loyalty")}</h2>
+            <div id="loyalty" className="bg-white p-6">
+              <h2 className="font-display text-xl text-charcoal-deep">{t("account", "loyalty")}</h2>
               {me.loyalty.enrolled ? (
                 <>
                   <dl className="mt-4 space-y-2 text-sm">
@@ -66,8 +67,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                     <Row k={t("loyalty", "multiplier")} v={me.loyalty.multiplier === null ? "—" : t("loyalty", "times", { n: String(me.loyalty.multiplier) })} />
                   </dl>
                   {me.loyalty.reduced === true && (
-                    <div className="mt-4 border border-garnet/60 bg-charcoal-deep p-4 text-sm" data-testid="level-reduced">
-                      <p className="font-display text-base text-gold-pale">{t("account", "levelReduced")}</p>
+                    <div className={`mt-4 ${alertLight} p-4 text-sm`} data-testid="level-reduced">
+                      <p className="font-display text-base text-gold-dark">{t("account", "levelReduced")}</p>
                       <p className="mt-1 text-charcoal">{t("account", "levelReducedP")}</p>
                       <dl className="mt-3 space-y-2">
                         {me.loyalty.earned_tier && <Row k={t("account", "earnedLevel")} v={me.loyalty.earned_tier} />}
@@ -77,26 +78,26 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                   )}
                   <p className="mt-4 text-xs text-charcoal/70">
                     {t("account", "levelRule")}{" "}
-                    <Link href="/loyalty" className="underline hover:text-gold-dark-dark">{t("nav", "loyalty")}</Link>
+                    <Link href="/loyalty" className="underline hover:text-gold-dark">{t("nav", "loyalty")}</Link>
                   </p>
                 </>
               ) : (
                 <p className="mt-4 text-sm text-charcoal">
                   {t("account", "notEnrolled")}{" "}
-                  <Link href="/loyalty" className="underline hover:text-gold-dark-dark">{t("nav", "loyalty")}</Link>
+                  <Link href="/loyalty" className="underline hover:text-gold-dark">{t("nav", "loyalty")}</Link>
                 </p>
               )}
             </div>
 
-            <div className="bg-charcoal p-6 md:col-span-2">
-              <h2 className="font-display text-xl text-gold-pale">{t("account", "addresses")}</h2>
+            <div className="bg-white p-6 md:col-span-2">
+              <h2 className="font-display text-xl text-charcoal-deep">{t("account", "addresses")}</h2>
               {me.addresses.length === 0 ? (
                 <p className="mt-4 text-sm text-charcoal">{t("account", "noAddresses")}</p>
               ) : (
                 <ul className="mt-4 grid gap-4 sm:grid-cols-2">
                   {me.addresses.map((a, i) => (
                     <li key={a.id ?? i} className="border border-hairline p-4 text-sm text-charcoal">
-                      {a.is_default && <span className="mb-2 inline-block border border-gold px-2 py-0.5 text-[11px] text-gold-pale">{t("account", "default")}</span>}
+                      {a.is_default && <span className="mb-2 inline-block border border-gold-dark px-2 py-0.5 text-[11px] text-gold-dark">{t("account", "default")}</span>}
                       <p>{a.recipient_name ?? me.customer.full_name}</p>
                       <p>{a.line1}{a.line2 ? `, ${a.line2}` : ""}</p>
                       <p>{[a.city, a.region, a.postal_code].filter(Boolean).join(" ")}</p>
@@ -121,15 +122,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           and staff can.
         */}
         {me?.records && me.records.layaway === 0 && me.records.orders === 0 && (
-          <p className="mt-10 border border-gold/60 bg-charcoal-deep p-5 text-sm text-charcoal-deep">
+          <p className="mt-10 border border-hairline bg-white p-5 text-sm text-charcoal-deep">
             {me.shares_email ? t("account", "noRecordsShared") : t("account", "noRecords")}
           </p>
         )}
 
         <div className="mt-10 flex flex-wrap items-center gap-4">
-          <Link href="/account/orders" className="text-gold-pale underline underline-offset-4">{t("orders", "h1")}</Link>
-          <Link href="/account/layaway" className="text-gold-pale underline underline-offset-4">{t("plans", "h1")}</Link>
-          <Link href="/account/service-requests" className="text-gold-pale underline underline-offset-4">{t("service", "h1")}</Link>
+          <Link href="/account/orders" className="text-gold-dark underline underline-offset-4">{t("orders", "h1")}</Link>
+          <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>
+          <Link href="/account/service-requests" className="text-gold-dark underline underline-offset-4">{t("service", "h1")}</Link>
           <span className="text-sm text-charcoal/70">{t("account", "soon")}</span>
         </div>
 
@@ -138,14 +139,14 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             The link is the Hub's own builder, so a legacy customer gets their
             token and everyone else gets the bare URL. */}
         {me?.portal_url && (
-          <div className="mt-10 border border-hairline bg-charcoal p-6">
-            <h2 className="font-display text-xl text-gold-pale">{t("account", "portalH")}</h2>
+          <div className="mt-10 border border-hairline bg-white p-6">
+            <h2 className="font-display text-xl text-charcoal-deep">{t("account", "portalH")}</h2>
             <p className="mt-2 max-w-[62ch] text-sm text-charcoal">{t("account", "portalP")}</p>
             <a
               href={me.portal_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-block text-gold-pale underline underline-offset-4"
+              className="mt-4 inline-block text-gold-dark underline underline-offset-4"
             >
               {t("plans", "portalCta")}
             </a>

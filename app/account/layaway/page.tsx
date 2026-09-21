@@ -9,6 +9,7 @@ import { formatMoney } from "@/lib/utils";
 import { planFigure, planStatusLabel } from "@/lib/plan-status";
 import { StatusBadge } from "@/components/account/status-badge";
 import type { HubLayawayPlan } from "@/lib/types";
+import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("layaway");
 export const dynamic = "force-dynamic";
@@ -48,7 +49,7 @@ export default async function AccountLayawayPage() {
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[900px]">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("plans", "h1")}</h1>
@@ -58,13 +59,13 @@ export default async function AccountLayawayPage() {
         <p className="mt-6 max-w-[70ch] text-sm text-charcoal/70">{t("plans", "readOnlyNote")}</p>
 
         {failed && (
-          <p className="mt-8 border border-garnet/60 bg-charcoal-deep p-5 text-sm text-charcoal-deep">{t("account", "unavailable")}</p>
+          <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
         )}
 
         {!failed && plans.length === 0 && (
           <>
             <p className="mt-10 text-charcoal">{t("plans", "empty")}</p>
-            <Link href="/layaway" className="mt-6 inline-block text-gold-pale underline underline-offset-4">{t("account", "layawayLearn")}</Link>
+            <Link href="/layaway" className="mt-6 inline-block text-gold-dark underline underline-offset-4">{t("account", "layawayLearn")}</Link>
           </>
         )}
 
@@ -78,16 +79,16 @@ export default async function AccountLayawayPage() {
               // — its badge already reads "Paid in full".
               const figure = planFigure(plan, lang);
               return (
-                <li key={plan.id} className="flex flex-wrap items-center justify-between gap-4 bg-charcoal p-5">
+                <li key={plan.id} className="flex flex-wrap items-center justify-between gap-4 bg-white p-5">
                   <div>
-                    <p className="font-mono text-gold-pale">{plan.web_reference ?? plan.invoice_number ?? "—"}</p>
+                    <p className="font-mono text-gold-dark">{plan.web_reference ?? plan.invoice_number ?? "—"}</p>
                     <p className="mt-1 text-xs text-charcoal/70">
                       {t("plans", "term")} {t("plans", "months", { n: String(plan.payment_plan_months) })}
                     </p>
                   </div>
-                  <StatusBadge tone={status.tone} text={status.text} />
+                  <StatusBadge tone={status.tone} text={status.text} surface="light" />
                   <div className="text-right">
-                    <p className={`font-display text-xl ${figure.emphasise ? "text-gold-pale" : "text-charcoal/70"}`}>
+                    <p className={`font-display text-xl ${figure.emphasise ? "text-gold-dark" : "text-charcoal/70"}`}>
                       {money(figure.amount)}
                     </p>
                     <p className="text-xs text-charcoal/70">
@@ -95,7 +96,7 @@ export default async function AccountLayawayPage() {
                       {figure.withPlanTotal && <> · {t("plans", "total")} {money(Number(plan.total_amount))}</>}
                     </p>
                   </div>
-                  <Link href={`/account/layaway/${plan.id}`} className="text-sm text-gold-pale underline underline-offset-4">
+                  <Link href={`/account/layaway/${plan.id}`} className="text-sm text-gold-dark underline underline-offset-4">
                     {t("plans", "view")}
                   </Link>
                 </li>

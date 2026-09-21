@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { dict, type Lang } from "@/lib/i18n";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 
 /**
  * Email sign-in link. EMAIL ONLY, deliberately.
@@ -49,19 +50,19 @@ export function LoginForm({ lang }: { lang: Lang }) {
   }
 
   if (state === "sent") {
-    return <div className="border border-gold bg-charcoal-deep p-6 text-gold-pale">{c.sent[lang]}</div>;
+    return <div className="border border-hairline bg-white p-6 text-charcoal-deep">{c.sent[lang]}</div>;
   }
   return (
-    <form onSubmit={submit} noValidate className="grid gap-4 border border-gold bg-charcoal-deep p-6 text-sm">
+    <form onSubmit={submit} noValidate className="grid gap-4 border border-hairline bg-white p-6 text-sm">
       {configError && (
         <p role="alert" className="border border-garnet/60 p-3 text-charcoal-deep">{c.configErr[lang]}</p>
       )}
       {!configError && linkErrorCopy && (
-        <p role="alert" className="border border-gold/60 p-3 text-charcoal-deep">{linkErrorCopy}</p>
+        <p role="alert" className={`${alertLight} p-3`}>{linkErrorCopy}</p>
       )}
       <label className="grid gap-1.5 text-charcoal">
         {c.email[lang]}
-        <input name="email" type="email" required autoComplete="email" className="min-h-11 w-full rounded-sm border border-hairline bg-charcoal px-3 text-charcoal-deep" />
+        <input name="email" type="email" required autoComplete="email" className="min-h-11 w-full rounded-sm border border-hairline bg-white px-3 text-charcoal-deep" />
       </label>
       <Button type="submit" disabled={state === "sending"}>{c.sendLink[lang]}</Button>
       {state === "err" && <p className="text-garnet">{c.err[lang]}</p>}

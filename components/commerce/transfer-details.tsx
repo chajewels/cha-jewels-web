@@ -28,7 +28,7 @@ export function TransferDetails({
 
   if (methods.length === 0) {
     return (
-      <div className={`border border-gold px-5 py-4 text-sm text-gold-pale ${className ?? ""}`}>
+      <div className={`border border-gold-dark px-5 py-4 text-sm text-gold-dark ${className ?? ""}`}>
         {t.unavailable[lang]}
       </div>
     );
@@ -43,7 +43,7 @@ export function TransferDetails({
       {/* Fixed under every list, both regions: a sender name that does not match
           the order is the single most common reason a transfer cannot be
           matched. Said once at the end, not repeated on every card. */}
-      <p className="border border-hairline bg-charcoal px-5 py-4 text-sm text-charcoal">
+      <p className="border border-hairline bg-white px-5 py-4 text-sm text-charcoal">
         <span lang="ja">{t.nameNotice.ja}</span>
         <span className="text-charcoal/70"> / {t.nameNotice.en}</span>
       </p>
@@ -65,8 +65,8 @@ function MethodCard({ method, lang }: { method: TransferMethod; lang: Lang }) {
     : t.walletName[lang];
 
   return (
-    <section className="border border-gold p-6">
-      <h2 className="font-display text-xl text-gold-pale">{label}</h2>
+    <section className="border border-hairline p-6">
+      <h2 className="font-display text-xl text-charcoal-deep">{label}</h2>
 
       {wallet && (
         <dl className="mt-4 space-y-1.5 text-sm">

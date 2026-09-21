@@ -8,6 +8,7 @@ import { trackServiceRequest } from "@/lib/analytics";
 import type { ServiceRequest, ServiceRequestKind } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ServiceRequestRow } from "@/components/account/service-request-row";
+import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 
 /** The order or the plan the request is raised against — exactly one. */
 export type ServiceTarget = { cash_order_id: string } | { layaway_plan_id: string };
@@ -71,21 +72,21 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest }:
     });
   }
 
-  const field = "mt-1 w-full border border-hairline bg-charcoal-deep px-3 py-2 text-charcoal-deep";
+  const field = `mt-1 w-full px-3 py-2 ${inputLight}`;
 
   return (
     <section className="mt-12" aria-labelledby="service-request-h">
-      <h2 id="service-request-h" className="font-display text-xl text-gold-pale">{t("service", canRequest ? "formH" : "listH")}</h2>
+      <h2 id="service-request-h" className="font-display text-xl text-charcoal-deep">{t("service", canRequest ? "formH" : "listH")}</h2>
 
       {canRequest && (
         <>
           <p className="mt-2 max-w-[60ch] text-sm text-charcoal/70">{t("service", "formP")}</p>
 
           {error && (
-            <p role="alert" className="mt-4 border border-garnet/60 bg-charcoal-deep p-4 text-sm text-charcoal-deep">{error}</p>
+            <p role="alert" className={`mt-4 ${alertLight} p-4 text-sm`}>{error}</p>
           )}
           {sent && !error && (
-            <p role="status" className="mt-4 border border-gold px-4 py-3 text-sm text-gold-pale">{t("service", "success")}</p>
+            <p role="status" className="mt-4 border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("service", "success")}</p>
           )}
 
           {/* An action, not a record: the print stylesheet (app/globals.css) drops
@@ -97,7 +98,7 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest }:
               : <input type="hidden" name="layaway_plan_id" value={target.layaway_plan_id} />}
 
             <label className="text-sm text-charcoal/70">
-              {t("service", "kind")} <span className="text-gold-pale">*</span>
+              {t("service", "kind")} <span className="text-gold-dark">*</span>
               <select
                 name="kind" required value={kind}
                 onChange={(e) => setKind(e.target.value as ServiceRequestKind | "")}
@@ -121,14 +122,14 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest }:
 
             {kind !== "" && needsRingSize(kind) && (
               <label className="text-sm text-charcoal/70">
-                {t("service", "ringSize")} <span className="text-gold-pale">*</span>
+                {t("service", "ringSize")} <span className="text-gold-dark">*</span>
                 <input name="ring_size" required maxLength={RING_SIZE_MAX} autoComplete="off" className={field} />
                 <span className="mt-1 block text-[11px] text-charcoal/70">{t("service", "ringSizeHint")}</span>
               </label>
             )}
 
             <label className="text-sm text-charcoal/70 sm:col-span-2">
-              {t("service", "details")} <span className="text-gold-pale">*</span>
+              {t("service", "details")} <span className="text-gold-dark">*</span>
               <textarea name="details" required rows={4} maxLength={DETAILS_MAX} className={field} />
               <span className="mt-1 block text-[11px] text-charcoal/70">{t("service", "detailsHint")}</span>
             </label>

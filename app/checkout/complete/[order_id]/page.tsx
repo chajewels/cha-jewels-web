@@ -28,7 +28,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
 
   if (!detail) {
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
+      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("orders", "notFound")}</h1>
           <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
@@ -41,7 +41,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
   const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
+    <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[720px]">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("complete", "h1")}</h1>
         <p className="mt-4 text-charcoal">{t("complete", "lede")}</p>
@@ -75,9 +75,9 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
 
 function Cell({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="bg-charcoal p-5">
+    <div className="bg-white p-5">
       <dt className="text-xs text-charcoal/70">{k}</dt>
-      <dd className={`mt-1 text-gold-pale ${mono ? "font-mono text-lg" : "font-display text-xl"}`}>{v}</dd>
+      <dd className={`mt-1 text-gold-dark ${mono ? "font-mono text-lg" : "font-display text-xl"}`}>{v}</dd>
     </div>
   );
 }

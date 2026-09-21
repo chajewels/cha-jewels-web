@@ -36,7 +36,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     : [null, [] as ServiceRequest[]];
   if (!detail) {
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
+      <section className="surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("orders", "notFound")}</h1>
           <Button asChild variant="ghost-light" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
@@ -58,16 +58,16 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const placed = (order.order_date ?? order.created_at).slice(0, 10);
 
   return (
-    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
+    <section className="print-invoice surface-light bg-chalk text-charcoal-deep py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[820px]">
         <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
         <Link href="/account/orders" className="print-hide text-sm text-charcoal/70 underline underline-offset-4">{t("orders", "back")}</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-gold-pale">{order.web_reference ?? order.invoice_number ?? "—"}</h1>
+          <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-charcoal-deep">{order.web_reference ?? order.invoice_number ?? "—"}</h1>
           <div className="flex flex-wrap items-center gap-3">
-            <StatusBadge tone={status.tone} text={status.text} />
+            <StatusBadge tone={status.tone} text={status.text} surface="light" />
             <PrintButton label={t("account", "print")} />
           </div>
         </div>
@@ -83,20 +83,20 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         {items.length > 0 && (
         <ul className="rule-grid mt-10 grid gap-px">
           {items.map((line) => (
-            <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-charcoal p-5">
+            <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-white p-5">
               <div>
                 <p className="text-charcoal-deep">{orderLineTitle(line, lang)}</p>
                 <p className="mt-1 text-xs text-charcoal/70">
                   {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
                 </p>
               </div>
-              <p className="font-display text-xl text-gold-pale">{formatMoney(Number(line.line_total_jpy), order.currency)}</p>
+              <p className="font-display text-xl text-gold-dark">{formatMoney(Number(line.line_total_jpy), order.currency)}</p>
             </li>
           ))}
         </ul>
         )}
 
-        <dl className="mt-6 space-y-2 border-t border-gold pt-4 text-sm">
+        <dl className="mt-6 space-y-2 border-t border-hairline pt-4 text-sm">
           {order.shipping_fee != null && Number(order.shipping_fee) > 0 && (
             <Row k={t("checkout", "shipping")} v={formatMoney(Number(order.shipping_fee), order.currency)} />
           )}
@@ -115,7 +115,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
         {address && (
           <div className="mt-10 border border-hairline p-5 text-sm text-charcoal">
-            <h2 className="font-display text-lg text-gold-pale">{t("orders", "shipTo")}</h2>
+            <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "shipTo")}</h2>
             <p className="mt-2">{address.recipient_name ?? "—"}</p>
             <p>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p>
             <p>{[address.city, address.region, address.postal_code].filter(Boolean).join(" ")}</p>
@@ -126,7 +126,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         {/* The Hub decided the cancellation and the refund; this block only reports them. */}
         {cancelled && (
           <div className="mt-10 border border-hairline p-6 text-sm text-charcoal">
-            <h2 className="font-display text-xl text-gold-pale">{t("orders", "statusCancelled")}</h2>
+            <h2 className="font-display text-xl text-charcoal-deep">{t("orders", "statusCancelled")}</h2>
             <dl className="mt-4 space-y-2">
               {order.cancelled_at && <Row k={t("orders", "cancelledOn")} v={fmtDate(order.cancelled_at)} />}
               {order.cancellation_reason && <Row k={t("orders", "cancelReason")} v={order.cancellation_reason} />}
@@ -144,7 +144,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
         {order.tracking_number && (
           <p className="mt-6 text-sm text-charcoal">
-            {t("orders", "tracking")} <span className="font-mono text-gold-pale">{order.tracking_number}</span>
+            {t("orders", "tracking")} <span className="font-mono text-gold-dark">{order.tracking_number}</span>
           </p>
         )}
 
