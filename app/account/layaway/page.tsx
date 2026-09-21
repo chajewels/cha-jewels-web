@@ -86,7 +86,7 @@ export default async function AccountLayawayPage() {
                       {t("plans", "term")} {t("plans", "months", { n: String(plan.payment_plan_months) })}
                     </p>
                   </div>
-                  <StatusBadge tone={status.tone} text={status.text} surface="light" />
+                  <StatusBadge tone={status.tone} text={status.text} />
                   <div className="text-right">
                     <p className={`font-display text-xl ${figure.emphasise ? "text-gold-dark" : "text-charcoal/70"}`}>
                       {money(figure.amount)}

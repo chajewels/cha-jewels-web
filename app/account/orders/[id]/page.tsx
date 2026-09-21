@@ -67,7 +67,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-charcoal-deep">{order.web_reference ?? order.invoice_number ?? "—"}</h1>
           <div className="flex flex-wrap items-center gap-3">
-            <StatusBadge tone={status.tone} text={status.text} surface="light" />
+            <StatusBadge tone={status.tone} text={status.text} />
             <PrintButton label={t("account", "print")} />
           </div>
         </div>

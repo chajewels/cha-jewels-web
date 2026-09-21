@@ -66,7 +66,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 promise the checkout would refuse. See lib/layaway-availability. */}
             {variant && <AddToCart variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
             {layaway && variant && <ReserveWithLayaway variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-3" />}
-            {layaway && price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} tone="light" className="mt-8" />}
+            {layaway && price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} className="mt-8" />}
           </div>
         </div>
       </section>

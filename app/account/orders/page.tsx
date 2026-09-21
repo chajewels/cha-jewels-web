@@ -64,7 +64,7 @@ export default async function OrdersPage() {
                     </p>
                   </div>
                   <div className="flex flex-col items-start gap-1">
-                    <StatusBadge tone={status.tone} text={status.text} surface="light" />
+                    <StatusBadge tone={status.tone} text={status.text} />
                     {closedNote && <p className="max-w-[36ch] text-xs text-charcoal/70">{closedNote}</p>}
                   </div>
                   {/* #26's rule, which the plan rows already followed and these
