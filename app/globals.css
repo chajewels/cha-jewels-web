@@ -40,6 +40,18 @@
   .post-body ol { @apply list-decimal space-y-2 pl-6; }
   .post-body a { @apply text-gold-dark underline underline-offset-4 hover:text-gold-deep; }
 
+  /* FAQ answers (app/faq/page.tsx). Markdown now, LegalBlock[] before — and
+     these rules are the OLD renderer's classes, kept exactly: mt-4 spacing,
+     text-charcoal body, the gold native list marker from
+     components/site/legal-articles.tsx, the same underlined link. Changing
+     where the FAQ comes from was the task; restyling it was not, and a diff
+     that did both would be impossible to review. */
+  .faq-answer > * { @apply mt-4 text-charcoal; }
+  .faq-answer h3 { @apply mt-8 font-display text-[clamp(16px,1.6vw,20px)] text-charcoal-deep; }
+  .faq-answer ul { @apply list-disc space-y-2 pl-5 marker:text-gold-dark; }
+  .faq-answer ol { @apply list-decimal space-y-2 pl-5 marker:text-gold-dark; }
+  .faq-answer a { @apply underline decoration-gold-dark/50 underline-offset-4 hover:text-gold-dark; }
+
   /* The announcement bar, hidden BEFORE FIRST PAINT for a visitor who already
      dismissed it this session. components/site/announcement-bar.tsx renders a
      one-expression inline script that sets this attribute on <body> during

@@ -1,5 +1,7 @@
-import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubPost, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
+import { faqSections } from "@/lib/content/faq";
+import { blocksToMarkdown, sectionSlug } from "@/lib/content/faq-markdown";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 /** Plans in `layawayPlansFixture`, stated here because `meFixture` is declared first. */
 const layawayPlansFixtureCount = 7;
@@ -615,3 +617,38 @@ export const postsFixture: HubPost[] = [
     body_ja: null,
   },
 ];
+
+/**
+ * The preview FAQ: today's answers, put through the SAME conversion that
+ * generated docs/faq-seed.sql. So the preview exercises the Hub path — the
+ * markdown renderer, the language filter, the layaway rule — against the real
+ * thirty-nine answers rather than against two invented ones, and a conversion
+ * that mangles an answer is visible on the page and not only in a gate.
+ *
+ * ONE PREVIEW-ONLY DEVIATION: the first question under "Payments and Layaway"
+ * is flagged `layaway_only`, which nothing in lib/content/faq.ts is. The flag
+ * is a column the owner sets in the Hub, and a rule that cannot be seen cannot
+ * be reviewed — this is what the Japanese preview is checked against. Production
+ * seeds every row false.
+ */
+export function faqFixture(): HubFaqSection[] {
+  return faqSections.map((section, si) => {
+    const slug = sectionSlug(section.h.en);
+    return {
+      id: `faq-${slug}`,
+      slug,
+      title_en: section.h.en,
+      title_ja: section.h.ja,
+      sort_order: (si + 1) * 10,
+      items: section.items.map((item, ii) => ({
+        id: `faq-${slug}-${ii + 1}`,
+        question_en: item.q.en,
+        question_ja: item.q.ja,
+        answer_en: blocksToMarkdown(item.a, "en"),
+        answer_ja: blocksToMarkdown(item.a, "ja"),
+        layaway_only: slug === "payments-and-layaway" && ii === 0,
+        sort_order: (ii + 1) * 10,
+      })),
+    };
+  });
+}
