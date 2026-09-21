@@ -85,6 +85,15 @@
      own 1px ring into a 1px gap and the container clips the outer edge, so an
      empty cell stays the page colour. Focus rings move inside the card so the
      clip never hides them. */
+  /* The testimonial marquee. The track holds the list twice, so translating
+     it exactly -50% lands the copy where the original began — the loop has no
+     seam and no jump. Duration is set inline from the card count, so adding a
+     testimonial makes the track longer rather than faster. */
+  @keyframes marquee-x { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .marquee-track { animation: marquee-x var(--marquee-duration, 36s) linear infinite; will-change: transform; }
+  .marquee-track[data-paused="true"] { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
   .rule-grid { background: transparent; gap: 1px; clip-path: inset(0); }
   .rule-grid > * { box-shadow: 0 0 0 1px var(--rule); }
   .rule-grid > *:focus-visible { outline-offset: -4px; }
