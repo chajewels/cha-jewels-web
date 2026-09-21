@@ -11,12 +11,12 @@ export default async function Blog() {
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
         <h1 className="text-[clamp(36px,5.5vw,80px)]">{t("blog", "h1")}</h1>
-        <ul className="mt-12 divide-y divide-[rgba(201,162,39,.16)] border-y border-rule-soft">
+        <ul className="mt-12 divide-y divide-hairline border-y border-hairline">
           {postsFor(lang).map((p) => (
             <li key={p.slug} className="py-8">
-              <time dateTime={p.date} className="text-xs text-chalk/55">{new Date(p.date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" })}</time>
-              <h2 className="mt-2 text-[clamp(24px,2.6vw,36px)]"><Link href={`/blog/${p.slug}`} className="hover:text-gold-pale">{p.title[lang]}</Link></h2>
-              <p className="mt-2 max-w-[62ch] text-chalk/75">{p.excerpt[lang]}</p>
+              <time dateTime={p.date} className="text-xs text-charcoal/70">{new Date(p.date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" })}</time>
+              <h2 className="mt-2 text-[clamp(24px,2.6vw,36px)]"><Link href={`/blog/${p.slug}`} className="hover:text-gold-dark-dark">{p.title[lang]}</Link></h2>
+              <p className="mt-2 max-w-[62ch] text-charcoal">{p.excerpt[lang]}</p>
             </li>
           ))}
         </ul>

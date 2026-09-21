@@ -44,7 +44,7 @@ export function JoinButton({ lang }: { lang: Lang }) {
     return (
       <div className={box}>
         {c.alreadyMember[lang]}{" "}
-        <Link href="/account" className="underline hover:text-chalk">
+        <Link href="/account" className="underline hover:text-charcoal-deep">
           {dict.nav.account[lang]}
         </Link>
       </div>
@@ -59,12 +59,12 @@ export function JoinButton({ lang }: { lang: Lang }) {
       <Button type="button" onClick={join} disabled={busy}>
         {c.submit[lang]}
       </Button>
-      {outcome === "lost" && <p className="text-garnet-light">{c.err[lang]}</p>}
-      <p className="text-xs text-chalk/55">
+      {outcome === "lost" && <p className="text-garnet">{c.err[lang]}</p>}
+      <p className="text-xs text-charcoal/70">
         {c.consent[lang]}{" "}
-        <a href="/legal/terms" className="underline hover:text-gold-pale">{dict.footer.sale[lang]}</a>
+        <a href="/legal/terms" className="underline hover:text-gold-dark-dark">{dict.footer.sale[lang]}</a>
         {" · "}
-        <a href="/legal/privacy" className="underline hover:text-gold-pale">{dict.footer.privacy[lang]}</a>
+        <a href="/legal/privacy" className="underline hover:text-gold-dark-dark">{dict.footer.privacy[lang]}</a>
       </p>
     </div>
   );

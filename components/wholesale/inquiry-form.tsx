@@ -16,27 +16,27 @@ export function InquiryForm({ lang }: { lang: Lang }) {
     const res = await fetch("/api/wholesale", { method: "POST", body: JSON.stringify({ ...body, lang }) });
     setState(res.ok ? "ok" : "err");
   }
-  const field = "min-h-11 w-full rounded-sm border border-rule bg-charcoal px-3 text-chalk";
+  const field = "min-h-11 w-full rounded-sm border border-hairline bg-charcoal px-3 text-charcoal-deep";
   if (state === "ok") return <div className="border border-gold bg-charcoal-deep p-6 text-gold-pale">{c.ok[lang]}</div>;
   return (
     <form onSubmit={submit} noValidate className="grid gap-4 border border-gold bg-charcoal-deep p-6 text-sm">
-      <label className="grid gap-1.5 text-chalk/75">{c.name[lang]}<input name="name" required autoComplete="name" className={field} /></label>
-      <label className="grid gap-1.5 text-chalk/75">{c.business[lang]}<input name="business" required autoComplete="organization" className={field} /></label>
-      <label className="grid gap-1.5 text-chalk/75">{c.email[lang]}<input name="email" type="email" required autoComplete="email" className={field} /></label>
-      <label className="grid gap-1.5 text-chalk/75">{c.phone[lang]}<input name="phone" autoComplete="tel" className={field} placeholder="+81 / +63" /></label>
-      <label className="grid gap-1.5 text-chalk/75">{c.market[lang]}
+      <label className="grid gap-1.5 text-charcoal">{c.name[lang]}<input name="name" required autoComplete="name" className={field} /></label>
+      <label className="grid gap-1.5 text-charcoal">{c.business[lang]}<input name="business" required autoComplete="organization" className={field} /></label>
+      <label className="grid gap-1.5 text-charcoal">{c.email[lang]}<input name="email" type="email" required autoComplete="email" className={field} /></label>
+      <label className="grid gap-1.5 text-charcoal">{c.phone[lang]}<input name="phone" autoComplete="tel" className={field} placeholder="+81 / +63" /></label>
+      <label className="grid gap-1.5 text-charcoal">{c.market[lang]}
         <select name="market" defaultValue="JP" className={field}>
           {MARKETS.map((m) => <option key={m} value={m}>{marketLabel[m][lang]}</option>)}
         </select>
       </label>
-      <label className="grid gap-1.5 text-chalk/75">{c.volume[lang]}
+      <label className="grid gap-1.5 text-charcoal">{c.volume[lang]}
         <select name="volume" defaultValue="TEST" className={field}>
           {VOLUMES.map((v) => <option key={v} value={v}>{volumeLabel[v][lang]}</option>)}
         </select>
       </label>
-      <label className="grid gap-1.5 text-chalk/75">{c.notes[lang]}<textarea name="notes" rows={4} className={`${field} py-2`} /></label>
+      <label className="grid gap-1.5 text-charcoal">{c.notes[lang]}<textarea name="notes" rows={4} className={`${field} py-2`} /></label>
       <Button type="submit" disabled={state === "sending"}>{c.submit[lang]}</Button>
-      {state === "err" && <p className="text-garnet-light">{c.err[lang]}</p>}
+      {state === "err" && <p className="text-garnet">{c.err[lang]}</p>}
     </form>
   );
 }

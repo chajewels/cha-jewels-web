@@ -12,7 +12,7 @@ export default async function About() {
       <div className="wrap grid gap-12 md:grid-cols-[1.2fr_.8fr]">
         <div>
           <h1 className="text-[clamp(36px,5.5vw,80px)]">{c.h1}</h1>
-          <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-chalk/85">
+          <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
             <p>{c.intro}</p>
             <p>{c.questionsLead}</p>
           </div>
@@ -21,7 +21,7 @@ export default async function About() {
           <ul className="mt-6 max-w-[58ch] space-y-3 border-l border-gold-pale/40 pl-6">
             {c.questions.map((q) => <li key={q} className="font-display text-2xl text-gold-pale">{q}</li>)}
           </ul>
-          <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-chalk/85">
+          <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
             {c.body.map((p) => <p key={p}>{p}</p>)}
           </div>
           {/* Mission and Vision. Headed sections, so they take the page's
@@ -30,10 +30,10 @@ export default async function About() {
           {c.sections.map((s) => (
             <div key={s.heading} className="mt-8 max-w-[58ch] border-t border-gold-pale/25 pt-6">
               <h2 className="font-display text-2xl text-gold-pale">{s.heading}</h2>
-              <p className="mt-3 text-[17px] text-chalk/85">{s.body}</p>
+              <p className="mt-3 text-[17px] text-charcoal-deep">{s.body}</p>
             </div>
           ))}
-          <div className="mt-8 max-w-[58ch] space-y-5 text-[17px] text-chalk/85">
+          <div className="mt-8 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
             <p>{c.closing[0]}</p>
             <p className="font-display text-2xl text-gold-pale">{c.closing[1]}</p>
           </div>
@@ -43,7 +43,7 @@ export default async function About() {
         <div className="self-start bg-charcoal-deep p-6">
           <h2 className="font-display text-2xl text-gold-pale">{c.listHeading}</h2>
           <ul className="rule-grid mt-5 grid">
-            {c.list.map((item) => <li key={item} className="px-4 py-3 text-sm text-chalk/85">{item}</li>)}
+            {c.list.map((item) => <li key={item} className="px-4 py-3 text-sm text-charcoal-deep">{item}</li>)}
           </ul>
         </div>
       </div>
