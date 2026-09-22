@@ -471,6 +471,14 @@ export type HubPost = {
   type: PostType;
   /** ISO date or timestamp. Only the date is ever shown. */
   published_at: string;
+  /** Last edit. The sitemap's lastModified, falling back to published_at. */
+  updated_at?: string | null;
+  /**
+   * The Hub's list route returns published rows only, so this is normally
+   * absent. It is honoured when present so an explicit `false` can never be
+   * advertised in the sitemap by a Hub that starts sending drafts.
+   */
+  published?: boolean;
   /** Hero image. Absent is normal and renders no header image at all. */
   cover_url?: string | null;
   /**
