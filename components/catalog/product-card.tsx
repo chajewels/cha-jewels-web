@@ -5,6 +5,7 @@ import { formatMoney } from "@/lib/utils";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import { productName } from "@/lib/catalog-i18n";
+import { availabilityKey, isBuyable, productAvailability } from "@/lib/availability";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
 export function ProductCard({ product, lang, featured = false }: { product: Product; lang: Lang; featured?: boolean }) {
   const t = tr(lang);
@@ -13,17 +14,17 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
   const img = primaryImage(product);
   const v = product.product_variants[0];
   const name = productName(product, lang);
-  // Sold out when every variant is at zero. One-of-a-kind pieces usually have
-  // exactly one variant, so this is "the piece is gone" — the card says so
-  // before the shopper opens a page whose button is disabled anyway.
-  const soldOut = product.product_variants.length > 0 && product.product_variants.every((pv) => pv.stock_qty <= 0);
+  // The SAME word the product page shows. The card said "Sold out" where the
+  // page said "Currently reserved", for one piece and one stock number.
+  const avail = productAvailability(product);
+  const soldOut = !isBuyable(avail);
   return (
     <Link href={`/products/${product.slug}`} className={`flex flex-col bg-white ${featured ? "border border-gold-dark p-1.5" : ""}`}>
       <div className={`relative overflow-hidden bg-chalk ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
         {img ? <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:1024px) 25vw, 50vw" className={`object-cover ${soldOut ? "opacity-50" : ""}`} /> : <GoldMotif />}
         {soldOut && (
           <span className="absolute left-3 top-3 border border-charcoal-deep bg-white/90 px-2.5 py-1 text-xs tracking-wide text-charcoal-deep">
-            {t("cart", "soldOut")}
+            {t("product", availabilityKey(avail))}
           </span>
         )}
       </div>
@@ -39,9 +40,13 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
         {price != null && (
           <p className="mt-auto pt-4 text-sm text-charcoal">
             {formatMoney(price)}
-            {soldOut
-              ? <span className="text-charcoal/70"> · {t("cart", "soldOut")}</span>
-              : <span className="text-charcoal/70"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span>}
+            {/* A piece that cannot be bought carries NO "reserve from ¥…"
+                invitation. The badge over the photo already says the state, so
+                repeating it here beside the price only made the price line the
+                third place the same fact was worded differently. */}
+            {isBuyable(avail) && (
+              <span className="text-charcoal/70"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span>
+            )}
           </p>
         )}
       </div>
