@@ -9,9 +9,9 @@ export const generateMetadata = () => pageMeta("faq");
 export default async function FaqPage() {
   const lang = await getLang();
   const t = tr(lang);
-  // The Hub's FAQ if it has one, this repo's otherwise — all of one or all of
-  // the other, never a mixture. lib/faq.ts says why.
-  const { sections } = await getFaq(lang);
+  // From the Hub. A Hub that cannot answer throws rather than returning an
+  // empty list, so this page is never rendered — and never cached — blank.
+  const sections = await getFaq(lang);
 
   // Same markdown for the visible answer and for the structured data, flattened
   // by the renderer rather than by a second stripper, so the two cannot drift.

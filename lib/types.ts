@@ -401,19 +401,37 @@ export type NewsletterUnsubscribeResult = { status: "unsubscribed" };
  * only says what a WELL-FORMED value looks like.
  */
 export type SiteSettings = {
-  /** Public social links, footer and /contact. Falls back to FOLLOW. */
+  /** Public social links, footer and /contact. Absent renders no row. */
   "social.follow"?: SettingsSocialLink[];
-  /** Member-only chat groups. Falls back to LOYALTY_GROUPS. */
+  /** Member-only chat groups. Absent renders no block. */
   "social.loyalty_groups"?: SettingsSocialLink[];
-  /** The address a customer writes to. Falls back to the mailto in FOLLOW. */
+  /** The address a customer writes to. Absent renders no email line. */
   "contact.email"?: string;
-  /** The footer's brand paragraph. Falls back to dict.footer.blurb. */
+  /** The footer's brand paragraph. Absent renders no paragraph. */
   "footer.tagline"?: Partial<Record<"ja" | "en", string>>;
   "announcement"?: SettingsAnnouncement;
 } & Record<string, unknown>;
 
 /** One row of `social.follow` / `social.loyalty_groups`; `key` picks the glyph. */
 export type SettingsSocialLink = { key: string; href: string };
+
+/**
+ * A social link the site can actually draw, after lib/settings.ts has validated
+ * a `SettingsSocialLink` from the Hub.
+ *
+ * These two lived in lib/social.ts, beside the hardcoded lists they described,
+ * until those lists were deleted. They are the SHAPE OF HUB DATA now, which is
+ * what this file holds — and they are imported by three components that draw a
+ * social row (components/site/social-icons.tsx and its two loyalty callers),
+ * none of which ever read the lists.
+ *
+ * `key` is closed, not a string: it picks a glyph, and a key with no glyph
+ * renders an empty circle, which reads as a broken page rather than as a link
+ * nobody has drawn an icon for yet. lib/settings.ts drops a row naming anything
+ * else.
+ */
+export type SocialKey = "email" | "facebook" | "messenger" | "whatsapp" | "line";
+export type SocialLink = { key: SocialKey; href: string };
 
 /**
  * The announcement bar. `until` is an inclusive END DATE in YYYY-MM-DD, not a
@@ -453,6 +471,14 @@ export type HubPost = {
   type: PostType;
   /** ISO date or timestamp. Only the date is ever shown. */
   published_at: string;
+  /** Last edit. The sitemap's lastModified, falling back to published_at. */
+  updated_at?: string | null;
+  /**
+   * The Hub's list route returns published rows only, so this is normally
+   * absent. It is honoured when present so an explicit `false` can never be
+   * advertised in the sitemap by a Hub that starts sending drafts.
+   */
+  published?: boolean;
   /** Hero image. Absent is normal and renders no header image at all. */
   cover_url?: string | null;
   /**

@@ -7,13 +7,14 @@ import { allPostSlugs, getPost } from "@/lib/posts";
 import { JsonLd } from "@/components/site/json-ld";
 
 /**
- * BOTH SOURCES, AND NEITHER LANGUAGE'S RULES. A param list says which URLs
- * exist, not who may read them — lib/posts.ts decides that per request, and the
- * page 404s a reader who may not. That is the behaviour lib/blog.ts already had
- * for the layaway posts and it is why their slugs stay listed here.
+ * EVERY SLUG THE HUB KNOWS, AND NEITHER LANGUAGE'S RULES. A param list says
+ * which URLs exist, not who may read them — lib/posts.ts decides that per
+ * request, and the page 404s a reader who may not. That is why a layaway post's
+ * slug stays listed here and still 404s in Japanese.
  *
- * A Hub that cannot answer during the build yields the static slugs alone;
- * `dynamicParams` is on by default, so a Hub post published after the build is
+ * A Hub that cannot answer during the BUILD now fails the build, deliberately:
+ * a deploy that quietly shipped an empty blog is the outcome this replaced.
+ * `dynamicParams` is on by default, so a post published after the build is
  * still rendered on demand.
  */
 export async function generateStaticParams() {
@@ -50,8 +51,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         )}
         {/* Formatted the same way the list formats it. It printed the raw
             YYYY-MM-DD before, which was tolerable when every date was typed
-            into lib/blog.ts and reads as a machine value now that they arrive
-            from the Hub. */}
+            into a file in this repo and reads as a machine value now that
+            they arrive from the Hub. */}
         <time dateTime={p.date} className="mt-6 block text-xs text-charcoal/70">
           {new Date(p.date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
         </time>

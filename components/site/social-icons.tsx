@@ -1,6 +1,6 @@
 import { Mail } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
-import type { SocialKey, SocialLink } from "@/lib/social";
+import type { SocialKey, SocialLink } from "@/lib/types";
 
 /**
  * A row of circular icon buttons, one per link. Each is a plain anchor that
@@ -26,6 +26,9 @@ export function SocialIcons({ items, tone, lang, className = "" }: {
   className?: string;
 }) {
   const t = tr(lang);
+  // An empty list is "the Hub holds no social links", which renders as nothing
+  // rather than as an empty <ul> the callers would still have put a heading on.
+  if (items.length === 0) return null;
   const ring = tone === "dark"
     ? "border-chalk/40 text-chalk/75 hover:border-chalk hover:text-chalk focus-visible:outline-gold-pale"
     : "border-charcoal/60 text-charcoal-deep hover:border-gold-dark hover:text-gold-dark focus-visible:outline-gold-dark";

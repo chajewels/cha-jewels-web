@@ -1,57 +1,45 @@
 import "server-only";
 import { cache } from "react";
 import { hub } from "@/lib/hub-api";
-import { faqSections } from "@/lib/content/faq";
-import { blocksToMarkdown, sectionSlug } from "@/lib/content/faq-markdown";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { markdownToText, renderMarkdown } from "@/lib/markdown";
 import type { Lang } from "@/lib/i18n";
 import type { HubFaqSection } from "@/lib/types";
 
 /**
- * THE FAQ, FROM THE HUB IF IT HAS ONE AND FROM THIS REPO IF IT DOES NOT.
+ * THE FAQ, FROM THE HUB. There is no second source any more.
  *
- * ALL OR NOTHING, AND NEVER MIXED — the rule that matters here and the reason
- * this is not written like lib/posts.ts. Posts are independent articles, so
- * merging two sources by slug is harmless. The FAQ is a DOCUMENT: thirty-nine
- * answers that cross-reference each other, were reviewed together, and are
- * authoritative over the rest of the site. Half from the Hub and half from here
- * is a document nobody has read, in which the store-credit answer can contradict
- * the cancellation answer because they came from different drafts.
+ * Until 2026-09-22 this chose between the Hub's FAQ and a hand-authored copy in
+ * lib/content/faq.ts — all of one or all of the other, never mixed, because the
+ * FAQ is a document whose answers cross-reference each other rather than a list
+ * of independent posts. All 8 sections and 39 items are now in the Hub
+ * (owner-verified), docs/faq-seed.sql is the record of how they got there, and
+ * the runtime fallback is gone.
  *
- * So: one section from the Hub is enough to say the migration has happened, and
- * everything comes from the Hub. None, or a Hub that cannot answer, and
- * everything comes from lib/content/faq.ts. There is no third case.
+ * WHAT REPLACES IT IS NOT A THIRD SOURCE. A Hub that cannot answer is an ERROR
+ * — see the header of lib/hub-api.ts. Next then keeps serving the last page it
+ * rendered successfully, which is the whole FAQ, rather than caching an empty
+ * one for the next hour. An empty 200 is still empty: a Hub with no rows means
+ * there are no rows.
  *
- * BOTH SOURCES RENDER THROUGH lib/markdown.ts. The static answers are converted
- * by the same lib/content/faq-markdown.ts that generated docs/faq-seed.sql, so
- * the page cannot look one way before the seed is run and another way after —
- * and `npm run check:faq` is what proves that conversion changes no words.
- *
- * NOTHING HERE THROWS. /faq is public.
+ * lib/content/faq.ts SURVIVES, and only as the preview fixture's source
+ * (lib/fixtures.ts). Nothing on a production path reads it.
  */
-export type FaqSource = "hub" | "static";
-
 export type ViewFaqItem = {
   /** Stable within a render; used as a React key, never rendered. */
   key: string;
   question: string;
-  /** Rendered HTML, from markdown either way. */
+  /** Rendered HTML, from the Hub's markdown. */
   answerHtml: string;
   /** The same answer as plain text, for the FAQPage structured data. */
   answerText: string;
 };
 
 export type ViewFaqSection = { key: string; heading: string; items: ViewFaqItem[] };
-export type Faq = { source: FaqSource; sections: ViewFaqSection[] };
 
 const hubFaq = cache(async (): Promise<HubFaqSection[]> => {
-  try {
-    const rows = await hub.faq();
-    return Array.isArray(rows) ? rows : [];
-  } catch {
-    return [];
-  }
+  const rows = await hub.faq();
+  return Array.isArray(rows) ? rows : [];
 });
 
 const text = (value: unknown): string | null =>
@@ -64,18 +52,19 @@ function answer(markdown: string, key: string, question: string): ViewFaqItem {
   return { key, question, answerHtml: renderMarkdown(markdown), answerText: markdownToText(markdown) };
 }
 
-function fromHub(rows: HubFaqSection[], lang: Lang): ViewFaqSection[] {
+/** The FAQ for this language, sections in order with their questions inside. */
+export async function getFaq(lang: Lang): Promise<ViewFaqSection[]> {
   const offered = layawayOffered(lang);
-  return [...rows]
+  return [...(await hubFaq())]
     .sort(byOrder)
-    .map((section) => {
+    .flatMap((section) => {
       const heading = text(lang === "ja" ? section.title_ja : section.title_en);
       const items = [...(section.items ?? [])]
         .sort(byOrder)
-        // The layaway rule, and the language rule, in that order. An item with
-        // no words in this language is absent rather than an empty <details>:
-        // a question with nothing under it reads as a broken page, not as a
-        // translation someone has not finished.
+        // The layaway rule, then the language rule. An item with no words in
+        // this language is absent rather than an empty <details>: a question
+        // with nothing under it reads as a broken page, not as a translation
+        // someone has not finished.
         .filter((i) => offered || i.layaway_only !== true)
         .flatMap((item) => {
           const q = text(lang === "ja" ? item.question_ja : item.question_en);
@@ -84,38 +73,5 @@ function fromHub(rows: HubFaqSection[], lang: Lang): ViewFaqSection[] {
         });
       // A heading with nothing under it is the same broken page one level up.
       return heading && items.length ? [{ key: section.id || section.slug, heading, items }] : [];
-    })
-    .flat();
-}
-
-/** The repo's own answers, through the same conversion and the same renderer. */
-function fromStatic(lang: Lang): ViewFaqSection[] {
-  return faqSections.map((section) => {
-    const slug = sectionSlug(section.h.en);
-    return {
-      key: slug,
-      heading: section.h[lang],
-      items: section.items.map((item, i) => answer(blocksToMarkdown(item.a, lang), `${slug}-${i}`, item.q[lang])),
-    };
-  });
-}
-
-/**
- * The FAQ for this language, and which source it came from.
- *
- * `source` is returned rather than kept private because it is the one thing a
- * reviewer needs to know when the page looks wrong: the same answers rendered
- * the same way from two places, and "which one am I looking at?" is otherwise
- * unanswerable from the page.
- */
-export async function getFaq(lang: Lang): Promise<Faq> {
-  const rows = await hubFaq();
-  if (rows.length >= 1) {
-    const sections = fromHub(rows, lang);
-    // A Hub that answered, but with nothing this language can read, still means
-    // the migration has happened. Falling back here would put the repo's
-    // Japanese beside the Hub's English and call it one document.
-    return { source: "hub", sections };
-  }
-  return { source: "static", sections: fromStatic(lang) };
+    });
 }

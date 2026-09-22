@@ -1,5 +1,5 @@
 import { tr, type Lang } from "@/lib/i18n";
-import type { SocialLink } from "@/lib/social";
+import type { SocialLink } from "@/lib/types";
 import { SocialIcons } from "@/components/site/social-icons";
 
 /**
@@ -17,6 +17,9 @@ import { SocialIcons } from "@/components/site/social-icons";
  */
 export function MemberGroups({ items, lang, className = "" }: { items: SocialLink[]; lang: Lang; className?: string }) {
   const t = tr(lang);
+  // No groups in the Hub is no block at all — a heading and an invitation over
+  // an empty row is worse than saying nothing.
+  if (items.length === 0) return null;
   return (
     <div className={className}>
       <h3 className="font-display text-lg text-charcoal-deep">{t("loyalty", "groupH")}</h3>

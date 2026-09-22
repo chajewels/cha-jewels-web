@@ -250,15 +250,6 @@ export const dict = {
     testiEyebrow: { ja: "ご愛用者様の声", en: "Voices" },
     testiH: { ja: "お客様の声", en: "Customer stories" },
     testiP: { ja: "Cha Jewelsでお選びいただいたお客様からのご感想をご紹介します。", en: "Notes from customers who chose Cha Jewels." },
-    // Three ILLUSTRATIVE placeholder testimonials from the Stitch mock. They render
-    // only while hub.testimonials() is empty and are replaced by the first
-    // published Hub testimonial (components/home/testimonials.tsx).
-    testiPh1Quote: { ja: "アコヤ真珠のペンダントは、書類一式と封印付きでマニラに届きました。レイアウェイのおかげで、純度の高いK18を無理なく手にできました。", en: "The Akoya pearl pendant arrived in Manila with full documentation and a tamper-proof seal. The layaway plan made investing in pure K18 accessible without any pressure." },
-    testiPh1Name: { ja: "Maria Christina V.", en: "Maria Christina V." }, testiPh1Loc: { ja: "Makati City, Philippines", en: "Makati City, Philippines" }, testiPh1Item: { ja: "Akoya Solitaire", en: "Akoya Solitaire" },
-    testiPh2Quote: { ja: "日本国内でのホールマーク刻印確認と正確なグラム表記があり、とても信頼できるサロンです。ヴィンテージ喜平ネックレスの磨き上げも完璧で、新品同様の輝きでした。", en: "Hallmark verified in Japan with exact gram weights — a salon I can trust. The vintage Kihei necklace was polished to a like-new shine." },
-    testiPh2Name: { ja: "Kenji Sato (佐藤 健二)", en: "Kenji Sato (佐藤 健二)" }, testiPh2Loc: { ja: "Yokohama, Japan", en: "Yokohama, Japan" }, testiPh2Item: { ja: "K18 Cuban 50cm", en: "K18 Cuban 50cm" },
-    testiPh3Quote: { ja: "6か月のレイアウェイで三色のバングルを購入しました。東京でルーペ越しの動画で状態を確認させてもらえて、本当に安心できました。", en: "I ordered the tri-color interlocking bangle through their 6-month layaway. Customer service provided video updates under the loupe in Tokyo. Truly authentic, seamless cross-border service." },
-    testiPh3Name: { ja: "Therese Angela D.", en: "Therese Angela D." }, testiPh3Loc: { ja: "Cebu City, Philippines", en: "Cebu City, Philippines" }, testiPh3Item: { ja: "Tri-Color Bangle", en: "Tri-Color Bangle" },
     slideEyebrow: { ja: "カテゴリー", en: "Category" }, slideShop: { ja: "{name}を見る", en: "Shop {name}" },
     slidePrev: { ja: "前のスライド", en: "Previous slide" }, slideNext: { ja: "次のスライド", en: "Next slide" },
     slideDot: { ja: "{n}枚目へ", en: "Go to slide {n}" }, slideOf: { ja: "{total}枚中{n}枚目", en: "{n} of {total}" },
@@ -285,7 +276,7 @@ export const dict = {
     filterLabel: { ja: "状態でしぼり込む", en: "Filter by condition" },
     filterAll: { ja: "すべて", en: "All" }, filterNew: { ja: "新品", en: "New" }, filterPreloved: { ja: "プレラブド", en: "Preloved" },
   },
-  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, blurb: { ja: "日本で真贋確認済みのK18ゴールド、パール、ダイヤモンドジュエリーと、厳選したプレラブド・ラグジュアリー。東京のお客様と、世界中のフィリピン人ファミリーのために。", en: "K18 gold, pearl and diamond jewelry, hallmark checked in Japan, and curated preloved luxury. For our neighbours in Tokyo and Filipino families everywhere." }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." } },
+  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." } },
   loyalty: {
     level: { ja: "レベル {n}", en: "Level {n}" }, onJoining: { ja: "入会時", en: "On joining" }, times: { ja: "{n}倍", en: "{n}x" },
     regionJp: { ja: "日本", en: "Japan" }, regionPh: { ja: "フィリピン", en: "Philippines" }, regionOther: { ja: "その他", en: "Elsewhere" },
