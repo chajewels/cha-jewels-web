@@ -2,6 +2,17 @@ import type { Lang } from "@/lib/i18n";
 import type { LegalBlock } from "@/lib/content/legal";
 
 /**
+ * PREVIEW FIXTURE SOURCE ONLY, SINCE 2026-09-22. The site reads the FAQ from
+ * the Hub (lib/faq.ts); this file is what lib/fixtures.ts converts into the
+ * preview's FAQ so `NEXT_PUBLIC_PREVIEW_FIXTURES=1` exercises the real markdown
+ * path against the real answers. NOTHING ON A PRODUCTION PATH READS IT. It was
+ * kept rather than deleted for exactly that one importer; deleting it means
+ * first giving lib/fixtures.ts a literal copy of the 39 seeded answers.
+ *
+ * The live answers are the Hub's rows. If this file and the Hub disagree, the
+ * HUB is right and this is a stale preview — the reverse of what follows, which
+ * was written when this file was the site.
+ *
  * THE FAQ IS AUTHORITATIVE (owner-confirmed 2026-09-16).
  *
  * Where this file and another page disagree about a fact, this file is right
