@@ -14,7 +14,13 @@ export type AccountMenuItem = { href: string; label: string };
  * item, separated, and posts to the server action so the cookies clear in the
  * same response that redirects home.
  */
-export function AccountMenu({ name, items, signOut, menuLabel }: { name: string; items: AccountMenuItem[]; signOut: string; menuLabel: string }) {
+/**
+ * `name` is a ReactNode, not a string: the header hands it a <Suspense> whose
+ * child resolves the customer's given name from the Hub. The trigger renders
+ * with the generic label immediately and the name streams into it, so opening
+ * a page never waits on /me. See components/site/header.tsx.
+ */
+export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.ReactNode; items: AccountMenuItem[]; signOut: string; menuLabel: string }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);

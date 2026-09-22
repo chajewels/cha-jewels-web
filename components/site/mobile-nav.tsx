@@ -7,7 +7,8 @@ import { SearchBox } from "./search-box";
 import { LangSwitcher } from "./lang-switcher";
 import type { Lang } from "@/lib/i18n";
 
-export type DrawerAccount = { name: string; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
+/** `name` is a ReactNode: the header streams the real one in. See header.tsx. */
+export type DrawerAccount = { name: React.ReactNode; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
 export type DrawerItem = { key: string; href: string; label: string };
 export type DrawerGroup = { key: string; label: string; sections: { heading?: string; items: DrawerItem[] }[] };
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { trackHeroSlideCta } from "@/lib/analytics";
+import { useHeroMotion } from "@/components/home/hero";
 
 export type HeroSlide =
   | { kind: "intro"; layaway: boolean }
@@ -21,10 +22,11 @@ const VISIBLE_THRESHOLD = 0.6;
  * IntersectionObserver on the slides, so dots and arrows stay in sync after a
  * swipe as well as after a click.
  *
- * Auto-advance every 6s, paused on hover, focus, touch and while the tab is
- * hidden, and off entirely under prefers-reduced-motion (where every
- * programmatic scroll is also instant). There is no pause control for the
- * slides — the video toggle in the corner stays the only control there.
+ * Auto-advance every 6s, paused on hover, focus, touch, while the tab is
+ * hidden, WHILE THE HERO IS OFF SCREEN, and off entirely under
+ * prefers-reduced-motion (where every programmatic scroll is also instant).
+ * The toggle in the corner pauses this as well as the video — one control for
+ * the hero's motion, because "pause" means "stop moving".
  *
  * LAYERING. The section owns the video and its vertical scrim as the base
  * layer. Slide 0 draws nothing of its own, so the video shows through it
@@ -40,22 +42,12 @@ const VISIBLE_THRESHOLD = 0.6;
 export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }) {
   const t = tr(lang);
   const trackRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
+  // Shared with the video: which slide is up, and whether the hero may move at
+  // all (on screen, tab visible, reduced motion off, reader has not paused).
+  // components/home/hero.tsx holds all of it.
+  const { active, setActive, rotateOn, reduced } = useHeroMotion();
   const [held, setHeld] = useState(false);       // hover / focus / touch
-  const [hidden, setHidden] = useState(false);   // document.hidden
-  const [reduced, setReduced] = useState(false); // prefers-reduced-motion
   const count = slides.length;
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduced(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    const vis = () => setHidden(document.hidden);
-    vis();
-    document.addEventListener("visibilitychange", vis);
-    return () => { mq.removeEventListener("change", apply); document.removeEventListener("visibilitychange", vis); };
-  }, []);
 
   const goTo = useCallback((i: number) => {
     const track = trackRef.current;
@@ -82,10 +74,12 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
   }, [count]);
 
   useEffect(() => {
-    if (count < 2 || reduced || held || hidden) return;
+    // `rotateOn` carries offscreen, hidden tab, reduced motion and the pause
+    // button; `held` is hover/focus/touch and stays local to the deck.
+    if (count < 2 || held || !rotateOn) return;
     const id = setInterval(() => goTo(active + 1), AUTO_ADVANCE_MS);
     return () => clearInterval(id);
-  }, [active, count, reduced, held, hidden, goTo]);
+  }, [active, count, held, rotateOn, goTo]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === "ArrowRight") { e.preventDefault(); goTo(active + 1); }
