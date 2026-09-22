@@ -28,6 +28,13 @@ import { useHeroMotion } from "@/components/home/hero";
  * element's own play/pause events, and a rejected play() simply leaves it
  * false — the poster stays, the button offers "play", and nothing pretends.
  */
+/**
+ * The poster is the hero's whole first paint, so app/page.tsx preloads it —
+ * exported from here so the preload and the <video> can never name different
+ * files.
+ */
+export const HERO_POSTER = "/images/home/hero-poster.webp";
+
 export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseLabel: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const { videoOn, paused, toggle } = useHeroMotion();
@@ -74,7 +81,7 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
         // `none`, not `metadata`: with no <source> yet there is nothing to
         // preload, and once armed the play() below is what starts the fetch.
         preload="none"
-        poster="/images/home/hero-poster.webp"
+        poster={HERO_POSTER}
         aria-hidden="true"
       >
         {armed && (

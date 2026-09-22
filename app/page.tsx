@@ -12,6 +12,7 @@ import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
 import { categoryCta, categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { Hero } from "@/components/home/hero";
+import { HERO_POSTER } from "@/components/site/hero-video";
 import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
 import type { HeroSlide } from "@/components/home/hero-slides";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
@@ -98,6 +99,15 @@ export default async function Home() {
           bites, and both crop top and bottom only, around a centred crucible.
           The 1440px max width applies to the content wrapper only. Copy from
           hero.*. */}
+      {/* THE ONE EAGER IMAGE ON THIS PAGE.
+          The hero poster is what a visitor sees first: the clip does not load
+          until something decides it should play, and no category slide mounts
+          its photo until the deck is coming to it, so for the whole of the
+          intro slide this file IS the hero. React hoists the tag into <head>,
+          which puts the request in the same breath as the stylesheet instead
+          of waiting for the <video> to be parsed. Nothing else on the site
+          asks for priority — see components/media/hub-image.tsx. */}
+      <link rel="preload" as="image" href={HERO_POSTER} fetchPriority="high" />
       <Hero
         lang={lang}
         slides={slides}

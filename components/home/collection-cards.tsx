@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import type { Collection } from "@/lib/types";
+import { HubImage } from "@/components/media/hub-image";
 
 export type CollectionCardData = { c: Collection; image: string | null };
 
@@ -12,7 +13,11 @@ export type CollectionCardData = { c: Collection; image: string | null };
  * Image: c.hero_media when the Hub has one, else the Stitch placeholder for that
  * slug (lib/collection-placeholders), else a chalk block with the name in
  * Playfair — never a product photo. Description is the Hub's or nothing.
- * Plain <img>: Hub media may come from hosts next/image is not configured for.
+ * Image sizing is measured, not guessed: the thumbnail is a fixed 112px box
+ * below `lg` (the mobile row card) and 266px from `lg` up, where four cards
+ * share a 1144px row and the container stops growing — 375, 768, 1280 and 1440
+ * all land on one of those two. HubImage falls back to a plain <img> for a
+ * hero_media URL on a host the optimiser does not know (lib/image-hosts.ts).
  */
 export function CollectionCards({ items, lang }: { items: CollectionCardData[]; lang: Lang }) {
   const t = tr(lang);
@@ -25,7 +30,7 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
           <Link key={c.id} href={`/collections/${c.slug}`} className="group flex w-full items-stretch overflow-hidden rounded-sm border border-hairline bg-white shadow-sm transition-shadow hover:shadow-md lg:w-[calc(25%-18px)] lg:flex-col">
             <div className="relative h-28 w-28 shrink-0 overflow-hidden lg:aspect-[4/3] lg:h-auto lg:w-full">
               {image ? (
-                <img src={image} alt={name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <HubImage src={image} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-105" />
               ) : (
                 <div className="grid h-full w-full place-items-center bg-chalk p-3 text-center"><span className="font-display text-lg text-gold-dark lg:text-2xl">{name}</span></div>
               )}
