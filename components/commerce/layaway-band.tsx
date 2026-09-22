@@ -50,7 +50,11 @@ export function LayawayBand({ lang, phpRate }: { lang: Lang; phpRate: number }) 
           phpRate={phpRate}
          
           header={{ title: t("home", "layCalcH"), sub: t("home", "layCalcP"), chip: t("home", "layCalcChip") }}
-          cta={{ label: t("home", "layCta"), href: "/layaway" }}
+          // NEVER /layaway. This band renders on the homepage AND on /layaway
+          // itself, where that href was a link to the page you are reading. A
+          // layaway is started from a piece at checkout, never from a
+          // calculator, so the button goes to the pieces.
+          cta={{ label: t("home", "layCta"), href: "/collections" }}
           className="lg:col-span-6"
         />
       </div>

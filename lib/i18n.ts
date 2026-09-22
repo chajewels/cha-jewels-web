@@ -257,7 +257,13 @@ export const dict = {
     layStep2H: { ja: "残額を3〜8か月で分割", en: "Spread the balance over 3 to 8 months" }, layStep2P: { ja: "無利息・手数料なし。8か月プランは30万円以上のご注文が対象です。", en: "0% interest, no fees. Eight months on orders of ¥300,000 and above." },
     layStep3H: { ja: "最終回のお支払い後にお届け", en: "Delivered on the final payment" }, layStep3P: { ja: "各回は銀行振込。プラン完了後に発送します。", en: "Pay each instalment by bank transfer; the piece ships once the plan completes." },
     layCalcH: { ja: "レイアウェイ計算", en: "Layaway calculator" }, layCalcP: { ja: "毎月のお支払い目安", en: "Estimate your monthly plan" }, layCalcChip: { ja: "無利息", en: "0% interest" },
-    layCta: { ja: "レイアウェイを申し込む", en: "Start a layaway" },
+    // "Start a layaway" pointed at /layaway, which is the page the button is
+    // ON — a self-link, and on the homepage a link to an explainer rather than
+    // to anything buyable. A layaway is NOT started from a calculator in any
+    // case: it is started from a piece, at checkout. So the button says the
+    // next thing the customer actually has to do, and goes where they can do
+    // it. See components/commerce/layaway-band.tsx.
+    layCta: { ja: "商品を選ぶ", en: "Choose a piece" },
     newEyebrow: { ja: "一点物・新着品", en: "One-of-a-kind, newly listed" }, newDetail: { ja: "詳細を見る", en: "View details" },
     phName: { ja: "商品名", en: "Product name" }, phMeta: { ja: "K18 · 0.00g", en: "K18 · 0.00g" }, phPrice: { ja: "¥—", en: "¥—" },
     testiEyebrow: { ja: "ご愛用者様の声", en: "Voices" },
