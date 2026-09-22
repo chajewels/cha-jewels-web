@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { tr, type Lang } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
 import { markSearchFromBox } from "@/lib/search-origin";
+import { HubImage } from "@/components/media/hub-image";
 
 type Suggestion = { slug: string; sku: string; name: string; price: number | null; image: string | null };
 
@@ -222,8 +223,10 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
                 className={`flex cursor-pointer items-center gap-3 px-3 py-2 ${i === active ? "bg-hairline" : ""}`}
               >
                 <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-sm bg-hairline">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {s.image ? <img src={s.image} alt="" width={40} height={40} className="h-10 w-10 object-cover" /> : null}
+                  {/* A 40px box, so next/image asks for 48 at 1x and 80 at 2x
+                      (the 80 comes from images.imageSizes in next.config) —
+                      rather than the full product photo the Hub stores. */}
+                  {s.image ? <HubImage src={s.image} alt="" width={40} height={40} className="h-10 w-10 object-cover" /> : null}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm text-charcoal">{s.name}</span>

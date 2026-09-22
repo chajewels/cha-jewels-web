@@ -5,6 +5,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { trackHeroSlideCta } from "@/lib/analytics";
 import { useHeroMotion } from "@/components/home/hero";
+import { HubImage } from "@/components/media/hub-image";
 
 export type HeroSlide =
   | { kind: "intro"; layaway: boolean }
@@ -12,6 +13,12 @@ export type HeroSlide =
 
 const AUTO_ADVANCE_MS = 6000;
 const VISIBLE_THRESHOLD = 0.6;
+/**
+ * How long before a slide arrives its photo is allowed to start loading. Long
+ * enough that the bytes are usually there when the scroll finishes, short
+ * enough that a reader who never waits out one rotation never pays for it.
+ */
+const PRELOAD_LEAD_MS = 900;
 
 /**
  * The hero deck: slide 0 is the brand headline over the video, then one slide
@@ -49,14 +56,37 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
   const [held, setHeld] = useState(false);       // hover / focus / touch
   const count = slides.length;
 
+  /**
+   * HOW FAR INTO THE DECK THE PHOTOS ARE ALLOWED TO LOAD.
+   *
+   * Every category slide is laid out from the start — the track is one wide
+   * row — so `loading="lazy"` does not hold them back: the browser's lazy
+   * heuristic measures against the viewport with a generous margin, and slides
+   * sitting just off the right edge are inside it. Measured on develop at both
+   * 375 and 1440, ALL FIVE category photos were fetched on first paint, 818 KB
+   * of them, behind an intro slide that shows none of them.
+   *
+   * So mounting is what is gated, not the loading attribute. `reach` starts at
+   * 0 — the intro slide, which has no photo of its own — and a slide's <img>
+   * does not exist in the DOM until the deck reaches it. It moves for exactly
+   * three reasons: the deck is about to rotate onto the next slide, the reader
+   * asked for a slide by arrow/dot/key, or a swipe has landed on one. It never
+   * goes backwards: a photo already fetched stays mounted, because unmounting
+   * it would only mean fetching it again on the way back.
+   */
+  const [reach, setReach] = useState(0);
+  const reveal = useCallback((i: number) => setReach((r) => (i > r ? i : r)), []);
+
   const goTo = useCallback((i: number) => {
     const track = trackRef.current;
     if (!track || count === 0) return;
     const idx = ((i % count) + count) % count;
     const slide = track.children[idx] as HTMLElement | undefined;
     if (!slide) return;
+    // Asked for by name, so it is wanted now rather than in PRELOAD_LEAD_MS.
+    reveal(idx);
     track.scrollTo({ left: slide.offsetLeft, behavior: reduced ? "auto" : "smooth" });
-  }, [count, reduced]);
+  }, [count, reduced, reveal]);
 
   // The scroller decides which slide is current, so a swipe, a snap after a
   // resize, or a keyboard scroll all land on the same truth as a dot click.
@@ -73,13 +103,29 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
     return () => io.disconnect();
   }, [count]);
 
+  // A swipe is the third way to arrive at a slide, and the only one that does
+  // not go through goTo — the scroller reports it through `active`. Whatever
+  // is showing must have its photo; and once the reader is moving through the
+  // deck at all, the slide after it is fair game. Not at active 0, which is
+  // where every visit starts and where the poster is the only image wanted.
+  useEffect(() => {
+    reveal(active);
+    if (active > 0) reveal(active + 1);
+  }, [active, reveal]);
+
   useEffect(() => {
     // `rotateOn` carries offscreen, hidden tab, reduced motion and the pause
     // button; `held` is hover/focus/touch and stays local to the deck.
     if (count < 2 || held || !rotateOn) return;
-    const id = setInterval(() => goTo(active + 1), AUTO_ADVANCE_MS);
-    return () => clearInterval(id);
-  }, [active, count, held, rotateOn, goTo]);
+    // Two timers, not one: the photo for the slide we are about to move to
+    // starts loading PRELOAD_LEAD_MS early, so "loads when it becomes next"
+    // does not mean "appears a beat after it arrives". A setTimeout rather
+    // than the old setInterval because this effect already re-ran on every
+    // `active` change — the interval never survived to a second tick.
+    const lead = setTimeout(() => reveal(active + 1), AUTO_ADVANCE_MS - PRELOAD_LEAD_MS);
+    const advance = setTimeout(() => goTo(active + 1), AUTO_ADVANCE_MS);
+    return () => { clearTimeout(lead); clearTimeout(advance); };
+  }, [active, count, held, rotateOn, goTo, reveal]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === "ArrowRight") { e.preventDefault(); goTo(active + 1); }
@@ -132,11 +178,16 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
               </div>
             ) : (
               <>
-                {s.image && (
+                {/* Full-bleed at every width — measured 375/768/1280/1440, the
+                    photo is the viewport wide in all four — so `100vw` is the
+                    literal truth rather than a guess, and the browser picks
+                    from the 640…3840 ladder instead of taking the original.
+                    `i <= reach` is the gate described above; the scrim goes
+                    with the photo, because it exists to sit between the photo
+                    and the copy. */}
+                {s.image && i <= reach && (
                   <>
-                    {/* Hub media may come from hosts next/image is not configured for. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.image} alt="" loading={i <= 1 ? "eager" : "lazy"} className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
+                    <HubImage src={s.image} alt="" fill sizes="100vw" className="object-cover object-[65%_center]" />
                     <div aria-hidden="true" className="hero-slide-scrim" />
                   </>
                 )}
