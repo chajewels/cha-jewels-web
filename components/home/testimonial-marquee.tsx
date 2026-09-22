@@ -31,49 +31,53 @@ const RESUME_AFTER_MS = 5000;
  * and the reader swipes it themselves; five seconds after they stop, it
  * resumes. This is the whole reason the component is a client one.
  *
+ * IT ALSO STOPS WHEN NOBODY IS THERE. An IntersectionObserver pauses it while
+ * the section is off screen: a marquee running under the footer is a
+ * compositor job and a wakeup every frame for an audience of nobody.
+ *
  * Under `prefers-reduced-motion` there is no marquee at all — the cards are a
- * plain centred grid. The CSS backstop in globals.css disables the animation
- * even if this branch is somehow missed.
+ * plain centred grid. BOTH LAYOUTS ARE IN THE MARKUP AND CSS PICKS ONE
+ * (globals.css, `.marquee-motion` / `.marquee-still`). This used to render the
+ * marquee and then swap itself for the grid in an effect once it had read the
+ * media query, so a reader who had asked for no motion was served the moving
+ * version first and watched it rearrange — the one thing the setting exists to
+ * prevent. CSS decides it before a frame is painted.
  */
 export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang: Lang }) {
-  const [reduced, setReduced] = useState(false);
   const [paused, setPaused] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [onScreen, setOnScreen] = useState(false);
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dupRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduced(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
+  const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => () => { if (resumeTimer.current) clearTimeout(resumeTimer.current); }, []);
+
+  // Off screen is paused. Starts false so nothing animates before the observer
+  // has had its first say — a marquee that runs for one frame at the bottom of
+  // a page nobody has scrolled to is exactly what this is removing.
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting), { threshold: 0.05 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // The duplicate set is decorative. Anything focusable inside it leaves the
   // tab order, so tabbing through the section visits each quote once.
   useEffect(() => {
-    if (reduced || !dupRef.current) return;
+    if (!dupRef.current) return;
     for (const el of dupRef.current.querySelectorAll<HTMLElement>("a, button, input, select, textarea, [tabindex]")) {
       el.tabIndex = -1;
     }
-  }, [reduced, items]);
+  }, [items]);
 
   const interacted = () => {
     setDragging(true);
     if (resumeTimer.current) clearTimeout(resumeTimer.current);
     resumeTimer.current = setTimeout(() => setDragging(false), RESUME_AFTER_MS);
   };
-
-  if (reduced) {
-    return (
-      <div className="mt-6 grid gap-3 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-        {items.map((x) => <TestimonialCard key={x.id} item={x} lang={lang} />)}
-      </div>
-    );
-  }
 
   const row = (dup: boolean) => (
     <div
@@ -90,8 +94,15 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
   );
 
   return (
+    <>
+      {/* The reduced-motion layout. Rendered always, shown by CSS only when the
+          reader has asked for no motion — see globals.css. */}
+      <div className="marquee-still mt-6 gap-3 lg:mt-10 lg:grid-cols-3 lg:gap-6">
+        {items.map((x) => <TestimonialCard key={`still-${x.id}`} item={x} lang={lang} />)}
+      </div>
     <div
-      className="relative mt-6 lg:mt-10"
+      ref={boxRef}
+      className="marquee-motion relative mt-6 lg:mt-10"
       // The edges fade rather than cut, so a card enters and leaves instead of
       // appearing. A mask works on alpha, so it fades to whatever is behind —
       // no colour to keep in step with the section.
@@ -114,7 +125,7 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
       >
         <div
           className="marquee-track flex"
-          data-paused={paused || dragging ? "true" : "false"}
+          data-paused={paused || dragging || !onScreen ? "true" : "false"}
           style={{ ["--marquee-duration" as string]: `${items.length * SECONDS_PER_CARD}s` }}
         >
           {row(false)}
@@ -122,5 +133,6 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
         </div>
       </div>
     </div>
+    </>
   );
 }

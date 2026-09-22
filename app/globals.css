@@ -8,7 +8,15 @@
   h1, h2, h3 { @apply font-display font-normal leading-[1.02] tracking-[-0.01em]; }
   :lang(ja) h1, :lang(ja) h2, :lang(ja) h3 { @apply font-jp font-medium tracking-[0.01em]; }
   *:focus-visible { @apply outline outline-2 outline-gold-pale outline-offset-[3px]; }
-  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    /* `scroll-behavior: smooth` on html above is an ANIMATION too, and it is
+       the one this block kept missing: every in-page anchor and every
+       programmatic scrollTo still animated for a reader who had asked for
+       none. The rule that sets it is not a transition or a keyframe, so the
+       blanket line above never touched it. */
+    html { scroll-behavior: auto; }
+  }
 }
 @layer components {
   .gilt { background: linear-gradient(100deg,#8A6B12 0%,#E8D28A 30%,#C9A227 50%,#E8D28A 70%,#8A6B12 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -126,9 +134,27 @@
      seam and no jump. Duration is set inline from the card count, so adding a
      testimonial makes the track longer rather than faster. */
   @keyframes marquee-x { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  .marquee-track { animation: marquee-x var(--marquee-duration, 36s) linear infinite; will-change: transform; }
-  .marquee-track[data-paused="true"] { animation-play-state: paused; }
-  @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+  /* NO PERMANENT `will-change`. It was on the track unconditionally, which
+     asks the compositor for a dedicated layer for the life of the page —
+     including while the section is off screen, paused, or not animating at
+     all. It is promoted only while it is actually moving. */
+  .marquee-track { animation: marquee-x var(--marquee-duration, 36s) linear infinite; }
+  .marquee-track[data-paused="false"] { will-change: transform; }
+  .marquee-track[data-paused="true"] { animation-play-state: paused; will-change: auto; }
+
+  /* THE REDUCED-MOTION LAYOUT IS DECIDED HERE, FROM FIRST PAINT.
+     The component used to render the marquee and then swap itself for a grid
+     in an effect once it had read the media query — so a reader who asks for
+     no motion was served the moving version first and watched it rearrange.
+     Both layouts are now in the markup at once and CSS picks one, which it can
+     do before a single frame is painted. */
+  .marquee-motion { display: block; }
+  .marquee-still { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; }
+    .marquee-motion { display: none; }
+    .marquee-still { display: grid; }
+  }
 
   .rule-grid { background: transparent; gap: 1px; clip-path: inset(0); }
   .rule-grid > * { box-shadow: 0 0 0 1px var(--rule); }

@@ -67,10 +67,20 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
   const [hidden, setHidden] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [paused, setPaused] = useState(false);
+  /**
+   * Have we actually ASKED about motion yet?
+   *
+   * `reduced` starts false because the server cannot know, so for the render
+   * between mount and the effect below every condition said yes — and that one
+   * render was enough to arm the video and attach its <source> elements. A
+   * reader with reduced motion on was still downloading the clip. Nothing is
+   * allowed to move until the question has been answered once.
+   */
+  const [asked, setAsked] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const applyMq = () => setReduced(mq.matches);
+    const applyMq = () => { setReduced(mq.matches); setAsked(true); };
     applyMq();
     mq.addEventListener("change", applyMq);
     const vis = () => setHidden(document.hidden);
@@ -90,7 +100,7 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
     return () => io.disconnect();
   }, []);
 
-  const allowed = onScreen && !hidden && !reduced;
+  const allowed = asked && onScreen && !hidden && !reduced;
   const value = useMemo<HeroMotion>(() => ({
     active,
     setActive,
