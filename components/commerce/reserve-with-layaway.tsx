@@ -20,14 +20,16 @@ import { Button } from "@/components/ui/button";
  * the plan is created at the end of checkout, so an abandoned basket never sits
  * on a one-of-a-kind piece.
  */
-export function ReserveWithLayaway({ variantId, slug, sku, stockQty, lang, className }: {
-  variantId: string; slug: string; sku: string; stockQty: number; lang: Lang; className?: string;
+export function ReserveWithLayaway({ variantId, slug, sku, lang, className }: {
+  variantId: string; slug: string; sku: string; lang: Lang; className?: string;
 }) {
   const t = tr(lang);
   const router = useRouter();
   const [pending, start] = useTransition();
 
-  if (stockQty <= 0) return null;
+  // No stock check here any more. It used to return null on its own, so a
+  // reserved piece lost this button with nothing said — the caller now decides
+  // from the one status, and says so with a badge and a disabled button.
 
   return (
     <div className={className}>

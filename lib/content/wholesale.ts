@@ -1,18 +1,45 @@
 import type { Lang } from "@/lib/i18n";
 
-/** List-shaped page copy lives here rather than in `dict`, whose leaves are single strings. */
+/**
+ * List-shaped page copy lives here rather than in `dict`, whose leaves are
+ * single strings.
+ *
+ * TWO BULLETS REMOVED, OWNER DECISION 2026-09-22, both because they promised
+ * something the business does not do:
+ *
+ *   "Photos, spec sheets and a purity certificate for every SKU"
+ *   「全SKUに写真・仕様書・純度証明書を添付。」
+ *     A certificate is issued only when a piece has one, and /faq says so in
+ *     as many words: "A certificate or laboratory report is included only when
+ *     stated in the product listing." The page was contradicting the
+ *     authoritative FAQ, in the one place a buyer is deciding whether to order
+ *     ten of something.
+ *
+ *   "Established partners can apply for 30-day terms after the third order"
+ *   「3回目以降のご注文で30日払いをご相談可。」
+ *     There is no credit facility, no third-order rule and nothing to apply
+ *     to. Payment terms are settled in the written quotation, which the FAQ
+ *     also states.
+ *
+ * The photos-and-spec-sheets half of the first bullet went with the
+ * certificate rather than being kept as a shorter promise: it was one sentence
+ * the owner asked to remove, and rewriting a removed claim into a smaller one
+ * is a decision nobody made. The currency half of the last bullet stays,
+ * without the credit clause.
+ *
+ * The 10-piece minimum stays — it is real, and /faq's wholesale section is
+ * careful to say that minimums otherwise vary by quotation.
+ */
 export const wholesaleBullets: Record<Lang, string[]> = {
   ja: [
     "1回のご注文は10点から。チェーン、バングル、リング、ピアスを組み合わせ可。",
-    "全SKUに写真・仕様書・純度証明書を添付。",
     "在庫品は5営業日以内に東京から発送。",
-    "円またはペソでお支払い。3回目以降のご注文で30日払いをご相談可。",
+    "円またはペソでお支払い。",
   ],
   en: [
     "Minimum 10 pieces per order. Mix chains, bangles, rings and earrings.",
-    "Photos, spec sheets and a purity certificate for every SKU.",
     "In-stock items ship from Tokyo within 5 business days.",
-    "Pay in JPY or PHP. Established partners can apply for 30-day terms after the third order.",
+    "Pay in JPY or PHP.",
   ],
 };
 

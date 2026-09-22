@@ -35,7 +35,21 @@ export type ViewFaqItem = {
   answerText: string;
 };
 
-export type ViewFaqSection = { key: string; heading: string; items: ViewFaqItem[] };
+export type ViewFaqSection = {
+  key: string;
+  /**
+   * The Hub's slug, rendered as the section's DOM id so it can be LINKED TO.
+   * The footer's "Layaway terms" points at /faq#payments-and-layaway, and
+   * before this the page emitted no ids at all — the link would have landed at
+   * the top of a thirty-nine-question page and left the reader to find it.
+   *
+   * Falls back to the row id, which is stable if unlovely, so a section without
+   * a slug is still addressable rather than silently unlinkable.
+   */
+  slug: string;
+  heading: string;
+  items: ViewFaqItem[];
+};
 
 const hubFaq = cache(async (): Promise<HubFaqSection[]> => {
   const rows = await hub.faq();
@@ -72,6 +86,7 @@ export async function getFaq(lang: Lang): Promise<ViewFaqSection[]> {
           return q && a ? [answer(a, item.id, q)] : [];
         });
       // A heading with nothing under it is the same broken page one level up.
-      return heading && items.length ? [{ key: section.id || section.slug, heading, items }] : [];
+      const key = section.id || section.slug;
+      return heading && items.length ? [{ key, slug: text(section.slug) ?? key, heading, items }] : [];
     });
 }

@@ -15,7 +15,7 @@ import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
 import { categoryCta, categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
 import { Testimonials } from "@/components/home/testimonials";
-import { ArrivalCard, ArrivalPlaceholder } from "@/components/home/arrival-card";
+import { ArrivalCard, isShowableArrival } from "@/components/home/arrival-card";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
 export const revalidate = 60;
 
@@ -50,7 +50,9 @@ export default async function Home() {
     c,
     image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
-  const placeholders = Math.max(0, 4 - featured.length);
+  // The deck shows PIECES, and only pieces that can be shown as pieces. Fewer
+  // than four is fewer than four; none at all is no section.
+  const arrivals = featured.filter(isShowableArrival).slice(0, 4);
 
   // Hero deck: the intro, then one slide per category in the Hub's sort_order.
   // The order is the Hub's and nothing rearranges it here — the deck used to
@@ -148,7 +150,8 @@ export default async function Home() {
       {/* §9 Testimonials — from the Hub; placeholder cards until it publishes one */}
       <Testimonials lang={lang} items={testimonials} />
 
-      {/* §10 New arrivals — Hub data only; dashed placeholders fill to four */}
+      {/* §10 New arrivals — Hub data only, no padding, no section when empty */}
+      {arrivals.length > 0 && (
       <section className="border-t border-hairline bg-hairline/40 py-16 lg:py-20">
         <div className="wrap">
           <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
@@ -159,11 +162,11 @@ export default async function Home() {
             <Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link>
           </div>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-            {featured.map((p) => <ArrivalCard key={p.id} product={p} lang={lang} />)}
-            {Array.from({ length: placeholders }, (_, i) => <ArrivalPlaceholder key={`ph-${i}`} lang={lang} />)}
+            {arrivals.map((p) => <ArrivalCard key={p.id} product={p} lang={lang} />)}
           </div>
         </div>
       </section>
+      )}
 
       {/* §13 Mobile-only bottom tab bar */}
       <MobileTabBar tabs={tabs} />

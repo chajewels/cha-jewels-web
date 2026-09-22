@@ -5,6 +5,7 @@ import { getCollectionWithProducts, getCollections } from "@/lib/queries/product
 import { tr } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
+import { EmptyShelf } from "@/components/catalog/empty-shelf";
 import { ProductCard } from "@/components/catalog/product-card";
 export const revalidate = 60;
 // Pre-render known collections when the Hub is reachable; otherwise build with none and render on demand.
@@ -64,9 +65,7 @@ export default async function CollectionPage({
           })}
         </nav>
         {products.length === 0 ? (
-          <p className="mt-12 border border-hairline p-6 text-charcoal">
-            {t("collection", active === "all" ? "empty" : "emptyFiltered")}
-          </p>
+          <EmptyShelf lang={lang} filtered={active !== "all"} />
         ) : (
           <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">
             {products.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}
