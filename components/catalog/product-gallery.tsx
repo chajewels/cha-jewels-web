@@ -9,30 +9,87 @@ export type GalleryImage = { url: string; alt: string | null };
 /** next/image cannot optimise SVG or data URLs (fixtures use both); real Hub photos are optimised. */
 const passthrough = (url: string) => url.startsWith("data:") || /\.svg(\?|$)/i.test(url);
 
+const FADE_MS = 200;
+const SIZES = "(min-width:768px) 50vw, 100vw";
+
 /**
  * All of a piece's photos in Hub sort order: one large image plus a thumbnail
  * strip. The strip scrolls sideways on narrow screens; the large image swipes.
  * Arrow keys, Home and End move through the set when the gallery has focus;
- * each thumbnail is a real button. Only the first large image is eager — the
- * rest load when selected, and the thumbnails lazy-load as they scroll in.
- * Alt text comes from the Hub, falling back to the product name.
+ * each thumbnail is a real button. Alt text comes from the Hub, falling back
+ * to the product name.
+ *
+ * NOTHING GOES BLANK BETWEEN TWO PHOTOS.
+ *
+ * The large image used to be a single <Image> keyed on its URL, so choosing a
+ * thumbnail unmounted the photo being looked at and mounted an empty box in
+ * its place — the chalk background showed through for as long as the next file
+ * took, which on a phone is most of a second per tap. The reader was punished
+ * for browsing.
+ *
+ * Two layers now. The one on the bottom is whatever is currently painted. The
+ * requested one is mounted ON TOP at opacity 0 — mounted, so it loads through
+ * the same optimised URL and srcset the visible layer would use, rather than
+ * a second copy fetched by hand — and it is only faded in once it has actually
+ * DECODED. onLoad alone is not enough: the bytes can be there while the frame
+ * is not, and fading in on load still shows a blank for a beat on a large
+ * photo. Because the incoming layer is already sitting on top at opacity 0,
+ * the fade IS the crossfade; no third layer is needed.
+ *
+ * `i` is what the reader asked for and updates immediately, so the counter,
+ * the selected thumbnail and the strip all respond to the tap at once. `shown`
+ * is what is painted, and only catches up when the new photo is ready. Tapping
+ * five thumbnails quickly leaves `i` on the fifth and never shows the first
+ * four: each incoming layer unmounts as the next replaces it, and the decode
+ * that comes back late is dropped by the `wanted` check.
+ *
+ * Under reduced motion the blanket rule in globals.css removes the transition,
+ * so the swap is instant — still decode-gated, so still never blank. The
+ * commit is on a timer rather than transitionend for exactly that reason: with
+ * no transition, transitionend never fires and the top layer would stay up.
  */
 export function ProductGallery({ images, name, lang }: { images: GalleryImage[]; name: string; lang: Lang }) {
   const t = tr(lang);
   const n = images.length;
+  /** What the reader asked for. */
   const [i, setI] = useState(0);
+  /** What is actually on screen. Catches up to `i` once the photo has decoded. */
+  const [shown, setShown] = useState(0);
+  /** The incoming layer has decoded and may be faded in. */
+  const [ready, setReady] = useState(false);
+  /**
+   * Mounted yet? The adjacent photo is preloaded, but not in the first paint —
+   * it would be competing with the LCP image for the same connection.
+   */
+  const [armed, setArmed] = useState(false);
+  const wanted = useRef(0);
   const stripRef = useRef<HTMLDivElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
 
   const go = useCallback((d: number) => { if (n > 1) setI((c) => (c + d + n) % n); }, [n]);
 
+  useEffect(() => { setArmed(true); }, []);
+  useEffect(() => { wanted.current = i; setReady(false); }, [i]);
+
   useEffect(() => {
     stripRef.current?.querySelector<HTMLElement>(`[data-i="${i}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [i]);
 
+  // The incoming layer has finished its fade: adopt it as the visible one. The
+  // layer then unmounts, and the layer below is already the same photo.
+  useEffect(() => {
+    if (!ready || i === shown) return;
+    const id = setTimeout(() => { setShown(i); setReady(false); }, FADE_MS);
+    return () => clearTimeout(id);
+  }, [ready, i, shown]);
+
   if (n === 0) return <div className="relative aspect-[4/5] bg-chalk" aria-hidden="true" />;
-  const current = images[i];
   const alt = (img: GalleryImage) => img.alt?.trim() || name;
+  const incoming = i === shown ? null : i;
+  // ONE neighbour, not the whole set: enough that the common next tap is
+  // instant, not so much that opening a ten-photo piece downloads ten photos.
+  const adjacent = n > 1 ? (i + 1) % n : null;
+  const preload = armed && adjacent !== null && adjacent !== shown && adjacent !== incoming ? adjacent : null;
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowRight") { e.preventDefault(); go(1); }
@@ -61,17 +118,51 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
           if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
         }}
       >
+        {/* The photo on screen. 4:5 box is the parent's and never moves. */}
         <Image
-          key={current.url}
-          src={current.url}
-          alt={alt(current)}
+          key={images[shown].url}
+          src={images[shown].url}
+          alt={alt(images[shown])}
           fill
-          sizes="(min-width:768px) 50vw, 100vw"
+          sizes={SIZES}
           className="object-cover"
-          priority={i === 0}
-          loading={i === 0 ? undefined : "lazy"}
-          unoptimized={passthrough(current.url)}
+          priority={shown === 0}
+          unoptimized={passthrough(images[shown].url)}
         />
+        {/* The requested photo, invisible until it has decoded. */}
+        {incoming !== null && (
+          <Image
+            key={images[incoming].url}
+            src={images[incoming].url}
+            alt={alt(images[incoming])}
+            fill
+            sizes={SIZES}
+            onLoad={(e) => {
+              const el = e.currentTarget;
+              const k = incoming;
+              const show = () => { if (wanted.current === k) setReady(true); };
+              // decode() rejects on a detached or broken image; that is not a
+              // reason to leave the reader on the old photo for ever.
+              el.decode().then(show, show);
+            }}
+            className={`object-cover transition-opacity duration-200 ${ready ? "opacity-100" : "opacity-0"}`}
+            unoptimized={passthrough(images[incoming].url)}
+          />
+        )}
+        {/* Warm the next one. aria-hidden and inert to the pointer: it is a
+            fetch wearing an <img>, not part of the gallery. */}
+        {preload !== null && (
+          <Image
+            key={`preload-${images[preload].url}`}
+            src={images[preload].url}
+            alt=""
+            aria-hidden="true"
+            fill
+            sizes={SIZES}
+            className="pointer-events-none object-cover opacity-0"
+            unoptimized={passthrough(images[preload].url)}
+          />
+        )}
         {n > 1 && (
           <>
             <button type="button" onClick={() => go(-1)} aria-label={t("product", "prevPhoto")}
