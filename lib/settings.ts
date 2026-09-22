@@ -18,11 +18,11 @@ import type { SettingsAnnouncement, SettingsSocialLink, SiteSettings, SocialKey,
  * empty answer as "there is nothing to show here" and omits the block, heading
  * and all — the same rule the testimonials section follows.
  *
- * THAT IS NOT THE SAME AS AN OUTAGE. A Hub that cannot be reached THROWS (see
- * the header of lib/hub-api.ts), so the footer never renders empty because of a
- * network blip: Next keeps serving the last page it rendered successfully.
- * Silently degrading was the old behaviour and it hid exactly the failure worth
- * seeing.
+ * THAT IS NOT THE SAME AS AN OUTAGE. A Hub that cannot be reached THROWS, and
+ * every getter here lets it: what the failure MEANS belongs to the caller, not
+ * to this file. Chrome catches and omits — the footer, the announcement bar.
+ * Content does not — /contact's ways-to-reach-us panel is the page, so it lets
+ * the error out. Same getter, two answers. See the header of lib/hub-api.ts.
  */
 const load = cache(async (): Promise<SiteSettings> => {
   const raw = await hub.settings();

@@ -9,40 +9,52 @@ import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/l
  * No table names, no RLS assumptions, no service role key on this side.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * A HUB THAT CANNOT ANSWER IS AN ERROR. IT IS NEVER AN EMPTY LIST.
+ * CHROME DEGRADES, CONTENT THROWS.
  * ─────────────────────────────────────────────────────────────────────────────
  *
- * Every CONTENT read — posts, the FAQ, site settings, testimonials, and the
- * collections the footer lists — throws on a network failure or a non-2xx.
- * None of them catches and returns `[]`.
+ * Every read here throws on a network failure or a non-2xx — none of them
+ * returns `[]` on its own. What a failure MEANS is decided at the call site,
+ * and there are exactly two answers:
  *
- * WHY, because this reads like the less robust choice and is the opposite:
+ *   CONTENT THROWS. A page whose substance comes from the Hub — /blog,
+ *   /blog/[slug], /faq, /contact's ways-to-reach-us panel, the homepage's
+ *   testimonials — lets the error out.
+ *
+ *   CHROME DEGRADES. The furniture wrapped around every page — the header's
+ *   menus, the footer's collection list, tagline and social row, the
+ *   announcement strip — catches and omits the part it could not load.
+ *
+ * WHY CONTENT THROWS, because this reads like the less robust choice and is the
+ * opposite:
  *
  *   These pages are CACHED. A read that swallows its failure returns an empty
  *   list, the page renders successfully with nothing in it, and Next caches
- *   THAT — a blank FAQ, a blog with no posts, a footer with no links — and
- *   serves it for the next hour to everyone, long after the Hub came back. One
- *   five-second blip during one revalidation is enough.
+ *   THAT — a blank FAQ, a blog with no posts — and serves it for the next hour
+ *   to everyone, long after the Hub came back. One five-second blip during one
+ *   revalidation is enough. A throw produces no page, so there is nothing to
+ *   cache: Next keeps serving the last render that succeeded, which is the real
+ *   FAQ with all thirty-nine answers in it. The outage costs freshness, not
+ *   content. It is also the only version that is VISIBLE — an empty section
+ *   looks like an owner who has not written anything yet; a 500 and a failed
+ *   build look like what they are.
  *
- *   A throw does not produce a page, so there is nothing to cache. Next keeps
- *   serving the last render that succeeded, which is the real FAQ with all
- *   thirty-nine answers in it. The outage costs freshness, not content.
+ * WHY CHROME DOES NOT: the footer and the announcement bar are on /about and on
+ * the four legal documents, none of which contains a word that came from the
+ * Hub. Throwing there took down pages that had nothing to do with the outage,
+ * to protect content they do not have. A blank FAQ is a lie about the FAQ; a
+ * footer missing its collection links is a footer missing its collection links.
  *
- *   It is also the only version that is VISIBLE. An empty section looks like an
- *   owner who has not written anything yet; a 500 and a failed build look like
- *   what they are. This repo used to hide both, and the reason there is no
- *   static copy to fall back on any more is that the Hub is the content now —
- *   so degrading quietly means degrading to nothing.
+ * The line between the two is not "which function" but "would a reader notice
+ * something MISSING, or something WRONG?" — so the same getter is caught in the
+ * footer and uncaught on /contact, where it is the page.
  *
  * AN EMPTY 200 IS STILL EMPTY. A Hub that answers with no rows means there are
  * no rows, and the callers render nothing: no posts, no FAQ section, no social
  * row, no testimonials block. "Nothing published" and "cannot reach the Hub"
  * are different states and must not share an outcome.
  *
- * WHAT STILL CATCHES, and deliberately: reads whose failure costs a page part
- * of itself rather than its substance — the homepage's category deck, /fx, the
- * header's menu — and every CUSTOMER read, where a 404 is an ordinary answer.
- * Those are marked at their call sites.
+ * CUSTOMER READS are their own case and always catch: a 404 there is an
+ * ordinary answer, not a failure.
  *
  * FIXTURES MODE IS UNAFFECTED. `NEXT_PUBLIC_PREVIEW_FIXTURES=1` never reaches
  * the network, so there is nothing to throw.

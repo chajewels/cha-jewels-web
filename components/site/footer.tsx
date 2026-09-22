@@ -15,8 +15,17 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
  * social icon row where the newsletter form used to be. The row and the brand
  * paragraph come from the Hub (lib/settings.ts) and have no fallback in this
  * repo: a setting the Hub does not hold renders NOTHING — no empty paragraph,
- * no heading over an empty row. A Hub that cannot be REACHED is different: it
- * throws, so this footer is never rendered blank by a network blip.
+ * no heading over an empty row.
+ *
+ * THE FOOTER IS CHROME, SO IT DEGRADES. Every read here is caught, and a Hub
+ * that cannot answer costs this footer its collection list, its paragraph and
+ * its icons — not the page it sits at the bottom of. It is on EVERY page,
+ * including /about and the four legal documents, none of which contain a word
+ * that came from the Hub; a throw here took all of them down with it.
+ *
+ * That is the opposite of the rule for a page's own content, and deliberately
+ * so — see the header of lib/hub-api.ts. A blank FAQ is a lie about the FAQ. A
+ * footer missing its collection links is a footer missing its collection links.
  *
  * Collection links come from the Hub's jewelry types, in the language of the
  * page. Nothing here names a collection: add or rename one in the Hub and the
@@ -27,15 +36,14 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
  */
 export async function Footer({ lang }: { lang: Lang }) {
   const t = tr(lang);
-  // The three reads are independent, so they go together rather than in
-  // sequence. NONE OF THEM IS CAUGHT: the footer is on every page, so a caught
-  // Hub failure here would cache a linkless footer site-wide for the next hour.
-  // See the header of lib/hub-api.ts. An empty ANSWER is fine and renders an
-  // empty column; an unreachable Hub is not.
+  // Independent, so they go together rather than in sequence — and caught
+  // INDIVIDUALLY, so one unavailable setting does not take the other two down
+  // with it. Each falls to the same value an absent setting produces, which is
+  // why nothing below needs to know which of the two happened.
   const [collections, followLinks, tagline] = await Promise.all([
-    getCollections(),
-    follow(),
-    footerTagline(lang),
+    getCollections().catch(() => []),
+    follow().catch(() => []),
+    footerTagline(lang).catch(() => null),
   ]);
   const heading = "mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-orange";
   const link = "text-chalk/75 hover:text-chalk";
