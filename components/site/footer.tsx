@@ -67,7 +67,12 @@ export async function Footer({ lang }: { lang: Lang }) {
         <div className="lg:col-span-3">
           <h2 className={heading}>{t("footer", "care")}</h2>
           <ul className="space-y-2">
-            {layawayOffered(lang) && <li><Link href="/layaway" className={link}>{t("footer", "terms")}</Link></li>}
+            {/* The FAQ's layaway section, not /layaway. "Layaway terms" is a
+                promise of terms, and /layaway is a sales page with a
+                calculator on it — the eight questions that actually answer
+                "what am I agreeing to" are on /faq. Still English-only,
+                because layaway is. */}
+            {layawayOffered(lang) && <li><Link href="/faq#payments-and-layaway" className={link}>{t("footer", "terms")}</Link></li>}
             <li><Link href="/gold-guide" className={link}>{t("footer", "goldGuide")}</Link></li>
             <li><Link href="/legal/tokusho" className={link}>{t("footer", "tokusho")}</Link></li>
             <li><Link href="/legal/returns" className={link}>{t("footer", "returns")}</Link></li>
