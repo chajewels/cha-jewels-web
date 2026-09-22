@@ -330,8 +330,8 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  * and same wording as returnsUpdated / privacyUpdated / tosUpdated.
  */
 export const tokushoUpdated: Record<Lang, string> = {
-  ja: "最終更新日：2026年9月21日",
-  en: "Last updated: September 21, 2026",
+  ja: "最終更新日：2026年9月22日",
+  en: "Last updated: September 22, 2026",
 };
 
 export const tokusho = {
@@ -429,8 +429,15 @@ export const tokusho = {
       // would mean a rich-run model on the rows and a renderer to match —
       // a change to the statutory page's shape, for one cross-reference that
       // the footer and /legal/returns both already carry.
+      //
+      // The Japanese names the policy inside 「」 and spells it exactly as
+      // `returnsTitle.ja` — the <h1> /legal/returns prints. A statutory
+      // cross-reference that cannot be a link has to be followable by eye, and
+      // a paraphrase of the title is not followable by eye.
+      //
+      // Owner-reviewed 2026-09-22 (Japanese).
       v: {
-        ja: "お客様都合による返品・交換はお受けしておりません。商品の誤配送・破損・記載内容との著しい相違があった場合は、お届け後5日以内にご連絡ください。詳細は返品・キャンセル・返金ポリシーをご覧ください。",
+        ja: "お客様都合による返品・交換はお受けしておりません。お届けした商品の相違・破損、または商品説明との著しい相違があった場合は、商品到着後5日以内にご連絡ください。詳しくは「返品・キャンセル・返金ポリシー」をご確認ください。",
         en: "Change-of-mind returns and exchanges are not accepted. If an item arrives incorrect, damaged or materially different from its description, contact us within 5 days of delivery; see the Return, Cancellation and Refund Policy.",
       },
     },

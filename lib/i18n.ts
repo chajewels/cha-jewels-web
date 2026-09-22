@@ -104,8 +104,11 @@ export const dict = {
   /**
    * Header menu copy. `tr` reads dict[section][key] as a {ja,en} leaf, so these
    * are flat keys in their own section rather than a nested nav.company object,
-   * which that helper cannot index. The Japanese descriptions are MY DRAFT and
-   * want a native read before merge.
+   * which that helper cannot index.
+   *
+   * The Japanese was OWNER-REVIEWED 2026-09-22 and is settled. Note that
+   * faqDesc's two languages say different things on purpose; the comment on
+   * that key explains why.
    */
   navMenu: {
     company: { ja: "会社情報", en: "Company" },
@@ -120,7 +123,12 @@ export const dict = {
     why: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" },
     whyDesc: { ja: "お選びいただく理由と、私たちのお約束。", en: "What you can expect from us, and why it matters." },
     faq: { ja: "よくある質問", en: "FAQ" },
-    faqDesc: { ja: "レイアウェイ・配送・返品・ロイヤルティのご質問に。", en: "Answers on layaway, delivery, returns and loyalty." },
+    // JA DELIBERATELY DOES NOT MATCH EN HERE. Layaway is offered on the
+    // English site only (lib/layaway-availability.ts, owner decision
+    // 2026-09-15), so the Japanese description must not advertise it — the
+    // menu would be promising a page that 404s in Japanese. The English keeps
+    // it, because in English it is real.
+    faqDesc: { ja: "配送・返品・ポイントなどのご質問に。", en: "Answers on layaway, delivery, returns and loyalty." },
     blog: { ja: "ブログ", en: "Blog" },
     blogDesc: { ja: "ジュエリーの選び方、お手入れ、読みもの。", en: "Choosing, caring for and living with jewelry." },
     news: { ja: "お知らせ", en: "News & Updates" },
@@ -132,9 +140,10 @@ export const dict = {
   },
   /**
    * /why-cha-jewels. The ENGLISH IS THE OWNER'S, VERBATIM — do not reword it,
-   * tighten it, or "fix" its punctuation. The JAPANESE IS MY DRAFT and needs a
-   * native read before merge; it is written in the same 敬体 register as the
-   * about page and borrows the site's settled renderings (プレラブド, 分割予約).
+   * tighten it, or "fix" its punctuation. The JAPANESE WAS OWNER-REVIEWED
+   * 2026-09-22 and is settled on the same terms — it is written in the same
+   * 敬体 register as the about page and borrows the site's settled renderings
+   * (プレラブド, 分割予約).
    *
    * s4 is the layaway section and renders only where layaway is offered
    * (English only, owner decision 2026-09-15) — lib/layaway-availability is the
@@ -164,15 +173,19 @@ export const dict = {
    * these keys are labels only. No address, email or number is typed here, so
    * there is one place a contact detail can be wrong.
    *
-   * No phone and no opening hours. tokusho carries a telephone row, but its
-   * two numbers arrived as "03,6657 6129" / "070 8307 3318" with the comma
-   * read as a hyphen and are not yet confirmed digit by digit; the owner held
-   * them off this page until they are (2026-09-21). Hours are not in tokusho
-   * at all and are not invented here.
+   * Both phone numbers ARE published here, as tel: links from the same
+   * COMPANY_PHONE constant tokusho prints: they were confirmed digit by digit
+   * on 2026-09-21. (This comment said the opposite until 2026-09-22 — it was
+   * written while they were still being checked and outlived the check.)
+   *
+   * STILL NO OPENING HOURS: they are in no source file, and are not invented
+   * here.
+   *
+   * The Japanese was OWNER-REVIEWED 2026-09-22 and is settled.
    */
   contact: {
     h1: { ja: "お問い合わせ", en: "Contact" },
-    intro: { ja: "ご質問、お見積り、ご来店のご予約など、お気軽にご連絡ください。", en: "Questions, quotes or arranging a visit — we're glad to hear from you." },
+    intro: { ja: "ご質問やお見積りなど、お気軽にご連絡ください。", en: "Questions, quotes or anything about a piece — we're glad to hear from you." },
     company: { ja: "会社名", en: "Company" },
     address: { ja: "所在地", en: "Address" },
     email: { ja: "メールアドレス", en: "Email" },
@@ -186,7 +199,7 @@ export const dict = {
     // numbers, no claim that a membership certifies anything about a piece.
     // The two-panel section and its form.
     h1Panel: { ja: "お問い合わせ", en: "Get in touch" },
-    panelLede: { ja: "ご質問、お見積り、ご来店のご予約など、下のフォームからお気軽にご連絡ください。1営業日以内にご返信します。", en: "Questions, quotes or arranging a visit — send us a note below and we'll reply within one business day." },
+    panelLede: { ja: "ご質問やお見積りなど、下のフォームからお気軽にご連絡ください。1営業日以内にご返信します。", en: "Questions, quotes or anything about a piece — send us a note below and we'll reply within one business day." },
     fullName: { ja: "お名前", en: "Full name" },
     phoneOptional: { ja: "電話番号（任意）", en: "Phone (optional)" },
     message: { ja: "お問い合わせ内容", en: "Message" },
@@ -201,7 +214,7 @@ export const dict = {
     affiliationsH: { ja: "所属団体", en: "Affiliations" },
     affiliationsLede: { ja: "Cha Jewelsが所属している東京の経済団体です。", en: "The business organisations Cha Jewels belongs to in Tokyo." },
     afCciName: { ja: "東京商工会議所", en: "Tokyo Chamber of Commerce and Industry" },
-    afCciDetail: { ja: "2026年3月入会 · 葛飾支部・商業部会", en: "Member since March 2026 · Katsushika Branch, Commerce Division" },
+    afCciDetail: { ja: "2026年3月入会／葛飾支部 商業部会", en: "Member since March 2026 · Katsushika Branch, Commerce Division" },
     afRotaryName: { ja: "東京葛飾中央ロータリークラブ", en: "Tokyo Katsushika Central Rotary Club" },
     afRotaryDetail: { ja: "2026年9月入会", en: "Member since September 2026" },
     affiliationsFromAbout: { ja: "所属する経済団体については、所属団体のページをご覧ください。", en: "The business organisations we belong to are listed on our affiliations page." },
