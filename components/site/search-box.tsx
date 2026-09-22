@@ -174,7 +174,10 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
         className={
           inDrawer
             ? "w-full"
-            : `${expanded ? "fixed inset-x-[clamp(18px,4vw,48px)] top-[14px] z-50" : "hidden"} lg:static lg:inset-x-auto lg:top-auto lg:block lg:w-36 lg:transition-[width] lg:duration-200 lg:max-xl:focus-within:w-52 2xl:w-[240px]`
+            // lg:w-36 was 144px, which left 94px inside the icon and padding
+            // and clipped the 98px "Search jewelry" placeholder at 1280 and
+            // 1440. Widened so the placeholder fits without focus.
+            : `${expanded ? "fixed inset-x-[clamp(18px,4vw,48px)] top-[14px] z-50" : "hidden"} lg:static lg:inset-x-auto lg:top-auto lg:block lg:w-48 lg:transition-[width] lg:duration-200 lg:max-xl:focus-within:w-56 xl:w-56 2xl:w-[240px]`
         }
       >
         <div className="flex min-h-10 items-center gap-2 rounded-sm border border-charcoal/30 bg-chalk px-3 text-charcoal focus-within:border-gold-dark">

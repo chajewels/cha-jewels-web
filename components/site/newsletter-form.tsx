@@ -42,8 +42,8 @@ export function NewsletterForm({ lang, tone = "light" }: { lang: Lang; tone?: "l
   const field = dark
     // The footer's own field styling, as it was before this form was removed:
     // chalk text on the band (14.57), a chalk/40 edge (3.50), gold-pale ring.
-    ? "min-h-10 min-w-0 flex-1 rounded-sm border border-chalk/40 bg-transparent px-3 text-sm text-chalk placeholder:text-chalk/70 focus:outline-none focus:ring-2 focus:ring-gold-pale disabled:cursor-not-allowed disabled:opacity-60"
-    : `min-h-10 min-w-0 flex-1 rounded-sm px-3 text-sm ${inputLight} disabled:cursor-not-allowed disabled:opacity-60`;
+    ? "min-h-10 w-full min-w-0 flex-1 basis-full rounded-sm border border-chalk/40 bg-transparent px-3 text-sm text-chalk placeholder:text-chalk/70 focus:outline-none focus:ring-2 focus:ring-gold-pale disabled:cursor-not-allowed disabled:opacity-60"
+    : `min-h-10 min-w-0 flex-1 basis-[12rem] rounded-sm px-3 text-sm ${inputLight} disabled:cursor-not-allowed disabled:opacity-60`;
 
   const message = state === "success" ? c.success[lang]
     : state === "already" ? c.already[lang]
@@ -61,7 +61,14 @@ export function NewsletterForm({ lang, tone = "light" }: { lang: Lang; tone?: "l
       <label htmlFor="newsletter-email" className={dark ? "sr-only" : `mb-1.5 block ${labelLight}`}>
         {c.placeholder[lang]}
       </label>
-      <div className="flex gap-2">
+      {/* WRAPS. In the footer this sits in a 2-of-12 column — 164px at 1280 —
+          and side by side with an 82px button the field was 74px wide, which
+          held 48px of text and clipped a 92px placeholder to "Email add". The
+          field takes a full row of its own until there is room for both, so
+          the placeholder is readable at every width rather than at wide ones.
+          `basis-full` on the input is what forces the break; the button then
+          sits under it at its natural width. */}
+      <div className="flex flex-wrap gap-2">
         <input
           id="newsletter-email"
           name="email"
