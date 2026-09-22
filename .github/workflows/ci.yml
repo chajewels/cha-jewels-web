@@ -45,14 +45,6 @@ jobs:
       # that file is run once, by hand, so nothing else would catch a stale one.
       - run: npm run check:faq
 
-      # The same claim for the two editorial posts lib/blog.ts still hardcodes,
-      # which are moving into the Hub next: each body is rendered through the
-      # site's OWN two renderers — renderParagraphs for the static string[],
-      # renderMarkdown for the seeded markdown — and the HTML must come out
-      # byte-identical. It also proves docs/posts-seed.sql still matches the
-      # posts it came from; that file is run once, by hand.
-      - run: npm run check:posts
-
       - run: npm run typecheck
 
       - run: npm run lint

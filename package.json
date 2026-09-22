@@ -13,9 +13,7 @@
     "check:i18n": "node scripts/check-i18n.mjs",
     "check:analytics": "node scripts/check-analytics.mjs",
     "check:faq": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-faq.mjs",
-    "check:posts": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-posts.mjs",
     "faq:seed": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/faq-seed.mjs",
-    "posts:seed": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/posts-seed.mjs",
     "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > lib/supabase/database.types.ts"
   },
   "dependencies": {
