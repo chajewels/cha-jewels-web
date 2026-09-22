@@ -835,7 +835,17 @@ export const dict = {
    * English-only — owner decision 2026-09-15, lib/layaway-availability.
    */
   meta: {
-    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
+    // NO BLANKET CERTIFICATE CLAIM. This said "certified diamonds" /
+    // 鑑定書付きダイヤモンド, which is not true of every diamond we sell — the
+    // FAQ is explicit that "a certificate or laboratory report is included
+    // only when stated in the product listing", and the FAQ is authoritative.
+    // A site description is the one sentence Google shows before anyone reads
+    // a listing, so it is the worst place to promise per-piece paperwork.
+    //
+    // "authenticated in Japan" stays: that is the site-wide wording CLAUDE.md
+    // sanctions, and it is a claim about our own checking rather than about
+    // documents travelling with the stone.
+    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、ダイヤモンド。東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
     layaway: { title: { ja: "分割予約", en: "Layaway" } },
     blog: { title: { ja: "ブログ", en: "Blog" } },
     account: { title: { ja: "アカウント", en: "Account" } },
