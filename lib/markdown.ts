@@ -11,11 +11,11 @@
  * line ending in a backslash or two spaces) and a BACKSLASH ESCAPE before
  * punctuation.
  *
- * The last two exist for lib/content/faq-markdown.ts, which converts the
- * hand-authored FAQ into the markdown the Hub will hold. A `lines` block is a
- * set of contact lines whose breaks carry meaning, and an escape is what lets
- * that converter be TOTAL — defined for every string the FAQ could ever hold —
- * rather than a function that throws the day someone types an asterisk.
+ * The last two came from lib/content/faq-markdown.ts, which converted the
+ * hand-authored FAQ into the markdown the Hub now holds. A `lines` block was a
+ * set of contact lines whose breaks carry meaning; the escape is what let that
+ * converter be total. Both stay because the Hub's own answers use them — the
+ * seeded markdown in docs/faq-seed.sql contains hard breaks today.
  *
  * NO RAW HTML, AND THAT IS A GUARANTEE RATHER THAN A FILTER. The source is
  * HTML-escaped as the FIRST step, before anything is parsed, so every `<` in
@@ -165,21 +165,6 @@ export function renderMarkdown(source: string): string {
   // which a screen reader announces as "list, 1 item" three times over. The
   // seam is the only thing that has to go; the items are already correct.
   return html.replace(/<\/ul><ul>/g, "").replace(/<\/ol><ol>/g, "");
-}
-
-/**
- * The static posts' bodies (lib/blog.ts) are `string[]` — one plain paragraph
- * per entry, authored before any of this existed. They PASS THROUGH as
- * paragraphs rather than being re-parsed: an asterisk someone typed in 2026 was
- * an asterisk, and a renderer that retroactively turns it into emphasis is
- * changing published copy nobody asked it to change.
- */
-export function renderParagraphs(paragraphs: string[]): string {
-  return paragraphs
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => `<p>${escapeHtml(p)}</p>`)
-    .join("");
 }
 
 /**

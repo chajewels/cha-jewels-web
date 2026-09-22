@@ -10,28 +10,24 @@ import { TestimonialMarquee } from "@/components/home/testimonial-marquee";
  * when one is null; stars from `rating` (row omitted when null); customer name;
  * item chip and location when present.
  *
- * PLACEHOLDER: while the Hub has published nothing, the three ILLUSTRATIVE
- * testimonials from the Stitch mock (home.testiPh1..3* in lib/i18n.ts) render
- * through the same card, so the section looks exactly as designed. They are
- * not real customers and are replaced by the first published Hub testimonial.
+ * NOTHING PUBLISHED, NOTHING RENDERED — no heading, no section, no gap.
+ *
+ * Three ILLUSTRATIVE testimonials from the Stitch mock used to fill this space
+ * while the Hub had published none, through the same card, so the homepage
+ * looked as designed. They were removed on 2026-09-22 with the rest of the
+ * static copies: they were not real customers, and a section that shows
+ * invented quotes whenever the real ones are missing is a section that will one
+ * day show them on the live site without anyone noticing. Real or absent.
+ *
+ * A Hub that cannot be REACHED is a different thing again — it throws (see the
+ * header of lib/hub-api.ts), so the homepage keeps serving its last successful
+ * render rather than caching itself without this section for the next hour.
  */
 export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[] }) {
   const t = tr(lang);
   const quoteOf = (x: Testimonial) => (lang === "ja" ? x.quote_ja ?? x.quote_en : x.quote_en ?? x.quote_ja);
-  const real = items.filter((x) => quoteOf(x) && x.customer_name);
-  const placeholders: Testimonial[] = ([1, 2, 3] as const).map((n) => ({
-    id: `placeholder-${n}`,
-    customer_name: t("home", `testiPh${n}Name`),
-    location: t("home", `testiPh${n}Loc`),
-    quote_en: t("home", `testiPh${n}Quote`),
-    quote_ja: t("home", `testiPh${n}Quote`),
-    item: t("home", `testiPh${n}Item`),
-    rating: 5,
-    // Only the first placeholder carries a date, so the omitted case is on
-    // screen too rather than only in theory.
-    testimonial_date: n === 1 ? "2026-09-01" : null,
-  }));
-  const shown = real.length > 0 ? real : placeholders;
+  const shown = items.filter((x) => quoteOf(x) && x.customer_name);
+  if (shown.length === 0) return null;
 
   return (
     <section className="bg-white py-8 lg:py-16">

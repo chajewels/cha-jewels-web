@@ -20,8 +20,10 @@ export const generateMetadata = () => pageMeta("blog");
  *
  * Nothing filters by language here: merge() already dropped what this language
  * cannot read — the layaway posts on Japanese, and any Hub row with no words in
- * it. The empty state is reachable, and reachable on the default list too once
- * lib/blog.ts goes: a Hub with no Japanese posts is an ordinary Tuesday.
+ * it. The empty state is reachable on the default list too, not only under a
+ * filter: a Hub with no Japanese posts is an ordinary Tuesday. It means "the
+ * Hub published nothing for this reader", never "the Hub could not be reached"
+ * — that second case throws now and never reaches this page.
  */
 const asType = (value: string | undefined): PostType | undefined =>
   value === "news" || value === "article" ? value : undefined;

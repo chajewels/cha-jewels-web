@@ -557,10 +557,9 @@ export const settingsFixture: SiteSettings = {
  * Preview editorial. TWO ROWS, chosen so the preview exercises every branch of
  * lib/posts.ts rather than just the happy one:
  *
- *  - `what-k18-means` SHADOWS the static post of the same slug. Its title and
- *    excerpt are deliberately not identical to lib/blog.ts's, so "the Hub row
- *    wins by slug" is something you can see rather than something you have to
- *    trust. It also carries a cover, which the static post cannot.
+ *  - `what-k18-means` carries a cover, so the list thumbnail and the article
+ *    header image are both exercised. It is the slug the static post used to
+ *    hold, which is now seeded into the Hub (docs/posts-seed.sql).
  *  - `eight-month-layaway-now-open` is `news` and `layaway_only`, so it covers
  *    the ?type=news filter and the Japanese hiding rule at once — and leaves
  *    /blog?type=news EMPTY on Japanese, which is the state the list has to

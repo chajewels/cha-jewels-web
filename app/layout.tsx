@@ -51,8 +51,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [lang, h] = await Promise.all([getLang(), headers()]);
   const t = tr(lang);
   // `announcement()` answers null for inactive, empty-in-this-language and
-  // expired alike, and never throws — so this is the whole decision.
-  const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang) : null;
+  // expired alike. CAUGHT, because the bar is chrome and this is the root
+  // layout: an unreachable Hub must cost the strip, not every page on the site.
+  // A page whose own content comes from the Hub still throws on its own read.
+  const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang).catch(() => null) : null;
   return (
     <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
       {/* The announcement bar's pre-paint script sets a data attribute here

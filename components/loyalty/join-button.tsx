@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { joinLoyaltyAction } from "@/lib/loyalty-actions";
 import type { EnrolOutcome } from "@/lib/loyalty-actions";
 import { MemberGroups } from "@/components/loyalty/member-groups";
-import type { SocialLink } from "@/lib/social";
+import type { SocialLink } from "@/lib/types";
 
 /**
  * Joining from /loyalty/join.
