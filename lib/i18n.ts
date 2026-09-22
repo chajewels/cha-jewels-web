@@ -283,10 +283,22 @@ export const dict = {
     prompt: { ja: "品名、ブランド名、素材、商品番号などを入力してください。", en: "Type a name, a brand, a metal or a product number." },
     title: { ja: "「{q}」の検索結果", en: "Results for \u201c{q}\u201d" },
     count: { ja: "{n}件の商品が見つかりました。", en: "{n} pieces found." },
+    // English needs the singular; Japanese does not inflect for number, so the
+    // two strings are deliberately identical there. Without this, one result
+    // read "1 pieces found." — on /search and, once the suggestion panel got a
+    // live region, out loud.
+    countOne: { ja: "1件の商品が見つかりました。", en: "1 piece found." },
     none: { ja: "「{q}」に該当する商品はありませんでした。", en: "Nothing matches \u201c{q}\u201d." },
     seeAll: { ja: "{n}件すべてを見る", en: "See all {n} results" },
     open: { ja: "検索を開く", en: "Open search" },
     close: { ja: "検索を閉じる", en: "Close search" },
+    // The suggestion panel's three non-result states. `noneShort` is the
+    // dropdown's version of `none` above: the panel is narrow and the query is
+    // already in the box the reader is looking at, so it does not repeat it.
+    searching: { ja: "検索しています…", en: "Searching…" },
+    noneShort: { ja: "該当する商品はありません。", en: "No pieces match." },
+    browseAll: { ja: "コレクションを見る", en: "Browse collections" },
+    failed: { ja: "検索を利用できません。もう一度お試しください。", en: "Search is unavailable — try again." },
   },
   categories: {
     eyebrow: { ja: "カテゴリー", en: "Category" },

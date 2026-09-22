@@ -33,7 +33,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         {!hasQuery && <p className="mt-6 max-w-[58ch] text-charcoal">{t("search", "prompt")}</p>}
 
         {hasQuery && total > 0 && (
-          <p className="mt-4 text-sm text-charcoal/70">{t("search", "count", { n: String(total) })}</p>
+          <p className="mt-4 text-sm text-charcoal/70">{total === 1 ? t("search", "countOne") : t("search", "count", { n: String(total) })}</p>
         )}
 
         {hasQuery && total === 0 && (
