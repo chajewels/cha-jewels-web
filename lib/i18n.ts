@@ -284,7 +284,14 @@ export const dict = {
     eyebrow: { ja: "カテゴリー", en: "Category" },
   },
   collection: {
-    empty: { ja: "まだ商品が登録されていません。Hubで追加された商品は1分以内に表示されます。", en: "No pieces are listed here yet. New pieces are added from the Hub and appear within a minute." },
+    // CUSTOMER COPY. This said "New pieces are added from the Hub and appear
+    // within a minute" until 2026-09-22 — "the Hub" is the name of the staff
+    // ERP, which no shopper has heard of, and "within a minute" described a
+    // cache TTL rather than anything a customer waits for. An empty shelf is
+    // not the place to explain our infrastructure; it is the place to point at
+    // a shelf that is not empty.
+    empty: { ja: "新しい商品を準備中です。現在お求めいただける商品をご覧ください。", en: "New pieces are on their way. Browse what's available now." },
+    emptyCta: { ja: "コレクションを見る", en: "Browse collections" },
     emptyFiltered: { ja: "この条件に該当する商品はありません。", en: "No pieces match this filter." },
     filterLabel: { ja: "状態でしぼり込む", en: "Filter by condition" },
     filterAll: { ja: "すべて", en: "All" }, filterNew: { ja: "新品", en: "New" }, filterPreloved: { ja: "プレラブド", en: "Preloved" },

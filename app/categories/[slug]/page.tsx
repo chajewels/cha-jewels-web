@@ -5,6 +5,7 @@ import { tr } from "@/lib/i18n";
 import { categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
 import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
+import { EmptyShelf } from "@/components/catalog/empty-shelf";
 import { ProductCard } from "@/components/catalog/product-card";
 
 export const revalidate = 60;
@@ -53,7 +54,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <h1 className="mt-3 text-[clamp(40px,6vw,88px)]">{name}</h1>
         {description && <p className="mt-4 max-w-[58ch] text-charcoal">{description}</p>}
         {cat.products.length === 0 ? (
-          <p className="mt-12 border border-hairline p-6 text-charcoal">{t("collection", "empty")}</p>
+          <EmptyShelf lang={lang} />
         ) : (
           <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">
             {cat.products.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}
