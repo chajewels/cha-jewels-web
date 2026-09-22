@@ -468,3 +468,35 @@ export type HubPost = {
   body_en?: string | null;
   body_ja?: string | null;
 };
+
+/**
+ * GET /content/faq — the FAQ, owner-editable in the Hub.
+ *
+ * NESTED, NOT TWO FLAT LISTS. The page renders sections each holding their
+ * questions, and a client that has to join two arrays by id is a client that
+ * can render a question under the wrong heading. One shape, one order.
+ *
+ * `answer_*` is MARKDOWN, in the same dialect lib/markdown.ts renders for
+ * posts: paragraphs, `###`, `- ` bullets, hard breaks and `[text](href)`.
+ * docs/faq-seed.sql holds the conversion of today's answers, and
+ * `npm run check:faq` is what proves that conversion changed no words.
+ */
+export type HubFaqSection = {
+  id: string;
+  slug: string;
+  title_en?: string | null;
+  title_ja?: string | null;
+  sort_order?: number;
+  items: HubFaqItem[];
+};
+
+export type HubFaqItem = {
+  id: string;
+  question_en?: string | null;
+  question_ja?: string | null;
+  answer_en?: string | null;
+  answer_ja?: string | null;
+  /** Shown only where layaway is offered — English only, the site-wide rule. */
+  layaway_only?: boolean;
+  sort_order?: number;
+};

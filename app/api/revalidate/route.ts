@@ -20,6 +20,19 @@ import { NextResponse } from "next/server";
 const TAGS = ["catalog", "content"] as const;
 
 /**
+ * Paths the Hub may name outright, for a page whose content has no slug of its
+ * own. /faq is the whole of it: one document, one route, and tag "content"
+ * alone would not be enough because the page is a static render whose PATH has
+ * to be dropped, not only the fetch beneath it.
+ *
+ * AN ALLOW-LIST FOR THE SAME REASON THE TAGS ARE ONE. A path taken at face
+ * value lets anyone holding the secret evict any route on the site as fast as
+ * they can POST; one name is what the Hub needs, so one name is what it gets.
+ * A new page joins this list deliberately, in a diff someone reads.
+ */
+const PATHS = ["/faq"] as const;
+
+/**
  * A slug goes into a PATH, so it is checked rather than interpolated on trust.
  * `..` or a slash would name a path that is not the post's, and revalidating an
  * arbitrary route is a smaller prize than evicting an arbitrary tag but it is
@@ -34,10 +47,10 @@ const TAGS = ["catalog", "content"] as const;
 const isSlug = (value: unknown): value is string =>
   typeof value === "string" && /^[a-z0-9][a-z0-9-]{0,127}$/.test(value);
 
-/** Called by the Hub (Lovable edge function `notify_website`) when a product, variant, stock, post or site setting changes. */
+/** Called by the Hub (Lovable edge function `notify_website`) when a product, variant, stock, post, FAQ answer or site setting changes. */
 export async function POST(req: Request) {
   if (req.headers.get("x-revalidate-secret") !== process.env.REVALIDATE_SECRET) return NextResponse.json({ ok: false }, { status: 401 });
-  const body = (await req.json().catch(() => ({}))) as { productSlug?: string; collectionSlug?: string; postSlug?: string; tag?: string };
+  const body = (await req.json().catch(() => ({}))) as { productSlug?: string; collectionSlug?: string; postSlug?: string; tag?: string; path?: string };
   revalidatePath("/");
   if (body.productSlug) revalidatePath(`/products/${body.productSlug}`);
   if (body.collectionSlug) revalidatePath(`/collections/${body.collectionSlug}`);
@@ -54,13 +67,18 @@ export async function POST(req: Request) {
   // and a settings notification must not quietly stop doing that.
   const tag = TAGS.find((t) => t === body.tag);
   if (tag) revalidateTag(tag);
-  // An unrecognised tag or slug is REPORTED rather than swallowed — a Hub that
-  // starts sending "settings" instead of "content", or a slug this refuses to
-  // put in a path, should find that out from the response and not from a page
-  // that never updates. Same reason both are named rather than one flag.
+  // Additive too: `{ tag: "content", path: "/faq" }` is the ordinary FAQ
+  // notification, and either half alone still does its own half.
+  const path = PATHS.find((p) => p === body.path);
+  if (path) revalidatePath(path);
+  // An unrecognised tag, slug or path is REPORTED rather than swallowed — a Hub
+  // that starts sending "settings" instead of "content", a slug this refuses to
+  // put in a path, or a path that is not on the list, should find that out from
+  // the response and not from a page that never updates.
   return NextResponse.json({
     ok: true,
     ...(body.tag && !tag ? { ignoredTag: body.tag } : {}),
     ...(body.postSlug !== undefined && !isSlug(body.postSlug) ? { ignoredPostSlug: String(body.postSlug).slice(0, 64) } : {}),
+    ...(body.path !== undefined && !path ? { ignoredPath: String(body.path).slice(0, 64) } : {}),
   });
 }

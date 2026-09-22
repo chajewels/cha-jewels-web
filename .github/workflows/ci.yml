@@ -37,6 +37,14 @@ jobs:
       # 2026-09-15 and nothing said so — the failure is silent by construction.
       - run: npm run check:analytics
 
+      # The FAQ is authoritative and much of it is terms. It is being converted
+      # from LegalBlock[] into the markdown the Hub holds, and this renders every
+      # answer BOTH ways and asserts the plain text is identical — a dropped
+      # bullet or a swallowed link label must fail here rather than ship. It
+      # also proves docs/faq-seed.sql still matches the content it came from;
+      # that file is run once, by hand, so nothing else would catch a stale one.
+      - run: npm run check:faq
+
       - run: npm run typecheck
 
       - run: npm run lint
