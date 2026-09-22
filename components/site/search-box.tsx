@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { tr, type Lang } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
@@ -53,6 +54,15 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
   const [total, setTotal] = useState(0);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  /**
+   * WHAT THE PANEL IS SHOWING, which is not the same question as how many rows
+   * there are. An empty `items` used to mean all three of "nothing typed yet",
+   * "still asking" and "asked, and the answer was none" — so the panel simply
+   * did not open, and a shopper who searched for something we do not stock got
+   * no answer at all. A failed request was quieter still: the catch swallowed
+   * it and the box looked like it had not been used.
+   */
+  const [status, setStatus] = useState<"idle" | "pending" | "ready" | "error">("idle");
 
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,21 +82,29 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
   // an older, slower answer can never overwrite a newer one.
   useEffect(() => {
     const term = q.trim();
-    if (term === "") { setItems([]); setTotal(0); setOpen(false); setActive(-1); return; }
+    if (term === "") { setItems([]); setTotal(0); setOpen(false); setActive(-1); setStatus("idle"); return; }
 
     const ctl = new AbortController();
     const timer = setTimeout(async () => {
+      setStatus("pending");
+      setOpen(true);
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(term)}&lang=${lang}`, { signal: ctl.signal });
-        if (!res.ok) { setItems([]); setTotal(0); setOpen(false); return; }
+        if (!res.ok) { setItems([]); setTotal(0); setStatus("error"); setOpen(true); return; }
         const data = (await res.json()) as { products: Suggestion[]; total: number };
         setItems(data.products.slice(0, MAX_SUGGESTIONS));
         setTotal(data.total);
+        setStatus("ready");
         setOpen(true);
         setActive(-1);
-      } catch {
-        // Aborted, offline, or a malformed answer. The box stays usable and
-        // Enter still reaches /search — it just offers nothing on the way.
+      } catch (e) {
+        // AN ABORT IS NOT A FAILURE. It means a newer keystroke has already
+        // replaced this request, and its own effect is mid-flight — saying
+        // "unavailable" here would flash an error over a search that is
+        // working. Everything else (offline, a malformed answer) is real and
+        // the reader is told. Enter still reaches /search either way.
+        if ((e as { name?: string })?.name === "AbortError") return;
+        setItems([]); setTotal(0); setStatus("error"); setOpen(true);
       }
     }, DEBOUNCE_MS);
 
@@ -125,6 +143,13 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
   }
 
   const rowCount = items.length + (total > items.length ? 1 : 0);
+  /** The listbox exists only in this one state; aria-controls must not name a node that is not there. */
+  const hasListbox = open && status === "ready" && rowCount > 0;
+  const liveMessage =
+    status === "pending" ? t("search", "searching")
+    : status === "error" ? t("search", "failed")
+    : status === "ready" ? (rowCount > 0 ? (total === 1 ? t("search", "countOne") : t("search", "count", { n: String(total) })) : t("search", "noneShort"))
+    : "";
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Escape") {
@@ -178,7 +203,15 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
             // lg:w-36 was 144px, which left 94px inside the icon and padding
             // and clipped the 98px "Search jewelry" placeholder at 1280 and
             // 1440. Widened so the placeholder fits without focus.
-            : `${expanded ? "fixed inset-x-[clamp(18px,4vw,48px)] top-[14px] z-50" : "hidden"} lg:static lg:inset-x-auto lg:top-auto lg:block lg:w-48 lg:transition-[width] lg:duration-200 lg:max-xl:focus-within:w-56 xl:w-56 2xl:w-[240px]`
+            //
+            // THE WIDTH DOES NOT CHANGE ON FOCUS ANY MORE. Between lg and xl
+            // this grew from w-48 to w-56 on focus-within over 200ms, and the
+            // 32px it took came out of the nav beside it: clicking into the
+            // search box shoved Wholesale, Loyalty and the rest leftwards,
+            // and a link someone was about to click moved out from under the
+            // pointer. The box reserves one width per breakpoint now, so
+            // focus changes the border colour and nothing else.
+            : `${expanded ? "fixed inset-x-[clamp(18px,4vw,48px)] top-[14px] z-50" : "hidden"} lg:static lg:inset-x-auto lg:top-auto lg:block lg:w-48 xl:w-56 2xl:w-[240px]`
         }
       >
         <div className="flex min-h-10 items-center gap-2 rounded-sm border border-charcoal/30 bg-chalk px-3 text-charcoal focus-within:border-gold-dark">
@@ -187,10 +220,10 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
             ref={inputRef}
             type="search"
             role="combobox"
-            aria-expanded={open}
-            aria-controls={listId}
+            aria-expanded={open && status !== "idle"}
+            aria-controls={hasListbox ? listId : undefined}
             aria-autocomplete="list"
-            aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
+            aria-activedescendant={hasListbox && active >= 0 ? optionId(active) : undefined}
             aria-label={t("search", "placeholder")}
             placeholder={t("search", "placeholder")}
             value={q}
@@ -201,16 +234,47 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
           />
         </div>
 
+        {/* THE LIVE REGION IS ALWAYS MOUNTED, and empty when there is nothing
+            to say. A role="status" that appears at the same moment as its text
+            is frequently not announced at all — the assistive technology has
+            to be watching the node before the text lands in it. So this one
+            never unmounts, and the panel below renders the same words for
+            people who are reading rather than listening. */}
+        <p role="status" aria-live="polite" className="sr-only">{liveMessage}</p>
+
         {/* No `expanded` in this condition. From `lg` up the field is shown by
             CSS while `expanded` stays false — gating the dropdown on that state
             hid it on exactly the widest screens. The wrapper above is `hidden`
             below `lg` when collapsed, so CSS already governs both together. */}
-        {open && rowCount > 0 && (
+        {open && status !== "idle" && (
+          <div className="absolute left-0 right-0 z-50 mt-1 max-h-[70vh] overflow-y-auto rounded-sm border border-hairline bg-chalk shadow-lg">
+            {status === "pending" && (
+              <p className="px-3 py-3 text-sm text-charcoal/70">{t("search", "searching")}</p>
+            )}
+            {status === "error" && (
+              <p className="px-3 py-3 text-sm text-charcoal">{t("search", "failed")}</p>
+            )}
+            {status === "ready" && rowCount === 0 && (
+              <div className="px-3 py-3">
+                <p className="text-sm text-charcoal">{t("search", "noneShort")}</p>
+                {/* Somewhere to go, rather than a dead end. onMouseDown for the
+                    same reason the rows use it: the blur that a click starts
+                    would unmount this link before the click landed on it. */}
+                <Link
+                  href="/collections"
+                  onMouseDown={(e) => { e.preventDefault(); go("/collections"); }}
+                  className="mt-1 inline-block text-sm text-gold-dark underline underline-offset-4"
+                >
+                  {t("search", "browseAll")}
+                </Link>
+              </div>
+            )}
+            {status === "ready" && rowCount > 0 && (
           <ul
             id={listId}
             role="listbox"
             aria-label={t("search", "placeholder")}
-            className="absolute left-0 right-0 z-50 mt-1 max-h-[70vh] overflow-y-auto rounded-sm border border-hairline bg-chalk py-1 shadow-lg"
+            className="py-1"
           >
             {items.map((s, i) => (
               <li
@@ -248,6 +312,8 @@ export function SearchBox({ lang, variant = "header" }: { lang: Lang; variant?: 
               </li>
             )}
           </ul>
+            )}
+          </div>
         )}
       </div>
     </div>

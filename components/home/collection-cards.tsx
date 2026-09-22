@@ -27,10 +27,14 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
         const name = collectionName(c, lang);
         const desc = collectionDescription(c, lang);
         return (
-          <Link key={c.id} href={`/collections/${c.slug}`} className="group flex w-full items-stretch overflow-hidden rounded-sm border border-hairline bg-white shadow-sm transition-shadow hover:shadow-md lg:w-[calc(25%-18px)] lg:flex-col">
+          // The wrapper owns the depth; the card owns the clipping. ::after
+          // draws its shadow OUTSIDE the box, so it cannot live on an element
+          // with overflow-hidden — see .card-depth in globals.css.
+          <div key={c.id} className="card-depth relative w-full rounded-sm lg:w-[calc(25%-18px)]">
+          <Link href={`/collections/${c.slug}`} className="group flex h-full w-full items-stretch overflow-hidden rounded-sm border border-hairline bg-white lg:flex-col">
             <div className="relative h-28 w-28 shrink-0 overflow-hidden lg:aspect-[4/3] lg:h-auto lg:w-full">
               {image ? (
-                <HubImage src={image} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                <HubImage src={image} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
               ) : (
                 <div className="grid h-full w-full place-items-center bg-chalk p-3 text-center"><span className="font-display text-lg text-gold-dark lg:text-2xl">{name}</span></div>
               )}
@@ -38,7 +42,7 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
             <div className="flex min-w-0 flex-1 flex-col justify-between p-3 lg:p-5">
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-display text-lg font-bold text-charcoal lg:text-xl">{name}</h3>
+                  <h3 className="font-display text-lg font-semibold text-charcoal lg:text-xl">{name}</h3>
                   <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0 text-charcoal/50 transition-transform group-hover:translate-x-1" />
                 </div>
                 {desc && <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-charcoal/70 lg:text-sm">{desc}</p>}
@@ -46,6 +50,7 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
               <span className="mt-2 text-[11px] font-semibold text-gold-dark lg:text-xs">{t("home", "colsLink")}</span>
             </div>
           </Link>
+          </div>
         );
       })}
     </div>

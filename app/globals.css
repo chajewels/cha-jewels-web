@@ -156,6 +156,115 @@
     .marquee-still { display: grid; }
   }
 
+  /* ---------------------------------------------------------------------
+     THE MOBILE DRAWER'S ENTRANCE (components/site/mobile-nav.tsx).
+     A short slide down from under the header bar it hangs from, plus the
+     fade — 220ms ease-out, which is long enough to read as "this came from
+     there" and short enough that a reader who knows where they are going is
+     not made to wait for it.
+
+     No reduced-motion rule of its own: the blanket `animation: none` at the
+     top of this file already lands the panel in its final position with no
+     travel at all. `both` so the panel never paints at its pre-animation
+     offset on the frame before the animation is applied.
+     --------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------
+     A HEADER MENU PANEL OPENING (components/site/nav-menu.tsx).
+     7px down from the trigger's bottom edge, which is where the panel is
+     anchored, plus the fade. 180ms — shorter than the drawer because the
+     panel is small, sits directly under the pointer, and a menu that makes
+     you wait is a menu you stop using.
+
+     On the INNER panel, not the positioning wrapper: that wrapper's top
+     padding is the contiguous hover bridge between trigger and panel, and
+     transforming it would move the bridge while the pointer is crossing it.
+
+     Reduced motion is handled by the blanket `animation: none` at the top of
+     this file — the panel simply appears where it belongs.
+     --------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------
+     A BUTTON UNDER THE FINGER (components/ui/button.tsx).
+
+     It was `active:translate-y-px` on a 300ms transition — a 1px nudge that
+     took longer to arrive than the tap did, so the button answered after you
+     had let go. Press is 80ms and release is 200ms now: the acknowledgement
+     is immediate, the recovery is unhurried. Asymmetry is the whole point,
+     and it needs two rules, because one transition cannot be fast in and slow
+     out.
+
+     scale, not translate: a button that shrinks reads as pressed at any size,
+     while 1px of travel is invisible on a 48px control and comical on a
+     wide one. 0.985 is about 0.7px on a 48px button — felt, not watched.
+
+     :not(:disabled):not([aria-disabled]) — a control that is not going to do
+     anything must not pretend it is about to. Colour transitions stay at
+     300ms, which is the hover feel this site already had.
+     --------------------------------------------------------------------- */
+  .btn-press {
+    transition: transform 200ms ease-out, background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+  }
+  .btn-press:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.985);
+    transition: transform 80ms ease-out, background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+  }
+  /* The blanket rule at the top of this file removes the TRANSITION but not
+     the transform, so without this a reader who asked for no motion would
+     still get the jump, just instantly. */
+  @media (prefers-reduced-motion: reduce) {
+    .btn-press:active:not(:disabled):not([aria-disabled="true"]) { transform: none; }
+  }
+
+  /* ---------------------------------------------------------------------
+     CARD DEPTH (components/home/collection-cards.tsx).
+
+     `shadow-sm` to `shadow-md` on `transition-shadow` asked the browser to
+     interpolate a box-shadow on every frame of every hover, and a box-shadow
+     is repainted, not composited — eight cards in a row made a visible mess
+     of a pointer sweeping across them.
+
+     So both shadows exist from the start. The resting one is three layers —
+     a contact shadow, a mid lift and a wide ambient — which is what gives a
+     card a position in space rather than a grey halo. The hover shadow is
+     the same three, deeper, pre-rendered on ::after and revealed by fading
+     ONE opacity, which the compositor does on its own thread.
+
+     ::after needs the card NOT to be overflow-hidden, or the shadow it draws
+     outside the box is clipped away — the clipping moved to an inner wrapper,
+     which is what needed it (the photo's square corners).
+
+     No `will-change`: opacity is already cheap, and a permanent hint on
+     every card in the grid costs a layer per card for a hover that may never
+     come. The marquee above is the one place that earns it, and it sets it
+     only while it is moving.
+     --------------------------------------------------------------------- */
+  .card-depth {
+    box-shadow: 0 1px 2px rgb(35 29 18 / 6%), 0 5px 14px rgb(35 29 18 / 7%), 0 16px 32px rgb(35 29 18 / 5%);
+  }
+  .card-depth::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    box-shadow: 0 2px 4px rgb(35 29 18 / 8%), 0 10px 24px rgb(35 29 18 / 10%), 0 28px 56px rgb(35 29 18 / 8%);
+  }
+  .card-depth:hover::after,
+  .card-depth:focus-within::after { opacity: 1; }
+
+  .menu-in { animation: menu-in 180ms ease-out both; }
+  @keyframes menu-in {
+    from { opacity: 0; transform: translateY(-7px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .drawer-in { animation: drawer-in 220ms ease-out both; }
+  @keyframes drawer-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: none; }
+  }
+
   .rule-grid { background: transparent; gap: 1px; clip-path: inset(0); }
   .rule-grid > * { box-shadow: 0 0 0 1px var(--rule); }
   .rule-grid > *:focus-visible { outline-offset: -4px; }

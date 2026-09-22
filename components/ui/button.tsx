@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 const buttonVariants = cva(
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border px-6 py-3 text-[15px] font-medium transition-[transform,background-color] duration-300 active:translate-y-px disabled:opacity-70",
+  "btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border px-6 py-3 text-[15px] font-medium disabled:opacity-70",
   { variants: { variant: {
       solid: "border-transparent bg-orange text-charcoal-deep hover:bg-orange-hover",
       // The body is light, so these are the only pair. The dark counterparts

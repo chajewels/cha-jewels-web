@@ -138,7 +138,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
 
   return (
     <div
-      className="relative h-full"
+      className="relative flex h-full flex-col"
       aria-roledescription="carousel"
       aria-label={t("home", "slideEyebrow")}
       onMouseEnter={() => setHeld(true)}
@@ -151,7 +151,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
         ref={trackRef}
         tabIndex={0}
         onKeyDown={onKeyDown}
-        className="flex h-full snap-x snap-mandatory overflow-x-auto outline-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-pale"
+        className="flex h-full min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto outline-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-pale"
       >
         {slides.map((s, i) => (
           <div
@@ -161,16 +161,29 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
             aria-label={t("home", "slideOf", { n: String(i + 1), total: String(count) })}
             className="relative flex h-full w-full shrink-0 snap-center items-center"
           >
+            {/* py-8 below lg on the intro slide, not py-16. With the
+                section's own padding on top of it there were 144px above the
+                headline on a 667px screen — a fifth of the first screen spent
+                on nothing, which is what pushed the two buttons under the
+                mobile tab bar. Unchanged from lg up, where the section has a
+                fixed height and the padding decides nothing. */}
             {s.kind === "intro" ? (
-              <div className="wrap w-full py-16 text-center lg:py-24 lg:text-left">
+              <div className="wrap w-full py-8 text-center lg:py-24 lg:text-left">
                 <div className="mx-auto max-w-[820px] lg:mx-0">
                   <h1 className="text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
                     {t("hero", "h1a")}<br />
                     <span className="text-gold-pale">{t("hero", "h1b")}</span>
                   </h1>
+                  {/* ONE paragraph. The intro slide carried two, the second
+                      line-clamped to five lines on mobile — which is the
+                      shape of copy nobody reads: too long to take in over a
+                      photo, and cut off mid-thought anyway. It says what the
+                      brand believes, so it now sits in the values section
+                      below, where there is room for it and a reader who has
+                      scrolled that far has asked for it. Same key, so both
+                      languages moved together. */}
                   <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("hero", "lede")}</p>
-                  <p className="mt-3 line-clamp-5 text-[15px] leading-relaxed text-chalk/75 lg:line-clamp-none lg:text-base">{t("hero", "lede2")}</p>
-                  <div className="mt-9 flex flex-wrap justify-center gap-3 lg:justify-start">
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 lg:mt-9 lg:justify-start">
                     <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
                     {s.layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk hover:text-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
                   </div>
@@ -215,16 +228,20 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
           <button type="button" aria-label={t("home", "slideNext")} onClick={() => goTo(active + 1)} className={`${arrow} right-2 lg:right-5`}>
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m9 5 7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
-          {/* Overlaid rather than stacked below: the section has a fixed height
-              from `lg` up, so a row added under the track would be pushed out
-              of it.
+          {/* FROM `lg` UP these are overlaid: the section has a fixed height
+              there, so a row stacked under the track would be pushed out of
+              it.
 
-              Lifted clear of the mobile tab bar below `lg`. That bar is fixed
-              to the bottom of the VIEWPORT while these dots sit at the bottom
-              of the SECTION, so at the top of the page the two land on the
-              same pixels and the dots cannot be tapped — measured at 375px,
-              dots 776–800 under a bar occupying 747–812. */}
-          <div className="absolute inset-x-0 bottom-24 z-20 flex justify-center gap-2 lg:bottom-5" role="tablist" aria-label={t("home", "slideEyebrow")}>
+              BELOW `lg` they are a row in the flow, under the track. They used
+              to be overlaid there too, at a `bottom-24` picked by measuring
+              one screen — 375x812, where 96px was what it took to clear the
+              mobile tab bar. That number is only right at that height. At
+              375x667 the same 96px lands the dots across the middle of "Shop
+              the collections", drawing a row of dots over the primary call to
+              action. In the flow they are under the content at every height,
+              and there is no magic number to re-measure the next time the
+              copy or the chrome changes. */}
+          <div className="z-20 flex shrink-0 justify-center gap-2 pb-2 pt-3 lg:absolute lg:inset-x-0 lg:bottom-5 lg:pb-0 lg:pt-0" role="tablist" aria-label={t("home", "slideEyebrow")}>
             {slides.map((s, i) => (
               <button
                 key={s.kind === "intro" ? "intro" : s.slug}

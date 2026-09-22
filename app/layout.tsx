@@ -14,9 +14,27 @@ import { announcement } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 
-const display = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
+/**
+ * ONLY THE FACES THAT ACTUALLY RENDER.
+ *
+ * Inventoried by walking the computed styles of every element that holds text
+ * across /, /collections, a category, a product, /faq, /blog and /about, in
+ * both languages. What came back:
+ *
+ *   Playfair   400, 500, 600 normal. NO ITALIC ANYWHERE — the one `italic`
+ *              class on the site is on a testimonial <p>, which is font-sans,
+ *              so the italic cut was downloaded on behalf of text that does
+ *              not exist. (It also asks for 700 on the collection-card
+ *              heading, which is not loaded and never was; see the note in
+ *              collection-cards.tsx.)
+ *   Inter      400, 500, 600 and 700 all appear. All four stay.
+ *   Noto Serif JP  500 only, and only on :lang(ja) h1/h2/h3 — the one rule
+ *              in globals.css that uses font-jp. 400 rendered nowhere in
+ *              either language.
+ */
+const display = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-display", display: "swap" });
 const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans", display: "swap" });
-const jp = Noto_Serif_JP({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jp", display: "swap" });
+const jp = Noto_Serif_JP({ subsets: ["latin"], weight: ["500"], variable: "--font-jp", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
