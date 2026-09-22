@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { HeroVideo } from "@/components/site/hero-video";
 import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
@@ -13,7 +12,8 @@ import { CollectionCards, type CollectionCardData } from "@/components/home/coll
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
 import { categoryCta, categoryDescription, categoryName } from "@/lib/catalog-i18n";
-import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
+import { Hero } from "@/components/home/hero";
+import type { HeroSlide } from "@/components/home/hero-slides";
 import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, isShowableArrival } from "@/components/home/arrival-card";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
@@ -105,8 +105,13 @@ export default async function Home() {
           bites, and both crop top and bottom only, around a centred crucible.
           The 1440px max width applies to the content wrapper only. Copy from
           hero.*. */}
-      <section className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-20 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0">
-        <HeroVideo playLabel={t("hero", "videoPlay")} pauseLabel={t("hero", "videoPause")} />
+      <Hero
+        lang={lang}
+        slides={slides}
+        videoPlayLabel={t("hero", "videoPlay")}
+        videoPauseLabel={t("hero", "videoPause")}
+        className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-20 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0"
+      >
         <div aria-hidden="true" className="hero-scrim" />
         {/* Slide 0 is the hero copy as before; slides 1..n are the categories.
             Swipe, arrows (md+), dots, ← →; see components/home/hero-slides.tsx.
@@ -117,10 +122,7 @@ export default async function Home() {
             still lines up with the rest of the page. `self-stretch` makes the
             layer fill the section's height from `lg` up, where the section has
             one, and collapse to the content height below it. */}
-        <div className="relative z-10 w-full self-stretch">
-          <HeroSlides lang={lang} slides={slides} />
-        </div>
-      </section>
+      </Hero>
 
       {/* §6 Diamond divider */}
       <DiamondDivider className="wrap" />
