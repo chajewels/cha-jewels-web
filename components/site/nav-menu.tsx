@@ -32,6 +32,8 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
+  /** Did a pointer hover open this, rather than a click or a key? */
+  const openedByHover = useRef(false);
   const id = useId();
   const pathname = usePathname();
 
@@ -77,8 +79,8 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
   return (
     <div
       className="relative"
-      onPointerEnter={() => { if (canHover()) setOpen(true); }}
-      onPointerLeave={() => { if (canHover()) setOpen(false); }}
+      onPointerEnter={() => { if (canHover()) { openedByHover.current = true; setOpen(true); } }}
+      onPointerLeave={() => { if (canHover()) { openedByHover.current = false; setOpen(false); } }}
     >
       <button
         ref={trigger}
@@ -86,7 +88,21 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? id : undefined}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          // A CLICK MUST NOT UNDO THE HOVER THAT JUST OPENED THIS. Moving a
+          // mouse onto the trigger opens the menu; clicking it then ran a
+          // plain toggle and shut it again, so a pointer user who reached for
+          // a menu and clicked what they were aiming at got nothing. The menu
+          // was working — it was closing the thing the click had come for.
+          //
+          // So the first click on a hover-opened menu is a no-op that CLAIMS
+          // it: openedByHover is cleared, and a second click closes as before.
+          // Nothing changes on touch (no hover, so the flag is never set) or
+          // for the keyboard, which opens through ArrowDown below.
+          if (open && openedByHover.current) { openedByHover.current = false; return; }
+          openedByHover.current = false;
+          setOpen((o) => !o);
+        }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); setOpen(true); focusFirst(); }
         }}

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { availabilityKey, isBuyable, variantAvailability } from "@/lib/availability";
 import Link from "next/link";
 import { useTransition } from "react";
 import { removeFromCart, setCartQty } from "@/lib/cart-actions";
@@ -20,6 +21,12 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
         // A one-of-a-kind piece has a single unit on the shelf; there is no
         // quantity decision to offer, so we state the fact instead.
         const oneOfAKind = item.stock_qty <= 1;
+        // The SAME status the card and the product page show, from the same
+        // function. A piece can go to zero while it sits in a basket, and the
+        // cart said nothing about it — the shopper found out at checkout. The
+        // Hub re-prices and re-checks stock at /checkout/quote and again in
+        // create_web_order_atomic, so this is a warning, not the gate.
+        const avail = variantAvailability({ stock_qty: item.stock_qty });
         const name = cartItemName(item, lang);
         return (
           <li key={item.variant_id} className="flex flex-wrap items-start gap-4 bg-white p-5">
@@ -37,7 +44,9 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
                 {item.size ? ` · ${item.size}` : ""}
                 {item.stone ? ` · ${item.stone}` : ""}
               </p>
-              {oneOfAKind ? (
+              {!isBuyable(avail) ? (
+                <p className="mt-2 text-xs text-garnet">{t("product", availabilityKey(avail))}</p>
+              ) : oneOfAKind ? (
                 <p className="mt-2 text-xs text-charcoal/70">{t("cart", "oneOfAKind")}</p>
               ) : (
                 <label className="mt-2 flex items-center gap-2 text-xs text-charcoal/70">

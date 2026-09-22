@@ -35,7 +35,10 @@ export default async function FaqPage() {
               and a shopper looking for one answer should not scroll past the
               other thirty-eight. */}
           {sections.map((section) => (
-            <section key={section.key} className="mt-12 first:mt-0">
+            // `id` is what makes a section linkable — the footer's layaway
+            // link is /faq#payments-and-layaway. globals.css sets
+            // scroll-padding-top so the heading clears the sticky header.
+            <section key={section.key} id={section.slug} className="mt-12 scroll-mt-24 first:mt-0">
               <h2 className="border-t border-hairline pt-6 font-display text-[clamp(20px,2.4vw,28px)] text-charcoal-deep">
                 {section.heading}
               </h2>

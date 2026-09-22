@@ -11,6 +11,7 @@ import { ConditionBadge } from "@/components/catalog/condition-badge";
 import { OriginBadge } from "@/components/catalog/origin-badge";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { ProductGallery } from "@/components/catalog/product-gallery";
+import { availabilityKey, isBuyable, variantAvailability } from "@/lib/availability";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { AddToCart } from "@/components/commerce/add-to-cart";
@@ -30,6 +31,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const t = tr(lang);
   const layaway = layawayOffered(lang);
   const variant = p.product_variants[0];
+  // ONE status for the badge, the buttons and the financing copy.
+  const avail = variantAvailability(variant, p.status);
   const price = variant?.price_jpy;
   const images = allImages(p).map((m) => ({ url: m.url, alt: m.alt }));
   const metals = productMetals(p);
@@ -51,6 +54,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </figure>
           <div>
             <div className="flex flex-wrap items-center gap-2">
+              {/* The availability word sits with the other badges, not tacked
+                  onto the SKU line where it read as part of a reference
+                  number. One source: lib/availability.ts. */}
+              {!isBuyable(avail) && (
+                <span className="inline-flex items-center border border-charcoal-deep bg-white px-2.5 py-1 text-xs tracking-wide text-charcoal-deep">
+                  {t("product", availabilityKey(avail))}
+                </span>
+              )}
               <KaratBadge metals={metals} lang={lang} />
               <OriginBadge origin={p.origin} brand={p.brand} lang={lang} />
               <ConditionBadge condition={p.condition} lang={lang} />
@@ -58,15 +69,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <h1 className="mt-4 text-[clamp(32px,4.2vw,60px)]">{name}</h1>
             {price != null && <PriceBlock price={price} lang={lang} className="mt-6" />}
             {desc && <p className="mt-6 max-w-[52ch] text-charcoal">{desc}</p>}
-            <p className="mt-4 text-sm text-charcoal/70">SKU {p.sku}{variant?.stock_qty === 0 ? ` · ${t("product", "reserved")}` : ""}</p>
+            <p className="mt-4 text-sm text-charcoal/70">SKU {p.sku}</p>
             {/* Two ways to buy the same piece, one basket — but only where
                 layaway is offered (English only, owner decision 2026-09-15).
                 On ja the piece is cash-only, so Reserve and the calculator both
                 go: a calculator for a plan the shopper cannot start is a
                 promise the checkout would refuse. See lib/layaway-availability. */}
-            {variant && <AddToCart variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-6" />}
-            {layaway && variant && <ReserveWithLayaway variantId={variant.id} slug={p.slug} sku={p.sku} stockQty={variant.stock_qty} lang={lang} className="mt-3" />}
-            {layaway && price != null && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} className="mt-8" />}
+            {variant && <AddToCart variantId={variant.id} slug={p.slug} sku={p.sku} availability={avail} lang={lang} className="mt-6" />}
+            {layaway && variant && isBuyable(avail) && <ReserveWithLayaway variantId={variant.id} slug={p.slug} sku={p.sku} lang={lang} className="mt-3" />}
+            {/* NO CALCULATOR ON A PIECE THAT CANNOT BE BOUGHT. It invited the
+                shopper to reserve this one "with ¥45,000 and pay the rest
+                monthly", beneath a button that refused to sell it. */}
+            {layaway && price != null && isBuyable(avail) && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} className="mt-8" />}
           </div>
         </div>
       </section>

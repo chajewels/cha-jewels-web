@@ -5,6 +5,7 @@ import Link from "next/link";
 import { addToCart } from "@/lib/cart-actions";
 import { tr, type Lang } from "@/lib/i18n";
 import { trackAddToCart } from "@/lib/analytics";
+import { availabilityKey, isBuyable, type Availability } from "@/lib/availability";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -12,18 +13,21 @@ import { Button } from "@/components/ui/button";
  * cart clamps to stock anyway. Disabled outright when nothing is on the shelf,
  * so the shopper never gets as far as a 409 at checkout.
  */
-export function AddToCart({ variantId, slug, sku, stockQty, lang, className }: {
-  variantId: string; slug: string; sku: string; stockQty: number; lang: Lang; className?: string;
+export function AddToCart({ variantId, slug, sku, availability, lang, className }: {
+  variantId: string; slug: string; sku: string; availability: Availability; lang: Lang; className?: string;
 }) {
   const t = tr(lang);
   const [pending, start] = useTransition();
   const [added, setAdded] = useState(false);
-  const soldOut = stockQty <= 0;
 
-  if (soldOut) {
+  // THE BUTTON SAYS WHAT THE BADGE SAYS. It read "Sold out" from its own
+  // `stockQty <= 0` while the page's badge said "Currently reserved" about the
+  // same piece. It takes the decided status now (lib/availability.ts) rather
+  // than a number it has to interpret.
+  if (!isBuyable(availability)) {
     return (
       <p className={className}>
-        <Button disabled className="w-full sm:w-auto">{t("cart", "soldOut")}</Button>
+        <Button disabled className="w-full sm:w-auto">{t("product", availabilityKey(availability))}</Button>
       </p>
     );
   }

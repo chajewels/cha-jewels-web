@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/queries/products";
+import { productAvailability } from "@/lib/availability";
 import { siteUrl } from "@/lib/site";
 import { allImages, fromPrice } from "@/lib/queries/products";
 import { metalsLabel, productMetals } from "@/lib/metals";
@@ -37,6 +38,11 @@ export function JsonLd(props: Props) {
         offers: { "@type": "Offer", price: fromPrice(props.product) ?? undefined, priceCurrency: "JPY",
           // Absent condition is New — matches ConditionBadge, which only renders for Preloved.
           itemCondition: props.product.condition === "Preloved" ? "https://schema.org/UsedCondition" : "https://schema.org/NewCondition",
-          availability: props.product.product_variants.some((v) => v.stock_qty > 0) ? "https://schema.org/InStock" : "https://schema.org/SoldOut", url: `${base}/products/${props.product.slug}` } };
+          // The same status the page shows. A piece the page calls reserved
+          // must not be advertised to Google as in stock, and a reserved piece
+          // is not SoldOut either — schema.org has a word for held stock.
+          availability: productAvailability(props.product) === "available" ? "https://schema.org/InStock"
+            : productAvailability(props.product) === "sold" ? "https://schema.org/SoldOut"
+            : "https://schema.org/BackOrder", url: `${base}/products/${props.product.slug}` } };
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
 }

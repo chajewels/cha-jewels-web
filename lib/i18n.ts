@@ -257,9 +257,14 @@ export const dict = {
     layStep2H: { ja: "残額を3〜8か月で分割", en: "Spread the balance over 3 to 8 months" }, layStep2P: { ja: "無利息・手数料なし。8か月プランは30万円以上のご注文が対象です。", en: "0% interest, no fees. Eight months on orders of ¥300,000 and above." },
     layStep3H: { ja: "最終回のお支払い後にお届け", en: "Delivered on the final payment" }, layStep3P: { ja: "各回は銀行振込。プラン完了後に発送します。", en: "Pay each instalment by bank transfer; the piece ships once the plan completes." },
     layCalcH: { ja: "レイアウェイ計算", en: "Layaway calculator" }, layCalcP: { ja: "毎月のお支払い目安", en: "Estimate your monthly plan" }, layCalcChip: { ja: "無利息", en: "0% interest" },
-    layCta: { ja: "レイアウェイを申し込む", en: "Start a layaway" },
+    // "Start a layaway" pointed at /layaway, which is the page the button is
+    // ON — a self-link, and on the homepage a link to an explainer rather than
+    // to anything buyable. A layaway is NOT started from a calculator in any
+    // case: it is started from a piece, at checkout. So the button says the
+    // next thing the customer actually has to do, and goes where they can do
+    // it. See components/commerce/layaway-band.tsx.
+    layCta: { ja: "商品を選ぶ", en: "Choose a piece" },
     newEyebrow: { ja: "一点物・新着品", en: "One-of-a-kind, newly listed" }, newDetail: { ja: "詳細を見る", en: "View details" },
-    phName: { ja: "商品名", en: "Product name" }, phMeta: { ja: "K18 · 0.00g", en: "K18 · 0.00g" }, phPrice: { ja: "¥—", en: "¥—" },
     testiEyebrow: { ja: "ご愛用者様の声", en: "Voices" },
     testiH: { ja: "お客様の声", en: "Customer stories" },
     testiP: { ja: "Cha Jewelsでお選びいただいたお客様からのご感想をご紹介します。", en: "Notes from customers who chose Cha Jewels." },
@@ -268,8 +273,8 @@ export const dict = {
     slideDot: { ja: "{n}枚目へ", en: "Go to slide {n}" }, slideOf: { ja: "{total}枚中{n}枚目", en: "{n} of {total}" },
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },
   },
-  product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, reserved: { ja: "予約済み", en: "Currently reserved" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout." } },
-  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金（30%）", en: "Down payment (30%)" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "概算です。正確な日程と金額は契約書に記載します。", en: "Estimate. Your signed agreement shows exact dates and amounts." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, phpNote: { ja: "ペソ表示は本日のレートによる参考値です。お支払いは円建てで確定します。", en: "Peso figures are indicative at today's rate. Payments are settled in yen." }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" } },
+  product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, reserved: { ja: "予約済み", en: "Reserved" }, sold: { ja: "売却済み", en: "Sold" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout." } },
+  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金（30%）", en: "Down payment (30%)" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "概算です。正確な日程と金額は契約書に記載します。", en: "Estimate. Your signed agreement shows exact dates and amounts." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, phpNote: { ja: "ペソ表示は本日のレートによる参考値です。お支払いは円建てで確定します。", en: "Peso figures are indicative at today's rate. Payments are settled in yen." }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" } },
   search: {
     placeholder: { ja: "ジュエリーを検索", en: "Search jewelry" },
     prompt: { ja: "品名、ブランド名、素材、商品番号などを入力してください。", en: "Type a name, a brand, a metal or a product number." },
@@ -284,7 +289,14 @@ export const dict = {
     eyebrow: { ja: "カテゴリー", en: "Category" },
   },
   collection: {
-    empty: { ja: "まだ商品が登録されていません。Hubで追加された商品は1分以内に表示されます。", en: "No pieces are listed here yet. New pieces are added from the Hub and appear within a minute." },
+    // CUSTOMER COPY. This said "New pieces are added from the Hub and appear
+    // within a minute" until 2026-09-22 — "the Hub" is the name of the staff
+    // ERP, which no shopper has heard of, and "within a minute" described a
+    // cache TTL rather than anything a customer waits for. An empty shelf is
+    // not the place to explain our infrastructure; it is the place to point at
+    // a shelf that is not empty.
+    empty: { ja: "新しい商品を準備中です。現在お求めいただける商品をご覧ください。", en: "New pieces are on their way. Browse what's available now." },
+    emptyCta: { ja: "コレクションを見る", en: "Browse collections" },
     emptyFiltered: { ja: "この条件に該当する商品はありません。", en: "No pieces match this filter." },
     filterLabel: { ja: "状態でしぼり込む", en: "Filter by condition" },
     filterAll: { ja: "すべて", en: "All" }, filterNew: { ja: "新品", en: "New" }, filterPreloved: { ja: "プレラブド", en: "Preloved" },
@@ -350,11 +362,24 @@ export const dict = {
     invoiceNo: { ja: "請求書番号", en: "Invoice no." },
     issuedBy: { ja: "発行者", en: "Issued by" },
     h1: { ja: "アカウント", en: "Your account" },
-    loginH: { ja: "サインイン", en: "Sign in" },
-    loginP: { ja: "メールアドレスにサインイン用のリンクをお送りします。パスワードは不要です。", en: "We email you a sign-in link. No password to remember." },
+    // "Sign in" alone told a first-time customer they were in the wrong place:
+    // there is no separate sign-up on this site — the first link creates the
+    // account — and nothing on the page said so.
+    loginH: { ja: "ログインまたは新規登録", en: "Sign in or create an account" },
+    loginP: { ja: "安全なログインリンクをメールでお送りします。はじめての方は、そのままアカウントが作成されます。", en: "We'll email you a secure link — new customers get an account automatically." },
+    sentH: { ja: "メールをご確認ください", en: "Check your email" },
+    sentTo: { ja: "{email} にログインリンクをお送りしました。", en: "We sent a sign-in link to {email}." },
+    resend: { ja: "リンクを再送する", en: "Send the link again" },
+    resendIn: { ja: "再送まで{s}秒", en: "Send again in {s}s" },
+    differentEmail: { ja: "別のメールアドレスを使う", en: "Use a different email" },
+    linkOnce: { ja: "リンクは1回のみ有効です。", en: "The link works once." },
+    linkOnceExpires: { ja: "リンクは1回のみ有効で、{duration}で期限切れとなります。", en: "The link works once and expires after {duration}." },
+    expiryMinutes: { ja: "{n}分", en: "{n} minutes" },
+    expiryHour: { ja: "1時間", en: "1 hour" },
+    expiryHours: { ja: "{n}時間", en: "{n} hours" },
+    continueShopping: { ja: "お買い物を続ける", en: "Continue shopping" },
     email: { ja: "メールアドレス", en: "Email" },
     sendLink: { ja: "リンクを送る", en: "Email me a link" },
-    sent: { ja: "リンクをお送りしました。メールをご確認ください。リンクは1回のみ有効です。", en: "Check your email. The link works once." },
     err: { ja: "送信できませんでした。もう一度お試しください。", en: "Could not send the link. Please try again." },
     note: { ja: "現在はメールでのサインインのみご利用いただけます。SMSでのサインインは準備中です。", en: "Email sign-in only for now. Signing in by SMS is not available yet." },
     signOut: { ja: "サインアウト", en: "Sign out" },
@@ -810,7 +835,17 @@ export const dict = {
    * English-only — owner decision 2026-09-15, lib/layaway-availability.
    */
   meta: {
-    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、鑑定書付きダイヤモンド。東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and certified diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
+    // NO BLANKET CERTIFICATE CLAIM. This said "certified diamonds" /
+    // 鑑定書付きダイヤモンド, which is not true of every diamond we sell — the
+    // FAQ is explicit that "a certificate or laboratory report is included
+    // only when stated in the product listing", and the FAQ is authoritative.
+    // A site description is the one sentence Google shows before anyone reads
+    // a listing, so it is the worst place to promise per-piece paperwork.
+    //
+    // "authenticated in Japan" stays: that is the site-wide wording CLAUDE.md
+    // sanctions, and it is a claim about our own checking rather than about
+    // documents travelling with the stone.
+    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、ダイヤモンド。東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
     layaway: { title: { ja: "分割予約", en: "Layaway" } },
     blog: { title: { ja: "ブログ", en: "Blog" } },
     account: { title: { ja: "アカウント", en: "Account" } },
