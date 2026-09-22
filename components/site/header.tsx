@@ -13,6 +13,7 @@ import { LangSwitcher } from "./lang-switcher";
 import { SearchBox } from "./search-box";
 import { MobileNav } from "./mobile-nav";
 import { CartButton } from "./cart-button";
+import { Suspense } from "react";
 import { AccountMenu } from "./account-menu";
 
 /**
@@ -43,7 +44,14 @@ export async function Header({ lang }: { lang: Lang }) {
     getCollections().catch(() => []),
     hub.categories().catch(() => []),
   ]);
-  const name = session ? (await customerFirstName(session)) ?? t("accountMenu", "fallback") : null;
+  // NOT AWAITED. Resolving the customer's given name is a Hub read, and this
+  // header is on every page — awaiting it made every navigation as slow as the
+  // slowest /me. The trigger paints with the generic label and the real name
+  // streams into it through its own boundary.
+  const fallbackName = t("accountMenu", "fallback");
+  const name: React.ReactNode = session
+    ? <Suspense fallback={fallbackName}><AccountName session={session} fallback={fallbackName} /></Suspense>
+    : null;
 
   // Blog and News are the same route with different `type` filters — one posts
   // table in the Hub, one cache here. The key is explicit rather than the href
@@ -110,7 +118,7 @@ export async function Header({ lang }: { lang: Lang }) {
     { href: "/account/service-requests", label: t("accountMenu", "service") },
     { href: "/account#loyalty", label: t("accountMenu", "points") },
   ];
-  const account = session && name ? { name, menuLabel: t("accountMenu", "menu"), items: accountItems, signOut: t("accountMenu", "signOut") } : null;
+  const account = session ? { name, menuLabel: t("accountMenu", "menu"), items: accountItems, signOut: t("accountMenu", "signOut") } : null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-chalk/95 text-charcoal shadow-[0_1px_8px_rgba(0,0,0,0.03)] backdrop-blur-md">
@@ -161,4 +169,17 @@ export async function Header({ lang }: { lang: Lang }) {
       </div>
     </header>
   );
+}
+
+/**
+ * The customer's given name, resolved on its own clock.
+ *
+ * Its own async component so React can stream it in after the header has
+ * already painted. A failure or a slow Hub leaves the generic label, which is
+ * what the menu said before this existed — nothing here is worth delaying a
+ * page for, and nothing here is worth failing one for either.
+ */
+async function AccountName({ session, fallback }: { session: NonNullable<Awaited<ReturnType<typeof readSession>>>; fallback: string }) {
+  const name = await customerFirstName(session).catch(() => null);
+  return <>{name ?? fallback}</>;
 }

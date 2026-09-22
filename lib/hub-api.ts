@@ -73,11 +73,26 @@ export class HubError extends Error {
   constructor(public status: number, message: string, public code: string | null = null, public requestId: string | null = null) { super(message); }
 }
 
-async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[]; jwt?: string } = {}): Promise<T> {
+/**
+ * How long a SECONDARY read may take before it is treated as unavailable.
+ *
+ * A streamed homepage section that never resolves is a section that never
+ * arrives and a response that never finishes. Three seconds is well past any
+ * healthy Hub response and well short of a reader's patience. It applies only
+ * where a caller asks for it (`timeout: SECONDARY_TIMEOUT_MS`), so a checkout
+ * or a customer read is never cut short mid-write.
+ */
+export const SECONDARY_TIMEOUT_MS = 3000;
+
+async function call<T>(path: string, init: RequestInit & { revalidate?: number | false; tags?: string[]; jwt?: string; timeout?: number } = {}): Promise<T> {
   if (!BASE || !KEY) throw new HubError(500, "HUB_API_URL / HUB_API_KEY not configured");
-  const { revalidate = 60, tags = ["catalog"], jwt, ...rest } = init;
+  const { revalidate = 60, tags = ["catalog"], jwt, timeout, ...rest } = init;
   const res = await fetch(`${BASE}${path}`, {
     ...rest,
+    // A timeout is an ABORT, which rejects — so it lands on whatever the
+    // caller does with a failure, which for a homepage section is "no section"
+    // and for page content is still a throw. Same rule either way.
+    ...(timeout ? { signal: AbortSignal.timeout(timeout) } : {}),
     headers: {
       "content-type": "application/json",
       "x-api-key": KEY,
@@ -125,7 +140,7 @@ export const hub = {
              : notFoundToNull(call(`/catalog/collections/${encodeURIComponent(slug)}`)),
   product: (slug: string): Promise<Product | null> =>
     FIXTURES ? Promise.resolve(fx.products.find((p) => p.slug === slug) ?? null) : notFoundToNull(call(`/catalog/products/${encodeURIComponent(slug)}`)),
-  featured: (limit = 8): Promise<Product[]> => FIXTURES ? Promise.resolve(fx.products.slice(0, limit)) : call(`/catalog/products?featured=1&limit=${limit}`),
+  featured: (limit = 8): Promise<Product[]> => FIXTURES ? Promise.resolve(fx.products.slice(0, limit)) : call(`/catalog/products?featured=1&limit=${limit}`, { timeout: SECONDARY_TIMEOUT_MS }),
   /**
    * The whole active catalog, for the storefront's own search index
    * (lib/search.ts). The Hub's /catalog/products has no `q` parameter, so
@@ -149,7 +164,7 @@ export const hub = {
    * empty-200 case and it is not an error.
    */
   testimonials: (): Promise<Testimonial[]> =>
-    FIXTURES ? Promise.resolve([]) : call("/testimonials", { tags: ["content"] }),
+    FIXTURES ? Promise.resolve([]) : call("/testimonials", { tags: ["content"], timeout: SECONDARY_TIMEOUT_MS }),
   /**
    * The owner-editable strings and links for this site (lib/settings.ts reads
    * them by key). A flat map, so a key either side has not learned yet is
@@ -244,7 +259,7 @@ export const hub = {
       ? Promise.resolve({ status: "unsubscribed" })
       : call(`/newsletter/unsubscribe?token=${encodeURIComponent(token)}`, { revalidate: false }),
 
-  fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: 0.39, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"] }),
+  fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: 0.39, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"], timeout: SECONDARY_TIMEOUT_MS }),
   loyaltyTiers: (): Promise<HubTier[]> =>
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
