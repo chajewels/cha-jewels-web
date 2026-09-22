@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
@@ -134,6 +134,18 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(fx.postsFixture.find((p) => p.slug === slug) ?? null)
       : notFoundToNull(call(`/content/posts/${encodeURIComponent(slug)}`, { tags: ["content"] })),
+
+  /**
+   * The FAQ, sections in order with their questions inside them.
+   *
+   * Tag "content", with the posts and the settings: they are one editorial
+   * surface as far as an owner is concerned, and the Hub busts them together.
+   *
+   * THROWS, like the other two. lib/faq.ts is the one place that decides what a
+   * Hub failure means, and it means the answers this repo already holds.
+   */
+  faq: (): Promise<HubFaqSection[]> =>
+    FIXTURES ? Promise.resolve(fx.faqFixture()) : call("/content/faq", { tags: ["content"] }),
 
   /**
    * Newsletter sign-up. x-api-key only — there is no customer auth here, so a

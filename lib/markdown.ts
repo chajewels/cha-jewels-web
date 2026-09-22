@@ -7,7 +7,15 @@
  * upgrade paths for a feature that needs six constructs. This is the six.
  *
  * WHAT IT SUPPORTS: paragraphs, `## h2`, `### h3`, unordered and ordered
- * lists, `[text](href)`, `**bold**`, `*italic*` and `_italic_`.
+ * lists, `[text](href)`, `**bold**`, `*italic*`, `_italic_`, a HARD BREAK (a
+ * line ending in a backslash or two spaces) and a BACKSLASH ESCAPE before
+ * punctuation.
+ *
+ * The last two exist for lib/content/faq-markdown.ts, which converts the
+ * hand-authored FAQ into the markdown the Hub will hold. A `lines` block is a
+ * set of contact lines whose breaks carry meaning, and an escape is what lets
+ * that converter be TOTAL — defined for every string the FAQ could ever hold —
+ * rather than a function that throws the day someone types an asterisk.
  *
  * NO RAW HTML, AND THAT IS A GUARANTEE RATHER THAN A FILTER. The source is
  * HTML-escaped as the FIRST step, before anything is parsed, so every `<` in
@@ -25,6 +33,18 @@
  * small: unsupported syntax renders as the literal characters the author typed,
  * which is visible in review, rather than being silently dropped.
  */
+
+/**
+ * Sentinels for things that must survive parsing intact. Neither can appear in
+ * the input: both are stripped from the source before anything else happens.
+ *
+ *   BREAK   a hard line break, recognised before blocks are split so the two
+ *           lines stay one paragraph
+ *   SLOT    a link or an escaped character, lifted out so emphasis cannot chew
+ *           on a URL or on the very character that was escaped to hide it
+ */
+const BREAK = "\u0001";
+const SLOT = "\u0000";
 
 /** `&` first, or the escapes escape each other. */
 function escapeHtml(text: string): string {
@@ -62,24 +82,32 @@ function safeHref(href: string): string | null {
  * only way both rules can be simple.
  */
 function inline(text: string): string {
-  const links: string[] = [];
-  // U+0000 cannot survive escapeHtml's input in practice, and is stripped from
-  // the source below regardless, so it is free to use as a marker.
+  const slots: string[] = [];
+  const hold = (html: string) => `${SLOT}${slots.push(html) - 1}${SLOT}`;
+
+  // A BACKSLASH ESCAPE IS HELD FIRST, before any rule can read the character it
+  // was written to hide: `\*` must reach the page as an asterisk no emphasis
+  // rule ever saw, and `\[` as a bracket no link rule ever saw.
+  let out = text.replace(/\\([\\`*_[\]()#+\-.!>])/g, (_, ch: string) => hold(escapeHtml(ch)));
+
   // The href pattern allows ONE level of balanced parentheses, so a Wikipedia
   // URL survives and `javascript:alert(1)` is captured whole and refused whole
   // rather than leaving its closing bracket stranded in the sentence.
-  let out = text.replace(/\[([^\]\n]*)\]\(([^()\s]*(?:\([^()\s]*\)[^()\s]*)*)\)/g, (whole, label: string, href: string) => {
+  out = out.replace(/\[([^\]\n]*)\]\(([^()\s]*(?:\([^()\s]*\)[^()\s]*)*)\)/g, (whole, label: string, href: string) => {
     const safe = safeHref(href);
     if (!safe) return label.trim() || whole;
     // An empty label would be a link with no accessible name, which axe reports
     // and a screen reader announces as the URL anyway. Showing the URL is the
     // same information, said out loud.
-    const i = links.push(`<a href="${safe}">${emphasis(label.trim() || safe)}</a>`) - 1;
-    return `\u0000${i}\u0000`;
+    return hold(`<a href="${safe}">${emphasis(label.trim() || safe)}</a>`);
   });
+
   out = emphasis(out);
-  return out.replace(/\u0000(\d+)\u0000/g, (_, i: string) => links[Number(i)]);
+  // Hard breaks last, so nothing above had to step around a <br />.
+  out = out.split(BREAK).join("<br />");
+  return out.replace(new RegExp(`${SLOT}(\\d+)${SLOT}`, "g"), (_, i: string) => slots[Number(i)]);
 }
+
 
 /**
  * Bold before italic, because after `**x**` is consumed no `**` remains and the
@@ -116,7 +144,15 @@ function block(lines: string[]): string {
 
 /** Markdown → HTML. Empty in, empty out; never throws. */
 export function renderMarkdown(source: string): string {
-  const escaped = escapeHtml(source.replace(/\u0000/g, "").replace(/\r\n?/g, "\n"));
+  const normalised = source
+    .replace(/[\u0000\u0001]/g, "")
+    .replace(/\r\n?/g, "\n")
+    // A HARD BREAK — a line ending in a backslash or in two or more spaces —
+    // becomes a sentinel that EATS its newline, so the two lines stay one
+    // paragraph through the block split below. Not before a blank line: that
+    // is a paragraph break, and the author meant the paragraph.
+    .replace(/(?:\\|[ \t]{2,})\n(?!\n)/g, BREAK);
+  const escaped = escapeHtml(normalised);
   const html = escaped
     .split(/\n{2,}/)
     .map((chunk) => chunk.split("\n").map((l) => l.trimEnd()).filter((l) => l.trim() !== ""))
@@ -144,4 +180,33 @@ export function renderParagraphs(paragraphs: string[]): string {
     .filter(Boolean)
     .map((p) => `<p>${escapeHtml(p)}</p>`)
     .join("");
+}
+
+/**
+ * Rendered markdown, flattened to plain text.
+ *
+ * WHY IT GOES THROUGH THE RENDERER rather than stripping the markdown directly:
+ * the question it answers is "what does a reader see on this page?", and the
+ * only thing that knows that is the thing that builds the page. A second
+ * stripper would be a second opinion, and the two would disagree the first time
+ * either was changed — which matters here because the answer this returns is
+ * what /faq hands Google as FAQPage structured data. Showing a search engine an
+ * answer a reader cannot find on the page is the failure to design out.
+ *
+ * Every element boundary becomes a single space, so two list items do not run
+ * together into one word, and runs of whitespace collapse: the HTML has
+ * newlines and indentation that a reader never sees either.
+ */
+export function markdownToText(source: string): string {
+  return renderMarkdown(source)
+    .replace(/<br\s*\/?>/g, " ")
+    .replace(/<\/(?:p|h2|h3|li|ul|ol)>/g, " ")
+    .replace(/<[^>]*>/g, "")
+    // Reverse of escapeHtml, and `&amp;` LAST for the same reason it was first.
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
 }
