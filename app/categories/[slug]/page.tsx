@@ -5,6 +5,7 @@ import { tr } from "@/lib/i18n";
 import { categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
 import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
+import { HubImage } from "@/components/media/hub-image";
 import { EmptyShelf } from "@/components/catalog/empty-shelf";
 import { ProductCard } from "@/components/catalog/product-card";
 
@@ -45,9 +46,26 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       <div className="wrap">
         {banner && (
           <div className="relative mb-10 aspect-[21/9] overflow-hidden rounded-sm border border-hairline">
-            {/* Hub media may come from hosts next/image is not configured for. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
+            {/* THE PAGE'S LARGEST PAINT. It sits above the fold at every
+                width and it is the first thing a category page shows, so it
+                is the one image on this site that asks for priority — and
+                the only one, because marking a second would mean neither.
+
+                Measured: the banner is the wrap's content box, 339 at 375,
+                706.6 at 768 and 1144 at both 1280 and 1440, where
+                max-w-site has capped it. `100vw` below that cap
+                over-declares by the gutter on purpose — never under, so the
+                browser can never pick a candidate too small and land a soft
+                banner across the top of the page. 21/9 is the div's and is
+                reserved before the bytes arrive. */}
+            <HubImage
+              src={banner}
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1240px) 1144px, 100vw"
+              className="object-cover object-[65%_center]"
+            />
           </div>
         )}
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("categories", "eyebrow")}</p>

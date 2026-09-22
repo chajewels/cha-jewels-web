@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { trackHeroSlideCta } from "@/lib/analytics";
+import { useHeroMotion } from "@/components/home/hero";
+import { HubImage } from "@/components/media/hub-image";
 
 export type HeroSlide =
   | { kind: "intro"; layaway: boolean }
@@ -11,6 +13,12 @@ export type HeroSlide =
 
 const AUTO_ADVANCE_MS = 6000;
 const VISIBLE_THRESHOLD = 0.6;
+/**
+ * How long before a slide arrives its photo is allowed to start loading. Long
+ * enough that the bytes are usually there when the scroll finishes, short
+ * enough that a reader who never waits out one rotation never pays for it.
+ */
+const PRELOAD_LEAD_MS = 900;
 
 /**
  * The hero deck: slide 0 is the brand headline over the video, then one slide
@@ -21,10 +29,11 @@ const VISIBLE_THRESHOLD = 0.6;
  * IntersectionObserver on the slides, so dots and arrows stay in sync after a
  * swipe as well as after a click.
  *
- * Auto-advance every 6s, paused on hover, focus, touch and while the tab is
- * hidden, and off entirely under prefers-reduced-motion (where every
- * programmatic scroll is also instant). There is no pause control for the
- * slides — the video toggle in the corner stays the only control there.
+ * Auto-advance every 6s, paused on hover, focus, touch, while the tab is
+ * hidden, WHILE THE HERO IS OFF SCREEN, and off entirely under
+ * prefers-reduced-motion (where every programmatic scroll is also instant).
+ * The toggle in the corner pauses this as well as the video — one control for
+ * the hero's motion, because "pause" means "stop moving".
  *
  * LAYERING. The section owns the video and its vertical scrim as the base
  * layer. Slide 0 draws nothing of its own, so the video shows through it
@@ -40,22 +49,33 @@ const VISIBLE_THRESHOLD = 0.6;
 export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }) {
   const t = tr(lang);
   const trackRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
+  // Shared with the video: which slide is up, and whether the hero may move at
+  // all (on screen, tab visible, reduced motion off, reader has not paused).
+  // components/home/hero.tsx holds all of it.
+  const { active, setActive, rotateOn, reduced } = useHeroMotion();
   const [held, setHeld] = useState(false);       // hover / focus / touch
-  const [hidden, setHidden] = useState(false);   // document.hidden
-  const [reduced, setReduced] = useState(false); // prefers-reduced-motion
   const count = slides.length;
 
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduced(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    const vis = () => setHidden(document.hidden);
-    vis();
-    document.addEventListener("visibilitychange", vis);
-    return () => { mq.removeEventListener("change", apply); document.removeEventListener("visibilitychange", vis); };
-  }, []);
+  /**
+   * HOW FAR INTO THE DECK THE PHOTOS ARE ALLOWED TO LOAD.
+   *
+   * Every category slide is laid out from the start — the track is one wide
+   * row — so `loading="lazy"` does not hold them back: the browser's lazy
+   * heuristic measures against the viewport with a generous margin, and slides
+   * sitting just off the right edge are inside it. Measured on develop at both
+   * 375 and 1440, ALL FIVE category photos were fetched on first paint, 818 KB
+   * of them, behind an intro slide that shows none of them.
+   *
+   * So mounting is what is gated, not the loading attribute. `reach` starts at
+   * 0 — the intro slide, which has no photo of its own — and a slide's <img>
+   * does not exist in the DOM until the deck reaches it. It moves for exactly
+   * three reasons: the deck is about to rotate onto the next slide, the reader
+   * asked for a slide by arrow/dot/key, or a swipe has landed on one. It never
+   * goes backwards: a photo already fetched stays mounted, because unmounting
+   * it would only mean fetching it again on the way back.
+   */
+  const [reach, setReach] = useState(0);
+  const reveal = useCallback((i: number) => setReach((r) => (i > r ? i : r)), []);
 
   const goTo = useCallback((i: number) => {
     const track = trackRef.current;
@@ -63,8 +83,10 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
     const idx = ((i % count) + count) % count;
     const slide = track.children[idx] as HTMLElement | undefined;
     if (!slide) return;
+    // Asked for by name, so it is wanted now rather than in PRELOAD_LEAD_MS.
+    reveal(idx);
     track.scrollTo({ left: slide.offsetLeft, behavior: reduced ? "auto" : "smooth" });
-  }, [count, reduced]);
+  }, [count, reduced, reveal]);
 
   // The scroller decides which slide is current, so a swipe, a snap after a
   // resize, or a keyboard scroll all land on the same truth as a dot click.
@@ -81,11 +103,29 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
     return () => io.disconnect();
   }, [count]);
 
+  // A swipe is the third way to arrive at a slide, and the only one that does
+  // not go through goTo — the scroller reports it through `active`. Whatever
+  // is showing must have its photo; and once the reader is moving through the
+  // deck at all, the slide after it is fair game. Not at active 0, which is
+  // where every visit starts and where the poster is the only image wanted.
   useEffect(() => {
-    if (count < 2 || reduced || held || hidden) return;
-    const id = setInterval(() => goTo(active + 1), AUTO_ADVANCE_MS);
-    return () => clearInterval(id);
-  }, [active, count, reduced, held, hidden, goTo]);
+    reveal(active);
+    if (active > 0) reveal(active + 1);
+  }, [active, reveal]);
+
+  useEffect(() => {
+    // `rotateOn` carries offscreen, hidden tab, reduced motion and the pause
+    // button; `held` is hover/focus/touch and stays local to the deck.
+    if (count < 2 || held || !rotateOn) return;
+    // Two timers, not one: the photo for the slide we are about to move to
+    // starts loading PRELOAD_LEAD_MS early, so "loads when it becomes next"
+    // does not mean "appears a beat after it arrives". A setTimeout rather
+    // than the old setInterval because this effect already re-ran on every
+    // `active` change — the interval never survived to a second tick.
+    const lead = setTimeout(() => reveal(active + 1), AUTO_ADVANCE_MS - PRELOAD_LEAD_MS);
+    const advance = setTimeout(() => goTo(active + 1), AUTO_ADVANCE_MS);
+    return () => { clearTimeout(lead); clearTimeout(advance); };
+  }, [active, count, held, rotateOn, goTo, reveal]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === "ArrowRight") { e.preventDefault(); goTo(active + 1); }
@@ -98,7 +138,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
 
   return (
     <div
-      className="relative h-full"
+      className="relative flex h-full flex-col"
       aria-roledescription="carousel"
       aria-label={t("home", "slideEyebrow")}
       onMouseEnter={() => setHeld(true)}
@@ -111,7 +151,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
         ref={trackRef}
         tabIndex={0}
         onKeyDown={onKeyDown}
-        className="flex h-full snap-x snap-mandatory overflow-x-auto outline-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-pale"
+        className="flex h-full min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto outline-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-pale"
       >
         {slides.map((s, i) => (
           <div
@@ -121,16 +161,29 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
             aria-label={t("home", "slideOf", { n: String(i + 1), total: String(count) })}
             className="relative flex h-full w-full shrink-0 snap-center items-center"
           >
+            {/* py-8 below lg on the intro slide, not py-16. With the
+                section's own padding on top of it there were 144px above the
+                headline on a 667px screen — a fifth of the first screen spent
+                on nothing, which is what pushed the two buttons under the
+                mobile tab bar. Unchanged from lg up, where the section has a
+                fixed height and the padding decides nothing. */}
             {s.kind === "intro" ? (
-              <div className="wrap w-full py-16 text-center lg:py-24 lg:text-left">
+              <div className="wrap w-full py-8 text-center lg:py-24 lg:text-left">
                 <div className="mx-auto max-w-[820px] lg:mx-0">
                   <h1 className="text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
                     {t("hero", "h1a")}<br />
                     <span className="text-gold-pale">{t("hero", "h1b")}</span>
                   </h1>
+                  {/* ONE paragraph. The intro slide carried two, the second
+                      line-clamped to five lines on mobile — which is the
+                      shape of copy nobody reads: too long to take in over a
+                      photo, and cut off mid-thought anyway. It says what the
+                      brand believes, so it now sits in the values section
+                      below, where there is room for it and a reader who has
+                      scrolled that far has asked for it. Same key, so both
+                      languages moved together. */}
                   <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("hero", "lede")}</p>
-                  <p className="mt-3 line-clamp-5 text-[15px] leading-relaxed text-chalk/75 lg:line-clamp-none lg:text-base">{t("hero", "lede2")}</p>
-                  <div className="mt-9 flex flex-wrap justify-center gap-3 lg:justify-start">
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 lg:mt-9 lg:justify-start">
                     <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
                     {s.layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk hover:text-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
                   </div>
@@ -138,11 +191,16 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
               </div>
             ) : (
               <>
-                {s.image && (
+                {/* Full-bleed at every width — measured 375/768/1280/1440, the
+                    photo is the viewport wide in all four — so `100vw` is the
+                    literal truth rather than a guess, and the browser picks
+                    from the 640…3840 ladder instead of taking the original.
+                    `i <= reach` is the gate described above; the scrim goes
+                    with the photo, because it exists to sit between the photo
+                    and the copy. */}
+                {s.image && i <= reach && (
                   <>
-                    {/* Hub media may come from hosts next/image is not configured for. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.image} alt="" loading={i <= 1 ? "eager" : "lazy"} className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
+                    <HubImage src={s.image} alt="" fill sizes="100vw" className="object-cover object-[65%_center]" />
                     <div aria-hidden="true" className="hero-slide-scrim" />
                   </>
                 )}
@@ -170,16 +228,20 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
           <button type="button" aria-label={t("home", "slideNext")} onClick={() => goTo(active + 1)} className={`${arrow} right-2 lg:right-5`}>
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m9 5 7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
-          {/* Overlaid rather than stacked below: the section has a fixed height
-              from `lg` up, so a row added under the track would be pushed out
-              of it.
+          {/* FROM `lg` UP these are overlaid: the section has a fixed height
+              there, so a row stacked under the track would be pushed out of
+              it.
 
-              Lifted clear of the mobile tab bar below `lg`. That bar is fixed
-              to the bottom of the VIEWPORT while these dots sit at the bottom
-              of the SECTION, so at the top of the page the two land on the
-              same pixels and the dots cannot be tapped — measured at 375px,
-              dots 776–800 under a bar occupying 747–812. */}
-          <div className="absolute inset-x-0 bottom-24 z-20 flex justify-center gap-2 lg:bottom-5" role="tablist" aria-label={t("home", "slideEyebrow")}>
+              BELOW `lg` they are a row in the flow, under the track. They used
+              to be overlaid there too, at a `bottom-24` picked by measuring
+              one screen — 375x812, where 96px was what it took to clear the
+              mobile tab bar. That number is only right at that height. At
+              375x667 the same 96px lands the dots across the middle of "Shop
+              the collections", drawing a row of dots over the primary call to
+              action. In the flow they are under the content at every height,
+              and there is no magic number to re-measure the next time the
+              copy or the chrome changes. */}
+          <div className="z-20 flex shrink-0 justify-center gap-2 pb-2 pt-3 lg:absolute lg:inset-x-0 lg:bottom-5 lg:pb-0 lg:pt-0" role="tablist" aria-label={t("home", "slideEyebrow")}>
             {slides.map((s, i) => (
               <button
                 key={s.kind === "intro" ? "intro" : s.slug}

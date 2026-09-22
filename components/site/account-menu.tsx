@@ -14,7 +14,13 @@ export type AccountMenuItem = { href: string; label: string };
  * item, separated, and posts to the server action so the cookies clear in the
  * same response that redirects home.
  */
-export function AccountMenu({ name, items, signOut, menuLabel }: { name: string; items: AccountMenuItem[]; signOut: string; menuLabel: string }) {
+/**
+ * `name` is a ReactNode, not a string: the header hands it a <Suspense> whose
+ * child resolves the customer's given name from the Hub. The trigger renders
+ * with the generic label immediately and the name streams into it, so opening
+ * a page never waits on /me. See components/site/header.tsx.
+ */
+export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.ReactNode; items: AccountMenuItem[]; signOut: string; menuLabel: string }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -75,7 +81,7 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: string;
           role="menu"
           aria-label={menuLabel}
           onKeyDown={onMenuKeyDown}
-          className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] rounded-sm border border-hairline bg-white py-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
+          className="menu-in absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] rounded-sm border border-hairline bg-white py-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
         >
           {items.map((it) => (
             <Link key={it.href} role="menuitem" tabIndex={-1} href={it.href} onClick={() => close(false)} className={itemClass}>{it.label}</Link>

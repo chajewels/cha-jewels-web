@@ -100,7 +100,7 @@ export function resolveLang(
 
 export const dict = {
   newsletter: { placeholder: { ja: "メールアドレス", en: "Email address" }, submit: { ja: "登録", en: "Sign up" }, success: { ja: "ご登録ありがとうございます。", en: "Thank you — you're on the list." }, already: { ja: "すでにご登録いただいています。", en: "You're already subscribed." }, invalid: { ja: "メールアドレスをご確認ください。", en: "Please check the email address." }, rateLimited: { ja: "しばらく時間をおいてからお試しください。", en: "Too many attempts — please try again shortly." }, error: { ja: "登録できませんでした。時間をおいてお試しください。", en: "We couldn't sign you up. Please try again later." }, unsubscribed: { ja: "配信を停止しました。", en: "You're unsubscribed." } },
-  nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
+  nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, menu: { ja: "メニュー", en: "Menu" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
   /**
    * Header menu copy. `tr` reads dict[section][key] as a {ja,en} leaf, so these
    * are flat keys in their own section rather than a nested nav.company object,
@@ -225,10 +225,18 @@ export const dict = {
     // decision 2026-09-15), and the hero is the first thing a Japanese visitor
     // reads. The section and CTA are gated together elsewhere.
     lede: { ja: "Cha Jewelsは、厳選したファインジュエリーを通して、時を超える美しさと永く続く価値をお届けします。日本で仕立てられた上質なゴールド、パール、ダイヤモンドジュエリーから、世界を代表するラグジュアリーブランドの厳選プレラブドアイテムまで。すべての一点を、品質、気品、そして変わらない価値を基準に選んでいます。", en: "Cha Jewels brings together timeless beauty and lasting value through a carefully selected collection of fine jewelry. From high-quality gold, pearl, and diamond pieces crafted in Japan to curated preloved treasures from iconic luxury brands, every piece is chosen for its quality, elegance, and enduring worth." },
+    // RENDERED IN THE VALUES SECTION, not the hero (2026-09-22). It was the
+    // intro slide's second paragraph until the hero was shortened to headline
+    // + one sentence + the two buttons; the key keeps its name so the wording
+    // and both languages stayed exactly as the owner reviewed them. See
+    // components/home/values-bento.tsx.
     lede2: { ja: "私たちは、ジュエリーは美しいだけのものではなく、大切に受け継ぎ、自信を持って身につけ、次の世代へつないでいけるものであるべきだと考えています。特にゴールドが持つ永続的な価値を大切にし、ネックレス、リング、ブレスレット、そして唯一無二の一点ものまで、お客様の人生の物語に寄り添い続けるジュエリーをご提案します。", en: "We believe jewelry should be more than beautiful—it should be something you can cherish, wear with confidence, and pass on for generations. With a special focus on the lasting value of gold, Cha Jewels offers necklaces, rings, bracelets, and one-of-a-kind pieces designed to become part of your story for a lifetime." },
     cta1: { ja: "コレクションを見る", en: "Shop the collections" }, cta2: { ja: "分割予約を計算する", en: "Calculate layaway" },
-    videoPlay: { ja: "背景動画を再生", en: "Play background video" },
-    videoPause: { ja: "背景動画を一時停止", en: "Pause background video" },
+    // ONE CONTROL FOR THE WHOLE HERO. It pauses the background video AND the
+    // slide rotation (components/home/hero.tsx), so naming only the video
+    // would describe half of what pressing it does.
+    videoPlay: { ja: "ヒーローの動きを再生", en: "Play hero motion" },
+    videoPause: { ja: "ヒーローの動きを一時停止", en: "Pause hero motion" },
   },
   home: {
     valuesEyebrow: { ja: "Cha Jewelsが大切にすること", en: "What guides every piece" },
@@ -280,10 +288,22 @@ export const dict = {
     prompt: { ja: "品名、ブランド名、素材、商品番号などを入力してください。", en: "Type a name, a brand, a metal or a product number." },
     title: { ja: "「{q}」の検索結果", en: "Results for \u201c{q}\u201d" },
     count: { ja: "{n}件の商品が見つかりました。", en: "{n} pieces found." },
+    // English needs the singular; Japanese does not inflect for number, so the
+    // two strings are deliberately identical there. Without this, one result
+    // read "1 pieces found." — on /search and, once the suggestion panel got a
+    // live region, out loud.
+    countOne: { ja: "1件の商品が見つかりました。", en: "1 piece found." },
     none: { ja: "「{q}」に該当する商品はありませんでした。", en: "Nothing matches \u201c{q}\u201d." },
     seeAll: { ja: "{n}件すべてを見る", en: "See all {n} results" },
     open: { ja: "検索を開く", en: "Open search" },
     close: { ja: "検索を閉じる", en: "Close search" },
+    // The suggestion panel's three non-result states. `noneShort` is the
+    // dropdown's version of `none` above: the panel is narrow and the query is
+    // already in the box the reader is looking at, so it does not repeat it.
+    searching: { ja: "検索しています…", en: "Searching…" },
+    noneShort: { ja: "該当する商品はありません。", en: "No pieces match." },
+    browseAll: { ja: "コレクションを見る", en: "Browse collections" },
+    failed: { ja: "検索を利用できません。もう一度お試しください。", en: "Search is unavailable — try again." },
   },
   categories: {
     eyebrow: { ja: "カテゴリー", en: "Category" },

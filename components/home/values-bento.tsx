@@ -27,6 +27,11 @@ export function ValuesBento({ lang }: { lang: Lang }) {
           <p className="text-[11px] font-bold uppercase tracking-widest text-gold-dark">{t("home", "valuesEyebrow")}</p>
           <h2 className="font-display text-[clamp(28px,3.4vw,44px)] text-charcoal">{t("home", "valuesH")}</h2>
           <p className="text-sm leading-relaxed text-charcoal/70 lg:text-base">{t("home", "valuesP")}</p>
+          {/* Moved down from the hero's intro slide, where it was the second
+              paragraph over the video and was clamped to five lines on a
+              phone. Same key, so the wording and both languages are
+              unchanged — it is only in a place that can hold it. */}
+          <p className="pt-2 text-sm leading-relaxed text-charcoal/70 lg:text-base">{t("hero", "lede2")}</p>
         </div>
         <div className="mt-6 grid gap-3 lg:mt-10 lg:grid-cols-12 lg:gap-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:col-span-7 lg:gap-6">
