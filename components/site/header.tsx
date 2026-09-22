@@ -164,7 +164,7 @@ export async function Header({ lang }: { lang: Lang }) {
           <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>
           <CartButton lang={lang} />
           {account && <div className="hidden xl:block"><AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} /></div>}
-          <MobileNav lang={lang} links={links} groups={groups} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
+          <MobileNav lang={lang} links={links} groups={groups} menuLabel={t("nav", "menu")} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
         </div>
       </div>
     </header>

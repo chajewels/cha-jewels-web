@@ -156,6 +156,24 @@
     .marquee-still { display: grid; }
   }
 
+  /* ---------------------------------------------------------------------
+     THE MOBILE DRAWER'S ENTRANCE (components/site/mobile-nav.tsx).
+     A short slide down from under the header bar it hangs from, plus the
+     fade — 220ms ease-out, which is long enough to read as "this came from
+     there" and short enough that a reader who knows where they are going is
+     not made to wait for it.
+
+     No reduced-motion rule of its own: the blanket `animation: none` at the
+     top of this file already lands the panel in its final position with no
+     travel at all. `both` so the panel never paints at its pre-animation
+     offset on the frame before the animation is applied.
+     --------------------------------------------------------------------- */
+  .drawer-in { animation: drawer-in 220ms ease-out both; }
+  @keyframes drawer-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: none; }
+  }
+
   .rule-grid { background: transparent; gap: 1px; clip-path: inset(0); }
   .rule-grid > * { box-shadow: 0 0 0 1px var(--rule); }
   .rule-grid > *:focus-visible { outline-offset: -4px; }
