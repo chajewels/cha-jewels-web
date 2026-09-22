@@ -35,7 +35,11 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
       )}
       <div className="flex flex-1 flex-col p-5">
         {product.condition === "Preloved" && <div className="mb-2"><ConditionBadge condition={product.condition} lang={lang} /></div>}
-        <h3 className="font-display text-2xl text-charcoal-deep">{name}</h3>
+        {/* h2, not h3. This card is rendered directly under the page's h1 on
+            /categories/[slug] and /collections/[slug], so an h3 skipped a
+            level and axe reported heading-order. Pre-existing; caught by the
+            audit's accessibility pass rather than by the audit. */}
+        <h2 className="font-display text-2xl text-charcoal-deep">{name}</h2>
         {product.weight_g && <p className="mt-1 text-sm text-charcoal/70">{metal} · {product.weight_g} g</p>}
         {price != null && (
           <p className="mt-auto pt-4 text-sm text-charcoal">
