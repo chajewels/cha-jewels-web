@@ -225,6 +225,11 @@ export const dict = {
     // decision 2026-09-15), and the hero is the first thing a Japanese visitor
     // reads. The section and CTA are gated together elsewhere.
     lede: { ja: "Cha Jewelsは、厳選したファインジュエリーを通して、時を超える美しさと永く続く価値をお届けします。日本で仕立てられた上質なゴールド、パール、ダイヤモンドジュエリーから、世界を代表するラグジュアリーブランドの厳選プレラブドアイテムまで。すべての一点を、品質、気品、そして変わらない価値を基準に選んでいます。", en: "Cha Jewels brings together timeless beauty and lasting value through a carefully selected collection of fine jewelry. From high-quality gold, pearl, and diamond pieces crafted in Japan to curated preloved treasures from iconic luxury brands, every piece is chosen for its quality, elegance, and enduring worth." },
+    // RENDERED IN THE VALUES SECTION, not the hero (2026-09-22). It was the
+    // intro slide's second paragraph until the hero was shortened to headline
+    // + one sentence + the two buttons; the key keeps its name so the wording
+    // and both languages stayed exactly as the owner reviewed them. See
+    // components/home/values-bento.tsx.
     lede2: { ja: "私たちは、ジュエリーは美しいだけのものではなく、大切に受け継ぎ、自信を持って身につけ、次の世代へつないでいけるものであるべきだと考えています。特にゴールドが持つ永続的な価値を大切にし、ネックレス、リング、ブレスレット、そして唯一無二の一点ものまで、お客様の人生の物語に寄り添い続けるジュエリーをご提案します。", en: "We believe jewelry should be more than beautiful—it should be something you can cherish, wear with confidence, and pass on for generations. With a special focus on the lasting value of gold, Cha Jewels offers necklaces, rings, bracelets, and one-of-a-kind pieces designed to become part of your story for a lifetime." },
     cta1: { ja: "コレクションを見る", en: "Shop the collections" }, cta2: { ja: "分割予約を計算する", en: "Calculate layaway" },
     // ONE CONTROL FOR THE WHOLE HERO. It pauses the background video AND the
