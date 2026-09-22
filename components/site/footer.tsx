@@ -13,9 +13,10 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
  * — brand, collections, customer care & legal, follow us — orange column
  * headings and the company line at the bottom. The fourth column holds the
  * social icon row where the newsletter form used to be. The row and the brand
- * paragraph are owner-editable in the Hub (lib/settings.ts); lib/social.ts and
- * dict.footer.blurb are what they fall back to, so a Hub that cannot answer
- * costs the footer nothing.
+ * paragraph come from the Hub (lib/settings.ts) and have no fallback in this
+ * repo: a setting the Hub does not hold renders NOTHING — no empty paragraph,
+ * no heading over an empty row. A Hub that cannot be REACHED is different: it
+ * throws, so this footer is never rendered blank by a network blip.
  *
  * Collection links come from the Hub's jewelry types, in the language of the
  * page. Nothing here names a collection: add or rename one in the Hub and the
@@ -27,8 +28,7 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
 export async function Footer({ lang }: { lang: Lang }) {
   const t = tr(lang);
   // The three reads are independent, so they go together rather than in
-  // sequence. None of them can reject: getCollections is caught here and both
-  // settings getters fall back rather than throw.
+  // sequence.
   const [collections, followLinks, tagline] = await Promise.all([
     getCollections().catch(() => []),
     follow(),
@@ -44,7 +44,7 @@ export async function Footer({ lang }: { lang: Lang }) {
             <img src="/images/brand/logo-badge-192.webp" width={48} height={48} alt="" className="h-12 w-12" />
             <p className="gilt font-display text-2xl">Cha Jewels</p>
           </div>
-          <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{tagline}</p>
+          {tagline && <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{tagline}</p>}
         </div>
         <div className="lg:col-span-3">
           <h2 className={heading}>{t("footer", "collections")}</h2>
@@ -69,8 +69,12 @@ export async function Footer({ lang }: { lang: Lang }) {
           <h2 className={heading}>{t("footer", "newsletter")}</h2>
           <p className="leading-relaxed text-chalk/75">{t("footer", "newsletterNote")}</p>
           <NewsletterForm lang={lang} tone="dark" />
-          <h2 className={`${heading} mt-8`}>{t("footer", "follow")}</h2>
-          <SocialIcons items={followLinks} tone="dark" lang={lang} />
+          {followLinks.length > 0 && (
+            <>
+              <h2 className={`${heading} mt-8`}>{t("footer", "follow")}</h2>
+              <SocialIcons items={followLinks} tone="dark" lang={lang} />
+            </>
+          )}
         </div>
       </div>
       <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-charcoal-mid pt-6 text-xs text-chalk/55">

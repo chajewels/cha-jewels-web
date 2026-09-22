@@ -17,12 +17,12 @@ export const generateMetadata = () => pageMeta("contact");
  * invoice header print (components/account/print-header.tsx does the same), so
  * nothing here is typed and this page cannot drift from the statutory one.
  *
- * THE EMAIL AND THE FOLLOW ROW ARE THE EXCEPTION, and deliberately: they are
- * owner-editable in the Hub (lib/settings.ts). /legal/tokusho keeps printing
- * its own email from legal.ts, because a statutory disclosure is not editable
- * copy. The fallback here is the same address legal.ts states, so the two agree
- * until someone changes one on purpose — and if they ever disagree, the tokusho
- * row is the one that is right.
+ * THE EMAIL AND THE FOLLOW ROW ARE THE EXCEPTION, and deliberately: they come
+ * from the Hub (lib/settings.ts), with no copy in this repo behind them. Each
+ * renders nothing when the Hub holds nothing, so this page can lose its email
+ * line and keep its address, phones and form. /legal/tokusho keeps printing its
+ * own email from legal.ts — a statutory disclosure is not editable copy, and it
+ * must not be able to go blank because a settings row was deleted.
  *
  * From lg the card overlaps the panel's edge, which is the reference's look.
  * The overlap is a NEGATIVE MARGIN on the card rather than a transform: a
@@ -91,10 +91,12 @@ export default async function Contact() {
               </div>
             </dl>
 
-            <div className="mt-10 border-t border-chalk/20 pt-6">
-              <p className={panelLabel}>{t("contact", "follow")}</p>
-              <SocialIcons items={followLinks} tone="dark" lang={lang} className="mt-3" />
-            </div>
+            {followLinks.length > 0 && (
+              <div className="mt-10 border-t border-chalk/20 pt-6">
+                <p className={panelLabel}>{t("contact", "follow")}</p>
+                <SocialIcons items={followLinks} tone="dark" lang={lang} className="mt-3" />
+              </div>
+            )}
           </div>
 
           {/* The card to write in. -ml-6 pulls it over the panel's edge from lg. */}
