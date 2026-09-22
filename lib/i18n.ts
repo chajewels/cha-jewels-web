@@ -265,7 +265,6 @@ export const dict = {
     // it. See components/commerce/layaway-band.tsx.
     layCta: { ja: "商品を選ぶ", en: "Choose a piece" },
     newEyebrow: { ja: "一点物・新着品", en: "One-of-a-kind, newly listed" }, newDetail: { ja: "詳細を見る", en: "View details" },
-    phName: { ja: "商品名", en: "Product name" }, phMeta: { ja: "K18 · 0.00g", en: "K18 · 0.00g" }, phPrice: { ja: "¥—", en: "¥—" },
     testiEyebrow: { ja: "ご愛用者様の声", en: "Voices" },
     testiH: { ja: "お客様の声", en: "Customer stories" },
     testiP: { ja: "Cha Jewelsでお選びいただいたお客様からのご感想をご紹介します。", en: "Notes from customers who chose Cha Jewels." },
