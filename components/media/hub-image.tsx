@@ -24,14 +24,22 @@ import { isOptimizableImage } from "@/lib/image-hosts";
  * — which is what keeps the layout identical and the shift at zero whichever
  * branch a given URL takes.
  *
- * NOTHING HERE IS EAGER. There is no `priority` prop to pass: the only image on
- * this site that earns a preload is the hero poster, which is a <video poster>
- * and is preloaded from app/page.tsx. Everything that renders through this
- * component is lazy, and the hero deck additionally refuses to mount a slide's
- * image until that slide is the one coming up (components/home/hero-slides.tsx).
+ * LAZY UNLESS TOLD OTHERWISE. Everything here defaults to lazy, and the hero
+ * deck additionally refuses to mount a slide's image until that slide is the
+ * one coming up (components/home/hero-slides.tsx). `priority` is for the one
+ * image on a page that IS the page's largest paint and is above the fold at
+ * every width — today that is the /categories/[slug] banner, and nothing else.
+ * It is not a hint to be sprinkled: marking a second image priority on the
+ * same page means neither of them is.
+ *
+ * The fallback branch spells the same thing out by hand, because a plain <img>
+ * has no `priority`: eager loading plus fetchpriority=high, which is what
+ * next/image's own preload amounts to.
  */
 type Base = {
   src: string;
+  /** Above the fold and the largest thing on the page. See the note above. */
+  priority?: boolean;
   /** Empty string for decoration the surrounding copy already names. */
   alt: string;
   /** Applied to both branches: object-fit, object-position, transitions. */
@@ -44,10 +52,10 @@ type Props = Base &
     | { fill?: false; width: number; height: number; sizes?: string }
   );
 
-export function HubImage({ src, alt, className, sizes, ...box }: Props) {
+export function HubImage({ src, alt, className, sizes, priority, ...box }: Props) {
   if (isOptimizableImage(src)) {
     return box.fill ? (
-      <Image src={src} alt={alt} fill sizes={sizes} className={className} />
+      <Image src={src} alt={alt} fill sizes={sizes} className={className} priority={priority} />
     ) : (
       <Image
         src={src}
@@ -56,6 +64,7 @@ export function HubImage({ src, alt, className, sizes, ...box }: Props) {
         height={box.height}
         sizes={sizes}
         className={className}
+        priority={priority}
       />
     );
   }
@@ -68,7 +77,8 @@ export function HubImage({ src, alt, className, sizes, ...box }: Props) {
     <img
       src={src}
       alt={alt}
-      loading="lazy"
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : undefined}
       decoding="async"
       {...(box.fill
         ? {}
