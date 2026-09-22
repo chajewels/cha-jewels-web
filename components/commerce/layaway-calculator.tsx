@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useId, useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
 import { layawayQuote } from "@/lib/layaway";
 import { formatMoney, toPhp, cn, type Currency } from "@/lib/utils";
 import { dict, type Lang } from "@/lib/i18n";
@@ -168,9 +169,12 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
         // follow it while the figures are stale. The <Link> is rendered only
         // when there is something current to act on.
         shown ? (
-          <Link href={cta.href} className={CTA}>{cta.label}</Link>
+          <Button asChild><Link href={cta.href}>{cta.label}</Link></Button>
         ) : (
-          <button type="button" disabled className={`${CTA} disabled:cursor-not-allowed disabled:opacity-50`}>{cta.label}</button>
+          // opacity-50 rather than the shared button's 70, and the cursor with
+          // it: this one is disabled for a reason the reader can fix, so it
+          // has to read as off rather than merely quiet.
+          <Button type="button" disabled className="disabled:cursor-not-allowed disabled:opacity-50">{cta.label}</Button>
         )
       )}
       <p id={priceErrorId} className={!validPrice ? "text-xs text-garnet" : s.note}>
@@ -181,8 +185,6 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
     </form>
   );
 }
-const CTA = "inline-flex min-h-12 items-center justify-center rounded-sm border border-transparent bg-orange px-6 py-3 text-[15px] font-medium text-charcoal-deep transition-[background-color] duration-300 hover:bg-orange-hover";
-
 /** Only reached against a Hub that predates allowed_terms. */
 const FALLBACK_TERMS = [3, 6, 8, 10, 12];
 
