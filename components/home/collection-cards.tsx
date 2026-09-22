@@ -42,6 +42,12 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
             <div className="flex min-w-0 flex-1 flex-col justify-between p-3 lg:p-5">
               <div>
                 <div className="flex items-center justify-between gap-2">
+                  {/* NOTE: font-bold asks Playfair for 700, which is not one of the
+                      cuts loaded in app/layout.tsx and never has been — the
+                      browser synthesises it from 600. Left as it renders
+                      today rather than changed on the way past: loading a
+                      fourth cut costs bytes and dropping to 600 changes how
+                      these headings look, and that is the owner's call. */}
                   <h3 className="font-display text-lg font-bold text-charcoal lg:text-xl">{name}</h3>
                   <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0 text-charcoal/50 transition-transform group-hover:translate-x-1" />
                 </div>
