@@ -7,6 +7,45 @@ import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/l
  * The website's only door into Cha Jewels Hub.
  * Every call goes to edge functions owned by Lovable (spec: supabase/contracts/api.md).
  * No table names, no RLS assumptions, no service role key on this side.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * A HUB THAT CANNOT ANSWER IS AN ERROR. IT IS NEVER AN EMPTY LIST.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * Every CONTENT read — posts, the FAQ, site settings, testimonials, and the
+ * collections the footer lists — throws on a network failure or a non-2xx.
+ * None of them catches and returns `[]`.
+ *
+ * WHY, because this reads like the less robust choice and is the opposite:
+ *
+ *   These pages are CACHED. A read that swallows its failure returns an empty
+ *   list, the page renders successfully with nothing in it, and Next caches
+ *   THAT — a blank FAQ, a blog with no posts, a footer with no links — and
+ *   serves it for the next hour to everyone, long after the Hub came back. One
+ *   five-second blip during one revalidation is enough.
+ *
+ *   A throw does not produce a page, so there is nothing to cache. Next keeps
+ *   serving the last render that succeeded, which is the real FAQ with all
+ *   thirty-nine answers in it. The outage costs freshness, not content.
+ *
+ *   It is also the only version that is VISIBLE. An empty section looks like an
+ *   owner who has not written anything yet; a 500 and a failed build look like
+ *   what they are. This repo used to hide both, and the reason there is no
+ *   static copy to fall back on any more is that the Hub is the content now —
+ *   so degrading quietly means degrading to nothing.
+ *
+ * AN EMPTY 200 IS STILL EMPTY. A Hub that answers with no rows means there are
+ * no rows, and the callers render nothing: no posts, no FAQ section, no social
+ * row, no testimonials block. "Nothing published" and "cannot reach the Hub"
+ * are different states and must not share an outcome.
+ *
+ * WHAT STILL CATCHES, and deliberately: reads whose failure costs a page part
+ * of itself rather than its substance — the homepage's category deck, /fx, the
+ * header's menu — and every CUSTOMER read, where a 404 is an ordinary answer.
+ * Those are marked at their call sites.
+ *
+ * FIXTURES MODE IS UNAFFECTED. `NEXT_PUBLIC_PREVIEW_FIXTURES=1` never reaches
+ * the network, so there is nothing to throw.
  */
 const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
 const BASE = (process.env.HUB_API_URL ?? "").replace(/\/$/, "");
@@ -89,14 +128,16 @@ export const hub = {
   layawayQuote: (price: number, term_months: number): Promise<LayawayQuote> =>
     FIXTURES ? Promise.resolve(fx.quote(price, term_months, "JPY")) : call("/layaway/quote", { method: "POST", body: JSON.stringify({ price, term_months, currency: "JPY" }), revalidate: false }),
   /**
-   * Published testimonials. Tolerant of the route not existing yet: a 404 (or
-   * any failure) while the Hub has not deployed /testimonials renders the
-   * homepage placeholders and never breaks the page. Nothing is logged.
+   * Published testimonials.
+   *
+   * THROWS, since 2026-09-22. It used to swallow every failure so the homepage
+   * could fall back to three illustrative placeholder cards — and those cards
+   * are gone, so swallowing now means caching a homepage with no testimonials
+   * section on it. Zero published rows still renders nothing; that is the
+   * empty-200 case and it is not an error.
    */
-  testimonials: async (): Promise<Testimonial[]> => {
-    if (FIXTURES) return [];
-    try { return await call("/testimonials"); } catch { return []; }
-  },
+  testimonials: (): Promise<Testimonial[]> =>
+    FIXTURES ? Promise.resolve([]) : call("/testimonials", { tags: ["content"] }),
   /**
    * The owner-editable strings and links for this site (lib/settings.ts reads
    * them by key). A flat map, so a key either side has not learned yet is

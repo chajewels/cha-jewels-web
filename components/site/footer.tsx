@@ -28,9 +28,12 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
 export async function Footer({ lang }: { lang: Lang }) {
   const t = tr(lang);
   // The three reads are independent, so they go together rather than in
-  // sequence.
+  // sequence. NONE OF THEM IS CAUGHT: the footer is on every page, so a caught
+  // Hub failure here would cache a linkless footer site-wide for the next hour.
+  // See the header of lib/hub-api.ts. An empty ANSWER is fine and renders an
+  // empty column; an unreachable Hub is not.
   const [collections, followLinks, tagline] = await Promise.all([
-    getCollections().catch(() => []),
+    getCollections(),
     follow(),
     footerTagline(lang),
   ]);

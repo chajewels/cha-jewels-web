@@ -37,6 +37,8 @@ export default async function Home() {
     hub.categories().catch(() => []),
     getFeaturedProducts(8).catch(() => []),
     hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" })),
+    // NOT caught: the placeholder cards it used to fall back to are gone, so a
+    // swallowed failure here caches a homepage with no testimonials on it.
     hub.testimonials(),
   ]);
   const t = tr(lang);
