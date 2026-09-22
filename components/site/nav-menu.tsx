@@ -129,7 +129,7 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
             // descriptions were painting as single lines straight through the
             // panel's right border. Nothing in this file ever set nowrap; it
             // arrived from two levels up, which is why it was invisible.
-            className="w-[min(40rem,calc(100vw-2rem))] whitespace-normal rounded-sm border border-hairline bg-white p-3 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
+            className="menu-in w-[min(40rem,calc(100vw-2rem))] whitespace-normal rounded-sm border border-hairline bg-white p-3 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
           >
             {children}
           </div>

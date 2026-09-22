@@ -81,7 +81,7 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.R
           role="menu"
           aria-label={menuLabel}
           onKeyDown={onMenuKeyDown}
-          className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] rounded-sm border border-hairline bg-white py-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
+          className="menu-in absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] rounded-sm border border-hairline bg-white py-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
         >
           {items.map((it) => (
             <Link key={it.href} role="menuitem" tabIndex={-1} href={it.href} onClick={() => close(false)} className={itemClass}>{it.label}</Link>
