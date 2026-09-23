@@ -40,3 +40,25 @@ export const guideSections: GuideSection[] = [
     ],
   },
 ];
+
+/**
+ * The stamp step's illustrations (owner-supplied AI images, 2026-09-24).
+ * Server-only copy, kept out of lib/i18n.ts so it never ships in the client
+ * bundle. Described as illustrations of a stamped clasp — never as a Cha
+ * Jewels piece or a certified item, and naming no assay office. The short
+ * "Illustration" caption itself is in lib/i18n.ts (gold.illustration).
+ */
+export const stampIllustrations = {
+  k18Alt: {
+    ja: "イメージ図：K18イエローゴールドのチェーンの留め具。留め具のプレートにK18の刻印とホールマークが打たれています。",
+    en: "Illustration of a K18 yellow gold chain clasp, with a K18 stamp and a hallmark struck into the clasp plate.",
+  },
+  pt900Alt: {
+    ja: "イメージ図：同じ形のプラチナの留め具。Pt900の刻印が打たれています。",
+    en: "Illustration of the same style of clasp in platinum, stamped Pt900.",
+  },
+  pt900Compare: {
+    ja: "プラチナは同じ方式で「Pt900」などと刻印されます。",
+    en: "Platinum is marked the same way, e.g. \u201cPt900\u201d.",
+  },
+} satisfies Record<string, Record<Lang, string>>;

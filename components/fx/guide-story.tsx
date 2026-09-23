@@ -8,7 +8,7 @@ import { ComponentStyle, mix } from "@/components/fx/component-style";
  *
  * NOTHING STARTS HIDDEN FROM THE SERVER. Without JavaScript, and under reduced
  * motion, the first pinned plate shows and every plate's detail is finished
- * (the gold bar at 75%, the stamp struck, the care list written). Only once
+ * (the gold bar at 75%, the stamp photo settled, the care list written). Only once
  * the story has hydrated with motion allowed (`data-armed`) do inactive
  * plates wait in their start pose — so a plate on screen at first paint is
  * never blanked.
@@ -24,6 +24,7 @@ const CSS = `
 /* Inline (phone) plates are as tall as their facts need, never cut off. */
 .fx-guide-inline { margin-bottom: 2rem; }
 .fx-guide-inline > .gp { min-height: min(72vw, 340px); height: auto; }
+.fx-guide-inline > .gp-photo .gp-shot { flex: none; aspect-ratio: 1 / 1; }
 @media (min-width: 1024px) { .fx-guide-inline { display: none; } }
 .fx-guide-pin [data-plate] { position: absolute; inset: 0; transition: opacity var(--dur-reveal) var(--ease-lux), transform var(--dur-image) var(--ease-lux); }
 .fx-guide-pin [data-plate]:not([data-plate="0"]) { opacity: 0; }
@@ -33,14 +34,14 @@ const CSS = `
 .fx-bar-gold { transition: width var(--dur-image) var(--ease-lux) .15s; box-shadow: 0 0 14px ${mix("gold", 60)}; }
 .fx-guide[data-armed] [data-plate]:not([data-active]) .fx-bar-gold { width: 0 !important; transition-duration: 0s; transition-delay: 0s; }
 
-.fx-stamp { transition: transform var(--dur-reveal) var(--ease-lux) .1s, opacity var(--dur-micro) linear .1s, box-shadow var(--dur-image) var(--ease-lux) .1s; }
-.fx-guide[data-armed] [data-plate]:not([data-active]) .fx-stamp { transform: scale(1.18); opacity: 0; box-shadow: none; transition-duration: 0s; transition-delay: 0s; }
+.fx-shot img { transition: transform var(--dur-image) var(--ease-lux) .1s, filter var(--dur-image) var(--ease-lux) .1s; }
+.fx-guide[data-armed] [data-plate]:not([data-active]) .fx-shot img { transform: scale(1.08); filter: brightness(.7); transition-duration: 0s; transition-delay: 0s; }
 
 .fx-care > li { transition: opacity var(--dur-reveal) var(--ease-lux), transform var(--dur-reveal) var(--ease-lux); transition-delay: calc(.15s + var(--i, 0) * var(--stagger-card, .12s)); }
 .fx-guide[data-armed] [data-plate]:not([data-active]) .fx-care > li { opacity: 0; transform: translateY(10px); transition-duration: 0s; transition-delay: 0s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .fx-guide-pin [data-plate], .fx-bar-gold, .fx-stamp, .fx-care > li { transition: none; }
+  .fx-guide-pin [data-plate], .fx-bar-gold, .fx-shot img, .fx-care > li { transition: none; }
 }`;
 
 /**
@@ -52,8 +53,8 @@ const CSS = `
  * the middle of the screen — and marks it: `data-step` on the story, and
  * `data-active` on that step's plates (pinned and inline). CSS does the
  * rest: the pinned plate crossfades to the step's plate, and the active
- * plate plays its detail — the gold bar fills to 75%, the hallmark is struck,
- * the care points are written in.
+ * plate plays its detail — the gold bar fills to 75%, the stamp photograph
+ * settles and brightens, the care points are written in.
  *
  * No scroll listener: one IntersectionObserver. Reduced motion: the pinned
  * plate still follows the step being read (that is content, not decoration),

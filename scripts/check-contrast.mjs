@@ -153,6 +153,13 @@ add("viewer focus ring: gold-pale on charcoal-deep", "gold-pale", "charcoal-deep
   pairs.push({ label: "guide plate: chalk/85 text on gold16 tint", fg: "chalk", bg: "charcoal-deep+gold16", need: TEXT, alpha: 0.85, ratio: on("chalk", 0.85) });
   pairs.push({ label: "guide plate: gold edge on charcoal-deep", fg: "gold", bg: "charcoal-deep", need: NONTEXT, alpha: 1, ratio: ratio("gold", "charcoal-deep") });
 }
+// GOLD GUIDE ILLUSTRATION CAPTION ("Illustration" / "イメージ"): chalk on a
+// charcoal-deep/85 label over the photographs' white studio background.
+{
+  const label = blend(hex(C["charcoal-deep"]), hex(C.white), 0.85);
+  const [L1, L2] = [lum(hex(C.chalk)), lum(label)];
+  pairs.push({ label: "guide illustration caption: chalk on charcoal-deep/85 over white", fg: "chalk", bg: "charcoal-deep/85@white", need: TEXT, alpha: 1, ratio: (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05) });
+}
 // LOYALTY LADDER (components/fx/tier-ladder.tsx): a lit tier's title turns
 // gold-dark over the white card; the inner glow peaks at gold/14 at the edge,
 // so the title is measured on that peak.

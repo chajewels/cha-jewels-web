@@ -37,10 +37,13 @@ export default async function GoldGuidePage() {
       <section className="border-b border-hairline py-[clamp(40px,6vw,80px)]">
         <div className="wrap">
           <GuideStory>
-            <div aria-hidden="true" className="hidden lg:block">
+            <div className="hidden lg:block">
               <div className="fx-guide-pin">
+                {/* Plates repeat the facts beside them, so they are hidden
+                    from assistive tech — except the stamp plate, whose
+                    illustrations carry alt text. */}
                 {guideSections.map((sec, i) => (
-                  <div key={sec.h.en} data-plate={i}><GuidePlate i={i} sec={sec} lang={lang} /></div>
+                  <div key={sec.h.en} data-plate={i} aria-hidden={i === 1 ? undefined : "true"}><GuidePlate i={i} sec={sec} lang={lang} /></div>
                 ))}
               </div>
             </div>
@@ -48,7 +51,7 @@ export default async function GoldGuidePage() {
               {guideSections.map((sec, i) => (
                 <article key={sec.h.en} data-guide-step={i} className="fx-guide-step">
                   <RevealBlock index={0}>
-                    <div aria-hidden="true" data-plate={i} className="fx-guide-inline"><GuidePlate i={i} sec={sec} lang={lang} /></div>
+                    <div aria-hidden={i === 1 ? undefined : "true"} data-plate={i} className="fx-guide-inline"><GuidePlate i={i} sec={sec} lang={lang} /></div>
                     <p className="font-display text-sm tracking-[0.2em] text-gold-dark">{String(i + 1).padStart(2, "0")} / {String(guideSections.length).padStart(2, "0")}</p>
                     <SplitHeading text={sec.h[lang]} lang={lang} className="mt-2 text-[clamp(28px,3.6vw,48px)]" />
                     <p className="mt-4 max-w-[62ch] text-charcoal">{sec.body[lang]}</p>

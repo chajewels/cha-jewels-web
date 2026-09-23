@@ -1,6 +1,6 @@
 import { Droplets, CircleSlash, Gem } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
-import type { GuideSection } from "@/lib/content/gold-guide";
+import { stampIllustrations, type GuideSection } from "@/lib/content/gold-guide";
 import { ComponentStyle, mix } from "@/components/fx/component-style";
 
 /**
@@ -19,18 +19,31 @@ const CSS = `
 .gp-legend { margin-top: .75rem; display: flex; justify-content: space-between; gap: 1rem; font-size: .875rem; }
 .gp-gold { color: var(--c-gold-pale); }
 .gp-muted { color: color-mix(in srgb, var(--c-chalk) 75%, transparent); text-align: right; }
-.gp-center { align-items: center; text-align: center; }
-.gp-stamp { border-radius: 999px; border: 2px solid var(--c-gold); padding: clamp(18px, 2.6vw, 30px) clamp(28px, 4vw, 48px);
-  box-shadow: inset 0 3px 10px rgba(0,0,0,.7), 0 0 24px ${mix("gold", 25)}; }
-.gp-mark { font-size: clamp(52px, 6vw, 88px); line-height: 1; letter-spacing: .1em; color: var(--c-gold-pale); text-shadow: 0 2px 0 rgba(0,0,0,.7), 0 -1px 0 ${mix("gold-pale", 35)}; }
-.gp-fine { margin-top: .5rem; font-size: clamp(26px, 3vw, 40px); line-height: 1; letter-spacing: .35em; color: var(--c-gold-pale); text-shadow: 0 2px 0 rgba(0,0,0,.7); }
-.gp-dl { display: grid; gap: .75rem; font-size: .875rem; }
+.gp-photo { display: flex; flex-direction: column; }
+.gp-shot { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; background: #fff; }
+.gp-shot img, .gp-thumb img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
+.gp-shot img { object-position: 50% 58%; }
+.gp-cap { position: absolute; right: 8px; bottom: 8px; z-index: 1; padding: 2px 8px; font-size: .6875rem; letter-spacing: .08em;
+  color: var(--c-chalk); background: color-mix(in srgb, var(--c-charcoal-deep) 85%, transparent); }
+.gp-foot { display: flex; align-items: center; gap: 1rem; padding: clamp(14px, 2vw, 22px) clamp(16px, 2.4vw, 28px); border-top: 1px solid var(--c-gold); }
+.gp-thumb { position: relative; height: 84px; width: 84px; flex-shrink: 0; overflow: hidden; border: 1px solid ${mix("gold", 60)}; background: #fff; }
+.gp-thumb img { object-position: 55% 58%; }
+.gp-thumb .gp-cap { right: 0; bottom: 0; padding: 1px 4px; font-size: .5625rem; }
 .gp-k { font-size: .75rem; text-transform: uppercase; letter-spacing: .14em; color: var(--c-gold-pale); }
 .gp-v { margin-top: .125rem; color: color-mix(in srgb, var(--c-chalk) 85%, transparent); }
 .gp-care { gap: 2rem; }
 .gp-care > li { display: flex; align-items: flex-start; gap: 1rem; }
 .gp-icon { display: grid; height: 44px; width: 44px; flex-shrink: 0; place-items: center; border-radius: 999px; border: 1px solid var(--c-gold); color: var(--c-gold-pale); }
 .gp-big { margin-top: .25rem; font-size: clamp(20px, 2vw, 26px); line-height: 1.35; color: var(--c-chalk); }`;
+
+const K18 = "/images/gold-guide/k18-clasp-illustration.webp";
+const PT900 = "/images/gold-guide/pt900-clasp-illustration.webp";
+/**
+ * The Next image optimiser's own URL (next/image's default loader). `w` must be
+ * one of next.config's deviceSizes/imageSizes: 96, 256 (imageSizes) and 640,
+ * 828, 1200 (the default deviceSizes) are. It negotiates AVIF/WebP itself.
+ */
+const OPT = (src: string, w: number) => `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=75`;
 
 /**
  * One plate of the gold guide's scroll story (components/fx/guide-story.tsx):
@@ -41,10 +54,11 @@ const CSS = `
  * a plate comes from the step's own facts (lib/content/gold-guide.ts) or the
  * dictionary, so the plate can never say something the page does not.
  *
- * Decorative for assistive tech (the caller marks it aria-hidden): the same
- * facts are read from the step's list beside it. Plate 0 is K18 (the 75 / 25
- * bar), plate 1 the struck stamp, and any other step shows its facts as a
- * list (care, today).
+ * Plates 0 and 2 are decorative for assistive tech (the caller marks them
+ * aria-hidden): the same facts are read from the step's list beside them.
+ * Plate 1 is not — its two illustrations carry alt text. Plate 0 is K18 (the
+ * 75 / 25 bar), plate 1 the stamp (illustrations of a stamped clasp), and any
+ * other step shows its facts as a list (care, today).
  */
 export function GuidePlate({ i, sec, lang }: { i: number; sec: GuideSection; lang: Lang }) {
   const t = tr(lang);
@@ -67,23 +81,41 @@ export function GuidePlate({ i, sec, lang }: { i: number; sec: GuideSection; lan
     );
   }
   if (i === 1) {
-    // "K18 / 750" → the two lines of the struck mark.
-    const [mark, fine] = sec.facts[0].v[lang].split("/").map((x) => x.trim());
+    // THE STAMP, SHOWN. Owner-supplied AI illustrations (2026-09-24), each
+    // captioned "Illustration" and described as one — never as a Cha Jewels
+    // piece or a certified item, and nothing here names who struck the
+    // hallmark. They replace the typographic "K18 · 750" mark this plate
+    // used to draw: the photograph shows the real thing, so the drawing only
+    // repeated it. The platinum clasp is the comparison the step's own text
+    // makes ("Platinum is marked PT900 or PT950"), so it sits beside that line.
+    // Below the fold on every layout: lazy, and sized for the column it fills.
+    // A plain <img> with a SHORT srcset, not <Image>: next/image lists ~20
+    // widths per image, each image is here twice (pinned and inline) and the
+    // page's RSC payload repeats both — 3.8 kB gz of HTML, measured +16 ms of
+    // LCP on a slow phone. These are the only widths the plate can use (the
+    // K18 master is 1200px wide), served by the same optimiser.
+    const k18 = { src: OPT(K18, 828), srcSet: [640, 828, 1200].map((w) => `${OPT(K18, w)} ${w}w`).join(", "), sizes: "(min-width:1024px) 40vw, 100vw" };
+    const pt900 = { src: OPT(PT900, 256), srcSet: [96, 256].map((w) => `${OPT(PT900, w)} ${w}w`).join(", "), sizes: "84px" };
     return (
-      <div className="gp">
+      <figure className="gp gp-photo">
         {style}
-        <div className="gp-in gp-center">
-          <div className="gp-stamp fx-stamp">
-            <p className="font-display gp-mark">{mark}</p>
-            {fine && <p className="font-display gp-fine">{fine}</p>}
-          </div>
-          <dl className="gp-dl">
-            {sec.facts.slice(1).map((f) => (
-              <div key={f.k.en}><dt className="gp-k">{f.k[lang]}</dt><dd className="gp-v">{f.v[lang]}</dd></div>
-            ))}
-          </dl>
+        <div className="gp-shot fx-shot">
+          {/* eslint-disable-next-line @next/next/no-img-element -- optimised through /_next/image (OPT) */}
+          <img {...k18} alt={stampIllustrations.k18Alt[lang]} loading="lazy" decoding="async" />
+          <span className="gp-cap" aria-hidden="true">{t("gold", "illustration")}</span>
         </div>
-      </div>
+        <figcaption className="gp-foot">
+          <span className="gp-thumb">
+            {/* eslint-disable-next-line @next/next/no-img-element -- optimised through /_next/image (OPT) */}
+            <img {...pt900} alt={stampIllustrations.pt900Alt[lang]} loading="lazy" decoding="async" />
+            <span className="gp-cap" aria-hidden="true">{t("gold", "illustration")}</span>
+          </span>
+          <span>
+            <span className="gp-k block">{sec.facts[1].k[lang]}</span>
+            <span className="gp-v block">{stampIllustrations.pt900Compare[lang]}</span>
+          </span>
+        </figcaption>
+      </figure>
     );
   }
   const icons = [Droplets, CircleSlash, Gem];
