@@ -1,5 +1,39 @@
 # Performance baseline
 
+## 2026-09-23 — Motion Phase 2B: product gallery slide, zoom, full-screen viewer, Sold state
+
+Before = `101d094`. After = this commit. `next build` + `next start` in
+preview-fixtures mode, both builds carrying the same LOCAL, UNCOMMITTED
+fixture patch that gives the twist bangle R3341's four real Hub photos (dark
+backgrounds), so the dark-photo case could be measured; the patch is not in
+the repo. Interleaved pairs on a throttled phone (4× CPU, 1.6 Mbps / 150 ms).
+
+| page | observed LCP before | after | added JS gz (page load) | stylesheets |
+|---|---|---|---|---|
+| product with R3341 photos (median of 8) | 2788 ms | 2794 ms | +3.8 kB | 2 → 2 |
+| `double-sided-diamond-pendant` (median of 4) | 1308 ms | 1296 ms | +3.8 kB | 2 → 2 |
+
+Within run-to-run noise on both. The first photo is still the LCP element,
+preloaded, on frame one, untransformed. The full-screen viewer is a separate
+**4.9 kB gz** chunk fetched on first open only (verified: not requested on
+load). The hover zoom's full-resolution file is fetched only when the cursor
+first rests on that photo (verified: no large image request before hover).
+
+**Gallery timing (owner review: "too fast").** One token, `GALLERY` in
+lib/motion.ts, for every input on every device. Measured in desktop Chrome /
+WebKit iPhone emulation: arrow slide 857 / 863 ms; fast flick 768 / 768 ms
+(floor 750 ms — the flick's speed is not carried over); slow drag past the
+threshold 753 / 753 ms; spring-back 550 / 565 ms; five presses in ~400 ms
+land once on the latest photo. Reduced motion: instant.
+
+Videos: `docs/screenshots/web-motion-signature/gallery-desktop-before-after.webm`
+(1440px: arrows, thumbnail, hover zoom, full screen) and
+`gallery-phone-before-after.webm` (390px, real touch: slow drag that springs
+back, slow drag, fast flicks, arrow, full screen with pinch, pan, double-tap,
+swipe, swipe down to close).
+
+---
+
 ## 2026-09-23 — Motion Phase 2A: product cards and the product page
 
 Before = `fb2ecee` (Phase 1 accepted). After = `29808b9`. `next build` +
