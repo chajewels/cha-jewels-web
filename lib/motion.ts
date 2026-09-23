@@ -101,9 +101,34 @@ export const DUR = {
   slide: 0.65,
   /** The full-screen viewer opening from the photo, and closing back into it. */
   expand: 0.5,
+  /** A client navigation's page entrance (fade + PAGE_RISE). Quick: it must not delay reading. */
+  page: 0.45,
   /** The hero vignette settling in from the edges. */
   vignette: 1.5,
 } as const;
+
+/**
+ * THE HEADER (components/site/header-shell.tsx). Hides on the way down the
+ * page and comes back on the way up. `solidAfter`: past this many px it
+ * takes its frosted background and shadow. `hideAfter`: it never hides above
+ * this scroll position (the announcement bar and the first screen). `delta`:
+ * scroll travel, px, that counts as a change of direction — smaller jitters
+ * (a trackpad settling, iOS rubber-banding) are ignored. `hide`/`show`:
+ * seconds; leaving is quicker than returning.
+ */
+export const HEADER = { solidAfter: 24, hideAfter: 160, delta: 8, hide: 0.35, show: 0.5 } as const;
+
+/** A client navigation: the new page fades up this many px over DUR.page (app/template.tsx). */
+export const PAGE_RISE = 12;
+
+/**
+ * THE LOYALTY LADDER (components/fx/tier-ladder.tsx). The gold rail fills as
+ * the ladder crosses the viewport: it starts when the ladder's top reaches
+ * `from` of the viewport height and is full when it reaches `to`. A tier
+ * lights when the rail's tip reaches it. `crownLap`: seconds for one turn of
+ * the top tier's metallic border — slow on purpose.
+ */
+export const LADDER = { from: 0.85, to: 0.35, crownLap: 9 } as const;
 
 /** The scale an arriving gallery photo starts at before settling to 1. */
 export const PHOTO_SETTLE = 1.06;
@@ -162,6 +187,7 @@ export const MOTION_CSS_VARS = {
   "--ease-lux": `cubic-bezier(${EASE_LUX.join(", ")})`,
   "--ease-slide": `cubic-bezier(${EASE_SLIDE.join(", ")})`,
   "--dur-gallery-slide": `${GALLERY.slide}s`,
+  "--dur-crown-lap": `${LADDER.crownLap}s`,
   "--dur-reveal": `${DUR.reveal}s`,
   "--dur-micro": `${DUR.micro}s`,
   "--ease-sheen": `cubic-bezier(${EASE_SHEEN.join(", ")})`,
