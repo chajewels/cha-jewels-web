@@ -4,6 +4,9 @@ import { tr, type Lang } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import type { Collection } from "@/lib/types";
 import { HubImage } from "@/components/media/hub-image";
+import { RevealGroup } from "@/components/fx/reveal";
+import { CardEntrance, CardHairline, CardWipe } from "@/components/fx/card-entrance";
+import { STAGGER } from "@/lib/motion";
 
 export type CollectionCardData = { c: Collection; image: string | null };
 
@@ -18,23 +21,27 @@ export type CollectionCardData = { c: Collection; image: string | null };
  * share a 1144px row and the container stops growing — 375, 768, 1280 and 1440
  * all land on one of those two. HubImage falls back to a plain <img> for a
  * hero_media URL on a host the optimiser does not know (lib/image-hosts.ts).
+ *
+ * Entrance (components/fx/card-entrance.tsx): card by card along the row, a
+ * gold hairline draws across the top, then the photo wipes up and settles.
  */
 export function CollectionCards({ items, lang }: { items: CollectionCardData[]; lang: Lang }) {
   const t = tr(lang);
   return (
-    <div className="flex flex-wrap justify-center gap-3 lg:gap-6">
-      {items.map(({ c, image }) => {
+    <RevealGroup className="flex flex-wrap justify-center gap-3 lg:gap-6" stagger={STAGGER.card}>
+      {items.map(({ c, image }, i) => {
         const name = collectionName(c, lang);
         const desc = collectionDescription(c, lang);
         return (
           // The wrapper owns the depth; the card owns the clipping. ::after
           // draws its shadow OUTSIDE the box, so it cannot live on an element
           // with overflow-hidden — see .card-depth in globals.css.
-          <div key={c.id} className="card-depth relative w-full rounded-sm lg:w-[calc(25%-18px)]">
+          <CardEntrance key={c.id} index={i} className="card-depth relative w-full rounded-sm lg:w-[calc(25%-18px)]">
+          <CardHairline />
           <Link href={`/collections/${c.slug}`} className="group flex h-full w-full items-stretch overflow-hidden rounded-sm border border-hairline bg-white lg:flex-col">
             <div className="relative h-28 w-28 shrink-0 overflow-hidden lg:aspect-[4/3] lg:h-auto lg:w-full">
               {image ? (
-                <HubImage src={image} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                <CardWipe><HubImage src={image} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" /></CardWipe>
               ) : (
                 <div className="grid h-full w-full place-items-center bg-chalk p-3 text-center"><span className="font-display text-lg text-gold-dark lg:text-2xl">{name}</span></div>
               )}
@@ -50,9 +57,9 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
               <span className="mt-2 text-[11px] font-semibold text-gold-dark lg:text-xs">{t("home", "colsLink")}</span>
             </div>
           </Link>
-          </div>
+          </CardEntrance>
         );
       })}
-    </div>
+    </RevealGroup>
   );
 }

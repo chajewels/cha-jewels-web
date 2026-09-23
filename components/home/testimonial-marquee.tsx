@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { TestimonialCard } from "@/components/home/testimonials";
 import type { Lang } from "@/lib/i18n";
 import type { Testimonial } from "@/lib/types";
+import { useFinePointer, useReduced } from "@/components/fx/media";
 
 /** Seconds each card is on screen for. Duration scales with the count, so the
  *  speed a reader experiences is the same whether there are three or thirty. */
 const SECONDS_PER_CARD = 6;
 /** How long after the last touch before the track starts moving again. */
 const RESUME_AFTER_MS = 5000;
+/** Under a hovering pointer the track slows to this share of its speed. */
+const HOVER_RATE = 0.5;
 
 /**
  * The testimonials, scrolling right to left, forever.
@@ -22,9 +25,12 @@ const RESUME_AFTER_MS = 5000;
  * order: it is the same eight quotes a second time, and a screen reader or a
  * tab sequence should meet them once.
  *
- * It stops when anyone is looking closely — hover, or focus anywhere inside —
- * because a moving target is not readable, and a quote nobody can finish
- * reading is decoration.
+ * HOVER SLOWS IT TO HALF SPEED; FOCUS STOPS IT. A pointer resting on the
+ * section is a reader leaning in, and the track eases down to half speed for
+ * them — through the Web Animations API's updatePlaybackRate, which changes
+ * speed without a jump, where rewriting the CSS duration would snap the
+ * track to a new position. Keyboard focus inside still stops it outright: a
+ * focused quote has to hold still to be read.
  *
  * ON TOUCH IT STOPS BEING AN ANIMATION. A transform cannot be dragged, so on
  * pointer-down the track becomes an ordinary `overflow-x-auto` snap scroller
@@ -50,6 +56,35 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dupRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const fine = useFinePointer();
+  const reduced = useReduced();
+
+  // ON A PHONE, THE CARD AT THE CENTRE IS LIT. An IntersectionObserver whose
+  // root is squeezed to the middle fifth of the screen marks whichever card
+  // is crossing it; CSS gives that card its gold edge and a slight lift
+  // (app/globals.css, `.testi-slot`). No scroll or frame work — the browser
+  // reports crossings as the track moves. Mouse users get the hover version
+  // instead; reduced motion gets neither.
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box || fine !== false || reduced !== false) return;
+    const slots = Array.from(box.querySelectorAll<HTMLElement>(".testi-slot"));
+    // A card is "centred" while it covers at least half of the band. Several
+    // thresholds so the observer reports as the card slides through, since a
+    // single ratio fires only at one crossing (a phone card is ~4x the band).
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const band = e.rootBounds?.width ?? 0;
+        e.target.toggleAttribute("data-center", e.isIntersecting && band > 0 && e.intersectionRect.width >= band / 2);
+      }
+    }, { rootMargin: "0px -40% 0px -40%", threshold: [0, 0.05, 0.1, 0.15, 0.2, 0.25] });
+    slots.forEach((el) => io.observe(el));
+    return () => { io.disconnect(); slots.forEach((el) => el.removeAttribute("data-center")); };
+  }, [fine, reduced, items]);
+  const setRate = (rate: number) => {
+    for (const a of trackRef.current?.getAnimations() ?? []) a.updatePlaybackRate(rate);
+  };
 
   useEffect(() => () => { if (resumeTimer.current) clearTimeout(resumeTimer.current); }, []);
 
@@ -86,7 +121,7 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
       className="flex shrink-0 gap-6 pr-6"
     >
       {items.map((x) => (
-        <div key={`${dup ? "dup" : "set"}-${x.id}`} className="w-[min(22rem,85vw)] shrink-0 snap-start">
+        <div key={`${dup ? "dup" : "set"}-${x.id}`} className="testi-slot w-[min(22rem,85vw)] shrink-0 snap-start">
           <TestimonialCard item={x} lang={lang} />
         </div>
       ))}
@@ -106,12 +141,15 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
       // The edges fade rather than cut, so a card enters and leaves instead of
       // appearing. A mask works on alpha, so it fades to whatever is behind —
       // no colour to keep in step with the section.
+      // Up to 7rem, not 4: deep enough that a card visibly dissolves at the
+      // edge. Capped at 12vw so a phone keeps its centre card clear — at a
+      // flat 7rem the two fades ate 224px of a 390px screen.
       style={{
-        maskImage: "linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent)",
-        WebkitMaskImage: "linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent)",
+        maskImage: "linear-gradient(to right, transparent, #000 min(7rem, 12vw), #000 calc(100% - min(7rem, 12vw)), transparent)",
+        WebkitMaskImage: "linear-gradient(to right, transparent, #000 min(7rem, 12vw), #000 calc(100% - min(7rem, 12vw)), transparent)",
       }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={() => setRate(HOVER_RATE)}
+      onMouseLeave={() => setRate(1)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
       onPointerDown={interacted}
@@ -124,6 +162,7 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
         // track becomes a real scroller and they drive.
       >
         <div
+          ref={trackRef}
           className="marquee-track flex"
           data-paused={paused || dragging || !onScreen ? "true" : "false"}
           style={{ ["--marquee-duration" as string]: `${items.length * SECONDS_PER_CARD}s` }}

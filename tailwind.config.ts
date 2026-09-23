@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
+import { MOTION_CSS_VARS } from "./lib/motion";
 export default {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
@@ -25,5 +27,18 @@ export default {
       maxWidth: { site: "1240px" },
     },
   },
-  plugins: [],
+  // The motion tokens (lib/motion.ts) as custom properties on :root, so CSS
+  // transitions and keyframes time themselves from the same file the
+  // components read — in the stylesheet, not inlined into every page's HTML.
+  // The motion tokens, and the few palette tokens that component-owned styles
+  // (components/fx/*-style.ts) paint with, as custom properties on :root —
+  // so those styles read the colours from this file rather than copies.
+  plugins: [plugin(({ addBase, theme }) => addBase({ ":root": {
+    ...(MOTION_CSS_VARS as Record<string, string>),
+    "--c-gold": theme("colors.gold.DEFAULT"),
+    "--c-gold-pale": theme("colors.gold.pale"),
+    "--c-gold-dark": theme("colors.gold.dark"),
+    "--c-charcoal-deep": theme("colors.charcoal.deep"),
+    "--c-chalk": theme("colors.chalk"),
+  } }))],
 } satisfies Config;

@@ -60,7 +60,7 @@ export type HeroSource = "full" | "mobile" | "none";
 type ConnectionLike = { saveData?: boolean; effectiveType?: string; addEventListener?: (t: string, l: () => void) => void; removeEventListener?: (t: string, l: () => void) => void };
 const SLOW_TYPES = new Set(["slow-2g", "2g", "3g"]);
 
-function readHeroSource(): HeroSource {
+export function readHeroSource(): HeroSource {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "none";
   if (window.matchMedia("(prefers-reduced-data: reduce)").matches) return "none";
   const conn = (navigator as Navigator & { connection?: ConnectionLike }).connection;
@@ -80,7 +80,7 @@ const CLIP: Record<Exclude<HeroSource, "none">, { webm: string; mp4: string }> =
 
 export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseLabel: string }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const { videoOn, paused, toggle } = useHeroMotion();
+  const { videoOn, paused, toggle, mediaRef } = useHeroMotion();
   const [armed, setArmed] = useState(false);
   const [playing, setPlaying] = useState(false);
   /**
@@ -149,6 +149,12 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
 
   return (
     <>
+      {/* Two wrappers, two scales that multiply: the outer one is the scroll
+          sink (components/home/hero.tsx), the inner one the first-load
+          push-in (.hero-push, app/globals.css). Neither is on the <video>:
+          the element, its sources and its loading are exactly as before. */}
+      <div ref={mediaRef} className="absolute inset-0 z-0">
+      <div className="hero-push">
       <video
         ref={ref}
         className="hero-video"
@@ -168,6 +174,8 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
           </>
         )}
       </video>
+      </div>
+      </div>
       <button
         type="button"
         className="hero-video__toggle"

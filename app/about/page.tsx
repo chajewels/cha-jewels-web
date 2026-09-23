@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 import { aboutCopy } from "@/lib/content/about";
 export const generateMetadata = () => pageMeta("about");
 export default async function About() {
@@ -13,7 +14,7 @@ export default async function About() {
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap grid gap-12 md:grid-cols-[1.2fr_.8fr]">
         <div>
-          <h1 className="text-[clamp(36px,5.5vw,80px)]">{c.h1}</h1>
+          <NavHeading text={c.h1} lang={lang} className="text-[clamp(36px,5.5vw,80px)]" />
           <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
             <p>{c.intro}</p>
             <p>{c.questionsLead}</p>
@@ -31,7 +32,7 @@ export default async function About() {
               closing statement. */}
           {c.sections.map((s) => (
             <div key={s.heading} className="mt-8 max-w-[58ch] border-t border-hairline pt-6">
-              <h2 className="font-display text-2xl text-charcoal-deep">{s.heading}</h2>
+              <SplitHeading text={s.heading} lang={lang} className="font-display text-2xl text-charcoal-deep" />
               <p className="mt-3 text-[17px] text-charcoal-deep">{s.body}</p>
             </div>
           ))}
@@ -50,7 +51,7 @@ export default async function About() {
         </div>
         {/* Replaces the former facts grid in the same column, same panel treatment. */}
         <div className="self-start border border-hairline bg-white p-6">
-          <h2 className="font-display text-2xl text-charcoal-deep">{c.listHeading}</h2>
+          <SplitHeading text={c.listHeading} lang={lang} className="font-display text-2xl text-charcoal-deep" />
           <ul className="rule-grid mt-5 grid">
             {c.list.map((item) => <li key={item} className="px-4 py-3 text-sm text-charcoal-deep">{item}</li>)}
           </ul>

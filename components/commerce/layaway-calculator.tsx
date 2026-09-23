@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useId, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { layawayQuote } from "@/lib/layaway";
 import { formatMoney, toPhp, cn, type Currency } from "@/lib/utils";
 import { dict, type Lang } from "@/lib/i18n";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
+import { RollingValue } from "@/components/fx/rolling";
+import { useReduced } from "@/components/fx/media";
+import { DUR, EASE_LUX, RISE, STAGGER } from "@/lib/motion";
 
 /**
  * The card's surface classes, in one place. There is only the light card now:
@@ -108,6 +111,23 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
   const termSuffix = (tm: (typeof terms)[number]) =>
     !termLaunched(tm.months) ? ` · ${c.notLaunched[lang]}` : tm.min_amount > 0 ? ` · ${c.minFrom[lang].replace("{amount}", fmt(tm.min_amount))}` : "";
   const field = s.field;
+  // THE FIGURES MOVE WHEN THE PLAN CHANGES — display only. Each cell rolls to
+  // the Hub's new figure (components/fx/rolling.tsx: the last frame is the
+  // exact string the cell showed before), and on every fresh quote the three
+  // cells rise in one after another. Web Animations, no stylesheet; nothing
+  // here touches an amount, a rounding or the request.
+  const cells = useRef<HTMLOutputElement>(null);
+  const reduced = useReduced();
+  useEffect(() => {
+    if (!shown || reduced !== false || !cells.current) return;
+    Array.from(cells.current.children).forEach((el, k) => {
+      if (typeof (el as HTMLElement).animate !== "function") return;
+      (el as HTMLElement).animate(
+        [{ opacity: 0.2, transform: `translateY(${RISE / 3}px)` }, { opacity: 1, transform: "none" }],
+        { duration: DUR.reveal * 1000, delay: k * STAGGER.card * 1000, easing: `cubic-bezier(${EASE_LUX.join(",")})`, fill: "backwards" },
+      );
+    });
+  }, [shown, reduced]);
   const priceErrorId = `${useId()}-price`;
   return (
     <form className={cn(s.form, className)} onSubmit={(e) => e.preventDefault()}>
@@ -157,10 +177,10 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
       <div role="group" aria-label={c.currency[lang]} className={s.toggle}>
         {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? s.toggleOn : s.toggleOff}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
-      <output aria-live="polite" className="grid grid-cols-3 gap-3">
-        <Cell k={c.dp[lang]} v={shown ? fmt(shown.down_payment) : "—"} keyClass={s.cellKey} valueClass={s.cellValue} />
-        <Cell k={c.monthly[lang]} v={shown ? fmt(shown.monthly) : "—"} keyClass={s.cellKey} valueClass={s.cellMonthly} />
-        <Cell k={c.total[lang]} v={shown ? fmt(shown.total) : "—"} keyClass={s.cellKey} valueClass={s.cellValue} />
+      <output ref={cells} aria-live="polite" className="grid grid-cols-3 gap-3">
+        <Cell k={c.dp[lang]} v={<RollingValue value={shown ? shown.down_payment : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} />
+        <Cell k={c.monthly[lang]} v={<RollingValue value={shown ? shown.monthly : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellMonthly} />
+        <Cell k={c.total[lang]} v={<RollingValue value={shown ? shown.total : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} />
       </output>
       {cta && (
         // A <button disabled>, not a styled-down link: a link with
@@ -188,4 +208,4 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
 /** Only reached against a Hub that predates allowed_terms. */
 const FALLBACK_TERMS = [3, 6, 8, 10, 12];
 
-function Cell({ k, v, keyClass, valueClass }: { k: string; v: string; keyClass: string; valueClass: string }) { return <div><span className={keyClass}>{k}</span><b className={valueClass}>{v}</b></div>; }
+function Cell({ k, v, keyClass, valueClass }: { k: string; v: React.ReactNode; keyClass: string; valueClass: string }) { return <div><span className={keyClass}>{k}</span><b className={valueClass}>{v}</b></div>; }
