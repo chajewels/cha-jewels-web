@@ -142,6 +142,26 @@ add("viewer focus ring: gold-pale on charcoal-deep", "gold-pale", "charcoal-deep
   pairs.push({ label: "viewer control over white photo: chalk glyph", fg: "chalk", bg: "charcoal-deep/70@white", need: NONTEXT, alpha: 1, ratio: on("chalk") });
 }
 
+// GOLD GUIDE PLATES (components/editorial/guide-plate.tsx): text on
+// charcoal-deep under a radial gold tint that peaks at gold/16 — measured at
+// the peak, the brightest the plate gets.
+{
+  const tint = blend(hex(C.gold), hex(C["charcoal-deep"]), 0.16);
+  const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), tint, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(tint)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  pairs.push({ label: "guide plate: gold-pale label on gold16 tint", fg: "gold-pale", bg: "charcoal-deep+gold16", need: TEXT, alpha: 1, ratio: on("gold-pale") });
+  pairs.push({ label: "guide plate: chalk/75 text on gold16 tint", fg: "chalk", bg: "charcoal-deep+gold16", need: TEXT, alpha: 0.75, ratio: on("chalk", 0.75) });
+  pairs.push({ label: "guide plate: chalk/85 text on gold16 tint", fg: "chalk", bg: "charcoal-deep+gold16", need: TEXT, alpha: 0.85, ratio: on("chalk", 0.85) });
+  pairs.push({ label: "guide plate: gold edge on charcoal-deep", fg: "gold", bg: "charcoal-deep", need: NONTEXT, alpha: 1, ratio: ratio("gold", "charcoal-deep") });
+}
+// LOYALTY LADDER (components/fx/tier-ladder.tsx): a lit tier's title turns
+// gold-dark over the white card; the inner glow peaks at gold/14 at the edge,
+// so the title is measured on that peak.
+{
+  const glow = blend(hex(C.gold), hex(C.white), 0.14);
+  const [L1, L2] = [lum(hex(C["gold-dark"])), lum(glow)];
+  pairs.push({ label: "lit tier title: gold-dark on white+gold14 glow", fg: "gold-dark", bg: "white+gold14", need: LARGE, alpha: 1, ratio: (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05) });
+}
+
 // Values-tile SPOTLIGHT (app/globals.css .spotlight, components/fx/spotlight.tsx).
 // Under a mouse, a gold glow sits between the charcoal tile and its copy. Its
 // peak is gold at 20% (the radial gradient's centre), so the copy is measured
