@@ -1,5 +1,35 @@
 # Performance baseline
 
+## 2026-09-24 — Gold guide: stamp illustrations
+
+Before = `7fc8fcf`. After = `0cacfd5`. Same method as Phase 3 (throttled
+phone, interleaved, median of 8).
+
+| | before | after |
+|---|---|---|
+| `/gold-guide` observed LCP | 1314 ms | 1316 ms |
+| CLS (load + scroll) | 0 | 0 |
+| stylesheets | 2 | 2 |
+| HTML gz | 33.5 kB | 36.3 kB |
+| JS gz on load | — | +0.3 kB (the "Illustration" caption in the client dictionary) |
+
+Images: the owner's PNGs (1.67 MB, 1.73 MB, 1254 px) are not committed;
+WebP masters are — `k18-clasp-illustration.webp` 78 kB (1200 px) and
+`pt900-clasp-illustration.webp` 26 kB (640 px). Served as AVIF: K18 14.0 kB
+at 640w (desktop), 34.9 kB at 1200w (3× phone); Pt900 1.1 kB at 96w, 3.9 kB at
+256w. Phones fetch them only when the stamp step is near; on desktop the
+pinned plate stack is near the first screen, so they come with the page
+(15 kB total, after the LCP).
+
+Two first attempts cost LCP and were replaced, measured: `<Image>` put
+next/image's client component and the alt texts into the page JS
+(+0.6 kB, +12 ms); its ~20-width srcset, twice per image (pinned + inline)
+and again in the RSC payload, added 3.8 kB of HTML (+16 ms). Now: a plain
+`<img>` with only the widths the plate can use (640/828/1200, 96/256), and
+the alt text in lib/content (server only).
+
+---
+
 ## 2026-09-23 — Motion Phase 3: loyalty ladder, gold guide story, header, page transitions
 
 Before = `47128f2` (gallery approved). After = this commit. `next build` +
