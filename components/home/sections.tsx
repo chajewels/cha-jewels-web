@@ -8,7 +8,6 @@ import { ArrivalCard, isShowableArrival } from "@/components/home/arrival-card";
 import { LayawayBand } from "@/components/commerce/layaway-band";
 import { SectionBoundary } from "@/components/home/section-boundary";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
-import { STAGGER } from "@/lib/motion";
 import { SplitHeading } from "@/components/fx/split-text";
 
 /**
