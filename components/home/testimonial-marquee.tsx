@@ -70,9 +70,15 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
     const box = boxRef.current;
     if (!box || fine !== false || reduced !== false) return;
     const slots = Array.from(box.querySelectorAll<HTMLElement>(".testi-slot"));
+    // A card is "centred" while it covers at least half of the band. Several
+    // thresholds so the observer reports as the card slides through, since a
+    // single ratio fires only at one crossing (a phone card is ~4x the band).
     const io = new IntersectionObserver((entries) => {
-      for (const e of entries) e.target.toggleAttribute("data-center", e.isIntersecting);
-    }, { rootMargin: "0px -40% 0px -40%", threshold: 0.35 });
+      for (const e of entries) {
+        const band = e.rootBounds?.width ?? 0;
+        e.target.toggleAttribute("data-center", e.isIntersecting && band > 0 && e.intersectionRect.width >= band / 2);
+      }
+    }, { rootMargin: "0px -40% 0px -40%", threshold: [0, 0.05, 0.1, 0.15, 0.2, 0.25] });
     slots.forEach((el) => io.observe(el));
     return () => { io.disconnect(); slots.forEach((el) => el.removeAttribute("data-center")); };
   }, [fine, reduced, items]);
@@ -135,11 +141,12 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
       // The edges fade rather than cut, so a card enters and leaves instead of
       // appearing. A mask works on alpha, so it fades to whatever is behind —
       // no colour to keep in step with the section.
-      // 7rem, not 4: deep enough that a card visibly dissolves at the edge
-      // rather than being cut by a soft line.
+      // Up to 7rem, not 4: deep enough that a card visibly dissolves at the
+      // edge. Capped at 12vw so a phone keeps its centre card clear — at a
+      // flat 7rem the two fades ate 224px of a 390px screen.
       style={{
-        maskImage: "linear-gradient(to right, transparent, #000 7rem, #000 calc(100% - 7rem), transparent)",
-        WebkitMaskImage: "linear-gradient(to right, transparent, #000 7rem, #000 calc(100% - 7rem), transparent)",
+        maskImage: "linear-gradient(to right, transparent, #000 min(7rem, 12vw), #000 calc(100% - min(7rem, 12vw)), transparent)",
+        WebkitMaskImage: "linear-gradient(to right, transparent, #000 min(7rem, 12vw), #000 calc(100% - min(7rem, 12vw)), transparent)",
       }}
       onMouseEnter={() => setRate(HOVER_RATE)}
       onMouseLeave={() => setRate(1)}

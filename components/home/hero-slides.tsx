@@ -172,7 +172,9 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
             data-active={i === active}
             aria-roledescription="slide"
             aria-label={t("home", "slideOf", { n: String(i + 1), total: String(count) })}
-            className="relative flex h-full w-full shrink-0 snap-center items-center"
+            // overflow-hidden: a category photo rests pushed in to 1.08, and
+            // unclipped it would bleed a strip into the neighbouring slide.
+            className="relative flex h-full w-full shrink-0 snap-center items-center overflow-hidden"
           >
             {/* py-8 below lg on the intro slide, not py-16. With the
                 section's own padding on top of it there were 144px above the
