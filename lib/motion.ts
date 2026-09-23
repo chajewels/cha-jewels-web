@@ -33,18 +33,31 @@ export const DUR = {
   image: 1.2,
   /** Hover and tap feedback. */
   micro: 0.25,
-  /** The hero headline sheen: one pass of the light across the words. */
+  /**
+   * One pass of light: the headline sheen, and the gold sweep across the
+   * whole hero image, which share it so they move as one light.
+   */
   sheen: 2.6,
   /** A hairline or an ornament drawing itself. */
   draw: 1.1,
   /** One lap of light around a shine border; a spotlight's touch glow. */
   shine: 2.4,
+  /** The hero media's slow cinematic push-in, 1 → HERO_PUSH, then it holds. */
+  push: 12,
+  /** The hero vignette settling in from the edges. */
+  vignette: 1.5,
 } as const;
+
+/** Where the hero push-in ends and holds. */
+export const HERO_PUSH = 1.08;
 
 /** Seconds before first-load flourishes start, so the page has landed. */
 export const DELAY = {
-  /** The first hero sheen pass, from first paint. */
-  sheen: 0.35,
+  /**
+   * The first light: the headline sheen AND the gold sweep across the hero
+   * image start together, so they read as one pass of light over the gold.
+   */
+  sheen: 0.8,
   /** The one-time shine around a CTA on touch screens, after the sheen. */
   shineTouch: 1.6,
 } as const;
@@ -81,5 +94,8 @@ export const MOTION_CSS_VARS = {
   "--rise": `${RISE}px`,
   "--dur-shine": `${DUR.shine}s`,
   "--delay-sheen": `${DELAY.sheen}s`,
+  "--dur-push": `${DUR.push}s`,
+  "--dur-vignette": `${DUR.vignette}s`,
+  "--hero-push": `${HERO_PUSH}`,
   "--delay-shine-touch": `${DELAY.shineTouch}s`,
 } as const;

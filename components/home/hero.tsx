@@ -33,6 +33,23 @@ import type { Lang } from "@/lib/i18n";
  * reader scrolls past — is driven from this section's own scroll progress.
  * Transform and opacity only; static under reduced motion.
  *
+ * THE HERO IMAGE'S OWN FIRST MOMENT (owner feedback on PR #132: "for the
+ * hero images nothing changed"). Three layers, all CSS, all starting from the
+ * server markup (app/globals.css, "HERO MEDIA"):
+ *
+ *   push-in   the video/poster eases 1 → 1.08 over 12 s and holds. Frame one
+ *             is exactly 1, so the LCP element paints unmoved and whole.
+ *   sweep     a gold band crosses the whole image once, screen-blended, over
+ *             the scrim and under the words, starting with the headline sheen.
+ *   vignette  an overlay darkens the edges in over 1.5 s toward the crucible;
+ *             only the overlay's opacity moves, never the image.
+ *
+ * `data-hero-motion` on the section carries "still" for the pause button,
+ * off screen and hidden tab, and CSS pauses all three (the sweep is hidden
+ * while still rather than frozen mid-image). Reduced motion: the blanket rule
+ * removes the animations and each layer's resting style IS its final state —
+ * pushed in, vignette settled, no sweep.
+ *
  * THE SINK IS A SCROLL LISTENER, NOT motion's useScroll. useScroll brought
  * 19 kB of gzipped JavaScript to the homepage for three numbers, which on its
  * own would have spent over half the motion budget (docs/perf-baseline.md).
@@ -162,9 +179,12 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
 
   return (
     <Ctx.Provider value={value}>
-      <section ref={section} className={className}>
+      <section ref={section} className={className} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"}>
         <HeroVideo playLabel={videoPlayLabel} pauseLabel={videoPauseLabel} />
         {children}
+        {/* Over the video and its scrim, under the words (z-10). */}
+        <div aria-hidden="true" className="hero-vignette" />
+        <div aria-hidden="true" className="hero-sweep" />
         <div ref={contentRef} className="relative z-10 w-full self-stretch">
           <HeroSlides lang={lang} slides={slides} />
         </div>

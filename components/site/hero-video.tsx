@@ -149,9 +149,12 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
 
   return (
     <>
-      {/* The scroll sink's scale lives on this wrapper, not on the <video>: the
-          element, its sources and its loading are exactly as before. */}
+      {/* Two wrappers, two scales that multiply: the outer one is the scroll
+          sink (components/home/hero.tsx), the inner one the first-load
+          push-in (.hero-push, app/globals.css). Neither is on the <video>:
+          the element, its sources and its loading are exactly as before. */}
       <div ref={mediaRef} className="absolute inset-0 z-0">
+      <div className="hero-push">
       <video
         ref={ref}
         className="hero-video"
@@ -171,6 +174,7 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
           </>
         )}
       </video>
+      </div>
       </div>
       <button
         type="button"
