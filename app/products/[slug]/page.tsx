@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <ConditionBadge condition={p.condition} lang={lang} />
             </div>
             <h1 className="mt-4 text-[clamp(32px,4.2vw,60px)]">{name}</h1>
-            {price != null && <PriceBlock price={price} lang={lang} className="mt-6" />}
+            {price != null && <PriceBlock price={price} lang={lang} showReserve={layaway && isBuyable(avail)} className="mt-6" />}
             {desc && <p className="mt-6 max-w-[52ch] text-charcoal">{desc}</p>}
             <p className="mt-4 text-sm text-charcoal/70">SKU {p.sku}</p>
             {/* Two ways to buy the same piece, one basket — but only where
