@@ -39,5 +39,6 @@ export default {
     "--c-gold-pale": theme("colors.gold.pale"),
     "--c-gold-dark": theme("colors.gold.dark"),
     "--c-charcoal-deep": theme("colors.charcoal.deep"),
+    "--c-chalk": theme("colors.chalk"),
   } }))],
 } satisfies Config;

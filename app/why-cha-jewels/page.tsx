@@ -5,6 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { Button } from "@/components/ui/button";
+import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 
 export const generateMetadata = () => pageMeta("why");
 
@@ -55,7 +56,7 @@ export default async function WhyChaJewels() {
     <section className="bg-chalk py-[clamp(48px,7vw,96px)] text-charcoal">
       <div className="wrap grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-14">
         <div className="max-w-xl">
-          <h1 className="text-[clamp(32px,5vw,64px)] leading-[1.12] text-charcoal-deep">{t("why", "h1")}</h1>
+          <NavHeading text={t("why", "h1")} lang={lang} className="text-[clamp(32px,5vw,64px)] leading-[1.12] text-charcoal-deep" />
           <p className="mt-4 font-display text-[clamp(18px,2.2vw,24px)] text-gold-dark">{t("why", "sub")}</p>
           <p className="mt-6 text-[17px] leading-relaxed text-charcoal-deep">{t("why", "intro")}</p>
 
@@ -66,7 +67,7 @@ export default async function WhyChaJewels() {
           <div className="mt-10 space-y-8">
             {sections.map((s) => (
               <div key={s.key}>
-                <h2 className="font-display text-[clamp(22px,2.6vw,30px)] text-charcoal-deep">{s.h}</h2>
+                <SplitHeading text={s.h} lang={lang} className="font-display text-[clamp(22px,2.6vw,30px)] text-charcoal-deep" />
                 <p className="mt-2 text-[17px] leading-relaxed text-charcoal/80">{s.p}</p>
               </div>
             ))}
