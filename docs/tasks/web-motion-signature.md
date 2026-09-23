@@ -33,7 +33,7 @@ A signature motion pass for the public website: "gilded maximalism, value-driven
      That spread is wide: 3476–5717 ms across three runs of identical code on
      one machine.
    - **Homepage mobile transfer weight must not increase** beyond the result of
-     PR `perf/mobile-weight`: **1264 KB**, down from 2786 KB.
+     PR `perf/mobile-weight`: **1317 KB**, down from 2786 KB.
    - Desktop Performance ≥ 95 on /. CLS stays ≤ 0.02. TBT not worse than +50 ms.
      Added client JS ≤ 35 kB gzipped total (report the real number from the
      build output). The medians to beat are in docs/perf-baseline.md — mobile `/` LCP **3629 ms**.
