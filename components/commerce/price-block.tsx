@@ -16,15 +16,21 @@ import { tr, type Lang } from "@/lib/i18n";
  * divider drawn inside the block is the dark-surface one rather than the grey
  * the light page sets. See app/globals.css.
  *
+ * THE RESERVE LINE IS THE CALLER'S DECISION. It is an invitation to layaway,
+ * so it renders only when `showReserve` is true: the piece is buyable
+ * (lib/availability) AND layaway is offered in this language
+ * (lib/layaway-availability — English only, owner rule). A sold piece, or any
+ * Japanese page, shows the price alone.
+ *
  * Both tokens here are measured on charcoal-deep, not on the page: gold-pale
  * 10.62:1 and chalk/75 8.73:1, from the Phase 3 table.
  */
-export function PriceBlock({ price, lang, className }: { price: number; lang: Lang; className?: string }) {
+export function PriceBlock({ price, lang, showReserve, className }: { price: number; lang: Lang; showReserve: boolean; className?: string }) {
   const t = tr(lang);
   return (
     <div className={cn("band-dark bg-charcoal-deep p-5", className)}>
       <p className="font-display text-4xl text-gold-pale">{formatMoney(price)}</p>
-      <p className="mt-1 text-sm text-chalk/75">{t("product", "orReserve", { dp: formatMoney(Math.round(price * 0.3)) })}</p>
+      {showReserve && <p className="mt-1 text-sm text-chalk/75">{t("product", "orReserve", { dp: formatMoney(Math.round(price * 0.3)) })}</p>}
     </div>
   );
 }

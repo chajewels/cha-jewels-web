@@ -6,6 +6,7 @@ import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import { productName } from "@/lib/catalog-i18n";
 import { availabilityKey, isBuyable, productAvailability } from "@/lib/availability";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
 export function ProductCard({ product, lang, featured = false }: { product: Product; lang: Lang; featured?: boolean }) {
   const t = tr(lang);
@@ -47,8 +48,10 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
             {/* A piece that cannot be bought carries NO "reserve from ¥…"
                 invitation. The badge over the photo already says the state, so
                 repeating it here beside the price only made the price line the
-                third place the same fact was worded differently. */}
-            {isBuyable(avail) && (
+                third place the same fact was worded differently. Nor does any
+                card in a language where layaway is not offered
+                (lib/layaway-availability — English only, owner rule). */}
+            {isBuyable(avail) && layawayOffered(lang) && (
               <span className="text-charcoal/70"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span>
             )}
           </p>

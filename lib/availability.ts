@@ -17,57 +17,50 @@ import type { Product, ProductVariant } from "@/lib/types";
  * on where the shopper happened to be looking. That is not five bugs; it is one
  * missing definition, and this is the definition.
  *
- * THE THREE STATES:
+ * THE TWO STATES (owner decision 2026-09-23):
  *
  *   available   there is stock. Today's behaviour, unchanged.
- *   reserved    listed, but not free — someone else is part-way through buying
- *               it. It may come back. Nothing invites a purchase.
- *   sold        gone. It is not coming back.
+ *   sold        no stock. Reads "Sold" (JA 売約済み). Nothing invites a purchase.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * THE HUB CANNOT YET TELL RESERVED FROM SOLD, AND THAT IS A GAP TO CLOSE.
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * `stock_qty` is one number and carries one fact: there is none on the shelf.
- * Nothing in the API says WHY — a piece held by an open layaway and a piece
- * that shipped last week look identical here (supabase/contracts/api.md).
- *
- * So `sold` is derived from the only other signal there is, `status`, and today
- * that signal almost never arrives: the Hub's catalog routes return active rows
- * and 404 the rest. In practice every out-of-stock piece reads RESERVED, which
- * is both the truthful reading — it is still listed, so it is being held — and
- * the kinder one, since it does not tell a shopper a piece is gone when it may
- * not be.
- *
- * The fix is a Hub field (a variant `availability`, or a reason on the zero).
- * Until it exists this function is where it plugs in, and `sold` is already
- * wired end to end so adding it is one line here and no line anywhere else.
+ * There is no "reserved" state. It existed until 2026-09-23 on the reasoning
+ * that a listed piece at zero stock is probably being held by someone else's
+ * layaway, and might come back. The owner decided otherwise: every out-of-stock
+ * piece reads Sold, never Reserved. `stock_qty` does not say WHY a piece is at
+ * zero (supabase/contracts/api.md), and the customer does not need to know —
+ * they cannot buy it either way.
  */
-export type Availability = "available" | "reserved" | "sold";
+export type Availability = "available" | "sold";
 
 /** The variant a page is showing. Used by the buy buttons and the cart. */
 export function variantAvailability(variant: Pick<ProductVariant, "stock_qty"> | null | undefined, status?: Product["status"]): Availability {
   if (status === "archived") return "sold";
-  if (!variant || !Number.isFinite(variant.stock_qty) || variant.stock_qty <= 0) return "reserved";
+  if (!variant || !Number.isFinite(variant.stock_qty) || variant.stock_qty <= 0) return "sold";
   return "available";
 }
 
 /**
  * The whole piece, for a card that shows no particular variant.
  *
- * A product with NO variants at all is `reserved`, not `available`: it is a row
+ * A product with NO variants at all is `sold`, not `available`: it is a row
  * with nothing to sell, and offering a button that adds nothing to a basket is
- * worse than saying the piece cannot be had right now.
+ * worse than saying the piece cannot be had.
  */
 export function productAvailability(product: Pick<Product, "status" | "product_variants">): Availability {
   if (product.status === "archived") return "sold";
   const variants = product.product_variants ?? [];
-  if (variants.length === 0) return "reserved";
-  return variants.some((v) => Number.isFinite(v.stock_qty) && v.stock_qty > 0) ? "available" : "reserved";
+  if (variants.length === 0) return "sold";
+  return variants.some((v) => Number.isFinite(v.stock_qty) && v.stock_qty > 0) ? "available" : "sold";
 }
 
 /** Nothing may be added to a basket, reserved, or financed in these states. */
 export const isBuyable = (a: Availability) => a === "available";
 
-/** The dictionary key under `product` for the word shown to a customer. */
-export const availabilityKey = (a: Availability) => (a === "sold" ? "sold" : "reserved") as "sold" | "reserved";
+/**
+ * The dictionary key under `product` for the word shown to a customer. Every
+ * state that is not buyable reads "sold"; the argument stays so a future state
+ * with its own word is added here and nowhere else.
+ */
+export const availabilityKey = (a: Availability): "sold" => {
+  void a;
+  return "sold";
+};
