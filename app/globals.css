@@ -253,13 +253,7 @@
   .card-depth:hover::after,
   .card-depth:focus-within::after { opacity: 1; }
 
-  /* ---------------------------------------------------------------------
-     SPLIT TEXT (components/fx/split-text.tsx). Each unit is its own mask:
-     the inner span rises out of it. The padding/negative-margin pair gives
-     the mask room for descenders and the lower strokes of kana without
-     moving the line box by a pixel. data-split "from" is the start pose,
-     "in" plays; unit n waits n × --split-stagger after --split-delay.
-     --------------------------------------------------------------------- */
+  /* SPLIT TEXT — the why lives in components/fx/split-text.tsx. */
   .split-unit {
     display: inline-block;
     overflow: hidden;
@@ -273,10 +267,7 @@
   }
   [data-split="from"] .split-unit > span { transform: translateY(105%); transition: none; }
 
-  /* ---------------------------------------------------------------------
-     REVEAL (components/fx/reveal.tsx). Items in a group rise and fade in,
-     item i after i × --stagger. "hidden" is instant (off screen only).
-     --------------------------------------------------------------------- */
+  /* REVEAL — the why lives in components/fx/reveal.tsx. */
   .reveal-item {
     transition:
       opacity var(--dur-reveal) var(--ease-lux) calc(var(--i, 0) * var(--stagger, 0s)),
@@ -284,24 +275,8 @@
   }
   [data-reveal="hidden"] .reveal-item { opacity: 0; transform: translateY(var(--rise)); transition: none; }
 
-  /* ---------------------------------------------------------------------
-     HERO MEDIA (components/home/hero.tsx). The image's own first moment.
+  /* HERO MEDIA — the why lives in components/home/hero.tsx. */
 
-     Resting styles are the FINAL state, and each animation runs `both` from
-     the start pose — so frame one is the untouched poster (scale 1, no
-     vignette, no band), and under reduced motion, where the blanket rule
-     removes the animation, what remains is the finished composition.
-
-     Only transforms (push, sweep) and one overlay's opacity (vignette) move.
-     [data-hero-motion="still"] — pause button, off screen, hidden tab —
-     pauses all three; the band is hidden while still rather than left
-     frozen across the image.
-     --------------------------------------------------------------------- */
-  /* The push-in runs while its slide is up and starts again from 1 each
-     time that slide comes back: the animation is attached by the active
-     slide's selector, so losing and regaining the match restarts it. The
-     video's is keyed to slide 0 on the section; a category photo's to its
-     own slide (components/home/hero-slides.tsx). */
   .hero-push,
   .slide-push {
     position: absolute;
@@ -314,9 +289,6 @@
   }
   @keyframes hero-push { from { transform: scale(1); } to { transform: scale(var(--hero-push)); } }
 
-  /* The curtain between slides (components/home/hero.tsx, `wipe`): dark,
-     with a glowing gold leading edge on its right. Parked off the left edge;
-     the component drives it across with the Web Animations API. */
   .hero-curtain {
     position: absolute;
     inset: 0;
@@ -332,8 +304,6 @@
     box-shadow: 18px 0 42px theme('colors.gold.DEFAULT' / 45%);
   }
 
-  /* Darkens the edges toward the crucible, which sits centre-low in the
-     frame. Colour is the scrim's own, so it reads as the same shadow. */
   .hero-vignette {
     position: absolute;
     inset: 0;
@@ -344,14 +314,10 @@
   }
   @keyframes hero-vignette { from { opacity: 0; } to { opacity: 1; } }
 
-  /* The gold band: 40% of the hero wide, skewed like a raking light, crossing
-     from off the left edge to off the right, once. Screen-blended, so it can
-     only brighten — it lights the gold in the crucible and the scrim above
-     it, and never hides anything. Starts with the headline sheen. */
   .hero-sweep {
     position: absolute;
     inset: -10% auto -10% 0;
-    /* Never narrower than 320px: on a phone 40% is a hard stripe, not light. */
+
     width: max(40%, 320px);
     z-index: 2;
     pointer-events: none;
@@ -367,7 +333,7 @@
       theme('colors.gold.dark' / 0%) 88%,
       transparent 100%);
     transform: translateX(260%) skewX(-16deg);
-    /* Same duration, curve and start as the headline sheen: one light. */
+
     animation: hero-sweep var(--dur-sheen) var(--ease-sheen) var(--delay-sheen) 1 both;
   }
   @keyframes hero-sweep {
@@ -384,23 +350,7 @@
     .hero-sweep { display: none; }
   }
 
-  /* ---------------------------------------------------------------------
-     HERO SHEEN (components/fx/hero-sheen.tsx).
-
-     A window 40% of the headline's width travels from just off its left
-     edge to just off its right; the copy of the headline inside it travels
-     the opposite way by exactly the same distance on the same curve, so the
-     copy stays pinned over the real letters. Window: translateX(-100%) →
-     (100/0.40)% of its own width. Copy (width = headline = window / 0.40):
-     translateX(40%) → translateX(-100%). Same duration, same ease — the two
-     transforms cancel at every frame. Transform only; nothing repaints.
-
-     The window's edges are feathered by a static mask, so the light has no
-     hard boundary. Inside it, chalk letters turn gold-pale and gold letters
-     flare to chalk, each with a gold bloom.
-
-     Reduced motion: not drawn at all. The blanket rule would only freeze it.
-     --------------------------------------------------------------------- */
+  /* HERO SHEEN — the why lives in components/fx/hero-sheen.tsx. */
   .hero-sheen {
     position: absolute;
     top: 0;
@@ -431,18 +381,9 @@
     .hero-sheen { display: none; }
   }
 
-  /* ---------------------------------------------------------------------
-     SHINE BORDER (components/fx/magnetic.tsx) — a 1.5px gold ring just
-     outside a call to action. The ring is a gradient masked down to its own
-     padding box, so only the border shows. Hidden at rest; on hover or
-     keyboard focus it fades in and light runs along it. On touch (no hover)
-     it passes once when the page shows it, then goes. Colours: gold-dark,
-     gold-pale, chalk, gold — tokens only.
-     --------------------------------------------------------------------- */
+  /* SHINE BORDER — the why lives in components/fx/magnetic.tsx. */
   .shine-border { position: relative; border-radius: 2px; }
-  /* The magnetic lean: offsets written by the component, eased toward. Only
-     present under a fine pointer with reduced motion off (the component adds
-     the class), so touch and reduced motion never get a transform. */
+
   .magnetic {
     transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
     transition: transform var(--dur-reveal) var(--ease-lux);
@@ -478,11 +419,7 @@
     100% { opacity: 0; background-position: -150% 0; }
   }
 
-  /* ---------------------------------------------------------------------
-     QUOTE MARK (components/fx/quote-mark.tsx) — the testimonials' gold “.
-     The outline draws (dash offset 1 → 0), the second comma a beat after
-     the first, then the gold fills in.
-     --------------------------------------------------------------------- */
+  /* QUOTE MARK — the why lives in components/fx/quote-mark.tsx. */
   .quote-mark__path {
     stroke: theme('colors.gold.DEFAULT');
     stroke-width: 1.2;
@@ -496,13 +433,7 @@
   }
   [data-reveal="hidden"] .quote-mark__path { stroke-dashoffset: 1; fill-opacity: 0; transition: none; }
 
-  /* ---------------------------------------------------------------------
-     TESTIMONIAL CARDS. The gold edge is pre-drawn on ::after and revealed by
-     opacity (no box-shadow animation). Under a mouse: hover lifts the card
-     and lights the edge. On a phone: the card crossing the centre of the
-     screen (`data-center`, components/home/testimonial-marquee.tsx) is lit
-     and lifted a little instead. Reduced motion: neither.
-     --------------------------------------------------------------------- */
+  /* TESTIMONIAL CARDS — the why lives in components/home/testimonial-marquee.tsx. */
   .testi-card { position: relative; transition: transform var(--dur-reveal) var(--ease-lux); }
   .testi-card::after {
     content: "";
@@ -524,12 +455,7 @@
     .testi-card, .testi-card:hover { transform: none; }
   }
 
-  /* ---------------------------------------------------------------------
-     LAYAWAY BAND on the homepage (components/commerce/layaway-band.tsx).
-     A gold connector drops from each step disc to the next once that step
-     has arrived; the calculator's call to action glows gold and runs a
-     shine border — once when the band arrives, and continuously on hover.
-     --------------------------------------------------------------------- */
+  /* LAYAWAY BAND — the why lives in components/commerce/layaway-band.tsx. */
   .lay-connector {
     position: absolute;
     left: 15.5px;
@@ -569,17 +495,7 @@
     animation: shine-run var(--dur-shine) linear infinite;
   }
 
-  /* ---------------------------------------------------------------------
-     SPOTLIGHT (components/fx/spotlight.tsx) — the values tiles.
-
-     ::before is the glow under the copy, ::after the lit edge; both are
-     radial gradients centred on --mx/--my, which the component writes on
-     pointer move (no React render). data-lit: "on" while a mouse is inside,
-     "touch" once on touch devices when the tile is seen, "off" otherwise.
-     The copy sits above the glow (`> *` relative). The glow's peak is gold
-     at 20% over charcoal — the tile text is measured on that in
-     scripts/check-contrast.mjs ("spotlight" rows).
-     --------------------------------------------------------------------- */
+  /* SPOTLIGHT — the why lives in components/fx/spotlight.tsx. */
   .spotlight { position: relative; isolation: isolate; }
   .spotlight > * { position: relative; z-index: 1; }
   .spotlight::before,
@@ -611,13 +527,7 @@
     .spotlight::before, .spotlight::after { display: none; }
   }
 
-  /* ---------------------------------------------------------------------
-     CARD ENTRANCE (components/fx/card-entrance.tsx) and the DRAWN DIVIDER
-     (components/fx/drawn-divider.tsx). Both follow `data-reveal` on the
-     nearest reveal container: "hidden" snaps to the start pose with no
-     transition (it only ever happens off screen), "shown" plays the
-     entrance. Timings are the lib/motion.ts tokens.
-     --------------------------------------------------------------------- */
+  /* CARD ENTRANCE — the why lives in components/fx/card-entrance.tsx. */
   .card-line {
     position: absolute;
     inset: 0 0 auto 0;
