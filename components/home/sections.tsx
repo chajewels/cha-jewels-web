@@ -88,7 +88,7 @@ async function ArrivalsAsync({ lang }: { lang: Lang }) {
         </div>
         {/* The pieces rise in one after another (components/fx/reveal.tsx). */}
         <RevealGroup className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6" stagger={STAGGER.card}>
-          {arrivals.map((p) => <RevealItem key={p.id} className="flex [&>*]:w-full"><ArrivalCard product={p} lang={lang} /></RevealItem>)}
+          {arrivals.map((p, i) => <RevealItem key={p.id} index={i} className="flex [&>*]:w-full"><ArrivalCard product={p} lang={lang} /></RevealItem>)}
         </RevealGroup>
       </div>
     </section>

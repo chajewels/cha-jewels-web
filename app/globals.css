@@ -257,7 +257,8 @@
      SPLIT TEXT (components/fx/split-text.tsx). Each unit is its own mask:
      the inner span rises out of it. The padding/negative-margin pair gives
      the mask room for descenders and the lower strokes of kana without
-     moving the line box by a pixel.
+     moving the line box by a pixel. data-split "from" is the start pose,
+     "in" plays; unit n waits n × --split-stagger after --split-delay.
      --------------------------------------------------------------------- */
   .split-unit {
     display: inline-block;
@@ -266,6 +267,22 @@
     padding-bottom: 0.14em;
     margin-bottom: -0.14em;
   }
+  .split-unit > span {
+    display: inline-block;
+    transition: transform var(--dur-reveal) var(--ease-lux) calc(var(--split-delay, 0s) + var(--u, 0) * var(--split-stagger, 0s));
+  }
+  [data-split="from"] .split-unit > span { transform: translateY(105%); transition: none; }
+
+  /* ---------------------------------------------------------------------
+     REVEAL (components/fx/reveal.tsx). Items in a group rise and fade in,
+     item i after i × --stagger. "hidden" is instant (off screen only).
+     --------------------------------------------------------------------- */
+  .reveal-item {
+    transition:
+      opacity var(--dur-reveal) var(--ease-lux) calc(var(--i, 0) * var(--stagger, 0s)),
+      transform var(--dur-reveal) var(--ease-lux) calc(var(--i, 0) * var(--stagger, 0s));
+  }
+  [data-reveal="hidden"] .reveal-item { opacity: 0; transform: translateY(var(--rise)); transition: none; }
 
   /* ---------------------------------------------------------------------
      HERO SHEEN (components/fx/hero-sheen.tsx).
@@ -411,13 +428,22 @@
      entrance. Timings are the lib/motion.ts tokens.
      --------------------------------------------------------------------- */
   .card-line {
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: theme('colors.gold.DEFAULT');
+    pointer-events: none;
     transform-origin: left;
-    transition: transform var(--dur-draw) var(--ease-lux) calc(var(--i, 0) * var(--stagger-card));
+    transition: transform var(--dur-draw) var(--ease-lux) calc(var(--i, 0) * var(--stagger, 0s));
   }
   .card-wipe {
+    position: absolute;
+    inset: 0;
     transition:
-      clip-path var(--dur-image) var(--ease-lux) calc(var(--i, 0) * var(--stagger-card) + var(--dur-draw) * 0.4),
-      transform var(--dur-image) var(--ease-lux) calc(var(--i, 0) * var(--stagger-card) + var(--dur-draw) * 0.4);
+      clip-path var(--dur-image) var(--ease-lux) calc(var(--i, 0) * var(--stagger, 0s) + var(--dur-draw) * 0.4),
+      transform var(--dur-image) var(--ease-lux) calc(var(--i, 0) * var(--stagger, 0s) + var(--dur-draw) * 0.4);
   }
   [data-reveal="hidden"] .card-line { transform: scaleX(0); transition: none; }
   [data-reveal="hidden"] .card-wipe { clip-path: inset(100% 0 0 0); transform: scale(1.06); transition: none; }

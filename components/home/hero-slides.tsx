@@ -9,7 +9,7 @@ import { HubImage } from "@/components/media/hub-image";
 import { SplitText } from "@/components/fx/split-text";
 import { HeroSheen } from "@/components/fx/hero-sheen";
 import { Magnetic } from "@/components/fx/magnetic";
-import { isClientNavigation } from "@/components/fx/motion-provider";
+import { isClientNavigation } from "@/components/fx/boot-marker";
 import { DUR } from "@/lib/motion";
 
 export type HeroSlide =

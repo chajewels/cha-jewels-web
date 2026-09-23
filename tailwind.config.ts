@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
+import { MOTION_CSS_VARS } from "./lib/motion";
 export default {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
@@ -25,5 +27,8 @@ export default {
       maxWidth: { site: "1240px" },
     },
   },
-  plugins: [],
+  // The motion tokens (lib/motion.ts) as custom properties on :root, so CSS
+  // transitions and keyframes time themselves from the same file the
+  // components read — in the stylesheet, not inlined into every page's HTML.
+  plugins: [plugin(({ addBase }) => addBase({ ":root": MOTION_CSS_VARS as Record<string, string> }))],
 } satisfies Config;

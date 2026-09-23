@@ -42,7 +42,7 @@ export function ValuesBento({ lang }: { lang: Lang }) {
         <div className="mt-6 grid gap-3 lg:mt-10 lg:grid-cols-12 lg:gap-6">
           <RevealGroup className="grid gap-3 sm:grid-cols-2 lg:col-span-7 lg:gap-6">
             {cards.map(({ Icon, h, p }, i) => (
-              <RevealItem key={h} className="flex">
+              <RevealItem key={h} index={i} className="flex">
               <Spotlight className="flex w-full flex-col gap-2 rounded-sm bg-charcoal p-5 text-chalk shadow-sm lg:p-6">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold tracking-widest text-orange" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>

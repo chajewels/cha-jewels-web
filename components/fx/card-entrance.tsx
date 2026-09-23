@@ -6,12 +6,11 @@
  *   2. the photo wipes up from the bottom and settles from 1.06 to 1.
  *
  * Card by card along the row: each card carries its index as --i, and the
- * delays are --i × STAGGER.card (app/globals.css, `.card-line`/`.card-wipe`).
+ * delays are --i × --stagger (STAGGER.card, set by the group) (app/globals.css, `.card-line`/`.card-wipe`).
  *
- * PLAIN CSS TRANSITIONS, NOT motion. Both beats are fixed-time transitions
- * triggered by one state flag, which is what CSS does for free — and doing
- * them in motion cost the homepage bytes it did not have to spare
- * (docs/perf-baseline.md, motion budget). Same tokens, same curve, same look.
+ * Plain CSS transitions, like every entrance on the homepage: fixed-time
+ * moves triggered by one state flag need no runtime (components/fx/reveal.tsx
+ * says why that matters here). Timings are the lib/motion.ts tokens.
  * No "use client": these are server components.
  *
  * Nothing here can hide a card on first paint — the group renders "shown"
@@ -24,9 +23,9 @@ export function CardEntrance({ index, className, children }: { index: number; cl
 }
 
 export function CardHairline() {
-  return <span aria-hidden="true" className="card-line pointer-events-none absolute inset-x-0 top-0 z-10 h-[2px] rounded-t-sm bg-gold" />;
+  return <span aria-hidden="true" className="card-line" />;
 }
 
 export function CardWipe({ children }: { children: React.ReactNode }) {
-  return <div className="card-wipe absolute inset-0">{children}</div>;
+  return <div className="card-wipe">{children}</div>;
 }

@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import * as m from "motion/react-m";
-import type { Variants } from "motion/react";
-import { RISE, STAGGER, T } from "@/lib/motion";
+import { STAGGER } from "@/lib/motion";
 import { useReduced } from "@/components/fx/media";
 
 export type RevealState = "hidden" | "shown";
@@ -22,6 +20,12 @@ export type RevealState = "hidden" | "shown";
  *
  * Reduced motion (live): never hides, and if the setting turns on mid-visit
  * anything still hidden is shown at once.
+ *
+ * The state is written to `data-reveal` and CSS plays the entrance
+ * (app/globals.css, "REVEAL"). No animation library: every entrance on the
+ * homepage is a fixed-time transition from one pose to another, which CSS
+ * does with no runtime at all — and on a slow phone link the runtime's bytes
+ * were measured delaying the hero poster, the page's LCP (docs/perf-baseline.md).
  */
 export function useReveal<T extends Element>(amount = 0.25) {
   const ref = useRef<T>(null);
@@ -47,40 +51,23 @@ export function useReveal<T extends Element>(amount = 0.25) {
   return { ref, state };
 }
 
-/** Rise + fade. `hidden` is instant: it only ever happens off screen. */
-export const RISE_VARIANTS: Variants = {
-  hidden: { opacity: 0, y: RISE, transition: { duration: 0 } },
-  shown: { opacity: 1, y: 0, transition: T.reveal },
-};
-
 /**
- * A grid whose items arrive one after another. The group owns the state and
- * the stagger; each <RevealItem> (or any `m` element with "hidden"/"shown"
- * variants of its own) inherits it.
- *
- * The state is also on the element as `data-reveal`, so an entrance that is
- * only a timed CSS transition — the collection cards' hairline and wipe
- * (components/fx/card-entrance.tsx) — can follow it without shipping any
- * motion code of its own.
+ * A group whose items arrive one after another. The group owns the state;
+ * each <RevealItem index={i}> rises and fades in at i × `stagger`. Anything
+ * else inside can follow the same `data-reveal` in CSS — the collection
+ * cards' hairline and photo wipe do (components/fx/card-entrance.tsx).
  */
 export function RevealGroup({ className, children, stagger = STAGGER.base, amount = 0.15 }: {
   className?: string; children: React.ReactNode; stagger?: number; amount?: number;
 }) {
   const { ref, state } = useReveal<HTMLDivElement>(amount);
   return (
-    <m.div
-      ref={ref}
-      className={className}
-      data-reveal={state}
-      initial={false}
-      animate={state}
-      variants={{ hidden: {}, shown: { transition: { staggerChildren: stagger } } }}
-    >
+    <div ref={ref} className={className} data-reveal={state} style={{ ["--stagger" as string]: `${stagger}s` }}>
       {children}
-    </m.div>
+    </div>
   );
 }
 
-export function RevealItem({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <m.div className={className} variants={RISE_VARIANTS}>{children}</m.div>;
+export function RevealItem({ index, className = "", children }: { index: number; className?: string; children: React.ReactNode }) {
+  return <div className={`reveal-item ${className}`} style={{ ["--i" as string]: index }}>{children}</div>;
 }

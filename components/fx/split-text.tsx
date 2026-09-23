@@ -1,8 +1,6 @@
 "use client";
-import { useMemo, useState } from "react";
-import * as m from "motion/react-m";
-import type { Variants } from "motion/react";
-import { STAGGER, T } from "@/lib/motion";
+import { useEffect, useMemo, useState } from "react";
+import { STAGGER } from "@/lib/motion";
 import { REDUCED, useReduced } from "@/components/fx/media";
 import type { Lang } from "@/lib/i18n";
 import { segment } from "@/components/fx/segment";
@@ -14,9 +12,14 @@ import { segment } from "@/components/fx/segment";
  * Intl.Segmenter — graphemes, not code points, so a character with a
  * combining mark or a surrogate pair stays whole. Japanese line breaking
  * (kinsoku) survives the split: closing punctuation and the long-vowel mark
- * are glued to the unit before them and opening brackets to the unit after,
- * so a line can still never start with 「。」 or end with 「「」. English keeps
- * its real spaces between units, so it wraps where it always did.
+ * are glued to the unit before them and opening brackets to the unit after
+ * (components/fx/segment.ts). English keeps its real spaces between units,
+ * so it wraps where it always did. Measured: the heading is the same height
+ * split or plain, JA and EN, at 375 and 1440.
+ *
+ * MOTION. Each unit renders in its start pose (below its mask); two frames
+ * later the wrapper flips to data-split="in" and CSS transitions every unit
+ * up, delayed by its index (app/globals.css, "SPLIT TEXT"). No library.
  *
  * ACCESSIBILITY. The sentence is in the DOM once, whole, for assistive tech
  * (`sr-only`); the animated units are `aria-hidden`. That is a visually-hidden
@@ -27,11 +30,6 @@ import { segment } from "@/components/fx/segment";
  * `play` false (first page load — the LCP rule) or reduced motion on: plain
  * text, no spans, nothing hidden.
  */
-const UNIT: Variants = {
-  hidden: { y: "105%" },
-  shown: { y: "0%", transition: T.reveal },
-};
-
 export function SplitText({ text, lang, play, delay = 0, className }: {
   text: string; lang: Lang; play: boolean; delay?: number; className?: string;
 }) {
@@ -41,25 +39,32 @@ export function SplitText({ text, lang, play, delay = 0, className }: {
   const [reducedNow] = useState(() => typeof window === "undefined" || window.matchMedia(REDUCED).matches);
   const reduced = useReduced() ?? reducedNow;
   const units = useMemo(() => segment(text, lang), [text, lang]);
-  if (!play || reduced) return <span className={className}>{text}</span>;
+  const [phase, setPhase] = useState<"from" | "in">("from");
+  const live = play && !reduced;
+
+  useEffect(() => {
+    if (!live) return;
+    // Two frames: the first commits the start pose, the second starts the move.
+    let b = 0;
+    const a = requestAnimationFrame(() => { b = requestAnimationFrame(() => setPhase("in")); });
+    return () => { cancelAnimationFrame(a); cancelAnimationFrame(b); };
+  }, [live]);
+
+  if (!live) return <span className={className}>{text}</span>;
   const stagger = lang === "ja" ? STAGGER.base / 2 : STAGGER.base; // JA has ~3× the units
+  let n = 0;
   return (
     <span className={className}>
       <span className="sr-only">{text}</span>
-      <m.span
-        aria-hidden="true"
-        initial="hidden"
-        animate="shown"
-        variants={{ hidden: {}, shown: { transition: { staggerChildren: stagger, delayChildren: delay } } }}
-      >
+      <span aria-hidden="true" data-split={phase} style={{ ["--split-stagger" as string]: `${stagger}s`, ["--split-delay" as string]: `${delay}s` }}>
         {units.map((u, i) =>
           u.space ? u.text : (
             <span key={i} className="split-unit">
-              <m.span className="inline-block" variants={UNIT}>{u.text}</m.span>
+              <span style={{ ["--u" as string]: n++ }}>{u.text}</span>
             </span>
           ),
         )}
-      </m.span>
+      </span>
     </span>
   );
 }

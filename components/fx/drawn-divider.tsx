@@ -7,9 +7,8 @@ import { useReveal } from "@/components/fx/reveal";
  * pathLength="1", drawn by moving its dash offset from 1 to 0 — really
  * drawn, not scaled. Ornament only — aria-hidden.
  *
- * A CSS transition on `data-reveal` (app/globals.css, `.drawn-divider`), not
- * motion: a fixed-time draw needs no animation runtime, and the homepage's
- * motion budget is spent where it has to be (docs/perf-baseline.md).
+ * A CSS transition on `data-reveal` (app/globals.css, `.drawn-divider`), like
+ * every entrance on the homepage.
  *
  * Same visibility rule as every reveal (components/fx/reveal.tsx): rendered
  * finished from the server, and only drawn from nothing if it is measured
