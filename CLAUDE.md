@@ -8,6 +8,21 @@
   Short-lived feature branches are fine, but they merge into `develop`, never into `main`. Never push directly to `main`.
 - The website talks to the Hub ONLY through the Website API (`lib/hub-api.ts`, spec in `supabase/contracts/api.md`). No direct table reads. The Hub's backend is Lovable Cloud today and will move to Cynthia's own Supabase before Phase 2; the API contract is what keeps that move invisible to the site.
 
+## Before you start, and where you work
+
+- **Check whether the work already exists.** Run `git fetch`, then look at open
+  AND recently merged PRs (`gh pr list --state all --limit 20`) and at the remote
+  branches, for the same work. If it already exists, stop and report it instead
+  of rebuilding it. This is not hypothetical: on 2026-09-23 a record-only
+  migration was built here from scratch and only discovered to be already merged
+  at `git push`, because the branch name was taken.
+- **One session, one working tree.** If another Claude Code session may be
+  working on this repo, work in your own git worktree
+  (`git worktree add ../<name> <branch>`); never share a working tree or a
+  checked-out branch between sessions. Copy the untracked env files
+  (`.env.local`) into the worktree by hand — they are gitignored and do not come
+  across with the checkout. Never commit them.
+
 ## Non-negotiable business rules
 - Layaway math is NEVER computed in the browser or in Next.js. Call `POST /layaway/quote` via `hub.layawayQuote`. Same for points.
 - Products are added in the Hub only. This site has no product editor.
