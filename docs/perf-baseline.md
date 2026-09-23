@@ -1,5 +1,45 @@
 # Performance baseline
 
+## 2026-09-23 — Motion Phase 3: loyalty ladder, gold guide story, header, page transitions
+
+Before = `47128f2` (gallery approved). After = this commit. `next build` +
+`next start`, preview-fixtures mode, same data on both, interleaved pairs on
+a throttled phone (4× CPU, 1.6 Mbps / 150 ms), median of 4. CLS measured
+over the load AND a scroll down and back up (header hide/show, the ladder,
+the pinned story).
+
+| page | observed LCP before | after | CLS | added JS gz (page load) | stylesheets |
+|---|---|---|---|---|---|
+| `/` | 2926 ms | 2936 ms | 0 → 0 | +1.8 kB | 2 → 2 |
+| `/collections/bracelets` | 1296 ms | 1296 ms | 0 → 0 | +1.4 kB | 2 → 2 |
+| product (`double-sided-diamond-pendant`) | 1300 ms | 1302 ms | 0 → 0 | +2.0 kB | 2 → 2 |
+| `/loyalty` | 1318 ms | 1312 ms | 0 → 0 | +5.9 kB | 2 → 2 |
+| `/gold-guide` | 1320 ms | 1300 ms | 0 → 0 | +5.9 kB | 2 → 2 |
+
+All within run-to-run noise. The +1.4–2.0 kB on every page is the header
+(scroll behaviour, nav underline) and the page entrance; /loyalty and
+/gold-guide add the ladder / story plus split headings and the magnetic CTA.
+
+**A THIRD STYLESHEET, CAUGHT AND REMOVED.** The first build of this phase
+shipped three render-blocking stylesheets on every page: Next split the
+root CSS, moving the next/font rules (7.5 kB) into a file of their own. The
+cause was ~2.6 kB of new Tailwind arbitrary-value classes (mostly the guide
+plates). They are component stylesheets now (`ComponentStyle`, like every
+other motion component) and the root file is back to one, 66.7 kB — smaller
+than before (66.9 kB). **The root CSS sits close to that split point: new
+one-off styling belongs in a component stylesheet, not in utility classes.**
+The brief's `app/template.tsx` was replaced by `components/fx/page-enter.tsx`
+while chasing this; it was not the cause, but it does the same job with no
+wrapper element or remount, so it stays.
+
+Videos: `docs/screenshots/web-motion-signature/loyalty-guide-header-desktop-before-after.webm`
+(1440px: nav underline, loyalty ladder, header hide/return, client
+navigation into the gold guide, the pinned story) and
+`loyalty-guide-header-phone-before-after.webm` (390px, same path).
+Screenshots: `docs/screenshots/web-motion-signature/phase3/`.
+
+---
+
 ## 2026-09-23 — Motion Phase 2B: product gallery slide, zoom, full-screen viewer, Sold state
 
 Before = `101d094`. After = this commit. `next build` + `next start` in
