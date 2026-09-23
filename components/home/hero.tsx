@@ -69,7 +69,8 @@ import type { Lang } from "@/lib/i18n";
  * sideways, taking the slide copy and the button with it; the slider logic
  * only watches its own track, so nothing ever put it back. The section and
  * each slide are overflow-CLIP now (page.tsx, hero-slides.tsx): same
- * clipping, but never scrollable. `contain: paint` below is belt and braces.
+ * clipping, but never scrollable. (`contain: paint` was tried as well and
+ * dropped as unnecessary: clip alone fixes the freeze, verified in WebKit.)
  *
  * THE SINK IS A SCROLL LISTENER, NOT motion's useScroll. useScroll brought
  * 19 kB of gzipped JavaScript to the homepage for three numbers, which on its
@@ -260,7 +261,7 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
 
   return (
     <Ctx.Provider value={value}>
-      <section ref={section} className={className} style={{ contain: "paint" }} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"} data-active-slide={active}>
+      <section ref={section} className={className} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"} data-active-slide={active}>
         <HeroVideo playLabel={videoPlayLabel} pauseLabel={videoPauseLabel} />
         {children}
         {/* Over the video and its scrim, under the words (z-10). */}
