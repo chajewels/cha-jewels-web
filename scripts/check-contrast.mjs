@@ -126,6 +126,22 @@ add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "oran
   for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `scrim@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
 }
 
+// SOLD (components/commerce/add-to-cart.tsx, components/catalog/product-card.tsx):
+// a muted label, not a button — charcoal/70 on an opaque chalk fill.
+add("Sold label: charcoal/70 on chalk", "charcoal", "chalk", TEXT, 0.7);
+
+// FULL-SCREEN VIEWER (components/catalog/gallery-viewer.tsx): chalk counter on
+// the charcoal-deep backdrop; controls are a gold edge and a chalk glyph on
+// charcoal-deep at 70%. Their worst case is a white photo behind them, so the
+// glyph and edge are measured on charcoal-deep/70 composited over white.
+add("viewer counter: chalk on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+add("viewer focus ring: gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
+{
+  const btn = blend(hex(C["charcoal-deep"]), hex(C.white), 0.7);
+  const on = (fgName) => { const [L1, L2] = [lum(hex(C[fgName])), lum(btn)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  pairs.push({ label: "viewer control over white photo: chalk glyph", fg: "chalk", bg: "charcoal-deep/70@white", need: NONTEXT, alpha: 1, ratio: on("chalk") });
+}
+
 // Values-tile SPOTLIGHT (app/globals.css .spotlight, components/fx/spotlight.tsx).
 // Under a mouse, a gold glow sits between the charcoal tile and its copy. Its
 // peak is gold at 20% (the radial gradient's centre), so the copy is measured

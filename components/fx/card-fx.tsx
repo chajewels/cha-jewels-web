@@ -22,7 +22,9 @@ import { ComponentStyle, mix } from "@/components/fx/component-style";
  *   mouse      tilts up to TILT_MAX° toward the pointer on an inner wrapper;
  *              a gold specular glint follows the pointer over the photo; the
  *              photo leans in to 1.04; a second photo, if the piece has one,
- *              crossfades in. A sold-out card does not tilt.
+ *              crossfades in. A sold card (`quiet`) does none of this and
+ *              does not press in under a finger: it still opens the piece,
+ *              but nothing about it invites a purchase.
  *   touch      one band of gold light crosses the photo as the card comes
  *              into view; the card presses in under a finger.
  *   reduced    none of it — the card is exactly what it was.
@@ -60,15 +62,17 @@ const CSS = `
 }
 .fx-card[data-glint] .fx-sweep { animation: fx-card-sweep var(--dur-sheen) var(--ease-sheen) 1 both; }
 @keyframes fx-card-sweep { from { transform: translateX(-120%) skewX(-16deg); } to { transform: translateX(260%) skewX(-16deg); } }
-@media (hover: none) { .fx-card:active { transform: scale(0.975); transition-duration: 120ms; } }
+.fx-card[data-quiet], .fx-card[data-quiet]:active, .fx-card[data-quiet] .fx-img { transform: none; }
+.fx-card[data-quiet] .fx-glint, .fx-card[data-quiet] .fx-sweep, .fx-card[data-quiet] .fx-second { display: none; }
+@media (hover: none) { .fx-card:not([data-quiet]):active { transform: scale(0.975); transition-duration: 120ms; } }
 @media (prefers-reduced-motion: reduce) {
   .fx-card, .fx-card:active, .fx-card[data-hover] .fx-img { transform: none; }
   .fx-glint, .fx-sweep { display: none; }
 }`;
 
 
-export function CardFx({ index = 0, tilt = true, className = "", children }: {
-  index?: number; tilt?: boolean; className?: string; children: React.ReactNode;
+export function CardFx({ index = 0, tilt = true, quiet = false, className = "", children }: {
+  index?: number; tilt?: boolean; quiet?: boolean; className?: string; children: React.ReactNode;
 }) {
   const { ref, state } = useReveal<HTMLDivElement>(0.2);
   const inner = useRef<HTMLDivElement>(null);
@@ -124,6 +128,7 @@ export function CardFx({ index = 0, tilt = true, className = "", children }: {
           className="fx-card"
           style={{ ["--tilt-perspective" as string]: `${TILT_PERSPECTIVE}px` }}
           data-tilt={tilt && live ? "" : undefined}
+          data-quiet={quiet ? "" : undefined}
           onPointerEnter={live ? enter : undefined}
           onPointerMove={live ? move : undefined}
           onPointerLeave={live ? leave : undefined}

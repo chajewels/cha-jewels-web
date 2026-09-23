@@ -25,13 +25,14 @@ export function ProductCard({ product, lang, featured = false, index = 0 }: { pr
   const avail = productAvailability(product);
   const soldOut = !isBuyable(avail);
   return (
-    // Sold out: no tilt (the brief). Everything else still moves.
-    <CardFx index={index} tilt={!soldOut} className="h-full">
+    // Sold: no tilt, and none of the hover or press life either (`quiet`) —
+    // the card still opens the piece, but it no longer invites a purchase.
+    <CardFx index={index} tilt={!soldOut} quiet={soldOut} className="h-full">
     <Link href={`/products/${product.slug}`} className={`flex h-full flex-col bg-white ${featured ? "border border-gold-dark p-1.5" : ""}`}>
       <div className={`relative overflow-hidden bg-chalk ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
-        {img ? <CardMedia src={img.url} second={second?.url} alt={img.alt ?? name} sizes="(min-width:1024px) 25vw, 50vw" dim={soldOut} /> : <GoldMotif />}
+        {img ? <CardMedia src={img.url} second={soldOut ? null : second?.url} alt={img.alt ?? name} sizes="(min-width:1024px) 25vw, 50vw" dim={soldOut} /> : <GoldMotif />}
         {soldOut && (
-          <span className="absolute left-3 top-3 border border-charcoal-deep bg-white/90 px-2.5 py-1 text-xs tracking-wide text-charcoal-deep">
+          <span className="absolute left-3 top-3 border border-hairline bg-chalk px-2.5 py-1 text-xs tracking-wide text-charcoal/70">
             {t("product", availabilityKey(avail))}
           </span>
         )}

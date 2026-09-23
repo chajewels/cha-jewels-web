@@ -25,6 +25,56 @@ export const EASE_LUX = [0.16, 1, 0.3, 1] as const;
  */
 export const EASE_SHEEN = [0.45, 0.05, 0.35, 1] as const;
 
+/**
+ * A photo TRAVELLING: the product gallery (GALLERY below) and the full-screen
+ * viewer. EASE_LUX was wrong here: it covers 90% of the width in the first
+ * 200 ms, so between two similar dark photographs the eye saw a swap, not a
+ * slide (measured on 101d094). This is an in-out curve with a soft start and
+ * a long even middle, so the photo is visibly moving the whole time.
+ */
+export const EASE_SLIDE = [0.55, 0, 0.25, 1] as const;
+
+/**
+ * The full-screen viewer's photo CONTINUING after the hand lets go, and its
+ * open/close. Decelerates to a stop, never past it: no overshoot, no bounce.
+ */
+export const EASE_GLIDE = [0.25, 0.6, 0.3, 1] as const;
+
+/**
+ * THE PRODUCT GALLERY'S TIMING — one token, read by every input (arrows,
+ * thumbnails, keys, swipe) on every device, so a phone and a desktop move the
+ * same. Owner review 2026-09-23: the photo change was too fast everywhere.
+ *
+ *   slide        a completed change, on EASE_SLIDE: 850 ms, calm and fully
+ *                visible (10% of the travel at 200 ms, 30% at 300 ms, 69% at
+ *                425 ms, 94% at 620 ms).
+ *   releaseMin   a swipe completing after the finger lets go takes what is
+ *                left of `slide`, but never less than this — a fast flick
+ *                does not hurry it (the finger's speed is not carried over).
+ *   easeRelease  its curve: the same soft in-out shape, starting just off
+ *                rest so the photo does not stall under a lifted finger.
+ *   springBack   a swipe that did not pass the threshold returning, on
+ *                easeRelease: gentle, no bounce.
+ *   settle       the arriving photo's PHOTO_SETTLE → 1, on EASE_SLIDE. Starts
+ *                with the slide and ends just after it lands, so slide and
+ *                settle read as one movement; the leaving photo's dim runs
+ *                exactly the length of the slide.
+ *   sweepDelay   the gold light starts a little after the slide and ends as
+ *                the settle ends — it lands with the photo.
+ *
+ * Seconds. The "Photo 3 of 4" roll and the gold bar under the thumbnails run
+ * on `slide` too (--dur-gallery-slide). Dragging itself is 1:1 with the
+ * finger; only what happens after release is timed here.
+ */
+export const GALLERY = {
+  slide: 0.85,
+  releaseMin: 0.75,
+  easeRelease: [0.35, 0.15, 0.25, 1] as const,
+  springBack: 0.55,
+  settle: 0.95,
+  sweepDelay: 0.12,
+} as const;
+
 /** The hero curtain arriving: slow off the mark, fast into cover. */
 export const EASE_WIPE_IN = [0.65, 0, 0.35, 1] as const;
 
@@ -47,11 +97,20 @@ export const DUR = {
   shine: 2.4,
   /** The gold-edged curtain between hero slides: cover + reveal, in total. */
   wipe: 1.3,
-  /** A product photo sliding in and settling (the gallery). */
-  photo: 0.6,
+  /** A photo crossing the full-screen viewer on EASE_SLIDE (the page gallery uses GALLERY). */
+  slide: 0.65,
+  /** The full-screen viewer opening from the photo, and closing back into it. */
+  expand: 0.5,
   /** The hero vignette settling in from the edges. */
   vignette: 1.5,
 } as const;
+
+/** The scale an arriving gallery photo starts at before settling to 1. */
+export const PHOTO_SETTLE = 1.06;
+/** How dark the leaving gallery photo goes (black overlay opacity). */
+export const PHOTO_DIM = 0.6;
+/** The desktop hover zoom, and the viewer's double-tap zoom. */
+export const ZOOM = { hover: 2, tap: 2.5, max: 4 } as const;
 
 /** Where the hero push-in ends and holds. */
 export const HERO_PUSH = 1.08;
@@ -101,6 +160,8 @@ export const HERO_SINK = { mediaScale: 1.06, contentDrift: 56, contentFade: 0.35
 /** The same numbers for CSS: set on :root by the plugin in tailwind.config.ts. */
 export const MOTION_CSS_VARS = {
   "--ease-lux": `cubic-bezier(${EASE_LUX.join(", ")})`,
+  "--ease-slide": `cubic-bezier(${EASE_SLIDE.join(", ")})`,
+  "--dur-gallery-slide": `${GALLERY.slide}s`,
   "--dur-reveal": `${DUR.reveal}s`,
   "--dur-micro": `${DUR.micro}s`,
   "--ease-sheen": `cubic-bezier(${EASE_SHEEN.join(", ")})`,

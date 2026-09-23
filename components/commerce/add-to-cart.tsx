@@ -42,10 +42,19 @@ export function AddToCart({ variantId, slug, sku, availability, lang, className 
   // `stockQty <= 0` while the page's badge said "Currently reserved" about the
   // same piece. It takes the decided status now (lib/availability.ts) rather
   // than a number it has to interpret.
+  //
+  // AND A SOLD PIECE HAS NO BUTTON AT ALL. A disabled <Button> at 70% opacity
+  // still looked like an orange call to action, pressed in under a finger and
+  // took a hover colour. It is a statement now: a muted label in the button's
+  // footprint (so the column does not jump), chalk with a hairline edge and
+  // charcoal/70 text (4.9:1, scripts/check-contrast.mjs), default cursor, not
+  // focusable, nothing on hover or press. Screen readers read the word.
   if (!isBuyable(availability)) {
     return (
       <p className={className}>
-        <Button disabled className="w-full sm:w-auto">{t("product", availabilityKey(availability))}</Button>
+        <span className="inline-flex min-h-12 w-full cursor-default select-none items-center justify-center gap-2 rounded-sm border border-hairline bg-chalk px-6 py-3 text-[15px] tracking-wide text-charcoal/70 sm:w-auto">
+          {t("product", availabilityKey(availability))}
+        </span>
       </p>
     );
   }
