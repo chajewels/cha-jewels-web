@@ -1,5 +1,55 @@
 # Performance baseline
 
+## 2026-09-23 — Motion Phase 1, round 2: bolder homepage (after owner review)
+
+Before = `68bec32` (no motion). After = `b229c56`. Both `next build` +
+`next start`, interleaved pair by pair. Both builds in preview-fixtures mode —
+this machine has no Hub credentials (`HUB_API_URL`/`HUB_API_KEY` are empty
+here and in the main checkout), so the measured pages carry fixture data and
+no testimonials section. The recorded videos used a local, uncommitted patch
+that gives BOTH builds five labelled placeholder testimonials, so the section
+could be shown; the patch was never committed and was not present for any
+measurement below.
+
+| gate | before | after | |
+|---|---|---|---|
+| Observed LCP, throttled phone `/` (4× CPU, 1.6 Mbps; median of 8 pairs) | 2848 ms (2756–2892) | **2912 ms** (2892–2928) | **+64 ms (+2.2%) — just beyond before's own spread** |
+| Observed LCP, throttled phone, collection (3 pairs) | 1304 ms | 1300 ms | pass |
+| Observed LCP, throttled phone, product (3 pairs) | 1300 ms | 1300 ms | pass |
+| Observed LCP, Lighthouse mobile `/` (median of 3 pairs) | 201 ms | 209 ms | pass (within spread) |
+| Simulated LCP, Lighthouse mobile `/` | 4140 ms | 4218 ms | pass (spec spread 3476–5717) |
+| Homepage mobile weight (cap 1317 KiB) | 1318 KiB | **1023 KiB** | pass |
+| Added JS, gzipped (budget 35 kB) | — | **+3.4 kB** | pass |
+| Added CSS / HTML, gzipped | — | +2.0 kB / +1.5 kB | |
+| CLS | 0 | 0 | pass |
+
+Across the sessions of this round the homepage throttled delta measured +8,
++50 and +64 ms for near-identical bytes; the interleaved method narrows but
+does not remove session drift. The collection and product pages sit at
+parity.
+
+What it is: bytes in the LCP window again (6.9 KB gzipped across JS, CSS and
+HTML), not the animations — an ablation with the push-in or the overlays
+switched off measured the same as with them on.
+
+Found and fixed on the way:
+- A third render-blocking stylesheet. The new rules pushed `globals.css` past
+  the 100 KiB limit Next's CssChunkingPlugin merges up to, splitting Inter's
+  `@font-face` into its own file and costing the collection and product
+  pages ~60 ms. My comment blocks became one-line pointers; back to two files.
+  **globals.css is now close to that limit** — Phase 2 page effects should
+  live in route-scoped CSS, not in globals.
+
+Options for the remaining +64 ms, for the owner:
+1. Accept it (2.2% on a 1.6 Mbps line; Lighthouse and the other pages flat).
+2. Offset it: a 144px header logo for 3× phones instead of the 192px file
+   (~5 KB, ~25 ms), plus the same on the footer, which loads the 192px file
+   eagerly. No visible change. Not done: brand assets.
+3. Trim the effects' HTML: the RevealItem wrappers and their `--i` styles
+   repeat in the markup and again in the RSC payload (~1 KB gzipped).
+
+---
+
 ## 2026-09-23 — Motion Phase 1: homepage (`feature/web-motion-signature`)
 
 Before = this branch at `68bec32` (develop merged, no motion code). After =
