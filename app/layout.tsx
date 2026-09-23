@@ -14,6 +14,8 @@ import { announcement } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
+import { MotionProvider } from "@/components/fx/motion-provider";
+import { MOTION_CSS_VARS } from "@/lib/motion";
 
 /**
  * ONLY THE FACES THAT ACTUALLY RENDER.
@@ -75,7 +77,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // A page whose own content comes from the Hub still throws on its own read.
   const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang).catch(() => null) : null;
   return (
-    <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
+    <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`} style={MOTION_CSS_VARS}>
+      {/* The motion tokens as CSS custom properties (lib/motion.ts), so CSS
+          keyframes and motion components time themselves from one file. */}
       {/* The announcement bar's pre-paint script sets a data attribute here
           before React hydrates (components/site/announcement-bar.tsx), which is
           a mismatch React reports. Suppressed on <body> precisely because it
@@ -103,10 +107,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
         {notice && <AnnouncementBar text={notice.text} href={notice.href} lang={lang} />}
-        <Header lang={lang} />
-        <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
-        <main id="main">{children}</main>
-        <Footer lang={lang} />
+        {/* LazyMotion + MotionConfig for every `m` component on the site
+            (components/fx/motion-provider.tsx). It renders no element. */}
+        <MotionProvider>
+          <Header lang={lang} />
+          <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
+          <main id="main">{children}</main>
+          <Footer lang={lang} />
+        </MotionProvider>
       </body>
     </html>
   );

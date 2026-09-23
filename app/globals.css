@@ -253,6 +253,20 @@
   .card-depth:hover::after,
   .card-depth:focus-within::after { opacity: 1; }
 
+  /* ---------------------------------------------------------------------
+     SPLIT TEXT (components/fx/split-text.tsx). Each unit is its own mask:
+     the inner span rises out of it. The padding/negative-margin pair gives
+     the mask room for descenders and the lower strokes of kana without
+     moving the line box by a pixel.
+     --------------------------------------------------------------------- */
+  .split-unit {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+
   .menu-in { animation: menu-in 180ms ease-out both; }
   @keyframes menu-in {
     from { opacity: 0; transform: translateY(-7px); }
