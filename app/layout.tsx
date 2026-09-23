@@ -13,6 +13,7 @@ import { headers } from "next/headers";
 import { announcement } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
+import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
 
 /**
  * ONLY THE FACES THAT ACTUALLY RENDER.
@@ -96,6 +97,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             strips the query from any "/" URL — lib/page-meta.tsx explains. */}
         <SeoLinks />
         <AnalyticsProvider />
+        {/* Web Vitals, behind the same gate and URL redaction as Analytics. */}
+        <SpeedInsightsProvider />
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
