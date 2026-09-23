@@ -1,5 +1,90 @@
 # Performance baseline
 
+## 2026-09-23 — Motion Phase 1: homepage (`feature/web-motion-signature`)
+
+Before = this branch at `68bec32` (develop merged, no motion code). After =
+`9d7624f`. Both built with `next build` and served with `next start` on the
+same machine; before and after were run **interleaved, pair by pair**,
+because runs taken hours apart drifted by more than the effect being
+measured (a morning-vs-afternoon comparison of identical code moved
+Lighthouse observed LCP by ~75 ms). Lighthouse 12, one binary installed
+locally and called directly (the loop works; `npx` inside a loop is what
+failed before). No language cookie = the Japanese homepage.
+
+### Budget table
+
+| gate | before | after | result |
+|---|---|---|---|
+| **Observed LCP, Lighthouse mobile `/`** (median of 5, interleaved) | 227 ms (169–338) | **180 ms** (152–261) | pass — no regression |
+| **Observed LCP, throttled phone `/`** (4× CPU, 1.6 Mbps / 150 ms, median of 8 interleaved pairs) | 2840 ms (2748–2860) | **2880 ms** (2864–2892) | **+40 ms (+1.4%) — see below** |
+| Observed LCP, throttled phone, `/collections/bracelets` (3 pairs) | 1324 ms | 1312 ms | pass |
+| Observed LCP, throttled phone, product `/products/twist-bangle` (3 pairs) | 1320 ms | 1300 ms | pass |
+| Simulated mobile LCP `/` (median of 5, interleaved) | 3920 ms (3840–4141) | 3922 ms (3914–4149) | pass — flat |
+| **Homepage mobile transfer weight** (Lighthouse, cap 1317 KiB) | 1319 KiB | **1021 KiB** | pass (−298 KiB) |
+| Desktop Performance `/` | 100 | 100 | pass |
+| CLS (every page, every run) | 0 | 0 | pass |
+| TBT mobile `/` | 8 ms | 7 ms | pass |
+| **Added client JS, gzipped** (every script the homepage HTML references, `nomodule` polyfills excluded) | 164,427 B | 166,930 B | **+2.5 kB** (budget 35 kB) |
+| Collection / product mobile weight (Lighthouse) | 656 / 757 KiB | 355 / 458 KiB | pass |
+
+The weight row falls because of the favicon (`perf(icon)`, own commit):
+`app/icon.png` was a 323 KiB, 512 px photographic badge fetched on every page.
+At 192 px it is 21 KiB and indistinguishable at any size a browser shows it.
+Without that commit the homepage would sit at ~1355 KiB, over the cap — the
+baseline was already 1 KiB over it before any motion code, because the 1317
+figure predates the 720p encode from #129.
+
+### The one gate not met: +40 ms on a throttled phone
+
+Every one of the 8 throttled pairs has the after build slower, by 20–140 ms,
+median +40 ms. What it is, established by elimination:
+
+- **Not the animation library.** The first build used `motion` (+17 KiB at
+  first load, +16 KiB lazily) and measured +28 to +68 ms over 5 pairs.
+  Removing the library entirely (commit `9d7624f`) left +40 ms.
+- **Not the sheen animating during the poster's paint.** Three variants of
+  the same build, interleaved with the before build: sheen from 0.35 s
+  +48 ms (8 pairs), sheen gated on the poster being decoded +40 ms (6 pairs),
+  sheen pushed to 3.5 s +20 ms (5 pairs, two of them after-faster). All three
+  sit inside the ±30 ms pair-to-pair spread, so the sheen stays as designed:
+  first pass at 0.35 s, from the server markup.
+- **It is bytes in the LCP window.** With the HTML delivered instantly (a
+  Playwright route that bypasses the throttle for the document), before,
+  after and after-without-sheen all measured 2604–2648 ms — identical. On a
+  1.6 Mbps link every kilobyte that travels before the poster finishes costs
+  it roughly 5 ms, and this pass adds **4.8 KB gzipped** in that window:
+  CSS +1.2 KB (every effect's styles), HTML +1.1 KB (the sheen's copy of the
+  headline, the reveal attributes), JS +2.5 KB (the effect components).
+
+Options, for the owner:
+
+1. **Accept it.** 40 ms on a 1.6 Mbps line; not visible in Lighthouse
+   (observed LCP is lower after, simulated is flat) and not on the other two
+   pages.
+2. **Offset it with bytes from the same window.** The header logo requests
+   `logo-badge-192.webp` (13 KB) on 3× phones for a 44 px box; a 144 px file
+   is ~8 KB. That recovers ~25 ms and changes nothing visible. Not done
+   here, because it is a brand asset outside this brief.
+3. **Trim the effects' own bytes.** The largest single piece is the sheen's
+   duplicate headline in the HTML (it is in the markup and again in the RSC
+   payload). Rendering it client-side only would save ~0.4 KB but delay the
+   first pass until hydration — which on a mid-range phone pushes it past
+   the 3-second noticeability rule. Not recommended.
+
+### How it was measured
+
+- Lighthouse: `lighthouse <url> --only-categories=performance --output=json`
+  (mobile default) and `--preset=desktop`; medians and ranges read from
+  `metrics` (`largestContentfulPaint` and `observedLargestContentfulPaint`)
+  and `total-byte-weight`.
+- Throttled phone: Playwright + CDP, 390×844 at DPR 3, touch, 4× CPU,
+  1.6 Mbps down / 750 kbps up / 150 ms latency, cache disabled; LCP from a
+  `largest-contentful-paint` PerformanceObserver, 12 s settle.
+- Added JS: every `<script src>` in the served homepage HTML, gzipped, both
+  builds.
+
+---
+
 ## 2026-09-23 — PR `perf/mobile-weight`: hero clip on phones
 
 Both builds served from `next start` on localhost, so the two differ only by the
