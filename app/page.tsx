@@ -115,7 +115,7 @@ export default async function Home() {
         slides={slides}
         videoPlayLabel={t("hero", "videoPlay")}
         videoPauseLabel={t("hero", "videoPause")}
-        className="relative isolate flex h-auto w-full items-center overflow-hidden bg-charcoal py-8 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0"
+        className="relative isolate flex h-auto w-full items-center overflow-clip bg-charcoal py-8 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0"
       >
         <div aria-hidden="true" className="hero-scrim" />
         {/* Slide 0 is the hero copy as before; slides 1..n are the categories.

@@ -51,13 +51,24 @@ const PRELOAD_LEAD_MS = 900;
  * Copy is the Hub's or the dictionary's — the name, the description and the
  * button label all come from the category, and nothing here is invented.
  */
+/** Put the track exactly at `left`, with snapping off for that one frame. */
+function jump(track: HTMLElement, left: number) {
+  track.style.scrollSnapType = "none";
+  track.scrollLeft = left;
+  requestAnimationFrame(() => { track.style.scrollSnapType = ""; });
+}
+
 export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }) {
   const t = tr(lang);
   const trackRef = useRef<HTMLDivElement>(null);
   // Shared with the video: which slide is up, and whether the hero may move at
   // all (on screen, tab visible, reduced motion off, reader has not paused).
   // components/home/hero.tsx holds all of it.
-  const { active, setActive, rotateOn, sheenOn, wipe } = useHeroMotion();
+  const { active, setActive, rotateOn, sheenOn, wipe, edge } = useHeroMotion();
+  // Slide changes WE made go under the curtain; any other change of `active`
+  // is a swipe, and gets the gold edge alone (components/home/hero.tsx).
+  const programmatic = useRef(false);
+  const lastActive = useRef(0);
   // First page load: the headline paints as plain text, at once (the LCP
   // rule). Arrived by client navigation: it rises in unit by unit. Decided
   // once, at first render.
@@ -97,8 +108,46 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
     // Swapped under the gold-edged curtain (components/home/hero.tsx), as an
     // instant jump rather than a sideways glide: the curtain is the
     // transition. Under reduced motion `wipe` just swaps.
-    wipe(() => track.scrollTo({ left: slide.offsetLeft, behavior: "auto" }));
+    programmatic.current = true;
+    wipe(() => jump(track, slide.offsetLeft));
   }, [count, reveal, wipe]);
+
+  // THE TRACK ALWAYS COMES TO REST ON A SLIDE. On a real iPhone the deck was
+  // found frozen between two slides (owner report, 2026-09-23). Two guards:
+  //  - programmatic jumps set scrollLeft with snapping switched off for that
+  //    frame (`jump`), the iOS workaround for a snap container that re-snaps
+  //    a programmatic scroll to somewhere in between;
+  //  - whenever the track stops moving (scrollend, or 180 ms without a scroll
+  //    event where scrollend is missing) and no finger is on it, a track left
+  //    more than 2px off a slide is set onto the nearest one. That covers
+  //    swipes, momentum, and a scroll interrupted by the hero going off
+  //    screen, the tab going to the background, or Reduce Motion changing.
+  const touching = useRef(false);
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    let idle = 0;
+    const settle = () => {
+      if (touching.current) return;
+      const w = track.clientWidth;
+      if (!w) return;
+      const nearest = Math.round(track.scrollLeft / w);
+      if (Math.abs(track.scrollLeft - nearest * w) > 2) jump(track, nearest * w);
+    };
+    const onScroll = () => { clearTimeout(idle); idle = window.setTimeout(settle, 180); };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    track.addEventListener("scrollend", settle);
+    const onVisible = () => { if (!document.hidden) settle(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("resize", settle);
+    return () => {
+      clearTimeout(idle);
+      track.removeEventListener("scroll", onScroll);
+      track.removeEventListener("scrollend", settle);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("resize", settle);
+    };
+  }, []);
 
   // The scroller decides which slide is current, so a swipe, a snap after a
   // resize, or a keyboard scroll all land on the same truth as a dot click.
@@ -123,7 +172,12 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
   useEffect(() => {
     reveal(active);
     if (active > 0) reveal(active + 1);
-  }, [active, reveal]);
+    if (active !== lastActive.current) {
+      if (!programmatic.current) edge();
+      programmatic.current = false;
+      lastActive.current = active;
+    }
+  }, [active, reveal, edge]);
 
   useEffect(() => {
     // `rotateOn` carries offscreen, hidden tab, reduced motion and the pause
@@ -157,7 +211,9 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
       onMouseLeave={() => setHeld(false)}
       onFocus={() => setHeld(true)}
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHeld(false); }}
-      onTouchStart={() => setHeld(true)}
+      onTouchStart={() => { setHeld(true); touching.current = true; }}
+      onTouchEnd={() => { touching.current = false; }}
+      onTouchCancel={() => { touching.current = false; }}
     >
       <div
         ref={trackRef}
@@ -172,9 +228,10 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
             data-active={i === active}
             aria-roledescription="slide"
             aria-label={t("home", "slideOf", { n: String(i + 1), total: String(count) })}
-            // overflow-hidden: a category photo rests pushed in to 1.08, and
+            // overflow-CLIP: a category photo rests pushed in to 1.08, and
             // unclipped it would bleed a strip into the neighbouring slide.
-            className="relative flex h-full w-full shrink-0 snap-center items-center overflow-hidden"
+            // Not overflow-hidden — see hero.tsx, "NOTHING IN THE HERO SCROLLS".
+            className="relative flex h-full w-full shrink-0 snap-center items-center overflow-clip"
           >
             {/* py-8 below lg on the intro slide, not py-16. With the
                 section's own padding on top of it there were 144px above the

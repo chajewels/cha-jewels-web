@@ -59,6 +59,18 @@ import type { Lang } from "@/lib/i18n";
  * on an overlay. A finger swipe stays the browser's own scroll — the curtain
  * is for changes the reader did not drag. Reduced motion: an instant swap.
  *
+ * NOTHING IN THE HERO SCROLLS EXCEPT THE SLIDE TRACK (owner report from a
+ * real iPhone, 2026-09-23: the deck frozen half-way between two slides, the
+ * round button pushed past the screen edge). The section was overflow-HIDDEN,
+ * and an overflow-hidden element is still a scroll container: it clips, but
+ * focus, scrollIntoView or iOS itself can scroll it sideways. Its overlays —
+ * the sweep resting past the right edge, the curtain, the pushed-in media —
+ * made it 1250px wide on a 390px screen, and one tap scrolled the whole hero
+ * sideways, taking the slide copy and the button with it; the slider logic
+ * only watches its own track, so nothing ever put it back. The section and
+ * each slide are overflow-CLIP now (page.tsx, hero-slides.tsx): same
+ * clipping, but never scrollable. `contain: paint` below is belt and braces.
+ *
  * THE SINK IS A SCROLL LISTENER, NOT motion's useScroll. useScroll brought
  * 19 kB of gzipped JavaScript to the homepage for three numbers, which on its
  * own would have spent over half the motion budget (docs/perf-baseline.md).
@@ -91,6 +103,8 @@ type HeroMotion = {
   mediaRef: React.RefObject<HTMLDivElement | null>;
   /** Run `swap` under the gold-edged curtain (or at once, under reduced motion). */
   wipe: (swap: () => void) => void;
+  /** The curtain's gold edge alone, crossing a slide the reader swiped to. */
+  edge: () => void;
   toggle: () => void;
 };
 
@@ -154,20 +168,58 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
 
   const mediaRef = useRef<HTMLDivElement>(null);
   const curtainRef = useRef<HTMLDivElement>(null);
+  /** Ends the wipe in progress, if any (see `wipe`). */
+  const wipeEnd = useRef<(() => void) | null>(null);
   const reducedRef = useRef(reduced);
   reducedRef.current = reduced;
   const wipe = useCallback((swap: () => void) => {
     const el = curtainRef.current;
     if (!el || reducedRef.current || typeof el.animate !== "function") { swap(); return; }
-    for (const a of el.getAnimations()) a.cancel();
+    // ONE WIPE AT A TIME, AND EVERY WIPE ENDS. A newer wipe (a dot tapped
+    // during autoplay) cancels this one; whatever happens, the swap runs
+    // exactly once and the curtain goes back to hidden and parked — never
+    // left part-way across the hero. The timer is the safety net for a
+    // `finished` promise that never settles (a throttled or backgrounded
+    // tab): past the wipe's length plus a margin, it snaps to the end state.
+    wipeEnd.current?.();
+    let done = false;
     const half = (DUR.wipe * 1000) / 2;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      swap();
+      for (const a of el.getAnimations()) a.cancel();
+      el.style.visibility = "";
+      if (wipeEnd.current === finish) wipeEnd.current = null;
+    };
+    const timer = setTimeout(finish, DUR.wipe * 1000 + 400);
+    wipeEnd.current = finish;
+    el.style.visibility = "visible";
     const cover = el.animate([{ transform: "translateX(-101%)" }, { transform: "translateX(0%)" }],
       { duration: half, easing: `cubic-bezier(${EASE_WIPE_IN.join(",")})`, fill: "forwards" });
     cover.finished.then(() => {
+      if (done) return;
       swap();
-      el.animate([{ transform: "translateX(0%)" }, { transform: "translateX(101%)" }],
+      swap = () => undefined; // already swapped under the curtain
+      const reveal = el.animate([{ transform: "translateX(0%)" }, { transform: "translateX(101%)" }],
         { duration: half, easing: `cubic-bezier(${EASE_LUX.join(",")})`, fill: "forwards" });
-    }, swap); // cancelled by a newer wipe: still land where this one was going
+      reveal.finished.then(finish, finish);
+    }, finish);
+  }, []);
+  const edge = useCallback(() => {
+    const el = curtainRef.current;
+    if (!el || reducedRef.current || typeof el.animate !== "function") return;
+    wipeEnd.current?.();
+    // Only the glowing gold edge: the curtain's dark body is made transparent
+    // for this pass, so the slide the reader swiped to stays in view.
+    el.style.background = "linear-gradient(90deg, transparent 0%, transparent 86%, var(--c-gold-dark) 95%, var(--c-gold-pale) 99.4%, transparent 100%)";
+    el.style.visibility = "visible";
+    const end = () => { clearTimeout(timer); for (const a of el.getAnimations()) a.cancel(); el.style.visibility = ""; el.style.background = ""; };
+    const timer = setTimeout(end, DUR.wipe * 1000 + 400);
+    el.animate([{ transform: "translateX(-101%)" }, { transform: "translateX(101%)" }],
+      { duration: DUR.wipe * 1000, easing: `cubic-bezier(${EASE_LUX.join(",")})`, fill: "forwards" })
+      .finished.then(end, end);
   }, []);
   const contentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -202,12 +254,13 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
     sheenOn: onScreen && !hidden && !paused && !reduced,
     mediaRef,
     wipe,
+    edge,
     toggle: () => setPaused((p) => !p),
-  }), [active, allowed, paused, reduced, onScreen, hidden, wipe]);
+  }), [active, allowed, paused, reduced, onScreen, hidden, wipe, edge]);
 
   return (
     <Ctx.Provider value={value}>
-      <section ref={section} className={className} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"} data-active-slide={active}>
+      <section ref={section} className={className} style={{ contain: "paint" }} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"} data-active-slide={active}>
         <HeroVideo playLabel={videoPlayLabel} pauseLabel={videoPauseLabel} />
         {children}
         {/* Over the video and its scrim, under the words (z-10). */}
