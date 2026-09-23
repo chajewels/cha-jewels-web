@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { STAGGER } from "@/lib/motion";
+import { DUR, STAGGER } from "@/lib/motion";
 import { REDUCED, useReduced } from "@/components/fx/media";
 import type { Lang } from "@/lib/i18n";
 import { segment } from "@/components/fx/segment";
@@ -39,7 +39,7 @@ export function SplitText({ text, lang, play, delay = 0, className }: {
   const [reducedNow] = useState(() => typeof window === "undefined" || window.matchMedia(REDUCED).matches);
   const reduced = useReduced() ?? reducedNow;
   const units = useMemo(() => segment(text, lang), [text, lang]);
-  const [phase, setPhase] = useState<"from" | "in">("from");
+  const [phase, setPhase] = useState<"from" | "in" | "done">("from");
   const live = play && !reduced;
 
   useEffect(() => {
@@ -49,9 +49,30 @@ export function SplitText({ text, lang, play, delay = 0, className }: {
     const a = requestAnimationFrame(() => { b = requestAnimationFrame(() => setPhase("in")); });
     return () => { cancelAnimationFrame(a); cancelAnimationFrame(b); };
   }, [live]);
+  useSettle(phase === "in", units.length, lang, delay, () => setPhase("done"));
 
-  if (!live) return <span className={className}>{text}</span>;
+  if (!live || phase === "done") return <span className={className}>{text}</span>;
   return <span className={className}><Units text={text} units={units} lang={lang} phase={phase} delay={delay} /></span>;
+}
+
+/**
+ * ONE COPY AT REST. While the units rise, the sentence is in the DOM twice —
+ * the sr-only copy for assistive tech and the masked units on screen — and a
+ * reader who selected the heading copied it twice ("New on the benchNew on
+ * the bench", owner report). So once the last unit has landed the heading
+ * goes back to plain text (same height, measured), and during the rise the
+ * sr-only copy is excluded from selection.
+ */
+function useSettle(rising: boolean, count: number, lang: Lang, delay: number, done: () => void) {
+  useEffect(() => {
+    if (!rising) return;
+    const stagger = lang === "ja" ? STAGGER.base / 2 : STAGGER.base;
+    const ms = (delay + count * stagger + DUR.reveal) * 1000 + 100;
+    const id = setTimeout(done, ms);
+    return () => clearTimeout(id);
+    // `done` is a fresh closure each render; the timer only needs the numbers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rising, count, lang, delay]);
 }
 
 /** The sentence once for assistive tech, then the masked units. */
@@ -62,7 +83,7 @@ function Units({ text, units, lang, phase, delay = 0 }: {
   let n = 0;
   return (
     <>
-      <span className="sr-only">{text}</span>
+      <span className="sr-only" style={{ userSelect: "none", WebkitUserSelect: "none" }}>{text}</span>
       <span aria-hidden="true" data-split={phase} style={{ ["--split-stagger" as string]: `${stagger}s`, ["--split-delay" as string]: `${delay}s` }}>
         {units.map((u, i) =>
           u.space ? u.text : (
@@ -96,6 +117,7 @@ export function SplitHeading({ as: Tag = "h2", text, lang, className }: {
   const [phase, setPhase] = useState<"plain" | "from" | "in">("plain");
   const armed = useRef(false);
   const units = useMemo(() => segment(text, lang), [text, lang]);
+  useSettle(phase === "in", units.length, lang, 0, () => setPhase("plain"));
 
   useEffect(() => {
     const el = ref.current;

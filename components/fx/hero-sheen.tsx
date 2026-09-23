@@ -47,7 +47,8 @@ export function HeroSheen({ on, delay, children }: { on: boolean; delay?: number
       // Later passes start at once; only the first waits for the page to land.
       style={pass > 0 ? { ["--sheen-delay" as string]: "0s" } : delay != null ? { ["--sheen-delay" as string]: `${delay}s` } : undefined}
     >
-      <span className="hero-sheen__copy">{children}</span>
+      {/* Not selectable: copying the headline must give it once, not twice. */}
+      <span className="hero-sheen__copy" style={{ userSelect: "none", WebkitUserSelect: "none" }}>{children}</span>
     </span>
   );
 }
