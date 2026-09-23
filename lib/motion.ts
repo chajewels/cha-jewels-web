@@ -47,6 +47,8 @@ export const DUR = {
   shine: 2.4,
   /** The gold-edged curtain between hero slides: cover + reveal, in total. */
   wipe: 1.3,
+  /** A product photo sliding in and settling (the gallery). */
+  photo: 0.6,
   /** The hero vignette settling in from the edges. */
   vignette: 1.5,
 } as const;
@@ -85,6 +87,10 @@ export const SHEEN_EVERY = 8;
 
 /** How far a revealed block rises, px. */
 export const RISE = 24;
+
+/** Max tilt of a product card under a mouse, degrees; perspective in px. */
+export const TILT_MAX = 6;
+export const TILT_PERSPECTIVE = 900;
 
 /** Max travel of a magnetic element, px. */
 export const MAGNET_MAX = 6;

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DUR, STAGGER } from "@/lib/motion";
 import { REDUCED, useReduced } from "@/components/fx/media";
+import { isClientNavigation } from "@/components/fx/boot-marker";
 import type { Lang } from "@/lib/i18n";
 import { segment } from "@/components/fx/segment";
 
@@ -139,4 +140,16 @@ export function SplitHeading({ as: Tag = "h2", text, lang, className }: {
       {phase === "plain" ? text : <Units text={text} units={units} lang={lang} phase={phase} />}
     </Tag>
   );
+}
+
+/**
+ * A page title that rises in unit by unit when the reader ARRIVES by client
+ * navigation (tapping a product card), and is plain text on a first load —
+ * the LCP rule. Settles to plain text, like every split heading.
+ */
+export function NavHeading({ as: Tag = "h1", text, lang, className }: {
+  as?: "h1" | "h2"; text: string; lang: Lang; className?: string;
+}) {
+  const [entering] = useState(isClientNavigation);
+  return <Tag className={className}><SplitText text={text} lang={lang} play={entering} /></Tag>;
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cartCount } from "@/lib/cart";
 import { tr, type Lang } from "@/lib/i18n";
+import { CartBump } from "@/components/fx/cart-bump";
 
 /**
  * Header cart link with a live count. Server component — the count comes
@@ -23,10 +24,13 @@ export async function CartButton({ lang }: { lang: Lang }) {
       aria-label={label}
       className="inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-charcoal/30 px-2 text-sm text-charcoal hover:border-gold-dark hover:text-gold-dark sm:gap-2 sm:px-3"
     >
-      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8Z" />
-        <path d="M9 8V6a3 3 0 1 1 6 0v2" />
-      </svg>
+      {/* Bumps once when a piece is added (components/fx/cart-bump.tsx). */}
+      <CartBump>
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8Z" />
+          <path d="M9 8V6a3 3 0 1 1 6 0v2" />
+        </svg>
+      </CartBump>
       <span className="hidden sm:inline">{t("nav", "cart")}</span>
       {count > 0 && (
         <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-orange px-1 text-[11px] font-medium text-charcoal-deep">

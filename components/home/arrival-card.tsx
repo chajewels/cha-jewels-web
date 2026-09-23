@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
-import { fromPrice, primaryImage } from "@/lib/queries/products";
+import { allImages, fromPrice, primaryImage } from "@/lib/queries/products";
+import { CardFx, CardMedia } from "@/components/fx/card-fx";
 import type { Product } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { metalsLabel, productMetals } from "@/lib/metals";
@@ -34,18 +34,22 @@ const passthrough = (url: string) => url.startsWith("data:") || /\.svg(\?|$)/i.t
  * placeholder's "¥—" over a real product page link: a shopper clicked a piece
  * whose price the card could not state.
  */
-export function ArrivalCard({ product, lang }: { product: Product; lang: Lang }) {
+export function ArrivalCard({ product, lang, index = 0 }: { product: Product; lang: Lang; index?: number }) {
   const t = tr(lang);
   const name = productName(product, lang);
   // Non-null by construction: app/page.tsx filters with isShowableArrival.
   const img = primaryImage(product)!;
+  const second = allImages(product)[1];
   const price = fromPrice(product)!;
   const metal = metalsLabel(productMetals(product), lang);
   const meta = [metal, product.weight_g ? `${product.weight_g} g` : null].filter(Boolean).join(" · ");
   return (
-    <Link href={`/products/${product.slug}`} className="group flex flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm transition-shadow hover:shadow-md">
+    // Motion (components/fx/card-fx.tsx): rise-in, tilt + glint + second photo
+    // under a mouse, a gold glint and press feedback on touch.
+    <CardFx index={index} className="h-full">
+    <Link href={`/products/${product.slug}`} className="group flex h-full flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="relative aspect-square overflow-hidden bg-chalk">
-        <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-105" unoptimized={passthrough(img.url)} />
+        <CardMedia src={img.url} second={second?.url} alt={img.alt ?? name} sizes="(min-width:1024px) 25vw, 50vw" unoptimized={passthrough(img.url)} />
         <span className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded-sm bg-chalk/90 px-1.5 py-0.5 text-[10px] tracking-tight text-charcoal backdrop-blur-sm">
           <span aria-hidden="true" className="h-1 w-1 rounded-full bg-teal" />{t("home", "trust1H")}
         </span>
@@ -62,5 +66,6 @@ export function ArrivalCard({ product, lang }: { product: Product; lang: Lang })
         </div>
       </div>
     </Link>
+    </CardFx>
   );
 }

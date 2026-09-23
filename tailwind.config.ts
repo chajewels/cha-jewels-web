@@ -30,5 +30,14 @@ export default {
   // The motion tokens (lib/motion.ts) as custom properties on :root, so CSS
   // transitions and keyframes time themselves from the same file the
   // components read — in the stylesheet, not inlined into every page's HTML.
-  plugins: [plugin(({ addBase }) => addBase({ ":root": MOTION_CSS_VARS as Record<string, string> }))],
+  // The motion tokens, and the few palette tokens that component-owned styles
+  // (components/fx/*-style.ts) paint with, as custom properties on :root —
+  // so those styles read the colours from this file rather than copies.
+  plugins: [plugin(({ addBase, theme }) => addBase({ ":root": {
+    ...(MOTION_CSS_VARS as Record<string, string>),
+    "--c-gold": theme("colors.gold.DEFAULT"),
+    "--c-gold-pale": theme("colors.gold.pale"),
+    "--c-gold-dark": theme("colors.gold.dark"),
+    "--c-charcoal-deep": theme("colors.charcoal.deep"),
+  } }))],
 } satisfies Config;

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
-import { fromPrice, primaryImage, type Product } from "@/lib/queries/products";
+import { allImages, fromPrice, type Product } from "@/lib/queries/products";
+import { CardFx, CardMedia } from "@/components/fx/card-fx";
 import { formatMoney } from "@/lib/utils";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
@@ -8,11 +8,16 @@ import { productName } from "@/lib/catalog-i18n";
 import { availabilityKey, isBuyable, productAvailability } from "@/lib/availability";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
-export function ProductCard({ product, lang, featured = false }: { product: Product; lang: Lang; featured?: boolean }) {
+/**
+ * `index` is the card's place in its grid — the entrance runs row by row, left
+ * to right (components/fx/card-fx.tsx). The motion wraps the card; the card's
+ * content, links and copy are unchanged.
+ */
+export function ProductCard({ product, lang, featured = false, index = 0 }: { product: Product; lang: Lang; featured?: boolean; index?: number }) {
   const t = tr(lang);
   const price = fromPrice(product);
   const metal = metalsLabel(productMetals(product), lang);
-  const img = primaryImage(product);
+  const [img, second] = allImages(product);
   const v = product.product_variants[0];
   const name = productName(product, lang);
   // The SAME word the product page shows. The card said "Sold out" where the
@@ -20,9 +25,11 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
   const avail = productAvailability(product);
   const soldOut = !isBuyable(avail);
   return (
-    <Link href={`/products/${product.slug}`} className={`flex flex-col bg-white ${featured ? "border border-gold-dark p-1.5" : ""}`}>
+    // Sold out: no tilt (the brief). Everything else still moves.
+    <CardFx index={index} tilt={!soldOut} className="h-full">
+    <Link href={`/products/${product.slug}`} className={`flex h-full flex-col bg-white ${featured ? "border border-gold-dark p-1.5" : ""}`}>
       <div className={`relative overflow-hidden bg-chalk ${featured ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
-        {img ? <Image src={img.url} alt={img.alt ?? name} fill sizes="(min-width:1024px) 25vw, 50vw" className={`object-cover ${soldOut ? "opacity-50" : ""}`} /> : <GoldMotif />}
+        {img ? <CardMedia src={img.url} second={second?.url} alt={img.alt ?? name} sizes="(min-width:1024px) 25vw, 50vw" dim={soldOut} /> : <GoldMotif />}
         {soldOut && (
           <span className="absolute left-3 top-3 border border-charcoal-deep bg-white/90 px-2.5 py-1 text-xs tracking-wide text-charcoal-deep">
             {t("product", availabilityKey(avail))}
@@ -58,6 +65,7 @@ export function ProductCard({ product, lang, featured = false }: { product: Prod
         )}
       </div>
     </Link>
+    </CardFx>
   );
 }
 function Spec({ k, v, last = false }: { k: string; v: string; last?: boolean }) {

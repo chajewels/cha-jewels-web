@@ -88,10 +88,11 @@ async function ArrivalsAsync({ lang }: { lang: Lang }) {
           </div>
           <RevealItem index={2}><Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link></RevealItem>
         </RevealGroup>
-        {/* The pieces rise in one after another (components/fx/reveal.tsx). */}
-        <RevealGroup className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6" stagger={STAGGER.card}>
-          {arrivals.map((p, i) => <RevealItem key={p.id} index={i} className="flex [&>*]:w-full"><ArrivalCard product={p} lang={lang} /></RevealItem>)}
-        </RevealGroup>
+        {/* The pieces rise in one after another, and move under a mouse or a
+            finger (components/fx/card-fx.tsx). */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+          {arrivals.map((p, i) => <ArrivalCard key={p.id} product={p} lang={lang} index={i} />)}
+        </div>
       </div>
     </section>
   );

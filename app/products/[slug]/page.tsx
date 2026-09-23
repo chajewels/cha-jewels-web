@@ -18,6 +18,8 @@ import { AddToCart } from "@/components/commerce/add-to-cart";
 import { ReserveWithLayaway } from "@/components/commerce/reserve-with-layaway";
 import { JsonLd } from "@/components/site/json-ld";
 import { ProductView } from "@/components/analytics/product-view";
+import { RevealBlock } from "@/components/fx/reveal";
+import { NavHeading } from "@/components/fx/split-text";
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const [p, lang] = await Promise.all([getProductBySlug((await params).slug), getLang()]);
@@ -52,7 +54,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <div className="p-4"><dt className="text-xs text-charcoal/70">{t("product", "stone")}</dt><dd className="font-display text-2xl text-gold-dark">{variant?.stone ?? "—"}</dd></div>
             </dl>
           </figure>
+          {/* THE DETAILS ARRIVE IN ORDER (components/fx/reveal.tsx, RevealBlock):
+              badges, title, price, text, then the buttons and the calculator.
+              On a first load only what is below the fold waits for the reader
+              to scroll to it — nothing above the fold starts hidden (the LCP
+              rule). Arriving from a card (client navigation) the whole column
+              plays in, one block after another, and the title rises in. */}
           <div>
+            <RevealBlock index={0} enterOnNav>
             <div className="flex flex-wrap items-center gap-2">
               {/* The availability word sits with the other badges, not tacked
                   onto the SKU line where it read as part of a reference
@@ -66,21 +75,26 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <OriginBadge origin={p.origin} brand={p.brand} lang={lang} />
               <ConditionBadge condition={p.condition} lang={lang} />
             </div>
-            <h1 className="mt-4 text-[clamp(32px,4.2vw,60px)]">{name}</h1>
-            {price != null && <PriceBlock price={price} lang={lang} showReserve={layaway && isBuyable(avail)} className="mt-6" />}
-            {desc && <p className="mt-6 max-w-[52ch] text-charcoal">{desc}</p>}
-            <p className="mt-4 text-sm text-charcoal/70">SKU {p.sku}</p>
+            </RevealBlock>
+            <NavHeading text={name} lang={lang} className="mt-4 text-[clamp(32px,4.2vw,60px)]" />
+            {price != null && <RevealBlock index={1} enterOnNav><PriceBlock price={price} lang={lang} showReserve={layaway && isBuyable(avail)} className="mt-6" /></RevealBlock>}
+            <RevealBlock index={2} enterOnNav>
+              {desc && <p className="mt-6 max-w-[52ch] text-charcoal">{desc}</p>}
+              <p className="mt-4 text-sm text-charcoal/70">SKU {p.sku}</p>
+            </RevealBlock>
             {/* Two ways to buy the same piece, one basket — but only where
                 layaway is offered (English only, owner decision 2026-09-15).
                 On ja the piece is cash-only, so Reserve and the calculator both
                 go: a calculator for a plan the shopper cannot start is a
                 promise the checkout would refuse. See lib/layaway-availability. */}
+            <RevealBlock index={3} enterOnNav>
             {variant && <AddToCart variantId={variant.id} slug={p.slug} sku={p.sku} availability={avail} lang={lang} className="mt-6" />}
             {layaway && variant && isBuyable(avail) && <ReserveWithLayaway variantId={variant.id} slug={p.slug} sku={p.sku} lang={lang} className="mt-3" />}
+            </RevealBlock>
             {/* NO CALCULATOR ON A PIECE THAT CANNOT BE BOUGHT. It invited the
                 shopper to reserve this one "with ¥45,000 and pay the rest
                 monthly", beneath a button that refused to sell it. */}
-            {layaway && price != null && isBuyable(avail) && <LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} className="mt-8" />}
+            {layaway && price != null && isBuyable(avail) && <RevealBlock index={4} enterOnNav><LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} className="mt-8" /></RevealBlock>}
           </div>
         </div>
       </section>

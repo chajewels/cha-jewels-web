@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { STAGGER } from "@/lib/motion";
-import { useReduced } from "@/components/fx/media";
+import { REDUCED, useReduced } from "@/components/fx/media";
+import { isClientNavigation } from "@/components/fx/boot-marker";
 
 export type RevealState = "hidden" | "shown";
 
@@ -27,10 +28,14 @@ export type RevealState = "hidden" | "shown";
  * does with no runtime at all — and on a slow phone link the runtime's bytes
  * were measured delaying the hero poster, the page's LCP (docs/perf-baseline.md).
  */
-export function useReveal<T extends Element>(amount = 0.25) {
+export function useReveal<T extends Element>(amount = 0.25, enterOnNav = false) {
   const ref = useRef<T>(null);
   const reduced = useReduced();
-  const [state, setState] = useState<RevealState>("shown");
+  // On a CLIENT NAVIGATION there is no first paint to protect (the LCP rule
+  // is about first load), so a block that asks for it starts hidden and
+  // plays its entrance at once — decided at first render, in the browser.
+  const [state, setState] = useState<RevealState>(() =>
+    enterOnNav && isClientNavigation() && !window.matchMedia(REDUCED).matches ? "hidden" : "shown");
   const armed = useRef(false);
 
   useEffect(() => {
@@ -39,6 +44,12 @@ export function useReveal<T extends Element>(amount = 0.25) {
     if (reduced) { setState("shown"); return; }
     if (armed.current) return;
     armed.current = true;
+    if (state === "hidden") {
+      // Entering on navigation: two frames so the hidden pose is painted first.
+      let b = 0;
+      const a = requestAnimationFrame(() => { b = requestAnimationFrame(() => setState("shown")); });
+      return () => { cancelAnimationFrame(a); cancelAnimationFrame(b); };
+    }
     if (el.getBoundingClientRect().top < window.innerHeight) return; // on screen already: leave it be
     setState("hidden");
     const io = new IntersectionObserver(([e]) => {
@@ -46,6 +57,7 @@ export function useReveal<T extends Element>(amount = 0.25) {
     }, { threshold: amount });
     io.observe(el);
     return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced, amount]);
 
   return { ref, state };
@@ -70,4 +82,21 @@ export function RevealGroup({ className, children, stagger = STAGGER.base, amoun
 
 export function RevealItem({ index, className = "", children }: { index: number; className?: string; children: React.ReactNode }) {
   return <div className={`reveal-item ${className}`} style={{ ["--i" as string]: index }}>{children}</div>;
+}
+
+/**
+ * One block with its own entrance: rises in when it scrolls into view, or —
+ * with `enterOnNav` — straight away on a client navigation, `index` blocks
+ * after the first. For page content that is a column of different things
+ * (the product page's details) rather than a grid.
+ */
+export function RevealBlock({ index, enterOnNav = false, stagger = STAGGER.card, className = "", children }: {
+  index: number; enterOnNav?: boolean; stagger?: number; className?: string; children: React.ReactNode;
+}) {
+  const { ref, state } = useReveal<HTMLDivElement>(0.2, enterOnNav);
+  return (
+    <div ref={ref} data-reveal={state} className={className}>
+      <div className="reveal-item" style={{ ["--i" as string]: index, ["--stagger" as string]: `${stagger}s` }}>{children}</div>
+    </div>
+  );
 }
