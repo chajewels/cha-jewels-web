@@ -16,11 +16,11 @@ same network, no CDN variance.
 
 | | develop | this branch | delta |
 |---|---|---|---|
-| **mobile transfer weight** | **2786 KB** | **1264 KB** | **−1522 KB (−55%)** |
-| mobile Performance | 88 (78–88) | 87 (77–91) | −1, inside noise |
-| mobile simulated LCP | 3936 ms (3930–5645) | 4069 ms (3476–5717) | +133 ms, inside noise |
-| mobile observed LCP | 227 ms (200–1283) | 324 ms (256–1297) | +97 ms, inside noise |
-| mobile TBT | 10 ms (7–46) | 12 ms (10–20) | +2 ms |
+| **mobile transfer weight** | **2786 KB** | **1317 KB** | **−1469 KB (−53%)** |
+| mobile Performance | 88 (78–88) | 86 (78–88) | −2, inside noise |
+| mobile simulated LCP | 3936 ms (3930–5645) | 4150 ms (3947–5642) | +214 ms, inside noise |
+| mobile observed LCP | 227 ms (200–1283) | 288 ms (231–1203) | +61 ms, inside noise |
+| mobile TBT | 10 ms (7–46) | 22 ms (19–24) | +12 ms |
 | mobile CLS | 0.0000 | 0.0000 | — |
 | desktop transfer weight | 2806 KB | 2788 KB | −18 KB |
 | desktop Performance | 100 (100–100) | 100 (99–100) | — |
@@ -45,21 +45,31 @@ generational loss. Same framing, same 16:9, no crop.
 |---|---|---|---|
 | `hero-artisan.webm` (desktop, unchanged) | 1920×1080 VP9 | 1,946,820 B (1.86 MB) | — |
 | `hero-artisan.mp4` (desktop, unchanged) | 1920×1080 H.264 | 3,961,044 B (3.78 MB) | — |
-| **`hero-artisan-mobile.webm`** | 854×480 VP9 | **406,480 B (397 KiB)** | −79% |
-| **`hero-artisan-mobile.mp4`** | 854×480 H.264 | **444,263 B (434 KiB)** | −89% |
+| **`hero-artisan-mobile.webm`** | 1280×720 VP9 | **442,157 B (431 KiB)** | −77% |
+| **`hero-artisan-mobile.mp4`** | 1280×720 H.264 | **452,077 B (441 KiB)** | −89% |
+
+
+**720p, not 480p — the owner's choice, 2026-09-23.** An 854×480 pair was encoded
+first (397 KiB WebM / 434 KiB MP4) and compared against this one at
+deviceScaleFactor 3, the density a phone actually renders at. At 720p the gold
+grains in the crucible stay defined; at 480p they blur into soft texture. The
+extra cost is 35 KiB of WebM and 8 KiB of MP4 — both pairs are two-pass VBR
+aimed at the same ~450 KB ceiling, so the target sets the size, not the
+resolution. Frames in docs/screenshots/perf-mobile-weight/.
 
 ```
 # WebM (VP9), two-pass, no audio
-ffmpeg -i hero-artisan.mp4 -an -vf "scale=854:480:flags=lanczos" \
-  -c:v libvpx-vp9 -b:v 130k -pass 1 -row-mt 1 -deadline good -cpu-used 4 -g 240 -f null /dev/null
-ffmpeg -i hero-artisan.mp4 -an -vf "scale=854:480:flags=lanczos" \
-  -c:v libvpx-vp9 -b:v 130k -pass 2 -row-mt 1 -deadline good -cpu-used 2 -g 240 hero-artisan-mobile.webm
+ffmpeg -i hero-artisan.mp4 -an -vf "scale=1280:720:flags=lanczos" \
+  -c:v libvpx-vp9 -b:v 142k -pass 1 -row-mt 1 -deadline good -cpu-used 4 -g 240 -f null /dev/null
+ffmpeg -i hero-artisan.mp4 -an -vf "scale=1280:720:flags=lanczos" \
+  -c:v libvpx-vp9 -b:v 142k -pass 2 -row-mt 1 -deadline good -cpu-used 2 -g 240 hero-artisan-mobile.webm
 
-# MP4 (H.264) fallback — iOS Safari before 17.4 has no WebM
-ffmpeg -i hero-artisan.mp4 -an -vf "scale=854:480:flags=lanczos" \
-  -c:v libx264 -profile:v main -preset slow -b:v 135k -pass 1 -g 240 -pix_fmt yuv420p -f null /dev/null
-ffmpeg -i hero-artisan.mp4 -an -vf "scale=854:480:flags=lanczos" \
-  -c:v libx264 -profile:v main -preset slow -b:v 135k -pass 2 -g 240 -pix_fmt yuv420p \
+# MP4 (H.264) fallback — iOS Safari before 17.4 has no WebM.
+# 134k, not 138k: 138k landed at 453 KiB, just over the 450 KB target.
+ffmpeg -i hero-artisan.mp4 -an -vf "scale=1280:720:flags=lanczos" \
+  -c:v libx264 -profile:v main -preset slow -b:v 134k -pass 1 -g 240 -pix_fmt yuv420p -f null /dev/null
+ffmpeg -i hero-artisan.mp4 -an -vf "scale=1280:720:flags=lanczos" \
+  -c:v libx264 -profile:v main -preset slow -b:v 134k -pass 2 -g 240 -pix_fmt yuv420p \
   -movflags +faststart hero-artisan-mobile.mp4
 ```
 
