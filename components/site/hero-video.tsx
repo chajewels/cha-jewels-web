@@ -80,7 +80,7 @@ const CLIP: Record<Exclude<HeroSource, "none">, { webm: string; mp4: string }> =
 
 export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseLabel: string }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const { videoOn, paused, toggle } = useHeroMotion();
+  const { videoOn, paused, toggle, mediaRef } = useHeroMotion();
   const [armed, setArmed] = useState(false);
   const [playing, setPlaying] = useState(false);
   /**
@@ -149,6 +149,9 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
 
   return (
     <>
+      {/* The scroll sink's scale lives on this wrapper, not on the <video>: the
+          element, its sources and its loading are exactly as before. */}
+      <div ref={mediaRef} className="absolute inset-0 z-0">
       <video
         ref={ref}
         className="hero-video"
@@ -168,6 +171,7 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
           </>
         )}
       </video>
+      </div>
       <button
         type="button"
         className="hero-video__toggle"

@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { trackHeroSlideCta } from "@/lib/analytics";
 import { useHeroMotion } from "@/components/home/hero";
 import { HubImage } from "@/components/media/hub-image";
+import { SplitText } from "@/components/fx/split-text";
+import { HeroSheen } from "@/components/fx/hero-sheen";
+import { Magnetic } from "@/components/fx/magnetic";
+import { isClientNavigation } from "@/components/fx/motion-provider";
+import { DUR } from "@/lib/motion";
 
 export type HeroSlide =
   | { kind: "intro"; layaway: boolean }
@@ -52,7 +57,11 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
   // Shared with the video: which slide is up, and whether the hero may move at
   // all (on screen, tab visible, reduced motion off, reader has not paused).
   // components/home/hero.tsx holds all of it.
-  const { active, setActive, rotateOn, reduced } = useHeroMotion();
+  const { active, setActive, rotateOn, reduced, sheenOn } = useHeroMotion();
+  // First page load: the headline paints as plain text, at once (the LCP
+  // rule). Arrived by client navigation: it rises in unit by unit. Decided
+  // once, at first render.
+  const [entering] = useState(isClientNavigation);
   const [held, setHeld] = useState(false);       // hover / focus / touch
   const count = slides.length;
 
@@ -170,9 +179,18 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
             {s.kind === "intro" ? (
               <div className="wrap w-full py-8 text-center lg:py-24 lg:text-left">
                 <div className="mx-auto max-w-[820px] lg:mx-0">
-                  <h1 className="text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
-                    {t("hero", "h1a")}<br />
-                    <span className="text-gold-pale">{t("hero", "h1b")}</span>
+                  {/* `relative` for the sheen, which is laid exactly over
+                      these letters (components/fx/hero-sheen.tsx). On a
+                      client navigation the sheen waits for the words to
+                      finish rising before it crosses them. */}
+                  <h1 className="relative text-[clamp(30px,5vw,60px)] leading-[1.15] text-chalk">
+                    <SplitText text={t("hero", "h1a")} lang={lang} play={entering} />
+                    <br />
+                    <SplitText text={t("hero", "h1b")} lang={lang} play={entering} delay={DUR.micro} className="text-gold-pale" />
+                    <HeroSheen on={sheenOn} delay={entering ? DUR.reveal + DUR.image : undefined}>
+                      {t("hero", "h1a")}<br />
+                      <span className="hero-sheen__gold">{t("hero", "h1b")}</span>
+                    </HeroSheen>
                   </h1>
                   {/* ONE paragraph. The intro slide carried two, the second
                       line-clamped to five lines on mobile — which is the
@@ -184,8 +202,8 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
                       languages moved together. */}
                   <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("hero", "lede")}</p>
                   <div className="mt-6 flex flex-wrap justify-center gap-3 lg:mt-9 lg:justify-start">
-                    <Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button>
-                    {s.layaway && <Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk hover:text-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button>}
+                    <Magnetic><Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button></Magnetic>
+                    {s.layaway && <Magnetic><Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk hover:text-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button></Magnetic>}
                   </div>
                 </div>
               </div>
@@ -210,7 +228,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
                     <h2 className="mt-4 font-display text-[clamp(32px,4.5vw,56px)] leading-[1.1] text-gold-pale">{s.name}</h2>
                     {s.description && <p className="mt-5 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{s.description}</p>}
                     <div className="mt-8 flex">
-                      <Button asChild><Link href={`/categories/${s.slug}`} onClick={() => trackHeroSlideCta(s.slug)}>{s.cta ?? t("home", "slideShop", { name: s.name })}</Link></Button>
+                      <Magnetic><Button asChild><Link href={`/categories/${s.slug}`} onClick={() => trackHeroSlideCta(s.slug)}>{s.cta ?? t("home", "slideShop", { name: s.name })}</Link></Button></Magnetic>
                     </div>
                   </div>
                 </div>

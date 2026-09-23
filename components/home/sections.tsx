@@ -7,6 +7,8 @@ import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, isShowableArrival } from "@/components/home/arrival-card";
 import { LayawayBand } from "@/components/commerce/layaway-band";
 import { SectionBoundary } from "@/components/home/section-boundary";
+import { RevealGroup, RevealItem } from "@/components/fx/reveal";
+import { STAGGER } from "@/lib/motion";
 
 /**
  * THE HOMEPAGE'S SECONDARY SECTIONS, EACH WAITING ON ITS OWN.
@@ -84,9 +86,10 @@ async function ArrivalsAsync({ lang }: { lang: Lang }) {
           </div>
           <Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link>
         </div>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-          {arrivals.map((p) => <ArrivalCard key={p.id} product={p} lang={lang} />)}
-        </div>
+        {/* The pieces rise in one after another (components/fx/reveal.tsx). */}
+        <RevealGroup className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6" stagger={STAGGER.card}>
+          {arrivals.map((p) => <RevealItem key={p.id} className="flex [&>*]:w-full"><ArrivalCard product={p} lang={lang} /></RevealItem>)}
+        </RevealGroup>
       </div>
     </section>
   );

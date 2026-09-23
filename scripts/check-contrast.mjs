@@ -126,6 +126,19 @@ add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "oran
   for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `scrim@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
 }
 
+// Values-tile SPOTLIGHT (app/globals.css .spotlight, components/fx/spotlight.tsx).
+// Under a mouse, a gold glow sits between the charcoal tile and its copy. Its
+// peak is gold at 20% (the radial gradient's centre), so the copy is measured
+// on gold/20 composited over charcoal — the brightest the tile ever gets.
+// The orange "01"–"04" numerals are 11px bold, so they are held to TEXT.
+{
+  const lit = blend(hex(C.gold), hex(C.charcoal), 0.20);
+  const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), lit, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(lit)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  pairs.push({ label: "spotlight peak: chalk heading", fg: "chalk", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("chalk") });
+  pairs.push({ label: "spotlight peak: chalk/75 body", fg: "chalk", bg: "spotlight@gold20", need: TEXT, alpha: 0.75, ratio: on("chalk", 0.75) });
+  pairs.push({ label: "spotlight peak: orange numeral (11px bold)", fg: "orange", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("orange") });
+}
+
 // Hero SLIDE scrim (app/globals.css .hero-slide-scrim) on a full-bleed category
 // photo. Horizontal, so the copy sits under the .82 stop at the left edge while
 // the photo clears to nothing on the right.

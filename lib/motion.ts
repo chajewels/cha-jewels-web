@@ -13,8 +13,17 @@
  * Plain module, no "use client": the server layout imports the CSS variables.
  */
 
-/** cubic-bezier(0.16, 1, 0.3, 1) — the one ease. */
+/** cubic-bezier(0.16, 1, 0.3, 1) — the ease for everything that ARRIVES. */
 export const EASE_LUX = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * The one exception: light CROSSING a surface. EASE_LUX covers two thirds of
+ * the distance in the first fifth of the time — right for a block settling
+ * into place, but a sheen on that curve is a flicker at the far edge (tested:
+ * gone before 1.3 s, and nobody saw it). Light moves at an even pace, easing
+ * in and out at the ends.
+ */
+export const EASE_SHEEN = [0.45, 0.05, 0.35, 1] as const;
 
 /** Seconds. */
 export const DUR = {
@@ -25,9 +34,19 @@ export const DUR = {
   /** Hover and tap feedback. */
   micro: 0.25,
   /** The hero headline sheen: one pass of the light across the words. */
-  sheen: 1.8,
+  sheen: 2.6,
   /** A hairline or an ornament drawing itself. */
   draw: 1.1,
+  /** One lap of light around a shine border; a spotlight's touch glow. */
+  shine: 2.4,
+} as const;
+
+/** Seconds before first-load flourishes start, so the page has landed. */
+export const DELAY = {
+  /** The first hero sheen pass. */
+  sheen: 0.35,
+  /** The one-time shine around a CTA on touch screens, after the sheen. */
+  shineTouch: 1.6,
 } as const;
 
 /** Seconds between siblings. */
@@ -43,13 +62,6 @@ export const SHEEN_EVERY = 8;
 
 /** How far a revealed block rises, px. */
 export const RISE = 24;
-
-/**
- * Pointer follow (magnetic buttons). Critically damped — damping = 2·√(k·m) —
- * so it arrives without overshoot: no bounce, which the brief forbids. Heavy
- * mass, low stiffness: it trails the pointer rather than chasing it.
- */
-export const SPRING_POINTER = { type: "spring", stiffness: 120, mass: 1.2, damping: 2 * Math.sqrt(120 * 1.2) } as const;
 
 /** Max travel of a magnetic element, px. */
 export const MAGNET_MAX = 6;
@@ -70,6 +82,12 @@ export const MOTION_CSS_VARS = {
   "--ease-lux": `cubic-bezier(${EASE_LUX.join(", ")})`,
   "--dur-reveal": `${DUR.reveal}s`,
   "--dur-micro": `${DUR.micro}s`,
+  "--ease-sheen": `cubic-bezier(${EASE_SHEEN.join(", ")})`,
   "--dur-sheen": `${DUR.sheen}s`,
   "--dur-draw": `${DUR.draw}s`,
+  "--dur-image": `${DUR.image}s`,
+  "--stagger-card": `${STAGGER.card}s`,
+  "--dur-shine": `${DUR.shine}s`,
+  "--delay-sheen": `${DELAY.sheen}s`,
+  "--delay-shine-touch": `${DELAY.shineTouch}s`,
 } as React.CSSProperties;

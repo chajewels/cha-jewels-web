@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { HERO_SINK } from "@/lib/motion";
 import { HeroVideo } from "@/components/site/hero-video";
 import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
 import type { Lang } from "@/lib/i18n";
@@ -26,6 +27,18 @@ import type { Lang } from "@/lib/i18n";
  *              who does that is asking for it to stop now, not on next load.
  *   paused     the reader pressed the button. That outranks everything.
  *
+ * The headline sheen (components/fx/hero-sheen.tsx) reads `sheenOn` from here
+ * too, so the same button stops the light crossing the words. And the scroll
+ * sink — media scaling 1 → 1.06, the copy drifting up and softening as the
+ * reader scrolls past — is driven from this section's own scroll progress.
+ * Transform and opacity only; static under reduced motion.
+ *
+ * THE SINK IS A SCROLL LISTENER, NOT motion's useScroll. useScroll brought
+ * 19 kB of gzipped JavaScript to the homepage for three numbers, which on its
+ * own would have spent over half the motion budget (docs/perf-baseline.md).
+ * A passive listener that writes three transforms once per frame does the
+ * same job, and skips the work entirely while the hero is off screen.
+ *
  * ONE BUTTON FOR BOTH. Pressing pause stops the video AND the rotation,
  * because "pause" means "stop moving" to the person pressing it, and a control
  * that stopped half the motion would be a control that did not work.
@@ -41,6 +54,15 @@ type HeroMotion = {
   videoOn: boolean;
   /** The deck may rotate: allowed AND not paused (any slide). */
   rotateOn: boolean;
+  /**
+   * The headline sheen may pass: on screen, tab visible, not paused. NOT
+   * gated on `asked` — the first pass plays from the server markup, before
+   * hydration, which is what gets it seen inside 3 s on a slow phone; reduced
+   * motion is enforced in CSS before the first paint instead.
+   */
+  sheenOn: boolean;
+  /** The video/photo layer the scroll sink scales (components/site/hero-video.tsx). */
+  mediaRef: React.RefObject<HTMLDivElement | null>;
   toggle: () => void;
 };
 
@@ -101,6 +123,30 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
   }, []);
 
   const allowed = asked && onScreen && !hidden && !reduced;
+
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = section.current, media = mediaRef.current, content = contentRef.current;
+    if (!el || !media || !content) return;
+    const clear = () => { media.style.transform = ""; content.style.transform = ""; content.style.opacity = ""; };
+    if (reduced || !onScreen) { if (reduced) clear(); return; }
+    let frame = 0;
+    const paint = () => {
+      frame = 0;
+      // 0 with the hero's top at the viewport's top, 1 once its bottom has left.
+      const r = el.getBoundingClientRect();
+      const p = Math.min(1, Math.max(0, -r.top / r.height));
+      media.style.transform = p ? `scale(${1 + (HERO_SINK.mediaScale - 1) * p})` : "";
+      content.style.transform = p ? `translate3d(0, ${-HERO_SINK.contentDrift * p}px, 0)` : "";
+      content.style.opacity = p ? String(1 - (1 - HERO_SINK.contentFade) * Math.min(1, p / 0.9)) : "";
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(paint); };
+    paint();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(frame); };
+  }, [reduced, onScreen]);
+
   const value = useMemo<HeroMotion>(() => ({
     active,
     setActive,
@@ -109,15 +155,17 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
     reduced,
     videoOn: allowed && !paused && active === 0,
     rotateOn: allowed && !paused,
+    sheenOn: onScreen && !hidden && !paused && !reduced,
+    mediaRef,
     toggle: () => setPaused((p) => !p),
-  }), [active, allowed, paused, reduced]);
+  }), [active, allowed, paused, reduced, onScreen, hidden]);
 
   return (
     <Ctx.Provider value={value}>
       <section ref={section} className={className}>
         <HeroVideo playLabel={videoPlayLabel} pauseLabel={videoPauseLabel} />
         {children}
-        <div className="relative z-10 w-full self-stretch">
+        <div ref={contentRef} className="relative z-10 w-full self-stretch">
           <HeroSlides lang={lang} slides={slides} />
         </div>
       </section>

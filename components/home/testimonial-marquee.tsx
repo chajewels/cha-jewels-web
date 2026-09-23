@@ -10,6 +10,8 @@ import type { Testimonial } from "@/lib/types";
 const SECONDS_PER_CARD = 6;
 /** How long after the last touch before the track starts moving again. */
 const RESUME_AFTER_MS = 5000;
+/** Under a hovering pointer the track slows to this share of its speed. */
+const HOVER_RATE = 0.5;
 
 /**
  * The testimonials, scrolling right to left, forever.
@@ -22,9 +24,12 @@ const RESUME_AFTER_MS = 5000;
  * order: it is the same eight quotes a second time, and a screen reader or a
  * tab sequence should meet them once.
  *
- * It stops when anyone is looking closely — hover, or focus anywhere inside —
- * because a moving target is not readable, and a quote nobody can finish
- * reading is decoration.
+ * HOVER SLOWS IT TO HALF SPEED; FOCUS STOPS IT. A pointer resting on the
+ * section is a reader leaning in, and the track eases down to half speed for
+ * them — through the Web Animations API's updatePlaybackRate, which changes
+ * speed without a jump, where rewriting the CSS duration would snap the
+ * track to a new position. Keyboard focus inside still stops it outright: a
+ * focused quote has to hold still to be read.
  *
  * ON TOUCH IT STOPS BEING AN ANIMATION. A transform cannot be dragged, so on
  * pointer-down the track becomes an ordinary `overflow-x-auto` snap scroller
@@ -50,6 +55,10 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dupRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const setRate = (rate: number) => {
+    for (const a of trackRef.current?.getAnimations() ?? []) a.updatePlaybackRate(rate);
+  };
 
   useEffect(() => () => { if (resumeTimer.current) clearTimeout(resumeTimer.current); }, []);
 
@@ -106,12 +115,14 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
       // The edges fade rather than cut, so a card enters and leaves instead of
       // appearing. A mask works on alpha, so it fades to whatever is behind —
       // no colour to keep in step with the section.
+      // 7rem, not 4: deep enough that a card visibly dissolves at the edge
+      // rather than being cut by a soft line.
       style={{
-        maskImage: "linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent)",
-        WebkitMaskImage: "linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent)",
+        maskImage: "linear-gradient(to right, transparent, #000 7rem, #000 calc(100% - 7rem), transparent)",
+        WebkitMaskImage: "linear-gradient(to right, transparent, #000 7rem, #000 calc(100% - 7rem), transparent)",
       }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={() => setRate(HOVER_RATE)}
+      onMouseLeave={() => setRate(1)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
       onPointerDown={interacted}
@@ -124,6 +135,7 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
         // track becomes a real scroller and they drive.
       >
         <div
+          ref={trackRef}
           className="marquee-track flex"
           data-paused={paused || dragging || !onScreen ? "true" : "false"}
           style={{ ["--marquee-duration" as string]: `${items.length * SECONDS_PER_CARD}s` }}

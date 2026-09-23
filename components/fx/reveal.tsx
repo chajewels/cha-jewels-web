@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { m, type Variants } from "motion/react";
+import * as m from "motion/react-m";
+import type { Variants } from "motion/react";
 import { RISE, STAGGER, T } from "@/lib/motion";
 import { useReduced } from "@/components/fx/media";
 
@@ -52,20 +53,15 @@ export const RISE_VARIANTS: Variants = {
   shown: { opacity: 1, y: 0, transition: T.reveal },
 };
 
-/** One block rising into place. */
-export function Reveal({ className, children, amount }: { className?: string; children: React.ReactNode; amount?: number }) {
-  const { ref, state } = useReveal<HTMLDivElement>(amount);
-  return (
-    <m.div ref={ref} className={className} initial={false} animate={state} variants={RISE_VARIANTS}>
-      {children}
-    </m.div>
-  );
-}
-
 /**
  * A grid whose items arrive one after another. The group owns the state and
  * the stagger; each <RevealItem> (or any `m` element with "hidden"/"shown"
  * variants of its own) inherits it.
+ *
+ * The state is also on the element as `data-reveal`, so an entrance that is
+ * only a timed CSS transition — the collection cards' hairline and wipe
+ * (components/fx/card-entrance.tsx) — can follow it without shipping any
+ * motion code of its own.
  */
 export function RevealGroup({ className, children, stagger = STAGGER.base, amount = 0.15 }: {
   className?: string; children: React.ReactNode; stagger?: number; amount?: number;
@@ -75,6 +71,7 @@ export function RevealGroup({ className, children, stagger = STAGGER.base, amoun
     <m.div
       ref={ref}
       className={className}
+      data-reveal={state}
       initial={false}
       animate={state}
       variants={{ hidden: {}, shown: { transition: { staggerChildren: stagger } } }}

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
+import { LazyMotion, MotionConfig } from "motion/react";
 
 /**
  * FIRST LOAD OR CLIENT NAVIGATION?
@@ -28,15 +28,24 @@ export const isClientNavigation = () => booted;
  * makes a stray `motion.div` throw in development instead of silently pulling
  * the full bundle back in.
  *
+ * THE FEATURES LOAD AFTER HYDRATION. domAnimation is 21 kB of the ~28 kB
+ * gzipped motion costs, so it is a dynamic import (motion's documented lazy
+ * pattern) and stays off the first-load path. Until it lands an `m` element
+ * renders exactly as its markup says — and every reveal here renders its
+ * FINISHED state from the server (components/fx/reveal.tsx), so the gap is
+ * invisible: nothing is waiting on this to become visible.
+ *
  * MotionConfig reducedMotion="user": motion components drop transforms for a
  * reader with Reduce Motion on. That alone still lets opacity animate, so
  * every effect in components/fx ALSO checks the setting itself and renders
  * static — see useReduced in components/fx/media.ts.
  */
+const loadFeatures = () => import("@/components/fx/motion-features").then((r) => r.default);
+
 export function MotionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { booted = true; }, []);
   return (
-    <LazyMotion features={domAnimation} strict>
+    <LazyMotion features={loadFeatures} strict>
       <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </LazyMotion>
   );

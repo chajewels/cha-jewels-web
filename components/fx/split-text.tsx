@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
-import { m, type Variants } from "motion/react";
+import * as m from "motion/react-m";
+import type { Variants } from "motion/react";
 import { STAGGER, T } from "@/lib/motion";
 import { REDUCED, useReduced } from "@/components/fx/media";
 import type { Lang } from "@/lib/i18n";

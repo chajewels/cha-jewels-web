@@ -267,6 +267,174 @@
     margin-bottom: -0.14em;
   }
 
+  /* ---------------------------------------------------------------------
+     HERO SHEEN (components/fx/hero-sheen.tsx).
+
+     A window 40% of the headline's width travels from just off its left
+     edge to just off its right; the copy of the headline inside it travels
+     the opposite way by exactly the same distance on the same curve, so the
+     copy stays pinned over the real letters. Window: translateX(-100%) →
+     (100/0.40)% of its own width. Copy (width = headline = window / 0.40):
+     translateX(40%) → translateX(-100%). Same duration, same ease — the two
+     transforms cancel at every frame. Transform only; nothing repaints.
+
+     The window's edges are feathered by a static mask, so the light has no
+     hard boundary. Inside it, chalk letters turn gold-pale and gold letters
+     flare to chalk, each with a gold bloom.
+
+     Reduced motion: not drawn at all. The blanket rule would only freeze it.
+     --------------------------------------------------------------------- */
+  .hero-sheen {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 32%, #000 68%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 32%, #000 68%, transparent);
+    transform: translateX(-100%);
+    animation: hero-sheen-window var(--dur-sheen) var(--ease-sheen) var(--sheen-delay, var(--delay-sheen)) 1 both;
+  }
+  .hero-sheen__copy {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% / 0.4);
+    color: theme('colors.gold.pale');
+    text-shadow: 0 0 22px theme('colors.gold.DEFAULT'), 0 0 8px theme('colors.gold.DEFAULT' / 90%), 0 0 1px theme('colors.gold.pale');
+    transform: translateX(40%);
+    animation: hero-sheen-copy var(--dur-sheen) var(--ease-sheen) var(--sheen-delay, var(--delay-sheen)) 1 both;
+  }
+  .hero-sheen__gold { color: theme('colors.chalk'); }
+  @keyframes hero-sheen-window { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  @keyframes hero-sheen-copy { from { transform: translateX(40%); } to { transform: translateX(-100%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-sheen { display: none; }
+  }
+
+  /* ---------------------------------------------------------------------
+     SHINE BORDER (components/fx/magnetic.tsx) — a 1.5px gold ring just
+     outside a call to action. The ring is a gradient masked down to its own
+     padding box, so only the border shows. Hidden at rest; on hover or
+     keyboard focus it fades in and light runs along it. On touch (no hover)
+     it passes once when the page shows it, then goes. Colours: gold-dark,
+     gold-pale, chalk, gold — tokens only.
+     --------------------------------------------------------------------- */
+  .shine-border { position: relative; border-radius: 2px; }
+  /* The magnetic lean: offsets written by the component, eased toward. Only
+     present under a fine pointer with reduced motion off (the component adds
+     the class), so touch and reduced motion never get a transform. */
+  .magnetic {
+    transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
+    transition: transform var(--dur-reveal) var(--ease-lux);
+  }
+  .shine-border::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 3px;
+    padding: 1.5px;
+    background: linear-gradient(115deg, theme('colors.gold.dark') 0%, theme('colors.gold.pale') 28%, theme('colors.chalk') 42%, theme('colors.gold.DEFAULT') 56%, theme('colors.gold.pale') 72%, theme('colors.gold.dark') 100%);
+    background-size: 250% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-micro) var(--ease-lux);
+  }
+  .shine-border:hover::before,
+  .shine-border:focus-within::before {
+    opacity: 1;
+    animation: shine-run var(--dur-shine) linear infinite;
+  }
+  @keyframes shine-run { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+  @media (hover: none) {
+    .shine-border::before { animation: shine-once var(--dur-shine) var(--ease-lux) var(--delay-shine-touch) 1 both; }
+  }
+  @keyframes shine-once {
+    0% { opacity: 0; background-position: 100% 0; }
+    25% { opacity: 1; }
+    75% { opacity: 1; }
+    100% { opacity: 0; background-position: -150% 0; }
+  }
+
+  /* ---------------------------------------------------------------------
+     SPOTLIGHT (components/fx/spotlight.tsx) — the values tiles.
+
+     ::before is the glow under the copy, ::after the lit edge; both are
+     radial gradients centred on --mx/--my, which the component writes on
+     pointer move (no React render). data-lit: "on" while a mouse is inside,
+     "touch" once on touch devices when the tile is seen, "off" otherwise.
+     The copy sits above the glow (`> *` relative). The glow's peak is gold
+     at 20% over charcoal — the tile text is measured on that in
+     scripts/check-contrast.mjs ("spotlight" rows).
+     --------------------------------------------------------------------- */
+  .spotlight { position: relative; isolation: isolate; }
+  .spotlight > * { position: relative; z-index: 1; }
+  .spotlight::before,
+  .spotlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-reveal) var(--ease-lux);
+  }
+  .spotlight::before {
+    background: radial-gradient(360px circle at var(--mx, 25%) var(--my, 15%), theme('colors.gold.DEFAULT' / 20%), transparent 65%);
+  }
+  .spotlight::after {
+    padding: 1px;
+    background: radial-gradient(220px circle at var(--mx, 25%) var(--my, 15%), theme('colors.gold.pale' / 95%), theme('colors.gold.DEFAULT' / 35%) 45%, transparent 75%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+  .spotlight[data-lit="on"]::before,
+  .spotlight[data-lit="on"]::after { opacity: 1; transition-duration: var(--dur-micro); }
+  .spotlight[data-lit="touch"]::before,
+  .spotlight[data-lit="touch"]::after { animation: spotlight-touch var(--dur-shine) var(--ease-lux) 1 both; }
+  @keyframes spotlight-touch { 0% { opacity: 0; } 40% { opacity: 1; } 100% { opacity: 0.45; } }
+  @media (prefers-reduced-motion: reduce) {
+    .spotlight::before, .spotlight::after { display: none; }
+  }
+
+  /* ---------------------------------------------------------------------
+     CARD ENTRANCE (components/fx/card-entrance.tsx) and the DRAWN DIVIDER
+     (components/fx/drawn-divider.tsx). Both follow `data-reveal` on the
+     nearest reveal container: "hidden" snaps to the start pose with no
+     transition (it only ever happens off screen), "shown" plays the
+     entrance. Timings are the lib/motion.ts tokens.
+     --------------------------------------------------------------------- */
+  .card-line {
+    transform-origin: left;
+    transition: transform var(--dur-draw) var(--ease-lux) calc(var(--i, 0) * var(--stagger-card));
+  }
+  .card-wipe {
+    transition:
+      clip-path var(--dur-image) var(--ease-lux) calc(var(--i, 0) * var(--stagger-card) + var(--dur-draw) * 0.4),
+      transform var(--dur-image) var(--ease-lux) calc(var(--i, 0) * var(--stagger-card) + var(--dur-draw) * 0.4);
+  }
+  [data-reveal="hidden"] .card-line { transform: scaleX(0); transition: none; }
+  [data-reveal="hidden"] .card-wipe { clip-path: inset(100% 0 0 0); transform: scale(1.06); transition: none; }
+
+  .drawn-divider__line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset var(--dur-draw) var(--ease-lux) var(--dur-micro);
+  }
+  .drawn-divider__diamond {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform var(--dur-reveal) var(--ease-lux);
+  }
+  [data-reveal="hidden"] .drawn-divider__line { stroke-dashoffset: 1; transition: none; }
+  [data-reveal="hidden"] .drawn-divider__diamond { transform: scale(0) rotate(-45deg); transition: none; }
+
   .menu-in { animation: menu-in 180ms ease-out both; }
   @keyframes menu-in {
     from { opacity: 0; transform: translateY(-7px); }
