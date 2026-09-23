@@ -35,14 +35,91 @@ import { useHeroMotion } from "@/components/home/hero";
  */
 export const HERO_POSTER = "/images/home/hero-poster.webp";
 
+/**
+ * WHICH CLIP, OR NONE AT ALL.
+ *
+ * The full clip is 1.86 MB of WebM (3.78 MB of MP4) at 1920x1080. On the
+ * measured mobile baseline it was 68% of the homepage's 2.78 MB — the single
+ * largest thing the site sends anyone, downloaded into a box 412px wide behind
+ * a scrim. See docs/perf-baseline.md.
+ *
+ *   "none"    the reader has asked for less data, or the connection says it
+ *             cannot afford this. The poster is the hero and nothing is
+ *             fetched. This outranks everything below, including screen size.
+ *   "mobile"  a narrow viewport or a coarse pointer: the 854x480 encode,
+ *             397 KiB of WebM / 434 KiB of MP4, same framing and aspect.
+ *   "full"    a wide viewport with a fine pointer: unchanged, as before.
+ *
+ * `prefers-reduced-data` is not implemented everywhere; matchMedia on an
+ * unsupported feature simply never matches, which is the right default.
+ * `navigator.connection` is Chromium-only, so every read of it is guarded —
+ * absent means "no reason to hold back", not "assume the worst".
+ */
+export type HeroSource = "full" | "mobile" | "none";
+
+type ConnectionLike = { saveData?: boolean; effectiveType?: string; addEventListener?: (t: string, l: () => void) => void; removeEventListener?: (t: string, l: () => void) => void };
+const SLOW_TYPES = new Set(["slow-2g", "2g", "3g"]);
+
+function readHeroSource(): HeroSource {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "none";
+  if (window.matchMedia("(prefers-reduced-data: reduce)").matches) return "none";
+  const conn = (navigator as Navigator & { connection?: ConnectionLike }).connection;
+  if (conn) {
+    if (conn.saveData === true) return "none";
+    if (conn.effectiveType && SLOW_TYPES.has(conn.effectiveType)) return "none";
+  }
+  const roomy = window.matchMedia("(min-width: 1024px)").matches;
+  const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  return roomy && fine ? "full" : "mobile";
+}
+
+const CLIP: Record<Exclude<HeroSource, "none">, { webm: string; mp4: string }> = {
+  full: { webm: "/videos/hero-artisan.webm", mp4: "/videos/hero-artisan.mp4" },
+  mobile: { webm: "/videos/hero-artisan-mobile.webm", mp4: "/videos/hero-artisan-mobile.mp4" },
+};
+
 export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseLabel: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const { videoOn, paused, toggle } = useHeroMotion();
   const [armed, setArmed] = useState(false);
   const [playing, setPlaying] = useState(false);
+  /**
+   * null until the client has been asked. It starts null rather than "full"
+   * for the same reason `asked` exists in hero.tsx: the server cannot know,
+   * and one optimistic render is all it takes to attach a <source> and fetch
+   * 1.86 MB on a phone.
+   */
+  const [source, setSource] = useState<HeroSource | null>(null);
+  /** The clip chosen at arm time, frozen. Swapping src later would re-fetch. */
+  const chosen = useRef<Exclude<HeroSource, "none"> | null>(null);
 
-  // Arm on the first "yes". One-way: see above.
-  useEffect(() => { if (videoOn) setArmed(true); }, [videoOn]);
+  // Subscribed, not read once — a reader can turn Data Saver on, rotate the
+  // phone, or move the window to another display while this is on screen, and
+  // the answer to "which clip" changes with them. Same pattern as hero.tsx.
+  useEffect(() => {
+    const apply = () => setSource(readHeroSource());
+    apply();
+    const queries = [
+      window.matchMedia("(prefers-reduced-data: reduce)"),
+      window.matchMedia("(min-width: 1024px)"),
+      window.matchMedia("(hover: hover) and (pointer: fine)"),
+    ];
+    queries.forEach((q) => q.addEventListener("change", apply));
+    const conn = (navigator as Navigator & { connection?: ConnectionLike }).connection;
+    conn?.addEventListener?.("change", apply);
+    return () => {
+      queries.forEach((q) => q.removeEventListener("change", apply));
+      conn?.removeEventListener?.("change", apply);
+    };
+  }, []);
+
+  // Arm on the first "yes". One-way: see above. "none" never arms, so a
+  // reader on Data Saver or a 2g/3g connection never fetches a clip at all.
+  useEffect(() => {
+    if (!videoOn || source === null || source === "none") return;
+    if (!chosen.current) chosen.current = source;
+    setArmed(true);
+  }, [videoOn, source]);
 
   // The element's own events are the only source of `playing`.
   useEffect(() => {
@@ -84,10 +161,10 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
         poster={HERO_POSTER}
         aria-hidden="true"
       >
-        {armed && (
+        {armed && chosen.current && (
           <>
-            <source src="/videos/hero-artisan.webm" type="video/webm" />
-            <source src="/videos/hero-artisan.mp4" type="video/mp4" />
+            <source src={CLIP[chosen.current].webm} type="video/webm" />
+            <source src={CLIP[chosen.current].mp4} type="video/mp4" />
           </>
         )}
       </video>
