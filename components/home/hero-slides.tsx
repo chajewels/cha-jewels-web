@@ -10,13 +10,13 @@ import { SplitText } from "@/components/fx/split-text";
 import { HeroSheen } from "@/components/fx/hero-sheen";
 import { Magnetic } from "@/components/fx/magnetic";
 import { isClientNavigation } from "@/components/fx/boot-marker";
-import { DUR } from "@/lib/motion";
+import { DUR, SLIDE_EVERY } from "@/lib/motion";
 
 export type HeroSlide =
   | { kind: "intro"; layaway: boolean }
   | { kind: "category"; slug: string; name: string; description: string | null; image: string | null; cta: string | null };
 
-const AUTO_ADVANCE_MS = 6000;
+const AUTO_ADVANCE_MS = SLIDE_EVERY * 1000;
 const VISIBLE_THRESHOLD = 0.6;
 /**
  * How long before a slide arrives its photo is allowed to start loading. Long
@@ -57,7 +57,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
   // Shared with the video: which slide is up, and whether the hero may move at
   // all (on screen, tab visible, reduced motion off, reader has not paused).
   // components/home/hero.tsx holds all of it.
-  const { active, setActive, rotateOn, reduced, sheenOn } = useHeroMotion();
+  const { active, setActive, rotateOn, sheenOn, wipe } = useHeroMotion();
   // First page load: the headline paints as plain text, at once (the LCP
   // rule). Arrived by client navigation: it rises in unit by unit. Decided
   // once, at first render.
@@ -94,8 +94,11 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
     if (!slide) return;
     // Asked for by name, so it is wanted now rather than in PRELOAD_LEAD_MS.
     reveal(idx);
-    track.scrollTo({ left: slide.offsetLeft, behavior: reduced ? "auto" : "smooth" });
-  }, [count, reduced, reveal]);
+    // Swapped under the gold-edged curtain (components/home/hero.tsx), as an
+    // instant jump rather than a sideways glide: the curtain is the
+    // transition. Under reduced motion `wipe` just swaps.
+    wipe(() => track.scrollTo({ left: slide.offsetLeft, behavior: "auto" }));
+  }, [count, reveal, wipe]);
 
   // The scroller decides which slide is current, so a swipe, a snap after a
   // resize, or a keyboard scroll all land on the same truth as a dot click.
@@ -166,6 +169,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
           <div
             key={s.kind === "intro" ? "intro" : s.slug}
             role="group"
+            data-active={i === active}
             aria-roledescription="slide"
             aria-label={t("home", "slideOf", { n: String(i + 1), total: String(count) })}
             className="relative flex h-full w-full shrink-0 snap-center items-center"
@@ -218,7 +222,9 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
                     and the copy. */}
                 {s.image && i <= reach && (
                   <>
-                    <HubImage src={s.image} alt="" fill sizes="100vw" className="object-cover object-[65%_center]" />
+                    {/* The slow push-in, restarted each time this slide comes up
+                        (.slide-push, app/globals.css). */}
+                    <div className="slide-push"><HubImage src={s.image} alt="" fill sizes="100vw" className="object-cover object-[65%_center]" /></div>
                     <div aria-hidden="true" className="hero-slide-scrim" />
                   </>
                 )}

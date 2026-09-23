@@ -297,13 +297,40 @@
      pauses all three; the band is hidden while still rather than left
      frozen across the image.
      --------------------------------------------------------------------- */
-  .hero-push {
+  /* The push-in runs while its slide is up and starts again from 1 each
+     time that slide comes back: the animation is attached by the active
+     slide's selector, so losing and regaining the match restarts it. The
+     video's is keyed to slide 0 on the section; a category photo's to its
+     own slide (components/home/hero-slides.tsx). */
+  .hero-push,
+  .slide-push {
     position: absolute;
     inset: 0;
     transform: scale(var(--hero-push));
-    animation: hero-push var(--dur-push) var(--ease-lux) 1 both;
+  }
+  [data-active-slide="0"] .hero-push,
+  [data-active="true"] > .slide-push {
+    animation: hero-push var(--dur-slide) var(--ease-lux) 1 both;
   }
   @keyframes hero-push { from { transform: scale(1); } to { transform: scale(var(--hero-push)); } }
+
+  /* The curtain between slides (components/home/hero.tsx, `wipe`): dark,
+     with a glowing gold leading edge on its right. Parked off the left edge;
+     the component drives it across with the Web Animations API. */
+  .hero-curtain {
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    pointer-events: none;
+    transform: translateX(-101%);
+    background: linear-gradient(90deg,
+      theme('colors.charcoal.deep') 0%,
+      theme('colors.charcoal.deep') 88%,
+      theme('colors.gold.dark') 96%,
+      theme('colors.gold.pale') 99.4%,
+      theme('colors.gold.pale' / 0%) 100%);
+    box-shadow: 18px 0 42px theme('colors.gold.DEFAULT' / 45%);
+  }
 
   /* Darkens the edges toward the crucible, which sits centre-low in the
      frame. Colour is the scrim's own, so it reads as the same shadow. */
@@ -349,6 +376,7 @@
   }
 
   [data-hero-motion="still"] .hero-push,
+  [data-hero-motion="still"] .slide-push,
   [data-hero-motion="still"] .hero-vignette,
   [data-hero-motion="still"] .hero-sweep { animation-play-state: paused; }
   [data-hero-motion="still"] .hero-sweep { visibility: hidden; }
@@ -448,6 +476,97 @@
     25% { opacity: 1; }
     75% { opacity: 1; }
     100% { opacity: 0; background-position: -150% 0; }
+  }
+
+  /* ---------------------------------------------------------------------
+     QUOTE MARK (components/fx/quote-mark.tsx) — the testimonials' gold “.
+     The outline draws (dash offset 1 → 0), the second comma a beat after
+     the first, then the gold fills in.
+     --------------------------------------------------------------------- */
+  .quote-mark__path {
+    stroke: theme('colors.gold.DEFAULT');
+    stroke-width: 1.2;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    fill: theme('colors.gold.DEFAULT');
+    fill-opacity: 1;
+    transition:
+      stroke-dashoffset var(--dur-draw) var(--ease-lux) calc(var(--q, 0) * var(--dur-micro)),
+      fill-opacity var(--dur-reveal) var(--ease-lux) calc(var(--dur-draw) * 0.7 + var(--q, 0) * var(--dur-micro));
+  }
+  [data-reveal="hidden"] .quote-mark__path { stroke-dashoffset: 1; fill-opacity: 0; transition: none; }
+
+  /* ---------------------------------------------------------------------
+     TESTIMONIAL CARDS. The gold edge is pre-drawn on ::after and revealed by
+     opacity (no box-shadow animation). Under a mouse: hover lifts the card
+     and lights the edge. On a phone: the card crossing the centre of the
+     screen (`data-center`, components/home/testimonial-marquee.tsx) is lit
+     and lifted a little instead. Reduced motion: neither.
+     --------------------------------------------------------------------- */
+  .testi-card { position: relative; transition: transform var(--dur-reveal) var(--ease-lux); }
+  .testi-card::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 0 0 1px theme('colors.gold.DEFAULT'), 0 14px 32px rgb(35 29 18 / 12%), 0 0 24px theme('colors.gold.DEFAULT' / 18%);
+    transition: opacity var(--dur-reveal) var(--ease-lux);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .testi-card:hover { transform: translateY(-6px); }
+    .testi-card:hover::after { opacity: 1; }
+  }
+  .testi-slot[data-center] .testi-card { transform: translateY(-4px) scale(1.02); }
+  .testi-slot[data-center] .testi-card::after { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .testi-card, .testi-card:hover { transform: none; }
+  }
+
+  /* ---------------------------------------------------------------------
+     LAYAWAY BAND on the homepage (components/commerce/layaway-band.tsx).
+     A gold connector drops from each step disc to the next once that step
+     has arrived; the calculator's call to action glows gold and runs a
+     shine border — once when the band arrives, and continuously on hover.
+     --------------------------------------------------------------------- */
+  .lay-connector {
+    position: absolute;
+    left: 15.5px;
+    top: 36px;
+    bottom: -16px;
+    width: 1px;
+    background: linear-gradient(theme('colors.gold.pale'), theme('colors.gold.DEFAULT'));
+    transform-origin: top;
+    transition: transform var(--dur-draw) var(--ease-lux) calc((var(--i, 0) + 1) * var(--stagger, 0s));
+  }
+  [data-reveal="hidden"] .lay-connector { transform: scaleY(0); transition: none; }
+
+  .lay-cta-fx a.btn-press {
+    position: relative;
+    box-shadow: 0 0 26px theme('colors.gold.DEFAULT' / 40%), 0 0 2px theme('colors.gold.pale' / 80%);
+  }
+  .lay-cta-fx a.btn-press::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 4px;
+    padding: 1.5px;
+    background: linear-gradient(115deg, theme('colors.gold.dark') 0%, theme('colors.gold.pale') 28%, theme('colors.chalk') 42%, theme('colors.gold.DEFAULT') 56%, theme('colors.gold.pale') 72%, theme('colors.gold.dark') 100%);
+    background-size: 250% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    pointer-events: none;
+    opacity: 0;
+  }
+  [data-reveal="shown"] .lay-cta-fx a.btn-press::before {
+    animation: shine-once var(--dur-shine) var(--ease-lux) var(--dur-image) 1 both;
+  }
+  .lay-cta-fx a.btn-press:hover::before,
+  .lay-cta-fx a.btn-press:focus-visible::before {
+    opacity: 1;
+    animation: shine-run var(--dur-shine) linear infinite;
   }
 
   /* ---------------------------------------------------------------------

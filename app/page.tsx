@@ -16,6 +16,8 @@ import { HERO_POSTER } from "@/components/site/hero-video";
 import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
 import type { HeroSlide } from "@/components/home/hero-slides";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
+import { RevealGroup, RevealItem } from "@/components/fx/reveal";
+import { SplitHeading } from "@/components/fx/split-text";
 export const revalidate = 60;
 
 /**
@@ -143,11 +145,12 @@ export default async function Home() {
       {/* §8 Collections — dynamic from the Hub */}
       <section id="collections" className="border-t border-hairline py-16 lg:py-20">
         <div className="wrap">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "colsEyebrow")}</p>
-            <h2 className="mt-3 text-[clamp(28px,3.6vw,44px)]">{t("home", "colsH")}</h2>
-            <p className="mx-auto mt-4 max-w-[52ch] text-charcoal/75">{t("home", "colsP")}</p>
-          </div>
+          {/* Entrance: eyebrow, split-text heading, then the line (components/fx). */}
+          <RevealGroup className="mb-10 text-center">
+            <RevealItem index={0}><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "colsEyebrow")}</p></RevealItem>
+            <SplitHeading text={t("home", "colsH")} lang={lang} className="mt-3 text-[clamp(28px,3.6vw,44px)]" />
+            <RevealItem index={2}><p className="mx-auto mt-4 max-w-[52ch] text-charcoal/75">{t("home", "colsP")}</p></RevealItem>
+          </RevealGroup>
           <CollectionCards items={cards} lang={lang} />
         </div>
       </section>

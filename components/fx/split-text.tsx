@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { STAGGER } from "@/lib/motion";
 import { REDUCED, useReduced } from "@/components/fx/media";
 import type { Lang } from "@/lib/i18n";
@@ -51,10 +51,17 @@ export function SplitText({ text, lang, play, delay = 0, className }: {
   }, [live]);
 
   if (!live) return <span className={className}>{text}</span>;
+  return <span className={className}><Units text={text} units={units} lang={lang} phase={phase} delay={delay} /></span>;
+}
+
+/** The sentence once for assistive tech, then the masked units. */
+function Units({ text, units, lang, phase, delay = 0 }: {
+  text: string; units: ReturnType<typeof segment>; lang: Lang; phase: "from" | "in"; delay?: number;
+}) {
   const stagger = lang === "ja" ? STAGGER.base / 2 : STAGGER.base; // JA has ~3× the units
   let n = 0;
   return (
-    <span className={className}>
+    <>
       <span className="sr-only">{text}</span>
       <span aria-hidden="true" data-split={phase} style={{ ["--split-stagger" as string]: `${stagger}s`, ["--split-delay" as string]: `${delay}s` }}>
         {units.map((u, i) =>
@@ -65,6 +72,49 @@ export function SplitText({ text, lang, play, delay = 0, className }: {
           ),
         )}
       </span>
-    </span>
+    </>
+  );
+}
+
+/**
+ * A section heading that rises in, unit by unit, when it scrolls into view.
+ *
+ * THE SERVER SENDS PLAIN TEXT. The split happens in the browser, after
+ * hydration, and only for a heading measured below the fold: it is swapped
+ * for its masked units in their start pose while nobody can see it, and rises
+ * when it comes into view. So the HTML carries no extra bytes (on a slow
+ * phone link every KB before the hero poster costs its LCP ~5 ms —
+ * docs/perf-baseline.md), and a heading already on screen is never touched.
+ * Reduced motion: plain text, always. Same units, kinsoku and heights as
+ * SplitText.
+ */
+export function SplitHeading({ as: Tag = "h2", text, lang, className }: {
+  as?: "h2" | "h3"; text: string; lang: Lang; className?: string;
+}) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const reduced = useReduced();
+  const [phase, setPhase] = useState<"plain" | "from" | "in">("plain");
+  const armed = useRef(false);
+  const units = useMemo(() => segment(text, lang), [text, lang]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduced === null) return;
+    if (reduced) { setPhase("plain"); return; }
+    if (armed.current) return;
+    armed.current = true;
+    if (el.getBoundingClientRect().top < window.innerHeight) return; // on screen already
+    setPhase("from");
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { io.disconnect(); setPhase("in"); }
+    }, { threshold: 0.6 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduced]);
+
+  return (
+    <Tag ref={ref} className={className}>
+      {phase === "plain" ? text : <Units text={text} units={units} lang={lang} phase={phase} />}
+    </Tag>
   );
 }

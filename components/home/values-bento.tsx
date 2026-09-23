@@ -3,6 +3,7 @@ import { Hammer, Scale, ShieldCheck, Sparkles } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import { Spotlight } from "@/components/fx/spotlight";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
+import { SplitHeading } from "@/components/fx/split-text";
 
 /**
  * Our Values (Stitch §5): header, then the 7/5 bento — four charcoal cards
@@ -29,16 +30,16 @@ export function ValuesBento({ lang }: { lang: Lang }) {
   return (
     <section className="py-8 lg:py-16">
       <div className="wrap">
-        <div className="max-w-[62ch] space-y-1">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gold-dark">{t("home", "valuesEyebrow")}</p>
-          <h2 className="font-display text-[clamp(28px,3.4vw,44px)] text-charcoal">{t("home", "valuesH")}</h2>
-          <p className="text-sm leading-relaxed text-charcoal/70 lg:text-base">{t("home", "valuesP")}</p>
+        <RevealGroup className="max-w-[62ch] space-y-1">
+          <RevealItem index={0}><p className="text-[11px] font-bold uppercase tracking-widest text-gold-dark">{t("home", "valuesEyebrow")}</p></RevealItem>
+          <SplitHeading text={t("home", "valuesH")} lang={lang} className="font-display text-[clamp(28px,3.4vw,44px)] text-charcoal" />
+          <RevealItem index={2}><p className="text-sm leading-relaxed text-charcoal/70 lg:text-base">{t("home", "valuesP")}</p></RevealItem>
           {/* Moved down from the hero's intro slide, where it was the second
               paragraph over the video and was clamped to five lines on a
               phone. Same key, so the wording and both languages are
               unchanged — it is only in a place that can hold it. */}
-          <p className="pt-2 text-sm leading-relaxed text-charcoal/70 lg:text-base">{t("hero", "lede2")}</p>
-        </div>
+          <RevealItem index={3}><p className="pt-2 text-sm leading-relaxed text-charcoal/70 lg:text-base">{t("hero", "lede2")}</p></RevealItem>
+        </RevealGroup>
         <div className="mt-6 grid gap-3 lg:mt-10 lg:grid-cols-12 lg:gap-6">
           <RevealGroup className="grid gap-3 sm:grid-cols-2 lg:col-span-7 lg:gap-6">
             {cards.map(({ Icon, h, p }, i) => (
@@ -54,11 +55,12 @@ export function ValuesBento({ lang }: { lang: Lang }) {
               </RevealItem>
             ))}
           </RevealGroup>
-          <div className="flex flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm lg:col-span-5">
+          <RevealGroup className="flex flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm lg:col-span-5">
             <div className="relative min-h-[220px] flex-1 lg:min-h-[320px]">
-              <Image src="/images/home/values-artisan.webp" alt={t("home", "valuesImageAlt")} fill sizes="(max-width: 1023px) 100vw, 40vw" className="object-cover object-[60%_center]" />
+              {/* The photo wipes up and settles, like the collection cards. */}
+              <div className="card-wipe" style={{ ["--i" as string]: 2 }}><Image src="/images/home/values-artisan.webp" alt={t("home", "valuesImageAlt")} fill sizes="(max-width: 1023px) 100vw, 40vw" className="object-cover object-[60%_center]" /></div>
             </div>
-          </div>
+          </RevealGroup>
         </div>
       </div>
     </section>

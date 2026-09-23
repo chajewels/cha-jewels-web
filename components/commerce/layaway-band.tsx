@@ -1,5 +1,8 @@
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { tr, type Lang } from "@/lib/i18n";
+import { SplitHeading } from "@/components/fx/split-text";
+import { RevealGroup, RevealItem } from "@/components/fx/reveal";
+import { STAGGER } from "@/lib/motion";
 
 /**
  * The layaway band: the pill, the pitch, the three steps and the calculator.
@@ -23,9 +26,22 @@ import { tr, type Lang } from "@/lib/i18n";
  * Whether it renders at all is the caller's decision, not this component's:
  * layaway is English-only (owner decision 2026-09-15) and the rule lives in
  * lib/layaway-availability, where both callers read it.
+ *
+ * `fx` (the homepage passes it; /layaway does not, so that page is unchanged):
+ * the heading rises in by split text; the pill, the pitch, each step and the
+ * calculator panel arrive one after another; a gold connector draws down from
+ * each step's disc to the next; the calculator's call to action carries a
+ * soft gold glow and a shine border (app/globals.css, "LAYAWAY BAND").
+ *
+ * NO NUMBER HERE IS ANIMATED. The only figures outside the calculator are the
+ * step numerals 1–3, which are not amounts; the calculator's figures are the
+ * Hub's quote and the calculator is Phase 2 (docs/tasks/web-motion-signature
+ * .md). Its markup and logic are untouched — the glow is applied from out
+ * here, through `.lay-cta-fx`.
  */
-export function LayawayBand({ lang, phpRate }: { lang: Lang; phpRate: number }) {
+export function LayawayBand({ lang, phpRate, fx = false }: { lang: Lang; phpRate: number; fx?: boolean }) {
   const t = tr(lang);
+  if (fx) return <LayawayBandFx lang={lang} phpRate={phpRate} />;
   return (
     <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
       <div className="wrap grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
@@ -58,6 +74,44 @@ export function LayawayBand({ lang, phpRate }: { lang: Lang; phpRate: number }) 
           className="lg:col-span-6"
         />
       </div>
+    </section>
+  );
+}
+
+/** The homepage's band: the same content and classes as above, with entrances. */
+function LayawayBandFx({ lang, phpRate }: { lang: Lang; phpRate: number }) {
+  const t = tr(lang);
+  return (
+    <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
+      <RevealGroup className="wrap grid items-center gap-10 lg:grid-cols-12 lg:gap-12" stagger={STAGGER.card}>
+        <div className="lg:col-span-6">
+          <RevealItem index={0}><span className="inline-block rounded-full bg-orange px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{t("home", "layPill")}</span></RevealItem>
+          <SplitHeading text={t("home", "layH")} lang={lang} className="mt-5 max-w-[20ch] font-display text-[clamp(28px,3.6vw,44px)] text-gold-pale" />
+          <RevealItem index={1}><p className="mt-4 max-w-[46ch] text-chalk/75">{t("home", "layP")}</p></RevealItem>
+          <ol className="mt-8 grid gap-5">
+            {([1, 2, 3] as const).map((n) => (
+              <li key={n} className="reveal-item relative flex gap-4" style={{ ["--i" as string]: n + 1 }}>
+                {/* The gold line down to the next disc, drawn after this step arrives. */}
+                {n < 3 && <span aria-hidden="true" className="lay-connector" />}
+                <span aria-hidden="true" className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full bg-orange font-display text-sm font-medium text-charcoal-deep">{n}</span>
+                <div>
+                  <p className="font-medium text-chalk">{t("home", `layStep${n}H`)}</p>
+                  <p className="mt-1 text-sm text-chalk/75">{t("home", `layStep${n}P`)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <RevealItem index={5} className="lay-cta-fx lg:col-span-6">
+          <LayawayCalculator
+            lang={lang}
+            phpRate={phpRate}
+            header={{ title: t("home", "layCalcH"), sub: t("home", "layCalcP"), chip: t("home", "layCalcChip") }}
+            // NEVER /layaway — see the band above.
+            cta={{ label: t("home", "layCta"), href: "/collections" }}
+          />
+        </RevealItem>
+      </RevealGroup>
     </section>
   );
 }

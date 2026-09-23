@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { TestimonialCard } from "@/components/home/testimonials";
 import type { Lang } from "@/lib/i18n";
 import type { Testimonial } from "@/lib/types";
+import { useFinePointer, useReduced } from "@/components/fx/media";
 
 /** Seconds each card is on screen for. Duration scales with the count, so the
  *  speed a reader experiences is the same whether there are three or thirty. */
@@ -56,6 +57,25 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
   const dupRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const fine = useFinePointer();
+  const reduced = useReduced();
+
+  // ON A PHONE, THE CARD AT THE CENTRE IS LIT. An IntersectionObserver whose
+  // root is squeezed to the middle fifth of the screen marks whichever card
+  // is crossing it; CSS gives that card its gold edge and a slight lift
+  // (app/globals.css, `.testi-slot`). No scroll or frame work — the browser
+  // reports crossings as the track moves. Mouse users get the hover version
+  // instead; reduced motion gets neither.
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box || fine !== false || reduced !== false) return;
+    const slots = Array.from(box.querySelectorAll<HTMLElement>(".testi-slot"));
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) e.target.toggleAttribute("data-center", e.isIntersecting);
+    }, { rootMargin: "0px -40% 0px -40%", threshold: 0.35 });
+    slots.forEach((el) => io.observe(el));
+    return () => { io.disconnect(); slots.forEach((el) => el.removeAttribute("data-center")); };
+  }, [fine, reduced, items]);
   const setRate = (rate: number) => {
     for (const a of trackRef.current?.getAnimations() ?? []) a.updatePlaybackRate(rate);
   };
@@ -95,7 +115,7 @@ export function TestimonialMarquee({ items, lang }: { items: Testimonial[]; lang
       className="flex shrink-0 gap-6 pr-6"
     >
       {items.map((x) => (
-        <div key={`${dup ? "dup" : "set"}-${x.id}`} className="w-[min(22rem,85vw)] shrink-0 snap-start">
+        <div key={`${dup ? "dup" : "set"}-${x.id}`} className="testi-slot w-[min(22rem,85vw)] shrink-0 snap-start">
           <TestimonialCard item={x} lang={lang} />
         </div>
       ))}

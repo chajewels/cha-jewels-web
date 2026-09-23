@@ -25,6 +25,9 @@ export const EASE_LUX = [0.16, 1, 0.3, 1] as const;
  */
 export const EASE_SHEEN = [0.45, 0.05, 0.35, 1] as const;
 
+/** The hero curtain arriving: slow off the mark, fast into cover. */
+export const EASE_WIPE_IN = [0.65, 0, 0.35, 1] as const;
+
 /** Seconds. */
 export const DUR = {
   /** Text and blocks rising into place. */
@@ -42,8 +45,8 @@ export const DUR = {
   draw: 1.1,
   /** One lap of light around a shine border; a spotlight's touch glow. */
   shine: 2.4,
-  /** The hero media's slow cinematic push-in, 1 → HERO_PUSH, then it holds. */
-  push: 12,
+  /** The gold-edged curtain between hero slides: cover + reveal, in total. */
+  wipe: 1.3,
   /** The hero vignette settling in from the edges. */
   vignette: 1.5,
 } as const;
@@ -70,6 +73,13 @@ export const STAGGER = {
   card: 0.12,
 } as const;
 
+/**
+ * How long each hero slide holds before the deck advances, seconds. Also the
+ * length of each slide's push-in, so the image is still moving, slowly, for
+ * as long as it is on screen.
+ */
+export const SLIDE_EVERY = 6;
+
 /** How often the hero sheen returns while the hero is on screen, seconds. */
 export const SHEEN_EVERY = 8;
 
@@ -94,7 +104,7 @@ export const MOTION_CSS_VARS = {
   "--rise": `${RISE}px`,
   "--dur-shine": `${DUR.shine}s`,
   "--delay-sheen": `${DELAY.sheen}s`,
-  "--dur-push": `${DUR.push}s`,
+  "--dur-slide": `${SLIDE_EVERY}s`,
   "--dur-vignette": `${DUR.vignette}s`,
   "--hero-push": `${HERO_PUSH}`,
   "--delay-shine-touch": `${DELAY.shineTouch}s`,

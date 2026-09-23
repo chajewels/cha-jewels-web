@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { HERO_SINK } from "@/lib/motion";
+import { DUR, EASE_LUX, EASE_WIPE_IN, HERO_SINK } from "@/lib/motion";
 import { HeroVideo } from "@/components/site/hero-video";
 import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
 import type { Lang } from "@/lib/i18n";
@@ -37,8 +37,10 @@ import type { Lang } from "@/lib/i18n";
  * hero images nothing changed"). Three layers, all CSS, all starting from the
  * server markup (app/globals.css, "HERO MEDIA"):
  *
- *   push-in   the video/poster eases 1 → 1.08 over 12 s and holds. Frame one
- *             is exactly 1, so the LCP element paints unmoved and whole.
+ *   push-in   the video/poster eases 1 → 1.08 over a slide's length and
+ *             holds; every category photo does the same while its slide is up,
+ *             and each new slide starts again from 1. Frame one is exactly 1,
+ *             so the LCP element paints unmoved and whole.
  *   sweep     a gold band crosses the whole image once, screen-blended, over
  *             the scrim and under the words, starting with the headline sheen.
  *   vignette  an overlay darkens the edges in over 1.5 s toward the crucible;
@@ -49,6 +51,13 @@ import type { Lang } from "@/lib/i18n";
  * while still rather than frozen mid-image). Reduced motion: the blanket rule
  * removes the animations and each layer's resting style IS its final state —
  * pushed in, vignette settled, no sweep.
+ *
+ * SLIDE CHANGES GO UNDER A CURTAIN. Arrows, dots, keys and the auto-advance
+ * do not glide the deck sideways any more: a dark curtain with a glowing gold
+ * leading edge crosses the hero, the slide is swapped while it covers, and
+ * the curtain carries on off the far side (`wipe`, below). Transform only,
+ * on an overlay. A finger swipe stays the browser's own scroll — the curtain
+ * is for changes the reader did not drag. Reduced motion: an instant swap.
  *
  * THE SINK IS A SCROLL LISTENER, NOT motion's useScroll. useScroll brought
  * 19 kB of gzipped JavaScript to the homepage for three numbers, which on its
@@ -80,6 +89,8 @@ type HeroMotion = {
   sheenOn: boolean;
   /** The video/photo layer the scroll sink scales (components/site/hero-video.tsx). */
   mediaRef: React.RefObject<HTMLDivElement | null>;
+  /** Run `swap` under the gold-edged curtain (or at once, under reduced motion). */
+  wipe: (swap: () => void) => void;
   toggle: () => void;
 };
 
@@ -142,6 +153,22 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
   const allowed = asked && onScreen && !hidden && !reduced;
 
   const mediaRef = useRef<HTMLDivElement>(null);
+  const curtainRef = useRef<HTMLDivElement>(null);
+  const reducedRef = useRef(reduced);
+  reducedRef.current = reduced;
+  const wipe = useCallback((swap: () => void) => {
+    const el = curtainRef.current;
+    if (!el || reducedRef.current || typeof el.animate !== "function") { swap(); return; }
+    for (const a of el.getAnimations()) a.cancel();
+    const half = (DUR.wipe * 1000) / 2;
+    const cover = el.animate([{ transform: "translateX(-101%)" }, { transform: "translateX(0%)" }],
+      { duration: half, easing: `cubic-bezier(${EASE_WIPE_IN.join(",")})`, fill: "forwards" });
+    cover.finished.then(() => {
+      swap();
+      el.animate([{ transform: "translateX(0%)" }, { transform: "translateX(101%)" }],
+        { duration: half, easing: `cubic-bezier(${EASE_LUX.join(",")})`, fill: "forwards" });
+    }, swap); // cancelled by a newer wipe: still land where this one was going
+  }, []);
   const contentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = section.current, media = mediaRef.current, content = contentRef.current;
@@ -174,12 +201,13 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
     rotateOn: allowed && !paused,
     sheenOn: onScreen && !hidden && !paused && !reduced,
     mediaRef,
+    wipe,
     toggle: () => setPaused((p) => !p),
-  }), [active, allowed, paused, reduced, onScreen, hidden]);
+  }), [active, allowed, paused, reduced, onScreen, hidden, wipe]);
 
   return (
     <Ctx.Provider value={value}>
-      <section ref={section} className={className} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"}>
+      <section ref={section} className={className} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"} data-active-slide={active}>
         <HeroVideo playLabel={videoPlayLabel} pauseLabel={videoPauseLabel} />
         {children}
         {/* Over the video and its scrim, under the words (z-10). */}
@@ -188,6 +216,8 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
         <div ref={contentRef} className="relative z-10 w-full self-stretch">
           <HeroSlides lang={lang} slides={slides} />
         </div>
+        {/* Over the slides, under the arrows, dots and pause button (z-20). */}
+        <div ref={curtainRef} aria-hidden="true" className="hero-curtain" />
       </section>
     </Ctx.Provider>
   );
