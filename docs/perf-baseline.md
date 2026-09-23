@@ -1,5 +1,34 @@
 # Performance baseline
 
+## 2026-09-23 — Motion Phase 2A: product cards and the product page
+
+Before = `fb2ecee` (Phase 1 accepted). After = `29808b9`. `next build` +
+`next start` in preview-fixtures mode (no Hub credentials on this machine),
+interleaved pairs on a throttled phone (4× CPU, 1.6 Mbps / 150 ms).
+
+| page | observed LCP before (median of 4) | after | added JS gz | added HTML gz | stylesheets |
+|---|---|---|---|---|---|
+| `/collections/bracelets` | 1316 ms | 1308 ms | +4.0 kB | +0.8 kB | 2 → 2 |
+| `/categories/fine-jewelry` | 1426 ms | 1416 ms | +4.1 kB | +0.9 kB | 2 → 2 |
+| product (`double-sided-diamond-pendant`) | 1296 ms | 1298 ms | +6.7 kB | +0.7 kB | 2 → 2 |
+| `/` | 2936 ms | 2928 ms | +4.9 kB | +0.8 kB | 2 → 2 |
+
+Homepage mobile weight (Lighthouse): **1029 KiB** (cap 1317). CLS 0 on
+every run. No animation library: the gallery's drag and slide, the rolling
+figures and the cart bump are Web Animations / rAF, so there is no library
+size to report.
+
+**Stylesheets.** The first build put these styles in CSS Modules, as asked
+for ("component-scoped files"). Next emitted them as a THIRD render-blocking
+stylesheet on every page with a product card — the same shape that cost
+the collection and product pages ~60 ms in round 2. So each component now
+carries its rules as a string rendered through React 19's hoisted
+`<style href precedence>` (components/fx/component-style.tsx): scoped to the
+component, inlined into `<head>` once per page, no request, no growth of
+`app/globals.css`. Cost: the +0.7–0.9 kB of HTML above.
+
+---
+
 ## 2026-09-23 — Motion Phase 1, round 2: bolder homepage (after owner review)
 
 Before = `68bec32` (no motion). After = `b229c56`. Both `next build` +
