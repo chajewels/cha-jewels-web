@@ -60,7 +60,7 @@ export type HeroSource = "full" | "mobile" | "none";
 type ConnectionLike = { saveData?: boolean; effectiveType?: string; addEventListener?: (t: string, l: () => void) => void; removeEventListener?: (t: string, l: () => void) => void };
 const SLOW_TYPES = new Set(["slow-2g", "2g", "3g"]);
 
-function readHeroSource(): HeroSource {
+export function readHeroSource(): HeroSource {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "none";
   if (window.matchMedia("(prefers-reduced-data: reduce)").matches) return "none";
   const conn = (navigator as Navigator & { connection?: ConnectionLike }).connection;

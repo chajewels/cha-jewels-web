@@ -4,6 +4,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { Spotlight } from "@/components/fx/spotlight";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { SplitHeading } from "@/components/fx/split-text";
+import { ArtisanVideo } from "@/components/fx/artisan-video";
 
 /**
  * Our Values (Stitch §5): header, then the 7/5 bento — four charcoal cards
@@ -58,7 +59,13 @@ export function ValuesBento({ lang }: { lang: Lang }) {
           <RevealGroup className="flex flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm lg:col-span-5">
             <div className="relative min-h-[220px] flex-1 lg:min-h-[320px]">
               {/* The photo wipes up and settles, like the collection cards. */}
-              <div className="card-wipe" style={{ ["--i" as string]: 2 }}><Image src="/images/home/values-artisan.webp" alt={t("home", "valuesImageAlt")} fill sizes="(max-width: 1023px) 100vw, 40vw" className="object-cover object-[60%_center]" /></div>
+              <div className="card-wipe" style={{ ["--i" as string]: 2 }}>
+                <Image src="/images/home/values-artisan.webp" alt={t("home", "valuesImageAlt")} fill sizes="(max-width: 1023px) 100vw, 40vw" className="object-cover object-[60%_center]" />
+                {/* The same photograph, moving: plays once in view, holds its
+                    last frame; the photo above stays the poster and the
+                    fallback (components/fx/artisan-video.tsx). Same crop. */}
+                <ArtisanVideo className="absolute inset-0 h-full w-full object-cover object-[60%_center]" />
+              </div>
             </div>
           </RevealGroup>
         </div>
