@@ -130,8 +130,47 @@ if (callers.length !== 1 || callers[0] !== EXPECTED_EMITTER) {
   );
 }
 
+// 8. SPEED INSIGHTS IS GATED EXACTLY LIKE ANALYTICS. It reports from every page
+//    load, so an ungated mount would count our own preview and localhost visits
+//    and send URLs carrying sign-in tokens and order ids. One wrapper owns it:
+//    it must call analyticsEnabled() and pass every URL through redactUrl(), it
+//    must be mounted in the layout, and nothing else may import the package.
+const SI_PROVIDER = "components/analytics/speed-insights-provider.tsx";
+let siSrc = "";
+try { siSrc = stripComments(readFileSync(SI_PROVIDER, "utf8")); } catch { /* reported below */ }
+if (!siSrc) {
+  fail(`${SI_PROVIDER} is missing — Speed Insights has no gated mount.`);
+} else {
+  if (!/if\s*\(\s*!analyticsEnabled\(\)\s*\)\s*return null/.test(siSrc)) {
+    fail(`${SI_PROVIDER}: no longer returns null when analyticsEnabled() is false — it would load on previews and localhost.`);
+  }
+  if (!/beforeSend=\{[\s\S]*?redactUrl\(event\.url\)/.test(siSrc)) {
+    fail(`${SI_PROVIDER}: beforeSend no longer passes the URL through redactUrl().`);
+  }
+}
+if (!layout.includes("<SpeedInsightsProvider />")) {
+  fail("app/layout.tsx: <SpeedInsightsProvider /> is not mounted.");
+}
+const siImporters = [];
+(function walk(dir) {
+  for (const name of readdirSync(dir)) {
+    if (SKIP.has(name)) continue;
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) { walk(full); continue; }
+    if (!/\.(tsx?|jsx?|mjs)$/.test(name)) continue;
+    const rel = relative(process.cwd(), full).split("\\").join("/");
+    if (/["']@vercel\/speed-insights/.test(stripComments(readFileSync(full, "utf8")))) siImporters.push(rel);
+  }
+})(process.cwd());
+if (siImporters.length !== 1 || siImporters[0] !== SI_PROVIDER) {
+  fail(
+    `@vercel/speed-insights must be imported only by ${SI_PROVIDER} — found: ` +
+    `${siImporters.length ? siImporters.join(", ") : "no importers"}. Any other mount skips the gate and the redaction.`,
+  );
+}
+
 if (failed) {
   console.error(`\n${failed} analytics invariant(s) broken.`);
   process.exit(1);
 }
-console.log("analytics check passed: provider mounts first, emit waits for the queue, dedupe records only on send, events stay within the property ceiling, and the search event has exactly one emitter.");
+console.log("analytics check passed: provider mounts first, emit waits for the queue, dedupe records only on send, events stay within the property ceiling, the search event has exactly one emitter, and Speed Insights is gated and redacted like Analytics.");

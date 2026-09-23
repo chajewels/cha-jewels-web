@@ -20,7 +20,23 @@ A signature motion pass for the public website: "gilded maximalism, value-driven
 
 ## HARD CONSTRAINTS (a PR that breaks any of these is not done)
 
-1. Performance. Before touching code, run Lighthouse per docs/perf-baseline.md (one command per invocation, no loops) on preview develop: /, /collections/bracelets, one product — mobile default + --preset=desktop. Record in docs/perf-baseline.md. Re-run on the feature branch at the end. Budget: desktop Performance ≥ 95 on /, **mobile LCP on / must not get worse AT ALL versus the 3-run median** (amended 2026-09-23; was +10% like the rest), LCP not worse than +10% on every other measured page, CLS stays ≤ 0.02, TBT not worse than +50 ms, added client JS ≤ 35 kB gzipped total (report the real number from the build output). The medians to beat are in docs/perf-baseline.md — mobile `/` LCP **3629 ms**.
+1. Performance. Before touching code, run Lighthouse per docs/perf-baseline.md (one command per invocation, no loops) on preview develop: /, /collections/bracelets, one product — mobile default + --preset=desktop. Record in docs/perf-baseline.md. Re-run on the feature branch at the end. Budget (amended 2026-09-23 after the mobile LCP diagnosis — see docs/perf-baseline.md):
+
+   - **Primary gate: OBSERVED LCP.** Lighthouse `observedLargestContentfulPaint`,
+     or a throttled real-browser run, must not regress on /, the collection page
+     or the product page. This is the gate because the simulated number is
+     modelled rather than measured, and on this site observed LCP equals
+     observed FCP on every run taken — the page paints its largest element with
+     its first.
+   - **Secondary: simulated mobile LCP**, judged on the median of 3 runs, and
+     called a regression only if it moves beyond the observed run-to-run spread.
+     That spread is wide: 3476–5717 ms across three runs of identical code on
+     one machine.
+   - **Homepage mobile transfer weight must not increase** beyond the result of
+     PR `perf/mobile-weight`: **1317 KB**, down from 2786 KB.
+   - Desktop Performance ≥ 95 on /. CLS stays ≤ 0.02. TBT not worse than +50 ms.
+     Added client JS ≤ 35 kB gzipped total (report the real number from the
+     build output). The medians to beat are in docs/perf-baseline.md — mobile `/` LCP **3629 ms**.
 2. LCP rule. On FIRST page load, nothing above the fold may start at opacity 0 or be hidden by clip-path — the hero headline and hero image paint immediately. First-load hero motion is transform/sheen only. Mask/fade entrances above the fold run only on client-side navigation. Below-the-fold reveals may start hidden.
 3. Reduced motion. Keep the blanket rule in app/globals.css. Wrap the app in `<MotionConfig reducedMotion="user">`, and additionally give every scroll-linked or pointer effect an explicit static fallback when reduced motion is on. Must react live if the setting changes (hero.tsx already subscribes — follow that pattern).
 4. Pointer effects (tilt, magnetic, spotlight, glint) only under `(hover: hover) and (pointer: fine)`. Touch gets a gentler tap/in-view version.
