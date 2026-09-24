@@ -854,6 +854,43 @@ export const dict = {
    * as surely as the page does. The en descriptions are unchanged. Layaway is
    * English-only — owner decision 2026-09-15, lib/layaway-availability.
    */
+  /**
+   * "Complete your profile" (2026-09-24). The fields and their order are the
+   * Hub's New Customer modal, minus staff-only Notes. Country values stay in
+   * English in both languages: they are what the Hub stores.
+   */
+  profile: {
+    h1: { ja: "お客様情報のご登録", en: "Complete your profile" },
+    lede: { ja: "アカウントを作成するため、お客様情報をご入力ください。ご注文やお問い合わせの際に、ご本人様の確認に使用いたします。", en: "Tell us who you are so we can set up your account. We use these details to recognise you when you order or message us." },
+    requiredNote: { ja: "* は必須項目です。", en: "* Required." },
+    email: { ja: "メールアドレス", en: "Email" },
+    emailNote: { ja: "サインインに使用されたメールアドレスです。", en: "The email you signed in with." },
+    fullName: { ja: "お名前（フルネーム）", en: "Full name" },
+    location: { ja: "お住まいの地域", en: "Location" },
+    locJapan: { ja: "日本", en: "Japan" },
+    locPhilippines: { ja: "フィリピン", en: "Philippines" },
+    locInternational: { ja: "その他の国・地域", en: "International" },
+    country: { ja: "国", en: "Country" },
+    countryPlaceholder: { ja: "国をお選びください", en: "Select your country" },
+    countryHint: { ja: "配送とお支払いのご案内のため、国をお選びください。", en: "Please select your country for delivery and payment coordination." },
+    facebookName: { ja: "Facebookのお名前", en: "Facebook name" },
+    messengerLink: { ja: "Messengerのリンク", en: "Messenger link" },
+    mobile: { ja: "携帯電話番号", en: "Mobile number" },
+    optional: { ja: "（任意）", en: "(optional)" },
+    submit: { ja: "登録して続ける", en: "Save and continue" },
+    submitting: { ja: "登録中…", en: "Saving…" },
+    errFullName: { ja: "お名前をご入力ください。", en: "Please enter your full name." },
+    errCountry: { ja: "国をお選びください。", en: "Please select your country." },
+    errSignedOut: { ja: "セッションの有効期限が切れました。お手数ですが、もう一度サインインしてください。", en: "Your session has ended. Please sign in again." },
+    errFailed: { ja: "お客様情報を登録できませんでした。恐れ入りますが、もう一度お試しください。", en: "We could not save your details. Please try again." },
+    ref: { ja: "参照番号: {id}", en: "Ref: {id}" },
+    // The owner's English wording, verbatim (2026-09-23). Shown when her
+    // details match a customer we already hold; nothing was created.
+    registeredH: { ja: "ご登録済みです", en: "Already registered" },
+    registeredP: { ja: "お客様はすでにご登録いただいております。アカウント情報につきましては、Cha Jewelsまでお問い合わせください。", en: "You are already registered. Please contact Cha Jewels for your account details." },
+    registeredSignedOut: { ja: "セキュリティのため、サインアウトいたしました。", en: "For your security, you have been signed out." },
+    contactCta: { ja: "Cha Jewelsにお問い合わせ", en: "Contact Cha Jewels" },
+  },
   meta: {
     // NO BLANKET CERTIFICATE CLAIM. This said "certified diamonds" /
     // 鑑定書付きダイヤモンド, which is not true of every diamond we sell — the
@@ -881,6 +918,8 @@ export const dict = {
     wholesale: { title: { ja: "卸売", en: "Wholesale" }, description: { ja: "日本とフィリピンのライブ販売者、ブティック、ファミリー経営の宝飾店に、K18ゴールドを卸価格で。", en: "K18 gold at trade prices for live sellers, boutiques and family jewelry businesses in Japan and the Philippines." } },
     cart: { title: { ja: "カート", en: "Cart" } },
     login: { title: { ja: "サインイン", en: "Sign in" } },
+    completeProfile: { title: { ja: "お客様情報のご登録", en: "Complete your profile" } },
+    registered: { title: { ja: "ご登録済みです", en: "Already registered" } },
     about: { title: { ja: "私たちについて", en: "About Us" } },
     why: { title: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" }, description: { ja: "心を込めて選んだジュエリー、明確な情報、お一人おひとりへの丁寧な対応。東京を拠点とするCha Jewelsが選ばれる理由。", en: "Thoughtfully chosen jewelry, clear details and personal care — why customers choose Tokyo-based Cha Jewels." } },
     contact: { title: { ja: "お問い合わせ", en: "Contact" }, description: { ja: "Cha Jewelsの所在地とご連絡先。メールおよびSNSからお問い合わせいただけます。", en: "How to reach Cha Jewels: our registered address, email and social channels." } },

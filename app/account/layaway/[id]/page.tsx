@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { orderLineTitle } from "@/lib/catalog-i18n";
@@ -58,9 +59,14 @@ export default async function LayawayPlanPage({ params, searchParams }: {
 
   // Service requests ride alongside the plan; a failure reading them leaves
   // the plan page standing with none listed rather than taking it down.
+  //
+  // 404 not_linked (no customer record yet) goes to the profile step; 404
+  // not_found (no such plan, or not hers) keeps the "not found" below.
+  const link = notLinkedProbe();
   const [detail, requests] = jwt
-    ? await Promise.all([hub.layawayPlan(jwt, id).catch(() => null), hub.serviceRequests(jwt).catch((): ServiceRequest[] => [])])
+    ? await Promise.all([hub.layawayPlan(jwt, id).catch(link.or(null)), hub.serviceRequests(jwt).catch(link.or<ServiceRequest[]>([]))])
     : [null, [] as ServiceRequest[]];
+  if (link.hit) redirect(profileUrl(withQuery(`/account/layaway/${id}`, query)));
   if (!detail) {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">

@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
@@ -103,18 +103,26 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
     next: revalidate === false ? undefined : { revalidate, tags },
     cache: revalidate === false ? "no-store" : undefined,
   });
-  if (res.status === 404) throw new HubError(404, "Not found");
   if (!res.ok) {
     // Read the body's error code so callers can tell one 409 from another.
     // A body that is missing or not JSON is normal for gateway-level failures.
     const body = await res.clone().json().then((b) => (b && typeof b === "object" ? b : null), () => null);
     const code = typeof body?.error === "string" ? body.error : null;
     const requestId = (typeof body?.request_id === "string" && body.request_id) || res.headers.get("x-request-id") || null;
+    // A 404 carries its code too: on a customer route `not_linked` (signed in,
+    // no customer record yet) and `not_found` (no such order or plan, or not
+    // hers) are different answers and callers must be able to tell them apart.
+    if (res.status === 404) throw new HubError(404, "Not found", code, requestId);
     throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId);
   }
   return res.json() as Promise<T>;
 }
-const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404) return null; throw e; } };
+/**
+ * 404 → null, EXCEPT `not_linked`: that is "no customer record yet", not "no
+ * such thing", and it goes to the profile step (lib/profile.ts), so it is
+ * rethrown rather than read as a missing order or plan.
+ */
+const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404 && e.code !== "not_linked") return null; throw e; } };
 
 export const hub = {
   /**
@@ -264,11 +272,20 @@ export const hub = {
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false }),
-  /** Links or creates the customers row for a signed-in customer. Idempotent. */
-  authCustomer: (jwt: string, full_name?: string): Promise<{ customer: HubCustomer; created: boolean }> =>
+  /**
+   * Links or creates the customers row for a signed-in customer. Idempotent.
+   *
+   * Without a profile the body is `{}`: the Hub links a customer that already
+   * holds this email, and otherwise answers 422 `profile_required` (nothing is
+   * created) — the caller sends her to /account/complete-profile. With a
+   * profile, a new customer is created from it, unless her details match an
+   * existing customer: 409 `already_registered`, nothing created. See
+   * lib/profile.ts for both checks.
+   */
+  authCustomer: (jwt: string, profile?: HubProfileInput): Promise<{ customer: HubCustomer; created: boolean }> =>
     FIXTURES
       ? Promise.resolve({ customer: fx.meFixture.customer, created: false })
-      : call("/auth/customer", { method: "POST", body: JSON.stringify({ full_name }), jwt, revalidate: false }),
+      : call("/auth/customer", { method: "POST", body: JSON.stringify(profile ?? {}), jwt, revalidate: false }),
   /** Profile, addresses, loyalty snapshot. 404 before authCustomer has run. */
   me: (jwt: string): Promise<HubMe> =>
     // NEXT_PUBLIC_PREVIEW_BLANK=1 serves the empty-record fixture instead, so

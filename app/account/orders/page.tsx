@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -14,8 +15,8 @@ import { alertLight } from "@/lib/form-classes";
 export const generateMetadata = () => pageMeta("orders");
 export const dynamic = "force-dynamic";
 
-export default async function OrdersPage() {
-  const lang = await getLang();
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [lang, query] = await Promise.all([getLang(), searchParams]);
   const t = tr(lang);
 
   const supabase = await supabaseServer();
@@ -27,7 +28,11 @@ export default async function OrdersPage() {
   let orders: HubOrder[] = [];
   let failed = false;
   if (jwt) {
-    try { orders = await hub.orders(jwt); } catch { failed = true; }
+    try { orders = await hub.orders(jwt); } catch (e) {
+      // Signed in, no customer record yet: the profile step, not an error.
+      if (isNotLinked(e)) redirect(profileUrl(withQuery("/account/orders", query)));
+      failed = true;
+    }
   } else {
     failed = true;
   }

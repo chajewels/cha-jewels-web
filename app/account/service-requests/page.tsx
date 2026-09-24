@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -18,8 +19,8 @@ export const dynamic = "force-dynamic";
  * back to the order or plan it came from. Requests are RAISED on those pages,
  * next to the piece; this page only reads.
  */
-export default async function ServiceRequestsPage() {
-  const lang = await getLang();
+export default async function ServiceRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [lang, query] = await Promise.all([getLang(), searchParams]);
   const t = tr(lang);
 
   const supabase = await supabaseServer();
@@ -31,7 +32,11 @@ export default async function ServiceRequestsPage() {
   let requests: ServiceRequest[] = [];
   let failed = false;
   if (jwt) {
-    try { requests = newestFirst(await hub.serviceRequests(jwt)); } catch { failed = true; }
+    try { requests = newestFirst(await hub.serviceRequests(jwt)); } catch (e) {
+      // Signed in, no customer record yet: the profile step, not an error.
+      if (isNotLinked(e)) redirect(profileUrl(withQuery("/account/service-requests", query)));
+      failed = true;
+    }
   } else {
     failed = true;
   }
