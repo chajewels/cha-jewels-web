@@ -375,7 +375,7 @@ export const dict = {
     ok: { ja: "送信しました。1営業日以内に価格表と担当者からのご連絡をお送りします。", en: "Sent. The price list and a message from our team will reach you within one business day." },
     err: { ja: "送信できませんでした。もう一度お試しください。", en: "Could not submit. Please try again." },
   },
-  faq: { h1: { ja: "よくある質問", en: "Frequently asked questions" }, lede: { ja: "お問い合わせの多いご質問をまとめました。ほかにご不明な点があればお気軽にご連絡ください。", en: "The questions we are asked most. If yours is not here, please get in touch." } },
+  faq: { h1: { ja: "よくある質問", en: "Frequently asked questions" }, lede: { ja: "お問い合わせの多いご質問をまとめました。ほかにご不明な点があればお気軽にご連絡ください。", en: "The questions we are asked most. If yours is not here, please get in touch." }, categories: { ja: "質問のカテゴリー", en: "Question categories" } },
   gold: { h1: { ja: "ゴールドの基礎知識", en: "The gold guide" }, lede: { ja: "K18の意味、刻印の読み方、長く美しく保つためのお手入れ。購入前に知っておいていただきたいことをまとめました。", en: "What K18 means, how to read a stamp, and how to keep a piece looking right. The things worth knowing before you buy." }, cta: { ja: "コレクションを見る", en: "Shop the collections" }, plateGold: { ja: "金 75%", en: "Gold 75%" }, plateAlloy: { ja: "割金 25%（銀・銅など）", en: "Alloy 25% (silver, copper)" }, illustration: { ja: "イメージ", en: "Illustration" }, },
   account: {
     print: { ja: "印刷 / PDFで保存", en: "Print / save as PDF" },
@@ -792,7 +792,7 @@ export const dict = {
     errNotLive: { ja: "このご予約は終了しているため、お支払いをお受けできません。", en: "This plan is closed, so we cannot take a payment for it." },
     errFailed: { ja: "送信できませんでした。もう一度お試しください。", en: "We could not send that. Please try again." },
   },
-  about: { h1: { ja: "私たちについて", en: "About Us" } },
+  about: { h1: { ja: "私たちについて", en: "About Us" }, logoAlt: { ja: "Cha Jewels ロゴ", en: "Cha Jewels logo" } },
   blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" }, empty: { ja: "この分類の記事はまだありません。", en: "Nothing here yet." } },
   notFound: { h1: { ja: "そのお品物はここにはありません。", en: "That piece is not here." }, p: { ja: "すでに売れたか、リンクが古い可能性があります。", en: "It may have sold, or the link is old." }, back: { ja: "コレクションに戻る", en: "Back to the collections" } },
   /** Header account menu (signed in) and the drawer's account section. */

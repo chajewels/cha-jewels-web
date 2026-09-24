@@ -1,6 +1,8 @@
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
+import { Emblem } from "@/components/fx/emblem";
+import { ComponentStyle } from "@/components/fx/component-style";
 
 export const generateMetadata = () => pageMeta("affiliations");
 
@@ -20,6 +22,10 @@ export const generateMetadata = () => pageMeta("affiliations");
  * is phrased as though it did — this is who the business belongs to, next to
  * the address and the registration number, not a quality claim.
  */
+/** The emblem beside the title from sm, above it on narrow phones (component CSS — docs/perf-baseline.md). */
+const TITLE_CSS = `.fx-titled { display: flex; flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+@media (min-width: 640px) { .fx-titled { flex-direction: row; align-items: center; gap: clamp(20px, 3vw, 36px); } }`;
+
 export default async function Affiliations() {
   const lang = await getLang();
   const t = tr(lang);
@@ -44,7 +50,12 @@ export default async function Affiliations() {
   return (
     <section className="bg-chalk py-[clamp(48px,7vw,96px)] text-charcoal">
       <div className="wrap max-w-2xl">
-        <h1 className="text-[clamp(32px,5vw,64px)] leading-[1.12] text-charcoal-deep">{t("contact", "affiliationsH")}</h1>
+        {/* Decorative emblem (components/fx/emblem.tsx); the h1 carries the title. */}
+        <ComponentStyle id="fx-titled" css={TITLE_CSS} />
+        <div className="fx-titled">
+          <Emblem name="affiliations" sm={96} lg={120} />
+          <h1 className="text-[clamp(32px,5vw,64px)] leading-[1.12] text-charcoal-deep">{t("contact", "affiliationsH")}</h1>
+        </div>
         <p className="mt-4 text-[17px] leading-relaxed text-charcoal-deep">{t("contact", "affiliationsLede")}</p>
 
         <ul className="mt-10 space-y-4">
