@@ -336,6 +336,9 @@ export const dict = {
     multiplier: { ja: "ポイント倍率", en: "Points" }, requalify: { ja: "復帰条件", en: "To regain after 180 days of inactivity" },
     requalifyNone: { ja: "不要", en: "Not required" },
     holdNote: { ja: "ご予約いただいた商品は、はじめてのお客様は24時間、2回目以降のお客様は72時間お取り置きします。会員レベルによる違いはありません。", en: "A claimed piece is held for 24 hours for a new customer and 72 hours for a returning one. This does not vary by level." },
+    // RESERVE FIRST (Hub A2). The time to pay starts when staff confirm the
+    // piece, and the customer is told the deadline then — so no number here.
+    holdNoteReserve: { ja: "ご予約いただいた商品は、確認が済むまでお取り置きします。お支払い期限は商品の確認後に始まり、期限はメールでお知らせします。会員レベルによる違いはありません。", en: "We hold a reserved piece while we confirm it. The time to pay starts once we have confirmed it, and we email you the deadline then. This does not vary by level." },
     join: { ja: "無料で入会する", en: "Join free" }, joinH: { ja: "入会はこちら", en: "Join the program" },
     joinP: { ja: "入会は無料です。メールアドレスでサインインすると、次回のお買い物からポイントが貯まります。", en: "Joining is free. Sign in with your email and points start with your next purchase." },
     name: { ja: "お名前", en: "Your name" }, contact: { ja: "携帯番号またはメール", en: "Mobile number or email" }, region: { ja: "お住まいの地域", en: "Where you live" }, submit: { ja: "入会する", en: "Join" },
@@ -509,6 +512,11 @@ export const dict = {
     transferOnly: { ja: "現在はお振込のみご利用いただけます。カード決済は準備中です。", en: "Bank transfer only for now. Card payment is coming soon." },
     transferPreview: { ja: "お振込先は以下のとおりです。ご注文確定後、この画面とメールでも改めてご案内します。", en: "You will transfer to the account below. We show it again after you place the order, and send it by email." },
     placeOrder: { ja: "ご注文を確定する", en: "Place order" },
+    // RESERVE FIRST (Hub A2). Shown only when the quote came back with
+    // `reservation_mode`: no bank details and no deadline until staff confirm
+    // the piece (owner rule).
+    reserveNow: { ja: "予約する", en: "Reserve this piece" },
+    reserveExplain: { ja: "商品を確認後、お支払い方法をメールでお送りします。", en: "We'll confirm your piece and email you payment details." },
     placing: { ja: "処理中…", en: "Placing your order…" },
     // THE DEADLINE IS THE CUSTOMER'S, NOT A CONSTANT (owner decision 2026-09-16).
     // 24 hours on a first order, 72 when they have ordered before. The number
@@ -625,7 +633,16 @@ export const dict = {
     // 2026-09-15). Nothing was charged and the basket is intact, so the copy
     // says what to do next rather than apologising.
     layawayUnavailable: { ja: "分割予約は英語表示のみでのお取り扱いとなります。全額でのお支払いにお進みいただくか、表示言語をEnglishに切り替えてください。カートの中身はそのままです。", en: "Layaway is available on the English site only. Pay in full, or switch the language to English to reserve. Your basket is untouched." },
-    layawayDeadline: { ja: "お申込金は72時間以内にお振込ください。期限を過ぎた場合はお取り置きを解除し、商品は再び販売いたします。お支払いは発生しません。", en: "Please send the deposit within 72 hours. After that we release the hold and the piece goes back on sale; nothing is owed." },
+    // THE DEPOSIT DEADLINE IS THE CUSTOMER'S, NOT A CONSTANT. It said "72
+    // hours" to everyone until 2026-09-24, and a first order gets 24. Same
+    // split as deadlineWithin / deadlineNote: the number is rendered only when
+    // the quote carries one, and the consequence names none.
+    layawayDepositWithin: { ja: "お申込金は{hours}時間以内にお振込ください。", en: "Please send the deposit within {hours} hours." },
+    layawayDeadlineNote: { ja: "期限を過ぎた場合はお取り置きを解除し、商品は再び販売いたします。お支払いは発生しません。", en: "After the deadline we release the hold and the piece goes back on sale; nothing is owed." },
+    // Reservation mode: the deadline starts only when staff confirm the piece,
+    // and the schedule is re-dated to that day, so neither gets a number here.
+    layawayReserveNote: { ja: "商品の確認後に、お申込金のお振込先と期限をメールでお知らせします。お支払い期限はそこから始まります。それまでお支払いは発生しません。", en: "Once we confirm your piece, we email you where to send the deposit and by when — the deadline starts then. Nothing is owed before that." },
+    layawayScheduleProvisional: { ja: "お支払い日は、商品を確認した日から数えて決まります。", en: "The dates are counted from the day we confirm your piece." },
     reservePiece: { ja: "この内容で予約する", en: "Reserve this piece" },
     reserving: { ja: "手続き中…", en: "Reserving…" },
     belowMinimum: { ja: "このご注文金額では、お選びの回数をご利用いただけません。ご利用いただける回数からお選びください。", en: "That number of months is not available at this order total. Please choose from the terms shown." },
@@ -669,6 +686,13 @@ export const dict = {
     layawayLede: { ja: "ご予約を承りました。お申込金のご入金を確認しだい、お支払い予定に沿ってお進みいただけます。", en: "Your plan is created. Once we see your deposit, the schedule below is yours to follow." },
     layawayDeposit: { ja: "お申込金", en: "Deposit" },
     layawayViewPlan: { ja: "ご予約の詳細を見る", en: "View this plan" },
+    // RESERVE FIRST (Hub A2). No bank details and no deadline on this screen:
+    // staff confirm the piece first, and the payment email follows.
+    reservedH1: { ja: "ご予約を承りました", en: "Reservation received" },
+    reservedLede: { ja: "商品をお取り置きしております。商品を確認のうえ、1営業日以内にお支払い方法をメールでお送りします。", en: "Your piece is held for you. We'll check it and email you within one business day with how to pay." },
+    reservedNoPayment: { ja: "お支払いは、確認のメールをお受け取りになるまでお待ちください。", en: "Please don't send any payment until that email arrives." },
+    reservedPieces: { ja: "ご予約商品", en: "Pieces" },
+    reservedTotal: { ja: "合計", en: "Total" },
   },
   orders: {
     h1: { ja: "ご注文履歴", en: "Your orders" },
@@ -683,6 +707,8 @@ export const dict = {
     tracking: { ja: "追跡番号", en: "Tracking number" },
     notFound: { ja: "ご注文が見つかりませんでした。", en: "We could not find that order." },
     statusPendingTransfer: { ja: "お振込待ち", en: "Awaiting transfer" },
+    statusReserved: { ja: "ご予約受付 — 確認中", en: "Reserved — confirming your piece" },
+    reservedNote: { ja: "商品を確認しております。1営業日以内にお支払い方法をメールでお送りします。確認後は、お振込先と期限もこちらに表示されます。", en: "We're confirming your piece and will email you within one business day with how to pay. Once it's confirmed, the payment details and deadline appear here too." },
     statusPaid: { ja: "お支払い済み", en: "Paid" },
     statusCancelled: { ja: "キャンセル済み", en: "Cancelled" },
     statusExpired: { ja: "期限切れ", en: "Expired" },
@@ -741,6 +767,9 @@ export const dict = {
     statusForfeited: { ja: "規約により終了", en: "Closed under the plan terms" },
     statusSettlement: { ja: "精算手続き中", en: "In settlement" },
     statusExtension: { ja: "延長中", en: "Extended" },
+    statusReserved: { ja: "ご予約受付 — 確認中", en: "Reserved — confirming your piece" },
+    noteReserved: { ja: "商品を確認しております。1営業日以内に、お申込金のお振込先と期限をメールでお送りします。確認後は、こちらにも表示されます。", en: "We're confirming your piece and will email you within one business day with where to send the deposit and by when. Once it's confirmed, they appear here too." },
+    scheduleProvisional: { ja: "お支払い日は、商品の確認後にその日から数え直します。", en: "These dates are recounted from the day we confirm your piece." },
     /**
      * A closed plan still carries a positive remaining_balance in the Hub — all
      * 53 forfeited plans do, up to ¥478,556. Labelling that figure "Still to
@@ -790,6 +819,7 @@ export const dict = {
     errTooMany: { ja: "本日のご報告は上限に達しました。恐れ入りますが、明日以降にお試しください。", en: "That is as many reports as we can take today. Please try again tomorrow." },
     errExceeds: { ja: "残額を超える金額はお受けできません。", en: "That is more than the plan still owes." },
     errNotLive: { ja: "このご予約は終了しているため、お支払いをお受けできません。", en: "This plan is closed, so we cannot take a payment for it." },
+    errNotReady: { ja: "まだ商品を確認中のため、お支払いをお受けできません。準備が整いしだい、メールでお知らせします。", en: "We're still confirming this piece, so we can't take a payment yet. We'll email you as soon as it's ready." },
     errFailed: { ja: "送信できませんでした。もう一度お試しください。", en: "We could not send that. Please try again." },
   },
   about: { h1: { ja: "私たちについて", en: "About Us" }, logoAlt: { ja: "Cha Jewels ロゴ", en: "Cha Jewels logo" } },

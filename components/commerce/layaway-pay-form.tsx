@@ -7,6 +7,7 @@ import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { SettlementCurrency, TransferMethod } from "@/lib/types";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
+import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
 
 /**
  * Reporting a transfer against a plan.
@@ -44,6 +45,7 @@ export function LayawayPayForm({ accountId, lang, currency, suggestedAmount, met
     : code === "too_many_submissions" ? t("plans", "errTooMany")
     : code === "exceeds_balance" ? t("plans", "errExceeds")
     : code === "plan_not_live" ? t("plans", "errNotLive")
+    : code === NOT_READY_FOR_PAYMENT ? t("plans", "errNotReady")
     : t("plans", "errFailed");
 
   function submit(form: FormData) {

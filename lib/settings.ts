@@ -135,3 +135,27 @@ export async function announcement(lang: Lang): Promise<Announcement | null> {
 function todayInTokyo(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
+
+/**
+ * RESERVE FIRST (Hub A2) — whether /loyalty should describe the hold as
+ * "confirmed first, then a deadline" rather than naming 24 / 72 hours.
+ *
+ * /loyalty has no quote or order to read the mode from, so this is the one
+ * place it comes from settings. It reads `web_reservation_mode` from the
+ * public settings map, which the Hub does NOT publish yet: the switch lives in
+ * system_settings, and /content/settings serves website_settings only. Until
+ * the Hub adds it there (derived from the switch, not a second row that can
+ * drift from it), this answers false and the page keeps today's wording.
+ *
+ * FAIL-CLOSED, with the Hub's own rule: only JSON true or the string "true" is
+ * on. An outage is off too — this sits on a content page, and today's
+ * sentence is the one that is true while the switch is off.
+ */
+export async function reservationMode(): Promise<boolean> {
+  try {
+    const value = (await load())["web_reservation_mode"];
+    return value === true || value === "true";
+  } catch {
+    return false;
+  }
+}
