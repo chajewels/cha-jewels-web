@@ -14,6 +14,26 @@ Repo: chajewels/cha-jewels-web. Branch from develop: feature/web-motion-signatur
 
 FIRST: save this whole message as docs/tasks/web-motion-signature.md and commit it, so the spec lives in the repo.
 
+## AMENDMENT — 2026-09-23 (owner, before Phase 1)
+
+These four rules are added to the brief below and outrank it where they differ.
+
+1. **NOTICEABILITY TEST.** A first-time visitor must see signature motion
+   within the first 3 seconds on the homepage — desktop and phone — without
+   hovering or scrolling. If the before and after videos look the same, the
+   effect has failed: make it bolder, within the luxury rules (no custom
+   cursor, no particles, no scroll-jacking, no bounce).
+2. **PHASE GATE.** The homepage first, then stop for Cynthia's approval.
+   Catalog, loyalty, editorial and header work do not start until she has
+   approved the homepage.
+3. **NO SILENT CUTS.** If the performance budget forces an effect to be
+   simplified or dropped, report it with numbers and propose a cheaper way to
+   get the same look. Never drop anything quietly.
+4. **DRAFT RULE.** The PR stays a draft until Cynthia approves the finished
+   work. Nobody merges a draft.
+
+---
+
 ## GOAL
 
 A signature motion pass for the public website: "gilded maximalism, value-driven luxe", made WILD in craft but never cheap. Principle: each page gets ONE unforgettable moment; everything else moves slowly and with weight. Benchmarks for feel: Bulgari, Cartier, Tiffany editorial pages. Explicitly forbidden: custom cursor, particles/confetti/sparkles, scroll-jacking or smooth-scroll libraries (no Lenis), bouncy springs, parallax on text, autoplaying anything new, motion that blocks reading or tapping.

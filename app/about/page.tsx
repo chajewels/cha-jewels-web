@@ -3,7 +3,14 @@ import Link from "next/link";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 import { aboutCopy } from "@/lib/content/about";
+import { AboutLogoVideo } from "@/components/fx/about-logo-video";
+import { StickyColumn } from "@/components/fx/sticky-column";
+import { ComponentStyle } from "@/components/fx/component-style";
+
+/** Stacked below lg; copy and a steady right column from lg (component CSS, not utilities — docs/perf-baseline.md). */
+const CSS = `@media (min-width: 1024px) { .about-grid { grid-template-columns: 1.2fr .8fr; } }`;
 export const generateMetadata = () => pageMeta("about");
 export default async function About() {
   const lang = await getLang();
@@ -11,9 +18,10 @@ export default async function About() {
   const c = aboutCopy[lang];
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap grid gap-12 md:grid-cols-[1.2fr_.8fr]">
+      <ComponentStyle id="about-grid" css={CSS} />
+      <div className="wrap about-grid grid gap-12">
         <div>
-          <h1 className="text-[clamp(36px,5.5vw,80px)]">{c.h1}</h1>
+          <NavHeading text={c.h1} lang={lang} className="text-[clamp(36px,5.5vw,80px)]" />
           <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
             <p>{c.intro}</p>
             <p>{c.questionsLead}</p>
@@ -31,7 +39,7 @@ export default async function About() {
               closing statement. */}
           {c.sections.map((s) => (
             <div key={s.heading} className="mt-8 max-w-[58ch] border-t border-hairline pt-6">
-              <h2 className="font-display text-2xl text-charcoal-deep">{s.heading}</h2>
+              <SplitHeading text={s.heading} lang={lang} className="font-display text-2xl text-charcoal-deep" />
               <p className="mt-3 text-[17px] text-charcoal-deep">{s.body}</p>
             </div>
           ))}
@@ -48,13 +56,21 @@ export default async function About() {
           </p>
           <div className="mt-8"><Button asChild><Link href="/collections">{c.cta}</Link></Button></div>
         </div>
-        {/* Replaces the former facts grid in the same column, same panel treatment. */}
-        <div className="self-start border border-hairline bg-white p-6">
-          <h2 className="font-display text-2xl text-charcoal-deep">{c.listHeading}</h2>
-          <ul className="rule-grid mt-5 grid">
-            {c.list.map((item) => <li key={item} className="px-4 py-3 text-sm text-charcoal-deep">{item}</li>)}
-          </ul>
-        </div>
+        {/* THE RIGHT COLUMN, STEADY FROM lg (components/fx/sticky-column.tsx):
+            the logo clip above the products-and-services panel, both in the
+            page's white hairline panel. Below lg it follows the copy. */}
+        <StickyColumn>
+          <div className="border border-hairline bg-white p-2">
+            <AboutLogoVideo alt={t("about", "logoAlt")} sizes="(min-width: 1024px) 38vw, 100vw" />
+          </div>
+          {/* Replaces the former facts grid in the same column, same panel treatment. */}
+          <div className="mt-6 border border-hairline bg-white p-6">
+            <SplitHeading text={c.listHeading} lang={lang} className="font-display text-2xl text-charcoal-deep" />
+            <ul className="rule-grid mt-5 grid">
+              {c.list.map((item) => <li key={item} className="px-4 py-3 text-sm text-charcoal-deep">{item}</li>)}
+            </ul>
+          </div>
+        </StickyColumn>
       </div>
     </section>
   );

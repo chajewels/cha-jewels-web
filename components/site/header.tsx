@@ -15,6 +15,8 @@ import { MobileNav } from "./mobile-nav";
 import { CartButton } from "./cart-button";
 import { Suspense } from "react";
 import { AccountMenu } from "./account-menu";
+import { HeaderShell } from "./header-shell";
+import { NavUnderline } from "./nav-underline";
 
 /**
  * The Stitch header (docs/stitch/cha-desktop.html §2) without its top bar
@@ -121,16 +123,19 @@ export async function Header({ lang }: { lang: Lang }) {
   const account = session ? { name, menuLabel: t("accountMenu", "menu"), items: accountItems, signOut: t("accountMenu", "signOut") } : null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline bg-chalk/95 text-charcoal shadow-[0_1px_8px_rgba(0,0,0,0.03)] backdrop-blur-md">
+    // HeaderShell (client) adds the scroll behaviour: flat chalk at the top,
+    // frosted with a shadow past 24px (data-solid), hidden on the way down
+    // and back on the way up — never while a menu is open or focus is inside.
+    <HeaderShell className="sticky top-0 z-40 border-b border-hairline bg-chalk text-charcoal">
       <div className="wrap flex h-[68px] items-center justify-between gap-3 sm:gap-4">
         <Link href="/" className="flex items-center gap-1.5 whitespace-nowrap sm:gap-3" aria-label="Cha Jewels">
           <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={44} height={44} alt="" className="h-11 w-11 shrink-0" />
           <span className="gilt font-display text-[22px] font-medium tracking-wide sm:text-[26px]">Cha Jewels</span>
         </Link>
-        <nav aria-label={t("nav", "primary")} className="hidden xl:block">
+        <nav aria-label={t("nav", "primary")} className="relative hidden xl:block">
           <ul className="flex items-center gap-4 whitespace-nowrap text-sm text-charcoal/80 2xl:gap-5">
-            <li><Link href="/" className="hover:text-gold-dark">{t("nav", "home")}</Link></li>
-            <li>
+            <li data-match="/"><Link href="/" className="hover:text-gold-dark">{t("nav", "home")}</Link></li>
+            <li data-match={companyItems.map((it) => it.href.split("?")[0]).join(" ")}>
               <NavMenu label={t("navMenu", "company")} menuLabel={t("navMenu", "companyMenu")}>
                 <div className="grid gap-0.5 md:grid-cols-2">
                   {companyItems.map((it) => (
@@ -139,7 +144,7 @@ export async function Header({ lang }: { lang: Lang }) {
                 </div>
               </NavMenu>
             </li>
-            <li>
+            <li data-match="/collections /categories /products">
               <NavMenu label={t("navMenu", "collections")} menuLabel={t("navMenu", "collectionsMenu")}>
                 <div className="grid gap-x-4 md:grid-cols-2">
                   <div className="min-w-0">
@@ -156,8 +161,9 @@ export async function Header({ lang }: { lang: Lang }) {
                 </div>
               </NavMenu>
             </li>
-            {tailLinks.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-dark">{l.label}</Link></li>)}
+            {tailLinks.map((l) => <li key={l.href} data-match={l.href}><Link href={l.href} className="hover:text-gold-dark">{l.label}</Link></li>)}
           </ul>
+          <NavUnderline />
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
           <SearchBox lang={lang} />
@@ -167,7 +173,7 @@ export async function Header({ lang }: { lang: Lang }) {
           <MobileNav lang={lang} links={links} groups={groups} menuLabel={t("nav", "menu")} openLabel={t("nav", "openMenu")} closeLabel={t("nav", "closeMenu")} account={account} />
         </div>
       </div>
-    </header>
+    </HeaderShell>
   );
 }
 

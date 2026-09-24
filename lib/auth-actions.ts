@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
+import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
 
 /**
  * Completes an email sign-in link ON CLICK, not on load.
@@ -41,9 +42,13 @@ export async function confirmSignInAction(formData: FormData): Promise<void> {
     } else {
       try {
         await hub.authCustomer(data.session.access_token);
-      } catch {
-        // The session is valid either way; /account reports the linking problem.
-        target = "/account?link=failed";
+      } catch (e) {
+        // Same three outcomes as /auth/callback: the profile step, the
+        // already-registered notice, or — the session being valid either
+        // way — /account reporting the linking problem.
+        target = isProfileRequired(e) ? profileUrl(next)
+          : isAlreadyRegistered(e) ? REGISTERED_PATH
+          : "/account?link=failed";
       }
     }
   } catch {

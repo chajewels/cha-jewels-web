@@ -7,6 +7,9 @@ import { tiers as fallbackTiers } from "@/lib/loyalty";
 import type { HubTier } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { TierLadder } from "@/components/fx/tier-ladder";
+import { Magnetic } from "@/components/fx/magnetic";
+import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 export const generateMetadata = () => pageMeta("loyalty");
 export const revalidate = 300;
 export default async function LoyaltyPage() {
@@ -18,19 +21,23 @@ export default async function LoyaltyPage() {
     <>
       <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
-          <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("loyalty", "h1")}</h1>
+          <NavHeading text={t("loyalty", "h1")} lang={lang} className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]" />
           <p className="mt-5 max-w-[58ch] text-charcoal">{t("loyalty", "lede")}</p>
-          <div className="mt-8"><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></div>
+          <div className="mt-8"><Magnetic><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></Magnetic></div>
         </div>
       </section>
       <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
-          <h2 className="max-w-[20ch] text-[clamp(30px,4vw,56px)]">{t("loyalty", "levelsH")}</h2>
+          <SplitHeading text={t("loyalty", "levelsH")} lang={lang} className="max-w-[20ch] text-[clamp(30px,4vw,56px)]" />
           <p className="mt-4 max-w-[58ch] text-charcoal">{t("loyalty", "levelsP")}</p>
           <p className="mt-2 max-w-[58ch] text-sm text-charcoal/70">{t("loyalty", "inactivityP")}</p>
-          <ol className="rule-grid mt-12 grid sm:grid-cols-2 lg:grid-cols-4">
+          {/* THE LADDER (components/fx/tier-ladder.tsx): a gold rail fills as
+              the reader scrolls, each tier lights as it reaches it, and the
+              top tier's edge turns slowly in gold. */}
+          <TierLadder className="mt-12">
+          <ol className="rule-grid grid sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier, i) => (
-              <li key={tier.slug} className="flex flex-col bg-white p-6">
+              <li key={tier.slug} data-tier="" data-crown={i === tiers.length - 1 ? "" : undefined} className="flex flex-col bg-white p-6">
                 <span className="text-xs text-charcoal/70">{t("loyalty", "level", { n: String(i + 1) })}</span>
                 <h3 className="mt-1 text-[28px] text-charcoal-deep">{tier.name}</h3>
                 <div className="my-4 h-0.5 bg-[linear-gradient(90deg,#8A6B12,#E8D28A)]" style={{ width: `${25 + i * 25}%` }} />
@@ -51,11 +58,12 @@ export default async function LoyaltyPage() {
               </li>
             ))}
           </ol>
+          </TierLadder>
           <p className="mt-8 max-w-[58ch] text-sm text-charcoal/70">{t("loyalty", "holdNote")}</p>
         </div>
       </section>
       <section className="py-[clamp(48px,7vw,96px)] text-center">
-        <div className="wrap"><h2 className="mx-auto text-[clamp(30px,4vw,56px)]">{t("loyalty", "joinH")}</h2><p className="mx-auto mt-4 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><div className="mt-8"><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></div></div>
+        <div className="wrap"><SplitHeading text={t("loyalty", "joinH")} lang={lang} className="mx-auto text-[clamp(30px,4vw,56px)]" /><p className="mx-auto mt-4 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><div className="mt-8"><Magnetic><Button asChild><Link href="/loyalty/join">{t("loyalty", "join")}</Link></Button></Magnetic></div></div>
       </section>
     </>
   );

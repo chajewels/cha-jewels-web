@@ -14,6 +14,8 @@ import { announcement } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
+import { BootMarker } from "@/components/fx/boot-marker";
+import { PageEnter } from "@/components/fx/page-enter";
 
 /**
  * ONLY THE FACES THAT ACTUALLY RENDER.
@@ -103,6 +105,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
         {notice && <AnnouncementBar text={notice.text} href={notice.href} lang={lang} />}
+        {/* Tells an entrance whether this render is the first page load or a
+            client navigation (components/fx/boot-marker.tsx). Renders nothing. */}
+        <BootMarker />
+        <PageEnter />
         <Header lang={lang} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>

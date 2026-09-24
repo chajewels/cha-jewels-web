@@ -3,6 +3,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { hub } from "@/lib/hub-api";
+import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
 
 /**
  * Completes the email sign-in link, then links the auth user to their customer
@@ -66,10 +67,15 @@ export async function GET(req: Request) {
     let target = next;
     try {
       await hub.authCustomer(data.session.access_token);
-    } catch {
-      // The session is valid either way. /account reports the linking problem
-      // rather than this route silently dropping the customer back to /login.
-      target = "/account?link=failed";
+    } catch (e) {
+      // No customer holds this email: the profile step, then where she was
+      // going. Her details match an existing customer: the notice, which signs
+      // her out. Anything else: the session is valid either way, and /account
+      // reports the linking problem rather than this route silently dropping
+      // the customer back to /login.
+      target = isProfileRequired(e) ? profileUrl(next)
+        : isAlreadyRegistered(e) ? REGISTERED_PATH
+        : "/account?link=failed";
     }
     const res = NextResponse.redirect(new URL(target, url.origin));
     pending.forEach(({ name, value, options }) => res.cookies.set(name, value, options));

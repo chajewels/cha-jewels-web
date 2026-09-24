@@ -75,7 +75,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           <EmptyShelf lang={lang} />
         ) : (
           <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">
-            {cat.products.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}
+            {cat.products.map((p, i) => <ProductCard key={p.id} product={p} lang={lang} index={i} />)}
           </div>
         )}
       </div>

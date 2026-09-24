@@ -2,6 +2,9 @@ import { Star } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Testimonial } from "@/lib/types";
 import { TestimonialMarquee } from "@/components/home/testimonial-marquee";
+import { QuoteMark } from "@/components/fx/quote-mark";
+import { SplitHeading } from "@/components/fx/split-text";
+import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 
 /**
  * Client Experiences (Stitch §9). `items` comes from the Hub (GET
@@ -32,11 +35,14 @@ export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[]
   return (
     <section className="bg-white py-8 lg:py-16">
       <div className="wrap">
-        <div className="max-w-[62ch] space-y-1">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gold-dark">{t("home", "testiEyebrow")}</p>
-          <h2 className="font-display text-[clamp(28px,3.4vw,44px)] text-charcoal">{t("home", "testiH")}</h2>
-          <p className="text-sm text-charcoal/70">{t("home", "testiP")}</p>
-        </div>
+        {/* Entrance (components/fx): the gold quote mark draws itself, the
+            heading rises in, the lines around it follow. */}
+        <QuoteMark className="mb-3" />
+        <RevealGroup className="max-w-[62ch] space-y-1">
+          <RevealItem index={0}><p className="text-[11px] font-bold uppercase tracking-widest text-gold-dark">{t("home", "testiEyebrow")}</p></RevealItem>
+          <SplitHeading text={t("home", "testiH")} lang={lang} className="font-display text-[clamp(28px,3.4vw,44px)] text-charcoal" />
+          <RevealItem index={2}><p className="text-sm text-charcoal/70">{t("home", "testiP")}</p></RevealItem>
+        </RevealGroup>
         {shown.length >= 3 ? (
           <TestimonialMarquee items={shown} lang={lang} />
         ) : (
@@ -61,7 +67,9 @@ export function TestimonialCard({ item: x, lang }: { item: Testimonial; lang: La
   const quoteOf = (y: Testimonial) => (lang === "ja" ? y.quote_ja ?? y.quote_en : y.quote_en ?? y.quote_ja);
   const rating = x.rating == null ? null : Math.max(0, Math.min(5, Math.round(x.rating)));
   return (
-    <article className="flex h-full flex-col justify-between gap-5 rounded-sm border border-hairline bg-chalk p-5 shadow-sm lg:p-6">
+    // `testi-card`: lifts with a gold edge under a mouse, and is the card a
+    // phone highlights as it crosses the centre (app/globals.css).
+    <article className="testi-card flex h-full flex-col justify-between gap-5 rounded-sm border border-hairline bg-chalk p-5 shadow-sm lg:p-6">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
           <span aria-hidden="true" className="h-2 w-2 shrink-0 rotate-45 bg-orange" />

@@ -7,6 +7,8 @@ import { Testimonials } from "@/components/home/testimonials";
 import { ArrivalCard, isShowableArrival } from "@/components/home/arrival-card";
 import { LayawayBand } from "@/components/commerce/layaway-band";
 import { SectionBoundary } from "@/components/home/section-boundary";
+import { RevealGroup, RevealItem } from "@/components/fx/reveal";
+import { SplitHeading } from "@/components/fx/split-text";
 
 /**
  * THE HOMEPAGE'S SECONDARY SECTIONS, EACH WAITING ON ITS OWN.
@@ -40,7 +42,8 @@ async function LayawayAsync({ lang }: { lang: Lang }) {
   // The band needs the day's rate to show peso figures. A rate we cannot get
   // is not a reason to withhold the section — the JPY column is the real one.
   const fx = await hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }));
-  return <LayawayBand lang={lang} phpRate={fx.jpy_php} />;
+  // `fx`: the homepage's entrances (components/commerce/layaway-band.tsx).
+  return <LayawayBand lang={lang} phpRate={fx.jpy_php} fx />;
 }
 
 export function TestimonialsSection({ lang }: { lang: Lang }) {
@@ -77,15 +80,17 @@ async function ArrivalsAsync({ lang }: { lang: Lang }) {
   return (
     <section className="border-t border-hairline bg-hairline/40 py-16 lg:py-20">
       <div className="wrap">
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+        <RevealGroup className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-deep">{t("home", "newEyebrow")}</p>
-            <h2 className="mt-3 text-[clamp(28px,3.6vw,44px)]">{t("home", "newH")}</h2>
+            <RevealItem index={0}><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-deep">{t("home", "newEyebrow")}</p></RevealItem>
+            <SplitHeading text={t("home", "newH")} lang={lang} className="mt-3 text-[clamp(28px,3.6vw,44px)]" />
           </div>
-          <Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link>
-        </div>
+          <RevealItem index={2}><Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link></RevealItem>
+        </RevealGroup>
+        {/* The pieces rise in one after another, and move under a mouse or a
+            finger (components/fx/card-fx.tsx). */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-          {arrivals.map((p) => <ArrivalCard key={p.id} product={p} lang={lang} />)}
+          {arrivals.map((p, i) => <ArrivalCard key={p.id} product={p} lang={lang} index={i} />)}
         </div>
       </div>
     </section>

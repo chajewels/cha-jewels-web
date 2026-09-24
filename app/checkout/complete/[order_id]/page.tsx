@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -14,8 +15,11 @@ import { loyaltyGroups } from "@/lib/settings";
 export const generateMetadata = () => pageMeta("complete");
 export const dynamic = "force-dynamic";
 
-export default async function CheckoutCompletePage({ params }: { params: Promise<{ order_id: string }> }) {
-  const [lang, { order_id }, groups] = await Promise.all([getLang(), params, loyaltyGroups()]);
+export default async function CheckoutCompletePage({ params, searchParams }: {
+  params: Promise<{ order_id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [lang, { order_id }, groups, query] = await Promise.all([getLang(), params, loyaltyGroups(), searchParams]);
   const t = tr(lang);
 
   const supabase = await supabaseServer();
@@ -29,9 +33,13 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
   // The order response carries no membership field; `loyalty.enrolled` on
   // GET /me is the one signal. Read alongside the order; a failed /me only
   // hides the member block, never the order.
+  // 404 not_linked (no customer record yet) goes to the profile step; 404
+  // not_found keeps the "not found" below.
+  const link = notLinkedProbe();
   const [detail, me] = jwt
-    ? await Promise.all([hub.order(jwt, order_id).catch(() => null), hub.me(jwt).catch(() => null)])
+    ? await Promise.all([hub.order(jwt, order_id).catch(link.or(null)), hub.me(jwt).catch(link.or(null))])
     : [null, null];
+  if (link.hit) redirect(profileUrl(withQuery(`/checkout/complete/${order_id}`, query)));
   const isMember = me?.loyalty?.enrolled === true;
 
   if (!detail) {

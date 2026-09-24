@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { orderLineTitle } from "@/lib/catalog-i18n";
@@ -19,8 +20,11 @@ import { ServiceRequestForm } from "@/components/account/service-request-form";
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
 
-export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const [lang, { id }] = await Promise.all([getLang(), params]);
+export default async function OrderDetailPage({ params, searchParams }: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [lang, { id }, query] = await Promise.all([getLang(), params, searchParams]);
   const t = tr(lang);
 
   const supabase = await supabaseServer();
@@ -31,9 +35,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   // The requests are read alongside the order; a Hub that cannot answer for
   // them must not take the order page down with it, so they fall back to none.
+  //
+  // 404 not_linked (no customer record yet) goes to the profile step; 404
+  // not_found (no such order, or not hers) keeps the "not found" below.
+  const link = notLinkedProbe();
   const [detail, requests] = jwt
-    ? await Promise.all([hub.order(jwt, id).catch(() => null), hub.serviceRequests(jwt).catch((): ServiceRequest[] => [])])
+    ? await Promise.all([hub.order(jwt, id).catch(link.or(null)), hub.serviceRequests(jwt).catch(link.or<ServiceRequest[]>([]))])
     : [null, [] as ServiceRequest[]];
+  if (link.hit) redirect(profileUrl(withQuery(`/account/orders/${id}`, query)));
   if (!detail) {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">

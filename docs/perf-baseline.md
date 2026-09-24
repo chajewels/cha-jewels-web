@@ -1,5 +1,315 @@
 # Performance baseline
 
+## 2026-09-24 — About logo clip, steady About column, FAQ category navigation, page emblems
+
+Before = `origin/develop` (`6002e29`). After = this branch. `next build` +
+`next start`, preview-fixtures mode, throttled phone (4× CPU, 1.6 Mbps /
+150 ms), interleaved, median of 6 (10 for /faq and /about while tuning).
+
+| page | observed LCP before | after | CLS | added JS gz | stylesheets |
+|---|---|---|---|---|---|
+| `/about` (phone) | 1322 ms | 1318 ms | 0 → 0 | +2.2 kB | 2 → 2 |
+| `/about` (desktop, 10 Mbps) | 284 ms | 276 ms | 0 → 0 | — | 2 → 2 |
+| `/faq` | 1350 ms | 1368 ms | 0 → 0 | +3.9 kB | 2 → 2 |
+| `/blog` | 1320 ms | 1308 ms | 0 → 0 | +1.8 kB | 2 → 2 |
+| `/blog?type=news` | 1300 ms | 1304 ms | 0 → 0 | +1.8 kB | 2 → 2 |
+| `/affiliations` | 1316 ms | 1320 ms | 0 → 0 | +2.1 kB | 2 → 2 |
+
+**/faq is +18 ms (1.3%)** — the one page not flat. Its LCP is the lede,
+painted at first paint, which on this profile waits for the two stylesheets
+and the fonts; every added kilobyte on the wire in that first second delays
+them by ~4 ms, HTML or JS alike (measured: moving the FAQ layout CSS out of
+the server payload saved 2.8 kB of HTML and added about as much JS, for no
+change). The category nav, its layout and the emblem are ~7 kB; the
+experiment without the emblem was no faster. Reported, not hidden.
+
+Found and fixed on the way, each measured:
+- `readHeroSource` imported from hero-video.tsx pulled the homepage hero into
+  /about: +9.4 kB JS. It lives in components/site/hero-source.ts now: +2.1 kB.
+- The About still, eager, cost phones +36 ms (it is far below their fold);
+  lazy without help cost desktop 286 → 460 ms (it is desktop's LCP element).
+  Now: lazy, plus a desktop-only `<link rel=preload media>`.
+- ComponentStyle now minifies (comments and layout whitespace): every page's
+  inline component CSS is smaller.
+
+Assets (originals not committed): About clip 900×900 VP9 410 kB / H.264 442 kB,
+600×600 VP9 211 kB / H.264 221 kB (silent, two-pass, 560 / 280 kb/s); stills
+first/final frame AVIF 15 / 24 kB (900), 9 / 13 kB (600), WebP 26 / 43 kB,
+15 / 23 kB. Emblems, circle-cut with alpha, 288 / 192 px: AVIF 11–14 / 6–7 kB,
+WebP 17–23 / 10–13 kB.
+
+Videos: `docs/screenshots/about-faq-emblems/pages-{desktop,phone}-before-after.webm`.
+
+---
+
+## 2026-09-24 — Gold guide: stamp illustrations
+
+Before = `7fc8fcf`. After = `0cacfd5`. Same method as Phase 3 (throttled
+phone, interleaved, median of 8).
+
+| | before | after |
+|---|---|---|
+| `/gold-guide` observed LCP | 1314 ms | 1316 ms |
+| CLS (load + scroll) | 0 | 0 |
+| stylesheets | 2 | 2 |
+| HTML gz | 33.5 kB | 36.3 kB |
+| JS gz on load | — | +0.3 kB (the "Illustration" caption in the client dictionary) |
+
+Images: the owner's PNGs (1.67 MB, 1.73 MB, 1254 px) are not committed;
+WebP masters are — `k18-clasp-illustration.webp` 78 kB (1200 px) and
+`pt900-clasp-illustration.webp` 26 kB (640 px). Served as AVIF: K18 14.0 kB
+at 640w (desktop), 34.9 kB at 1200w (3× phone); Pt900 1.1 kB at 96w, 3.9 kB at
+256w. Phones fetch them only when the stamp step is near; on desktop the
+pinned plate stack is near the first screen, so they come with the page
+(15 kB total, after the LCP).
+
+Two first attempts cost LCP and were replaced, measured: `<Image>` put
+next/image's client component and the alt texts into the page JS
+(+0.6 kB, +12 ms); its ~20-width srcset, twice per image (pinned + inline)
+and again in the RSC payload, added 3.8 kB of HTML (+16 ms). Now: a plain
+`<img>` with only the widths the plate can use (640/828/1200, 96/256), and
+the alt text in lib/content (server only).
+
+---
+
+## 2026-09-23 — Motion Phase 3: loyalty ladder, gold guide story, header, page transitions
+
+Before = `47128f2` (gallery approved). After = this commit. `next build` +
+`next start`, preview-fixtures mode, same data on both, interleaved pairs on
+a throttled phone (4× CPU, 1.6 Mbps / 150 ms), median of 4. CLS measured
+over the load AND a scroll down and back up (header hide/show, the ladder,
+the pinned story).
+
+| page | observed LCP before | after | CLS | added JS gz (page load) | stylesheets |
+|---|---|---|---|---|---|
+| `/` | 2926 ms | 2936 ms | 0 → 0 | +1.8 kB | 2 → 2 |
+| `/collections/bracelets` | 1296 ms | 1296 ms | 0 → 0 | +1.4 kB | 2 → 2 |
+| product (`double-sided-diamond-pendant`) | 1300 ms | 1302 ms | 0 → 0 | +2.0 kB | 2 → 2 |
+| `/loyalty` | 1318 ms | 1312 ms | 0 → 0 | +5.9 kB | 2 → 2 |
+| `/gold-guide` | 1320 ms | 1300 ms | 0 → 0 | +5.9 kB | 2 → 2 |
+
+All within run-to-run noise. The +1.4–2.0 kB on every page is the header
+(scroll behaviour, nav underline) and the page entrance; /loyalty and
+/gold-guide add the ladder / story plus split headings and the magnetic CTA.
+
+**A THIRD STYLESHEET, CAUGHT AND REMOVED.** The first build of this phase
+shipped three render-blocking stylesheets on every page: Next split the
+root CSS, moving the next/font rules (7.5 kB) into a file of their own. The
+cause was ~2.6 kB of new Tailwind arbitrary-value classes (mostly the guide
+plates). They are component stylesheets now (`ComponentStyle`, like every
+other motion component) and the root file is back to one, 66.7 kB — smaller
+than before (66.9 kB). **The root CSS sits close to that split point: new
+one-off styling belongs in a component stylesheet, not in utility classes.**
+The brief's `app/template.tsx` was replaced by `components/fx/page-enter.tsx`
+while chasing this; it was not the cause, but it does the same job with no
+wrapper element or remount, so it stays.
+
+Videos: `docs/screenshots/web-motion-signature/loyalty-guide-header-desktop-before-after.webm`
+(1440px: nav underline, loyalty ladder, header hide/return, client
+navigation into the gold guide, the pinned story) and
+`loyalty-guide-header-phone-before-after.webm` (390px, same path).
+Screenshots: `docs/screenshots/web-motion-signature/phase3/`.
+
+---
+
+## 2026-09-23 — Motion Phase 2B: product gallery slide, zoom, full-screen viewer, Sold state
+
+Before = `101d094`. After = this commit. `next build` + `next start` in
+preview-fixtures mode, both builds carrying the same LOCAL, UNCOMMITTED
+fixture patch that gives the twist bangle R3341's four real Hub photos (dark
+backgrounds), so the dark-photo case could be measured; the patch is not in
+the repo. Interleaved pairs on a throttled phone (4× CPU, 1.6 Mbps / 150 ms).
+
+| page | observed LCP before | after | added JS gz (page load) | stylesheets |
+|---|---|---|---|---|
+| product with R3341 photos (median of 8) | 2788 ms | 2794 ms | +3.8 kB | 2 → 2 |
+| `double-sided-diamond-pendant` (median of 4) | 1308 ms | 1296 ms | +3.8 kB | 2 → 2 |
+
+Within run-to-run noise on both. The first photo is still the LCP element,
+preloaded, on frame one, untransformed. The full-screen viewer is a separate
+**4.9 kB gz** chunk fetched on first open only (verified: not requested on
+load). The hover zoom's full-resolution file is fetched only when the cursor
+first rests on that photo (verified: no large image request before hover).
+
+**Gallery timing (owner review: "too fast").** One token, `GALLERY` in
+lib/motion.ts, for every input on every device. Measured in desktop Chrome /
+WebKit iPhone emulation: arrow slide 857 / 863 ms; fast flick 768 / 768 ms
+(floor 750 ms — the flick's speed is not carried over); slow drag past the
+threshold 753 / 753 ms; spring-back 550 / 565 ms; five presses in ~400 ms
+land once on the latest photo. Reduced motion: instant.
+
+Videos: `docs/screenshots/web-motion-signature/gallery-desktop-before-after.webm`
+(1440px: arrows, thumbnail, hover zoom, full screen) and
+`gallery-phone-before-after.webm` (390px, real touch: slow drag that springs
+back, slow drag, fast flicks, arrow, full screen with pinch, pan, double-tap,
+swipe, swipe down to close).
+
+---
+
+## 2026-09-23 — Motion Phase 2A: product cards and the product page
+
+Before = `fb2ecee` (Phase 1 accepted). After = `29808b9`. `next build` +
+`next start` in preview-fixtures mode (no Hub credentials on this machine),
+interleaved pairs on a throttled phone (4× CPU, 1.6 Mbps / 150 ms).
+
+| page | observed LCP before (median of 4) | after | added JS gz | added HTML gz | stylesheets |
+|---|---|---|---|---|---|
+| `/collections/bracelets` | 1316 ms | 1308 ms | +4.0 kB | +0.8 kB | 2 → 2 |
+| `/categories/fine-jewelry` | 1426 ms | 1416 ms | +4.1 kB | +0.9 kB | 2 → 2 |
+| product (`double-sided-diamond-pendant`) | 1296 ms | 1298 ms | +6.7 kB | +0.7 kB | 2 → 2 |
+| `/` | 2936 ms | 2928 ms | +4.9 kB | +0.8 kB | 2 → 2 |
+
+Homepage mobile weight (Lighthouse): **1029 KiB** (cap 1317). CLS 0 on
+every run. No animation library: the gallery's drag and slide, the rolling
+figures and the cart bump are Web Animations / rAF, so there is no library
+size to report.
+
+**Stylesheets.** The first build put these styles in CSS Modules, as asked
+for ("component-scoped files"). Next emitted them as a THIRD render-blocking
+stylesheet on every page with a product card — the same shape that cost
+the collection and product pages ~60 ms in round 2. So each component now
+carries its rules as a string rendered through React 19's hoisted
+`<style href precedence>` (components/fx/component-style.tsx): scoped to the
+component, inlined into `<head>` once per page, no request, no growth of
+`app/globals.css`. Cost: the +0.7–0.9 kB of HTML above.
+
+---
+
+## 2026-09-23 — Motion Phase 1, round 2: bolder homepage (after owner review)
+
+Before = `68bec32` (no motion). After = `b229c56`. Both `next build` +
+`next start`, interleaved pair by pair. Both builds in preview-fixtures mode —
+this machine has no Hub credentials (`HUB_API_URL`/`HUB_API_KEY` are empty
+here and in the main checkout), so the measured pages carry fixture data and
+no testimonials section. The recorded videos used a local, uncommitted patch
+that gives BOTH builds five labelled placeholder testimonials, so the section
+could be shown; the patch was never committed and was not present for any
+measurement below.
+
+| gate | before | after | |
+|---|---|---|---|
+| Observed LCP, throttled phone `/` (4× CPU, 1.6 Mbps; median of 8 pairs) | 2848 ms (2756–2892) | **2912 ms** (2892–2928) | **+64 ms (+2.2%) — just beyond before's own spread** |
+| Observed LCP, throttled phone, collection (3 pairs) | 1304 ms | 1300 ms | pass |
+| Observed LCP, throttled phone, product (3 pairs) | 1300 ms | 1300 ms | pass |
+| Observed LCP, Lighthouse mobile `/` (median of 3 pairs) | 201 ms | 209 ms | pass (within spread) |
+| Simulated LCP, Lighthouse mobile `/` | 4140 ms | 4218 ms | pass (spec spread 3476–5717) |
+| Homepage mobile weight (cap 1317 KiB) | 1318 KiB | **1023 KiB** | pass |
+| Added JS, gzipped (budget 35 kB) | — | **+3.4 kB** | pass |
+| Added CSS / HTML, gzipped | — | +2.0 kB / +1.5 kB | |
+| CLS | 0 | 0 | pass |
+
+Across the sessions of this round the homepage throttled delta measured +8,
++50 and +64 ms for near-identical bytes; the interleaved method narrows but
+does not remove session drift. The collection and product pages sit at
+parity.
+
+What it is: bytes in the LCP window again (6.9 KB gzipped across JS, CSS and
+HTML), not the animations — an ablation with the push-in or the overlays
+switched off measured the same as with them on.
+
+Found and fixed on the way:
+- A third render-blocking stylesheet. The new rules pushed `globals.css` past
+  the 100 KiB limit Next's CssChunkingPlugin merges up to, splitting Inter's
+  `@font-face` into its own file and costing the collection and product
+  pages ~60 ms. My comment blocks became one-line pointers; back to two files.
+  **globals.css is now close to that limit** — Phase 2 page effects should
+  live in route-scoped CSS, not in globals.
+
+Options for the remaining +64 ms, for the owner:
+1. Accept it (2.2% on a 1.6 Mbps line; Lighthouse and the other pages flat).
+2. Offset it: a 144px header logo for 3× phones instead of the 192px file
+   (~5 KB, ~25 ms), plus the same on the footer, which loads the 192px file
+   eagerly. No visible change. Not done: brand assets.
+3. Trim the effects' HTML: the RevealItem wrappers and their `--i` styles
+   repeat in the markup and again in the RSC payload (~1 KB gzipped).
+
+---
+
+## 2026-09-23 — Motion Phase 1: homepage (`feature/web-motion-signature`)
+
+Before = this branch at `68bec32` (develop merged, no motion code). After =
+`9d7624f`. Both built with `next build` and served with `next start` on the
+same machine; before and after were run **interleaved, pair by pair**,
+because runs taken hours apart drifted by more than the effect being
+measured (a morning-vs-afternoon comparison of identical code moved
+Lighthouse observed LCP by ~75 ms). Lighthouse 12, one binary installed
+locally and called directly (the loop works; `npx` inside a loop is what
+failed before). No language cookie = the Japanese homepage.
+
+### Budget table
+
+| gate | before | after | result |
+|---|---|---|---|
+| **Observed LCP, Lighthouse mobile `/`** (median of 5, interleaved) | 227 ms (169–338) | **180 ms** (152–261) | pass — no regression |
+| **Observed LCP, throttled phone `/`** (4× CPU, 1.6 Mbps / 150 ms, median of 8 interleaved pairs) | 2840 ms (2748–2860) | **2880 ms** (2864–2892) | **+40 ms (+1.4%) — see below** |
+| Observed LCP, throttled phone, `/collections/bracelets` (3 pairs) | 1324 ms | 1312 ms | pass |
+| Observed LCP, throttled phone, product `/products/twist-bangle` (3 pairs) | 1320 ms | 1300 ms | pass |
+| Simulated mobile LCP `/` (median of 5, interleaved) | 3920 ms (3840–4141) | 3922 ms (3914–4149) | pass — flat |
+| **Homepage mobile transfer weight** (Lighthouse, cap 1317 KiB) | 1319 KiB | **1021 KiB** | pass (−298 KiB) |
+| Desktop Performance `/` | 100 | 100 | pass |
+| CLS (every page, every run) | 0 | 0 | pass |
+| TBT mobile `/` | 8 ms | 7 ms | pass |
+| **Added client JS, gzipped** (every script the homepage HTML references, `nomodule` polyfills excluded) | 164,427 B | 166,930 B | **+2.5 kB** (budget 35 kB) |
+| Collection / product mobile weight (Lighthouse) | 656 / 757 KiB | 355 / 458 KiB | pass |
+
+The weight row falls because of the favicon (`perf(icon)`, own commit):
+`app/icon.png` was a 323 KiB, 512 px photographic badge fetched on every page.
+At 192 px it is 21 KiB and indistinguishable at any size a browser shows it.
+Without that commit the homepage would sit at ~1355 KiB, over the cap — the
+baseline was already 1 KiB over it before any motion code, because the 1317
+figure predates the 720p encode from #129.
+
+### The one gate not met: +40 ms on a throttled phone
+
+Every one of the 8 throttled pairs has the after build slower, by 20–140 ms,
+median +40 ms. What it is, established by elimination:
+
+- **Not the animation library.** The first build used `motion` (+17 KiB at
+  first load, +16 KiB lazily) and measured +28 to +68 ms over 5 pairs.
+  Removing the library entirely (commit `9d7624f`) left +40 ms.
+- **Not the sheen animating during the poster's paint.** Three variants of
+  the same build, interleaved with the before build: sheen from 0.35 s
+  +48 ms (8 pairs), sheen gated on the poster being decoded +40 ms (6 pairs),
+  sheen pushed to 3.5 s +20 ms (5 pairs, two of them after-faster). All three
+  sit inside the ±30 ms pair-to-pair spread, so the sheen stays as designed:
+  first pass at 0.35 s, from the server markup.
+- **It is bytes in the LCP window.** With the HTML delivered instantly (a
+  Playwright route that bypasses the throttle for the document), before,
+  after and after-without-sheen all measured 2604–2648 ms — identical. On a
+  1.6 Mbps link every kilobyte that travels before the poster finishes costs
+  it roughly 5 ms, and this pass adds **4.8 KB gzipped** in that window:
+  CSS +1.2 KB (every effect's styles), HTML +1.1 KB (the sheen's copy of the
+  headline, the reveal attributes), JS +2.5 KB (the effect components).
+
+Options, for the owner:
+
+1. **Accept it.** 40 ms on a 1.6 Mbps line; not visible in Lighthouse
+   (observed LCP is lower after, simulated is flat) and not on the other two
+   pages.
+2. **Offset it with bytes from the same window.** The header logo requests
+   `logo-badge-192.webp` (13 KB) on 3× phones for a 44 px box; a 144 px file
+   is ~8 KB. That recovers ~25 ms and changes nothing visible. Not done
+   here, because it is a brand asset outside this brief.
+3. **Trim the effects' own bytes.** The largest single piece is the sheen's
+   duplicate headline in the HTML (it is in the markup and again in the RSC
+   payload). Rendering it client-side only would save ~0.4 KB but delay the
+   first pass until hydration — which on a mid-range phone pushes it past
+   the 3-second noticeability rule. Not recommended.
+
+### How it was measured
+
+- Lighthouse: `lighthouse <url> --only-categories=performance --output=json`
+  (mobile default) and `--preset=desktop`; medians and ranges read from
+  `metrics` (`largestContentfulPaint` and `observedLargestContentfulPaint`)
+  and `total-byte-weight`.
+- Throttled phone: Playwright + CDP, 390×844 at DPR 3, touch, 4× CPU,
+  1.6 Mbps down / 750 kbps up / 150 ms latency, cache disabled; LCP from a
+  `largest-contentful-paint` PerformanceObserver, 12 s settle.
+- Added JS: every `<script src>` in the served homepage HTML, gzipped, both
+  builds.
+
+---
+
 ## 2026-09-23 — PR `perf/mobile-weight`: hero clip on phones
 
 Both builds served from `next start` on localhost, so the two differ only by the

@@ -68,7 +68,7 @@ export default async function CollectionPage({
           <EmptyShelf lang={lang} filtered={active !== "all"} />
         ) : (
           <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">
-            {products.map((p) => <ProductCard key={p.id} product={p} lang={lang} />)}
+            {products.map((p, i) => <ProductCard key={p.id} product={p} lang={lang} index={i} />)}
           </div>
         )}
       </div>

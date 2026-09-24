@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -31,8 +32,8 @@ export const dynamic = "force-dynamic";
  * a closed plan keeps a positive balance in the Hub's books; see
  * `remainingLabel`.
  */
-export default async function AccountLayawayPage() {
-  const lang = await getLang();
+export default async function AccountLayawayPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [lang, query] = await Promise.all([getLang(), searchParams]);
   const t = tr(lang);
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
@@ -43,7 +44,11 @@ export default async function AccountLayawayPage() {
   let plans: HubLayawayPlan[] = [];
   let failed = false;
   if (jwt) {
-    try { plans = await hub.layawayPlans(jwt); } catch { failed = true; }
+    try { plans = await hub.layawayPlans(jwt); } catch (e) {
+      // Signed in, no customer record yet: the profile step, not an error.
+      if (isNotLinked(e)) redirect(profileUrl(withQuery("/account/layaway", query)));
+      failed = true;
+    }
   } else {
     failed = true;
   }

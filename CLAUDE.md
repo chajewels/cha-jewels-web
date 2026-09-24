@@ -8,6 +8,21 @@
   Short-lived feature branches are fine, but they merge into `develop`, never into `main`. Never push directly to `main`.
 - The website talks to the Hub ONLY through the Website API (`lib/hub-api.ts`, spec in `supabase/contracts/api.md`). No direct table reads. The Hub's backend is Lovable Cloud today and will move to Cynthia's own Supabase before Phase 2; the API contract is what keeps that move invisible to the site.
 
+## Before you start, and where you work
+
+- **Check whether the work already exists.** Run `git fetch`, then look at open
+  AND recently merged PRs (`gh pr list --state all --limit 20`) and at the remote
+  branches, for the same work. If it already exists, stop and report it instead
+  of rebuilding it. This is not hypothetical: on 2026-09-23 a record-only
+  migration was built here from scratch and only discovered to be already merged
+  at `git push`, because the branch name was taken.
+- **One session, one working tree.** If another Claude Code session may be
+  working on this repo, work in your own git worktree
+  (`git worktree add ../<name> <branch>`); never share a working tree or a
+  checked-out branch between sessions. Copy the untracked env files
+  (`.env.local`) into the worktree by hand — they are gitignored and do not come
+  across with the checkout. Never commit them.
+
 ## Non-negotiable business rules
 - Layaway math is NEVER computed in the browser or in Next.js. Call `POST /layaway/quote` via `hub.layawayQuote`. Same for points.
 - Products are added in the Hub only. This site has no product editor.
@@ -21,6 +36,7 @@
 ## Sign-in (email link)
 - `LoginForm` calls `signInWithOtp` with `emailRedirectTo = <origin>/auth/callback?next=…`; `/auth/callback` accepts a PKCE `code` **or** `token_hash`+`type`, names GoTrue `error`/`error_code` as `/login?error=…`, and always redirects — it never renders and never 500s.
 - **Every storefront origin must be on the Hub project's Supabase Auth redirect allow-list**: production (`chajewelsjp.com`, `www.`), the Vercel production alias `https://cha-jewels-web.vercel.app/**`, the team alias `https://cha-jewels-web-cha-jewels.vercel.app/**` (NOT covered by the wildcard — the `*` needs a segment between the two dashes), and the project-scoped preview wildcard `https://cha-jewels-web-*-cha-jewels.vercel.app/**` (covers `-git-<branch>-` and `-<hash>-` hosts). A `redirect_to` outside the list makes GoTrue fall back to the project Site URL (the Hub) — the customer sees the Hub's black splash and the code is never exchanged. That is a Lovable Cloud auth setting, not code; see Bug #264 in the Hub repo. Never add a bare `https://*.vercel.app/**` — it would let any Vercel deployment receive this project's sign-in codes.
+- **Linking after sign-in (2026-09-24).** Every entry point calls `hub.authCustomer(jwt)` with no profile — `/auth/callback`, `confirmSignInAction`, `/checkout`, `/loyalty/join` — and all four read the answer through `lib/profile.ts`: 422 `profile_required` (no customer holds her email; the Hub creates nobody) → `/account/complete-profile?next=<where she was going>`; 409 `already_registered` (her details match an existing customer) → `/already-registered`, which shows the owner's wording, links to `/contact`, and signs her out; anything else is unchanged (e.g. `/account?link=failed`). `/account` and `/account/addresses` send a `/me` 404 to the profile step too. The profile form is the Hub New Customer modal minus Notes; `lib/countries.ts` COUNTRIES is copied verbatim from the Hub — re-copy it, never edit it here.
 - The sign-in email is sent by the Hub's `auth-email-hook`, which picks the Cha Jewels template by the link's target host. Staff emails are untouched.
 - **Test sign-in from the branch alias, never from a per-deployment URL.** Vercel gives every deployment two hosts: the branch alias `https://cha-jewels-web-git-<branch>-cha-jewels.vercel.app` (matched by the wildcard above) and a per-deployment host such as `cha-jewels-web-3m47fl3tm-cha-jewels.vercel.app`. Only the alias is guaranteed to be on the allow-list; a per-deployment host that GoTrue does not recognise falls back to the Site URL and the Hub template arrives (2026-09-13, Bug #264 follow-up). Preview reviews and sign-in tests use the `-git-develop-` alias or the PR's branch alias.
 
