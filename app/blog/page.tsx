@@ -4,6 +4,8 @@ import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { merge } from "@/lib/posts";
 import type { PostType } from "@/lib/types";
+import { Emblem } from "@/components/fx/emblem";
+import { ComponentStyle } from "@/components/fx/component-style";
 
 export const generateMetadata = () => pageMeta("blog");
 
@@ -25,6 +27,10 @@ export const generateMetadata = () => pageMeta("blog");
  * Hub published nothing for this reader", never "the Hub could not be reached"
  * — that second case throws now and never reaches this page.
  */
+/** The emblem beside the title from sm, above it on narrow phones (component CSS — docs/perf-baseline.md). */
+const TITLE_CSS = `.fx-titled { display: flex; flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+@media (min-width: 640px) { .fx-titled { flex-direction: row; align-items: center; gap: clamp(20px, 3vw, 36px); } }`;
+
 const asType = (value: string | undefined): PostType | undefined =>
   value === "news" || value === "article" ? value : undefined;
 
@@ -37,7 +43,13 @@ export default async function Blog({ searchParams }: { searchParams: Promise<{ t
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
-        <h1 className="text-[clamp(36px,5.5vw,80px)]">{type === "news" ? t("navMenu", "news") : t("blog", "h1")}</h1>
+        {/* The page's emblem — News & Updates under ?type=news, Blog otherwise.
+            Decorative (components/fx/emblem.tsx); the h1 carries the title. */}
+        <ComponentStyle id="fx-titled" css={TITLE_CSS} />
+        <div className="fx-titled">
+          <Emblem name={type === "news" ? "news" : "blog"} sm={96} lg={128} />
+          <h1 className="text-[clamp(36px,5.5vw,80px)]">{type === "news" ? t("navMenu", "news") : t("blog", "h1")}</h1>
+        </div>
         {type && (
           <p className="mt-4">
             <Link href="/blog" className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>

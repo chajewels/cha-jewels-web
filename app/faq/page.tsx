@@ -3,8 +3,11 @@ import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { getFaq } from "@/lib/faq";
 import { JsonLd } from "@/components/site/json-ld";
+import { Emblem } from "@/components/fx/emblem";
+import { FaqNav, FaqStyle } from "@/components/faq/faq-nav";
 
 export const generateMetadata = () => pageMeta("faq");
+
 
 export default async function FaqPage() {
   const lang = await getLang();
@@ -21,43 +24,49 @@ export default async function FaqPage() {
   return (
     <>
       <JsonLd type="faq" items={jsonLdItems} />
-      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
-        <div className="wrap">
-          <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("faq", "h1")}</h1>
-          <p className="mt-5 max-w-[58ch] text-charcoal">{t("faq", "lede")}</p>
-        </div>
-      </section>
-      <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
-        <div className="wrap max-w-[72ch]">
-          {/* Category heading in the legal pages' display face, over their gold
-              hairline, so /faq reads as part of the same set. The accordion is
-              kept deliberately: thirty-nine questions rendered flat is a wall,
-              and a shopper looking for one answer should not scroll past the
-              other thirty-eight. */}
-          {sections.map((section) => (
-            // `id` is what makes a section linkable — the footer's layaway
-            // link is /faq#payments-and-layaway. globals.css sets
-            // scroll-padding-top so the heading clears the sticky header.
-            <section key={section.key} id={section.slug} className="mt-12 scroll-mt-24 first:mt-0">
-              <h2 className="border-t border-hairline pt-6 font-display text-[clamp(20px,2.4vw,28px)] text-charcoal-deep">
-                {section.heading}
-              </h2>
-              {section.items.map((item) => (
-                <details key={item.key} className="group border-b border-hairline py-5">
-                  <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 font-display text-[clamp(17px,2vw,22px)] text-charcoal-deep marker:hidden">
-                    {item.question}
-                    <span aria-hidden="true" className="shrink-0 text-charcoal/70 transition-transform group-open:rotate-45">+</span>
-                  </summary>
-                  {/* Markdown from lib/markdown.ts, which escapes its input
-                      before parsing it — there is no path from an answer to a
-                      tag. `.faq-answer` in globals.css keeps the look the
-                      LegalBlock renderer gave these answers, so moving the
-                      SOURCE of the FAQ did not also restyle it. */}
-                  <div className="faq-answer" dangerouslySetInnerHTML={{ __html: item.answerHtml }} />
-                </details>
-              ))}
-            </section>
-          ))}
+      <FaqStyle />
+      <section className="py-[clamp(48px,7vw,96px)]">
+        <div className="wrap fx-faq">
+          <div className="fx-faq-side">
+            <div className="fx-faq-head">
+              <Emblem name="faq" sm={96} lg={128} />
+              <h1 className="max-w-[18ch] text-[clamp(36px,5.5vw,80px)]">{t("faq", "h1")}</h1>
+              <p className="mt-5 max-w-[58ch] text-charcoal">{t("faq", "lede")}</p>
+            </div>
+            <FaqNav label={t("faq", "categories")} items={sections.map((s) => ({ slug: s.slug, heading: s.heading }))} />
+          </div>
+          <div lang={lang} className="fx-faq-main">
+            {/* Category heading in the legal pages' display face, over their gold
+                hairline, so /faq reads as part of the same set. The accordion is
+                kept deliberately: thirty-nine questions rendered flat is a wall,
+                and a shopper looking for one answer should not scroll past the
+                other thirty-eight. */}
+            {sections.map((section) => (
+              // `id` is what makes a section linkable — the footer's layaway
+              // link is /faq#payments-and-layaway. The page CSS above sets its
+              // scroll-margin so the heading clears the header (and, on phones,
+              // the category bar).
+              <section key={section.key} id={section.slug} className="mt-12 first:mt-0">
+                <h2 className="border-t border-hairline pt-6 font-display text-[clamp(20px,2.4vw,28px)] text-charcoal-deep">
+                  {section.heading}
+                </h2>
+                {section.items.map((item) => (
+                  <details key={item.key} className="group border-b border-hairline py-5">
+                    <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 font-display text-[clamp(17px,2vw,22px)] text-charcoal-deep marker:hidden">
+                      {item.question}
+                      <span aria-hidden="true" className="shrink-0 text-charcoal/70 transition-transform group-open:rotate-45">+</span>
+                    </summary>
+                    {/* Markdown from lib/markdown.ts, which escapes its input
+                        before parsing it — there is no path from an answer to a
+                        tag. `.faq-answer` in globals.css keeps the look the
+                        LegalBlock renderer gave these answers, so moving the
+                        SOURCE of the FAQ did not also restyle it. */}
+                    <div className="faq-answer" dangerouslySetInnerHTML={{ __html: item.answerHtml }} />
+                  </details>
+                ))}
+              </section>
+            ))}
+          </div>
         </div>
       </section>
     </>

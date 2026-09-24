@@ -169,6 +169,11 @@ add("viewer focus ring: gold-pale on charcoal-deep", "gold-pale", "charcoal-deep
   pairs.push({ label: "lit tier title: gold-dark on white+gold14 glow", fg: "gold-dark", bg: "white+gold14", need: LARGE, alpha: 1, ratio: (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05) });
 }
 
+// FAQ CATEGORY NAV (components/faq/faq-nav.tsx): links charcoal-deep/80 on the
+// chalk page (and the phone bar's chalk/96 over it); the current one gold-dark.
+add("FAQ category link: charcoal-deep/80 on chalk", "charcoal-deep", "chalk", TEXT, 0.8);
+add("FAQ current category: gold-dark on chalk", "gold-dark", "chalk", TEXT);
+
 // Values-tile SPOTLIGHT (app/globals.css .spotlight, components/fx/spotlight.tsx).
 // Under a mouse, a gold glow sits between the charcoal tile and its copy. Its
 // peak is gold at 20% (the radial gradient's centre), so the copy is measured
