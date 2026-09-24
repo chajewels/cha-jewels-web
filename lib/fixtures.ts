@@ -289,6 +289,9 @@ export const ordersFixture: HubOrder[] = [{
     currency: "JPY", total: 152300,
     cancelled: true, reason: "Piece arrived damaged in transit.", refund: "refund_issued",
   }),
+  // Paid and not yet shipped: nothing due, so the page keeps its usual order
+  // and no "How to pay" card leads it (2026-09-24).
+  hubOrder({ id: "order-paid", invoice: "19520", status: "pending", payment: "paid", currency: "JPY", total: 112400, paid: true }),
   hubOrder({ id: "order-expired", invoice: "19477", status: "expired", payment: null, currency: "JPY", total: 68900 }),
   // THE LATENT CONTRADICTION THIS FIX CLOSES: shipped, then cancelled. With
   // shipped_at tested first, this row showed a gold "Shipped" badge directly
@@ -318,13 +321,14 @@ function hubOrder(o: {
   id: string; invoice: string; status: HubOrder["status"]; payment: HubOrder["payment_status"];
   currency: SettlementCurrency; total: number;
   shipped?: boolean; cancelled?: boolean; reason?: string; refund?: HubOrder["refund_status"];
+  paid?: boolean;
 }): HubOrder {
   const day = (n: number) => new Date(Date.now() - n * 864e5).toISOString();
   return {
     id: o.id, web_reference: null, invoice_number: o.invoice,
     status: o.status, payment_status: o.payment, payment_method: "transfer",
-    order_type: "SELF", currency: o.currency, total_amount: o.total, total_paid: 0,
-    remaining_balance: o.total, shipping_fee: null, transfer_due_at: null,
+    order_type: "SELF", currency: o.currency, total_amount: o.total, total_paid: o.paid ? o.total : 0,
+    remaining_balance: o.paid ? 0 : o.total, shipping_fee: null, transfer_due_at: null,
     recipient_name: null, gift_note: null, order_date: day(30).slice(0, 10),
     created_at: day(30), completed_at: null,
     cancelled_at: o.cancelled ? day(3) : null,

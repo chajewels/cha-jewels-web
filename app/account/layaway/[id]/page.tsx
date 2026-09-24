@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
 import { ServiceRequestForm } from "@/components/account/service-request-form";
+import { PaymentDueCard, ReservedStatusCard } from "@/components/account/payment-due-card";
 import type { ServiceRequest } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("layaway");
@@ -119,6 +120,15 @@ export default async function LayawayPlanPage({ params, searchParams }: {
     ? Number(plan.downpayment_amount)
     : Number(nextRow?.actual_remaining ?? plan.remaining_balance);
 
+  // Bank details and a payment route only while the plan can still take
+  // money, and never before staff confirm a reservation.
+  const payDue = showsPaymentDetails(plan);
+  // The date that goes with `suggested`: the deposit's transfer deadline while
+  // it is outstanding, otherwise the due date of the row being paid next.
+  const dueBy = awaitingDeposit
+    ? (plan.transfer_due_at ? fmtStamp(plan.transfer_due_at) : null)
+    : (nextRow ? fmtDate(nextRow.due_date) : null);
+
   const placed = (plan.order_date ?? plan.created_at).slice(0, 10);
 
   return (
@@ -136,21 +146,69 @@ export default async function LayawayPlanPage({ params, searchParams }: {
           </div>
         </div>
 
-        {/* What this state means, in one sentence. Closed plans get no
-            encouragement here — see planNote. */}
-        {note && !(justPlaced && reserved) && (
-          <p className="mt-6 border border-hairline bg-white p-4 text-sm text-charcoal">{note}</p>
+        {/* PAYMENT FIRST (owner request 2026-09-24). While the plan can take
+            money, what to send, by when and where is the first thing under
+            the heading — above the figures, the pieces, the request form and
+            the schedule — on screen and on paper. A closed plan, and a
+            reservation staff have not confirmed yet, get no bank details and
+            no payment route, so for them the page reads as it always did. */}
+        {payDue && (
+          <PaymentDueCard
+            lang={lang}
+            amountLabel={awaitingDeposit ? t("account", "depositAmountDue") : undefined}
+            amount={suggested > 0 ? money(suggested) : null}
+            deadline={dueBy}
+          >
+            <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
+            <TransferDetails methods={methods} lang={lang} />
+            {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
+
+            {payHere ? (
+              /* The pay form and its proof upload are an action, not a
+                 record of one: they have no place on a printed statement. */
+              <div className="print-hide">
+                <LayawayPayForm
+                  accountId={plan.id}
+                  lang={lang}
+                  currency={plan.currency}
+                  suggestedAmount={Math.max(0, Math.round(suggested))}
+                  methods={methods}
+                />
+              </div>
+            ) : (
+              /* Reporting a transfer for a Hub-arranged plan happens in the
+                 portal. The link is the Hub's own — bare for a customer with a
+                 linked account, their token for a legacy one, and the portal
+                 home when no valid token is left, which is why the fallback
+                 line below is not optional. */
+              <div className="mt-8 border-t border-hairline pt-6">
+                <h3 className="font-display text-xl text-charcoal-deep">{t("plans", "payElsewhereH")}</h3>
+                <p className="mt-2 max-w-[60ch] text-sm text-charcoal/70">{t("plans", "payElsewhereP")}</p>
+                {detail.portal_url && (
+                  <Button asChild className="print-hide mt-5">
+                    <a href={detail.portal_url} target="_blank" rel="noopener noreferrer">{t("plans", "portalCta")}</a>
+                  </Button>
+                )}
+                <p className="mt-4 text-xs text-charcoal/70">{t("plans", "portalFallback")}</p>
+              </div>
+            )}
+          </PaymentDueCard>
         )}
 
-        {/* Straight off the checkout in reservation mode: the "Reservation
-            received" state. The reference is the heading above and the piece
-            is listed below; nothing about paying except "not yet". */}
-        {justPlaced && reserved && (
-          <div className="mt-6 border border-gold-dark px-4 py-4 text-sm">
-            <h2 className="font-display text-xl text-charcoal-deep">{t("complete", "reservedH1")}</h2>
-            <p className="mt-2 text-charcoal">{t("plans", "noteReserved")}</p>
-            <p className="mt-2 text-charcoal/70">{t("complete", "reservedNoPayment")}</p>
-          </div>
+        {/* RESERVE FIRST: held, not yet confirmed — the same top slot, words
+            only. Straight off the checkout it reads "Reservation received";
+            afterwards, the status the badge names. */}
+        {reserved && (
+          <ReservedStatusCard heading={justPlaced ? t("complete", "reservedH1") : t("plans", "statusReserved")}>
+            <p>{t("plans", "noteReserved")}</p>
+            {justPlaced && <p className="text-charcoal/70">{t("complete", "reservedNoPayment")}</p>}
+          </ReservedStatusCard>
+        )}
+
+        {/* What this state means, in one sentence. Closed plans get no
+            encouragement here — see planNote. */}
+        {note && !reserved && (
+          <p className="mt-6 border border-hairline bg-white p-4 text-sm text-charcoal">{note}</p>
         )}
 
         {/* Straight off the checkout, before any deposit exists. */}
@@ -172,9 +230,6 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         <dl className="mt-4 space-y-2 text-sm">
           <Row k={t("plans", "deposit")} v={money(Number(plan.downpayment_amount))} />
           <Row k={t("plans", "term")} v={t("plans", "months", { n: String(plan.payment_plan_months) })} />
-          {plan.transfer_due_at && awaitingDeposit && (
-            <Row k={t("plans", "depositDue")} v={fmtStamp(plan.transfer_due_at)} />
-          )}
           {plan.settlement_due_at && <Row k={t("plans", "settlementDue")} v={fmtDate(plan.settlement_due_at)} />}
         </dl>
 
@@ -267,48 +322,6 @@ export default async function LayawayPlanPage({ params, searchParams }: {
           </div>
         )}
 
-        {/* Where the money goes, only while the plan can still take money. A
-            closed plan gets no bank details and no payment route, and neither
-            does a reservation staff have not confirmed yet. */}
-        {showsPaymentDetails(plan) && (
-          <>
-            <div className="mt-12">
-              <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h2>
-              <TransferDetails methods={methods} lang={lang} />
-              {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
-            </div>
-
-            {payHere ? (
-              /* The pay form and its proof upload are an action, not a
-                 record of one: they have no place on a printed statement. */
-              <div className="print-hide">
-                <LayawayPayForm
-                  accountId={plan.id}
-                  lang={lang}
-                  currency={plan.currency}
-                  suggestedAmount={Math.max(0, Math.round(suggested))}
-                  methods={methods}
-                />
-              </div>
-            ) : (
-              /* Reporting a transfer for a Hub-arranged plan happens in the
-                 portal. The link is the Hub's own — bare for a customer with a
-                 linked account, their token for a legacy one, and the portal
-                 home when no valid token is left, which is why the fallback
-                 line below is not optional. */
-              <div className="mt-10 border border-hairline p-6">
-                <h2 className="font-display text-xl text-charcoal-deep">{t("plans", "payElsewhereH")}</h2>
-                <p className="mt-2 max-w-[60ch] text-sm text-charcoal/70">{t("plans", "payElsewhereP")}</p>
-                {detail.portal_url && (
-                  <Button asChild className="print-hide mt-5">
-                    <a href={detail.portal_url} target="_blank" rel="noopener noreferrer">{t("plans", "portalCta")}</a>
-                  </Button>
-                )}
-                <p className="mt-4 text-xs text-charcoal/70">{t("plans", "portalFallback")}</p>
-              </div>
-            )}
-          </>
-        )}
       </div>
     </section>
   );
