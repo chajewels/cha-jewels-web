@@ -118,6 +118,15 @@ export const DUR = {
  */
 export const HEADER = { solidAfter: 24, hideAfter: 160, delta: 8, hide: 0.35, show: 0.5 } as const;
 
+/**
+ * THE PAGE EMBLEMS (components/fx/emblem.tsx): a gold medallion that turns
+ * in like a coin — from `turn` degrees about its vertical axis and `from`
+ * scale — over DUR.image on EASE_LUX, then one band of gold light crosses it
+ * over DUR.sheen, starting `sweepDelay` s in. Transform and overlay only:
+ * never faded in, so an emblem is on screen from the first frame.
+ */
+export const EMBLEM = { turn: -48, from: 0.9, sweepDelay: 0.35 } as const;
+
 /** A client navigation: the new page fades up this many px over DUR.page (app/template.tsx). */
 export const PAGE_RISE = 12;
 
@@ -188,6 +197,9 @@ export const MOTION_CSS_VARS = {
   "--ease-slide": `cubic-bezier(${EASE_SLIDE.join(", ")})`,
   "--dur-gallery-slide": `${GALLERY.slide}s`,
   "--dur-crown-lap": `${LADDER.crownLap}s`,
+  // Sticky elements under the header move with it (--hdr-h, header-shell.tsx).
+  "--dur-hdr-show": `${HEADER.show}s`,
+  "--dur-hdr-hide": `${HEADER.hide}s`,
   "--dur-reveal": `${DUR.reveal}s`,
   "--dur-micro": `${DUR.micro}s`,
   "--ease-sheen": `cubic-bezier(${EASE_SHEEN.join(", ")})`,

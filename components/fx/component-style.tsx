@@ -17,7 +17,24 @@
  * for alpha; timings are the lib/motion.ts custom properties.
  */
 export function ComponentStyle({ id, css }: { id: string; css: string }) {
-  return <style href={id} precedence="component">{css}</style>;
+  return <style href={id} precedence="component">{minify(css)}</style>;
+}
+
+/**
+ * Comments and layout whitespace out. Every byte here is sent twice — in the
+ * <head> and again in the page's RSC payload — and sits ahead of the first
+ * heading; the FAQ's stylesheet cost its LCP measurably before this
+ * (docs/perf-baseline.md). Only whitespace next to { } : ; , > is removed, so
+ * the spaces that matter (descendant selectors, `a - b` inside calc()) stay.
+ */
+const cache = new Map<string, string>();
+function minify(css: string) {
+  let out = cache.get(css);
+  if (out === undefined) {
+    out = css.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").replace(/\s*([{}:;,>])\s*/g, "$1").replace(/;}/g, "}").trim();
+    cache.set(css, out);
+  }
+  return out;
 }
 
 /** `a` percent of a palette token, the rest transparent. */

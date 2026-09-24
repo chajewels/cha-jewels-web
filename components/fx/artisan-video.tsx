@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { readHeroSource } from "@/components/site/hero-video";
+import { readHeroSource } from "@/components/site/hero-source";
 import { REDUCED } from "@/components/fx/media";
 
 /**

@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useHeroMotion } from "@/components/home/hero";
+import { readHeroSource, type HeroSource, type ConnectionLike } from "@/components/site/hero-source";
+
 
 /**
  * Hero background video. Muted, looping, inline on iOS, with a visible
@@ -35,43 +37,10 @@ import { useHeroMotion } from "@/components/home/hero";
  */
 export const HERO_POSTER = "/images/home/hero-poster.webp";
 
-/**
- * WHICH CLIP, OR NONE AT ALL.
- *
- * The full clip is 1.86 MB of WebM (3.78 MB of MP4) at 1920x1080. On the
- * measured mobile baseline it was 68% of the homepage's 2.78 MB — the single
- * largest thing the site sends anyone, downloaded into a box 412px wide behind
- * a scrim. See docs/perf-baseline.md.
- *
- *   "none"    the reader has asked for less data, or the connection says it
- *             cannot afford this. The poster is the hero and nothing is
- *             fetched. This outranks everything below, including screen size.
- *   "mobile"  a narrow viewport or a coarse pointer: the 854x480 encode,
- *             397 KiB of WebM / 434 KiB of MP4, same framing and aspect.
- *   "full"    a wide viewport with a fine pointer: unchanged, as before.
- *
- * `prefers-reduced-data` is not implemented everywhere; matchMedia on an
- * unsupported feature simply never matches, which is the right default.
- * `navigator.connection` is Chromium-only, so every read of it is guarded —
- * absent means "no reason to hold back", not "assume the worst".
- */
-export type HeroSource = "full" | "mobile" | "none";
+// The rule lives in hero-source.ts (dependency-free); re-exported here for
+// the callers that already import it from this file.
+export { readHeroSource, type HeroSource };
 
-type ConnectionLike = { saveData?: boolean; effectiveType?: string; addEventListener?: (t: string, l: () => void) => void; removeEventListener?: (t: string, l: () => void) => void };
-const SLOW_TYPES = new Set(["slow-2g", "2g", "3g"]);
-
-export function readHeroSource(): HeroSource {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "none";
-  if (window.matchMedia("(prefers-reduced-data: reduce)").matches) return "none";
-  const conn = (navigator as Navigator & { connection?: ConnectionLike }).connection;
-  if (conn) {
-    if (conn.saveData === true) return "none";
-    if (conn.effectiveType && SLOW_TYPES.has(conn.effectiveType)) return "none";
-  }
-  const roomy = window.matchMedia("(min-width: 1024px)").matches;
-  const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  return roomy && fine ? "full" : "mobile";
-}
 
 const CLIP: Record<Exclude<HeroSource, "none">, { webm: string; mp4: string }> = {
   full: { webm: "/videos/hero-artisan.webm", mp4: "/videos/hero-artisan.mp4" },

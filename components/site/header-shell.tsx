@@ -40,7 +40,13 @@ export function HeaderShell({ className = "", children }: { className?: string; 
     if (!el || reduced === null) return;
     let last = Math.max(0, window.scrollY);
     let frame = 0;
-    const show = () => { delete el.dataset.hidden; };
+    // THE HEADER'S VISIBLE HEIGHT, for everything that sticks under it
+    // (--hdr-h on <html>: the FAQ category column and bar, the About column).
+    // Its full height while shown, 0 while hidden, so a sticky element slides
+    // up with the header and back down with it instead of leaving a gap.
+    const root = document.documentElement;
+    const publish = () => root.style.setProperty("--hdr-h", el.dataset.hidden === undefined ? `${el.offsetHeight}px` : "0px");
+    const show = () => { delete el.dataset.hidden; publish(); };
     const held = () => !!el.querySelector('[aria-expanded="true"]') || el.contains(document.activeElement);
     const tick = () => {
       frame = 0;
@@ -50,10 +56,11 @@ export function HeaderShell({ className = "", children }: { className?: string; 
       if (Math.abs(dy) < HEADER.delta && y > HEADER.hideAfter) return; // a jitter, not a change of direction
       last = y;
       if (reduced || y <= HEADER.hideAfter || dy < 0 || held()) show();
-      else el.dataset.hidden = "";
+      else { el.dataset.hidden = ""; publish(); }
     };
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(tick); };
     tick();
+    publish();
     window.addEventListener("scroll", onScroll, { passive: true });
     el.addEventListener("focusin", show);
     window.addEventListener(CART_ADDED, show);
