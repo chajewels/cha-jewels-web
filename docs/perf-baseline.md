@@ -1,5 +1,47 @@
 # Performance baseline
 
+## 2026-09-24 — About logo clip, steady About column, FAQ category navigation, page emblems
+
+Before = `origin/develop` (`6002e29`). After = this branch. `next build` +
+`next start`, preview-fixtures mode, throttled phone (4× CPU, 1.6 Mbps /
+150 ms), interleaved, median of 6 (10 for /faq and /about while tuning).
+
+| page | observed LCP before | after | CLS | added JS gz | stylesheets |
+|---|---|---|---|---|---|
+| `/about` (phone) | 1322 ms | 1318 ms | 0 → 0 | +2.2 kB | 2 → 2 |
+| `/about` (desktop, 10 Mbps) | 284 ms | 276 ms | 0 → 0 | — | 2 → 2 |
+| `/faq` | 1350 ms | 1368 ms | 0 → 0 | +3.9 kB | 2 → 2 |
+| `/blog` | 1320 ms | 1308 ms | 0 → 0 | +1.8 kB | 2 → 2 |
+| `/blog?type=news` | 1300 ms | 1304 ms | 0 → 0 | +1.8 kB | 2 → 2 |
+| `/affiliations` | 1316 ms | 1320 ms | 0 → 0 | +2.1 kB | 2 → 2 |
+
+**/faq is +18 ms (1.3%)** — the one page not flat. Its LCP is the lede,
+painted at first paint, which on this profile waits for the two stylesheets
+and the fonts; every added kilobyte on the wire in that first second delays
+them by ~4 ms, HTML or JS alike (measured: moving the FAQ layout CSS out of
+the server payload saved 2.8 kB of HTML and added about as much JS, for no
+change). The category nav, its layout and the emblem are ~7 kB; the
+experiment without the emblem was no faster. Reported, not hidden.
+
+Found and fixed on the way, each measured:
+- `readHeroSource` imported from hero-video.tsx pulled the homepage hero into
+  /about: +9.4 kB JS. It lives in components/site/hero-source.ts now: +2.1 kB.
+- The About still, eager, cost phones +36 ms (it is far below their fold);
+  lazy without help cost desktop 286 → 460 ms (it is desktop's LCP element).
+  Now: lazy, plus a desktop-only `<link rel=preload media>`.
+- ComponentStyle now minifies (comments and layout whitespace): every page's
+  inline component CSS is smaller.
+
+Assets (originals not committed): About clip 900×900 VP9 410 kB / H.264 442 kB,
+600×600 VP9 211 kB / H.264 221 kB (silent, two-pass, 560 / 280 kb/s); stills
+first/final frame AVIF 15 / 24 kB (900), 9 / 13 kB (600), WebP 26 / 43 kB,
+15 / 23 kB. Emblems, circle-cut with alpha, 288 / 192 px: AVIF 11–14 / 6–7 kB,
+WebP 17–23 / 10–13 kB.
+
+Videos: `docs/screenshots/about-faq-emblems/pages-{desktop,phone}-before-after.webm`.
+
+---
+
 ## 2026-09-24 — Gold guide: stamp illustrations
 
 Before = `7fc8fcf`. After = `0cacfd5`. Same method as Phase 3 (throttled
