@@ -9,3 +9,6 @@ node_modules
 .env.e2e.local
 test-results/
 playwright-report/
+
+# Impeccable engine binary (downloaded on first run; not committed)
+.claude/skills/impeccable/scripts/bin/
