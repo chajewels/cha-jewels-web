@@ -1,5 +1,28 @@
 # Performance baseline
 
+## 2026-09-24 — Loyalty tier medallions
+
+Before = `origin/develop` (`0e4a523`). After = this branch. `next build` +
+`next start`, preview-fixtures mode, interleaved, median of 6. CLS measured
+over the load AND a scroll down and back up through the ladder.
+
+| `/loyalty` | observed LCP before | after | CLS | stylesheets |
+|---|---|---|---|---|
+| phone (4× CPU, 1.6 Mbps / 150 ms) | 1324 ms | 1324 ms | 0 → 0 | 2 → 2 |
+| desktop (10 Mbps / 150 ms) | 500 ms | 486 ms | 0 → 0 | 2 → 2 |
+
+Page JS +0.97 kB (the medallions' component CSS, in a client module so it is
+sent once); HTML gz 15.4 → 19.2 kB (four inline SVGs, no image requests).
+The medallions are 64×64 with explicit sizes and sit in server-rendered
+cards, so nothing shifts when they appear; their motion is transform and
+opacity only, started by the ladder's existing lighting (`data-shown`), with
+no second observer.
+
+Videos (before left, after right, no labels — this ffmpeg has no drawtext):
+`docs/screenshots/loyalty-tier-icons/loyalty-{desktop-1440,phone-390}-before-after.webm`.
+
+---
+
 ## 2026-09-24 — About logo clip, steady About column, FAQ category navigation, page emblems
 
 Before = `origin/develop` (`6002e29`). After = this branch. `next build` +

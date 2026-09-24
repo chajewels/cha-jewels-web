@@ -58,6 +58,9 @@ const CSS = `
  *   crown    the top tier (data-crown on its <li>) carries a slow conic
  *            metallic border, running only while the ladder is on screen and
  *            the tab is visible.
+ *   icons    the first time a card lights it is also marked data-shown, which
+ *            starts its medallion's one-time entrance (tier-icon-style.tsx);
+ *            data-armed and data-run on the ladder hold and pause the rest.
  *
  * Scroll work happens only while the ladder is on screen. Reduced motion: the
  * rail is full, every tier is lit and the crown border is still — the
@@ -76,8 +79,12 @@ export function TierLadder({ className = "", children }: { className?: string; c
       box.style.setProperty("--fill", "1");
       lightAll(true);
       delete box.dataset.run;
+      delete box.dataset.armed;
       return;
     }
+    // Motion allowed and the script is running: the medallions may wait for
+    // their card to light (the crown sits lowered until it rises).
+    box.dataset.armed = "";
 
     let frame = 0;
     let onScreen = false;
@@ -95,8 +102,9 @@ export function TierLadder({ className = "", children }: { className?: string; c
       for (const li of items) {
         const c = li.getBoundingClientRect();
         const start = across ? c.left : c.top;
-        // A tier lights once the tip is a little way into it.
-        if (p > 0 && tip >= start + 12) li.dataset.lit = ""; else delete li.dataset.lit;
+        // A tier lights once the tip is a little way into it. `shown` stays:
+        // the card's medallion (tier-icon-style.tsx) plays its entrance once.
+        if (p > 0 && tip >= start + 12) { li.dataset.lit = ""; li.dataset.shown = ""; } else delete li.dataset.lit;
       }
     };
     const request = () => { if (onScreen && !frame) frame = requestAnimationFrame(paint); };
@@ -108,6 +116,7 @@ export function TierLadder({ className = "", children }: { className?: string; c
     window.addEventListener("resize", request);
     document.addEventListener("visibilitychange", run);
     return () => {
+      delete box.dataset.armed;
       io.disconnect();
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", request);

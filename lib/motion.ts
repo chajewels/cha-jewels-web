@@ -139,6 +139,35 @@ export const PAGE_RISE = 12;
  */
 export const LADDER = { from: 0.85, to: 0.35, crownLap: 9 } as const;
 
+/**
+ * THE TIER MEDALLIONS (components/fx/tier-icon-style.tsx). Each plays once,
+ * the first time the ladder lights its card. Seconds.
+ *
+ *   twinkle   Glimmer: the star swells and brightens, a glint turns, it settles.
+ *   rays      Radiant: the rays push out once; then `glow`, one slow breath
+ *             of light, repeating while the ladder is on screen.
+ *   facets    Elite: light crossing the diamond; the table flashes at `flashAt`
+ *             (fraction of `facets`).
+ *   rise      Crown VIP: the crown rises `riseFrom` px from `scaleFrom` into
+ *             place on EASE_LUX; the gold shimmer crosses it `shimmerDelay` in,
+ *             over `shimmer`. Afterwards the shimmer returns every `idleEvery`,
+ *             at `idleOpacity`, only while on screen and the tab is visible.
+ */
+export const TIER_ICON = {
+  twinkle: DUR.reveal,
+  rays: DUR.draw,
+  glow: 6,
+  facets: 1.4,
+  flashAt: 0.7,
+  rise: DUR.image,
+  riseFrom: 6,
+  scaleFrom: 0.88,
+  shimmer: 1.4,
+  shimmerDelay: 0.35,
+  idleEvery: 9,
+  idleOpacity: 0.35,
+} as const;
+
 /** The scale an arriving gallery photo starts at before settling to 1. */
 export const PHOTO_SETTLE = 1.06;
 /** How dark the leaving gallery photo goes (black overlay opacity). */
