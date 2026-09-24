@@ -8,6 +8,7 @@ import type { HubTier } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TierLadder } from "@/components/fx/tier-ladder";
+import { TierIcon } from "@/components/fx/tier-icon";
 import { Magnetic } from "@/components/fx/magnetic";
 import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 export const generateMetadata = () => pageMeta("loyalty");
@@ -38,6 +39,7 @@ export default async function LoyaltyPage() {
           <ol className="rule-grid grid sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier, i) => (
               <li key={tier.slug} data-tier="" data-crown={i === tiers.length - 1 ? "" : undefined} className="flex flex-col bg-white p-6">
+                <TierIcon slug={tier.slug} />
                 <span className="text-xs text-charcoal/70">{t("loyalty", "level", { n: String(i + 1) })}</span>
                 <h3 className="mt-1 text-[28px] text-charcoal-deep">{tier.name}</h3>
                 <div className="my-4 h-0.5 bg-[linear-gradient(90deg,#8A6B12,#E8D28A)]" style={{ width: `${25 + i * 25}%` }} />

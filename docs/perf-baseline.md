@@ -1,5 +1,57 @@
 # Performance baseline
 
+## 2026-09-24 — Loyalty tier medallions, round 2 (owner review of #136)
+
+Before = `bc8ffc1` (the reviewed medallions). After = this commit. Same
+method as below: preview fixtures, interleaved, median of 6, CLS over load
+plus a scroll down and back.
+
+| `/loyalty` | observed LCP before | after | CLS | stylesheets |
+|---|---|---|---|---|
+| phone (4× CPU, 1.6 Mbps / 150 ms) | 1312 ms | 1318 ms | 0 → 0 | 2 → 2 |
+| desktop (10 Mbps / 150 ms) | 482 ms | 488 ms | 0 → 0 | 2 → 2 |
+
+Within noise (before 1296–1320, after 1300–1324 on the phone). Page JS
++0.8 kB (idle keyframes, the sweep); HTML gz 19.2 → 19.5 kB. Medallions
+72 px on phones, 88 px from lg, sized by attributes and the inline
+component CSS, so nothing shifts.
+
+Trigger: a reading line at 60% of the viewport (LADDER.line). Phones: the
+rail's tip is the line and a card arrives as it crosses the card's centre
+(measured 0.58–0.60 of the viewport, WebKit iPhone). lg: the row's centre
+reaching the line, or the whole row in view, starts a 1.8 s sweep of the
+rail; each card arrives as the tip passes it. A card wholly off screen is
+reset and arrives again on return. Idle loops run per card, only while it is
+on screen and the tab is visible.
+
+Videos (before left, after right, ~10 s held on the ladder):
+`docs/screenshots/loyalty-tier-icons/loyalty-{desktop-1440,phone-390}-before-after-v2.webm`.
+
+---
+
+## 2026-09-24 — Loyalty tier medallions
+
+Before = `origin/develop` (`0e4a523`). After = this branch. `next build` +
+`next start`, preview-fixtures mode, interleaved, median of 6. CLS measured
+over the load AND a scroll down and back up through the ladder.
+
+| `/loyalty` | observed LCP before | after | CLS | stylesheets |
+|---|---|---|---|---|
+| phone (4× CPU, 1.6 Mbps / 150 ms) | 1324 ms | 1324 ms | 0 → 0 | 2 → 2 |
+| desktop (10 Mbps / 150 ms) | 500 ms | 486 ms | 0 → 0 | 2 → 2 |
+
+Page JS +0.97 kB (the medallions' component CSS, in a client module so it is
+sent once); HTML gz 15.4 → 19.2 kB (four inline SVGs, no image requests).
+The medallions are 64×64 with explicit sizes and sit in server-rendered
+cards, so nothing shifts when they appear; their motion is transform and
+opacity only, started by the ladder's existing lighting (`data-shown`), with
+no second observer.
+
+Videos (before left, after right, no labels — this ffmpeg has no drawtext):
+`docs/screenshots/loyalty-tier-icons/loyalty-{desktop-1440,phone-390}-before-after.webm`.
+
+---
+
 ## 2026-09-24 — About logo clip, steady About column, FAQ category navigation, page emblems
 
 Before = `origin/develop` (`6002e29`). After = this branch. `next build` +
