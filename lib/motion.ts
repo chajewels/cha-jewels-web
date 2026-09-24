@@ -131,13 +131,66 @@ export const EMBLEM = { turn: -48, from: 0.9, sweepDelay: 0.35 } as const;
 export const PAGE_RISE = 12;
 
 /**
- * THE LOYALTY LADDER (components/fx/tier-ladder.tsx). The gold rail fills as
- * the ladder crosses the viewport: it starts when the ladder's top reaches
- * `from` of the viewport height and is full when it reaches `to`. A tier
- * lights when the rail's tip reaches it. `crownLap`: seconds for one turn of
- * the top tier's metallic border — slow on purpose.
+ * THE LOYALTY LADDER (components/fx/tier-ladder.tsx). The rail and the tier
+ * cards answer to one READING LINE, `line` of the viewport height, so a card
+ * arrives when it is well in view rather than the moment it enters (owner
+ * review of PR #136: the ladder sits deep in the page and the first trigger
+ * fired before anyone saw it).
+ *
+ *   stacked (phone)  the rail follows scroll and its tip IS the reading line;
+ *                    a card lights, and its medallion arrives, when the line
+ *                    crosses the card's centre.
+ *   across (lg)      the four cards share a row, so scroll cannot stagger
+ *                    them. When the row's centre reaches the line — or the
+ *                    whole row is in view (bottom above `fullAt`), whichever
+ *                    is first — the rail SWEEPS across in `sweep` seconds on
+ *                    EASE_SHEEN, and each card lights as the tip passes its
+ *                    centre. A reader who stops scrolling still sees all four.
+ *                    Scrolling back above the trigger sweeps it back.
+ *
+ * A card that leaves the viewport completely is reset, so its arrival plays
+ * again when it comes back. `crownLap`: seconds for one turn of the top
+ * tier's metallic border — slow on purpose.
  */
-export const LADDER = { from: 0.85, to: 0.35, crownLap: 9 } as const;
+export const LADDER = { line: 0.6, fullAt: 0.95, sweep: 1.8, crownLap: 9 } as const;
+
+/**
+ * THE TIER MEDALLIONS (components/fx/tier-icon-style.tsx). Seconds.
+ *
+ * ARRIVAL, once per entry into view: Glimmer twinkles (`twinkle`), Radiant's
+ * rays push out (`rays`), light crosses Elite's facets (`facets`, the table
+ * flashing at `flashAt` of it), the crown rises `riseFrom` px from
+ * `scaleFrom` (`rise`) as a shimmer crosses it (`shimmer`, `shimmerDelay` in).
+ *
+ * THEN, CONTINUOUSLY, while the card is on screen and the tab is visible:
+ *   glimmerEvery  a twinkle with a turning glint, every this many seconds
+ *   raysTurn      one full, slow turn of Radiant's rays; `raysPulse` is the
+ *                 period of their brightness breathing
+ *   eliteEvery    a sparkle across the facets and a flash at the table
+ *   floatEvery    one rise-and-fall of the crown, `float` px; the gold
+ *                 shimmer crosses it every `crownEvery`
+ * The periods are all different and each tier starts at its own `offset`, so
+ * the four drift apart and never pulse together.
+ */
+export const TIER_ICON = {
+  twinkle: DUR.reveal,
+  rays: DUR.draw,
+  facets: 1.4,
+  flashAt: 0.7,
+  rise: DUR.image,
+  riseFrom: 6,
+  scaleFrom: 0.88,
+  shimmer: 1.4,
+  shimmerDelay: 0.35,
+  glimmerEvery: 3.4,
+  raysTurn: 30,
+  raysPulse: 4.6,
+  eliteEvery: 3.8,
+  floatEvery: 5.2,
+  float: 3,
+  crownEvery: 4.2,
+  offset: { glimmer: 0.2, radiant: 0, elite: 0.9, crown: 1.6 },
+} as const;
 
 /** The scale an arriving gallery photo starts at before settling to 1. */
 export const PHOTO_SETTLE = 1.06;
