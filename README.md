@@ -14,6 +14,21 @@ Implements Phase 0 and Phase 1 of the implementation plan (foundations, catalog 
 ## Commands
 - `npm run check:terms` — fails on any forbidden gold terminology. Run before every commit.
 - `npm run typecheck`
+- `npm run e2e:signup`: live end-to-end signup test, run by hand only (below).
+
+## End-to-end signup test (live, run by hand)
+`npm run e2e:signup` (`e2e/signup.spec.ts`) drives a real browser through storefront signup on a real deployment and the **LIVE Hub**. It is not part of CI or any other script, so run it only when you mean to. The test (not the site) reads and writes the Hub database with the service-role key, to set up, check and clean up.
+
+- **Scenario B (runs first):** a new login fills in the profile with the name of an existing customer (CJ-2026-00688). The test expects `/already-registered` with the owner's wording, the session signed out, no customer created, and exactly one `duplicate_signup_blocked` staff notification that names the test email and CJ-2026-00688.
+- **Scenario A:** a new login fills in a fresh profile (International / Denmark, plus a fake `+45 00 …` mobile that `find_customer_matches` first confirms nobody holds) and lands on `/account`. The new customer row is marked `is_test = true` straight away, then checked field by field.
+- **Sign-in without email:** test users are created with the service role (email confirmed), and `auth.admin.generateLink` makes a magic link without sending anything. The test opens the storefront's own `/auth/callback?token_hash=…&type=magiclink`, the same server-side path a customer's email link takes. Addresses look like `e2e-signup-<timestamp>-a@cha-jewels-e2e.test`, and `.test` addresses are never delivered.
+- **Cleanup always runs**, even after a failure. It deletes the test customers (by email), this run's `duplicate_signup_blocked` notifications and both auth users, then prints what it deleted and anything left behind. If anything is left behind, the run fails.
+
+Setup, once:
+1. `npx playwright install chromium`
+2. `cp .env.e2e.example .env.e2e.local`, then fill in `E2E_SUPABASE_URL`, `E2E_SUPABASE_SERVICE_ROLE_KEY` and, optionally, `E2E_BASE_URL` (default `https://www.chajewelsjp.com`). The file is gitignored; never commit the key.
+
+To test a preview instead of production, set `E2E_BASE_URL` to the branch alias (`https://cha-jewels-web-git-<branch>-cha-jewels.vercel.app`), never a per-deployment URL. The deployment must sign in against the same Supabase project as `E2E_SUPABASE_URL`.
 
 ## Routes
 `/` · `/about` · `/blog` · `/blog/[slug]` · `/loyalty` · `/loyalty/join` · `/collections/[slug]` · `/products/[slug]` · `/layaway` · `/legal/tokusho` · `/sitemap.xml` · `/robots.txt` · `POST /api/revalidate` · `POST /api/region`
