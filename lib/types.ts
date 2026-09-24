@@ -168,7 +168,28 @@ export type HubQuote = {
    * the number entirely rather than naming one it cannot stand behind.
    */
   deposit_deadline_hours?: number | null;
+  /**
+   * RESERVE FIRST (Hub A2, docs/RESERVE-FIRST.md in the Hub repo). Present, and
+   * true, only while the Hub's `web_reservation_mode` switch is on: the order
+   * this quote becomes is a reservation that staff confirm before any payment
+   * is asked for, and `transfer_methods` comes back empty. Absent means today's
+   * flow. Read from the response, never from a flag on this side, so the
+   * storefront changes at the same moment as the Hub switch.
+   */
+  reservation_mode?: boolean;
 };
+/**
+ * The two flags the Hub adds to every order and plan (reserve-first A2), both
+ * derived there from `ready_confirmed_at`, which itself never crosses the API.
+ *
+ * `awaiting_confirmation`: a web reservation staff have not confirmed yet and
+ * that is still live. No payment details, no deadline.
+ * `ready_for_payment`: the customer can pay it now.
+ *
+ * Absent on a Hub deploy older than A2 — read as today's behaviour (not
+ * awaiting, payable by the page's own rules), never as a refusal.
+ */
+export type ReservationFlags = { awaiting_confirmation?: boolean; ready_for_payment?: boolean };
 /**
  * Transfer methods, built by the Hub from its own rows at request time — so a
  * correction an admin makes shows on the site with no deploy.
@@ -199,14 +220,22 @@ export type TransferMethod = {
   note_ja: string | null; note_en: string | null;
 };
 export type HubPayResult = {
-  order_id: string; web_reference: string; total_jpy: number; transfer_due_at: string;
+  order_id: string; web_reference: string; total_jpy: number;
+  /** null on a reservation: the deadline starts when staff confirm the piece. */
+  transfer_due_at: string | null;
   transfer_region: TransferRegion; transfer_methods: TransferMethod[];
+  reservation_mode?: boolean; awaiting_confirmation?: boolean;
 };
 /** `status` is the Hub's cash_order_status; `payment_status` is the web-facing one. */
-export type HubOrder = {
+export type HubOrder = ReservationFlags & {
   id: string; web_reference: string | null; invoice_number: string | null;
   status: "pending" | "completed" | "cancelled" | "expired";
-  payment_status: "pending_transfer" | "paid" | "failed" | "refunded" | "cancelled" | null;
+  /**
+   * `awaiting_confirmation` is a reservation (reserve-first A2). A cancelled
+   * reservation KEEPS it, so it is never read on its own as "awaiting": the
+   * `awaiting_confirmation` flag above is the one that is live-only.
+   */
+  payment_status: "pending_transfer" | "awaiting_confirmation" | "paid" | "failed" | "refunded" | "cancelled" | null;
   payment_method: string | null; order_type: OrderType | null;
   /**
    * JPY or PHP — the Hub's `account_currency` enum has no third value, and
@@ -281,14 +310,17 @@ export type HubLayawayPayResult = {
   total: number;
   deposit: number;
   term_months: number;
+  /** Empty on a reservation: the Hub re-dates the schedule when staff confirm. */
   schedule: LayawayScheduleRow[];
-  transfer_due_at: string;
+  /** null on a reservation, like HubPayResult. */
+  transfer_due_at: string | null;
   transfer_region: TransferRegion;
   transfer_methods: TransferMethod[];
+  reservation_mode?: boolean; awaiting_confirmation?: boolean;
 };
 
 /** A plan as the list sees it. `status` is the Hub's account_status. */
-export type HubLayawayPlan = {
+export type HubLayawayPlan = ReservationFlags & {
   id: string;
   web_reference: string | null;
   invoice_number: string | null;

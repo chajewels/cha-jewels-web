@@ -1,6 +1,7 @@
 import type { Lang } from "@/lib/i18n";
 import type { Tone } from "@/lib/order-status";
 import { dict } from "@/lib/i18n";
+import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
 import type { HubLayawayPlan, HubLayawayScheduleRow } from "@/lib/types";
 
 type Key = keyof typeof dict.plans;
@@ -18,6 +19,10 @@ const k = (key: Key, lang: Lang) => dict.plans[key][lang];
  * is, and `planNote` supplies the sentence that explains it.
  */
 export function planStatusLabel(plan: HubLayawayPlan, lang: Lang): { text: string; tone: Tone } {
+  // A reservation staff have not confirmed (Hub A2). Its status is "active",
+  // which would otherwise read as a plan in progress. The Hub's flag is
+  // live-only, so a declined or lapsed reservation falls through to cancelled.
+  if (isAwaitingConfirmation(plan)) return { text: k("statusReserved", lang), tone: "pending" };
   switch (plan.status) {
     case "completed":
       return { text: k("statusCompleted", lang), tone: "good" };
@@ -46,6 +51,7 @@ export function planStatusLabel(plan: HubLayawayPlan, lang: Lang): { text: strin
  * because the plan cannot take one.
  */
 export function planNote(plan: HubLayawayPlan, lang: Lang): string | null {
+  if (isAwaitingConfirmation(plan)) return k("noteReserved", lang);
   switch (plan.status) {
     case "completed": return k("noteCompleted", lang);
     case "forfeited":
@@ -165,7 +171,18 @@ export const remainingLabel = (plan: HubLayawayPlan, lang: Lang) =>
  * as "not web": refusing to show a form is the safe direction.
  */
 export const canPayHere = (plan: HubLayawayPlan) =>
-  isLivePlan(plan) && plan.source_channel === "web";
+  isLivePlan(plan) && plan.source_channel === "web" && isReadyForPayment(plan);
+
+/**
+ * Whether bank details may be shown for this plan at all.
+ *
+ * Not before staff confirm a reservation (owner rule, Hub A2): the Hub already
+ * sends no methods then, and this keeps the heading and the "contact us"
+ * fallback from rendering around an empty list. A Hub-arranged plan is never a
+ * reservation, so it is unaffected.
+ */
+export const showsPaymentDetails = (plan: HubLayawayPlan) =>
+  isLivePlan(plan) && isReadyForPayment(plan);
 
 /**
  * DISPLAY RULES: the row's state comes from `computed_status`, never from the

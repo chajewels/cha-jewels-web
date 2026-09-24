@@ -3,6 +3,7 @@ import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
+import { reservationMode } from "@/lib/settings";
 import { tiers as fallbackTiers } from "@/lib/loyalty";
 import type { HubTier } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
@@ -17,7 +18,7 @@ export default async function LoyaltyPage() {
   const lang = await getLang();
   const t = tr(lang);
   // Tiers come from the Hub (the system that actually awards them). Local list is only a fallback if the Hub is unreachable.
-  const tiers: HubTier[] = await hub.loyaltyTiers().catch(() => fallbackTiers.map((x) => ({ slug: x.slug, name: x.name, threshold_jpy: x.thresholdJpy, requalify_spend: x.requalifyJpy, multiplier: x.multiplier, hold_minutes: x.holdMinutes, benefits_ja: x.perks.ja, benefits_en: x.perks.en })));
+  const [reserveFirst, tiers] = await Promise.all([reservationMode(), hub.loyaltyTiers().catch(() => fallbackTiers.map((x) => ({ slug: x.slug, name: x.name, threshold_jpy: x.thresholdJpy, requalify_spend: x.requalifyJpy, multiplier: x.multiplier, hold_minutes: x.holdMinutes, benefits_ja: x.perks.ja, benefits_en: x.perks.en }) as HubTier))]);
   return (
     <>
       <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
@@ -61,7 +62,7 @@ export default async function LoyaltyPage() {
             ))}
           </ol>
           </TierLadder>
-          <p className="mt-8 max-w-[58ch] text-sm text-charcoal/70">{t("loyalty", "holdNote")}</p>
+          <p className="mt-8 max-w-[58ch] text-sm text-charcoal/70">{t("loyalty", reserveFirst ? "holdNoteReserve" : "holdNote")}</p>
         </div>
       </section>
       <section className="py-[clamp(48px,7vw,96px)] text-center">

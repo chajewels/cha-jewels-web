@@ -7,6 +7,8 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
+import { orderLineTitle } from "@/lib/catalog-i18n";
+import { isAwaitingConfirmation } from "@/lib/reservation";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { MemberGroups } from "@/components/loyalty/member-groups";
@@ -53,8 +55,52 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
     );
   }
 
-  const { order, transfer_methods: methods } = detail;
+  const { order, items, transfer_methods: methods } = detail;
   const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
+
+  // RESERVE FIRST (Hub A2). The order read back says whether it is a
+  // reservation — the same answer the Hub gives everywhere else, so this page
+  // flips with the switch and never on a flag of its own. No bank details, no
+  // deadline and no "after the deadline" line: there is no deadline yet.
+  if (isAwaitingConfirmation(order)) {
+    return (
+      <section className="py-[clamp(48px,7vw,96px)]">
+        <div className="wrap max-w-[720px]">
+          <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("complete", "reservedH1")}</h1>
+          <p className="mt-4 text-charcoal">{t("complete", "reservedLede")}</p>
+
+          <dl className="rule-grid mt-10 grid gap-px sm:grid-cols-2">
+            <Cell k={t("complete", "reference")} v={order.web_reference ?? "—"} mono />
+            <Cell k={t("complete", "reservedTotal")} v={formatMoney(Number(order.total_amount), order.currency)} />
+          </dl>
+
+          {items.length > 0 && (
+            <div className="mt-10">
+              <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "reservedPieces")}</h2>
+              <ul className="rule-grid grid gap-px">
+                {items.map((line) => (
+                  <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-white p-4 text-sm">
+                    <span className="text-charcoal-deep">{orderLineTitle(line, lang)}{line.quantity > 1 ? ` × ${line.quantity}` : ""}</span>
+                    <span className="text-charcoal">{formatMoney(Number(line.line_total_jpy), order.currency)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <p className="mt-8 text-sm text-charcoal/70">{t("complete", "reservedNoPayment")}</p>
+
+          <Button asChild className="mt-8"><Link href={`/account/orders/${order.id}`}>{t("complete", "viewOrder")}</Link></Button>
+
+          {isMember && (
+            <div className="mt-10 border border-hairline bg-white p-6">
+              <MemberGroups items={groups} lang={lang} />
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">

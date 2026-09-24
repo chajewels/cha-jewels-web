@@ -15,6 +15,7 @@ import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, Settle
 import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } from "@/lib/layaway-availability";
 import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
+import { quoteIsReservation } from "@/lib/reservation";
 
 /**
  * "sign" is not a numbered step and is not in the stepper.
@@ -181,6 +182,11 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // then. Never a hardcoded array of what the calculator used to offer.
   const termOptions: LayawayTerm[] = quote?.layaway?.allowed_terms ?? DEFAULT_TERMS;
   const plan = mode === "layaway" ? quote?.layaway ?? null : null;
+  // RESERVE FIRST (Hub A2). Read off the QUOTE the Hub just priced, never a
+  // flag on this side, so checkout changes at the same moment as the Hub's
+  // switch. A reservation shows no bank details and no deadline (owner rule):
+  // staff confirm the piece first, and the payment email follows.
+  const reserving = quoteIsReservation(quote);
   // What this order will actually settle in. Paying in full is yen-only, so the
   // toggle's position is irrelevant there. Same rule quoteInput() sends, kept in
   // one place: a toggle left on pesos before switching to full payment must not
@@ -667,7 +673,21 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-xs text-charcoal/70">{t("checkout", "layawayDeadline")}</p>
+                {reserving ? (
+                  <>
+                    <p className="mt-4 text-xs text-charcoal/70">{t("checkout", "layawayScheduleProvisional")}</p>
+                    <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "layawayReserveNote")}</p>
+                  </>
+                ) : (
+                  /* The number the Hub will store — 24 on a first order, 72
+                     after that — or no number at all when it sent none. */
+                  <p className="mt-4 text-xs text-charcoal/70">
+                    {typeof quote.deposit_deadline_hours === "number"
+                      ? t("checkout", "layawayDepositWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
+                      : ""}
+                    {t("checkout", "layawayDeadlineNote")}
+                  </p>
+                )}
               </div>
             )}
             <div className="flex gap-3">
@@ -685,7 +705,15 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 last click — or worse, taking an order we cannot be paid for —
                 is the outcome this prevents. The Hub enforces the same rule
                 server-side; this is the courteous half of it. */}
-            {quote.transfer_available ? (
+            {quote.transfer_available && reserving ? (
+              /* A reservation: how they will pay, and that the details come
+                 after we confirm the piece. No accounts, no deadline — the Hub
+                 sends no methods in this mode, and this renders none. */
+              <div className="border border-hairline bg-white p-4 text-sm text-charcoal">
+                <p>{t("checkout", "transferOnly")}</p>
+                <p className="mt-2">{t("checkout", "reserveExplain")}</p>
+              </div>
+            ) : quote.transfer_available ? (
               <>
                 <div className="border border-hairline bg-white p-4 text-sm text-charcoal">
                   <p>{t("checkout", "transferOnly")}</p>
@@ -737,7 +765,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             <div className="flex gap-3">
               <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
               <Button onClick={placeOrder} disabled={pending || !quote.transfer_available}>
-                {mode === "layaway"
+                {reserving
+                  ? (pending ? t("checkout", "reserving") : t("checkout", "reserveNow"))
+                  : mode === "layaway"
                   ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
                   : (pending ? t("checkout", "placing") : t("checkout", "placeOrder"))}
               </Button>

@@ -39,6 +39,15 @@ export function orderStatusLabel(order: HubOrder, lang: Lang): { text: string; t
   if (order.payment_status === "refunded") return { text: k("statusRefunded"), tone: "dead" };
   if (order.payment_status === "failed") return { text: k("statusFailed"), tone: "dead" };
 
+  // RESERVE FIRST (Hub A2): held, not yet confirmed, nothing to pay yet. After
+  // every ended state, because a cancelled reservation keeps payment_status
+  // "awaiting_confirmation" in the Hub — the ended checks above catch it first.
+  // The Hub's live-only flag is the primary signal; the raw payment_status is
+  // the fallback for a row that carries no flag.
+  if (order.awaiting_confirmation === true || order.payment_status === "awaiting_confirmation") {
+    return { text: k("statusReserved"), tone: "pending" };
+  }
+
   if (order.shipped_at) return { text: k("statusShipped"), tone: "good" };
 
   switch (order.payment_status) {

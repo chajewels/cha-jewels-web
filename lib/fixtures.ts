@@ -3,6 +3,19 @@ import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { blocksToMarkdown, sectionSlug } from "@/lib/content/faq-markdown";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
+/**
+ * RESERVE FIRST (Hub A2) in preview. `NEXT_PUBLIC_PREVIEW_RESERVATION=1`, with
+ * fixtures on, plays the Hub with `web_reservation_mode` switched ON: the quote
+ * comes back with `reservation_mode`, checkout lands on a reservation, and the
+ * account gains one reserved order and one reserved plan. Unset, every fixture
+ * is exactly what it was — the switch-off world.
+ */
+const PREVIEW_RESERVATION = process.env.NEXT_PUBLIC_PREVIEW_RESERVATION === "1";
+const RESERVED_ORDER_ID = "order-reserved";
+const RESERVED_ORDER_REFERENCE = "CJ-W-000003";
+const RESERVED_PLAN_ID = "plan-reserved";
+const RESERVED_PLAN_REFERENCE = "CJ-W-900004";
+
 /** Plans in `layawayPlansFixture`, stated here because `meFixture` is declared first. */
 const layawayPlansFixtureCount = 7;
 export const collections: Collection[] = [
@@ -184,7 +197,9 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
     web_reference: mode === "layaway" ? "CJ-W-900123" : null,
     items, subtotal_jpy: subtotal, shipping_jpy: shipping,
     total_jpy: total, requires_manual_quote: false,
-    transfer_region: "JP", transfer_methods: fixtureMethods, transfer_available: true,
+    // In reservation mode the Hub withholds the methods and says why.
+    transfer_region: "JP", transfer_methods: PREVIEW_RESERVATION ? [] : fixtureMethods, transfer_available: true,
+    ...(PREVIEW_RESERVATION ? { reservation_mode: true } : {}),
     order_type: body.order_type,
     expires_at: new Date(Date.now() + 30 * 60e3).toISOString(),
     // Preview shows the FIRST-ORDER deadline, because that is the case the copy
@@ -231,6 +246,13 @@ const fixtureTerms: LayawayTerm[] = [
 ];
 
 export function payFixture(): HubPayResult {
+  if (PREVIEW_RESERVATION) {
+    return {
+      reservation_mode: true, awaiting_confirmation: true,
+      order_id: RESERVED_ORDER_ID, web_reference: RESERVED_ORDER_REFERENCE, total_jpy: 236800,
+      transfer_due_at: null, transfer_region: "JP", transfer_methods: [],
+    };
+  }
   return {
     order_id: FIXTURE_ORDER_ID, web_reference: FIXTURE_REFERENCE, total_jpy: 236800,
     transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
@@ -248,6 +270,10 @@ export const ordersFixture: HubOrder[] = [{
   created_at: new Date().toISOString(), completed_at: null, cancelled_at: null,
   tracking_number: null, shipped_at: null,
   cancellation_reason: null, refund_status: null, refund_note: null, expired_at: null,
+  // Confirmed (with the switch off, the Hub stamps every web order confirmed at
+  // creation): this is also what a reservation looks like after staff confirm
+  // it — bank details and the deadline on the order page.
+  awaiting_confirmation: false, ready_for_payment: true,
 },
   // The ended states, added 2026-09-15 so the badge-versus-caption rule on this
   // page can actually be LOOKED at. Before this there was one pending order in
@@ -273,6 +299,18 @@ export const ordersFixture: HubOrder[] = [{
     currency: "JPY", total: 98400, shipped: true,
     cancelled: true, reason: "Returned to us and cancelled after dispatch.", refund: "store_credit_issued",
   }),
+  // A reservation staff have not confirmed: held, no deadline, no methods.
+  ...(PREVIEW_RESERVATION ? [{
+    id: RESERVED_ORDER_ID, web_reference: RESERVED_ORDER_REFERENCE, invoice_number: "900003",
+    status: "pending" as const, payment_status: "awaiting_confirmation" as const, payment_method: "transfer",
+    order_type: "SELF" as const, currency: "JPY" as const, total_amount: 236800, total_paid: 0,
+    remaining_balance: 236800, shipping_fee: 800, transfer_due_at: null,
+    recipient_name: null, gift_note: null, order_date: new Date().toISOString().slice(0, 10),
+    created_at: new Date().toISOString(), completed_at: null, cancelled_at: null,
+    tracking_number: null, shipped_at: null, source_channel: "web",
+    cancellation_reason: null, refund_status: null, refund_note: null, expired_at: null,
+    awaiting_confirmation: true, ready_for_payment: false,
+  }] : []),
 ];
 
 /** An order in whatever state the Hub has it. Web fields left null as the Hub leaves them. */
@@ -296,6 +334,8 @@ function hubOrder(o: {
     refund_status: o.refund ?? null,
     refund_note: null,
     expired_at: o.status === "expired" ? day(2) : null,
+    // Every one of these is ended or settled: nothing awaits, nothing to pay.
+    awaiting_confirmation: false, ready_for_payment: false,
   };
 }
 
@@ -308,7 +348,10 @@ export function orderFixture(id: string): HubOrderDetail | null {
       id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle", title_ja: "ツイストバングル",
       sku: "CJ-0003", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null,
     }],
-    transfer_region: "JP", transfer_methods: fixtureMethods,
+    // The Hub's own rule: methods only while the transfer is outstanding and
+    // never before staff confirm the piece.
+    transfer_region: "JP",
+    transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? fixtureMethods : [],
   };
 }
 
@@ -328,6 +371,15 @@ function fixtureDueDate(monthsAhead: number): string {
 }
 
 export function layawayPayFixture(): HubLayawayPayResult {
+  if (PREVIEW_RESERVATION) {
+    return {
+      mode: "layaway", reservation_mode: true, awaiting_confirmation: true,
+      account_id: RESERVED_PLAN_ID, web_reference: RESERVED_PLAN_REFERENCE,
+      currency: "JPY", total: fixturePlanTotal, deposit: fixturePlanDeposit, term_months: fixturePlanTerm,
+      // Re-dated by the Hub at confirmation, so none is sent before it.
+      schedule: [], transfer_due_at: null, transfer_region: "JP", transfer_methods: [],
+    };
+  }
   return {
     mode: "layaway",
     account_id: FIXTURE_PLAN_ID,
@@ -370,6 +422,9 @@ function hubPlan(o: {
     completed_at: o.status === "completed" ? new Date(Date.now() - 20 * 864e5).toISOString() : null,
     tracking_number: null, shipped_at: null,
     source_channel: "hub_manual",
+    // Never a reservation: the Hub checks the channel first.
+    awaiting_confirmation: false,
+    ready_for_payment: ["active", "overdue", "extension_active", "reactivated"].includes(o.status),
   };
 }
 
@@ -384,7 +439,23 @@ export const layawayPlansFixture: HubLayawayPlan[] = [{
   created_at: new Date().toISOString(), completed_at: null,
   tracking_number: null, shipped_at: null,
   source_channel: "web",
+  // Confirmed — the switch-off shape, and a reservation after staff confirm.
+  awaiting_confirmation: false, ready_for_payment: true,
 },
+  // A reservation staff have not confirmed: active in the Hub, but no deposit
+  // deadline, no methods, and a schedule still dated from checkout.
+  ...(PREVIEW_RESERVATION ? [{
+    id: RESERVED_PLAN_ID, web_reference: RESERVED_PLAN_REFERENCE, invoice_number: "900004",
+    status: "active", currency: "JPY" as const, total_amount: fixturePlanTotal, total_paid: 0,
+    remaining_balance: fixturePlanTotal, downpayment_amount: fixturePlanDeposit,
+    payment_plan_months: fixturePlanTerm, shipping_fee: 800,
+    order_date: new Date().toISOString().slice(0, 10), end_date: fixtureDueDate(fixturePlanTerm),
+    transfer_due_at: null, settlement_due_at: null, expired_at: null,
+    created_at: new Date().toISOString(), completed_at: null,
+    tracking_number: null, shipped_at: null,
+    source_channel: "web",
+    awaiting_confirmation: true, ready_for_payment: false,
+  }] : []),
   // EVERY state a Hub plan reaches that a web plan never did. Figures are taken
   // from the real extremes so the layout is checked against them.
   //
@@ -465,7 +536,8 @@ export function layawayPlanFixture(id: string): HubLayawayDetail | null {
     pending_submissions: [],
     deposit_paid: false,
     transfer_region: "JP",
-    transfer_methods: fixtureMethods,
+    // No bank details before staff confirm (Hub A2).
+    transfer_methods: plan.awaiting_confirmation ? [] : fixtureMethods,
   };
 }
 
@@ -527,6 +599,9 @@ export function rememberSubscriber(email: string): boolean {
  * screenshots are taken against (`NEXT_PUBLIC_PREVIEW_FIXTURES=1`).
  */
 export const settingsFixture: SiteSettings = {
+  // Not published by the Hub yet (see reservationMode in lib/settings.ts);
+  // present here so the reservation-mode hold note on /loyalty can be seen.
+  ...(PREVIEW_RESERVATION ? { web_reservation_mode: true } : {}),
   "social.follow": [
     { key: "email", href: "mailto:sales@chajewelsjp.com" },
     { key: "facebook", href: "https://www.facebook.com/chajewelsjapan" },
