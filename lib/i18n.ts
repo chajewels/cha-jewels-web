@@ -384,6 +384,12 @@ export const dict = {
     print: { ja: "印刷 / PDFで保存", en: "Print / save as PDF" },
     invoiceNo: { ja: "請求書番号", en: "Invoice no." },
     issuedBy: { ja: "発行者", en: "Issued by" },
+    // The payment card that leads an order or plan page while money is due
+    // (owner request 2026-09-24): what to send, by when, and where.
+    payH: { ja: "お支払い方法", en: "How to pay" },
+    amountDue: { ja: "お支払い金額", en: "Amount due" },
+    depositAmountDue: { ja: "お申込金", en: "Deposit due" },
+    payBy: { ja: "お支払い期限", en: "Pay by" },
     h1: { ja: "アカウント", en: "Your account" },
     // "Sign in" alone told a first-time customer they were in the wrong place:
     // there is no separate sign-up on this site — the first link creates the
