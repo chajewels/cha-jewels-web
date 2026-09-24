@@ -4,3 +4,8 @@ node_modules
 .env
 *.tsbuildinfo
 .DS_Store
+
+# End-to-end tests (e2e/): secrets and Playwright output
+.env.e2e.local
+test-results/
+playwright-report/
