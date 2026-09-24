@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub, HubError, uploadProof } from "@/lib/hub-api";
 import type { ActionResult } from "@/lib/checkout-actions";
+import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
 
 /**
  * Reporting a transfer against a layaway plan.
@@ -74,6 +75,10 @@ function submitCode(err: unknown): string {
     if (err.code === "too_many_submissions" || err.status === 429) return "too_many_submissions";
     if (err.code === "exceeds_balance") return "exceeds_balance";
     if (err.code === "plan_not_live") return "plan_not_live";
+    // 409 before staff confirm a reservation (Hub A2). The page does not offer
+    // the form then, so this is a tab left open across the switch or a
+    // confirmation that has not landed yet — said plainly, never "failed".
+    if (err.code === NOT_READY_FOR_PAYMENT) return NOT_READY_FOR_PAYMENT;
     if (err.code === "proof_required") return "proof_required";
     if (err.status === 401 || err.status === 403) return "signed_out";
   }

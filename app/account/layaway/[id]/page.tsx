@@ -8,7 +8,8 @@ import { orderLineTitle } from "@/lib/catalog-i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { canPayHere, isLivePlan, planNote, planStatusLabel, remainingIsPayable, remainingLabel, rowStatusLabel, showsRemainingFigure } from "@/lib/plan-status";
+import { canPayHere, isLivePlan, planNote, planStatusLabel, remainingIsPayable, remainingLabel, rowStatusLabel, showsPaymentDetails, showsRemainingFigure } from "@/lib/plan-status";
+import { isAwaitingConfirmation } from "@/lib/reservation";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { LayawayPayForm } from "@/components/commerce/layaway-pay-form";
@@ -88,6 +89,12 @@ export default async function LayawayPlanPage({ params, searchParams }: {
 
   const live = isLivePlan(plan);
   const payHere = canPayHere(plan);
+  // RESERVE FIRST (Hub A2): held, not yet confirmed by staff. No bank details,
+  // no deadline and no payment form until the Hub says it is ready — owner
+  // rule. `payHere` and `showsPaymentDetails` both already refuse it; this
+  // names the state for the copy.
+  const reserved = isAwaitingConfirmation(plan);
+  const justPlaced = query.placed === "1";
   /**
    * Whether a row is still money this customer owes — the only rows that get
    * the gold emphasis.
@@ -131,12 +138,23 @@ export default async function LayawayPlanPage({ params, searchParams }: {
 
         {/* What this state means, in one sentence. Closed plans get no
             encouragement here — see planNote. */}
-        {note && (
+        {note && !(justPlaced && reserved) && (
           <p className="mt-6 border border-hairline bg-white p-4 text-sm text-charcoal">{note}</p>
         )}
 
+        {/* Straight off the checkout in reservation mode: the "Reservation
+            received" state. The reference is the heading above and the piece
+            is listed below; nothing about paying except "not yet". */}
+        {justPlaced && reserved && (
+          <div className="mt-6 border border-gold-dark px-4 py-4 text-sm">
+            <h2 className="font-display text-xl text-charcoal-deep">{t("complete", "reservedH1")}</h2>
+            <p className="mt-2 text-charcoal">{t("plans", "noteReserved")}</p>
+            <p className="mt-2 text-charcoal/70">{t("complete", "reservedNoPayment")}</p>
+          </div>
+        )}
+
         {/* Straight off the checkout, before any deposit exists. */}
-        {query.placed === "1" && awaitingDeposit && (
+        {justPlaced && awaitingDeposit && (
           <p className="mt-6 border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("complete", "layawayLede")}</p>
         )}
 
@@ -194,6 +212,9 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         />
 
         <h2 className="mt-12 font-display text-xl text-charcoal-deep">{t("plans", "schedule")}</h2>
+        {/* The Hub re-dates every row to the confirmation day, so the dates
+            shown before then are not the ones the customer will pay on. */}
+        {reserved && <p className="mt-2 text-sm text-charcoal/70">{t("plans", "scheduleProvisional")}</p>}
         <ul className="rule-grid mt-4 grid gap-px">
           {schedule.map((row) => (
             <li key={row.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-white p-4 text-sm">
@@ -247,8 +268,9 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         )}
 
         {/* Where the money goes, only while the plan can still take money. A
-            closed plan gets no bank details and no payment route. */}
-        {live && (
+            closed plan gets no bank details and no payment route, and neither
+            does a reservation staff have not confirmed yet. */}
+        {showsPaymentDetails(plan) && (
           <>
             <div className="mt-12">
               <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h2>

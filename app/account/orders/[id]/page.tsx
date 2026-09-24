@@ -9,6 +9,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { orderStatusLabel, refundLabel } from "@/lib/order-status";
+import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
 import type { ServiceRequest } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
@@ -157,8 +158,18 @@ export default async function OrderDetailPage({ params, searchParams }: {
           </p>
         )}
 
-        {/* Instructions only while the money is still outstanding. */}
-        {order.payment_status === "pending_transfer" && (
+        {/* A reservation staff have not confirmed yet (Hub A2): what happens
+            next, and no payment details until it is confirmed. */}
+        {isAwaitingConfirmation(order) && (
+          <p className="mt-10 border border-hairline bg-white p-4 text-sm text-charcoal">{t("orders", "reservedNote")}</p>
+        )}
+
+        {/* Instructions only while the money is still outstanding — and, since
+            reserve-first, only once the Hub says the order can be paid. A
+            reservation reads payment_status "awaiting_confirmation", so the
+            first test already excludes it; the second is belt and braces, the
+            same pair the Hub checks before it sends any methods. */}
+        {order.payment_status === "pending_transfer" && isReadyForPayment(order) && (
           <div className="mt-10">
             <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">
               {t("complete", "instructions")}
