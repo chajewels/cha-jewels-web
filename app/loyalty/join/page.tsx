@@ -5,7 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { hub } from "@/lib/hub-api";
-import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
+import { REGISTERED_PATH, isAlreadyRegistered, isNotLinked, isProfileRequired, profileUrl, withQuery } from "@/lib/profile";
 import { Button } from "@/components/ui/button";
 import { JoinButton } from "@/components/loyalty/join-button";
 import { MemberGroups } from "@/components/loyalty/member-groups";
@@ -14,8 +14,8 @@ import { loyaltyGroups } from "@/lib/settings";
 export const generateMetadata = () => pageMeta("join");
 export const dynamic = "force-dynamic";
 
-export default async function JoinPage() {
-  const lang = await getLang();
+export default async function JoinPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [lang, query] = await Promise.all([getLang(), searchParams]);
   const t = tr(lang);
   // Owner-editable in the Hub; falls back to lib/social.ts. Resolved here
   // because JoinButton is a client component and lib/settings.ts is server-only.
@@ -39,12 +39,19 @@ export default async function JoinPage() {
       link = isProfileRequired(e) ? "profile" : isAlreadyRegistered(e) ? "registered" : "ok";
     }
     // redirect() throws, so these stay outside the catch.
-    if (link === "profile") redirect(profileUrl("/loyalty/join"));
+    const here = withQuery("/loyalty/join", query);
+    if (link === "profile") redirect(profileUrl(here));
     if (link === "registered") redirect(REGISTERED_PATH);
+    let notLinked = false;
     try {
       const me = await hub.me(jwt);
       enrolled = me.loyalty?.enrolled === true;
-    } catch { /* unreadable /me falls through to the button — join is idempotent */ }
+    } catch (e) {
+      // 404 not_linked: no customer record to enrol — the profile step.
+      // Anything else unreadable falls through to the button — join is idempotent.
+      notLinked = isNotLinked(e);
+    }
+    if (notLinked) redirect(profileUrl(here));
   }
 
   return (

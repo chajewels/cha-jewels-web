@@ -103,18 +103,26 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
     next: revalidate === false ? undefined : { revalidate, tags },
     cache: revalidate === false ? "no-store" : undefined,
   });
-  if (res.status === 404) throw new HubError(404, "Not found");
   if (!res.ok) {
     // Read the body's error code so callers can tell one 409 from another.
     // A body that is missing or not JSON is normal for gateway-level failures.
     const body = await res.clone().json().then((b) => (b && typeof b === "object" ? b : null), () => null);
     const code = typeof body?.error === "string" ? body.error : null;
     const requestId = (typeof body?.request_id === "string" && body.request_id) || res.headers.get("x-request-id") || null;
+    // A 404 carries its code too: on a customer route `not_linked` (signed in,
+    // no customer record yet) and `not_found` (no such order or plan, or not
+    // hers) are different answers and callers must be able to tell them apart.
+    if (res.status === 404) throw new HubError(404, "Not found", code, requestId);
     throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId);
   }
   return res.json() as Promise<T>;
 }
-const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404) return null; throw e; } };
+/**
+ * 404 → null, EXCEPT `not_linked`: that is "no customer record yet", not "no
+ * such thing", and it goes to the profile step (lib/profile.ts), so it is
+ * rethrown rather than read as a missing order or plan.
+ */
+const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404 && e.code !== "not_linked") return null; throw e; } };
 
 export const hub = {
   /**

@@ -5,8 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
-import { HubError } from "@/lib/hub-api";
-import { profileUrl } from "@/lib/profile";
+import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import type { HubMe } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { SignOutButton } from "@/components/account/sign-out-button";
@@ -18,7 +17,7 @@ export const generateMetadata = () => pageMeta("account");
 // Customer data is per-request by definition; never cache this page.
 export const dynamic = "force-dynamic";
 
-export default async function AccountPage({ searchParams }: { searchParams: Promise<{ link?: string }> }) {
+export default async function AccountPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [lang, sp, groups] = await Promise.all([getLang(), searchParams, loyaltyGroups()]);
   const t = tr(lang);
 
@@ -33,16 +32,22 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   let notLinked = false;
   if (jwt) {
     try { me = await hubMe(jwt); } catch (e) {
-      // /me 404 = signed in, but no customer record yet. The profile step can
-      // fix that; an "unavailable" notice here would be a dead end.
-      if (e instanceof HubError && e.status === 404) notLinked = true;
+      // 404 not_linked = signed in, but no customer record yet. The profile
+      // step can fix that; an "unavailable" notice here would be a dead end.
+      if (isNotLinked(e)) notLinked = true;
       else failure = failure ?? "hub";
     }
   } else {
     failure = failure ?? "session";
   }
   // redirect() throws, so it stays outside the catch above.
-  if (notLinked) redirect(profileUrl("/account"));
+  // `link` is dropped from `next`: it is the callback's "linking failed" flag,
+  // and carrying it through would show that notice after the link succeeded.
+  if (notLinked) {
+    const rest = { ...sp };
+    delete rest.link;
+    redirect(profileUrl(withQuery("/account", rest)));
+  }
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">

@@ -5,8 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
-import { HubError } from "@/lib/hub-api";
-import { profileUrl } from "@/lib/profile";
+import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import type { HubMe } from "@/lib/types";
 import { alertLight } from "@/lib/form-classes";
 
@@ -19,8 +18,8 @@ export const dynamic = "force-dynamic";
  * one and makes it the default. There is no edit, delete or set-default here or
  * anywhere else, and the page copy says so rather than implying otherwise.
  */
-export default async function AddressesPage() {
-  const lang = await getLang();
+export default async function AddressesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [lang, query] = await Promise.all([getLang(), searchParams]);
   const t = tr(lang);
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
@@ -33,14 +32,14 @@ export default async function AddressesPage() {
   let notLinked = false;
   if (jwt) {
     try { me = await hubMe(jwt); } catch (e) {
-      // /me 404 = no customer record yet: the profile step, not a dead end.
-      if (e instanceof HubError && e.status === 404) notLinked = true;
+      // 404 not_linked = no customer record yet: the profile step, not a dead end.
+      if (isNotLinked(e)) notLinked = true;
       else failed = true;
     }
   } else {
     failed = true;
   }
-  if (notLinked) redirect(profileUrl("/account/addresses"));
+  if (notLinked) redirect(profileUrl(withQuery("/account/addresses", query)));
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">

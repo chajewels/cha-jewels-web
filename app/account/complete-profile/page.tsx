@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
-import { hub, HubError } from "@/lib/hub-api";
-import { REGISTERED_PATH, isAlreadyRegistered, profileNext, profileUrl } from "@/lib/profile";
+import { hub } from "@/lib/hub-api";
+import { REGISTERED_PATH, isAlreadyRegistered, isNotLinked, profileNext, profileUrl } from "@/lib/profile";
 import { CompleteProfileForm } from "@/components/account/complete-profile-form";
 
 export const generateMetadata = () => pageMeta("completeProfile");
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
  * Before showing the form it settles whether the form is needed at all, so a
  * stale or shared link never asks a linked customer to register again:
  *   /me answers                → already linked: straight on to `next`.
- *   /me 404, link by email ok  → a customer held her email: on to `next`.
+ *   /me 404 not_linked, link by email ok → a customer held her email: on to `next`.
  *   409 already_registered     → the notice page.
  *   422 profile_required, or anything unreadable → the form. A Hub error is
  *                                 not a reason to hide the form; submitting
@@ -46,7 +46,7 @@ export default async function CompleteProfilePage({ searchParams }: { searchPara
       await hub.me(jwt);
       outcome = "linked";
     } catch (e) {
-      if (e instanceof HubError && e.status === 404) {
+      if (isNotLinked(e)) {
         try {
           await hub.authCustomer(jwt);
           // Confirm before leaving: a link the Hub reports but /me cannot read

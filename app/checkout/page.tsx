@@ -5,7 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
-import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
+import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { CheckoutFlow } from "@/components/commerce/checkout-flow";
 import { Button } from "@/components/ui/button";
@@ -80,23 +80,21 @@ export default async function CheckoutPage({ searchParams }: {
         (e): LinkOutcome => (isProfileRequired(e) ? "profile" : isAlreadyRegistered(e) ? "registered" : "ok"),
       )
     : Promise.resolve("ok");
+  // /me itself can still answer 404 not_linked (e.g. the link call failed for
+  // another reason): that is the profile step too, never a checkout without a
+  // customer record.
+  const meRead = notLinkedProbe();
   const [{ items }, [link, me], initialQuote, agreementResult] = await Promise.all([
     hydrateCart(lines),
     linked.then(async (l): Promise<[LinkOutcome, HubMe | null]> =>
-      [l, jwt && l === "ok" ? await hub.me(jwt).catch(() => null) : null]),
+      [l, jwt && l === "ok" ? await hub.me(jwt).catch(meRead.or(null)) : null]),
     jwt && returningQuoteId ? hub.quoteById(jwt, returningQuoteId).catch(() => null) : Promise.resolve(null),
     jwt && returningQuoteId ? agreementStatusAction(returningQuoteId) : Promise.resolve(null),
   ]);
 
   // redirect() throws, so these sit outside every catch above. `next` keeps the
   // query string (?mode=, ?quote=) the same way middleware's sign-in bounce does.
-  if (link === "profile") {
-    const qs = new URLSearchParams();
-    if (params.mode) qs.set("mode", params.mode);
-    if (params.quote) qs.set("quote", params.quote);
-    const q = qs.toString();
-    redirect(profileUrl(`/checkout${q ? `?${q}` : ""}`));
-  }
+  if (link === "profile" || meRead.hit) redirect(profileUrl(withQuery("/checkout", params)));
   if (link === "registered") redirect(REGISTERED_PATH);
 
   if (items.length === 0) {
