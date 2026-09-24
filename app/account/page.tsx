@@ -5,6 +5,8 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
+import { HubError } from "@/lib/hub-api";
+import { profileUrl } from "@/lib/profile";
 import type { HubMe } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { SignOutButton } from "@/components/account/sign-out-button";
@@ -28,11 +30,19 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
   let me: HubMe | null = null;
   let failure: string | null = sp.link === "failed" ? "link" : null;
+  let notLinked = false;
   if (jwt) {
-    try { me = await hubMe(jwt); } catch { failure = failure ?? "hub"; }
+    try { me = await hubMe(jwt); } catch (e) {
+      // /me 404 = signed in, but no customer record yet. The profile step can
+      // fix that; an "unavailable" notice here would be a dead end.
+      if (e instanceof HubError && e.status === 404) notLinked = true;
+      else failure = failure ?? "hub";
+    }
   } else {
     failure = failure ?? "session";
   }
+  // redirect() throws, so it stays outside the catch above.
+  if (notLinked) redirect(profileUrl("/account"));
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">

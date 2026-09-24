@@ -3,7 +3,9 @@ import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import { hub } from "@/lib/hub-api";
+import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
 import { Button } from "@/components/ui/button";
 import { JoinButton } from "@/components/loyalty/join-button";
 import { MemberGroups } from "@/components/loyalty/member-groups";
@@ -29,8 +31,16 @@ export default async function JoinPage() {
   let enrolled = false;
   if (jwt) {
     // A customer who has never opened /account has no customers row yet, so
-    // link first. authCustomer is idempotent.
-    try { await hub.authCustomer(jwt); } catch { /* /me below reports the failure */ }
+    // link first. authCustomer is idempotent. No customer for her email → the
+    // profile step, then back here; her details match an existing customer →
+    // the notice. Any other failure: /me below reports it, as before.
+    let link: "ok" | "profile" | "registered" = "ok";
+    try { await hub.authCustomer(jwt); } catch (e) {
+      link = isProfileRequired(e) ? "profile" : isAlreadyRegistered(e) ? "registered" : "ok";
+    }
+    // redirect() throws, so these stay outside the catch.
+    if (link === "profile") redirect(profileUrl("/loyalty/join"));
+    if (link === "registered") redirect(REGISTERED_PATH);
     try {
       const me = await hub.me(jwt);
       enrolled = me.loyalty?.enrolled === true;

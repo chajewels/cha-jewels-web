@@ -5,11 +5,12 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
+import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { CheckoutFlow } from "@/components/commerce/checkout-flow";
 import { Button } from "@/components/ui/button";
 import { agreementStatusAction } from "@/lib/checkout-actions";
-import type { HubAddress, HubQuote } from "@/lib/types";
+import type { HubAddress, HubMe, HubQuote } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("checkout");
 export const dynamic = "force-dynamic";
@@ -67,14 +68,36 @@ export default async function CheckoutPage({ searchParams }: {
   // The agreement status is read in the same pass so Review can say "signed",
   // with the version and date, without a client round trip on first paint. It
   // is NOT the gate: payLayawayAction re-checks before the plan is created.
-  const [{ items }, me, initialQuote, agreementResult] = await Promise.all([
+  //
+  // THE LINK HAS TWO ANSWERS THAT STOP CHECKOUT (2026-09-24): no customer holds
+  // her email (422 profile_required → the profile step, then back here) and her
+  // details match an existing customer (409 already_registered → the notice).
+  // Any other link failure is today's behaviour: /me below reports it.
+  type LinkOutcome = "ok" | "profile" | "registered";
+  const linked: Promise<LinkOutcome> = jwt
+    ? hub.authCustomer(jwt).then(
+        (): LinkOutcome => "ok",
+        (e): LinkOutcome => (isProfileRequired(e) ? "profile" : isAlreadyRegistered(e) ? "registered" : "ok"),
+      )
+    : Promise.resolve("ok");
+  const [{ items }, [link, me], initialQuote, agreementResult] = await Promise.all([
     hydrateCart(lines),
-    jwt
-      ? hub.authCustomer(jwt).catch(() => undefined /* /me below reports the failure */).then(() => hub.me(jwt)).catch(() => null)
-      : Promise.resolve(null),
+    linked.then(async (l): Promise<[LinkOutcome, HubMe | null]> =>
+      [l, jwt && l === "ok" ? await hub.me(jwt).catch(() => null) : null]),
     jwt && returningQuoteId ? hub.quoteById(jwt, returningQuoteId).catch(() => null) : Promise.resolve(null),
     jwt && returningQuoteId ? agreementStatusAction(returningQuoteId) : Promise.resolve(null),
   ]);
+
+  // redirect() throws, so these sit outside every catch above. `next` keeps the
+  // query string (?mode=, ?quote=) the same way middleware's sign-in bounce does.
+  if (link === "profile") {
+    const qs = new URLSearchParams();
+    if (params.mode) qs.set("mode", params.mode);
+    if (params.quote) qs.set("quote", params.quote);
+    const q = qs.toString();
+    redirect(profileUrl(`/checkout${q ? `?${q}` : ""}`));
+  }
+  if (link === "registered") redirect(REGISTERED_PATH);
 
   if (items.length === 0) {
     return (

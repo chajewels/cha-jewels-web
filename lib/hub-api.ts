@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
@@ -264,11 +264,20 @@ export const hub = {
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false }),
-  /** Links or creates the customers row for a signed-in customer. Idempotent. */
-  authCustomer: (jwt: string, full_name?: string): Promise<{ customer: HubCustomer; created: boolean }> =>
+  /**
+   * Links or creates the customers row for a signed-in customer. Idempotent.
+   *
+   * Without a profile the body is `{}`: the Hub links a customer that already
+   * holds this email, and otherwise answers 422 `profile_required` (nothing is
+   * created) — the caller sends her to /account/complete-profile. With a
+   * profile, a new customer is created from it, unless her details match an
+   * existing customer: 409 `already_registered`, nothing created. See
+   * lib/profile.ts for both checks.
+   */
+  authCustomer: (jwt: string, profile?: HubProfileInput): Promise<{ customer: HubCustomer; created: boolean }> =>
     FIXTURES
       ? Promise.resolve({ customer: fx.meFixture.customer, created: false })
-      : call("/auth/customer", { method: "POST", body: JSON.stringify({ full_name }), jwt, revalidate: false }),
+      : call("/auth/customer", { method: "POST", body: JSON.stringify(profile ?? {}), jwt, revalidate: false }),
   /** Profile, addresses, loyalty snapshot. 404 before authCustomer has run. */
   me: (jwt: string): Promise<HubMe> =>
     // NEXT_PUBLIC_PREVIEW_BLANK=1 serves the empty-record fixture instead, so

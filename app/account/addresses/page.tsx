@@ -5,6 +5,8 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
+import { HubError } from "@/lib/hub-api";
+import { profileUrl } from "@/lib/profile";
 import type { HubMe } from "@/lib/types";
 import { alertLight } from "@/lib/form-classes";
 
@@ -28,11 +30,17 @@ export default async function AddressesPage() {
 
   let me: HubMe | null = null;
   let failed = false;
+  let notLinked = false;
   if (jwt) {
-    try { me = await hubMe(jwt); } catch { failed = true; }
+    try { me = await hubMe(jwt); } catch (e) {
+      // /me 404 = no customer record yet: the profile step, not a dead end.
+      if (e instanceof HubError && e.status === 404) notLinked = true;
+      else failed = true;
+    }
   } else {
     failed = true;
   }
+  if (notLinked) redirect(profileUrl("/account/addresses"));
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">

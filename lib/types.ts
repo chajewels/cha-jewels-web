@@ -71,6 +71,19 @@ export type FxRate = { jpy_php: number; as_of: string };
 
 /** Phase 2 step 1 — customer account. */
 export type HubCustomer = { id: string; customer_code: string | null; full_name: string | null; email: string | null; mobile_number: string | null };
+/**
+ * The profile sent to POST /auth/customer from the "Complete your profile"
+ * step — the fields of the Hub's New Customer modal, minus staff-only Notes.
+ * `location` is stored like the Hub: "Japan", "Philippines", or the country
+ * name. Empty optional fields are omitted, never sent as "".
+ */
+export type HubProfileInput = {
+  full_name: string;
+  location: string;
+  facebook_name?: string;
+  messenger_link?: string;
+  mobile_number?: string;
+};
 export type HubAddress = { id?: string; label?: string | null; recipient_name?: string | null; line1: string; line2?: string | null; city?: string | null; region?: string | null; postal_code?: string | null; country?: string | null; phone?: string | null; is_default?: boolean };
 /**
  * Loyalty snapshot from the Hub. `reduced` = the level is temporarily one step
