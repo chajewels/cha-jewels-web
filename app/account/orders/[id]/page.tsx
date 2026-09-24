@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
 import { ServiceRequestForm } from "@/components/account/service-request-form";
+import { PaymentDueCard, ReservedStatusCard } from "@/components/account/payment-due-card";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -64,6 +65,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
   const refund = refundLabel(order.refund_status, lang);
   const ownRequests = requests.filter((r) => r.cash_order_id === order.id);
+  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order);
 
   const placed = (order.order_date ?? order.created_at).slice(0, 10);
 
@@ -81,6 +83,39 @@ export default async function OrderDetailPage({ params, searchParams }: {
             <PrintButton label={t("account", "print")} />
           </div>
         </div>
+
+        {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how
+            to pay is the first thing under the heading — above the pieces,
+            the totals, the address and the request form — on screen and on
+            paper. Otherwise the page reads as it always did.
+
+            Instructions only while the money is still outstanding — and, since
+            reserve-first, only once the Hub says the order can be paid. A
+            reservation reads payment_status "awaiting_confirmation", so the
+            first test already excludes it; the second is belt and braces, the
+            same pair the Hub checks before it sends any methods. */}
+        {payDue && (
+          <PaymentDueCard
+            lang={lang}
+            amount={Number(order.remaining_balance) > 0 ? formatMoney(Number(order.remaining_balance), order.currency) : null}
+            deadline={due ? due.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : null}
+          >
+            <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
+            <TransferDetails methods={methods} lang={lang} />
+            {methods.length > 0 && (
+              <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>
+            )}
+          </PaymentDueCard>
+        )}
+
+        {/* A reservation staff have not confirmed yet (Hub A2): the same top
+            slot, what happens next, and no payment details until it is
+            confirmed. */}
+        {isAwaitingConfirmation(order) && (
+          <ReservedStatusCard heading={t("orders", "statusReserved")}>
+            <p>{t("orders", "reservedNote")}</p>
+          </ReservedStatusCard>
+        )}
 
         {/* A Hub-arranged order records its pieces on the invoice, not in this
             table: 153 of the 154 carry no lines and none carries a saved
@@ -158,33 +193,6 @@ export default async function OrderDetailPage({ params, searchParams }: {
           </p>
         )}
 
-        {/* A reservation staff have not confirmed yet (Hub A2): what happens
-            next, and no payment details until it is confirmed. */}
-        {isAwaitingConfirmation(order) && (
-          <p className="mt-10 border border-hairline bg-white p-4 text-sm text-charcoal">{t("orders", "reservedNote")}</p>
-        )}
-
-        {/* Instructions only while the money is still outstanding — and, since
-            reserve-first, only once the Hub says the order can be paid. A
-            reservation reads payment_status "awaiting_confirmation", so the
-            first test already excludes it; the second is belt and braces, the
-            same pair the Hub checks before it sends any methods. */}
-        {order.payment_status === "pending_transfer" && isReadyForPayment(order) && (
-          <div className="mt-10">
-            <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">
-              {t("complete", "instructions")}
-            </h2>
-            {due && (
-              <p className="mb-3 text-sm text-charcoal/70">
-                {t("complete", "deadline")} {due.toLocaleString(lang === "ja" ? "ja-JP" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}
-              </p>
-            )}
-            <TransferDetails methods={methods} lang={lang} />
-            {methods.length > 0 && (
-              <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>
-            )}
-          </div>
-        )}
       </div>
     </section>
   );
