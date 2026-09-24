@@ -36,7 +36,7 @@ const MARKS: Record<string, Mark> = {
     kind: "glimmer", from: "#795384", to: "#CC7C73",
     symbol: (
       <g className="ti-sym">
-        <polygon points={star(5, 15, 6.4)} fill="#E8C37D" />
+        <polygon className="ti-star" points={star(5, 15, 6.4)} fill="#E8C37D" />
         {/* The glint: a four-point spark off the star's shoulder. */}
         <path className="ti-glint" d="M44 18 l1.2 3.3 3.3 1.2 -3.3 1.2 -1.2 3.3 -1.2 -3.3 -3.3 -1.2 3.3 -1.2z" fill="#FFF6E0" />
       </g>
@@ -100,14 +100,19 @@ export function tierMark(slug: string): Mark {
   return MARKS[slug.trim().toLowerCase().replace(/[\s_]+/g, "-")] ?? DEFAULT;
 }
 
-export function TierIcon({ slug, size = 64 }: { slug: string; size?: number }) {
+/**
+ * `sm` px on phones, `lg` from lg up. The attributes carry `sm` so the box is
+ * sized before any CSS; the component stylesheet (inline in <head>, so it is
+ * there at first paint) switches to `lg` — no shift either way.
+ */
+export function TierIcon({ slug, sm = 72, lg = 88 }: { slug: string; sm?: number; lg?: number }) {
   const m = tierMark(slug);
   // Ids are per kind: a page shows each tier once, and the default mark uses no id.
   const g = `ti-g-${m.kind}`;
   return (
-    <span aria-hidden="true" className="ti" data-ti={m.kind} style={{ width: size, height: size }}>
+    <span aria-hidden="true" className="ti" data-ti={m.kind} style={{ ["--ti-sm" as string]: `${sm}px`, ["--ti-lg" as string]: `${lg}px` }}>
       <TierIconStyle />
-      <svg viewBox="0 0 64 64" width={size} height={size} focusable="false">
+      <svg viewBox="0 0 64 64" width={sm} height={sm} focusable="false">
         <defs>
           <linearGradient id={g} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stopColor={m.from} />

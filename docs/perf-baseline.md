@@ -1,5 +1,34 @@
 # Performance baseline
 
+## 2026-09-24 — Loyalty tier medallions, round 2 (owner review of #136)
+
+Before = `bc8ffc1` (the reviewed medallions). After = this commit. Same
+method as below: preview fixtures, interleaved, median of 6, CLS over load
+plus a scroll down and back.
+
+| `/loyalty` | observed LCP before | after | CLS | stylesheets |
+|---|---|---|---|---|
+| phone (4× CPU, 1.6 Mbps / 150 ms) | 1312 ms | 1318 ms | 0 → 0 | 2 → 2 |
+| desktop (10 Mbps / 150 ms) | 482 ms | 488 ms | 0 → 0 | 2 → 2 |
+
+Within noise (before 1296–1320, after 1300–1324 on the phone). Page JS
++0.8 kB (idle keyframes, the sweep); HTML gz 19.2 → 19.5 kB. Medallions
+72 px on phones, 88 px from lg, sized by attributes and the inline
+component CSS, so nothing shifts.
+
+Trigger: a reading line at 60% of the viewport (LADDER.line). Phones: the
+rail's tip is the line and a card arrives as it crosses the card's centre
+(measured 0.58–0.60 of the viewport, WebKit iPhone). lg: the row's centre
+reaching the line, or the whole row in view, starts a 1.8 s sweep of the
+rail; each card arrives as the tip passes it. A card wholly off screen is
+reset and arrives again on return. Idle loops run per card, only while it is
+on screen and the tab is visible.
+
+Videos (before left, after right, ~10 s held on the ladder):
+`docs/screenshots/loyalty-tier-icons/loyalty-{desktop-1440,phone-390}-before-after-v2.webm`.
+
+---
+
 ## 2026-09-24 — Loyalty tier medallions
 
 Before = `origin/develop` (`0e4a523`). After = this branch. `next build` +
