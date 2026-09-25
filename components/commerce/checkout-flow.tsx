@@ -67,16 +67,8 @@ const DEFAULT_TERMS: LayawayTerm[] = [3, 6, 8, 10, 12].map((months) => ({
   months, label: `${months}`, min_amount: 0, dp_percentage: 0.3, eligible: true,
 }));
 
-export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false, initialQuote = null, initialAgreement = null, jpyPhp = null }: {
+export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false, initialQuote = null, initialAgreement = null }: {
   lang: Lang; items: CartItem[]; subtotal: number; initialAddresses: HubAddress[];
-  /**
-   * Pesos per yen from the Hub, read server-side by the page. Used ONLY to show
-   * peso figures on the Delivery step before a quote exists; once the Hub has
-   * priced the quote, the quote's own settlement figures win. null when the Hub
-   * could not supply a rate, in which case the peso figures stay as dashes.
-   * Never shown to the customer as a rate (owner decision 2026-09-18).
-   */
-  jpyPhp?: number | null;
   /**
    * The quote named by `?quote=`, already read back by the server. Present only
    * when the customer returned from signing in the SAME TAB — the signing link
@@ -203,13 +195,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // showed a 679,980 yen piece as 679,980 pesos — plausible, and 2.4x too high,
   // at the moment the customer decides whether they can afford it.
   //
-  // Before the quote exists the peso figures are PREVIEWED with the Hub's own
-  // arithmetic — Math.round(jpy * jpy_php), the same expression the website
-  // function uses for total_settlement — on the rate the page fetched. Shipping
-  // is still the Hub's answer and stays a dash, exactly as it does for yen, so
-  // this preview differs from the quote only by the shipping the quote adds.
-  // The rate itself is never displayed (owner decision 2026-09-18). Without a
-  // rate the figures stay dashes rather than guessing.
+  // EVERY MONEY FIGURE A CUSTOMER SEES COMES FROM THE HUB (owner rule): the
+  // browser never converts. Before a peso quote exists the peso figures are
+  // dashes, in the same cells, and the Hub's quote fills them in exactly. (Until
+  // 2026-09-25 they were previewed here as cart × the day's rate.)
   const summary: {
     currency: SettlementCurrency;
     subtotal: number | null;
@@ -225,9 +214,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     : intendedCurrency === "JPY"
       // Yen is the cart's own currency, so the cart's own figures already stand.
       ? { currency: "JPY", subtotal, shipping: null, total: subtotal }
-      : jpyPhp !== null && Number.isFinite(jpyPhp) && jpyPhp > 0
-        ? { currency: "PHP", subtotal: Math.round(subtotal * jpyPhp), shipping: null, total: Math.round(subtotal * jpyPhp) }
-        : { currency: "PHP", subtotal: null, shipping: null, total: null };
+      : { currency: "PHP", subtotal: null, shipping: null, total: null };
   const summaryMoney = (n: number | null) => (n === null ? "\u2014" : formatMoney(n, summary.currency));
 
   const quoteInput = () => ({

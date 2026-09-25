@@ -20,7 +20,7 @@ export default async function CheckoutPage({ searchParams }: {
 }) {
   // The rate is read here so the Delivery step can show peso figures at once.
   // null when the Hub has no rate — the flow then keeps dashes; it never guesses.
-  const [lang, lines, params, fx] = await Promise.all([getLang(), readCart(), searchParams, hub.fx().catch(() => null)]);
+  const [lang, lines, params] = await Promise.all([getLang(), readCart(), searchParams]);
   // Reserve on a product page lands here with ?mode=layaway pre-selected. It is
   // only the step's starting position — the shopper can still switch, and the
   // Hub prices whichever they end on.
@@ -127,7 +127,7 @@ export default async function CheckoutPage({ searchParams }: {
       <div className="wrap">
         <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
         <div className="mt-10">
-          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} offerLoyalty={offerLoyalty} initialQuote={initialQuote} initialAgreement={initialAgreement} jpyPhp={fx?.jpy_php ?? null} />
+          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} offerLoyalty={offerLoyalty} initialQuote={initialQuote} initialAgreement={initialAgreement} />
         </div>
       </div>
     </section>
