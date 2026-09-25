@@ -31,6 +31,8 @@
 ## Terminology (hard rule)
 - Gold is described by purity: **K18 gold**. Origin is per-product DATA from the Hub (`origin`: JAPAN | BRAND | OTHER | UNKNOWN). `components/catalog/origin-badge.tsx` is the only file allowed to render "Made in Japan" / 日本製, and only when `origin === "JAPAN"`; a branded piece shows its brand name and claims no origin. Site-wide copy may say "authenticated in Japan" / "hallmark checked in Japan", never an origin.
 - Forbidden anywhere in copy, alt text, metadata or product data: "Japan gold", "Japanese gold", "Saudi gold", "Italian gold", or any `<country> gold` phrasing as a purity claim.
+- Exception (owner decision 2026-09-25): the approved clarifier sentence (EN/JA, exact text, key brand.originNote) and the Hub footer tagline may say Made in Japan / 日本製. `check:terms` also accepts, by exact text, the FAQ question the clarifier answers ("Is everything made in Japan?" / 「すべて日本製ですか？」) and the About closing's "From new pieces made in Japan". Nothing else, and nothing added without an owner decision.
+- Customer testimonials are shown exactly as written; the gold terminology rule applies to Cha Jewels' own text, not to customer quotes.
 - `npm run check:terms` must pass before every commit. It is also run in CI.
 
 ## Sign-in (email link)

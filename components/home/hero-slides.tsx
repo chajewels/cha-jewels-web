@@ -264,6 +264,8 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
                       scrolled that far has asked for it. Same key, so both
                       languages moved together. */}
                   <p className="mt-6 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("hero", "lede")}</p>
+                  {/* The origin clarifier, its own line under the lede. */}
+                  <p className="mt-3 text-[15px] leading-relaxed text-chalk/85 lg:text-base">{t("brand", "originNote")}</p>
                   <div className="mt-6 flex flex-wrap justify-center gap-3 lg:mt-9 lg:justify-start">
                     <Magnetic><Button asChild><Link href="/collections">{t("hero", "cta1")}</Link></Button></Magnetic>
                     {s.layaway && <Magnetic><Button asChild variant="ghost" className="border-chalk/60 text-chalk hover:border-chalk hover:text-chalk"><Link href="#layaway">{t("hero", "cta2")}</Link></Button></Magnetic>}

@@ -462,12 +462,7 @@ What `scripts/check-terminology.mjs` scans (verbatim, key lines):
 7   const forbidden = [/\bjapan(?:ese)? gold\b/i, /\bsaudi gold\b/i, /\bitalian gold\b/i, /\bdubai gold\b/i, /\bhk gold\b/i, /\bchinese gold\b/i];
 12  const originClaims = [ …two regexes: the English "made in J—" phrase and its Japanese equivalent (literals omitted here — this file is itself scanned by the checker)… ];
 15  const originAllowed = new Set(["components/catalog/origin-badge.tsx", "lib/i18n.ts"]);
-31  const originExempt = [
-32    "Are all Cha Jewels products made in Japan?",
-33    "Cha Jewelsの商品はすべて日本製ですか？",
-34    "We offer Japan-made and Japan-sourced jewelry",
-35    "日本製および日本で調達したジュエリーをお取り扱いしています",
-36  ];
+31  const originExempt = [ …four exact FAQ phrases (literals omitted here — this file is itself scanned by the checker; the list was withdrawn on 2026-09-25)… ];
 38  const skip = new Set(["node_modules", ".next", ".git"]);
 45      if (!/\.(tsx?|mdx?|json|sql|css)$/.test(name) || name === "check-terminology.mjs" || name === "CLAUDE.md") continue;
 ```

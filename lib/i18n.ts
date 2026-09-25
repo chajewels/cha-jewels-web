@@ -219,12 +219,22 @@ export const dict = {
     afRotaryDetail: { ja: "2026年9月入会", en: "Member since September 2026" },
     affiliationsFromAbout: { ja: "所属する経済団体については、所属団体のページをご覧ください。", en: "The business organisations we belong to are listed on our affiliations page." },
   },
+  /**
+   * THE ORIGIN CLARIFIER (owner decision 2026-09-25). One key, rendered under
+   * the footer tagline, under the hero lede and in About, so the copies can
+   * never drift apart. These exact sentences are the only site-wide origin
+   * statement check:terms accepts outside OriginBadge: change a word here and
+   * scripts/check-terminology.mjs must change with it.
+   */
+  brand: {
+    originNote: { ja: "新品ジュエリーはすべて日本製。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。", en: "Our new jewelry is made in Japan. Preloved branded pieces are made by their original brands and authenticated in Japan." },
+  },
   hero: {
     h1a: { ja: "身につける、時を超える美しさ。", en: "Timeless beauty to wear." }, h1b: { ja: "受け継がれる、確かな価値。", en: "Lasting value to pass on." },
     // Keep layaway out of the Japanese hero: it is English-only (owner
     // decision 2026-09-15), and the hero is the first thing a Japanese visitor
     // reads. The section and CTA are gated together elsewhere.
-    lede: { ja: "Cha Jewelsは、厳選したファインジュエリーを通して、時を超える美しさと永く続く価値をお届けします。日本で仕立てられた上質なゴールド、パール、ダイヤモンドジュエリーから、世界を代表するラグジュアリーブランドの厳選プレラブドアイテムまで。すべての一点を、品質、気品、そして変わらない価値を基準に選んでいます。", en: "Cha Jewels brings together timeless beauty and lasting value through a carefully selected collection of fine jewelry. From high-quality gold, pearl, and diamond pieces crafted in Japan to curated preloved treasures from iconic luxury brands, every piece is chosen for its quality, elegance, and enduring worth." },
+    lede: { ja: "Cha Jewelsは、厳選したファインジュエリーを通して、時を超える美しさと永く続く価値をお届けします。新品の上質なゴールド、パール、ダイヤモンドジュエリーから、世界を代表するラグジュアリーブランドの厳選プレラブドアイテムまで。すべての一点を、品質、気品、そして変わらない価値を基準に選んでいます。", en: "Cha Jewels brings together timeless beauty and lasting value through a carefully selected collection of fine jewelry. From new gold, pearl, and diamond pieces to curated preloved treasures from iconic luxury brands, every piece is chosen for its quality, elegance, and enduring worth." },
     // RENDERED IN THE VALUES SECTION, not the hero (2026-09-22). It was the
     // intro slide's second paragraph until the hero was shortened to headline
     // + one sentence + the two buttons; the key keeps its name so the wording
