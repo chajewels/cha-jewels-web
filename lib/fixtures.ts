@@ -249,12 +249,12 @@ export function payFixture(): HubPayResult {
   if (PREVIEW_RESERVATION) {
     return {
       reservation_mode: true, awaiting_confirmation: true,
-      order_id: RESERVED_ORDER_ID, web_reference: RESERVED_ORDER_REFERENCE, total_jpy: 236800,
+      order_id: RESERVED_ORDER_ID, web_reference: RESERVED_ORDER_REFERENCE, currency: "JPY", total: 236800, total_jpy: 236800,
       transfer_due_at: null, transfer_region: "JP", transfer_methods: [],
     };
   }
   return {
-    order_id: FIXTURE_ORDER_ID, web_reference: FIXTURE_REFERENCE, total_jpy: 236800,
+    order_id: FIXTURE_ORDER_ID, web_reference: FIXTURE_REFERENCE, currency: "JPY", total: 236800, total_jpy: 236800,
     transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
     transfer_region: "JP", transfer_methods: fixtureMethods,
   };
@@ -293,6 +293,21 @@ export const ordersFixture: HubOrder[] = [{
   // and no "How to pay" card leads it (2026-09-24).
   hubOrder({ id: "order-paid", invoice: "19520", status: "pending", payment: "paid", currency: "JPY", total: 112400, paid: true }),
   hubOrder({ id: "order-expired", invoice: "19477", status: "expired", payment: null, currency: "JPY", total: 68900 }),
+  // A web order settled in pesos (2026-09-25), confirmed and awaiting the
+  // transfer: ₱ total and shipping, its yen lines listed without a price.
+  // 236,800 yen at 0.39, half-up; shipping 800 yen converted on its own.
+  {
+    id: "order-peso", web_reference: "CJ-W-000005", invoice_number: "900005",
+    status: "pending", payment_status: "pending_transfer", payment_method: "transfer",
+    order_type: "SELF", currency: "PHP", total_amount: 92352, total_paid: 0,
+    remaining_balance: 92352, shipping_fee: 312,
+    transfer_due_at: new Date(Date.now() + 72 * 36e5).toISOString(),
+    recipient_name: null, gift_note: null, order_date: new Date().toISOString().slice(0, 10),
+    created_at: new Date().toISOString(), completed_at: null, cancelled_at: null,
+    tracking_number: null, shipped_at: null, source_channel: "web",
+    cancellation_reason: null, refund_status: null, refund_note: null, expired_at: null,
+    awaiting_confirmation: false, ready_for_payment: true,
+  },
   // THE LATENT CONTRADICTION THIS FIX CLOSES: shipped, then cancelled. With
   // shipped_at tested first, this row showed a gold "Shipped" badge directly
   // above its own cancellation reason and refund decision. No live order is in
@@ -354,7 +369,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
     }],
     // The Hub's own rule: methods only while the transfer is outstanding and
     // never before staff confirm the piece.
-    transfer_region: "JP",
+    transfer_region: order.currency === "PHP" ? "OVERSEAS" : "JP",
     transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? fixtureMethods : [],
   };
 }

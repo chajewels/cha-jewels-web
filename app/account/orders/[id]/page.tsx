@@ -135,7 +135,12 @@ export default async function OrderDetailPage({ params, searchParams }: {
                   {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
                 </p>
               </div>
-              <p className="font-display text-xl text-gold-dark">{formatMoney(Number(line.line_total_jpy), order.currency)}</p>
+              {/* line_total_jpy is always yen, the price of record: shown on a
+                  yen order only. A peso order lists its pieces without a price
+                  and gives shipping and total in pesos below (owner decision D1). */}
+              {order.currency === "JPY" && (
+                <p className="font-display text-xl text-gold-dark">{formatMoney(Number(line.line_total_jpy), "JPY")}</p>
+              )}
             </li>
           ))}
         </ul>
