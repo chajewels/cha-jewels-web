@@ -119,8 +119,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   const [recipientPhone, setRecipientPhone] = useState("");
   const [giftNote, setGiftNote] = useState("");
   // How this order is paid, and in what. Both are fixed the moment the quote is
-  // taken: the Hub writes the plan in the settlement currency, and a plan does
-  // not change currency afterwards.
+  // taken: the Hub writes the order or plan in the settlement currency, and it
+  // does not change currency afterwards.
   // LAYAWAY IS ENGLISH-ONLY (owner decision 2026-09-15) — one rule, in
   // lib/layaway-availability. `lang` is a prop refreshed by the server when the
   // toggle is used, but `mode` is client state that router.refresh() does NOT
@@ -188,11 +188,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // switch. A reservation shows no bank details and no deadline (owner rule):
   // staff confirm the piece first, and the payment email follows.
   const reserving = quoteIsReservation(quote);
-  // What this order will actually settle in. Paying in full is yen-only, so the
-  // toggle's position is irrelevant there. Same rule quoteInput() sends, kept in
-  // one place: a toggle left on pesos before switching to full payment must not
-  // put a peso sign on yen figures.
-  const intendedCurrency: SettlementCurrency = mode === "layaway" ? settlement : "JPY";
+  // What this order will actually settle in: the customer's choice, for a full
+  // payment and a layaway alike (owner decision 2026-09-25; yen by default).
+  // Same value quoteInput() sends, kept in one place.
+  const intendedCurrency: SettlementCurrency = settlement;
   // The currency the QUOTE was taken in, not the toggle's current position: the
   // figures on screen belong to the quote, and the toggle may have moved since.
   // A Hub deploy predating settlement currency omits the field and quotes in yen.
@@ -239,8 +238,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     gift_note: orderType === "GIFT" ? giftNote : undefined,
     mode,
     term_months: term,
-    // Paying in full is yen-only; sending PHP there would be refused.
-    settlement_currency: mode === "layaway" ? settlement : ("JPY" as SettlementCurrency),
+    settlement_currency: intendedCurrency,
   });
 
   function saveAddress(form: FormData) {
@@ -518,27 +516,31 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             </fieldset>
             )}
 
-            {/* Currency and term belong to a plan, not to a one-off payment, so
-                neither is offered for a full-price order. Paying in full is
-                yen-only and the Hub refuses anything else. */}
+            {/* Yen or pesos, for a full payment and a layaway alike (owner
+                decision 2026-09-25), on both languages. The note follows the
+                mode: a full payment's never names a plan, so the Japanese site,
+                which offers full payment only, carries no layaway wording. */}
+            <fieldset>
+              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "settlementH")}</legend>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {(["JPY", "PHP"] as const).map((cur) => (
+                  <button
+                    key={cur} type="button" onClick={() => setSettlement(cur)}
+                    aria-pressed={settlement === cur}
+                    className={`border px-4 py-2 text-sm ${settlement === cur ? "border-orange bg-orange text-charcoal-deep" : "border-hairline text-charcoal/70"}`}
+                  >
+                    {cur === "JPY" ? t("checkout", "settlementJpy") : t("checkout", "settlementPhp")}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-charcoal/70">
+                {mode === "layaway" ? t("checkout", "settlementNote") : t("checkout", "settlementOrderNote")}
+              </p>
+            </fieldset>
+
+            {/* The term belongs to a plan, not to a one-off payment. */}
             {mode === "layaway" && (
               <>
-                <fieldset>
-                  <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "settlementH")}</legend>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {(["JPY", "PHP"] as const).map((cur) => (
-                      <button
-                        key={cur} type="button" onClick={() => setSettlement(cur)}
-                        aria-pressed={settlement === cur}
-                        className={`border px-4 py-2 text-sm ${settlement === cur ? "border-orange bg-orange text-charcoal-deep" : "border-hairline text-charcoal/70"}`}
-                      >
-                        {cur === "JPY" ? t("checkout", "settlementJpy") : t("checkout", "settlementPhp")}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "settlementNote")}</p>
-                </fieldset>
-
                 <fieldset>
                   <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "termH")}</legend>
                   {/* Before the first quote there is no eligibility to show, so
@@ -638,7 +640,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
               {quote.items.map((line) => (
                 <li key={line.variant_id} className="flex items-baseline justify-between gap-4 bg-white p-4 text-sm">
                   <span>{quoteItemName(line, lang)} × {line.qty}</span>
-                  <span className="font-display text-lg text-gold-dark">{formatMoney(line.line_total_jpy)}</span>
+                  {/* Lines are yen, the price of record. Beside a peso total
+                      they would put two currencies on one screen, so a peso
+                      quote lists the pieces without a price (owner decision D1). */}
+                  {quoteCurrency === "JPY" && (
+                    <span className="font-display text-lg text-gold-dark">{formatMoney(line.line_total_jpy)}</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -783,7 +790,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           {items.map((i) => (
             <li key={i.variant_id} className="flex justify-between gap-4">
               <span>{cartItemName(i, lang)}{i.qty > 1 ? ` × ${i.qty}` : ""}</span>
-              <span>{formatMoney(i.line_total_jpy)}</span>
+              {/* Yen cart lines only beside yen totals (owner decision D1). */}
+              {summary.currency === "JPY" && <span>{formatMoney(i.line_total_jpy)}</span>}
             </li>
           ))}
         </ul>

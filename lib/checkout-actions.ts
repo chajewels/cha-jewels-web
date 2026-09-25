@@ -50,8 +50,12 @@ function toCode(err: unknown): string {
     // this amount" and "the term chosen is out of reach" — the customer picks
     // again from the terms the Hub sent, so one message serves both.
     if (err.code === "below_plan_minimum") return "below_plan_minimum";
+    // Retired by the Hub on 2026-09-25 (pesos are offered for a full payment
+    // too); kept so a Hub rollback shows a neutral message, not "failed".
     if (err.code === "currency_not_supported_for_full") return "currency_unsupported";
-    if (err.code === "fx_rate_missing") return "rate_unavailable";
+    // No peso figure without a rate: fx_unavailable is the quote's refusal,
+    // fx_rate_missing the order writer's. Both are "try again or choose yen".
+    if (err.code === "fx_unavailable" || err.code === "fx_rate_missing") return "rate_unavailable";
     if (err.status === 409) return "sold_out";
     if (err.status === 401 || err.status === 403) return "signed_out";
   }
