@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { layawayQuote } from "@/lib/layaway";
-import { formatMoney, toPhp, cn, type Currency } from "@/lib/utils";
+import { formatMoney, cn, type Currency } from "@/lib/utils";
 import { dict, type Lang } from "@/lib/i18n";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
@@ -35,17 +35,20 @@ const TONES = {
 } as const;
 
 /**
- * Renders numbers returned by the shared RPC. Peso figures are display
- * conversions at the Hub's rate; no layaway math here.
+ * Renders numbers returned by the shared RPC, in the currency the customer
+ * picked. ₱ is a PESO QUOTE from the Hub (`price_jpy` + currency "PHP"): the
+ * Hub converts the yen price and computes the deposit, the monthly, the total
+ * and the term minimums (min_amount_php) in pesos. Nothing here converts a
+ * currency or applies a percentage (scripts/check-money.mjs); with no rate on
+ * file the Hub answers fx_unavailable and the ₱ cells stay empty.
  *
  * `tone` picks the surface only. `header` and `cta` are optional card
  * furniture (the homepage passes them); with neither, and tone "dark", the
  * markup is exactly what it was before the prop existed.
  */
-export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, className, header, cta }: {
+export function LayawayCalculator({ lang, initialPrice = 150000, className, header, cta }: {
   lang: Lang;
   initialPrice?: number;
-  phpRate: number;
   className?: string;
   header?: { title: string; sub: string; chip: string };
   cta?: { label: string; href: string };
@@ -62,8 +65,9 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
   const [term, setTerm] = useState(6);
   // The quote REMEMBERS WHAT IT IS A QUOTE FOR. Without that there is no way
   // to know whether the figures on screen belong to the number in the field or
-  // to the one before it, and the CTA cannot tell either.
-  const [quote, setQuote] = useState<{ q: Quote; price: number; term: number } | null>(null);
+  // to the one before it, and the CTA cannot tell either. The currency is part
+  // of what it is for: a yen quote is never shown under ₱, nor the reverse.
+  const [quote, setQuote] = useState<{ q: Quote; price: number; term: number; currency: Currency } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -80,12 +84,19 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
       setError(null);
       return;
     }
+    // The currency is a Hub question like the term: switching ¥/₱ asks for a
+    // quote in that currency, on the same debounce.
+    const currency = display;
     const id = setTimeout(() => start(async () => {
-      try { const q = await layawayQuote(price, term); setQuote(q ? { q, price, term } : null); setError(q ? null : c.err[lang]); }
+      try {
+        const r = await layawayQuote(price, term, currency);
+        if (r.ok) { setQuote({ q: r.quote, price, term, currency }); setError(null); }
+        else { setQuote(null); setError(r.code === "rate_unavailable" ? dict.checkout.rateUnavailable[lang] : c.err[lang]); }
+      }
       catch { setQuote(null); setError(c.err[lang]); }
     }), 250);
     return () => clearTimeout(id);
-  }, [price, term, validPrice, lang, c.err]);
+  }, [price, term, display, validPrice, lang, c.err]);
 
   /**
    * FRESH means: these figures were computed for the number in the field and
@@ -94,7 +105,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
    * quote can never be read as a current one, and the button can never send
    * someone off with a figure that has already been replaced.
    */
-  const shown = quote && quote.price === price && quote.term === term && !pending && !error ? quote.q : null;
+  const shown = quote && quote.price === price && quote.term === term && quote.currency === display && quote.q.currency === display && !pending && !error ? quote.q : null;
   // The term list is the Hub's, not a constant here: plan_configurations is
   // what create-layaway-account and the DB trigger enforce, so a term this
   // calculator offers is a term the business can actually sell. An older Hub
@@ -103,7 +114,14 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
   const terms = shown?.allowed_terms ?? FALLBACK_TERMS.map((m) => ({
     months: m, label: `${m}`, min_amount: 0, dp_percentage: 0.3, eligible: m <= maxTerm,
   }));
-  const fmt = (jpy: number) => (display === "PHP" ? formatMoney(toPhp(jpy, phpRate), "PHP") : formatMoney(jpy, "JPY"));
+  // Formats the Hub's figure in the currency the Hub computed it in. No conversion.
+  const fmt = (amount: number) => formatMoney(amount, shown?.currency ?? display);
+  // The label's percentage is the Hub's too — the chosen term's dp_percentage —
+  // and before the first quote the label carries none.
+  const dpPct = shown?.allowed_terms?.find((tm) => tm.months === shown.term_months)?.dp_percentage;
+  const dpLabel = dpPct != null
+    ? c.dpPct[lang].replace("{pct}", new Intl.NumberFormat(lang === "ja" ? "ja-JP" : "en-US", { style: "percent", maximumFractionDigits: 1 }).format(dpPct))
+    : c.dp[lang];
   // A term the Hub has but has not launched is listed and disabled rather
   // than dropped (owner decision 2026-09-16) — same rule as the reservation
   // flow, one source in lib/layaway-availability.
@@ -178,7 +196,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
         {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? s.toggleOn : s.toggleOff}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
       <output ref={cells} aria-live="polite" className="grid grid-cols-3 gap-3">
-        <Cell k={c.dp[lang]} v={<RollingValue value={shown ? shown.down_payment : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} />
+        <Cell k={dpLabel} v={<RollingValue value={shown ? shown.down_payment : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} />
         <Cell k={c.monthly[lang]} v={<RollingValue value={shown ? shown.monthly : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellMonthly} />
         <Cell k={c.total[lang]} v={<RollingValue value={shown ? shown.total : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} />
       </output>

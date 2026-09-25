@@ -38,6 +38,11 @@ jobs:
       # 2026-09-15 and nothing said so — the failure is silent by construction.
       - run: npm run check:analytics
 
+      # Every customer-facing money figure comes from the Hub (owner rule
+      # 2026-09-25): no percentage on a price, no currency conversion and no
+      # hardcoded rate in app/, components/ or lib/ (fixtures excepted).
+      - run: npm run check:money
+
       - run: npm run typecheck
 
       - run: npm run lint
