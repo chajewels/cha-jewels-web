@@ -1,8 +1,9 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
@@ -18,13 +19,12 @@ export const dynamic = "force-dynamic";
 /**
  * The customer's layaway plans — every plan, not only the ones placed here.
  *
- * NOT GATED ON LANGUAGE, deliberately. Layaway is offered in English only
- * (owner decision 2026-09-15, lib/layaway-availability), but that governs
- * whether a NEW plan can be STARTED. This page is the record of plans that
- * already exist, most of them arranged with Cha Jewels directly rather than at
- * this checkout — and a live commitment must not disappear because someone
- * moved the language toggle. Hiding a balance is the one outcome here worse
- * than showing a product we no longer sell in this language.
+ * GATED ON LANGUAGE since 2026-09-25. It used to be deliberately ungated, so
+ * that an existing plan never disappeared when someone moved the language
+ * toggle. The owner's final rule now is that NOTHING layaway-related is
+ * visible on the Japanese site, this page included: on `ja` it is not found,
+ * like /layaway, and a plan-holder reads it in English. The payment-report
+ * action (lib/layaway-actions.ts) stays ungated; it renders nothing.
  *
  * Every figure is the Hub's: the balance is the Hub's `remaining_balance`, not
  * a subtraction done on this side, so it never disagrees with what a reviewer
@@ -35,6 +35,10 @@ export const dynamic = "force-dynamic";
 export default async function AccountLayawayPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [lang, query] = await Promise.all([getLang(), searchParams]);
   const t = tr(lang);
+  // NO LAYAWAY ON THE JAPANESE SITE (owner decision 2026-09-25, final), and
+  // that now includes the account's plan pages, which used to stay reachable in
+  // either language. Same answer as /layaway: not found on `ja`.
+  if (!layawayOffered(lang)) notFound();
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth?.user) redirect("/login?next=/account/layaway");

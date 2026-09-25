@@ -30,7 +30,40 @@ export type LegalRun = { t: string; href?: string };
  * is what a summary block ahead of section 1 needs. `h` is a sub-heading inside
  * an article ("Available resolutions", "Step 1: Prepare the information").
  */
-export type LegalArticle = { n?: number; h: Record<Lang, string>; blocks: LegalBlock[] };
+export type LegalArticle = { n?: number; h: Record<Lang, string>; blocks: LegalBlock[]; layaway?: true };
+
+/**
+ * NO LAYAWAY ON THE JAPANESE SITE, LEGAL PAGES INCLUDED (owner decision
+ * 2026-09-25, final). It replaces the 2026-09-15 decision to keep ※-marked
+ * layaway sections on the Japanese legal pages.
+ *
+ * Two mechanisms, one rule:
+ * - An article or tokusho row that is ONLY about layaway carries
+ *   `layaway: true` and is dropped by the functions below when layaway is not
+ *   offered (pass `layawayOffered(lang)` from lib/layaway-availability).
+ * - A Japanese sentence or list that covers layaway AND something else has had
+ *   its layaway part removed from the `ja` text itself. The `en` text is
+ *   untouched: English is where layaway is offered.
+ *
+ * `npm run check:layaway-ja` renders the Japanese side through these functions
+ * and fails on 分割予約 / レイアウェイ.
+ */
+export function legalArticlesFor(articles: LegalArticle[], layaway: boolean): LegalArticle[] {
+  if (layaway) return articles;
+  // Renumber what is left so a removed article leaves no gap. Nothing links
+  // to a section by number (no anchors, no "see §11" in the text), so
+  // renumbering cannot break a reference.
+  let n = 0;
+  return articles
+    .filter((a) => !a.layaway)
+    .map((a) => (a.n === undefined ? a : { ...a, n: ++n }));
+}
+
+export type TokushoRow = { k: Record<Lang, string>; v: Record<Lang, string>; layaway?: true };
+
+export function tokushoRowsFor(layaway: boolean): TokushoRow[] {
+  return layaway ? tokusho.rows : tokusho.rows.filter((r) => !r.layaway);
+}
 
 /**
  * THE REGISTERED COMPANY NAME, ONE STRING, ONE PLACE.
@@ -184,6 +217,7 @@ export const returnsArticles: LegalArticle[] = [
   },
   {
     n: 6,
+    layaway: true,
     h: { ja: "分割予約（レイアウェイ）のご注文", en: "Layaway Orders" },
     blocks: [
       { kind: "p", text: { ja: "分割予約のご注文は、特定の商品をお客様のためにお取り置きし、他のお客様への販売を行わないものです。", en: "A layaway order reserves a specific item for the customer and prevents it from being offered to other buyers." } },
@@ -297,13 +331,13 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  * launch.
  *
  * LAYAWAY IS QUALIFIED HERE, NOT REMOVED (owner decision 2026-09-15, option C).
- * Layaway is no longer offered to a visitor reading the site in Japanese, but
- * it remains a payment method the business genuinely offers — on the English
- * site and arranged directly. Deleting the three rows that describe it would
- * under-disclose a real term; leaving them unqualified would advertise in
- * Japanese something the Japanese site refuses. So each mention is marked ※
- * and the final row says who it is for. This is statutory wording: it needs a
- * JP compliance read before launch like every other line on this page.
+ * NO LAYAWAY ON THE JAPANESE PAGE (owner decision 2026-09-25, final). This
+ * replaces the 2026-09-15 approach, which kept the layaway mentions in
+ * Japanese marked ※ with a final row saying who layaway is for. The Japanese
+ * payment-method, payment-timing and delivery rows now carry no layaway clause,
+ * and the ※ row is `layaway: true`, dropped by tokushoRowsFor on `ja`. The
+ * English rows are unchanged. This is statutory wording: it needs a JP
+ * compliance read before launch like every other line on this page.
  *
  * LAYAWAY PLAN LENGTHS ADDED TO 支払時期 (2026-09-16). The row used to say only
  * "on the dates set out in your agreement", while /faq now publishes the plan
@@ -404,21 +438,21 @@ export const tokusho = {
     {
       k: { ja: "支払方法", en: "Payment methods" },
       v: {
-        ja: "クレジットカード、銀行振込、コンビニ決済、分割予約（レイアウェイ）※",
+        ja: "クレジットカード、銀行振込、コンビニ決済",
         en: "Credit card, bank transfer, convenience-store payment, and layaway※",
       },
     },
     {
       k: { ja: "支払時期", en: "When payment is due" },
       v: {
-        ja: "注文時。分割予約※の場合は3か月、6か月、または¥300,000以上のご注文で8か月の各プランに応じ、アカウントに表示される期日",
+        ja: "注文時。",
         en: "At the time of order. For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {
       k: { ja: "引渡時期", en: "When we deliver" },
       v: {
-        ja: "入金確認後5営業日以内に発送。分割予約※は完済後",
+        ja: "入金確認後5営業日以内に発送。",
         en: "Dispatched within five business days of payment clearing. Layaway※ ships after the final payment",
       },
     },
@@ -442,13 +476,14 @@ export const tokusho = {
       },
     },
     {
+      layaway: true,
       k: { ja: "※ 分割予約（レイアウェイ）について", en: "※ About layaway" },
       v: {
         ja: "分割予約は英語版サイトをご利用のお客様および海外のお客様を対象としたお支払方法です。契約書はタガログ語と英語を併用した1つの書面です。日本語版サイトではお取り扱いしておりません。ご希望の場合は sales@chajewelsjp.com までお問い合わせください。",
         en: "Layaway is a payment method for customers using the English site and customers overseas. The agreement is written in Tagalog with English, as one document. Layaway is not offered on the Japanese site. To ask about it, email sales@chajewelsjp.com.",
       },
     },
-  ] as { k: Record<Lang, string>; v: Record<Lang, string> }[],
+  ] as TokushoRow[],
 };
 
 export const privacyUpdated: Record<Lang, string> = {
@@ -499,7 +534,7 @@ export const privacyArticles: LegalArticle[] = [
         kind: "lines",
         lines: { ja: ["代表取締役：Cynthia Nera Largo", "メールアドレス：sales@chajewelsjp.com"], en: ["Representative Director: Cynthia Nera Largo", "Email: sales@chajewelsjp.com"] },
       },
-      { kind: "p", text: { ja: "本プライバシーポリシーは、当社のウェブサイト、オンラインショップ、お客様アカウントおよびお客様ポータル、分割予約（レイアウェイ）サービス、会員プログラム、お問い合わせ対応、メッセージ機能、ならびにライブ販売によるご注文に適用されます。", en: "This Privacy Policy applies to our website, online shop, customer accounts and portal, layaway services, loyalty program, customer inquiries, messaging channels, and orders placed through our live-selling activities." } },
+      { kind: "p", text: { ja: "本プライバシーポリシーは、当社のウェブサイト、オンラインショップ、お客様アカウントおよびお客様ポータル、会員プログラム、お問い合わせ対応、メッセージ機能、ならびにライブ販売によるご注文に適用されます。", en: "This Privacy Policy applies to our website, online shop, customer accounts and portal, layaway services, loyalty program, customer inquiries, messaging channels, and orders placed through our live-selling activities." } },
     ],
   },
   {
@@ -514,7 +549,6 @@ export const privacyArticles: LegalArticle[] = [
             "お名前、電話番号、メールアドレス、お届け先住所、請求に関する情報、国、メッセージアプリまたはソーシャルメディアのアカウント名。",
             "アカウント情報、ログイン情報、言語設定、および連絡方法に関するご希望。",
             "ご注文に関する情報（ご購入またはご予約いただいた商品、注文番号、配送および追跡に関する情報、返品、返金、ならびにサイズ直し、研磨、鑑定、修理などのご依頼内容を含みます）。",
-            "分割予約に関する情報（お支払い予定、お支払済みの金額、残高、お支払期日のご案内、完済の状況を含みます）。",
             "お支払いに関する情報（お支払方法、金額、取引番号、入金の状況、入金証明など）。お支払いを第三者の決済事業者が取り扱う場合、当社は原則としてカード情報の全体を受領または保管いたしません。",
             "会員プログラムに関する情報（ポイント残高、ポイント履歴、会員レベル、ご利用いただいた特典を含みます）。",
             "当社とのやりとり（メール、メッセージ、お問い合わせ、苦情、レビュー、カスタマーサポートの記録を含みます）。",
@@ -549,7 +583,7 @@ export const privacyArticles: LegalArticle[] = [
         kind: "list",
         items: {
           ja: [
-            "お客様が、アカウントの作成、ご注文またはご予約、分割予約のご利用、お支払い、お問い合わせ、会員プログラムへのご入会をされる際に、お客様から直接。",
+            "お客様が、アカウントの作成、ご注文またはご予約、お支払い、お問い合わせ、会員プログラムへのご入会をされる際に、お客様から直接。",
             "お客様が本ウェブサイトをご利用になる際に、自動的に。",
             "お客様のお取引の処理に必要な場合、またはお客様が情報の提供を許諾された場合に、決済事業者、配送会社、メッセージプラットフォーム、ソーシャルメディアサービスその他の委託先から。",
           ],
@@ -572,7 +606,7 @@ export const privacyArticles: LegalArticle[] = [
         items: {
           ja: [
             "ご注文の作成、管理および履行。",
-            "ジュエリーのお取り置き、および分割予約のお支払い予定の管理。",
+            "ジュエリーのお取り置き。",
             "お支払いの確認、および正確なお支払い記録の保持。",
             "ご注文の配送、および追跡情報のご提供。",
             "サイズ直し、研磨、鑑定、修理などのご依頼への対応。",
@@ -702,7 +736,7 @@ export const privacyArticles: LegalArticle[] = [
         kind: "list",
         items: {
           ja: [
-            "ご注文、お支払い、分割予約、税務および会計に関する記録：適用される税法、会計法および商法上求められる期間（一般に7年から10年）。",
+            "ご注文、お支払い、税務および会計に関する記録：適用される税法、会計法および商法上求められる期間（一般に7年から10年）。",
             "お客様アカウントおよび会員に関する記録：アカウントまたはお取引関係が継続している期間、およびその後、ポイントへの対応、紛争の解決または法令上の義務の履行に必要な期間。",
             "お問い合わせおよびサポートに関する記録：通常、お問い合わせの解決後3年まで（より長い期間が合理的に必要な場合を除きます）。",
             "ウェブサイトおよびセキュリティのログ：通常12か月まで（不正行為、不適切な利用またはセキュリティ上の事故の調査に必要な場合を除きます）。",
@@ -831,12 +865,10 @@ export const privacyArticles: LegalArticle[] = [
  * a reader told to "follow the process in our Return, Cancellation and Refund
  * Policy" needs the route more than the reader of section 14 does.
  *
- * §11 DESCRIBES LAYAWAY IN JAPANESE, which the Japanese site does not sell
- * (owner decision 2026-09-15). The old page filtered its layaway section out on
- * `ja`; this text cannot be filtered the same way — §11 is one of thirty-one
- * numbered sections and layaway also appears in §2, §14, §16, §22 and §30, so
- * removing one leaves the rest and renumbers the document. Flagged for Cynthia
- * in the PR, not decided here. /legal/tokusho is already in the same state.
+ * NO LAYAWAY IN THE JAPANESE TERMS (owner decision 2026-09-25, final). §11
+ * (Layaway) is `layaway: true`: legalArticlesFor drops it on `ja` and renumbers
+ * §12–§31 as §11–§30. The layaway mentions in §2, §7, §14, §16, §18, §22 and
+ * §30 were removed from the Japanese text itself. English keeps all 31.
  */
 export const tosTitle: Record<Lang, string> = {
   ja: "利用規約",
@@ -865,8 +897,8 @@ export const tosArticles: LegalArticle[] = [
     h: { ja: "本規約への同意", en: "Acceptance of These Terms" },
     blocks: [
       { kind: "p", text: { ja: "本規約は、次の事項に適用されます。", en: "These Terms apply to:" } },
-      { kind: "list", items: { ja: ["本ウェブサイトを通じたご購入。", "Cha Jewelsの公式メッセージ窓口を通じたご注文およびご予約。", "当社のライブ販売を通じたご注文。", "お客様アカウントおよびカスタマーポータル。", "分割予約（レイアウェイ）のご注文。", "ポイントおよびストアクレジット。", "サイズ直し、研磨、修理、鑑定など、ジュエリーに関するサービス。"], en: ["Purchases made through our website.", "Orders and reservations made through official Cha Jewels messaging channels.", "Orders placed through our live-selling activities.", "Customer accounts and the customer portal.", "Layaway orders.", "Loyalty points and store credit.", "Jewelry-related services such as resizing, polishing, repair, and certification."] } },
-      { kind: "p", text: { ja: "ご注文またはご予約、代金もしくは予約金のお支払い、アカウントの作成その他当社のサービスのご利用をもって、お客様は本規約およびご購入前に明示した個別のご注文条件に同意されたものとみなします。", en: "By placing or reserving an order, making a payment or down payment, creating an account, or otherwise using our services, you agree to these Terms and any order-specific conditions disclosed before purchase." } },
+      { kind: "list", items: { ja: ["本ウェブサイトを通じたご購入。", "Cha Jewelsの公式メッセージ窓口を通じたご注文およびご予約。", "当社のライブ販売を通じたご注文。", "お客様アカウントおよびカスタマーポータル。", "ポイントおよびストアクレジット。", "サイズ直し、研磨、修理、鑑定など、ジュエリーに関するサービス。"], en: ["Purchases made through our website.", "Orders and reservations made through official Cha Jewels messaging channels.", "Orders placed through our live-selling activities.", "Customer accounts and the customer portal.", "Layaway orders.", "Loyalty points and store credit.", "Jewelry-related services such as resizing, polishing, repair, and certification."] } },
+      { kind: "p", text: { ja: "ご注文またはご予約、代金のお支払い、アカウントの作成その他当社のサービスのご利用をもって、お客様は本規約およびご購入前に明示した個別のご注文条件に同意されたものとみなします。", en: "By placing or reserving an order, making a payment or down payment, creating an account, or otherwise using our services, you agree to these Terms and any order-specific conditions disclosed before purchase." } },
       { kind: "rich", runs: { ja: [{ t: "当社の" }, { t: "プライバシーポリシー", href: "/legal/privacy" }, { t: "および" }, { t: "返品・キャンセル・返金ポリシー", href: "/legal/returns" }, { t: "は、本規約の一部を構成します。" }], en: [{ t: "Our " }, { t: "Privacy Policy", href: "/legal/privacy" }, { t: " and " }, { t: "Return, Cancellation and Refund Policy", href: "/legal/returns" }, { t: " form part of these Terms." }] } },
       { kind: "p", text: { ja: "卸売および事業者間のお取引については、別途の書面による契約が適用される場合があります。", en: "Wholesale and business-to-business transactions may be governed by separate written agreements." } },
     ],
@@ -926,7 +958,7 @@ export const tosArticles: LegalArticle[] = [
     h: { ja: "ご注文と契約の成立", en: "Orders and Contract Formation" },
     blocks: [
       { kind: "p", text: { ja: "ご注文は、次の方法でお申し込みいただけます。", en: "You may submit an order by:" } },
-      { kind: "list", items: { ja: ["本ウェブサイトのご注文手続きを完了すること。", "公式のライブ販売において商品をご予約またはご指名すること。", "Cha Jewelsの公式メッセージ窓口を通じてご注文のお申し出をお送りいただくこと。", "請求書または書面のお見積りをご承諾いただくこと。", "合意した予約金または代金全額をお支払いいただくこと。"], en: ["Completing the website checkout process.", "Reserving or claiming an item during an official live-selling session.", "Sending an order request through an official Cha Jewels messaging channel.", "Accepting an invoice or written quotation.", "Paying an agreed down payment or full-payment amount."] } },
+      { kind: "list", items: { ja: ["本ウェブサイトのご注文手続きを完了すること。", "公式のライブ販売において商品をご予約またはご指名すること。", "Cha Jewelsの公式メッセージ窓口を通じてご注文のお申し出をお送りいただくこと。", "請求書または書面のお見積りをご承諾いただくこと。", "合意した代金全額をお支払いいただくこと。"], en: ["Completing the website checkout process.", "Reserving or claiming an item during an official live-selling session.", "Sending an order request through an official Cha Jewels messaging channel.", "Accepting an invoice or written quotation.", "Paying an agreed down payment or full-payment amount."] } },
       { kind: "p", text: { ja: "ご注文のお申し込みまたはライブ販売でのご指名は、商品のご購入のお申し出です。当社が商品の割り当てを確認し、ご注文確認、請求書その他明確な承諾をお送りした時点で、拘束力のあるご注文が成立します。", en: "Submitting an order or making a claim during live selling is a request to purchase the item. A binding order is formed when Cha Jewels confirms the item’s allocation and sends an order confirmation, invoice, or other clear acceptance." } },
       { kind: "p", text: { ja: "お申し出を受領したことをお知らせする自動の通知は、必ずしも商品のご注文の承諾または割り当てを意味するものではありません。", en: "An automatic acknowledgment that we received your request does not necessarily mean the item has been accepted or allocated." } },
       { kind: "p", text: { ja: "当社の商品は一点物が多く、複数の販売経路でご案内しているため、割り当ての確認前に商品がご用意できなくなる場合があります。ご用意できない商品について既に代金をお受けしている場合は、適切な代替品、お客様がご了承されたストアクレジット、または元のお支払方法でのご返金をご案内します。", en: "Because many items are unique and offered through several sales channels, an item may become unavailable before allocation is confirmed. If payment was received for an unavailable item, we will offer an appropriate alternative, store credit accepted by the customer, or a refund through the original payment method." } },
@@ -968,6 +1000,7 @@ export const tosArticles: LegalArticle[] = [
   },
   {
     n: 11,
+    layaway: true,
     h: { ja: "分割予約（レイアウェイ）", en: "Layaway" },
     blocks: [
       { kind: "p", text: { ja: "分割予約は、対象となるお客様が商品をお取り置きし、お引き渡しの前に合意したお支払い予定に沿ってお支払いいただく仕組みです。", en: "Layaway allows an eligible customer to reserve an item and pay according to an agreed schedule before delivery." } },
@@ -1021,7 +1054,7 @@ export const tosArticles: LegalArticle[] = [
     blocks: [
       { kind: "rich", runs: { ja: [{ t: "返品、キャンセル、交換、ストアクレジットおよびご返金については、当社の" }, { t: "返品・キャンセル・返金ポリシー", href: "/legal/returns" }, { t: "に従います。" }], en: [{ t: "Returns, cancellations, replacements, store credit, and refunds are governed by our " }, { t: "Return, Cancellation and Refund Policy", href: "/legal/returns" }, { t: "." }] } },
       { kind: "p", text: { ja: "概要は次のとおりです。", en: "In summary:" } },
-      { kind: "list", items: { ja: ["お客様のご都合による返品は、原則としてお受けしておりません。", "お受けしたお客様のお申し出によるキャンセルは、原則としてストアクレジットでの対応となります。", "同日中のキャンセルの条件は、返金ポリシーに記載のとおりに限り適用されます。", "30%を上限とするキャンセル料が発生する場合がありますが、法令上認められる合理的な範囲を超えることはありません。", "分割予約の予約金は、法令上認められるキャンセル料として留保する場合があります。", "商品に誤りがある場合、破損している場合または契約の内容に適合しない場合における法令上の強行的な救済は、ストアクレジットに限定されません。", "適用される法令により金銭でのご返金が必要な場合は、元のお支払方法にご返金します。"], en: ["Change-of-mind returns are generally not accepted.", "Approved voluntary cancellations are normally issued as store credit.", "Same-day cancellation conditions apply only as described in the Refund Policy.", "A cancellation charge of up to 30% may apply, but it will not exceed the reasonable limit permitted by law.", "Layaway down payments may be retained as a lawful cancellation charge.", "A customer’s mandatory remedies for incorrect, damaged, or non-conforming items are not limited to store credit.", "When applicable law requires a monetary refund, it will be made through the original payment method."] } },
+      { kind: "list", items: { ja: ["お客様のご都合による返品は、原則としてお受けしておりません。", "お受けしたお客様のお申し出によるキャンセルは、原則としてストアクレジットでの対応となります。", "同日中のキャンセルの条件は、返金ポリシーに記載のとおりに限り適用されます。", "30%を上限とするキャンセル料が発生する場合がありますが、法令上認められる合理的な範囲を超えることはありません。", "商品に誤りがある場合、破損している場合または契約の内容に適合しない場合における法令上の強行的な救済は、ストアクレジットに限定されません。", "適用される法令により金銭でのご返金が必要な場合は、元のお支払方法にご返金します。"], en: ["Change-of-mind returns are generally not accepted.", "Approved voluntary cancellations are normally issued as store credit.", "Same-day cancellation conditions apply only as described in the Refund Policy.", "A cancellation charge of up to 30% may apply, but it will not exceed the reasonable limit permitted by law.", "Layaway down payments may be retained as a lawful cancellation charge.", "A customer’s mandatory remedies for incorrect, damaged, or non-conforming items are not limited to store credit.", "When applicable law requires a monetary refund, it will be made through the original payment method."] } },
       { kind: "rich", runs: { ja: [{ t: "返品に関する事項について本規約と" }, { t: "返品・キャンセル・返金ポリシー", href: "/legal/returns" }, { t: "が矛盾する場合は、強行法規に反しない限り、より具体的な返品・キャンセル・返金ポリシーが適用されます。" }], en: [{ t: "If these Terms conflict with the " }, { t: "Return, Cancellation and Refund Policy", href: "/legal/returns" }, { t: " on a return-related matter, the more specific Return, Cancellation and Refund Policy will apply, subject to mandatory law." }] } },
     ],
   },
@@ -1043,7 +1076,7 @@ export const tosArticles: LegalArticle[] = [
     blocks: [
       { kind: "p", text: { ja: "対象となるお支払いには、本ウェブサイトまたはお客様アカウントに表示するプログラムの規定に基づき、Cha Jewelsのポイントが付与される場合があります。", en: "Eligible payments may earn Cha Jewels loyalty points under the program rules displayed on the website or customer account." } },
       { kind: "h", text: { ja: "ポイントの付与", en: "Crediting points" } },
-      { kind: "p", text: { ja: "ポイントは、全額お支払いのご注文であるか分割予約のご注文であるかを問わず、対象となるお支払いの内容を確認した後にのみ付与します。", en: "Points are credited only after an eligible payment has been validated, whether the payment relates to a paid-in-full or layaway order." } },
+      { kind: "p", text: { ja: "ポイントは、対象となるお支払いの内容を確認した後にのみ付与します。", en: "Points are credited only after an eligible payment has been validated, whether the payment relates to a paid-in-full or layaway order." } },
       { kind: "p", text: { ja: "ポイント数、対象となる条件、会員レベル、キャンペーン、交換価値および有効期限は、該当するプログラムの案内に表示します。", en: "The number of points, eligibility rules, membership levels, promotions, redemption value, and any expiration date will be displayed in the applicable program information." } },
       { kind: "h", text: { ja: "調整", en: "Adjustments" } },
       { kind: "p", text: { ja: "当社は、次の事由により付与されたポイントを修正することがあります。", en: "We may correct points credited because of:" } },
@@ -1065,7 +1098,7 @@ export const tosArticles: LegalArticle[] = [
     n: 18,
     h: { ja: "キャンペーンおよび割引コード", en: "Promotions and Discount Codes" },
     blocks: [
-      { kind: "p", text: { ja: "キャンペーン、割引コード、送料無料、特別な予約金額および回数を限定したお支払いプランは、それぞれの案内に記載の条件に従います。", en: "Promotions, discount codes, free shipping, special reservation amounts, and limited-payment plans are subject to the conditions stated in the relevant offer." } },
+      { kind: "p", text: { ja: "キャンペーン、割引コードおよび送料無料は、それぞれの案内に記載の条件に従います。", en: "Promotions, discount codes, free shipping, special reservation amounts, and limited-payment plans are subject to the conditions stated in the relevant offer." } },
       { kind: "p", text: { ja: "別段の記載がない限り、次のとおりです。", en: "Unless otherwise stated:" } },
       { kind: "list", items: { ja: ["キャンペーンの併用はできません。", "割引に現金としての価値はありません。", "キャンペーンは、記載の期間中にのみ適用されます。", "対象となるかどうかは、商品、ご注文金額、お支払方法、地域またはお客様の区分により異なる場合があります。", "キャンペーン価格を遡って適用することはできません。"], en: ["Promotions cannot be combined.", "Discounts have no cash value.", "Promotions apply only during the stated period.", "Eligibility may depend on product, order value, payment method, location, or customer status.", "Promotional pricing cannot be applied retroactively."] } },
       { kind: "p", text: { ja: "当社は、明らかな誤りを含むキャンペーンを中止または訂正することがありますが、法令により必要な場合は、承諾済みのご注文についてはその内容を尊重します。", en: "We may cancel or correct a promotion containing a clear mistake, but we will honour accepted orders where required by law." } },
@@ -1105,7 +1138,7 @@ export const tosArticles: LegalArticle[] = [
     blocks: [
       { kind: "rich", runs: { ja: [{ t: "当社による個人情報の取得および利用については、当社の" }, { t: "プライバシーポリシー", href: "/legal/privacy" }, { t: "に記載しています。" }], en: [{ t: "Our collection and use of personal information are described in our " }, { t: "Privacy Policy", href: "/legal/privacy" }, { t: "." }] } },
       { kind: "p", text: { ja: "ご注文をもって、お客様は、次のものを含む取引上必要なご連絡をお受けいただくことに同意されたものとみなします。", en: "By placing an order, you agree to receive necessary transactional communications, including:" } },
-      { kind: "list", items: { ja: ["ご注文確認。", "お支払いのご案内。", "分割予約に関するお知らせ。", "配送に関するご連絡。", "作業の進捗に関するご連絡。", "セキュリティおよびアカウントに関するお知らせ。"], en: ["Order confirmations.", "Payment reminders.", "Layaway updates.", "Delivery notices.", "Service updates.", "Security and account notices."] } },
+      { kind: "list", items: { ja: ["ご注文確認。", "お支払いのご案内。", "配送に関するご連絡。", "作業の進捗に関するご連絡。", "セキュリティおよびアカウントに関するお知らせ。"], en: ["Order confirmations.", "Payment reminders.", "Layaway updates.", "Delivery notices.", "Service updates.", "Security and account notices."] } },
       { kind: "p", text: { ja: "販促のご連絡は、ご同意に基づき、またはその他法令上認められる範囲でお送りします。お客様は、ご注文に関する必要なご連絡を停止することなく、販促のご連絡の受信を停止いただけます。", en: "Promotional communications are sent based on consent or as otherwise permitted by law. You may opt out of marketing without stopping necessary order-related messages." } },
     ],
   },
@@ -1177,7 +1210,7 @@ export const tosArticles: LegalArticle[] = [
     blocks: [
       { kind: "p", text: { ja: "本規約の一部が無効または執行不能と判断された場合、当該部分は必要な範囲においてのみ限定または削除され、その他の条項は引き続き適用されます。", en: "If any part of these Terms is found invalid or unenforceable, that part will be limited or removed only to the extent necessary. The remaining Terms will continue to apply." } },
       { kind: "p", text: { ja: "当社が権利の行使を遅滞したとしても、当該権利を放棄したことを意味するものではありません。", en: "A delay in enforcing a right does not mean that Cha Jewels has waived that right." } },
-      { kind: "p", text: { ja: "お客様は、当社の書面による承認なく、ご注文、アカウント、分割予約契約、ポイントまたはストアクレジットを譲渡することはできません。当社は、お客様の権利が実質的に減縮されない限り、正当な事業の承継の一部として、その権利および義務を移転することがあります。", en: "You may not transfer an order, account, layaway agreement, loyalty points, or store credit without our written approval. Cha Jewels may transfer its rights and obligations as part of a legitimate business transfer, provided customer rights are not materially reduced." } },
+      { kind: "p", text: { ja: "お客様は、当社の書面による承認なく、ご注文、アカウント、ポイントまたはストアクレジットを譲渡することはできません。当社は、お客様の権利が実質的に減縮されない限り、正当な事業の承継の一部として、その権利および義務を移転することがあります。", en: "You may not transfer an order, account, layaway agreement, loyalty points, or store credit without our written approval. Cha Jewels may transfer its rights and obligations as part of a legitimate business transfer, provided customer rights are not materially reduced." } },
       { kind: "p", text: { ja: "本規約、確定したご注文の内容、適用される各ポリシー、および個別のご注文に関する書面による合意が、当社とお客様との間の合意を構成します。", en: "These Terms, the confirmed order information, applicable policies, and any written order-specific agreement constitute the agreement between Cha Jewels and the customer." } },
     ],
   },

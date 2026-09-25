@@ -25,6 +25,7 @@
 
 ## Non-negotiable business rules
 - Layaway math is NEVER computed in the browser or in Next.js. Call `POST /layaway/quote` via `hub.layawayQuote`. Same for points.
+- **Nothing layaway-related is visible on the Japanese site (owner decision 2026-09-25, final, no exceptions).** One gate: `layawayOffered(lang)` (`lib/layaway-availability.ts`). It covers nav, home, product, checkout, footer, FAQ, the account's plan pages (`/account/layaway` and `/account/layaway/[id]` are not found on `ja`, and nothing links to them), and the Japanese legal pages. Legal: an article or tokusho row that is only about layaway is `layaway: true` and dropped by `legalArticlesFor` / `tokushoRowsFor` (sections renumbered); a Japanese sentence that also covers something else has its layaway part removed from the `ja` text. English text is never changed for this rule. **Guard:** `npm run check:layaway-ja` (run by `check:i18n`, so in CI) renders the Japanese legal and FAQ content through those filters and fails on 分割予約 / レイアウェイ; an i18n key may contain them only if it is in `LAYAWAY_GATED_KEYS` in `scripts/check-layaway-ja.mjs`, i.e. rendered only behind `layawayOffered`.
 - Products are added in the Hub only. This site has no product editor.
 - Cost basis, margin, and CSR commission fields never cross the API. If they appear in a response, that is a Hub bug to report, not data to render.
 

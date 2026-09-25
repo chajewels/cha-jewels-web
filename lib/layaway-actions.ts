@@ -24,7 +24,8 @@ import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
  * whether a NEW plan can be started — never whether an existing one can be
  * paid. A plan-holder browsing in Japanese must be able to report a transfer;
  * refusing here would strand someone mid-plan with a payment they have already
- * sent and no way to tell us. Same reason /account/layaway is not gated.
+ * sent and no way to tell us. (/account/layaway itself is gated on language
+ * since 2026-09-25, because it RENDERS layaway; this action renders nothing.)
  */
 
 const MAX_PROOF_BYTES = 10 * 1024 * 1024;

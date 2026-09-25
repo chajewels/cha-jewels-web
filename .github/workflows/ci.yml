@@ -29,7 +29,8 @@ jobs:
       - run: npm run check:terms
 
       # Every user-facing string follows the language toggle: no CJK literal in
-      # a .tsx outside lib/i18n and lib/content.
+      # a .tsx outside lib/i18n and lib/content. Also runs check:layaway-ja:
+      # nothing layaway-related renders on the Japanese site (2026-09-25).
       - run: npm run check:i18n
 
       # The two analytics invariants that decide whether an event reported from

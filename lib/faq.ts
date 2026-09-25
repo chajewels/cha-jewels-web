@@ -59,6 +59,24 @@ const hubFaq = cache(async (): Promise<HubFaqSection[]> => {
 const text = (value: unknown): string | null =>
   typeof value === "string" && value.trim() ? value.trim() : null;
 
+/**
+ * THE FAIL-SAFE FOR HUB ROWS (owner decision 2026-09-25: nothing
+ * layaway-related is visible on the Japanese site). The FAQ is owner-editable
+ * in the Hub, and a row that talks about layaway without its `layaway_only`
+ * flag set would otherwise publish it in Japanese. Where layaway is not
+ * offered, an item whose question or answer still names it is dropped whole —
+ * the conservative choice: a Japanese sentence cannot be safely trimmed here.
+ * The fix for a dropped item is in the Hub (set the flag, or trim the Japanese).
+ */
+const LAYAWAY_WORDS = /分割予約|レイアウェイ|分割払い/;
+
+/**
+ * A section heading is the Hub's too. "お支払いと分割予約" heads real
+ * non-layaway payment questions, so it is renamed rather than dropped; any
+ * other heading that still names layaway drops its section.
+ */
+const JA_HEADING_WITHOUT_LAYAWAY: Record<string, string> = { "payments-and-layaway": "お支払い" };
+
 const byOrder = <T extends { sort_order?: number }>(a: T, b: T) => (a.sort_order ?? 0) - (b.sort_order ?? 0);
 
 /** One answer, rendered once and flattened once, from the same markdown. */
@@ -72,7 +90,10 @@ export async function getFaq(lang: Lang): Promise<ViewFaqSection[]> {
   return [...(await hubFaq())]
     .sort(byOrder)
     .flatMap((section) => {
-      const heading = text(lang === "ja" ? section.title_ja : section.title_en);
+      const hubHeading = text(lang === "ja" ? section.title_ja : section.title_en);
+      const heading = offered || !hubHeading || !LAYAWAY_WORDS.test(hubHeading)
+        ? hubHeading
+        : JA_HEADING_WITHOUT_LAYAWAY[text(section.slug) ?? ""] ?? null;
       const items = [...(section.items ?? [])]
         .sort(byOrder)
         // The layaway rule, then the language rule. An item with no words in
@@ -83,6 +104,7 @@ export async function getFaq(lang: Lang): Promise<ViewFaqSection[]> {
         .flatMap((item) => {
           const q = text(lang === "ja" ? item.question_ja : item.question_en);
           const a = text(lang === "ja" ? item.answer_ja : item.answer_en);
+          if (!offered && q && a && (LAYAWAY_WORDS.test(q) || LAYAWAY_WORDS.test(a))) return [];
           return q && a ? [answer(a, item.id, q)] : [];
         });
       // A heading with nothing under it is the same broken page one level up.

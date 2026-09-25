@@ -2,6 +2,7 @@ import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
@@ -149,7 +150,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
         <div className="mt-10 flex flex-wrap items-center gap-4">
           <Link href="/account/orders" className="text-gold-dark underline underline-offset-4">{t("orders", "h1")}</Link>
-          <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>
+          {layawayOffered(lang) && <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>}
           <Link href="/account/service-requests" className="text-gold-dark underline underline-offset-4">{t("service", "h1")}</Link>
           <span className="text-sm text-charcoal/70">{t("account", "soon")}</span>
         </div>

@@ -14,8 +14,8 @@ export default async function LayawayPage() {
   // only honest answer: a redirect to / swallows the link without saying why,
   // and rendering English copy under a Japanese header claims the site offers
   // something it does not. The sitemap entry is removed to match, so the URL is
-  // not advertised as one that resolves. /account/layaway is NOT gated — an
-  // existing plan stays reachable in either language.
+  // not advertised as one that resolves. Since 2026-09-25 /account/layaway is
+  // gated the same way (nothing layaway-related on the Japanese site).
   if (!layawayOffered(lang)) notFound();
 
   const t = tr(lang);

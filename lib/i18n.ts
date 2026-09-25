@@ -448,7 +448,7 @@ export const dict = {
      * the account page could only show web orders, and false the moment it
      * could show everything. Now it says what the two links are.
      */
-    soon: { ja: "ご注文と分割予約の履歴をご確認いただけます。", en: "Everything you have with us is listed here." },
+    soon: { ja: "ご注文の履歴をご確認いただけます。", en: "Everything you have with us is listed here." },
     /**
      * A signed-in customer with no orders and no plans on this record. Two
      * sentences, because the two causes need different advice: a genuinely new
@@ -649,7 +649,7 @@ export const dict = {
     // Japanese before they paid — layaway is English-only (owner decision
     // 2026-09-15). Nothing was charged and the basket is intact, so the copy
     // says what to do next rather than apologising.
-    layawayUnavailable: { ja: "分割予約は英語表示のみでのお取り扱いとなります。全額でのお支払いにお進みいただくか、表示言語をEnglishに切り替えてください。カートの中身はそのままです。", en: "Layaway is available on the English site only. Pay in full, or switch the language to English to reserve. Your basket is untouched." },
+    layawayUnavailable: { ja: "このお支払い方法は日本語表示ではご利用いただけません。全額でのお支払いにお進みください。カートの中身はそのままです。", en: "Layaway is available on the English site only. Pay in full, or switch the language to English to reserve. Your basket is untouched." },
     // THE DEPOSIT DEADLINE IS THE CUSTOMER'S, NOT A CONSTANT. It said "72
     // hours" to everyone until 2026-09-24, and a first order gets 24. Same
     // split as deadlineWithin / deadlineNote: the number is rendered only when
@@ -866,7 +866,7 @@ export const dict = {
     success: { ja: "ご依頼を受け付けました。担当者が確認後、こちらにお返事します。", en: "Your request has been sent. We will review it and reply here." },
     listH: { ja: "ご依頼履歴", en: "Your requests" },
     emptyHere: { ja: "まだご依頼はありません。", en: "No requests yet." },
-    empty: { ja: "サービス依頼はまだありません。ご注文または分割予約のページから依頼できます。", en: "No service requests yet. You can raise one from an order or a layaway plan." },
+    empty: { ja: "サービス依頼はまだありません。ご注文のページから依頼できます。", en: "No service requests yet. You can raise one from an order or a layaway plan." },
     requestedOn: { ja: "{date} 依頼", en: "Requested {date}" },
     noteFrom: { ja: "Cha Jewelsからのお返事", en: "Reply from Cha Jewels" },
     viewOrder: { ja: "ご注文を見る", en: "View order" },
@@ -973,10 +973,10 @@ export const dict = {
     affiliations: { title: { ja: "所属団体", en: "Affiliations" }, description: { ja: "Cha Jewelsが所属している東京の経済団体。東京商工会議所および東京葛飾中央ロータリークラブ。", en: "The business organisations Cha Jewels belongs to in Tokyo: the Tokyo Chamber of Commerce and Industry and the Tokyo Katsushika Central Rotary Club." } },
     faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
     collections: { title: { ja: "コレクション", en: "Collections" } },
-    terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、分割予約、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },
+    terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },
     privacy: { title: { ja: "プライバシーポリシー", en: "Privacy policy" }, description: { ja: "Cha Jewelsが収集する情報、その目的、第三者への提供、開示・削除のご請求方法。", en: "What Cha Jewels collects, why, who else sees it, and how to ask for a copy or a deletion." } },
     tokusho: { title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" } },
-    returns: { title: { ja: "返品・キャンセル・返金ポリシー", en: "Return, Cancellation and Refund Policy" }, description: { ja: "返品をお受けする場合と条件、キャンセル料、分割予約の予約金、ストアクレジットの有効期限、返品のお申し出の手続。", en: "When we accept a return and on what terms, cancellation charges, layaway down payments, how long store credit lasts, and how to make a request." } },
+    returns: { title: { ja: "返品・キャンセル・返金ポリシー", en: "Return, Cancellation and Refund Policy" }, description: { ja: "返品をお受けする場合と条件、キャンセル料、ストアクレジットの有効期限、返品のお申し出の手続。", en: "When we accept a return and on what terms, cancellation charges, layaway down payments, how long store credit lasts, and how to make a request." } },
   },
 } as const;
 
