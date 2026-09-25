@@ -38,12 +38,12 @@ export function LayawaySection({ lang }: { lang: Lang }) {
     </SectionBoundary>
   );
 }
-async function LayawayAsync({ lang }: { lang: Lang }) {
-  // The band needs the day's rate to show peso figures. A rate we cannot get
-  // is not a reason to withhold the section — the JPY column is the real one.
-  const fx = await hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }));
+function LayawayAsync({ lang }: { lang: Lang }) {
+  // No rate is read here any more: the calculator asks the Hub for a peso
+  // quote when ₱ is chosen, and the Hub converts (and refuses with
+  // fx_unavailable when it has no rate) — nothing on this side guesses one.
   // `fx`: the homepage's entrances (components/commerce/layaway-band.tsx).
-  return <LayawayBand lang={lang} phpRate={fx.jpy_php} fx />;
+  return <LayawayBand lang={lang} fx />;
 }
 
 export function TestimonialsSection({ lang }: { lang: Lang }) {

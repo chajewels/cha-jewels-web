@@ -159,9 +159,20 @@ export const hub = {
   allProducts: (limit = 5000): Promise<Product[]> =>
     FIXTURES ? Promise.resolve(fx.products) : call(`/catalog/products?limit=${limit}`),
   productSlugs: (): Promise<{ slug: string; updated_at: string }[]> => FIXTURES ? Promise.resolve(fx.products.map((p) => ({ slug: p.slug, updated_at: "2026-09-01" }))) : call("/catalog/products?fields=slug,updated_at&limit=5000"),
-  /** Quote is always computed in JPY by the Hub. Peso display uses hub.fx(). */
-  layawayQuote: (price: number, term_months: number): Promise<LayawayQuote> =>
-    FIXTURES ? Promise.resolve(fx.quote(price, term_months, "JPY")) : call("/layaway/quote", { method: "POST", body: JSON.stringify({ price, term_months, currency: "JPY" }), revalidate: false }),
+  /**
+   * The Hub's layaway_quote for a piece, in the currency the customer is
+   * looking at. `price_jpy` is ALWAYS the yen catalog price: for a peso quote
+   * the Hub converts it itself and every figure in the answer — deposit,
+   * monthly, total, allowed_terms[].min_amount (min_amount_php) — is computed
+   * in pesos. Nothing is converted on this side. No rate on file → 503
+   * fx_unavailable, never a guessed peso figure.
+   */
+  layawayQuote: (price_jpy: number, term_months: number, currency: "JPY" | "PHP"): Promise<LayawayQuote> =>
+    FIXTURES
+      ? currency === "PHP" && fx.FIXTURE_NO_FX
+        ? Promise.reject(new HubError(503, "fx_unavailable", "fx_unavailable"))
+        : Promise.resolve(fx.quote(price_jpy, term_months, currency))
+      : call("/layaway/quote", { method: "POST", body: JSON.stringify({ price_jpy, term_months, currency }), revalidate: false }),
   /**
    * Published testimonials.
    *
@@ -267,7 +278,7 @@ export const hub = {
       ? Promise.resolve({ status: "unsubscribed" })
       : call(`/newsletter/unsubscribe?token=${encodeURIComponent(token)}`, { revalidate: false }),
 
-  fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: 0.39, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"], timeout: SECONDARY_TIMEOUT_MS }),
+  fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: fx.FIXTURE_RATE, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"], timeout: SECONDARY_TIMEOUT_MS }),
   loyaltyTiers: (): Promise<HubTier[]> =>
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>

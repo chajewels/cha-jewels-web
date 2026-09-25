@@ -3,11 +3,10 @@ import { pageMeta } from "@/lib/page-meta";
 import { LayawayBand } from "@/components/commerce/layaway-band";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-import { hub } from "@/lib/hub-api";
 import { layawayOffered } from "@/lib/layaway-availability";
 export const generateMetadata = () => pageMeta("layaway");
 export default async function LayawayPage() {
-  const [lang, fx] = await Promise.all([getLang(), hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }))]);
+  const lang = await getLang();
 
   // 404, NOT a redirect and NOT the English page inside a Japanese site.
   // Layaway does not exist on ja (owner decision 2026-09-15), and a 404 is the
@@ -33,7 +32,7 @@ export default async function LayawayPage() {
           homepage's markup, which the extraction is required not to do. It
           scopes `--rule` back to gold for anything drawn inside the band. */}
       <div className="band-dark">
-        <LayawayBand lang={lang} phpRate={fx.jpy_php} />
+        <LayawayBand lang={lang} />
       </div>
     </>
   );

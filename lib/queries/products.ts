@@ -13,6 +13,15 @@ export function fromPrice(p: Product) {
   const min = Math.min(...prices);
   return Number.isFinite(min) ? min : null;
 }
+/**
+ * The variant whose price `fromPrice` shows. A card's "reserve from" figure is
+ * that variant's Hub down payment, so the reserve line always belongs to the
+ * price printed beside it.
+ */
+export function fromVariant(p: Product) {
+  const min = fromPrice(p);
+  return min == null ? null : p.product_variants.find((v) => v.price_jpy === min) ?? null;
+}
 /** Every photo of the piece, across variants, in Hub sort order. */
 export function allImages(p: Product) {
   return p.product_variants.flatMap((v) => v.product_media).sort((a, b) => a.sort - b.sort);

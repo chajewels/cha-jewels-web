@@ -3,6 +3,22 @@ import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { blocksToMarkdown, sectionSlug } from "@/lib/content/faq-markdown";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
+/** The preview Hub's day rate (PHP per 1 JPY). Preview data only. */
+export const FIXTURE_RATE = 0.39;
+/** plan_configurations as it stands: months, the yen minimum and the fixed peso minimum. Declared before `products`, which reads it at load. */
+const PLAN_MINIMUMS: [number, number, number][] = [[3, 0, 0], [6, 25000, 10500], [8, 300000, 126000], [10, 600000, 252000], [12, 1000000, 420000]];
+/**
+ * `NEXT_PUBLIC_PREVIEW_NO_FX=1` plays a Hub with no rate on file: variants
+ * carry no `down_payment_php`, and a peso layaway quote answers 503
+ * fx_unavailable (lib/hub-api.ts), so the "no rate, no peso figure" paths can
+ * be seen without the Hub.
+ */
+export const FIXTURE_NO_FX = process.env.NEXT_PUBLIC_PREVIEW_NO_FX === "1";
+/** What the Hub's website_down_payments answers for a price: the 3-month quote's deposit, both currencies. */
+function fixtureDownPayments(jpy: number) {
+  const jpyDp = quote(jpy, 3, "JPY").down_payment;
+  return FIXTURE_NO_FX ? { down_payment_jpy: jpyDp, down_payment_pct: 0.3 } : { down_payment_jpy: jpyDp, down_payment_php: quote(jpy, 3, "PHP").down_payment, down_payment_pct: 0.3 };
+}
 /**
  * RESERVE FIRST (Hub A2) in preview. `NEXT_PUBLIC_PREVIEW_RESERVATION=1`, with
  * fixtures on, plays the Hub with `web_reservation_mode` switched ON: the quote
@@ -40,7 +56,7 @@ const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: nu
   // are UNKNOWN — so the preview exercises every OriginBadge branch honestly.
   origin: i === 2 ? "JAPAN" : i === 3 ? "BRAND" : "UNKNOWN",
   brand: i === 3 ? "Tiffany & Co." : null,
-  product_variants: [{ id: `v${i}`, size: null, stone, price_jpy: jpy, price_php: Math.round(jpy * 0.39), stock_qty: i % 5 === 0 ? 0 : 3, product_media: [] }],
+  product_variants: [{ id: `v${i}`, size: null, stone, price_jpy: jpy, price_php: Math.round(jpy * FIXTURE_RATE), ...fixtureDownPayments(jpy), stock_qty: i % 5 === 0 ? 0 : 3, product_media: [] }],
 });
 /**
  * Preview categories, in sort_order. hero_media is null throughout so the
@@ -78,13 +94,16 @@ products[1].product_variants[0].product_media = [{ url: "/fixtures/chain-1.svg",
  * refuses on. Keeping the shape honest here is what stops preview mode from
  * hiding a field the production page depends on.
  */
-export function quote(price: number, term: number, currency: "JPY" | "PHP"): LayawayQuote {
-  const rate = currency === "PHP" ? 0.39 : 1;
-  const terms: LayawayTerm[] = PLAN_MINIMUMS.map(([months, minJpy]) => ({
+export function quote(priceJpy: number, term: number, currency: "JPY" | "PHP"): LayawayQuote {
+  // The Hub's `price_jpy` body: a yen price in, converted Hub-side for a peso
+  // quote (half-up), and judged against the FIXED peso minimums — never the
+  // yen minimum converted.
+  const price = currency === "PHP" ? Math.round(priceJpy * FIXTURE_RATE) : priceJpy;
+  const terms: LayawayTerm[] = PLAN_MINIMUMS.map(([months, minJpy, minPhp]) => ({
     months, label: `${months} Months`,
-    min_amount: Math.round(minJpy * rate),
+    min_amount: currency === "PHP" ? minPhp : minJpy,
     dp_percentage: 0.3,
-    eligible: price >= Math.round(minJpy * rate),
+    eligible: price >= (currency === "PHP" ? minPhp : minJpy),
   }));
   const eligible = terms.filter((t) => t.eligible);
   const wanted = eligible.find((t) => t.months === term);
@@ -99,11 +118,12 @@ export function quote(price: number, term: number, currency: "JPY" | "PHP"): Lay
     allowed_terms: terms,
     requested_term_months: term,
     term_downgraded: chosen.months !== term,
+    price_jpy: priceJpy,
+    fx_rate: currency === "PHP" ? FIXTURE_RATE : null,
+    fx_as_of: currency === "PHP" ? "2026-09-08" : null,
   };
 }
 
-/** plan_configurations as it stands: months and the yen minimum. */
-const PLAN_MINIMUMS: [number, number][] = [[3, 0], [6, 25000], [8, 300000], [10, 600000], [12, 1000000]];
 export const tiers: HubTier[] = localTiers.map((t) => ({ slug: t.slug, name: t.name, threshold_jpy: t.thresholdJpy, requalify_spend: t.requalifyJpy, multiplier: t.multiplier, hold_minutes: t.holdMinutes, benefits_ja: t.perks.ja, benefits_en: t.perks.en }));
 
 /** Preview-mode account data. Obvious placeholders — never real customer data. */
@@ -188,7 +208,7 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
   const total = subtotal + shipping;
   const mode: CheckoutMode = body.mode ?? "full";
   const settlement: SettlementCurrency = body.settlement_currency ?? "JPY";
-  const rate = settlement === "PHP" ? 0.39 : null;
+  const rate = settlement === "PHP" ? FIXTURE_RATE : null;
   const inSettlement = (jpy: number) => (rate === null ? jpy : Math.round(jpy * rate));
   return {
     quote_id: "quote-fixture",
