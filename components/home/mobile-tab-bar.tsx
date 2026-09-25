@@ -10,11 +10,13 @@ const ICONS = { home: Home, pieces: Gem, layaway: Wallet, loyalty: Award, accoun
  * The mobile file's fixed bottom tab bar (Stitch §13). Hidden from lg up; the
  * page adds matching bottom padding so nothing sits behind it. The layaway tab
  * is passed in only when layawayOffered(lang) — the bar never decides that.
+ * `data-mobile-tab-bar` is how the Messenger button knows to sit above it
+ * (app/globals.css, .messenger-fab).
  */
 export function MobileTabBar({ tabs }: { tabs: Tab[] }) {
   const path = usePathname();
   return (
-    <nav aria-label="Mobile" className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-chalk/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+    <nav aria-label="Mobile" data-mobile-tab-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-chalk/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
       <div className="flex h-16 items-center justify-around px-1">
         {tabs.map(({ href, label, icon }) => {
           const Icon = ICONS[icon];
