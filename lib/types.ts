@@ -149,11 +149,24 @@ export type HubQuote = {
   web_reference: string | null;
   /** Phase 2 step 4. Absent on an older Hub deploy — read defensively. */
   mode?: CheckoutMode;
+  /**
+   * JPY or PHP, for a full payment and a layaway alike (full payment since
+   * 2026-09-25). The `*_jpy` fields above stay yen whatever this says.
+   */
   settlement_currency?: SettlementCurrency;
-  /** Pesos per yen, and the day that rate was published. null on a yen plan. */
+  /**
+   * Pesos per yen captured on the quote, and the day that rate was published.
+   * null on a yen quote. The order is charged at this rate, not today's. Never
+   * shown to the customer (owner decision 2026-09-18).
+   */
   fx_rate?: number | null;
   fx_rate_date?: string | null;
-  /** The same three totals in the settlement currency. */
+  /**
+   * The same three totals in the settlement currency, computed by the Hub:
+   * converted once, half-up to a whole peso, shipping on its own and the
+   * subtotal as the remainder. For a full payment total_settlement is the
+   * order's total_amount to the peso. Equal to the `*_jpy` figures on yen.
+   */
   subtotal_settlement?: number;
   shipping_settlement?: number | null;
   total_settlement?: number;
@@ -220,7 +233,14 @@ export type TransferMethod = {
   note_ja: string | null; note_en: string | null;
 };
 export type HubPayResult = {
-  order_id: string; web_reference: string; total_jpy: number;
+  order_id: string; web_reference: string;
+  /**
+   * The order's settlement currency and what it owes in it. Absent on a Hub
+   * deploy predating peso full payment (2026-09-25), which settled in yen.
+   */
+  currency?: SettlementCurrency; total?: number;
+  /** Yen, kept for older builds. NOT what a peso order owes: read `total`. */
+  total_jpy: number;
   /** null on a reservation: the deadline starts when staff confirm the piece. */
   transfer_due_at: string | null;
   transfer_region: TransferRegion; transfer_methods: TransferMethod[];
@@ -273,10 +293,12 @@ export type HubCheckoutError = { error: string; variant_id?: string; available?:
  * this site. Every figure here comes from the Hub: the deposit, the schedule
  * and the per-row remaining are computed there and only rendered here.
  *
- * The settlement currency is the customer's choice at checkout. A yen plan is
- * quoted and settled in yen; a peso plan is converted once, at the rate stored
- * on the plan, and every figure in it is already in pesos. The two are never
- * mixed and nothing is converted on this side.
+ * The settlement currency is the customer's choice at checkout, for a plan and
+ * (since 2026-09-25) a full payment alike. Prices are set in yen; a peso plan or
+ * order is converted once by the Hub, at the rate captured on the quote, and
+ * every figure it returns for it is already in pesos. Item lines
+ * (`*_jpy`) stay yen, the price of record. The two are never mixed on one
+ * figure and nothing is converted on this side.
  */
 export type SettlementCurrency = "JPY" | "PHP";
 export type CheckoutMode = "full" | "layaway";

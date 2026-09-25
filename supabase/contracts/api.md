@@ -56,6 +56,105 @@ an origin from metal, name or description, and site-wide copy may only say
 | `GET /content/posts/:slug` | `Post` | **Hub route pending.** 404 if unknown or unpublished. |
 | `POST /wholesale/inquiry` body `{name, business, email, phone?, market, volume, notes?, lang}` | `{ok:true}` | insert into `wholesale_inquiries`. `market` `JP\|PH\|BOTH\|OTHER`; `volume` `TEST\|20_50\|50_200\|200_PLUS`; `lang` `ja\|en`. Optional fields are omitted, never sent as `""`. |
 
+## Checkout — currency, peso totals, errors (synced with the Hub contract, 2026-09-25)
+
+Customer JWT required on every route. The site calls them from Server Actions
+only (`lib/checkout-actions.ts`), so the JWT is paired with `HUB_API_KEY` on the
+server. Nothing on this side computes, converts or rounds an amount.
+
+- `POST /checkout/quote` — prices a cart (and, for a layaway, reserves its invoice number).
+- `GET /checkout/quote/:id` — re-reads a saved quote, same shape.
+- `POST /checkout/pay` — creates the order (`create_web_order_atomic` / `create_web_layaway_atomic`).
+
+**Settlement currency.** `settlement_currency` is `JPY` (default) or `PHP`, for
+**both** modes — a full (one-time) payment and a layaway alike (peso full
+payment, owner decision 2026-09-25; layaway since 2026-09-13). Offered on both
+languages for a full payment; layaway stays English-only. Yen is the price of
+record: every `*_jpy` field stays yen whatever the customer chose.
+
+`POST /checkout/quote` body: `{ items: [{ variant_id, qty }], mode: "full" |
+"layaway", settlement_currency?, term_months? (layaway), ship_to_address_id,
+order_type?, recipient_name?, recipient_phone?, gift_note? }`.
+
+Quote response (POST and GET) — currency fields:
+- `subtotal_jpy`, `shipping_jpy` (null = no published rate), `total_jpy` — yen.
+- `settlement_currency` — as requested.
+- `fx_rate`, `fx_rate_date` — the `fx_rates.jpy_php` rate (PHP per 1 JPY)
+  captured on the quote, `null` for yen. **Never shown to customers** (owner
+  decision 2026-09-18); the order is charged at this rate, not today's.
+- `subtotal_settlement`, `shipping_settlement`, `total_settlement` — in the
+  settlement currency. For yen they equal the `*_jpy` figures.
+- `transfer_region` / `transfer_methods` / `transfer_available` — keyed on the
+  settlement currency (PHP → the Philippine accounts). Methods are `[]` while
+  reserve-first is on.
+
+**Peso rounding.** Converted once, `PHP = JPY × fx_rate`, rounded **half-up to a
+whole peso** (Postgres `round(numeric)`). Shipping is converted on its own and
+the items subtotal is the remainder (`subtotal = total − shipping`), so the
+three always sum. For a **full payment** the quote uses integer maths that
+matches `create_web_order_atomic` exactly, so `total_settlement` is the order's
+`total_amount` to the peso. A layaway's peso schedule comes from
+`layaway_quote` and is unchanged.
+
+**Pay response** (`POST /checkout/pay`, full payment): `order_id`,
+`web_reference`, `currency` (`JPY` | `PHP`), `total` (in `currency`),
+`total_jpy` (kept for older storefront builds — yen, not what a peso order
+owes), `transfer_due_at` (null while a reservation awaits staff),
+`transfer_region`, `transfer_methods` (`[]` for a reservation), plus
+`reservation_mode` / `awaiting_confirmation` on a reservation. A layaway answers
+`mode: "layaway"`, `account_id`, `currency`, `total`, `deposit`, `term_months`,
+`schedule`, … as before.
+
+**`GET /orders/:id`**: `currency` is the order's settlement currency;
+`total_amount`, `total_paid`, `remaining_balance`, `shipping_fee` are in it.
+Item `unit_price_jpy` / `line_total_jpy` are **always yen** — on a peso order
+the site shows the pieces without a per-line price and the totals in ₱ (owner
+decision D1), on checkout Review, `/checkout/complete/:id` and
+`/account/orders/:id` alike. The stored rate is not returned.
+
+**Error codes** (`{ error, … }`; `request_id` on RPC refusals), and what the
+site shows (`toCode` in `lib/checkout-actions.ts`):
+
+| code | status | where | meaning | site |
+|---|---|---|---|---|
+| `customer_auth_required` | 401 | all | no/invalid customer JWT | failed (`signed_out` code) |
+| `email_unverified` | 403 | all | customer email not verified | failed (`signed_out` code) |
+| `email_required_for_account` | 422 | all | auth user has no email | failed |
+| `not_linked` | 404 | all | no customer row for this user | failed (`/checkout` sends an unlinked customer to the profile step first) |
+| `bad_mode` | 400 | quote | `mode` not `full` / `layaway` | failed |
+| `bad_currency` | 400 | quote | `settlement_currency` not `JPY` / `PHP` | failed |
+| `term_required` | 400 | quote | layaway without `term_months` | failed |
+| `empty_cart` | 400 | quote | no items | failed |
+| `too_many_items` | 400 | quote | over the line limit | failed |
+| `bad_order_type` | 400 | quote | not `SELF` / `GIFT` / `PROXY` | failed |
+| `address_required` | 400 | quote | no `ship_to_address_id` | failed |
+| `address_not_found` | 404 | quote | not one of this customer's addresses | failed |
+| `variant_id_required` | 400 | quote | a line without `variant_id` | failed |
+| `bad_quantity` | 400 | quote | qty < 1 or not a number | failed |
+| `variant_not_found` | 404 | quote | `variant_id` included | failed |
+| `product_unavailable` | 409 | quote | product not active; `variant_id` | sold out |
+| `out_of_stock` | 409 | quote, pay | `variant_id` (+ `available` on quote) | sold out |
+| `fx_unavailable` | 503 | quote | PHP requested but no usable `fx_rates` row. Retry later or choose yen; a peso figure is never guessed. | rate unavailable |
+| `shipping_quote_required` | 400 | quote (layaway), pay | no published shipping rate for the address | failed |
+| `below_plan_minimum` | 409 | quote, pay | layaway: amount/term not allowed; `allowed_terms`, `max_term_months` | below minimum |
+| `quote_id_required` | 400 | GET quote, pay | | failed |
+| `quote_already_used` | 409 | GET quote, pay | quote consumed — re-quote | expired (re-quotes) |
+| `quote_expired` | 409 | GET quote, pay | 30-minute life passed — re-quote (the new quote takes the current rate) | expired (re-quotes) |
+| `quote_not_found` | 404 | pay | not this customer's quote (GET answers a plain 404) | expired (re-quotes) |
+| `not_yet` | 501 | pay | `method: "square"` | failed |
+| `bad_method` | 400 | pay | anything but `transfer` | failed |
+| `unsupported_method` | 400 | pay | RPC refusal, same meaning | failed |
+| `transfer_unavailable` | 409 | pay | no active account for the quote's currency; `currency`, `region` | transfer unavailable |
+| `fx_rate_missing` | 503 | pay | a PHP quote carries no rate (should not happen: the quote refuses first) | rate unavailable |
+| `empty_quote` | 400 | pay | total ≤ 0 | failed |
+| `variant_missing` | 409 | pay | a quoted variant no longer exists | sold out |
+| `layaway_not_yet` / `not_a_layaway_quote` / `full_not_layaway` | 501 / 400 / 400 | pay | mode mismatch between quote and writer | failed |
+
+**Retired:** `currency_not_supported_for_full` (400) — was returned for a PHP
+full-payment quote until 2026-09-25. The Hub no longer sends it; the site keeps
+mapping it (to a neutral "this currency isn't available right now" message) only
+as a rollback safety net.
+
 ## Hub → website
 On any change to `products`, `product_variants`, `product_media`, or `collection_products`, a DB trigger calls edge function `notify_website` which POSTs `{productSlug?, collectionSlug?}` to `${WEBSITE_URL}/api/revalidate` with header `x-revalidate-secret: <REVALIDATE_SECRET>`.
 

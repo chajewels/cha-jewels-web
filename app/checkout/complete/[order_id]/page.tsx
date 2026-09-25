@@ -81,7 +81,12 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
                 {items.map((line) => (
                   <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-white p-4 text-sm">
                     <span className="text-charcoal-deep">{orderLineTitle(line, lang)}{line.quantity > 1 ? ` × ${line.quantity}` : ""}</span>
-                    <span className="text-charcoal">{formatMoney(Number(line.line_total_jpy), order.currency)}</span>
+                    {/* line_total_jpy is always yen, the price of record: shown
+                        on a yen order only. A peso order lists the pieces and
+                        gives its total in pesos (owner decision D1). */}
+                    {order.currency === "JPY" && (
+                      <span className="text-charcoal">{formatMoney(Number(line.line_total_jpy), "JPY")}</span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -110,7 +115,7 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
 
         <dl className="rule-grid mt-10 grid gap-px sm:grid-cols-3">
           <Cell k={t("complete", "reference")} v={order.web_reference ?? "—"} mono />
-          <Cell k={t("complete", "amount")} v={formatMoney(Number(order.total_amount))} />
+          <Cell k={t("complete", "amount")} v={formatMoney(Number(order.total_amount), order.currency)} />
           <Cell
             k={t("complete", "deadline")}
             v={due ? due.toLocaleString(lang === "ja" ? "ja-JP" : "en-GB", { dateStyle: "medium", timeStyle: "short" }) : "—"}

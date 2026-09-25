@@ -630,7 +630,7 @@ export const dict = {
     settlementJpy: { ja: "日本円で", en: "Japanese yen" },
     settlementPhp: { ja: "フィリピンペソで", en: "Philippine pesos" },
     settlementNote: { ja: "お選びいただいた通貨で金額が確定します。以降のお支払いもすべて同じ通貨です。", en: "Your plan is fixed in the currency you choose here, and every payment on it is in that currency." },
-    settlementFullNote: { ja: "一括でのお支払いは日本円のみとなります。", en: "Paying in full is available in yen only." },
+    settlementOrderNote: { ja: "価格は日本円で設定しています。ペソでお支払いの場合は、ご注文時に一度だけ換算し、1ペソ単位に四捨五入します。", en: "Prices are set in yen. If you pay in pesos, your total is converted once, when you place the order, and rounded to the nearest peso." },
     termH: { ja: "お支払い回数", en: "Over how many months?" },
     termMonths: { ja: "{n}か月", en: "{n} months" },
     termMin: { ja: "{amount}以上", en: "from {amount}" },
@@ -663,7 +663,7 @@ export const dict = {
     reservePiece: { ja: "この内容で予約する", en: "Reserve this piece" },
     reserving: { ja: "手続き中…", en: "Reserving…" },
     belowMinimum: { ja: "このご注文金額では、お選びの回数をご利用いただけません。ご利用いただける回数からお選びください。", en: "That number of months is not available at this order total. Please choose from the terms shown." },
-    currencyUnsupported: { ja: "一括でのお支払いは日本円のみとなります。", en: "Paying in full is available in yen only." },
+    currencyUnsupported: { ja: "ただいまこの通貨ではお支払いいただけません。日本円をお選びいただくか、しばらくしてからお試しください。", en: "Paying in this currency isn't available right now. Please choose yen, or try again shortly." },
     rateUnavailable: { ja: "ただいま為替レートを取得できません。恐れ入りますが、時間をおいてお試しください。", en: "We cannot fetch today's exchange rate. Please try again shortly." },
     transferUnavailable: {
       ja: "申し訳ありません。お届け先の国へのお支払い方法をただいまご用意できません。お手数ですが当店までご連絡ください。",
