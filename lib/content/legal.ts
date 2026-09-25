@@ -411,8 +411,8 @@ export const tokusho = {
     {
       k: { ja: "支払時期", en: "When payment is due" },
       v: {
-        ja: "注文時。分割予約※の場合は3か月、6か月、または¥300,000以上のご注文で8か月の各プランに応じ、契約書記載の期日",
-        en: "At the time of order. For layaway※, on the dates set out in your agreement, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+        ja: "注文時。分割予約※の場合は3か月、6か月、または¥300,000以上のご注文で8か月の各プランに応じ、アカウントに表示される期日",
+        en: "At the time of order. For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {

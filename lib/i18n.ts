@@ -405,7 +405,7 @@ export const dict = {
     // there is no separate sign-up on this site — the first link creates the
     // account — and nothing on the page said so.
     loginH: { ja: "ログインまたは新規登録", en: "Sign in or create an account" },
-    loginP: { ja: "安全なログインリンクをメールでお送りします。はじめての方は、そのままアカウントが作成されます。", en: "We'll email you a secure link — new customers get an account automatically." },
+    loginP: { ja: "安全なログインリンクをメールでお送りします。初めての方は、その後かんたんなプロフィールのご入力をお願いします。", en: "We'll email you a secure link. New customers then complete a short profile." },
     sentH: { ja: "メールをご確認ください", en: "Check your email" },
     sentTo: { ja: "{email} にログインリンクをお送りしました。", en: "We sent a sign-in link to {email}." },
     resend: { ja: "リンクを再送する", en: "Send the link again" },
