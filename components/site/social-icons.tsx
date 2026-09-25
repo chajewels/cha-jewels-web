@@ -43,7 +43,7 @@ export function SocialIcons({ items, tone, lang, className = "" }: {
             aria-label={t("social", it.key)}
             className={`grid h-10 w-10 place-items-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${ring}`}
           >
-            <Icon name={it.key} />
+            <SocialGlyph name={it.key} />
           </a>
         </li>
       ))}
@@ -51,11 +51,12 @@ export function SocialIcons({ items, tone, lang, className = "" }: {
   );
 }
 
-function Icon({ name }: { name: SocialKey }) {
-  const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+/** The glyphs, exported so the floating Messenger button draws the same one. */
+export function SocialGlyph({ name, size = 18 }: { name: SocialKey; size?: number }) {
+  const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
   switch (name) {
     case "email":
-      return <Mail size={18} strokeWidth={1.6} aria-hidden="true" />;
+      return <Mail size={size} strokeWidth={1.6} aria-hidden="true" />;
     case "facebook":
       // The "f": a stem with a crossbar and a hooked top.
       return (

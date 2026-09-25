@@ -373,6 +373,9 @@ export const dict = {
     email: { ja: "メールで問い合わせる", en: "Email us" },
     facebook: { ja: "Facebookページ", en: "Facebook page" },
     messenger: { ja: "Messengerで連絡する", en: "Message us on Messenger" },
+    // The floating button (components/site/messenger-button.tsx). Its own key:
+    // the owner chose different Japanese for it than for the footer icon.
+    messengerButton: { ja: "Messengerでお問い合わせ", en: "Message us on Messenger" },
     whatsapp: { ja: "WhatsAppグループに参加", en: "Join the WhatsApp group" },
     line: { ja: "LINEグループに参加", en: "Join the LINE group" },
   },

@@ -275,6 +275,22 @@ add("social icon ring charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
 add("social icon glyph charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
 add("social icon glyph gold-dark (hover) on white", "gold-dark", "white", NONTEXT);
 
+// The floating Messenger button (components/site/messenger-button.tsx,
+// .messenger-fab in app/globals.css). It floats over the chalk page, white
+// cards and the charcoal-deep footer, so every edge is measured on all three.
+// Orange on chalk (1.81) is already pinned as a must-fail below: the
+// charcoal-deep border is what carries the shape on light, as with the
+// pending dot. The focus ring is charcoal-deep outside and chalk inside, one
+// for each kind of surface. The label and glyph are charcoal-deep on orange
+// and orange-hover, rows above.
+add("messenger button border (charcoal-deep) on chalk", "charcoal-deep", "chalk", NONTEXT);
+add("messenger button border (charcoal-deep) on white", "charcoal-deep", "white", NONTEXT);
+add("messenger button fill edge (orange) on charcoal-deep", "orange", "charcoal-deep", NONTEXT);
+add("messenger button glyph charcoal-deep on orange", "charcoal-deep", "orange", NONTEXT);
+add("messenger focus ring outer charcoal-deep on chalk", "charcoal-deep", "chalk", NONTEXT);
+add("messenger focus ring outer charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
+add("messenger focus ring inner chalk on charcoal-deep", "chalk", "charcoal-deep", NONTEXT);
+
 // Post body links (.post-body a in app/globals.css). The resting gold-dark on
 // chalk already has a row above; the HOVER is gold-deep, which is new on this
 // surface — gold-deep existed only over the two composited tints until now.
