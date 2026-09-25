@@ -1,7 +1,8 @@
 import { pageMeta } from "@/lib/page-meta";
 import { LegalArticles } from "@/components/site/legal-articles";
 import { getLang } from "@/lib/i18n-server";
-import { tosArticles, tosTitle, tosUpdated } from "@/lib/content/legal";
+import { legalArticlesFor, tosArticles, tosTitle, tosUpdated } from "@/lib/content/legal";
+import { layawayOffered } from "@/lib/layaway-availability";
 
 export const generateMetadata = () => pageMeta("terms");
 
@@ -11,11 +12,10 @@ export default async function TermsPage() {
   // section summary this page used to show; what that said and this does not is
   // itemised in the PR.
   //
-  // NO LANGUAGE FILTER ANY MORE. The old page dropped its layaway section on
-  // `ja` via termsSectionsFor. This document cannot be filtered that way —
-  // §11 is one of thirty-one numbered sections and layaway also appears in §2,
-  // §14, §16, §22 and §30 — so the Japanese now describes layaway. Flagged for
-  // Cynthia rather than decided here; see lib/content/legal.ts on tosTitle.
+  // NO LAYAWAY ON THE JAPANESE SITE (owner decision 2026-09-25, final). The
+  // layaway article (§11) is dropped on `ja` and the rest renumbered 1–30; the
+  // layaway mentions in the other sections were removed from the Japanese text
+  // itself. See legalArticlesFor in lib/content/legal.ts.
   const lang = await getLang();
-  return <LegalArticles lang={lang} title={tosTitle} updated={tosUpdated} articles={tosArticles} />;
+  return <LegalArticles lang={lang} title={tosTitle} updated={tosUpdated} articles={legalArticlesFor(tosArticles, layawayOffered(lang))} />;
 }

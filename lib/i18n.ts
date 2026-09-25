@@ -292,7 +292,7 @@ export const dict = {
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },
   },
   product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, openPhoto: { ja: "写真 {n} を全画面で見る", en: "View photo {n} full screen" }, viewer: { ja: "全画面の商品写真", en: "Full-screen photos" }, closeViewer: { ja: "全画面表示を閉じる", en: "Close full screen" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, sold: { ja: "売約済み", en: "Sold" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout." } },
-  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金（30%）", en: "Down payment (30%)" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "概算です。正確な日程と金額は契約書に記載します。", en: "Estimate. Your signed agreement shows exact dates and amounts." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, phpNote: { ja: "ペソ表示は本日のレートによる参考値です。お支払いは円建てで確定します。", en: "Peso figures are indicative at today's rate. Payments are settled in yen." }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" } },
+  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金（30%）", en: "Down payment (30%)" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "目安です。正確なお支払日と金額は、ご予約確定後にアカウントに表示されます。", en: "Estimate. Your exact payment dates and amounts will appear in your account once your reservation is confirmed." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" } },
   search: {
     placeholder: { ja: "ジュエリーを検索", en: "Search jewelry" },
     prompt: { ja: "品名、ブランド名、素材、商品番号などを入力してください。", en: "Type a name, a brand, a metal or a product number." },
@@ -405,7 +405,7 @@ export const dict = {
     // there is no separate sign-up on this site — the first link creates the
     // account — and nothing on the page said so.
     loginH: { ja: "ログインまたは新規登録", en: "Sign in or create an account" },
-    loginP: { ja: "安全なログインリンクをメールでお送りします。はじめての方は、そのままアカウントが作成されます。", en: "We'll email you a secure link — new customers get an account automatically." },
+    loginP: { ja: "安全なログインリンクをメールでお送りします。初めての方は、その後かんたんなプロフィールのご入力をお願いします。", en: "We'll email you a secure link. New customers then complete a short profile." },
     sentH: { ja: "メールをご確認ください", en: "Check your email" },
     sentTo: { ja: "{email} にログインリンクをお送りしました。", en: "We sent a sign-in link to {email}." },
     resend: { ja: "リンクを再送する", en: "Send the link again" },
@@ -448,7 +448,7 @@ export const dict = {
      * the account page could only show web orders, and false the moment it
      * could show everything. Now it says what the two links are.
      */
-    soon: { ja: "ご注文と分割予約の履歴をご確認いただけます。", en: "Everything you have with us is listed here." },
+    soon: { ja: "ご注文の履歴をご確認いただけます。", en: "Everything you have with us is listed here." },
     /**
      * A signed-in customer with no orders and no plans on this record. Two
      * sentences, because the two causes need different advice: a genuinely new
@@ -559,7 +559,8 @@ export const dict = {
     addressRequired: { ja: "お届け先をご入力ください。", en: "Please enter a delivery address." },
     // ── THE LAYAWAY AGREEMENT GATE (2026-09-18) ──────────────────────────────
     // No plan is created until the customer has signed. The AGREEMENT itself is
-    // TAGALOG ONLY (owner decision) — these strings are the site's own copy
+    // ONE DOCUMENT IN TAGALOG WITH ENGLISH (owner decision 2026-09-25; no
+    // separate English or Tagalog version) — these strings are the site's own copy
     // around it, in the site's own language, and they are not a translation of
     // the agreement and never quote its terms.
     agreementHeading: { ja: "分割予約契約書へのご署名", en: "Sign the layaway agreement" },
@@ -567,9 +568,9 @@ export const dict = {
       ja: "お取り置きを確定する前に、分割予約契約書をお読みいただき、ご署名をお願いいたします。ご署名後、この画面に戻って「署名しました」を押してください。",
       en: "Before we hold the piece, please read and sign the layaway agreement. When you have signed, come back to this page and press “I have signed”.",
     },
-    agreementTagalogNote: {
-      ja: "契約書はタガログ語のみでご用意しています。",
-      en: "The agreement is provided in Tagalog only.",
+    agreementLanguageNote: {
+      ja: "契約書はタガログ語と英語を併用した1つの書面です。",
+      en: "The agreement is written in Tagalog with English, as one document.",
     },
     agreementOpen: { ja: "契約書を開く", en: "Open the agreement" },
     agreementNewTabNote: {
@@ -648,7 +649,7 @@ export const dict = {
     // Japanese before they paid — layaway is English-only (owner decision
     // 2026-09-15). Nothing was charged and the basket is intact, so the copy
     // says what to do next rather than apologising.
-    layawayUnavailable: { ja: "分割予約は英語表示のみでのお取り扱いとなります。全額でのお支払いにお進みいただくか、表示言語をEnglishに切り替えてください。カートの中身はそのままです。", en: "Layaway is available on the English site only. Pay in full, or switch the language to English to reserve. Your basket is untouched." },
+    layawayUnavailable: { ja: "このお支払い方法は日本語表示ではご利用いただけません。全額でのお支払いにお進みください。カートの中身はそのままです。", en: "Layaway is available on the English site only. Pay in full, or switch the language to English to reserve. Your basket is untouched." },
     // THE DEPOSIT DEADLINE IS THE CUSTOMER'S, NOT A CONSTANT. It said "72
     // hours" to everyone until 2026-09-24, and a first order gets 24. Same
     // split as deadlineWithin / deadlineNote: the number is rendered only when
@@ -865,7 +866,7 @@ export const dict = {
     success: { ja: "ご依頼を受け付けました。担当者が確認後、こちらにお返事します。", en: "Your request has been sent. We will review it and reply here." },
     listH: { ja: "ご依頼履歴", en: "Your requests" },
     emptyHere: { ja: "まだご依頼はありません。", en: "No requests yet." },
-    empty: { ja: "サービス依頼はまだありません。ご注文または分割予約のページから依頼できます。", en: "No service requests yet. You can raise one from an order or a layaway plan." },
+    empty: { ja: "サービス依頼はまだありません。ご注文のページから依頼できます。", en: "No service requests yet. You can raise one from an order or a layaway plan." },
     requestedOn: { ja: "{date} 依頼", en: "Requested {date}" },
     noteFrom: { ja: "Cha Jewelsからのお返事", en: "Reply from Cha Jewels" },
     viewOrder: { ja: "ご注文を見る", en: "View order" },
@@ -972,10 +973,10 @@ export const dict = {
     affiliations: { title: { ja: "所属団体", en: "Affiliations" }, description: { ja: "Cha Jewelsが所属している東京の経済団体。東京商工会議所および東京葛飾中央ロータリークラブ。", en: "The business organisations Cha Jewels belongs to in Tokyo: the Tokyo Chamber of Commerce and Industry and the Tokyo Katsushika Central Rotary Club." } },
     faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
     collections: { title: { ja: "コレクション", en: "Collections" } },
-    terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、分割予約、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },
+    terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },
     privacy: { title: { ja: "プライバシーポリシー", en: "Privacy policy" }, description: { ja: "Cha Jewelsが収集する情報、その目的、第三者への提供、開示・削除のご請求方法。", en: "What Cha Jewels collects, why, who else sees it, and how to ask for a copy or a deletion." } },
     tokusho: { title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" } },
-    returns: { title: { ja: "返品・キャンセル・返金ポリシー", en: "Return, Cancellation and Refund Policy" }, description: { ja: "返品をお受けする場合と条件、キャンセル料、分割予約の予約金、ストアクレジットの有効期限、返品のお申し出の手続。", en: "When we accept a return and on what terms, cancellation charges, layaway down payments, how long store credit lasts, and how to make a request." } },
+    returns: { title: { ja: "返品・キャンセル・返金ポリシー", en: "Return, Cancellation and Refund Policy" }, description: { ja: "返品をお受けする場合と条件、キャンセル料、ストアクレジットの有効期限、返品のお申し出の手続。", en: "When we accept a return and on what terms, cancellation charges, layaway down payments, how long store credit lasts, and how to make a request." } },
   },
 } as const;
 

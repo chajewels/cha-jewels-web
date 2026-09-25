@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
@@ -58,8 +59,12 @@ export default async function ServiceRequestsPage({ searchParams }: { searchPara
           <p className="mt-10 text-charcoal">
             {t("service", "empty")}{" "}
             <Link href="/account/orders" className="text-gold-dark underline underline-offset-4">{t("orders", "h1")}</Link>
-            {" · "}
-            <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>
+            {layawayOffered(lang) && (
+              <>
+                {" · "}
+                <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>
+              </>
+            )}
           </p>
         )}
 

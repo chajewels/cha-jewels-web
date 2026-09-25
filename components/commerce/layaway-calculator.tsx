@@ -200,7 +200,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, phpRate, classN
       <p id={priceErrorId} className={!validPrice ? "text-xs text-garnet" : s.note}>
         {!validPrice ? c.invalidPrice[lang]
           : pending ? c.updating[lang]
-          : error ?? (shown?.term_downgraded ? c.unavailableTerm[lang] : display === "PHP" ? c.phpNote[lang] : c.note[lang])}
+          : error ?? (shown?.term_downgraded ? c.unavailableTerm[lang] : c.note[lang])}
       </p>
     </form>
   );

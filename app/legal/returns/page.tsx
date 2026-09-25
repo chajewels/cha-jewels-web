@@ -1,7 +1,8 @@
 import { pageMeta } from "@/lib/page-meta";
 import { LegalArticles } from "@/components/site/legal-articles";
 import { getLang } from "@/lib/i18n-server";
-import { returnsArticles, returnsIntro, returnsTitle, returnsUpdated } from "@/lib/content/legal";
+import { legalArticlesFor, returnsArticles, returnsIntro, returnsTitle, returnsUpdated } from "@/lib/content/legal";
+import { layawayOffered } from "@/lib/layaway-availability";
 
 export const generateMetadata = () => pageMeta("returns");
 
@@ -20,7 +21,8 @@ export default async function ReturnsPage() {
       title={returnsTitle}
       updated={returnsUpdated}
       intro={returnsIntro}
-      articles={returnsArticles}
+      // No layaway section on the Japanese site (owner decision 2026-09-25).
+      articles={legalArticlesFor(returnsArticles, layawayOffered(lang))}
     />
   );
 }

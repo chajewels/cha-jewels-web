@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
-import { tokusho, tokushoUpdated } from "@/lib/content/legal";
+import { tokusho, tokushoRowsFor, tokushoUpdated } from "@/lib/content/legal";
+import { layawayOffered } from "@/lib/layaway-availability";
 
 export const generateMetadata = () => pageMeta("tokusho");
 
@@ -29,7 +30,8 @@ export default async function Tokusho() {
         <h1 className="text-[clamp(32px,4vw,56px)]">{tokusho.title[lang]}</h1>
         <p className="mt-4 text-sm text-charcoal/70">{tokushoUpdated[lang]}</p>
         <dl className="mt-10 divide-y divide-hairline border-y border-hairline">
-          {tokusho.rows.map(({ k, v }) => (
+          {/* No layaway row on the Japanese site (owner decision 2026-09-25). */}
+          {tokushoRowsFor(layawayOffered(lang)).map(({ k, v }) => (
             // Keyed on the Japanese label because it is stable — the key must
             // not change when the toggle does.
             <div key={k.ja} className="grid gap-2 py-4 sm:grid-cols-[200px_1fr]">

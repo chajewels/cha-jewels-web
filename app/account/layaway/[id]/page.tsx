@@ -1,8 +1,9 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { tr } from "@/lib/i18n";
 import { orderLineTitle } from "@/lib/catalog-i18n";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -52,6 +53,10 @@ export default async function LayawayPlanPage({ params, searchParams }: {
 }) {
   const [lang, { id }, query] = await Promise.all([getLang(), params, searchParams]);
   const t = tr(lang);
+  // NO LAYAWAY ON THE JAPANESE SITE (owner decision 2026-09-25, final), and
+  // that now includes the account's plan pages, which used to stay reachable in
+  // either language. Same answer as /layaway: not found on `ja`.
+  if (!layawayOffered(lang)) notFound();
 
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
