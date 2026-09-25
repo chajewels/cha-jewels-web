@@ -20,7 +20,7 @@ web
 ## Users
 
 - **Japanese customers in Japan (the primary audience).** They read the site in Japanese, which is the default language. They buy fine and preloved jewelry for themselves or as gifts. They judge a piece by its purity, its weight, its authenticity and a clear yen price.
-- **Filipinos in Japan, in the Philippines and worldwide.** They mostly read the English toggle. Many first met Cha Jewels through live selling on Facebook, and they are used to buying through chat. They compare K18 value by the gram. The 0% layaway plan is often what lets them buy a piece now. They see peso figures as an indication only; payment is settled in yen.
+- **Filipinos in Japan, in the Philippines and worldwide.** They mostly read the English toggle. Many first met Cha Jewels through live selling on Facebook, and they are used to buying through chat. They compare K18 value by the gram. The 0% layaway plan is often what lets them buy a piece now. They can pay in yen or in pesos, whichever they choose.
 - **Returning customers and loyalty members.** They sign in by email link to see orders, layaway plans and points (`/account`).
 
 Every visitor is doing one job: decide whether *this specific one-of-a-kind piece* is genuine, worth its price, and safe to reserve. Then reserve it, or contact staff.
@@ -41,7 +41,7 @@ What only Cha Jewels has. It must be **surfaced, not buried**:
 2. **0% interest layaway, English site only.** A 30% deposit takes the piece off the shelf. The balance is paid in equal monthly amounts over 3, 6, or 8 months (8 months for orders of ¥300,000 and above), with no bank loan and no fees. All figures come from the Hub (`POST /layaway/quote`).
 3. **Live-selling heritage.** Cha Jewels has served customers since 2021 through live selling. Faces on camera, pieces held up to the light, prices said out loud. The site should carry that directness.
 4. **Authentication in Japan.** Preloved and branded pieces are authenticated and hallmark checked in Japan. This is a claim about Cha Jewels' intake process, not about where a piece was made.
-5. **Loyalty tiers: Glimmer, Radiant, Elite, Crown VIP.** Points earn 1% at Glimmer, higher tiers multiply that rate, and 1 point = ¥1 on the next piece.
+5. **Loyalty tiers: Glimmer 1×, Radiant 2×, Elite 2×, Crown VIP 3×.** Points earn 1% at Glimmer, and each higher tier multiplies that base rate. 1 point = ¥1 on the next piece. Points are always calculated in yen.
 
 Tone: **direct and pragmatic.** Say the fact, the number and the condition, then stop. The brand direction is **"gilded maximalism, value-driven luxe."** The audit found the site currently reads "quiet and minimal with gold trim". The job ahead is to make the gilding visible while it stays premium and readable.
 
@@ -53,7 +53,7 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
   - Preloved: Preloved Watches, Preloved Branded Jewelry, Preloved Designer Accessories.
   - Most pieces are one of a kind (quantity 1).
 - **Languages.** Japanese is primary. English is a toggle, handled by `lib/i18n.ts` and `lib/content/`. Layaway exists only when the language is English (`lib/layaway-availability.ts`).
-- **Currencies.** Yen is the price of record. Peso figures are indicative at today's rate, from the Hub's FX.
+- **Currencies.** Yen is the price of record. A customer may pay in yen or in pesos, whichever they choose; the Hub converts at the checkout FX rate. Loyalty points are always calculated in yen.
 - **Buying flow: reserve first.** Every order is a reservation first. Staff confirm the piece, and only then does the customer receive payment details and a deadline. A transfer order holds stock for 72 hours after confirmation. A quote never reserves stock.
 - **Live orders.** Live claims are handled in the Hub (from a Page365 order link), not on this site. A live order reaches the customer through `/account`. There is no `/live` route.
 - **Chat-first customers.** Messenger, Facebook, email, WhatsApp and LINE are supported by `components/site/social-icons.tsx`. Which ones show is a Hub setting (`social.follow`).
@@ -95,7 +95,7 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
    - `components/catalog/origin-badge.tsx`, only when the Hub says `origin === "JAPAN"`. A branded piece shows its brand name and claims no origin.
    - The approved clarifier sentence, `brand.originNote` in `lib/i18n.ts`, reproduced exactly.
 
-   No other site-wide origin claims. The CLAUDE.md exception for the Hub footer tagline stands as recorded there (owner decision 2026-09-25). Site-wide copy may say "authenticated in Japan" / "hallmark checked in Japan", which is a claim about our checks, not about origin.
+   No other site-wide origin claims, and that includes the Hub footer tagline, which no longer names an origin (owner decision 2026-09-25). Site-wide copy may say "authenticated in Japan" / "hallmark checked in Japan", which is a claim about our checks, not about origin.
 3. **Layaway content appears on the English site only.** This covers copy, testimonials, tabs, calculators and CTAs. Japanese pages carry none of it (`layawayOffered(lang)`).
 4. **An out-of-stock piece shows "Sold" / 売約済み, never "Reserved".**
 5. **Every order is a reservation first.** Bank details are never shown before staff confirm the piece.
@@ -106,6 +106,10 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 
 - **Name:** Cha Jewels. The logo badge is in `public/images/brand/`.
 - **Legal name:** the owner-confirmed full-width form, `Ｃｈａ　Ｊｅｗｅｌｓ株式会社`. It uses full-width Latin letters and a full-width space, as confirmed 2026-09-16 in `lib/content/legal.ts`. Reproduce it exactly; never normalize it to half-width.
+- **Company name by page (owner decision 2026-09-25):**
+  - English pages: `Cha Jewels Co., Ltd. (Ｃｈａ　Ｊｅｗｅｌｓ株式会社)`.
+  - Japanese pages and legal pages: the legal form only.
+  - (planned) The footer and contact pages will render it this way. The code has not been changed yet.
 - **Direction:** "gilded maximalism, value-driven luxe." **Gold** is the brand accent.
 - **Orange** marks buy and contact actions, per the brand kit and the audit. It is never used for navigation, the language toggle or decorative headings.
 - **Voice:** direct and pragmatic. Short sentences, real numbers, honest conditions ("Estimate. Your signed agreement shows exact dates and amounts."). No exclamation marks, no Title-Case slogans, no unfalsifiable claims.
@@ -141,7 +145,6 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 - **People and place:** the founder, team, office or showroom, hands at work, a live-selling still. The About page's 3D logo coin and the stock-looking artisan image are placeholders for these.
 - **Product video (MP4).** It is planned; none exists yet.
 - **Hero and banner 3D renders.** None are produced yet.
-- **Loyalty multipliers:** Radiant and Elite both read "2X". Confirm the real figures in the Hub before designing around them.
 - **Press and awards:** none on hand. Invent none.
 
 **Components whose quality depends on better photography:** product card, product gallery and viewer, the homepage "New on the bench" arrivals, the hero's first viewport (a real piece and a price above the fold), collection headers, category slides, About/Why, and the mobile art-directed hero crops.
@@ -169,7 +172,5 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 
 These were raised by the audit or this setup and are not answered yet. Do not settle them in code.
 
-- **Company name on English pages.** Two options: the legal form only, or "Cha Jewels Co., Ltd." with the legal form alongside. Whichever is chosen, the legal form stays exact on Japanese and legal pages. (The brief wrote the legal name with an ASCII space, while the code's owner-confirmed form uses a full-width space. The code is kept until the owner says otherwise.)
 - **Which chat channels to show.** LINE is supported in code, but whether it is configured is a Hub setting.
-- **The real Radiant/Elite point multipliers** (Hub data).
 - **Whether the "Our Values" section is replaced by a proof strip** (audit H4).

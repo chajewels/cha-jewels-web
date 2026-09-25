@@ -176,8 +176,7 @@ components:
   code today. Product rules (terminology, origin, layaway language, "Sold",
   reserve-first) live in PRODUCT.md. This file is visual only.
 
-  NORTH STAR. "The Gilded Ledger" was proposed by Claude and has not been
-  confirmed by the owner. Replace the name if she chooses another.
+  NORTH STAR. "The Gilded Ledger", confirmed by the owner 2026-09-25.
 
   This file is scanned by `npm run check:terms`, so forbidden phrases are
   never written out here.
@@ -262,7 +261,7 @@ Two materials, gold and charcoal, on a chalk page. One action colour, orange. Th
 
 **The Japanese Is Not Tracked Rule.** Never uppercase-transform or wide-track Japanese. JA labels use the label size with 0.05em tracking. Headings must not break mid-word (`word-break: auto-phrase` or BudouX). Never fake an italic on Japanese.
 
-**The Gilt Is Earned Rule.** The `.gilt` gradient text (dark to pale to leaf gold) and the hero sheen are the site's signature gilding. Use them only at Display or Headline size (≥32px), on at most one element per viewport, and never on a price or a fact. The audit's pattern-borrowing notes suggested dropping the headline glow. The owner's "gilded maximalism" brief overrides that, and this rule is the limit instead.
+**The Gilt Is Earned Rule.** The `.gilt` gradient text (dark to pale to leaf gold) and the hero sheen are the site's signature gilding. Use them only at Display or Headline size (≥32px), on at most one element per viewport, and never on a price or a fact. The owner confirmed the gilt glow on headlines (2026-09-25), with exactly these limits.
 
 ## Layout
 
@@ -332,7 +331,7 @@ The price card is the most "value-driven luxe" object on the site.
   1. the short name (Title),
   2. the spec line (Spec, gold-dark on light),
   3. the price card.
-- (planned) The peso figure appears as an indicative line from the Hub FX.
+- (planned) The peso price appears as a second line, from the Hub FX. A customer may pay in pesos; the Hub converts at checkout.
 - (change) The reserve figure must come from the Hub quote, not the current local 30% calculation.
 
 ### Spec Table (Bugatti-style hairline ledger)
