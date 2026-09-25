@@ -4,7 +4,6 @@ import { allImages, getProductBySlug, primaryImage } from "@/lib/queries/product
 import { tr } from "@/lib/i18n";
 import { productDescription, productName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
-import { hub } from "@/lib/hub-api";
 import { PriceBlock } from "@/components/commerce/price-block";
 import { KaratBadge } from "@/components/catalog/karat-badge";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
@@ -28,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: productName(p, lang), description: productDescription(p, lang) ?? undefined, openGraph: img ? { images: [img.url] } : undefined };
 }
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  const [p, lang, fx] = await Promise.all([getProductBySlug((await params).slug), getLang(), hub.fx().catch(() => ({ jpy_php: 0.39, as_of: "" }))]);
+  const [p, lang] = await Promise.all([getProductBySlug((await params).slug), getLang()]);
   if (!p) notFound();
   const t = tr(lang);
   const layaway = layawayOffered(lang);
@@ -77,7 +76,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
             </RevealBlock>
             <NavHeading text={name} lang={lang} className="mt-4 text-[clamp(32px,4.2vw,60px)]" />
-            {price != null && <RevealBlock index={1} enterOnNav><PriceBlock price={price} lang={lang} showReserve={layaway && isBuyable(avail)} className="mt-6" /></RevealBlock>}
+            {price != null && <RevealBlock index={1} enterOnNav><PriceBlock price={price} downPayment={{ jpy: variant?.down_payment_jpy, php: variant?.down_payment_php }} lang={lang} showReserve={layaway && isBuyable(avail)} className="mt-6" /></RevealBlock>}
             <RevealBlock index={2} enterOnNav>
               {desc && <p className="mt-6 max-w-[52ch] text-charcoal">{desc}</p>}
               <p className="mt-4 text-sm text-charcoal/70">SKU {p.sku}</p>
@@ -94,7 +93,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {/* NO CALCULATOR ON A PIECE THAT CANNOT BE BOUGHT. It invited the
                 shopper to reserve this one "with ¥45,000 and pay the rest
                 monthly", beneath a button that refused to sell it. */}
-            {layaway && price != null && isBuyable(avail) && <RevealBlock index={4} enterOnNav><LayawayCalculator lang={lang} initialPrice={price} phpRate={fx.jpy_php} className="mt-8" /></RevealBlock>}
+            {layaway && price != null && isBuyable(avail) && <RevealBlock index={4} enterOnNav><LayawayCalculator lang={lang} initialPrice={price} className="mt-8" /></RevealBlock>}
           </div>
         </div>
       </section>

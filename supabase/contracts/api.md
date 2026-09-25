@@ -6,7 +6,8 @@ The public website (`chajewels/cha-jewels-web`, Next.js on Vercel) talks to the 
 - Header `x-api-key: <HUB_API_KEY>` on every request. Compare against secret `WEBSITE_API_KEY` (Cloud → Secrets). Return 401 otherwise.
 - JSON in, JSON out. `404 {"error":"not_found"}` for missing records. Never return `cost_basis`, margin, or commission fields.
 - CORS not required (server-to-server), but allow `OPTIONS` for safety.
-- All prices are integers in JPY. `price_php` is optional and, if present, is the Hub's own conversion at the day's rate; the website does not require it.
+- All prices are integers in JPY. `price_php` is optional and, if present, is the Hub's own conversion at the day's rate (half-up to a whole peso, the same integer maths the peso checkout stores); the website does not require it.
+- **Every customer-facing money figure comes from the Hub** (owner rule 2026-09-25). The website renders `down_payment_jpy` / `down_payment_php` and `layaway_quote`'s figures; it never applies a percentage, converts a currency or falls back to a rate of its own. Guarded by `npm run check:money` (CI).
 
 ## Types
 ```ts
@@ -16,10 +17,34 @@ Product = { id, sku, slug, name, karat: "K18"|"K14"|"K10"|"PT1000"|"PT950"|"PT90
             condition: "New"|"Preloved", origin: "JAPAN"|"BRAND"|"OTHER"|"UNKNOWN", brand: string|null,
             product_variants: Variant[] }
 Variant = { id, size: string|null, stone: string|null, price_jpy: number, price_php: number|null,
-            stock_qty: number, product_media: { url, alt: string|null, sort: number }[] }
-LayawayQuote = { down_payment, monthly, term_months, total, max_term_months, currency }
+            stock_qty: number, down_payment_jpy?: number, down_payment_php?: number, down_payment_pct?: number,
+            product_media: { url, alt: string|null, sort: number }[] }
+LayawayQuote = { down_payment, deposit, monthly, last_month, term_months, total, max_term_months, currency,
+                 allowed_terms: { months, label, min_amount, dp_percentage, eligible }[],
+                 term_downgraded, requested_term_months,
+                 price_jpy?, fx_rate?, fx_as_of? }   // the last three on a `price_jpy` quote
 LiveClaim = { id, code, price_locked, status: "held"|"paid"|"layaway"|"expired"|"released", expires_at, product_variant_id }
 ```
+
+**Down payments** (Hub, 2026-09-25). Per variant, for the **piece alone** (no
+shipping, owner decision D1), on the shortest active term:
+- `down_payment_jpy` = `layaway_quote(price_jpy, term, 'JPY').deposit`
+- `down_payment_php` = `layaway_quote(price_php, term, 'PHP').deposit` — convert
+  first, then the percentage, both half-up to a whole unit. With ₱0 shipping
+  this is exactly the deposit a peso layaway checkout stores for the piece; with
+  shipping the checkout deposit also covers shipping, and the checkout shows
+  that binding figure.
+- `down_payment_pct` — that term's `dp_percentage` (0.30 today).
+- All three come from one `website_down_payments` call per request. A field the
+  Hub cannot produce is **omitted, never null and never estimated**: no rate →
+  no `down_payment_php`; lookup failure → none of the three. Present on every
+  product-shaped response; never on the `?fields=` slug list.
+- **Site use:** the product card (`components/catalog/product-card.tsx`, the
+  variant whose price `fromPrice` shows) and the product page's price block
+  (`components/commerce/price-block.tsx`) render "¥21,894 (₱8,699)" (owner
+  format D3), English only (`layawayOffered`), and only when **both**
+  `down_payment_jpy` and `down_payment_php` are present. Otherwise no reserve
+  line at all.
 
 `condition` is returned on every product. The site treats an absent value as
 `"New"`, and only `"Preloved"` renders a badge — so a Hub response predating the
@@ -40,11 +65,11 @@ an origin from metal, name or description, and site-wide copy may only say
 | `GET /catalog/products?featured=1&limit=8` | `Product[]` | newest active first; `featured=1` may later use a flag |
 | `GET /catalog/products?fields=slug,updated_at&limit=5000` | `{slug, updated_at}[]` | for the sitemap |
 | `GET /catalog/products/:slug` | `Product` | 404 if not active |
-| `POST /layaway/quote` body `{price, term_months, currency}` | `LayawayQuote` | **Single source of layaway math for site AND Hub.** 30% down; equal monthly; terms 3–6, up to 8 when price ≥ ¥300,000 (PHP: same threshold at day's rate); clamp term to max instead of erroring; 0% interest. |
+| `POST /layaway/quote` body `{price_jpy, term_months, currency}` | `LayawayQuote` | **Single source of layaway math for site AND Hub.** `price_jpy` is the piece's **yen** price whatever `currency` is (the website sends the catalog price and never converts). `JPY` → `layaway_quote(price_jpy, term, 'JPY')`. `PHP` → the Hub converts `price_php = HU(price_jpy × rate)` at the latest `fx_rates` row, then `layaway_quote(price_php, term, 'PHP')`: every figure (`deposit`, `monthly`, `last_month`, `total`, `schedule`) is computed in pesos; no rate → **503 `fx_unavailable`**. The answer adds `price_jpy`, `fx_rate`, `fx_as_of` (`null` for yen). **Term minimums are per currency:** `allowed_terms[].min_amount` / `eligible` use `min_amount_jpy` for yen and the fixed `min_amount_php` for pesos (6M ₱10,500, 8M ₱126,000, …), never the yen minimum converted — so ₱ mode shows the peso quote's terms. Clamp term to max instead of erroring; 0% interest. A non-integer or negative `price_jpy` → 400 `invalid_price`. Legacy body `{price, term_months, currency}` (`price` read in `currency`) is unchanged on the Hub; the website no longer sends it. Site: `lib/layaway.ts` → `hub.layawayQuote(price_jpy, term, currency)`; `components/commerce/layaway-calculator.tsx` asks again on every ¥/₱ switch and shows the 503 as the checkout's rate-unavailable message. |
 | `GET /claims/:code` | `LiveClaim` | code uppercased; 404 if unknown |
 | `POST /claims/:code/checkout` (Phase 2) | order or plan | requires customer JWT in `Authorization`; idempotent |
 | `GET /loyalty/tiers` | `HubTier[]` | Hub loyalty_tiers ordered by rank: `{slug,name,threshold_jpy,requalify_spend,multiplier,hold_minutes,benefits_ja[],benefits_en[]}` |
-| `GET /fx` | `{ jpy_php: number, as_of: "YYYY-MM-DD" }` | Daily JPY→PHP rate; refreshed by cron. Website uses it for display only. |
+| `GET /fx` | `{ jpy_php: number, as_of: "YYYY-MM-DD" }` | Daily JPY→PHP rate; refreshed by cron; 404 when none is on file. The website no longer reads it for any customer figure (the calculator asks for a peso quote instead; the old `0.39` fallbacks are gone). |
 | `POST /loyalty/join` body `{name, contact, region, lang}` | `{ok:true}` | Failure fallback only: records a storefront enrollment that did NOT complete and raises Hub staff bell `loyalty_join_failed`. Never enrolls. Real enrollment = direct call to `join-loyalty-program` with the customer JWT and body `{ source: "storefront_checkout" \| "storefront_join" }`. |
 | `POST /auth/customer` body `{}` or `{full_name, location, facebook_name?, messenger_link?, mobile_number?}` | `{ customer: HubCustomer, created: boolean }` | Customer JWT required. Links the signed-in customer to the Hub customer that holds her verified email; with a profile, creates one from it. `location` is stored like the Hub: `Japan`, `Philippines`, or the country name (International). Empty optional fields are omitted. **422 `profile_required`** — no customer holds the email and no profile was sent; nothing created (Hub side ships with the next Hub deploy; until then `{}` still creates a customer named from the email). **409 `already_registered`** `{error, message}` — the details match an existing customer on full name, Facebook name, mobile or email; nothing created, staff notified. 409 `email_already_linked` — another login owns that email. Site handling: `lib/profile.ts` (422 → `/account/complete-profile?next=…`, 409 already_registered → `/already-registered`, which signs her out). |
 | `GET /me` | `HubMe` | Customer JWT required. **404** before the customer is linked; `/account` and `/account/addresses` send that to the profile step. |
@@ -93,8 +118,9 @@ whole peso** (Postgres `round(numeric)`). Shipping is converted on its own and
 the items subtotal is the remainder (`subtotal = total − shipping`), so the
 three always sum. For a **full payment** the quote uses integer maths that
 matches `create_web_order_atomic` exactly, so `total_settlement` is the order's
-`total_amount` to the peso. A layaway's peso schedule comes from
-`layaway_quote` and is unchanged.
+`total_amount` to the peso. A **layaway** uses the same integer half-up since
+2026-09-25 (Hub H3), matching `create_web_layaway_atomic`'s `round(total_jpy *
+fx_rate)`; its peso deposit and schedule then come from `layaway_quote`.
 
 **Pay response** (`POST /checkout/pay`, full payment): `order_id`,
 `web_reference`, `currency` (`JPY` | `PHP`), `total` (in `currency`),
@@ -168,7 +194,9 @@ Apply `supabase/migrations/0001_website_catalog.sql` and `0002_loyalty_signups.s
 
 ## Acceptance test
 1. `curl -H "x-api-key: …" $HUB_API_URL/catalog/collections` returns the four collections.
-2. `POST /layaway/quote {"price":150000,"term_months":6,"currency":"JPY"}` → `{down_payment:45000, monthly:17500, term_months:6, total:150000, max_term_months:6}`.
-3. `POST /layaway/quote {"price":300000,"term_months":8,"currency":"JPY"}` → `max_term_months: 8`, `monthly: 26250`.
-4. `POST /layaway/quote {"price":200000,"term_months":8,"currency":"JPY"}` → clamps to `term_months: 6`.
+2. `POST /layaway/quote {"price_jpy":150000,"term_months":6,"currency":"JPY"}` → `{down_payment:45000, monthly:17500, term_months:6, total:150000, max_term_months:6}`.
+3. `POST /layaway/quote {"price_jpy":300000,"term_months":8,"currency":"JPY"}` → `max_term_months: 8`, `monthly: 26250`.
+4. `POST /layaway/quote {"price_jpy":200000,"term_months":8,"currency":"JPY"}` → clamps to `term_months: 6`.
+4b. `POST /layaway/quote {"price_jpy":72980,"term_months":6,"currency":"PHP"}` → `currency: "PHP"`, `total` = the catalog's `price_php`, `deposit` = HU(`total` × 0.30), `allowed_terms[6].min_amount: 10500`.
+4c. `GET /catalog/products/:slug` → each variant carries `down_payment_jpy`, `down_payment_php`, `down_payment_pct`.
 5. Response bodies contain no `cost_basis` key anywhere.

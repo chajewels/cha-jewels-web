@@ -1,3 +1,3 @@
 import type { Region } from "./utils";
-/** The site prices in JPY only. Peso amounts are display conversions using the Hub's daily rate (see hub.fx). */
+/** The site prices in JPY. Every peso figure a customer sees is the Hub's own (a peso quote, `down_payment_php`, a peso checkout); nothing is converted here. */
 export async function getRegion(): Promise<Region> { return "JP"; }

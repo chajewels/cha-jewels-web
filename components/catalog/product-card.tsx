@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { allImages, fromPrice, type Product } from "@/lib/queries/products";
+import { allImages, fromPrice, fromVariant, type Product } from "@/lib/queries/products";
 import { CardFx, CardMedia } from "@/components/fx/card-fx";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, formatYenPeso, isFigure } from "@/lib/utils";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import { productName } from "@/lib/catalog-i18n";
@@ -16,6 +16,11 @@ import { ConditionBadge } from "@/components/catalog/condition-badge";
 export function ProductCard({ product, lang, featured = false, index = 0 }: { product: Product; lang: Lang; featured?: boolean; index?: number }) {
   const t = tr(lang);
   const price = fromPrice(product);
+  // The reserve figures belong to the variant whose price is shown, and are
+  // the Hub's own (down_payment_jpy / down_payment_php) — never price × 30%.
+  const dpVariant = fromVariant(product);
+  const dpJpy = dpVariant?.down_payment_jpy;
+  const dpPhp = dpVariant?.down_payment_php;
   const metal = metalsLabel(productMetals(product), lang);
   const [img, second] = allImages(product);
   const v = product.product_variants[0];
@@ -58,9 +63,10 @@ export function ProductCard({ product, lang, featured = false, index = 0 }: { pr
                 repeating it here beside the price only made the price line the
                 third place the same fact was worded differently. Nor does any
                 card in a language where layaway is not offered
-                (lib/layaway-availability — English only, owner rule). */}
-            {isBuyable(avail) && layawayOffered(lang) && (
-              <span className="text-charcoal/70"> · {t("product", "reserveFrom")} {formatMoney(Math.round(price * 0.3))}</span>
+                (lib/layaway-availability — English only, owner rule). And
+                none when the Hub did not send BOTH figures: no fallback maths. */}
+            {isBuyable(avail) && layawayOffered(lang) && isFigure(dpJpy) && isFigure(dpPhp) && (
+              <span className="text-charcoal/70"> · {t("product", "reserveFrom")} {formatYenPeso(dpJpy, dpPhp)}</span>
             )}
           </p>
         )}

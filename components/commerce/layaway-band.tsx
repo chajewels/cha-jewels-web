@@ -39,9 +39,9 @@ import { STAGGER } from "@/lib/motion";
  * .md). Its markup and logic are untouched — the glow is applied from out
  * here, through `.lay-cta-fx`.
  */
-export function LayawayBand({ lang, phpRate, fx = false }: { lang: Lang; phpRate: number; fx?: boolean }) {
+export function LayawayBand({ lang, fx = false }: { lang: Lang; fx?: boolean }) {
   const t = tr(lang);
-  if (fx) return <LayawayBandFx lang={lang} phpRate={phpRate} />;
+  if (fx) return <LayawayBandFx lang={lang} />;
   return (
     <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
       <div className="wrap grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
@@ -63,8 +63,6 @@ export function LayawayBand({ lang, phpRate, fx = false }: { lang: Lang; phpRate
         </div>
         <LayawayCalculator
           lang={lang}
-          phpRate={phpRate}
-         
           header={{ title: t("home", "layCalcH"), sub: t("home", "layCalcP"), chip: t("home", "layCalcChip") }}
           // NEVER /layaway. This band renders on the homepage AND on /layaway
           // itself, where that href was a link to the page you are reading. A
@@ -79,7 +77,7 @@ export function LayawayBand({ lang, phpRate, fx = false }: { lang: Lang; phpRate
 }
 
 /** The homepage's band: the same content and classes as above, with entrances. */
-function LayawayBandFx({ lang, phpRate }: { lang: Lang; phpRate: number }) {
+function LayawayBandFx({ lang }: { lang: Lang }) {
   const t = tr(lang);
   return (
     <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
@@ -105,7 +103,6 @@ function LayawayBandFx({ lang, phpRate }: { lang: Lang; phpRate: number }) {
         <RevealItem index={5} className="lay-cta-fx lg:col-span-6">
           <LayawayCalculator
             lang={lang}
-            phpRate={phpRate}
             header={{ title: t("home", "layCalcH"), sub: t("home", "layCalcP"), chip: t("home", "layCalcChip") }}
             // NEVER /layaway — see the band above.
             cta={{ label: t("home", "layCta"), href: "/collections" }}

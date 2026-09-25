@@ -1,7 +1,16 @@
 export type { Metal as Karat } from "./metals";
 export type ProductStatus = "draft" | "active" | "archived";
 export type ProductMedia = { url: string; alt: string | null; sort: number };
-export type ProductVariant = { id: string; size: string | null; stone: string | null; price_jpy: number; price_php?: number | null; stock_qty: number; product_media: ProductMedia[] };
+/**
+ * `down_payment_jpy` / `down_payment_php` / `down_payment_pct` are the Hub's
+ * "reserve with" figures for this piece alone, on the shortest active term —
+ * produced by layaway_quote, the function a layaway checkout stores its deposit
+ * with (supabase/contracts/api.md, Product shape). The Hub OMITS a field it
+ * cannot produce (no rate → no `down_payment_php`), so each is optional and a
+ * caller renders the reserve line only when every figure it needs is present.
+ * Nothing here is ever derived from `price_jpy`: see scripts/check-money.mjs.
+ */
+export type ProductVariant = { id: string; size: string | null; stone: string | null; price_jpy: number; price_php?: number | null; stock_qty: number; down_payment_jpy?: number | null; down_payment_php?: number | null; down_payment_pct?: number | null; product_media: ProductMedia[] };
 export type Condition = "New" | "Preloved";
 /** `condition` is optional so fixtures and any pre-condition Hub response still typecheck; absent is treated as New. */
 /**
@@ -65,6 +74,10 @@ export type LayawayQuote = {
   /** true when the term asked for was out of reach and a shorter one was quoted. */
   term_downgraded?: boolean;
   requested_term_months?: number;
+  /** Echoed by a `price_jpy` quote: the yen price asked about, and — on a peso quote — the rate the Hub converted it at. Never shown to customers. */
+  price_jpy?: number;
+  fx_rate?: number | null;
+  fx_as_of?: string | null;
 };
 export type HubTier = { slug: string; name: string; threshold_jpy: number; requalify_spend: number | null; multiplier: number | null; hold_minutes: number; benefits_ja: string[]; benefits_en: string[] };
 export type FxRate = { jpy_php: number; as_of: string };
