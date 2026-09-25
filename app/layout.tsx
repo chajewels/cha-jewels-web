@@ -10,8 +10,9 @@ import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
 import { dict, tr, PATH_HEADER } from "@/lib/i18n";
 import { headers } from "next/headers";
-import { announcement } from "@/lib/settings";
+import { announcement, follow } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
+import { MessengerButton } from "@/components/site/messenger-button";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
 import { BootMarker } from "@/components/fx/boot-marker";
@@ -76,6 +77,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // layout: an unreachable Hub must cost the strip, not every page on the site.
   // A page whose own content comes from the Hub still throws on its own read.
   const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang).catch(() => null) : null;
+  // The Messenger button's link is the `messenger` row of the Hub's social row,
+  // the same read the footer makes (lib/settings.ts caches it per request). No
+  // row, or no Hub, means no button — chrome again, so the failure is caught.
+  const messenger = await follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null);
   return (
     <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
       {/* The announcement bar's pre-paint script sets a data attribute here
@@ -113,6 +118,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>
         <Footer lang={lang} />
+        {messenger && <MessengerButton href={messenger} label={t("social", "messengerButton")} />}
       </body>
     </html>
   );

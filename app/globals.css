@@ -220,6 +220,59 @@
   }
 
   /* ---------------------------------------------------------------------
+     MESSENGER BUTTON (components/site/messenger-button.tsx).
+
+     Fixed bottom-right, over the safe-area insets. z-30: under the header
+     (z-40, which holds the mobile drawer and the search overlay), under the
+     home tab bar (z-40) and the photo viewer (z-100), so none of them is ever
+     covered by it.
+
+     THE TAB BAR. Only the home page has one (components/home/mobile-tab-bar,
+     64px plus the bottom inset, below lg). While it is in the document the
+     button sits 12px above it. `:has` rather than a prop, because the button
+     lives in the root layout and the bar in one page.
+
+     THE FOOTER. The last line of the footer sits at the bottom-right of the
+     last screen of every page — exactly where the button is — so the footer
+     gets that much more bottom padding (its own 56px plus the button and its
+     gap, plus the tab bar where there is one). Everything above scrolls clear
+     of the button on its own.
+
+     THE EDGE. Orange on chalk is 1.81:1, under the 3:1 a control boundary
+     needs, so the charcoal-deep border is what carries the shape on light
+     pages; over the dark footer the orange fill itself is the edge (8.06).
+
+     THE FOCUS RING is two rings, because the button floats over chalk and
+     over the charcoal footer and one colour cannot pass on both: charcoal-deep
+     outside (on chalk) and chalk inside (on charcoal-deep). The transparent
+     outline is what forced-colors mode turns into a visible ring when it
+     drops the box-shadow. Rows in scripts/check-contrast.mjs.
+     --------------------------------------------------------------------- */
+  .messenger-fab {
+    position: fixed;
+    z-index: 30;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    box-shadow: 0 1px 2px rgb(35 29 18 / 10%), 0 6px 16px rgb(35 29 18 / 14%);
+  }
+  .messenger-fab:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px #F5F5F2, 0 0 0 4px #222222;
+  }
+  body:has(.messenger-fab) > footer {
+    padding-bottom: calc(56px + 48px + 16px + env(safe-area-inset-bottom));
+  }
+  @media (max-width: 1023.98px) {
+    body:has([data-mobile-tab-bar]) .messenger-fab {
+      bottom: calc(64px + 12px + env(safe-area-inset-bottom));
+    }
+    body:has([data-mobile-tab-bar]):has(.messenger-fab) > footer {
+      padding-bottom: calc(56px + 64px + 12px + 48px + 16px + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      CARD DEPTH (components/home/collection-cards.tsx).
 
      `shadow-sm` to `shadow-md` on `transition-shadow` asked the browser to
