@@ -56,9 +56,9 @@ export async function Footer({ lang }: { lang: Lang }) {
             <p className="gilt font-display text-2xl">Cha Jewels</p>
           </div>
           {tagline && <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{tagline}</p>}
-          {/* The origin clarifier (lib/i18n.ts brand.originNote) qualifies the
-              tagline's origin line. Code, not a Hub setting, so it renders
-              even when the tagline is empty and check:terms can pin it. */}
+          {/* The origin clarifier (lib/i18n.ts brand.originNote), under the
+              tagline. Code, not a Hub setting, so it renders even when the
+              tagline is empty and check:terms can pin it. */}
           <p className={`${tagline ? "mt-2" : "mt-4"} max-w-[40ch] text-xs leading-relaxed text-chalk/75`}>{t("brand", "originNote")}</p>
         </div>
         <div className="lg:col-span-3">

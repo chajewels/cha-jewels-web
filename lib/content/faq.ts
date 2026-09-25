@@ -63,7 +63,7 @@ export const faqSections: FaqSection[] = [
       {
         q: { ja: "すべて日本製ですか？", en: "Is everything made in Japan?" },
         a: [
-          { kind: "p", text: { ja: "新品ジュエリーはすべて日本製。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。各商品の産地、素材および判明している詳細は、商品ページに記載しています。", en: "Our new jewelry is made in Japan. Preloved branded pieces are made by their original brands and authenticated in Japan. The origin, material, and available details of each item are stated in its listing." } },
+          { kind: "p", text: { ja: "新品ジュエリーはすべて日本製で、中古品にも日本製が多くあります。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。各商品の産地、素材および判明している詳細は、商品ページに記載しています。", en: "Our new jewelry is made in Japan, and so are many of our preloved pieces. Preloved branded pieces are made by their original brands and authenticated in Japan. The origin, material, and available details of each item are stated in its listing." } },
         ],
       },
       {

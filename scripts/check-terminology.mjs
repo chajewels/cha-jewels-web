@@ -39,15 +39,12 @@ const i18nOriginKeys = /\b(?:originJapan|originNote):/;
 // without an owner decision.
 const originExempt = [
   // The clarifier, lib/i18n.ts brand.originNote (footer, hero, About, FAQ).
-  "Our new jewelry is made in Japan. Preloved branded pieces are made by their original brands and authenticated in Japan.",
-  "新品ジュエリーはすべて日本製。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。",
+  "Our new jewelry is made in Japan, and so are many of our preloved pieces. Preloved branded pieces are made by their original brands and authenticated in Japan.",
+  "新品ジュエリーはすべて日本製で、中古品にも日本製が多くあります。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。",
   // The FAQ question the clarifier answers (the live Hub row; preview copy in
   // lib/content/faq.ts).
   "Is everything made in Japan?",
   "すべて日本製ですか？",
-  // About, English closing: "new pieces" qualifies the claim the same way the
-  // clarifier does.
-  "From new pieces made in Japan",
 ];
 const withoutExempt = (line) => originExempt.reduce((l, phrase) => l.split(phrase).join(" "), line);
 

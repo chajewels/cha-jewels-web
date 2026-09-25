@@ -65,8 +65,8 @@ We disclose known condition details through descriptions, photographs, and video
 
 INSERT INTO public.website_faq_items (section_id, question_en, question_ja, answer_en, answer_ja, layaway_only, sort_order)
 SELECT s.id, 'Is everything made in Japan?', 'すべて日本製ですか？',
-       'Our new jewelry is made in Japan. Preloved branded pieces are made by their original brands and authenticated in Japan. The origin, material, and available details of each item are stated in its listing.',
-       '新品ジュエリーはすべて日本製。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。各商品の産地、素材および判明している詳細は、商品ページに記載しています。',
+       'Our new jewelry is made in Japan, and so are many of our preloved pieces. Preloved branded pieces are made by their original brands and authenticated in Japan. The origin, material, and available details of each item are stated in its listing.',
+       '新品ジュエリーはすべて日本製で、中古品にも日本製が多くあります。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。各商品の産地、素材および判明している詳細は、商品ページに記載しています。',
        false, 30
   FROM public.website_faq_sections s
  WHERE s.slug = 'products-and-authenticity'

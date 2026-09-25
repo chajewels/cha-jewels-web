@@ -227,7 +227,7 @@ export const dict = {
    * scripts/check-terminology.mjs must change with it.
    */
   brand: {
-    originNote: { ja: "新品ジュエリーはすべて日本製。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。", en: "Our new jewelry is made in Japan. Preloved branded pieces are made by their original brands and authenticated in Japan." },
+    originNote: { ja: "新品ジュエリーはすべて日本製で、中古品にも日本製が多くあります。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。", en: "Our new jewelry is made in Japan, and so are many of our preloved pieces. Preloved branded pieces are made by their original brands and authenticated in Japan." },
   },
   hero: {
     h1a: { ja: "身につける、時を超える美しさ。", en: "Timeless beauty to wear." }, h1b: { ja: "受け継がれる、確かな価値。", en: "Lasting value to pass on." },

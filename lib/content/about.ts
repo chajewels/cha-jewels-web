@@ -76,7 +76,7 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
       },
     ],
     closing: [
-      "日本で作られた新品のジュエリーも、日本で真贋鑑定済みのプレラブドも、手仕事の天然石ジュエリーも、真贋と品質、そして永く続く価値に目を配って選んでいます。",
+      "新品のジュエリーも、プレラブドも、手仕事の天然石ジュエリーも、真贋と品質、そして永く続く価値に目を配って選んでいます。",
       "確かな素材。明確な情報。自信を持ってお選びいただけるジュエリーです。",
     ],
     cta: "コレクションを見る",
@@ -117,7 +117,7 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
       },
     ],
     closing: [
-      "From new pieces made in Japan to preloved treasures authenticated in Japan and handmade gemstone creations, every Cha Jewels item is selected with close attention to authenticity, quality, and lasting value.",
+      "From new pieces to preloved treasures and handmade gemstone creations, every Cha Jewels item is selected with close attention to authenticity, quality, and lasting value.",
       "Real materials. Clear details. Jewelry you can choose with confidence.",
     ],
     cta: "Shop the collections",
