@@ -27,5 +27,5 @@ export const AGREEMENT_REQUIRED = "agreement_required";
  */
 export const AGREEMENT_UNVERIFIED = "agreement_unverified";
 
-/** The agreement is Tagalog only (owner decision). There is no other version. */
+/** The agreement is one document written in Tagalog with English (owner decision 2026-09-25). There is no separate English or Tagalog version. */
 export const AGREEMENT_LANG = "tl";

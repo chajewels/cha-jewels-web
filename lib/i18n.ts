@@ -559,7 +559,8 @@ export const dict = {
     addressRequired: { ja: "お届け先をご入力ください。", en: "Please enter a delivery address." },
     // ── THE LAYAWAY AGREEMENT GATE (2026-09-18) ──────────────────────────────
     // No plan is created until the customer has signed. The AGREEMENT itself is
-    // TAGALOG ONLY (owner decision) — these strings are the site's own copy
+    // ONE DOCUMENT IN TAGALOG WITH ENGLISH (owner decision 2026-09-25; no
+    // separate English or Tagalog version) — these strings are the site's own copy
     // around it, in the site's own language, and they are not a translation of
     // the agreement and never quote its terms.
     agreementHeading: { ja: "分割予約契約書へのご署名", en: "Sign the layaway agreement" },
@@ -567,9 +568,9 @@ export const dict = {
       ja: "お取り置きを確定する前に、分割予約契約書をお読みいただき、ご署名をお願いいたします。ご署名後、この画面に戻って「署名しました」を押してください。",
       en: "Before we hold the piece, please read and sign the layaway agreement. When you have signed, come back to this page and press “I have signed”.",
     },
-    agreementTagalogNote: {
-      ja: "契約書はタガログ語のみでご用意しています。",
-      en: "The agreement is provided in Tagalog only.",
+    agreementLanguageNote: {
+      ja: "契約書はタガログ語と英語を併用した1つの書面です。",
+      en: "The agreement is written in Tagalog with English, as one document.",
     },
     agreementOpen: { ja: "契約書を開く", en: "Open the agreement" },
     agreementNewTabNote: {

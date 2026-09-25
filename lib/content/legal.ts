@@ -444,8 +444,8 @@ export const tokusho = {
     {
       k: { ja: "※ 分割予約（レイアウェイ）について", en: "※ About layaway" },
       v: {
-        ja: "分割予約は英語版サイトをご利用のお客様および海外のお客様を対象としたお支払方法で、契約書は英語およびタガログ語でご用意しています。日本語版サイトではお取り扱いしておりません。ご希望の場合は sales@chajewelsjp.com までお問い合わせください。",
-        en: "Layaway is a payment method for customers using the English site and customers overseas, and the agreement is provided in English and Tagalog. It is not offered on the Japanese site. To ask about it, email sales@chajewelsjp.com.",
+        ja: "分割予約は英語版サイトをご利用のお客様および海外のお客様を対象としたお支払方法です。契約書はタガログ語と英語を併用した1つの書面です。日本語版サイトではお取り扱いしておりません。ご希望の場合は sales@chajewelsjp.com までお問い合わせください。",
+        en: "Layaway is a payment method for customers using the English site and customers overseas. The agreement is written in Tagalog with English, as one document. Layaway is not offered on the Japanese site. To ask about it, email sales@chajewelsjp.com.",
       },
     },
   ] as { k: Record<Lang, string>; v: Record<Lang, string> }[],
