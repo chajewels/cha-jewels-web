@@ -39,7 +39,14 @@ import type { LegalBlock } from "@/lib/content/legal";
  * The page renders this list twice, visibly and as FAQPage JSON-LD, and both
  * come from these blocks so the structured data cannot drift from the prose.
  */
-export type FaqEntry = { q: Record<Lang, string>; a: LegalBlock[] };
+/**
+ * `layaway: true` marks a question that is ONLY about layaway. It becomes the
+ * Hub row's `layaway_only` in the preview fixture, and lib/faq.ts drops it
+ * wherever layaway is not offered — nothing layaway-related is visible on the
+ * Japanese site (owner decision 2026-09-25). A mixed answer instead has its
+ * layaway sentence removed from the `ja` text; the `en` text is unchanged.
+ */
+export type FaqEntry = { q: Record<Lang, string>; a: LegalBlock[]; layaway?: true };
 export type FaqSection = { h: Record<Lang, string>; items: FaqEntry[] };
 
 export const faqSections: FaqSection[] = [
@@ -61,10 +68,9 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
-        q: { ja: "Cha Jewelsの商品はすべて日本製ですか？", en: "Are all Cha Jewels products made in Japan?" },
+        q: { ja: "すべて日本製ですか？", en: "Is everything made in Japan?" },
         a: [
-          { kind: "p", text: { ja: "当社では、K18ゴールド、プラチナ、あこや真珠、ダイヤモンド、カラーストーン、手作りの宝石ブレスレットなど、日本製および日本で調達したジュエリーをお取り扱いしています。", en: "We offer Japan-made and Japan-sourced jewelry, including K18 gold, platinum, Akoya pearls, diamonds, colored gemstones, and handmade gemstone bracelets." } },
-          { kind: "p", text: { ja: "あわせて、厳選した海外のプレラブド・ラグジュアリーブランドもお取り扱いしています。各商品の産地、素材および判明している詳細は、商品ページに記載しています。", en: "We also offer selected preloved international luxury brands. The origin, material, and available details of each item are stated in its listing." } },
+          { kind: "p", text: { ja: "新品ジュエリーはすべて日本製で、中古品にも日本製が多くあります。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。各商品の産地、素材および判明している詳細は、商品ページに記載しています。", en: "Our new jewelry is made in Japan, and so are many of our preloved pieces. Preloved branded pieces are made by their original brands and authenticated in Japan. The origin, material, and available details of each item are stated in its listing." } },
         ],
       },
       {
@@ -106,10 +112,11 @@ export const faqSections: FaqSection[] = [
           { kind: "p", text: { ja: "ご予約いただいた商品は、原則として次の期間お取り置きします。", en: "A claimed item is normally reserved for:" } },
           { kind: "list", items: { ja: ["はじめてのお客様：24時間まで。", "2回目以降のお客様：72時間まで。"], en: ["New customers: Up to 24 hours.", "Returning customers: Up to 72 hours."] } },
           { kind: "p", text: { ja: "この期限は、異なるキャンペーン条件を明確にご案内している場合を除き、会員レベルを問わず適用されます。", en: "The deadline applies regardless of loyalty level unless different promotional terms are clearly announced." } },
-          { kind: "p", text: { ja: "期限までに所定のお支払い、予約金のお支払い、または当社が承認したお取り決めが完了しない場合、商品のお取り置きを解除し、改めて販売することがあります。この場合、事前のご連絡はいたしません。", en: "If the required payment, down payment, or approved arrangement is not completed before the deadline, the item may be released and returned for sale without further notice." } },
+          { kind: "p", text: { ja: "期限までに所定のお支払い、または当社が承認したお取り決めが完了しない場合、商品のお取り置きを解除し、改めて販売することがあります。この場合、事前のご連絡はいたしません。", en: "If the required payment, down payment, or approved arrangement is not completed before the deadline, the item may be released and returned for sale without further notice." } },
         ],
       },
       {
+        layaway: true,
         q: { ja: "少額で商品をお取り置きできますか？", en: "Can I reserve an item with a small amount?" },
         a: [
           { kind: "p", text: { ja: "予約金額を引き下げた取扱いは、キャンペーンの一環として特にご案内している場合にのみご利用いただけます。", en: "A reduced reservation amount is available only when specifically offered as part of a promotion." } },
@@ -124,6 +131,7 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
+        layaway: true,
         q: { ja: "予約金のお支払い後に別の商品へ変更できますか？", en: "Can I change to another item after paying my down payment?" },
         a: [
           { kind: "p", text: { ja: "お取り置き商品の変更は、元のご注文のキャンセルおよび新たなご注文として取り扱います。", en: "Changing the reserved item is treated as cancellation of the original order and creation of a new order." } },
@@ -133,7 +141,7 @@ export const faqSections: FaqSection[] = [
     ],
   },
   {
-    h: { ja: "お支払いと分割予約", en: "Payments and Layaway" },
+    h: { ja: "お支払い", en: "Payments and Layaway" },
     items: [
       {
         q: { ja: "どのようなお支払方法が使えますか？", en: "What payment methods do you accept?" },
@@ -150,6 +158,7 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
+        layaway: true,
         q: { ja: "分割予約にはどのようなプランがありますか？", en: "What layaway plans are available?" },
         a: [
           { kind: "p", text: { ja: "当社の標準的な無利息の分割予約プランは次のとおりです。", en: "Our standard interest-free layaway options are:" } },
@@ -158,6 +167,7 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
+        layaway: true,
         q: { ja: "分割予約の予約金はいくらですか？", en: "How much is the layaway down payment?" },
         a: [
           { kind: "p", text: { ja: "標準の予約金は、原則としてご注文金額の合計の30%です。", en: "The standard down payment is normally 30% of the total order price." } },
@@ -165,6 +175,7 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
+        layaway: true,
         q: { ja: "分割予約に金利はかかりますか？", en: "Does Cha Jewels charge interest on layaway?" },
         a: [
           { kind: "p", text: { ja: "当社の標準的な分割予約プランは金利0%です。お客様は、承認されたお支払い予定に沿って、確定した商品代金をお支払いいただきます。", en: "Our standard layaway plans are 0% interest. Customers pay the confirmed product price according to the approved schedule." } },
@@ -172,6 +183,7 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
+        layaway: true,
         q: { ja: "分割予約のお支払いが遅れた場合はどうなりますか？", en: "What happens if I miss a layaway payment?" },
         a: [
           { kind: "p", text: { ja: "当社は、ご登録のメールアドレスまたはメッセージ窓口を通じて、自動のご案内をお送りする場合があります。", en: "We may send an automated reminder using your registered email address or messaging channel." } },
@@ -179,12 +191,14 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
+        layaway: true,
         q: { ja: "分割予約を繰り上げて完済できますか？", en: "Can I pay off my layaway early?" },
         a: [
           { kind: "p", text: { ja: "はい。プランのお申込み前に異なる条件を明示していた場合を除き、残額を繰り上げてお支払いいただけ、繰上げに伴う手数料は発生しません。", en: "Yes. You may complete your remaining balance early without an early-payment charge unless different conditions were disclosed before the plan began." } },
         ],
       },
       {
+        layaway: true,
         q: { ja: "分割予約の商品を完済前に発送してもらえますか？", en: "Can my layaway item be shipped before it is fully paid?" },
         a: [
           { kind: "p", text: { ja: "いいえ。分割予約の商品は、原則として、残額全額および適用される送料のお支払いを受領し、その内容を確認した後にのみ発送します。", en: "No. Layaway items are normally shipped only after the full balance and applicable shipping charges have been paid and validated." } },
@@ -199,7 +213,7 @@ export const faqSections: FaqSection[] = [
       {
         q: { ja: "ポイントはどのように貯まりますか？", en: "How do I earn loyalty points?" },
         a: [
-          { kind: "p", text: { ja: "対象となるお支払いには、全額お支払いのご注文か分割予約のご注文かを問わず、各回のお支払いの内容を確認した後にポイントが付与されます。", en: "Eligible payments earn loyalty points after each payment has been validated, whether the payment is for a paid-in-full order or a layaway order." } },
+          { kind: "p", text: { ja: "対象となるお支払いには、お支払いの内容を確認した後にポイントが付与されます。", en: "Eligible payments earn loyalty points after each payment has been validated, whether the payment is for a paid-in-full order or a layaway order." } },
           { kind: "p", text: { ja: "標準の付与率1%の場合、対象となる¥100,000のお支払いで1,000ポイントが付与されます。キャンペーンの付与率および対象外となる条件は異なる場合があります。", en: "At the standard 1% earning rate, an eligible payment of ¥100,000 earns 1,000 points. Promotional rates and exclusions may vary." } },
           { kind: "p", text: { ja: "お支払いがキャンセル、返金、取消しまたはチャージバックとなった場合、ポイントを調整することがあります。", en: "Points may be adjusted if a payment is cancelled, refunded, reversed, or charged back." } },
         ],
@@ -240,7 +254,7 @@ export const faqSections: FaqSection[] = [
       {
         q: { ja: "注文した商品はいつ発送されますか？", en: "When will my order be shipped?" },
         a: [
-          { kind: "p", text: { ja: "全額お支払いのご注文は、お支払いの確認後に準備を行います。分割予約のご注文は、残額の完済後に発送の準備を行います。", en: "Paid-in-full orders are prepared after payment validation. Layaway orders are prepared for dispatch after the balance has been fully paid." } },
+          { kind: "p", text: { ja: "全額お支払いのご注文は、お支払いの確認後に準備を行います。", en: "Paid-in-full orders are prepared after payment validation. Layaway orders are prepared for dispatch after the balance has been fully paid." } },
           { kind: "p", text: { ja: "サイズ直し、研磨、鑑定、修理その他の作業を伴うご注文は、ご依頼いただいた作業の完了後に発送します。", en: "Orders requiring resizing, polishing, certification, repair, or another service will be shipped after the requested work has been completed." } },
         ],
       },
@@ -262,7 +276,7 @@ export const faqSections: FaqSection[] = [
         q: { ja: "複数のご注文をまとめて発送できますか？", en: "Can several orders be shipped together?" },
         a: [
           { kind: "p", text: { ja: "はい。実務上可能な場合、当社が承認したご注文を1つの発送にまとめることができます。", en: "Yes, approved orders may be combined into one shipment when practical." } },
-          { kind: "p", text: { ja: "まとめる商品はすべて、お支払いが完了し発送可能な状態である必要があります。分割予約中の商品やご依頼いただいた作業中の商品が含まれる場合、おまとめにより発送が遅くなることがあります。", en: "All included items must be fully paid and ready for dispatch. Combining orders may delay shipment if one item is still under layaway or undergoing a requested service." } },
+          { kind: "p", text: { ja: "まとめる商品はすべて、お支払いが完了し発送可能な状態である必要があります。ご依頼いただいた作業中の商品が含まれる場合、おまとめにより発送が遅くなることがあります。", en: "All included items must be fully paid and ready for dispatch. Combining orders may delay shipment if one item is still under layaway or undergoing a requested service." } },
         ],
       },
       {
@@ -341,7 +355,7 @@ export const faqSections: FaqSection[] = [
         a: [
           { kind: "p", text: { ja: "すべての商品カテゴリーに一律に適用される、公開の卸売最低数量はありません。", en: "There is no single public wholesale minimum that applies to every product category." } },
           { kind: "p", text: { ja: "卸売の対象となるかどうか、最低数量、価格、必要なお預り金、お支払い予定、在庫状況および納品の条件は、当社が承認した書面のお見積りにより決定します。これらは、商品の種類、グラム重量、ご注文数量およびその時点の貴金属相場により異なります。", en: "Wholesale eligibility, minimum quantity, pricing, required deposit, payment schedule, availability, and delivery terms are determined through an approved written quotation. They may vary according to the product type, gram weight, order quantity, and current precious-metal market." } },
-          { kind: "p", text: { ja: "小売向けの分割予約、ポイント、送料無料のご案内およびキャンペーンの割引は、卸売のご注文に当然に適用されるものではありません。", en: "Retail layaway, loyalty points, free-shipping offers, and promotional discounts do not automatically apply to wholesale orders." } },
+          { kind: "p", text: { ja: "小売向けのポイント、送料無料のご案内およびキャンペーンの割引は、卸売のご注文に当然に適用されるものではありません。", en: "Retail layaway, loyalty points, free-shipping offers, and promotional discounts do not automatically apply to wholesale orders." } },
         ],
       },
       {

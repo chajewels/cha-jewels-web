@@ -101,8 +101,8 @@ export async function Header({ lang }: { lang: Lang }) {
   const links: { href: string; label: string }[] = [
     { href: "/", label: t("nav", "home") },
     // Layaway is offered in English only (owner decision 2026-09-15) — one rule,
-    // in lib/layaway-availability. The ACCOUNT entry below is deliberately NOT
-    // gated: an existing plan must stay reachable in either language.
+    // in lib/layaway-availability. Since 2026-09-25 the ACCOUNT entry below is
+    // gated too: nothing layaway-related is visible on the Japanese site.
     ...(layawayOffered(lang) ? [{ href: "/layaway", label: t("nav", "layaway") }] : []),
     { href: "/loyalty", label: t("nav", "loyalty") },
     { href: "/wholesale", label: t("nav", "wholesale") },
@@ -115,7 +115,7 @@ export async function Header({ lang }: { lang: Lang }) {
   const accountItems = [
     { href: "/account", label: t("accountMenu", "myAccount") },
     { href: "/account/orders", label: t("accountMenu", "orders") },
-    { href: "/account/layaway", label: t("accountMenu", "layaway") },
+    ...(layawayOffered(lang) ? [{ href: "/account/layaway", label: t("accountMenu", "layaway") }] : []),
     { href: "/account/addresses", label: t("accountMenu", "addresses") },
     { href: "/account/service-requests", label: t("accountMenu", "service") },
     { href: "/account#loyalty", label: t("accountMenu", "points") },

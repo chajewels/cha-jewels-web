@@ -40,7 +40,8 @@ const AGREEMENT_SIGN_BASE = "https://agreement.chajewelsjp.com/";
  * prefills and locks its invoice field when it is present. It is omitted, not
  * sent empty, when the Hub did not return one (an older Hub deploy, or a quote
  * made before numbers were reserved) so the page falls back to asking.
- * `lang=tl` is fixed — the agreement is Tagalog only and there is nothing to
+ * `lang=tl` is fixed — the agreement is one document written in Tagalog with
+ * English, with no separate English or Tagalog version, so there is nothing to
  * choose.
  */
 function signUrl(quoteId: string, invoiceNumber: string | null): string {
@@ -589,13 +590,14 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             decision), and this is the path to it — not the enforcement. The
             enforcement is payLayawayAction, which re-checks server-side and
             refuses, so a customer who skips this screen still cannot get a
-            plan. The agreement is Tagalog only; there is no language to pick. */}
+            plan. The agreement is one document written in Tagalog with English;
+            there is no language to pick. */}
         {step === "sign" && quote && (
           <div className="space-y-6">
             <h2 className="font-display text-xl text-charcoal-deep">{t("checkout", "agreementHeading")}</h2>
             <div className="border border-hairline p-5 text-sm text-charcoal">
               <p>{t("checkout", "agreementIntro")}</p>
-              <p className="mt-3 text-xs text-charcoal/70">{t("checkout", "agreementTagalogNote")}</p>
+              <p className="mt-3 text-xs text-charcoal/70">{t("checkout", "agreementLanguageNote")}</p>
               {/* A NEW TAB, deliberately. The checkout keeps its state — step,
                   term, currency and quote are React state and a same-tab
                   navigation loses all of it. The ?quote= path exists for the

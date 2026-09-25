@@ -3,6 +3,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { serviceKindLabel, serviceRequestHref, serviceStatusLabel } from "@/lib/service-requests";
 import type { ServiceRequest } from "@/lib/types";
 import { StatusBadge } from "@/components/account/status-badge";
+import { layawayOffered } from "@/lib/layaway-availability";
 
 /**
  * One request as a list row. Shared by the form's own list under an order or
@@ -16,7 +17,10 @@ import { StatusBadge } from "@/components/account/status-badge";
 export function ServiceRequestRow({ request, lang, showTarget = false }: { request: ServiceRequest; lang: Lang; showTarget?: boolean }) {
   const t = tr(lang);
   const status = serviceStatusLabel(request.status, lang);
-  const target = showTarget ? serviceRequestHref(request) : null;
+  // A plan link is layaway, and nothing layaway-related shows on the Japanese
+  // site (owner decision 2026-09-25): the request itself still lists.
+  const linked = showTarget ? serviceRequestHref(request) : null;
+  const target = linked?.kind === "plan" && !layawayOffered(lang) ? null : linked;
   return (
     <li className="bg-white p-5 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">

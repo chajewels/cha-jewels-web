@@ -703,8 +703,11 @@ export const postsFixture: HubPost[] = [
  * thirty-nine answers rather than against two invented ones, and a conversion
  * that mangles an answer is visible on the page and not only in a gate.
  *
+ * `layaway_only` comes from the entry's `layaway: true` in lib/content/faq.ts
+ * (owner decision 2026-09-25: nothing layaway-related on the Japanese site).
+ *
  * ONE PREVIEW-ONLY DEVIATION: the first question under "Payments and Layaway"
- * is flagged `layaway_only`, which nothing in lib/content/faq.ts is. The flag
+ * is flagged `layaway_only` whatever lib/content/faq.ts says. The flag
  * is a column the owner sets in the Hub, and a rule that cannot be seen cannot
  * be reviewed — this is what the Japanese preview is checked against. Production
  * seeds every row false.
@@ -724,7 +727,7 @@ export function faqFixture(): HubFaqSection[] {
         question_ja: item.q.ja,
         answer_en: blocksToMarkdown(item.a, "en"),
         answer_ja: blocksToMarkdown(item.a, "ja"),
-        layaway_only: slug === "payments-and-layaway" && ii === 0,
+        layaway_only: item.layaway === true || (slug === "payments-and-layaway" && ii === 0),
         sort_order: (ii + 1) * 10,
       })),
     };

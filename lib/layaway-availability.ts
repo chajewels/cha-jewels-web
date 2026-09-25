@@ -4,25 +4,36 @@ import { type Lang } from "@/lib/i18n";
  * IS LAYAWAY OFFERED TO A VISITOR READING THE SITE IN THIS LANGUAGE?
  *
  * ONE RULE, ONE PLACE. Owner decision 2026-09-15: Japanese customers pay cash,
- * layaway is for the Filipino customer base, and the agreement exists only in
- * English and Tagalog. On `ja` layaway does not exist; on `en` it is unchanged.
+ * layaway is for the Filipino customer base, and the agreement is one document
+ * in Tagalog with English. On `ja` layaway does not exist; on `en` it is
+ * unchanged.
+ *
+ * NOTHING LAYAWAY-RELATED IS VISIBLE ON THE JAPANESE SITE (owner decision
+ * 2026-09-25, final, no exceptions). That now includes the account's plan
+ * pages and the Japanese legal pages, which earlier decisions left alone.
  *
  * Every surface asks this function. Do not re-express it as `lang === "en"`
  * inline — a rule spread across fifteen components is one somebody half-removes
  * later, and the half that survives is the half nobody tested.
  *
- * WHAT THIS DOES NOT COVER, deliberately:
+ * WHAT IT COVERS SINCE 2026-09-25:
  *
- *  - A plan that already EXISTS. `/account/layaway`, the plan detail page and
- *    the "report a transfer" form stay available in BOTH languages. Someone
- *    with a live commitment must not lose sight of it because of a language
- *    toggle, and most plans were arranged with Cha Jewels directly rather than
- *    at this checkout. Hiding a balance is worse than showing a product we no
- *    longer sell in that language.
- *  - Statements about the BUSINESS rather than offers to the shopper —
- *    `/legal/tokusho` (statutory, Japanese-only by law) and the About mission
- *    copy. Both still mention layaway in Japanese; see the PR for why that is
- *    flagged rather than changed.
+ *  - The account's plan pages. `/account/layaway` and the plan detail page are
+ *    not found on `ja` (like /layaway), and the account menu, the account page
+ *    and the service-request pages do not link to them. A plan-holder reads
+ *    their plan in English. The "report a transfer" server action stays
+ *    ungated: it renders nothing.
+ *  - The Japanese legal documents (`/legal/tokusho`, terms, returns,
+ *    privacy). Layaway-only articles and rows are dropped on `ja`
+ *    (legalArticlesFor / tokushoRowsFor in lib/content/legal.ts, sections
+ *    renumbered) and mixed Japanese sentences no longer mention layaway. This
+ *    replaces the earlier decision to keep ※-marked layaway sections there.
+ *  - The FAQ: lib/faq.ts drops layaway items on `ja`, including Hub rows that
+ *    still mention 分割予約 without the layaway_only flag.
+ *  - Guarded by `npm run check:layaway-ja` (scripts/check-layaway-ja.mjs).
+ *
+ * The Japanese About page no longer mentions layaway at all, and layaway
+ * testimonials are hidden on the Japanese site (lib/content-rules.ts).
  *
  * NOT A SECURITY BOUNDARY. `lang` comes from the `cj-lang` cookie, which the
  * visitor sets. Someone who switches to English gets layaway — which is the

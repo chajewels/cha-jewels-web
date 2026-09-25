@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { dict, LANG_PARAM, PATH_HEADER, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { siteUrl } from "@/lib/site";
 
 type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, string> };
@@ -74,6 +75,11 @@ export async function SeoLinks() {
  */
 export async function pageMeta(key: Exclude<keyof typeof dict.meta, "site">): Promise<Metadata> {
   const lang = await getLang();
+  // The layaway pages are not found on `ja`, but Next still streams their
+  // metadata, which put the Japanese word for layaway in the <title> of a 404. Nothing
+  // layaway-related on the Japanese site (owner decision 2026-09-25): return
+  // nothing and the root layout's site title stands.
+  if (key === "layaway" && !layawayOffered(lang)) return {};
   const m = dict.meta[key] as MetaEntry;
   return { title: m.title[lang], ...(m.description ? { description: m.description[lang] } : {}) };
 }
