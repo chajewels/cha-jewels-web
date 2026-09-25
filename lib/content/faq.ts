@@ -61,10 +61,9 @@ export const faqSections: FaqSection[] = [
         ],
       },
       {
-        q: { ja: "Cha Jewelsの商品はすべて日本製ですか？", en: "Are all Cha Jewels products made in Japan?" },
+        q: { ja: "すべて日本製ですか？", en: "Is everything made in Japan?" },
         a: [
-          { kind: "p", text: { ja: "当社では、K18ゴールド、プラチナ、あこや真珠、ダイヤモンド、カラーストーン、手作りの宝石ブレスレットなど、日本製および日本で調達したジュエリーをお取り扱いしています。", en: "We offer Japan-made and Japan-sourced jewelry, including K18 gold, platinum, Akoya pearls, diamonds, colored gemstones, and handmade gemstone bracelets." } },
-          { kind: "p", text: { ja: "あわせて、厳選した海外のプレラブド・ラグジュアリーブランドもお取り扱いしています。各商品の産地、素材および判明している詳細は、商品ページに記載しています。", en: "We also offer selected preloved international luxury brands. The origin, material, and available details of each item are stated in its listing." } },
+          { kind: "p", text: { ja: "新品ジュエリーはすべて日本製で、中古品にも日本製が多くあります。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。各商品の産地、素材および判明している詳細は、商品ページに記載しています。", en: "Our new jewelry is made in Japan, and so are many of our preloved pieces. Preloved branded pieces are made by their original brands and authenticated in Japan. The origin, material, and available details of each item are stated in its listing." } },
         ],
       },
       {

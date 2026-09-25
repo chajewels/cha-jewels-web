@@ -1,5 +1,6 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
+import { Fragment } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,12 @@ export default async function About() {
             {c.questions.map((q) => <li key={q} className="font-display text-2xl text-charcoal-deep">{q}</li>)}
           </ul>
           <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
-            {c.body.map((p) => <p key={p}>{p}</p>)}
+            {c.body.map((p, i) => (
+              <Fragment key={p}>
+                <p>{p}</p>
+                {i === 1 && <p>{c.originNote}</p>}
+              </Fragment>
+            ))}
           </div>
           {/* Mission and Vision. Headed sections, so they take the page's
               display type for the heading and sit between the body and the

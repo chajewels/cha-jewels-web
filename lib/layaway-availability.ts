@@ -19,10 +19,11 @@ import { type Lang } from "@/lib/i18n";
  *    toggle, and most plans were arranged with Cha Jewels directly rather than
  *    at this checkout. Hiding a balance is worse than showing a product we no
  *    longer sell in that language.
- *  - Statements about the BUSINESS rather than offers to the shopper —
- *    `/legal/tokusho` (statutory, Japanese-only by law) and the About mission
- *    copy. Both still mention layaway in Japanese; see the PR for why that is
- *    flagged rather than changed.
+ *  - The Japanese legal documents (`/legal/tokusho`, terms, returns,
+ *    privacy). They describe plans that already exist and are left as written
+ *    (owner decision 2026-09-25). The Japanese About page no longer mentions
+ *    layaway at all, and layaway testimonials are hidden on the Japanese site
+ *    (lib/content-rules.ts).
  *
  * NOT A SECURITY BOUNDARY. `lang` comes from the `cj-lang` cookie, which the
  * visitor sets. Someone who switches to English gets layaway — which is the

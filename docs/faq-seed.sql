@@ -1,4 +1,8 @@
 -- Cha Jewels FAQ seed — GENERATED, do not hand-edit.
+--
+-- HISTORICAL RECORD. The generator and check:faq were removed in 5af6eb8 (the
+-- FAQ is read from the Hub only). One row was edited by hand on 2026-09-25 to
+-- the owner's new origin Q/A so this file matches the live row.
 --   source:    lib/content/faq.ts
 --   generator: node scripts/faq-seed.mjs
 --   gate:      npm run check:faq (regenerates and compares to this file)
@@ -60,13 +64,9 @@ We disclose known condition details through descriptions, photographs, and video
           WHERE i.section_id = s.id AND i.sort_order = 20);
 
 INSERT INTO public.website_faq_items (section_id, question_en, question_ja, answer_en, answer_ja, layaway_only, sort_order)
-SELECT s.id, 'Are all Cha Jewels products made in Japan?', 'Cha Jewelsの商品はすべて日本製ですか？',
-       'We offer Japan-made and Japan-sourced jewelry, including K18 gold, platinum, Akoya pearls, diamonds, colored gemstones, and handmade gemstone bracelets.
-
-We also offer selected preloved international luxury brands. The origin, material, and available details of each item are stated in its listing.',
-       '当社では、K18ゴールド、プラチナ、あこや真珠、ダイヤモンド、カラーストーン、手作りの宝石ブレスレットなど、日本製および日本で調達したジュエリーをお取り扱いしています。
-
-あわせて、厳選した海外のプレラブド・ラグジュアリーブランドもお取り扱いしています。各商品の産地、素材および判明している詳細は、商品ページに記載しています。',
+SELECT s.id, 'Is everything made in Japan?', 'すべて日本製ですか？',
+       'Our new jewelry is made in Japan, and so are many of our preloved pieces. Preloved branded pieces are made by their original brands and authenticated in Japan. The origin, material, and available details of each item are stated in its listing.',
+       '新品ジュエリーはすべて日本製で、中古品にも日本製が多くあります。中古ブランド品は各ブランドの製品で、日本で真贋鑑定済みです。各商品の産地、素材および判明している詳細は、商品ページに記載しています。',
        false, 30
   FROM public.website_faq_sections s
  WHERE s.slug = 'products-and-authenticity'

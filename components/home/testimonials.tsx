@@ -1,5 +1,7 @@
 import { Star } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
+import { layawayOffered } from "@/lib/layaway-availability";
+import { isLayawayTestimonial } from "@/lib/content-rules";
 import type { Testimonial } from "@/lib/types";
 import { TestimonialMarquee } from "@/components/home/testimonial-marquee";
 import { QuoteMark } from "@/components/fx/quote-mark";
@@ -29,7 +31,10 @@ import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[] }) {
   const t = tr(lang);
   const quoteOf = (x: Testimonial) => (lang === "ja" ? x.quote_ja ?? x.quote_en : x.quote_en ?? x.quote_ja);
-  const shown = items.filter((x) => quoteOf(x) && x.customer_name);
+  // Layaway is English-site only, so a layaway testimonial is hidden on the
+  // Japanese site. Quotes are never filtered for their wording: they are
+  // customers' own words, shown as written (lib/content-rules.ts).
+  const shown = items.filter((x) => quoteOf(x) && x.customer_name && (layawayOffered(lang) || !isLayawayTestimonial(x)));
   if (shown.length === 0) return null;
 
   return (
