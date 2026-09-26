@@ -59,8 +59,9 @@ export async function Footer({ lang }: { lang: Lang }) {
               decision 2026-09-26): footer copy is edited in the Hub, so this
               column adds no sentence of its own — brand.originNote included,
               which the owner's tagline already carries. Empty or unreachable
-              renders nothing. */}
-          {tagline && <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{tagline}</p>}
+              renders nothing. pre-line keeps the owner's own line breaks and
+              blank lines exactly as typed in the Hub; nothing is added. */}
+          {tagline && <p className="mt-4 max-w-[40ch] whitespace-pre-line leading-relaxed text-chalk/75">{tagline}</p>}
         </div>
         <div className="lg:col-span-3">
           <h2 className={heading}>{t("footer", "collections")}</h2>
