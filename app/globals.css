@@ -678,10 +678,11 @@
   :lang(ja) .hd-badge { letter-spacing: .05em; text-transform: none; font-size: 10.5px; }
   .hd-tlink { font-size: 14px; color: theme('colors.gold.deep'); border-bottom: 1px solid rgb(111 85 16 / .35); padding-bottom: 3px; white-space: nowrap; }
   .hd-btn { min-height: 44px; padding: 0 14px; font-size: 13.5px; white-space: nowrap; }
-  /* Phone: two actions share the row as equal columns and wrap inside
-     themselves, so a long EN label never runs off the screen. */
-  .hd-acts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; align-items: stretch; }
-  .hd-acts .hd-btn { white-space: normal; text-align: center; line-height: 1.25; }
+  /* Actions: a label is never broken (a Japanese label broken mid-word read
+     「この一点を予約す／る」). Two actions share the row and grow to fill it; if
+     they do not fit side by side the second takes its own row. */
+  .hd-acts { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+  .hd-acts .hd-btn { flex: 1 1 auto; white-space: nowrap; padding: 0 12px; font-size: 13px; }
 
   /* Light tone: text straight on a cream photo, ink instead of chalk. */
   .hd-lt .hd-eyebrow { color: theme('colors.gold.deep'); }
@@ -742,7 +743,7 @@
   .hd-origin { margin-top: 10px; padding-left: 12px; border-left: 1px solid theme('borderColor.rule'); font-size: 12px; line-height: 1.6; color: rgb(245 245 242 / .82); max-width: 460px; }
   :lang(ja) .hd-origin { font-size: 11.5px; line-height: 1.7; }
   .hd-panel { width: 100%; }
-  .hd-pimg { position: relative; display: block; height: clamp(170px, 27svh, 226px); background: #0b0b0c; outline: 1px solid theme('borderColor.rule'); outline-offset: 5px; overflow: hidden; }
+  .hd-pimg { position: relative; display: block; height: clamp(150px, 22svh, 196px); background: #0b0b0c; outline: 1px solid theme('borderColor.rule'); outline-offset: 5px; overflow: hidden; }
   .hd-pimg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(118deg, transparent 35%, rgb(232 210 138 / .12) 48%, transparent 60%); pointer-events: none; }
   .hd-pdet { position: relative; margin: 12px -5px 0; padding: 12px 14px 14px; background: rgb(24 24 24 / .92); border: 1px solid rgb(201 162 39 / .2); border-top: 0; }
   .hd-pdet::before { content: ""; position: absolute; left: -1px; right: -1px; top: 0; height: 2px; background: linear-gradient(90deg, theme('colors.gold.dark'), theme('colors.gold.pale') 40%, theme('colors.gold.DEFAULT') 70%, rgb(201 162 39 / .2)); }
@@ -792,16 +793,23 @@
   .hd-vit { grid-area: vit; }
   .hd-v-acts { grid-area: acts; }
   .hd-vitrine .hd-title, .hd-clock .hd-title, .hd-index .hd-title { font-size: 23px; margin: 8px 0 6px; }
-  .hd-vit { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: end; margin-top: 18px; }
+  /* Phone: two arches, not three. The Hub's full names (never shortened) need
+     ~170px to wrap between words; a third arch left ~105px, which cut words
+     such as オープンティアドロップ. Desktop shows three. */
+  .hd-vit { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; align-items: end; margin-top: 18px; }
+  .hd-niche:nth-child(3) { display: none; }
   .hd-niche { display: block; min-width: 0; }
-  .hd-arch { position: relative; height: 190px; padding: 5px; border: 1px solid theme('borderColor.rule'); border-radius: 90px 90px 0 0; }
-  .hd-niche[data-mid] .hd-arch { height: 214px; }
+  .hd-arch { position: relative; height: 170px; padding: 5px; border: 1px solid theme('borderColor.rule'); border-radius: 90px 90px 0 0; }
   .hd-arch-in { position: relative; height: 100%; border-radius: 85px 85px 0 0; overflow: hidden; }
   .hd-arch-in::after { content: ""; position: absolute; left: 10%; right: 10%; top: 0; height: 60%; background: radial-gradient(ellipse 50% 80% at 50% 0%, rgb(255 236 190 / .16), transparent 70%); pointer-events: none; }
-  .hd-ncap { margin-top: 8px; text-align: center; font-size: 11px; line-height: 1.4; color: rgb(232 210 138 / .9); overflow: hidden; text-overflow: ellipsis; }
+  .hd-ncap { margin-top: 8px; text-align: center; font-size: 11px; line-height: 1.4; color: rgb(232 210 138 / .9); }
+  /* Product names are the Hub's full names, never cut: they wrap between
+     words, and only a single token wider than its column may break. */
+  .hd-name, .hd-ncap { overflow-wrap: break-word; font-variant-numeric: lining-nums tabular-nums; }
+  :lang(ja) .hd-name, :lang(ja) .hd-ncap { line-break: strict; word-break: auto-phrase; }
   .hd-ncap em { display: block; margin-top: 3px; font-style: normal; font-size: 10.5px; color: rgb(245 245 242 / .7); }
   .hd-shelf { display: none; }
-  .hd-vitrine .hd-acts { margin-top: 18px; grid-auto-flow: row; }
+  .hd-vitrine .hd-acts { margin-top: 18px; }
 
   /* ================= 5 · Watches: the live Japan-time ruler ================= */
   .hd-clock-photo { position: absolute; left: 0; right: 0; top: 0; height: 300px; }
@@ -848,8 +856,8 @@
     :lang(ja) .hd-desc { font-size: 14px; line-height: 1.85; }
     .hd-spec { font-size: 12px; }
     .hd-btn { min-height: 48px; padding: 0 24px; font-size: 15px; }
-    .hd-acts { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-    .hd-acts .hd-btn { white-space: nowrap; }
+    .hd-acts { gap: 14px; align-items: center; }
+    .hd-acts .hd-btn { flex: 0 0 auto; padding: 0 24px; font-size: 15px; }
     .hd-ctrl { bottom: 26px; }
     .hd-ctrl .hd-in { gap: 18px; }
     .hd-count { font-size: 18px; }
@@ -925,7 +933,8 @@
     .hd-vitrine .hd-title, .hd-clock .hd-title, .hd-index .hd-title { font-size: clamp(40px, 3.5vw, 50px); margin: 18px 0 14px; }
     :lang(ja) .hd-vitrine .hd-title, :lang(ja) .hd-index .hd-title { font-size: clamp(32px, 2.8vw, 40px); }
     .hd-vitrine .hd-acts { margin-top: 26px; flex-direction: row; align-items: center; }
-    .hd-vit { position: relative; gap: 30px; margin-top: 0; align-self: center; }
+    .hd-vit { position: relative; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 0; align-self: center; }
+    .hd-niche:nth-child(3) { display: block; }
     .hd-arch { height: min(440px, 50svh); padding: 8px; border-radius: 200px 200px 0 0; }
     .hd-niche[data-mid] .hd-arch { height: min(492px, 56svh); }
     .hd-arch-in { border-radius: 192px 192px 0 0; }

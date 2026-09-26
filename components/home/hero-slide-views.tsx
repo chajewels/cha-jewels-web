@@ -64,8 +64,8 @@ function Explore({ slide, dark = true }: { slide: HeroCategorySlide; dark?: bool
     </Button>
   );
 }
-function Eyebrow({ index, text, lang }: { index: number; text?: string; lang: Lang }) {
-  return <p className="hd-eyebrow hd-rise"><span className="hd-num">{pad(index + 1)}</span>{text ?? tr(lang)("home", "slideEyebrow")}</p>;
+function Eyebrow({ index, text }: { index: number; text: string }) {
+  return <p className="hd-eyebrow hd-rise"><span className="hd-num">{pad(index + 1)}</span>{text}</p>;
 }
 function Photo({ src, sizes, className }: { src: string; sizes: string; className: string }) {
   return <HubImage src={src} alt="" fill sizes={sizes} className={className} />;
@@ -117,7 +117,7 @@ function LedgerView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCa
       {mounted && slide.image && <div className="hd-photo-top hd-settle"><Photo src={slide.image} sizes="100vw" className="object-contain object-top" /></div>}
       <div className="hd-card hd-rise">
         <div className="hd-card-in">
-          <Eyebrow index={index} lang={lang} />
+          <Eyebrow index={index} text={slide.caller} />
           <h2 className="hd-title"><span className="hd-line hd-gilt">{slide.name}</span></h2>
           {slide.description && <p className="hd-desc">{slide.description}</p>}
           {slide.pieces.length > 0 && (
@@ -126,7 +126,7 @@ function LedgerView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCa
                 <li key={p.slug}>
                   <Link href={`/products/${p.slug}`} className="hd-row">
                     <span className="hd-thumb">{mounted && p.image && <Photo src={p.image.url} sizes="60px" className="object-cover" />}</span>
-                    <span className="min-w-0"><span className="hd-name block truncate">{p.name}</span><span className="hd-spec block">{specLine(p, ["purity", "weight", "size"])}</span></span>
+                    <span className="min-w-0"><span className="hd-name block">{p.name}</span><span className="hd-spec block">{specLine(p, ["purity", "weight", "size"])}</span></span>
                     <span className="hd-price">{formatMoney(p.priceJpy)}</span>
                   </Link>
                 </li>
@@ -169,7 +169,7 @@ function LoupeView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCat
       {mounted && slide.image && <div className="hd-photo-top hd-settle"><Photo src={slide.image} sizes="100vw" className="object-contain object-top" /></div>}
       <div aria-hidden="true" className="hd-loupe-page" />
       <div className="hd-copy hd-pad hd-lt">
-        <Eyebrow index={index} text={t("home", "heroPrelovedEyebrow")} lang={lang} />
+        <Eyebrow index={index} text={slide.caller} />
         <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt-dk">{slide.name}</span></h2>
         {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
         {p ? (
@@ -201,7 +201,7 @@ function VitrineView({ slide, index, lang, mounted }: ViewProps & { slide: HeroC
       <div aria-hidden="true" className="hd-ground" />
       <div className="hd-in">
         <div className="hd-v-copy">
-          <Eyebrow index={index} lang={lang} />
+          <Eyebrow index={index} text={slide.caller} />
           <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
           {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
         </div>
@@ -216,7 +216,7 @@ function VitrineView({ slide, index, lang, mounted }: ViewProps & { slide: HeroC
                 {piece ? (
                   <Link href={`/products/${piece.slug}`} className="block">
                     {arch}
-                    <span className="hd-ncap block"><span className="block truncate">{piece.name}</span><em className="hd-num">{[piece.brand, formatMoney(piece.priceJpy)].filter(Boolean).join(" · ")}</em></span>
+                    <span className="hd-ncap block"><span className="block">{piece.name}</span><em className="hd-num">{[piece.brand, formatMoney(piece.priceJpy)].filter(Boolean).join(" · ")}</em></span>
                   </Link>
                 ) : (
                   <div aria-hidden="true">{arch}<span className="hd-ncap block">&nbsp;</span></div>
@@ -312,7 +312,7 @@ function ClockView({ slide, index, lang, active, mounted }: ViewProps & { slide:
       <div aria-hidden="true" className="hd-ground" />
       <div className="hd-clock-photo hd-stone hd-settle">{mounted && slide.image && <Photo src={slide.image} sizes="(min-width:1024px) 58vw, 100vw" className="object-cover" />}</div>
       <div className="hd-copy hd-pad">
-        <Eyebrow index={index} lang={lang} />
+        <Eyebrow index={index} text={slide.caller} />
         <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
         {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
         <div className="hd-acts hd-rise" style={d(0.3)}><Ask lang={lang} /><Explore slide={slide} /></div>
@@ -354,7 +354,7 @@ function IndexView({ slide, index, lang, active, mounted }: ViewProps & { slide:
         </div>
       </div></div>
       <div className="hd-copy hd-pad">
-        <Eyebrow index={index} lang={lang} />
+        <Eyebrow index={index} text={slide.caller} />
         <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
         {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
         <ol className="hd-idx hd-rise" style={d(0.25)}>

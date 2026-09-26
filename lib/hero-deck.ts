@@ -1,8 +1,9 @@
 import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { categoryCta, categoryDescription, categoryName, productName } from "@/lib/catalog-i18n";
+import { primaryImage } from "@/lib/queries/products";
 import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
-import { METALS, metalsLabel, productMetals } from "@/lib/metals";
+import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Category, Product, ProductVariant } from "@/lib/types";
 
@@ -32,7 +33,11 @@ import type { Category, Product, ProductVariant } from "@/lib/types";
 /** A piece as a slide shows it. Display strings are resolved for `lang` here. */
 export type HeroPiece = {
   slug: string;
-  /** The short name (see `shortName`). */
+  /**
+   * The Hub name exactly as the product card and product page show it
+   * (productName, lib/catalog-i18n): never shortened, reordered or stripped
+   * (owner correction 2026-09-26).
+   */
   name: string;
   sku: string;
   /** Every stamp exactly as the Hub sends it ("750" stays "750", "K18" stays "K18"), as the rest of the site shows it. */
@@ -83,6 +88,12 @@ export type HeroCategorySlide = {
   slug: string;
   layout: HeroLayout;
   name: string;
+  /**
+   * The caller line above the title (owner-approved, lib/i18n "home.heroCaller*"),
+   * chosen by layout here; a slug with no approved line gets the generic
+   * 「カテゴリー」 / "Category".
+   */
+  caller: string;
   /** The name in the controls cluster: the Hub name without a leading "Preloved " / "プレラブド ". */
   short: string;
   description: string | null;
@@ -113,44 +124,7 @@ export function inStockVariant(p: Pick<Product, "status" | "product_variants">):
   return best;
 }
 
-const STAMP = new Set<string>(METALS.map((m) => m.toUpperCase()));
-const COLOUR = /^(YG|WG|PG|RG|CG)(\/(YG|WG|PG|RG|CG))*$/i;
-const MEASURE = /^\d+(\.\d+)?(g|ct|mm|cm)$/i;
 const NUMBER = /^#?\d+(\.\d+)?$/;
-const SIZE_MARK = /^(sz#?\d*|size|#)$/i;
-const PRELOVED = /^(preloved|プレラブド)$/i;
-
-/**
- * THE SHORT NAME (owner approval 2026-09-26; DESIGN.md, "The Names Are Short
- * Rule"). The Hub's product names are SKU strings today:
- *
- *   "AL3 ペンダント K18 2.65g クロス INRI"   →  "クロス INRI ペンダント"
- *   "R7828 Ring 750 YG/WG 19.00g Diamond 2.70ct Layered Wave Sz# 18 Preloved"
- *                                           →  "Layered Wave Ring"
- *
- * Only a name that STARTS WITH ITS OWN SKU is treated as one of those: the SKU,
- * stamps, colour codes, measures, the stone before a carat figure, the size
- * mark and "Preloved" are dropped (each is a spec cell or a badge already), and
- * the type word that follows the SKU moves to the end. Any other name is a
- * name somebody wrote, and is shown as it is. If nothing is left, the Hub's
- * name is shown whole.
- */
-export function shortName(name: string, sku: string): string {
-  const tokens = name.trim().split(/\s+/);
-  if (!sku || tokens[0]?.toUpperCase() !== sku.toUpperCase()) return name.trim();
-  const rest = tokens.slice(1);
-  const keep: string[] = [];
-  for (let i = 0; i < rest.length; i++) {
-    const t = rest[i];
-    const next = rest[i + 1] ?? "";
-    if (STAMP.has(t.toUpperCase()) || COLOUR.test(t) || MEASURE.test(t) || NUMBER.test(t) || SIZE_MARK.test(t) || PRELOVED.test(t)) continue;
-    if (/^\d+(\.\d+)?ct$/i.test(next)) continue; // "Diamond 2.70ct": the stone is a spec cell
-    keep.push(t);
-  }
-  if (keep.length === 0) return name.trim();
-  const [type, ...words] = keep;
-  return words.length ? `${words.join(" ")} ${type}` : type;
-}
 
 /**
  * The piece's stamps exactly as the Hub sends them, through the site's one
@@ -163,8 +137,9 @@ export function heroPurity(p: Pick<Product, "metals" | "karat">, lang: Lang): st
 }
 
 function piece(p: Product, v: ProductVariant, lang: Lang): HeroPiece {
-  const img = [...v.product_media, ...p.product_variants.flatMap((x) => x.product_media)].sort((a, b) => a.sort - b.sort)[0] ?? null;
-  const name = shortName(productName(p, lang), p.sku);
+  // The same first photo and the same name the product card shows.
+  const img = primaryImage(p);
+  const name = productName(p, lang);
   const size = v.size?.trim() || null;
   return {
     slug: p.slug,
@@ -201,6 +176,18 @@ export function segmentName(name: string): string {
   const m = name.match(/^(?:preloved|プレラブド)\s+(.+)$/i);
   // "Jewelry" alone would read as the fine jewelry line: keep the full name.
   return m && !/^(jewelry|ジュエリー)$/i.test(m[1]) ? m[1] : name;
+}
+
+/** The approved caller line for each layout; anything else is "Category". */
+function callerLine(layout: HeroLayout, slug: string, t: ReturnType<typeof tr>): string {
+  if (!(slug in LAYOUT)) return t("home", "slideEyebrow");
+  switch (layout) {
+    case "ledger": return t("home", "heroCallerFine");
+    case "loupe": return t("home", "heroPrelovedEyebrow");
+    case "vitrine": return t("home", "heroCallerBranded");
+    case "clock": return t("home", "heroCallerWatches");
+    case "index": return t("home", "heroCallerAccessories");
+  }
 }
 
 /** A Hub read that gives up after `ms`. A timeout is a failure, and a failure is "not empty". */
@@ -250,6 +237,7 @@ export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise
       layout,
       name,
       short: segmentName(name),
+      caller: callerLine(layout, c.slug, t),
       description: categoryDescription(c, lang),
       cta: categoryCta(c, lang) ?? t("home", "slideShop", { name }),
       image: c.hero_media ?? (PLACEHOLDER_OK.has(layout) ? CATEGORY_PLACEHOLDER[c.slug] ?? null : null),

@@ -296,7 +296,13 @@ export const dict = {
     heroSince: { ja: "2021年創業・東京", en: "Since 2021 · Tokyo" },
     heroReserve: { ja: "この一点を予約する", en: "Reserve this piece" },
     heroAsk: { ja: "在庫について問い合わせる", en: "Ask about availability" },
+    // Caller lines above each category title (owner corrections 2026-09-26).
+    // EN is set in capitals by the eyebrow style (.hd-eyebrow), not in the text.
+    heroCallerFine: { ja: "新品ジュエリー", en: "New jewelry" },
     heroPrelovedEyebrow: { ja: "プレラブド・日本で真贋鑑定済み", en: "Preloved · Authenticated in Japan" },
+    heroCallerBranded: { ja: "プレラブド ブランド・日本で真贋鑑定済み", en: "Preloved branded · Authenticated in Japan" },
+    heroCallerWatches: { ja: "プレラブド ウォッチ・日本で真贋鑑定済み", en: "Preloved watches · Authenticated in Japan" },
+    heroCallerAccessories: { ja: "プレラブド 小物・日本で真贋鑑定済み", en: "Preloved accessories · Authenticated in Japan" },
     heroPrelovedBadge: { ja: "プレラブド", en: "Preloved" },
     heroPurity: { ja: "品位", en: "Purity" }, heroWeight: { ja: "重量", en: "Weight" }, heroSku: { ja: "SKU", en: "SKU" },
     heroSize: { ja: "{n}号", en: "Size {n}" },
