@@ -118,6 +118,10 @@ add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "oran
     rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: gilt stop gold-pale`, "gold-pale", stop, 1, LARGE, luma]);
     rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: gold-pale eyebrow`, "gold-pale", stop, 1, TEXT, luma]);
     rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: chalk/82 origin`, "chalk", stop, 0.82, TEXT, luma]);
+    // Hero v3: slide 1's outline button "View all pieces", in the copy column
+    // under the clarifier: its chalk label and its chalk/55 edge.
+    rows.push([`hero v3 film scrim ${where} .${stop * 100} @ luma ${luma}: chalk outline button label`, "chalk", stop, 1, TEXT, luma]);
+    rows.push([`hero v3 film scrim ${where} .${stop * 100} @ luma ${luma}: outline button edge chalk/55`, "chalk", stop, 0.55, NONTEXT, luma]);
   }
   for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `film@${stop}/${luma}`, need, alpha, ratio: over(fg, surface(stop, luma), alpha) });
 }

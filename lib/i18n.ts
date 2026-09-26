@@ -294,6 +294,11 @@ export const dict = {
     heroDeck: { ja: "おすすめのスライド", en: "Featured slides" },
     heroFilmName: { ja: "Cha Jewels", en: "Cha Jewels" },
     heroSince: { ja: "2021年創業・東京", en: "Since 2021 · Tokyo" },
+    // Slide 1's outline button (owner approval 2026-09-26): the whole
+    // collection, the same destination as "New on the bench" → home.viewAll.
+    // Its own key because the approved JA wording (作品) differs from
+    // home.viewAll's (商品), which stays as it is.
+    heroViewAll: { ja: "すべての作品を見る", en: "View all pieces" },
     heroReserve: { ja: "この一点を予約する", en: "Reserve this piece" },
     heroAsk: { ja: "在庫について問い合わせる", en: "Ask about availability" },
     // Caller lines above each category title (owner corrections 2026-09-26).

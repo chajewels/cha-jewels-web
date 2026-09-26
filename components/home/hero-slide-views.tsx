@@ -15,8 +15,9 @@ import type { HeroCategorySlide, HeroPhoto, HeroPiece, HeroSlide } from "@/lib/h
  * ~/Code/reference/hero-comps/slider-v3). Each reads only what lib/hero-deck.ts
  * resolved on the server: Hub names, Hub prices, Hub photos and cut-outs.
  *
- *   film   the gold film alone: the founding line, the headline and the origin
- *          clarifier. No piece and no panel.
+ *   film   the gold film alone: the founding line, the headline, the origin
+ *          clarifier and one outline button to the whole collection. No piece
+ *          and no panel.
  *   stage  every category: a dark stage with a warm pool of light and a gold
  *          floor, and up to three pieces standing on it. Watches stand on the
  *          live Tokyo ruler instead of the floor; accessories add the Index.
@@ -99,6 +100,14 @@ function FilmView({ lang }: { lang: Lang }) {
             <span className="hd-line hd-rise" style={d(0.24)}><span className="hd-gilt">{t("hero", "h1b")}</span></span>
           </h1>
           <p className="hd-origin hd-rise" style={d(0.36)}>{t("brand", "originNote")}</p>
+          {/* Navigation, so the outline button — never orange (DESIGN.md, The
+              Orange Means Buy Rule). The whole collection, as "New on the
+              bench" links to it. */}
+          <div className="hd-acts hd-film-acts hd-rise" style={d(0.48)}>
+            <Button asChild variant="outline" className="hd-btn border-chalk/55 text-chalk hover:border-chalk hover:text-chalk">
+              <Link href="/collections" onClick={() => trackHeroSlideCta("film")}>{t("home", "heroViewAll")}</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

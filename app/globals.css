@@ -713,6 +713,10 @@
   .hd-film .hd-eyebrow { margin-bottom: 10px; }
   .hd-origin { margin-top: 10px; padding-left: 12px; border-left: 1px solid theme('borderColor.rule'); font-size: 12px; line-height: 1.6; color: rgb(245 245 242 / .82); max-width: 460px; }
   :lang(ja) .hd-origin { font-size: 11.5px; line-height: 1.7; }
+  /* Slide 1's one button: under the clarifier, on the text's left edge, its
+     own width (it never stretches across a phone). */
+  .hd-film-acts { margin-top: 16px; }
+  .hd-film-acts .hd-btn { flex: 0 0 auto; min-height: 46px; padding: 0 18px; font-size: 14px; }
 
   /* ================= 2–6 · The stage (hero v3) =================
      ~/Code/reference/hero-comps/slider-v3. One dark stage per category with a
@@ -887,6 +891,8 @@
     .hd-film .hd-eyebrow { margin-bottom: 22px; }
     .hd-origin { margin-top: 26px; padding-left: 16px; font-size: 13.5px; line-height: 1.7; }
     :lang(ja) .hd-origin { font-size: 13px; line-height: 1.85; }
+    .hd-film-acts { margin-top: 30px; }
+    .hd-film-acts .hd-btn { min-height: 48px; padding: 0 24px; font-size: 15px; }
 
     /* 2–6: text on its side, the stage on the other, reaching to 40px from
        the screen edge. --col is the site column's edge; --cw the text
