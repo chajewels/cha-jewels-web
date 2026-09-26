@@ -48,10 +48,10 @@ export default async function Home() {
     c,
     image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
-  // Hero deck (slider v2): the film with one available piece, then one slide
-  // per category in the Hub's sort_order, each with its pieces chosen from the
-  // Hub's catalogue on this render — only active pieces in stock, never a sold
-  // one — and the empty-category switch applied. All of it in lib/hero-deck.ts.
+  // Hero deck (hero v3): the film alone, then one slide per category in the
+  // Hub's sort_order, each with up to three pieces chosen from the Hub's
+  // catalogue on this render — only active pieces in stock, never a sold one —
+  // and the empty-category switch applied. All of it in lib/hero-deck.ts.
   const slides = await buildHeroDeck(lang, categories);
 
   const tabs: Tab[] = [
@@ -68,17 +68,17 @@ export default async function Home() {
     <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
       <JsonLd type="store" />
 
-      {/* §3 Hero — slider v2 (owner approvals 2026-09-26): the gold film with
-          a real piece and its price on slide 1, then one designed slide per
-          category. The film is the base layer under slide 1, with the film
+      {/* §3 Hero — hero v3 (owner approvals 2026-09-26): the gold film alone
+          on slide 1, then one image-led stage per category with up to three
+          pieces. The film is the base layer under slide 1, with the film
           slide's own horizontal scrim (.hd-film-scrim) between it and the
           copy; every category slide covers it. Copy from lib/i18n, pieces and
           figures from the Hub (lib/hero-deck.ts). */}
       {/* THE ONE EAGER IMAGE ON THIS PAGE.
           The hero poster is what a visitor sees first: the clip does not load
-          until something decides it should play, and no category slide mounts
-          its photo until the deck is coming to it, so for the whole of the
-          intro slide this file IS the hero. React hoists the tag into <head>,
+          until something decides it should play, slide 1 has no photo of its
+          own, and no category slide mounts a photo until the deck is coming
+          to it, so for the whole of the intro slide this file IS the hero. React hoists the tag into <head>,
           which puts the request in the same breath as the stylesheet instead
           of waiting for the <video> to be parsed. Nothing else on the site
           asks for priority — see components/media/hub-image.tsx. */}

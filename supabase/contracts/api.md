@@ -207,3 +207,22 @@ Drafted by the storefront for Lovable; nothing here is live. The storefront alre
 
 - **`Category.gallery_media: string[] | null`** on `GET /catalog/categories`, in upload order. Owner photos for the hero's multi-photo layouts: the Preloved Branded vitrine uses items 1–3 for arches that have no available piece, and the Preloved Designer Accessories index uses items 1–4 for 財布 / カードケース / ベルト / 小物レザー, in that order. It is edited beside `hero_media` in the Hub's category editor. Until it exists, those slots show an empty dark stone ground.
 - **`Category.available_count: number`** on `GET /catalog/categories`: the number of products with `status = 'active'` and at least one variant with `stock_qty > 0`. With it, `HERO_HIDE_EMPTY_CATEGORIES` needs no per-category read. Today the storefront reads `GET /catalog/categories/:slug` for each category (60 s cache) and applies the same rule itself.
+
+## Proposed (not built in the Hub): product photo cut-outs (hero v3, 2026-09-26)
+
+Drafted by the storefront for Lovable; nothing here is live. Background: `~/Code/reference/hero-comps/slider-v3/README.md`, "Production method". The storefront already reads this field if it appears and falls back while it is absent (`lib/types.ts` `ProductCutout`, `lib/queries/products.ts` `usableCutout`, `lib/hero-deck.ts`).
+
+- **`cutout`** on every entry of `product_media` (`GET /catalog/products/:slug`, `GET /catalog/categories/:slug`, and every other endpoint that returns `product_media`):
+
+  ```ts
+  product_media: { url, alt: string|null, sort: number,
+                   cutout: { url: string, width: number, height: number,
+                             status: "ok"|"auto_fixed"|"needs_review"|"approved"|"rejected"|"failed" } | null }[]
+  ```
+
+  - `url`: a public WebP **with alpha**, the background removed, **trimmed to the piece's own bounds** (no transparent margin), long side about 900 px. The original photo at `product_media.url` is never changed.
+  - `width` / `height`: the cut-out's pixel size.
+  - `status`: the automatic QA result or the staff decision. The storefront shows the cut-out **only** for `ok`, `auto_fixed` and `approved`. For `needs_review`, `rejected`, `failed`, a `null` cutout, or no `cutout` key, it shows the whole original photo, uncropped, in a framed well. Sending the other statuses is optional: `cutout: null` is equivalent.
+  - Nothing else about the pipeline (model, source hash, flags) crosses the API.
+- Changing a cut-out (new run, approval, rejection, staff upload) is a `product_media` change and fires the existing `notify_website` revalidation.
+- **Accessory type (optional, later).** The hero's Designer Accessories slide counts pieces per type (財布 / カードケース / ベルト / 小物レザー) by reading the Hub name. A `Product.accessory_type: "wallet"|"cardholder"|"belt"|"small_leather"|null` would replace that; until it exists the name is read.

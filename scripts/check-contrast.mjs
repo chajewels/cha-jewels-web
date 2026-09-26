@@ -183,73 +183,40 @@ add("FAQ current category: gold-dark on chalk", "gold-dark", "chalk", TEXT);
   pairs.push({ label: "spotlight peak: orange numeral (11px bold)", fg: "orange", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("orange") });
 }
 
-// HERO v2 SLIDES (components/home/hero-slide-views.tsx), slider v2 2026-09-26.
-// The full-bleed .hero-slide-scrim is gone: no category slide puts text on a
-// photo under a scrim any more. The surfaces text now sits on are:
-//   card    the ledger card and the film's piece panel: charcoal-deep at 95% /
-//           #181818 at 92%, over a photo — taken over white, the bound
-//   ground  the dark stone of slides 4–6; its lightest stop is #35312C
-//   cream   the preloved photo's own empty cream, where the copy sits in ink:
-//           luma 192–240 in the text region (p1 194, min 192); 192 is the
-//           darkest, which is the worst case for ink. #EEE7DC is the phone's
-//           cream page under that photo.
-// The gilt is two gradients (app/globals.css .hd-gilt / .hd-gilt-dk), and each
-// of their stops is a row at large-text size: they are only ever titles.
+// HERO v3 STAGE (components/home/hero-slide-views.tsx, app/globals.css
+// "HERO v3"), owner approvals 2026-09-26. Slides 2–6 are one dark stage; the
+// v2 surfaces (ledger card, film piece panel, cream photo) are gone. Every
+// line of text on a category slide — title, caller, description, the Index,
+// the name/price line under each piece, the Tokyo readout, the controls —
+// sits on the stage ground (#231e18 → #0f0d0a) or on its warm pool of light,
+// rgb(120 92 40 / .30) over #231e18: the pool's centre is the LIGHTEST point
+// of the stage, the worst case for light text, and every row is measured on
+// it. The gilt is only ever a title: its stops are rows at large-text size.
 {
-  const W = [255, 255, 255];
-  const card = blend(hex(C["charcoal-deep"]), W, 0.95);
-  const panel = blend([24, 24, 24], W, 0.92);
-  const ground = hex("#35312C");
-  const cream192 = [192, 192, 192];
-  const page = hex("#EEE7DC");
-  const on = (fgName, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  const base = hex("#231e18");
+  const pool = blend([120, 92, 40], base, 0.3);
+  const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), pool, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(pool)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
   const rows = [
-    // card / panel
-    ["card: chalk name", "chalk", card, "card", 1, TEXT],
-    ["card: chalk/80 description", "chalk", card, "card", 0.8, TEXT],
-    ["card: gold-pale eyebrow", "gold-pale", card, "card", 1, TEXT],
-    ["card: gold-pale/90 spec line", "gold-pale", card, "card", 0.9, TEXT],
-    ["card: gold-pale price", "gold-pale", card, "card", 1, TEXT],
-    ["card: gilt stop gold (title)", "gold", card, "card", 1, LARGE],
-    ["card: outline button edge chalk/55", "chalk", card, "card", 0.55, NONTEXT],
-    ["panel: chalk name and cell values", "chalk", panel, "panel", 1, TEXT],
-    ["panel: gold-pale/85 cell captions", "gold-pale", panel, "panel", 0.85, TEXT],
-    ["panel: gold-pale/90 spec line", "gold-pale", panel, "panel", 0.9, TEXT],
-    ["panel: gold-pale price", "gold-pale", panel, "panel", 1, TEXT],
-    // ground (slides 4–6)
-    ["ground: chalk/80 description", "chalk", ground, "ground", 0.8, TEXT],
-    ["ground: chalk/70 index label and niche price", "chalk", ground, "ground", 0.7, TEXT],
-    ["ground: gold-pale eyebrow and readout", "gold-pale", ground, "ground", 1, TEXT],
-    ["ground: gold-pale/70 index numerals", "gold-pale", ground, "ground", 0.7, TEXT],
-    ["ground: gold-pale/90 niche caption", "gold-pale", ground, "ground", 0.9, TEXT],
-    ["ground: chalk clock figures", "chalk", ground, "ground", 1, TEXT],
-    ["ground: gilt stop gold (title)", "gold", ground, "ground", 1, LARGE],
-    ["ground: gilt stop gold-pale (title)", "gold-pale", ground, "ground", 1, LARGE],
-    ["ground: outline button edge chalk/55", "chalk", ground, "ground", 0.55, NONTEXT],
-    ["ground: control ring chalk/45", "chalk", ground, "ground", 0.45, NONTEXT],
-    ["ground: chalk/70 counter total", "chalk", ground, "ground", 0.7, TEXT],
-    ["ground: chalk/75 slide name", "chalk", ground, "ground", 0.75, TEXT],
-    // cream (slide 3 on every width, slide 2's controls from lg)
-    ["cream 192: charcoal-deep name and price", "charcoal-deep", cream192, "cream192", 1, TEXT],
-    ["cream 192: charcoal-deep/85 description", "charcoal-deep", cream192, "cream192", 0.85, TEXT],
-    // From lg the small labels on the cream photo are ink (gold-deep is 3.87
-    // here: a title, not a label), and the dark gilt never reaches gold-dark.
-    ["cream 192: charcoal-deep eyebrow, spec and link", "charcoal-deep", cream192, "cream192", 1, TEXT],
-    ["cream 192: gilt-dk stop gold-deep (title)", "gold-deep", cream192, "cream192", 1, LARGE],
-    ["cream 192: charcoal-deep counter", "charcoal-deep", cream192, "cream192", 1, TEXT],
-    ["cream 192: charcoal-deep/78 counter total, slide name", "charcoal-deep", cream192, "cream192", 0.78, TEXT],
-    ["cream page: charcoal-deep/85 description", "charcoal-deep", page, "#EEE7DC", 0.85, TEXT],
-    ["cream page: gold-deep eyebrow and spec", "gold-deep", page, "#EEE7DC", 1, TEXT],
-    ["cream page: gilt-dk stop gold-dark (title)", "gold-dark", page, "#EEE7DC", 1, LARGE],
+    ["chalk/82 piece name (name/price line)", "chalk", 0.82, TEXT],
+    ["chalk featured piece name", "chalk", 1, TEXT],
+    ["gold-pale piece price", "gold-pale", 1, TEXT],
+    ["chalk/80 description", "chalk", 0.8, TEXT],
+    ["gold-pale caller line", "gold-pale", 1, TEXT],
+    ["gold-pale/75 caller numeral", "gold-pale", 0.75, TEXT],
+    ["gilt stop gold (title)", "gold", 1, LARGE],
+    ["gilt stop gold-pale (title)", "gold-pale", 1, LARGE],
+    ["chalk/70 Index label and count", "chalk", 0.7, TEXT],
+    ["gold-pale/70 Index numerals", "gold-pale", 0.7, TEXT],
+    ["chalk large Index label (nothing in stock)", "chalk", 1, LARGE],
+    ["gold-pale/85 「入荷待ち」 / Coming soon", "gold-pale", 0.85, TEXT],
+    ["chalk Tokyo readout figures", "chalk", 1, TEXT],
+    ["gold-pale/92 Tokyo readout labels", "gold-pale", 0.92, TEXT],
+    ["outline button edge chalk/55", "chalk", 0.55, NONTEXT],
+    ["control ring chalk/45", "chalk", 0.45, NONTEXT],
+    ["chalk/70 counter total", "chalk", 0.7, TEXT],
+    ["chalk/75 slide name", "chalk", 0.75, TEXT],
   ];
-  for (const [label, fg, bgArr, bgName, alpha, need] of rows) pairs.push({ label: `hero v2 ${label}`, fg, bg: bgName, need, alpha, ratio: on(fg, bgArr, alpha) });
-  // The desktop dark gilt's other stop: gold-deep 55% into charcoal-deep.
-  const mix = blend(hex(C["gold-deep"]), hex(C["charcoal-deep"]), 0.55);
-  { const [L1, L2] = [lum(mix), lum(cream192)]; pairs.push({ label: "hero v2 cream 192: gilt-dk stop gold-deep/charcoal mix (title)", fg: "mix", bg: "cream192", need: LARGE, alpha: 1, ratio: (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05) }); }
-  // The ink control buttons on cream: the icon is what identifies them, on the
-  // button's own chalk/60 fill over the darkest cream.
-  const fill = blend(hex(C.chalk), cream192, 0.6);
-  pairs.push({ label: "hero v2 cream 192: control icon on chalk/60 fill", fg: "charcoal-deep", bg: "cream192+fill", need: NONTEXT, alpha: 1, ratio: on("charcoal-deep", fill) });
+  for (const [label, fg, alpha, need] of rows) pairs.push({ label: `hero v3 stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
 }
 
 // ---------------------------------------------------------------------------

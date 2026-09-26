@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { hub } from "@/lib/hub-api";
-import type { Product } from "@/lib/types";
+import type { Product, ProductMedia } from "@/lib/types";
 export type { Product } from "@/lib/types";
 // Thin cached wrappers over the Hub API. Components import from here and never see the transport.
 export const getCollections = cache(() => hub.collections());
@@ -28,4 +28,18 @@ export function allImages(p: Product) {
 }
 export function primaryImage(p: Product) {
   return allImages(p)[0] ?? null;
+}
+
+const SHOWN_CUTOUT = new Set<string>(["ok", "auto_fixed", "approved"]);
+/**
+ * A photo's cut-out, when the Hub has one that may be shown: status ok,
+ * auto_fixed or approved, with a URL and real dimensions. Anything else —
+ * absent, null, held for review, rejected, failed or malformed — is null, and
+ * the caller shows the whole original photo instead.
+ */
+export function usableCutout(m: ProductMedia | null | undefined): { url: string; width: number; height: number } | null {
+  const c = m?.cutout;
+  if (!c || typeof c.url !== "string" || !c.url.trim() || !SHOWN_CUTOUT.has(c.status)) return null;
+  if (!(Number.isFinite(c.width) && c.width > 0 && Number.isFinite(c.height) && c.height > 0)) return null;
+  return { url: c.url, width: c.width, height: c.height };
 }

@@ -303,12 +303,14 @@ export const dict = {
     heroCallerBranded: { ja: "プレラブド ブランド・日本で真贋鑑定済み", en: "Preloved branded · Authenticated in Japan" },
     heroCallerWatches: { ja: "プレラブド ウォッチ・日本で真贋鑑定済み", en: "Preloved watches · Authenticated in Japan" },
     heroCallerAccessories: { ja: "プレラブド 小物・日本で真贋鑑定済み", en: "Preloved accessories · Authenticated in Japan" },
-    heroPrelovedBadge: { ja: "プレラブド", en: "Preloved" },
-    heroPurity: { ja: "品位", en: "Purity" }, heroWeight: { ja: "重量", en: "Weight" }, heroSku: { ja: "SKU", en: "SKU" },
-    heroSize: { ja: "{n}号", en: "Size {n}" },
     heroClockCity: { ja: "東京", en: "Tokyo" }, heroClockZone: { ja: "日本時間", en: "JST" },
     heroClockLabel: { ja: "東京の現在時刻", en: "Time in Tokyo now" },
     heroAcc1: { ja: "財布", en: "Wallets" }, heroAcc2: { ja: "カードケース", en: "Cardholders" }, heroAcc3: { ja: "ベルト", en: "Belts" }, heroAcc4: { ja: "小物レザー", en: "Small leather" },
+    // Hero v3 slide 6 (owner approval 2026-09-26): each Index row's stock, or
+    // 「入荷待ち」 / "Coming soon" when that type has none.
+    heroAccCount: { ja: "{n}点", en: "{n} in stock" }, heroComingSoon: { ja: "入荷待ち", en: "Coming soon" },
+    // A hero piece's link, read out whole: the Hub name and the Hub price.
+    heroPieceLabel: { ja: "{name}、{price}", en: "{name}, {price}" },
     heroPause: { ja: "スライドと映像を一時停止", en: "Pause slides and film" }, heroPlay: { ja: "スライドと映像を再生", en: "Play slides and film" },
     heroSlideLabel: { ja: "{total}枚中{n}枚目：{name}", en: "{n} of {total}: {name}" },
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },

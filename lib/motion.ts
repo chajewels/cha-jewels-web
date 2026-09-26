@@ -228,7 +228,23 @@ export const STAGGER = {
  */
 export const SLIDE_EVERY = 6;
 
-/** How often the hero sheen returns while the hero is on screen, seconds. */
+/**
+ * HERO v3 PIECES (owner approvals 2026-09-26). A three-piece slide holds
+ * HERO_TRIO_HOLD s instead of SLIDE_EVERY, so its trio turns (every HERO_TURN
+ * s) and each of the three is featured once before the deck moves on. Every
+ * other slide, the film included, keeps SLIDE_EVERY. HERO_FLOAT: each piece
+ * drifts `lift` px up and back over `period` s, the three out of phase.
+ */
+export const HERO_TURN = 3;
+export const HERO_TRIO_HOLD = 9;
+export const HERO_FLOAT = { period: 8, lift: 9 } as const;
+
+/**
+ * How often the hero sheen returns while the hero is on screen, seconds. Also
+ * the cycle of the light crossing each hero v3 cut-out (one DUR.sheen pass,
+ * then rest: the pass is 2.6 / 8 = 32.5% of the cycle, app/globals.css
+ * `hd-sw`).
+ */
 export const SHEEN_EVERY = 8;
 
 /** How far a revealed block rises, px. */
@@ -263,6 +279,9 @@ export const MOTION_CSS_VARS = {
   "--dur-shine": `${DUR.shine}s`,
   "--delay-sheen": `${DELAY.sheen}s`,
   "--dur-slide": `${SLIDE_EVERY}s`,
+  "--hero-float-period": `${HERO_FLOAT.period}s`,
+  "--hero-float-lift": `${-HERO_FLOAT.lift}px`,
+  "--sheen-every": `${SHEEN_EVERY}s`,
   "--dur-vignette": `${DUR.vignette}s`,
   "--hero-push": `${HERO_PUSH}`,
   "--delay-shine-touch": `${DELAY.shineTouch}s`,

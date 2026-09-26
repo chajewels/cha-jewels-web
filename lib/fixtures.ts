@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { blocksToMarkdown, sectionSlug } from "@/lib/content/faq-markdown";
@@ -144,6 +144,44 @@ WATCHES.forEach(([en, ja, brand, photo], k) => {
   p.product_variants[0].product_media = [{ url: `/fixtures/${photo}.svg`, alt: null, sort: 0 }];
 });
 /**
+ * HERO v3 CUT-OUTS (supabase/contracts/api.md, "Proposed: product photo
+ * cut-outs"). The real background-removed photos of the live pieces, scaled
+ * down for preview (public/fixtures/cutouts), on the fixtures that carry those
+ * pieces' names — in every status, so the stage is seen with cut-outs, with
+ * whole framed photos, and with both on one slide:
+ *   shown     R3341, AL3, R7828 (ok); C0983, C1395 (auto_fixed); R3110 (approved)
+ *   framed    AL123 (needs_review, as the QA held it), the Cartier watch
+ *             (rejected), and every fixture with no `cutout` at all
+ */
+const cut = (k: string, width: number, height: number, status: CutoutStatus): ProductCutout => ({ url: `/fixtures/cutouts/${k}.webp`, width, height, status });
+products[3].product_variants[0].product_media = [{ url: "/fixtures/pendant-2.svg", alt: null, sort: 0, cutout: cut("al123", 387, 480, "needs_review") }];
+products[8].product_variants[0].product_media[0].cutout = cut("r7828", 433, 480, "ok");
+products[12].product_variants[0].product_media[0].cutout = cut("r3110", 339, 204, "approved");
+products[13].product_variants[0].product_media[0].cutout = cut("c0983", 368, 480, "auto_fixed");
+products[14].product_variants[0].product_media[0].cutout = cut("c1395", 480, 444, "auto_fixed");
+products[15].product_variants[0].product_media[0].cutout = cut("c1395", 480, 444, "rejected");
+/**
+ * Accessories are at 0 in stock in the Hub today, so the preview has none and
+ * slide 6 shows the Index as its stage. `NEXT_PUBLIC_PREVIEW_ACCESSORIES=1|2|3`
+ * adds that many (a wallet, a cardholder, a belt; framed photos) so the Index
+ * can be seen as the legend beside the pieces.
+ */
+const ACCESSORIES: [string, string, string][] = [
+  ["Wallet Bottega Veneta Intrecciato Long Wallet Leather Brown [Preloved]", "財布 ボッテガ・ヴェネタ イントレチャート 長財布 レザー ブラウン プレラブド", "wallet-1"],
+  ["Card Case Hermès Calvi Epsom Leather Gold [Preloved]", "カードケース エルメス カルヴィ エプソン ゴールド プレラブド", "card-1"],
+  ["Belt Gucci GG Marmont Leather Black 85cm [Preloved]", "ベルト グッチ GGマーモント レザー ブラック 85cm プレラブド", "belt-1"],
+];
+ACCESSORIES.slice(0, Math.max(0, Math.min(3, Number(process.env.NEXT_PUBLIC_PREVIEW_ACCESSORIES ?? 0) || 0))).forEach(([en, ja, photo], k) => {
+  const p = mk(17 + k, en, null, 0, [128000, 64800, 52800][k], null, "accessories", ja);
+  Object.assign(p, { category_slugs: ["preloved-designer-accessories"], condition: "Preloved", origin: "BRAND", weight_g: null, metals: [], brand: ["Bottega Veneta", "Hermès", "Gucci"][k] });
+  p.product_variants[0].stock_qty = 1;
+  p.product_variants[0].product_media = [{ url: `/fixtures/${photo}.svg`, alt: null, sort: 0 }];
+  products.push(p);
+});
+// `NEXT_PUBLIC_PREVIEW_NO_CUTOUTS=1`: the Hub before cut-outs exist — every
+// piece shows its whole photo in its frame. Applied at the end of this file.
+const PREVIEW_NO_CUTOUTS = process.env.NEXT_PUBLIC_PREVIEW_NO_CUTOUTS === "1";
+/**
  * `NEXT_PUBLIC_PREVIEW_SOLD=CJ-1001,CJ-1002` plays those pieces selling: their
  * stock goes to zero, so the hero can be seen swapping to the next available
  * piece (lib/hero-deck.ts) without touching the Hub.
@@ -157,6 +195,10 @@ for (const sku of (process.env.NEXT_PUBLIC_PREVIEW_SOLD ?? "").split(",").map((x
 products[0].metals = ["PT900", "K18"];
 products[0].product_variants[0].product_media = [1, 2, 3].map((n) => ({ url: `/fixtures/pendant-${n}.svg`, alt: `Double-sided diamond pendant, photo ${n}`, sort: n - 1 }));
 products[1].product_variants[0].product_media = [{ url: "/fixtures/chain-1.svg", alt: null, sort: 0 }];
+// Hero v3 cut-outs for the two pieces photographed just above (see "HERO v3 CUT-OUTS").
+products[0].product_variants[0].product_media[0].cutout = cut("r3341", 462, 480, "ok");
+products[1].product_variants[0].product_media[0].cutout = cut("al3", 228, 480, "ok");
+if (PREVIEW_NO_CUTOUTS) for (const p of products) for (const v of p.product_variants) for (const m of v.product_media) delete m.cutout;
 /**
  * The calculator's preview answer, in the shape the real SQL function returns:
  * the configured terms with this amount's eligibility already decided, the
