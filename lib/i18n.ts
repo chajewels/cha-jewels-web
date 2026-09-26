@@ -221,7 +221,8 @@ export const dict = {
   },
   /**
    * THE ORIGIN CLARIFIER (owner decision 2026-09-25). One key, rendered under
-   * the footer tagline, under the hero lede and in About, so the copies can
+   * the hero lede and in About (not the footer, whose text is the Hub tagline
+   * alone, owner decision 2026-09-26), so the copies can
    * never drift apart. These exact sentences are the only site-wide origin
    * statement check:terms accepts outside OriginBadge: change a word here and
    * scripts/check-terminology.mjs must change with it.
