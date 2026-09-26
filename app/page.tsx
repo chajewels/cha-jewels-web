@@ -9,7 +9,9 @@ import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { headers } from "next/headers";
 import { buildHeroDeck } from "@/lib/hero-deck";
+import { HERO_DEMO_PARAM, heroDemoAllowed } from "@/lib/hero-demo";
 import { Hero } from "@/components/home/hero";
 import { HERO_POSTER } from "@/components/site/hero-video";
 import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
@@ -29,7 +31,7 @@ export const revalidate = 60;
  * newH, viewAll, layH/layP). Product and collection data is the Hub's only.
  */
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   // ONLY WHAT THE SHELL AND THE HERO NEED. FX, testimonials and the arrivals
   // deck have moved into their own streamed sections (components/home/
   // sections.tsx) — awaiting all six here meant the slowest Hub read decided
@@ -48,10 +50,14 @@ export default async function Home() {
     c,
     image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
-  // Hero deck (slider v2): the film with one available piece, then one slide
-  // per category in the Hub's sort_order, each with its pieces chosen from the
-  // Hub's catalogue on this render — only active pieces in stock, never a sold
-  // one — and the empty-category switch applied. All of it in lib/hero-deck.ts.
+  // Hero deck (hero v3): the film alone, then one slide per category in the
+  // Hub's sort_order, each with up to three pieces chosen from the Hub's
+  // catalogue on this render — only active pieces in stock, never a sold one —
+  // and the empty-category switch applied. All of it in lib/hero-deck.ts.
+  // Preview deployments only: `?hero_demo=1` labels the hero as the review
+  // view (lib/hero-demo.ts). Never on production. The cut-outs themselves are
+  // the same everywhere (lib/hero-cutouts.ts).
+  const demo = (await searchParams)[HERO_DEMO_PARAM] === "1" && heroDemoAllowed((await headers()).get("host"));
   const slides = await buildHeroDeck(lang, categories);
 
   const tabs: Tab[] = [
@@ -68,17 +74,17 @@ export default async function Home() {
     <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
       <JsonLd type="store" />
 
-      {/* §3 Hero — slider v2 (owner approvals 2026-09-26): the gold film with
-          a real piece and its price on slide 1, then one designed slide per
-          category. The film is the base layer under slide 1, with the film
+      {/* §3 Hero — hero v3 (owner approvals 2026-09-26): the gold film alone
+          on slide 1, then one image-led stage per category with up to three
+          pieces. The film is the base layer under slide 1, with the film
           slide's own horizontal scrim (.hd-film-scrim) between it and the
           copy; every category slide covers it. Copy from lib/i18n, pieces and
           figures from the Hub (lib/hero-deck.ts). */}
       {/* THE ONE EAGER IMAGE ON THIS PAGE.
           The hero poster is what a visitor sees first: the clip does not load
-          until something decides it should play, and no category slide mounts
-          its photo until the deck is coming to it, so for the whole of the
-          intro slide this file IS the hero. React hoists the tag into <head>,
+          until something decides it should play, slide 1 has no photo of its
+          own, and no category slide mounts a photo until the deck is coming
+          to it, so for the whole of the intro slide this file IS the hero. React hoists the tag into <head>,
           which puts the request in the same breath as the stylesheet instead
           of waiting for the <video> to be parsed. Nothing else on the site
           asks for priority — see components/media/hub-image.tsx. */}
@@ -89,6 +95,7 @@ export default async function Home() {
       <Hero
         lang={lang}
         slides={slides}
+        demo={demo}
         className="hd-hero relative isolate flex w-full overflow-clip bg-charcoal-deep"
       />
 

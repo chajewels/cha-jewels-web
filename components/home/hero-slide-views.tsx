@@ -7,85 +7,90 @@ import { HubImage } from "@/components/media/hub-image";
 import { useHeroMotion } from "@/components/home/hero";
 import { trackHeroSlideCta } from "@/lib/analytics";
 import { formatMoney } from "@/lib/utils";
-import type { HeroCategorySlide, HeroPiece, HeroSlide } from "@/lib/hero-deck";
+import { HERO_TURN } from "@/lib/motion";
+import type { HeroCategorySlide, HeroPhoto, HeroPiece, HeroSlide } from "@/lib/hero-deck";
 
 /**
- * The six hero layouts (hero slider v2, owner approvals 2026-09-26; the comps
- * are ~/Code/reference/hero-comps/slider-after-v2). Each reads only what
- * lib/hero-deck.ts resolved on the server: Hub names, Hub figures, Hub photos.
+ * THE HERO SLIDES (hero v3, owner approvals 2026-09-26; the comps are
+ * ~/Code/reference/hero-comps/slider-v3). Each reads only what lib/hero-deck.ts
+ * resolved on the server: Hub names, Hub prices, Hub photos and cut-outs.
  *
- *   film     the gold film, the headline, the origin clarifier, and one piece
- *            with its details stacked under it in the right-hand panel
- *   ledger   Fine Jewelry: the category photo whole, a ledger card in its sand
- *   loupe    Preloved: the photo is the hero; the piece is a loupe medallion
- *   vitrine  Branded: one lit arch per available piece (1–3), never an empty one
- *   clock    Watches: up to three watches above the gold ruler, a live
- *            Japan-time clock
- *   index    Accessories: a numbered index stepping with a cross-fading stage
+ *   film   the gold film alone: the founding line, the headline, the origin
+ *          clarifier and one outline button to the whole collection. No piece
+ *          and no panel.
+ *   stage  every category: a dark stage with a warm pool of light and a gold
+ *          floor, and up to three pieces standing on it. Watches stand on the
+ *          live Tokyo ruler instead of the floor; accessories add the Index.
  *
- * AT MOST ONE ORANGE ACTION PER SLIDE, and it buys or contacts: "Reserve this
- * piece" where the slide shows a piece, "Ask about availability" where it does
- * not. "Explore" is navigation, so it is the outline button.
+ * THE PIECES. A trio stands featured-in-the-centre with the other two set
+ * back (smaller, raised, dimmer); a duo and a single stand on their own. There
+ * is never an empty place. Each piece is its cut-out when the Hub has one fit
+ * to show, else its whole photo in a framed well, never cropped. Under each
+ * piece, the Hub name and price on one small line, linking to its page; on a
+ * phone only the featured piece's line shows, under the stage.
  *
- * `mounted` gates every photo except the film slide's piece (see
- * hero-slides.tsx): a slide's images do not exist until the deck comes to it.
+ * THE TRIO TURNS every HERO_TURN s while the slide is up and the hero may
+ * move: each piece takes the next place to the right, and the one leaving the
+ * right edge fades out and back in on the left. The orange "Reserve" follows
+ * the featured piece. Float, the light crossing each cut-out, the reflection
+ * and the turn are app/globals.css "HERO v3"; all of it stops under reduced
+ * motion and with the pause button.
+ *
+ * TEXT SIDES ALTERNATE: left on slides 1, 3, 5, right on 2, 4, 6 (`side`, from
+ * the slide's place in the deck). Phones always stack the stage above the text.
+ *
+ * AT MOST ONE ORANGE ACTION PER SLIDE, and it reserves or asks: "Reserve this
+ * piece" for the featured piece where the deck says so, "Ask about
+ * availability" everywhere else. "Explore" is navigation: the outline button.
+ *
+ * `mounted` gates every photo (see hero-slides.tsx): a slide's images do not
+ * exist until the deck comes to it, so nothing here competes with the film's
+ * poster for the first paint.
  */
-type ViewProps = { slide: HeroSlide; index: number; lang: Lang; active: boolean; mounted: boolean };
+type ViewProps = {
+  slide: HeroSlide;
+  index: number;
+  lang: Lang;
+  active: boolean;
+  mounted: boolean;
+  side: "left" | "right";
+  /**
+   * The stage may move now: this slide is up and the hero may move (on
+   * screen, tab visible, not paused, no reduced motion). NOT held by hover,
+   * focus or touch — those hold the deck's advance only (hero-slides.tsx):
+   * the pieces keep turning and changing photos while someone looks at them.
+   */
+  moving: boolean;
+};
 
 export function HeroSlideView(props: ViewProps) {
   const s = props.slide;
-  if (s.kind === "film") return <FilmView {...props} piece={s.piece} />;
-  switch (s.layout) {
-    case "loupe": return <LoupeView {...props} slide={s} />;
-    case "vitrine": return <VitrineView {...props} slide={s} />;
-    case "clock": return <ClockView {...props} slide={s} />;
-    case "index": return <IndexView {...props} slide={s} />;
-    default: return <LedgerView {...props} slide={s} />;
-  }
+  if (s.kind === "film") return <FilmView lang={props.lang} />;
+  return <StageView {...props} slide={s} />;
 }
 
 const d = (s: number) => ({ ["--d" as string]: s }) as React.CSSProperties;
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** "K18 · 2.65g · AL3" — the Hub's facts, in the order DESIGN.md gives them. */
-function specLine(p: HeroPiece, parts: ("purity" | "weight" | "stone" | "size" | "sku")[]) {
-  return parts.map((k) => p[k]).filter(Boolean).join(" · ");
+function Reserve({ piece, lang }: { piece: HeroPiece; lang: Lang }) {
+  return <Button asChild className="hd-btn"><Link href={`/products/${piece.slug}`}>{tr(lang)("home", "heroReserve")}</Link></Button>;
 }
-
-function Reserve({ piece, lang, className = "" }: { piece: HeroPiece; lang: Lang; className?: string }) {
-  return <Button asChild className={`hd-btn ${className}`}><Link href={`/products/${piece.slug}`}>{tr(lang)("home", "heroReserve")}</Link></Button>;
+function Ask({ lang }: { lang: Lang }) {
+  return <Button asChild className="hd-btn"><Link href="/contact">{tr(lang)("home", "heroAsk")}</Link></Button>;
 }
-function Ask({ lang, className = "" }: { lang: Lang; className?: string }) {
-  return <Button asChild className={`hd-btn ${className}`}><Link href="/contact">{tr(lang)("home", "heroAsk")}</Link></Button>;
-}
-function Explore({ slide, dark = true }: { slide: HeroCategorySlide; dark?: boolean }) {
+function Explore({ slide }: { slide: HeroCategorySlide }) {
   return (
-    <Button asChild variant="outline" className={`hd-btn ${dark ? "border-chalk/55 text-chalk hover:border-chalk hover:text-chalk" : ""}`}>
+    <Button asChild variant="outline" className="hd-btn border-chalk/55 text-chalk hover:border-chalk hover:text-chalk">
       <Link href={`/categories/${slide.slug}`} onClick={() => trackHeroSlideCta(slide.slug)}>{slide.cta}</Link>
     </Button>
   );
 }
-function Eyebrow({ index, text }: { index: number; text: string }) {
-  return <p className="hd-eyebrow hd-rise"><span className="hd-num">{pad(index + 1)}</span>{text}</p>;
-}
-function Photo({ src, sizes, className }: { src: string; sizes: string; className: string }) {
-  return <HubImage src={src} alt="" fill sizes={sizes} className={className} />;
-}
-/**
- * A PIECE'S HUB PHOTO, WHOLE. Whatever its ratio (square, landscape, portrait),
- * it is contained and centred on the dark ground it sits on, never cropped
- * (owner fix 2026-09-26: R3110 was being cut by the 3:4 arch). `.hd-fit` insets
- * the box so it also clears an arch's curved top.
- */
-function WholePhoto({ src, sizes }: { src: string; sizes: string }) {
-  return <span className="hd-fit"><span><Photo src={src} sizes={sizes} className="object-contain" /></span></span>;
-}
 
-/* ---------------- 1 · Film + piece ---------------- */
-function FilmView({ lang, piece }: ViewProps & { piece: HeroPiece | null }) {
+/* ---------------- 1 · The film, alone ---------------- */
+function FilmView({ lang }: { lang: Lang }) {
   const t = tr(lang);
   return (
-    <div className="hd-view hd-film" data-nopiece={piece ? undefined : ""}>
+    <div className="hd-view hd-film">
       <div aria-hidden="true" className="hd-film-scrim" />
       <div className="hd-in">
         <div className="hd-copy">
@@ -95,57 +100,13 @@ function FilmView({ lang, piece }: ViewProps & { piece: HeroPiece | null }) {
             <span className="hd-line hd-rise" style={d(0.24)}><span className="hd-gilt">{t("hero", "h1b")}</span></span>
           </h1>
           <p className="hd-origin hd-rise" style={d(0.36)}>{t("brand", "originNote")}</p>
-        </div>
-        {piece && (
-          <div className="hd-panel hd-rise" style={d(0.3)}>
-            <Link href={`/products/${piece.slug}`} className="hd-pimg" tabIndex={-1} aria-hidden="true">
-              {piece.image && <Photo src={piece.image.url} sizes="(min-width:1024px) 340px, 100vw" className="object-contain" />}
-            </Link>
-            <div className="hd-pdet">
-              <p className="hd-name">{piece.name}</p>
-              <p className="hd-spec">{specLine(piece, ["purity", "weight", "sku"])}</p>
-              <dl className="hd-cells">
-                <div><dt className="hd-cellk">{t("home", "heroPurity")}</dt><dd className="hd-cellv">{piece.purity ?? "—"}</dd></div>
-                <div><dt className="hd-cellk">{t("home", "heroWeight")}</dt><dd className="hd-cellv">{piece.weight ?? "—"}</dd></div>
-                <div><dt className="hd-cellk">{t("home", "heroSku")}</dt><dd className="hd-cellv">{piece.sku}</dd></div>
-              </dl>
-              <p className="hd-price">{formatMoney(piece.priceJpy)}</p>
-              <Reserve piece={piece} lang={lang} />
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- 2 · Ledger ---------------- */
-function LedgerView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCategorySlide }) {
-  const lead = slide.pieces[0];
-  return (
-    <div className="hd-view hd-ledger" style={{ background: "#d8c9b7" }}>
-      {mounted && slide.image && <div className="hd-photo-top hd-settle"><Photo src={slide.image} sizes="100vw" className="object-contain object-top" /></div>}
-      <div className="hd-card hd-rise">
-        <div className="hd-card-in">
-          <Eyebrow index={index} text={slide.caller} />
-          <h2 className="hd-title"><span className="hd-line hd-gilt">{slide.name}</span></h2>
-          {slide.description && <p className="hd-desc">{slide.description}</p>}
-          {slide.pieces.length > 0 && (
-            <ul className="hd-rows">
-              {slide.pieces.map((p) => (
-                <li key={p.slug}>
-                  <Link href={`/products/${p.slug}`} className="hd-row">
-                    <span className="hd-thumb">{mounted && p.image && <Photo src={p.image.url} sizes="60px" className="object-cover" />}</span>
-                    <span className="min-w-0"><span className="hd-name block">{p.name}</span><span className="hd-spec block">{specLine(p, ["purity", "weight", "size"])}</span></span>
-                    <span className="hd-price">{formatMoney(p.priceJpy)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="hd-acts">
-            {lead ? <Reserve piece={lead} lang={lang} /> : <Ask lang={lang} />}
-            <Explore slide={slide} />
+          {/* Navigation, so the outline button — never orange (DESIGN.md, The
+              Orange Means Buy Rule). The whole collection, as "New on the
+              bench" links to it. */}
+          <div className="hd-acts hd-film-acts hd-rise" style={d(0.48)}>
+            <Button asChild variant="outline" className="hd-btn border-chalk/55 text-chalk hover:border-chalk hover:text-chalk">
+              <Link href="/collections" onClick={() => trackHeroSlideCta("film")}>{t("home", "heroViewAll")}</Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -153,107 +114,223 @@ function LedgerView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCa
   );
 }
 
-/* ---------------- 3 · Loupe ---------------- */
-const TICKS = Array.from({ length: 60 }, (_, i) => {
-  // Rounded: Node and the browser disagree in the last digit of cos/sin, and
-  // an unrounded attribute is a hydration mismatch.
-  const a = (i / 60) * 2 * Math.PI, l = i % 5 ? 22 : 44, r = 297, q = (n: number) => Math.round(n * 100) / 100;
-  return { x1: q(300 + r * Math.cos(a)), y1: q(300 + r * Math.sin(a)), x2: q(300 + (r - l) * Math.cos(a)), y2: q(300 + (r - l) * Math.sin(a)) };
-});
-function Loupe({ piece, mounted }: { piece: HeroPiece; mounted: boolean }) {
+/* ---------------- 2–6 · The stage ---------------- */
+
+/**
+ * The place piece `j` of `n` stands in after `k` turns. Places run left to
+ * right (0, 1, 2); in a trio the centre (1) is featured and the first piece
+ * starts there, so the Hub's first piece is the first one featured.
+ */
+function placeOf(j: number, n: number, k: number): number {
+  return n === 3 ? (j + 1 + k) % 3 : j;
+}
+function isFeatured(place: number, n: number): boolean {
+  return n === 3 ? place === 1 : place === 0;
+}
+
+/** The sizes hint for a piece's photo: a trio's place is about a third of the stage, a single piece's about 60%. */
+const PIECE_SIZES = "(min-width:1024px) 400px, 60vw";
+
+/**
+ * THE STAGE CLOCK. One beat every HERO_TURN / 2 s (1.5 s) while the stage may
+ * move (`moving`), and at most one change on the stage per beat:
+ *   trio         even beats turn the trio; on each odd beat — 1.5 s after a
+ *                piece has arrived in the centre and its 1.2 s move has
+ *                settled — the featured piece steps to its next photo. While
+ *                the pointer rests on the stage the trio does not turn (a
+ *                piece never slides out from under it), but the featured
+ *                piece still steps through its photos, every 3 s.
+ *   duo, single  on each odd beat (1.5 s and 4.5 s into the 6 s visit) one
+ *                piece steps to its next photo, the two of a duo taking turns
+ *                (and carrying on from where the last visit stopped), so both
+ *                change within one visit
+ * Side pieces never change photo. A 9 s trio visit shows each piece in the
+ * centre once with two of its photos; the photo a piece is on is kept when
+ * the deck moves on, so the next visit goes on from there.
+ */
+
+/**
+ * One photo of a piece, as a layer that cross-fades (`data-on`). A cut-out
+ * stands on its own bottom edge and carries the light; a photo without one
+ * is the WHOLE photo, contained in a framed well, never cropped.
+ */
+function PhotoLayer({ photo, on, mounted }: { photo: HeroPhoto; on: boolean; mounted: boolean }) {
+  const c = photo.cutout;
   return (
-    <span className="hd-lens-wrap" aria-hidden="true">
-      <span className="hd-lens">{mounted && piece.image && <Photo src={piece.image.url} sizes="150px" className="scale-[1.38] object-cover" />}</span>
-      <svg viewBox="0 0 600 600" fill="none" stroke="rgb(138 107 18 / .75)" strokeWidth="5">
-        <circle cx="300" cy="300" r="297" stroke="rgb(138 107 18 / .55)" strokeWidth="4" />
-        {TICKS.map((k, i) => <line key={i} {...k} />)}
-      </svg>
+    <span className="hd-ph" data-on={on ? "" : undefined}>
+      {c ? (
+        <>
+          <span className="hd-cut">{mounted && <HubImage src={c.url} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}</span>
+          {/* The light: the same image again (same URL, same sizes, so the
+              browser fetches it once), brightened, seen only through a band
+              that crosses the piece. Where the cut-out is transparent there is
+              nothing to brighten, so the light touches the metal only. */}
+          <span className="hd-swc" aria-hidden="true"><span className="hd-sw"><span className="hd-sw-in">
+            {mounted && <HubImage src={c.url} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}
+          </span></span></span>
+        </>
+      ) : (
+        <span className="hd-well"><span>
+          {mounted && <HubImage src={photo.url} alt="" fill sizes={PIECE_SIZES} className="object-contain" />}
+        </span></span>
+      )}
     </span>
   );
 }
-function LoupeView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCategorySlide }) {
+
+function StageView({ slide, index, lang, active, mounted, side, moving }: ViewProps & { slide: HeroCategorySlide }) {
   const t = tr(lang);
-  const p = slide.pieces[0];
+  const { rotateOn, reduced } = useHeroMotion();
+  const pieces = slide.pieces;
+  const n = pieces.length;
+  const cycles = pieces.some((p) => p.photos.length > 1);
+  // Turns taken this visit (a trio only), and each piece's photo steps, kept
+  // across visits. `pinned`: the pointer is resting on the stage.
+  const [k, setK] = useState(0);
+  const [steps, setSteps] = useState<number[]>(() => pieces.map(() => 0));
+  const kRef = useRef(0);
+  kRef.current = k;
+  const pinned = useRef(false);
+  const duoNext = useRef(0);
+  useEffect(() => {
+    if (!moving || !(n === 3 || cycles)) return;
+    let beat = 0;
+    const step = (j: number) => setSteps((prev) => prev.map((x, i) => (i === j ? x + 1 : x)));
+    const id = setInterval(() => {
+      beat += 1;
+      if (n === 3) {
+        if (beat % 2 === 0) { if (!pinned.current) setK((x) => x + 1); }
+        else step(((-kRef.current % 3) + 3) % 3); // the piece in the centre
+      } else if (beat % 2 === 1) step(duoNext.current++ % n);
+    }, (HERO_TURN * 1000) / 2);
+    return () => clearInterval(id);
+  }, [moving, n, cycles]);
+  // Every visit starts from the Hub's first piece in the centre; each piece
+  // keeps the photo it had reached.
+  useEffect(() => { if (!active) setK(0); }, [active]);
+
+  const places = pieces.map((_, j) => placeOf(j, n, k));
+  const featured = pieces[places.findIndex((p) => isFeatured(p, n))] ?? null;
+  // The piece that has just crossed from the right edge to the left: it fades
+  // out and in rather than sliding back across the others.
+  const wraps = (j: number) => n === 3 && k > 0 && places[j] === 0;
+  // Which photo each piece is on, and how far its photos are mounted: the
+  // ones already seen, plus the next one while the slide is moving, so it has
+  // loaded before it fades in. Nothing past the first loads under reduced
+  // motion, where nothing cycles.
+  const photoAt = pieces.map((p, j) => (steps[j] ?? 0) % p.photos.length);
+  const mountTo = pieces.map((p, j) => Math.min(p.photos.length - 1, (steps[j] ?? 0) + (moving ? 1 : 0)));
+
+  const labels = [t("home", "heroAcc1"), t("home", "heroAcc2"), t("home", "heroAcc3"), t("home", "heroAcc4")];
+  const index0 = slide.layout === "index" && n === 0;
+  const priceOf = (p: HeroPiece) => formatMoney(p.priceJpy);
+
   return (
-    <div className="hd-view hd-loupe" style={{ background: "#cbbfb0" }}>
-      {mounted && slide.image && <div className="hd-photo-top hd-settle"><Photo src={slide.image} sizes="100vw" className="object-contain object-top" /></div>}
-      <div aria-hidden="true" className="hd-loupe-page" />
-      <div className="hd-copy hd-pad hd-lt">
-        <Eyebrow index={index} text={slide.caller} />
-        <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt-dk">{slide.name}</span></h2>
-        {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
-        {p ? (
-          <>
-            <div className="hd-medal hd-rise" style={d(0.3)}>
-              <Link href={`/products/${p.slug}`} tabIndex={-1} aria-hidden="true"><Loupe piece={p} mounted={mounted} /></Link>
-              <div className="min-w-0">
-                <div className="hd-top">{p.preloved && <span className="hd-badge">{t("home", "heroPrelovedBadge")}</span>}<span className="hd-name">{p.name}</span></div>
-                <p className="hd-spec">{specLine(p, ["purity", "weight", "stone", "size"])}</p>
-                <div className="hd-buy"><span className="hd-price">{formatMoney(p.priceJpy)}</span><Reserve piece={p} lang={lang} className="hd-medal-btn" /></div>
-                <Link href={`/categories/${slide.slug}`} className="hd-tlink" onClick={() => trackHeroSlideCta(slide.slug)}>{slide.cta} →</Link>
-              </div>
-            </div>
-            <div className="hd-bbtn hd-rise" style={d(0.4)}><Reserve piece={p} lang={lang} /></div>
-          </>
-        ) : (
-          <div className="hd-acts hd-rise mt-6" style={d(0.3)}><Ask lang={lang} /><Explore slide={slide} dark={false} /></div>
+    <div className="hd-view hd-v3" data-side={side} data-layout={slide.layout} data-count={n}>
+      <div aria-hidden="true" className="hd-pool" />
+
+      <div
+        className="hd-stage hd-settle"
+        data-count={n}
+        onPointerEnter={(e) => { if (e.pointerType === "mouse") pinned.current = true; }}
+        onPointerLeave={() => { pinned.current = false; }}
+      >
+        {slide.layout === "clock"
+          ? mounted && <HeroClock lang={lang} run={active && rotateOn} still={reduced} />
+          : n > 0 && <span aria-hidden="true" className="hd-floor" />}
+
+        {pieces.map((p, j) => (
+          <div
+            key={p.slug}
+            className="hd-pc"
+            data-place={places[j]}
+            data-feat={isFeatured(places[j], n) ? "" : undefined}
+            data-wrap={wraps(j) ? "" : undefined}
+            data-framed={p.photos[photoAt[j]]?.cutout ? undefined : ""}
+            style={{ ["--i" as string]: j }}
+          >
+            {/* The picture is a pointer target; the caption below is the
+                piece's link for the keyboard and screen readers. */}
+            <Link href={`/products/${p.slug}`} className="hd-body" tabIndex={-1} aria-hidden="true">
+              <span className="hd-shadow" />
+              <span className="hd-fl">
+                {p.photos.map((ph, i) => i <= mountTo[j] && <PhotoLayer key={i} photo={ph} on={i === photoAt[j]} mounted={mounted} />)}
+              </span>
+              {/* The faint reflection of whichever cut-out is showing. */}
+              {p.photos.some((ph) => ph.cutout) && (
+                <span className="hd-refl">
+                  {p.photos.map((ph, i) => ph.cutout && i <= mountTo[j] && (
+                    <span key={i} className="hd-rl" data-on={i === photoAt[j] ? "" : undefined}>
+                      {mounted && <HubImage src={ph.cutout.url} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}
+                    </span>
+                  ))}
+                </span>
+              )}
+            </Link>
+          </div>
+        ))}
+
+        {pieces.map((p, j) => (
+          <Link
+            key={p.slug}
+            href={`/products/${p.slug}`}
+            className="hd-cap"
+            data-place={places[j]}
+            data-feat={isFeatured(places[j], n) ? "" : undefined}
+            data-wrap={wraps(j) ? "" : undefined}
+          >
+            <span className="hd-cap-nm">{p.name}</span>
+            <span className="hd-cap-pr">{priceOf(p)}</span>
+          </Link>
+        ))}
+
+        {/* Phone: the featured piece's line alone, under the stage; it
+            cross-fades (a new key) each time the trio turns. */}
+        {featured && (
+          <Link key={featured.slug} href={`/products/${featured.slug}`} className="hd-pcap" tabIndex={-1} aria-hidden="true">
+            <span className="hd-cap-nm">{featured.name}</span>
+            <span className="hd-cap-pr">{priceOf(featured)}</span>
+          </Link>
+        )}
+
+        {/* Accessories with nothing in stock: the Index IS the stage, every
+            row marked coming soon (home.heroComingSoon). No empty stage, no stand-in. */}
+        {index0 && (
+          <ol className="hd-bigidx">
+            {labels.map((l, i) => (
+              <li key={l}><span className="hd-bn hd-num" aria-hidden="true">{pad(i + 1)}</span><b>{l}</b><em>{t("home", "heroComingSoon")}</em></li>
+            ))}
+          </ol>
         )}
       </div>
-    </div>
-  );
-}
 
-/* ---------------- 4 · Vitrine ---------------- */
-function VitrineView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCategorySlide }) {
-  // One arch per available piece (1, 2 or 3), centred as a group; never an
-  // empty arch. With no piece, the three niches as approved: the owner's
-  // gallery photos once the Hub sends them, else the lit stone.
-  const niches = slide.pieces.length
-    ? slide.pieces.map((piece) => ({ piece, photo: null }))
-    : [0, 1, 2].map((i) => ({ piece: null, photo: slide.gallery[i] ?? null }));
-  // The tall middle arch: the centre of three, or a piece standing alone.
-  const mid = niches.length === 3 ? 1 : niches.length === 1 ? 0 : -1;
-  return (
-    <div className="hd-view hd-vitrine">
-      <div aria-hidden="true" className="hd-ground" />
-      <div className="hd-in">
-        <div className="hd-v-copy">
-          <Eyebrow index={index} text={slide.caller} />
-          <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
-          {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
+      <div className="hd-copy3">
+        <p className="hd-eyebrow hd-rise"><span className="hd-num">{pad(index + 1)}</span>{slide.caller}</p>
+        <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
+        {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
+        {/* The approved Index as the legend for the pieces: stock per type,
+            the featured piece's row lit. */}
+        {slide.layout === "index" && n > 0 && slide.counts && (
+          <ol className="hd-idx hd-rise" style={d(0.25)}>
+            {labels.map((l, i) => (
+              <li key={l} data-on={featured?.type === i ? "" : undefined}>
+                <span className="hd-n hd-num" aria-hidden="true">{pad(i + 1)}</span>
+                <span className="hd-t">{l}</span>
+                <em className="hd-num">{slide.counts![i] ? t("home", "heroAccCount", { n: String(slide.counts![i]) }) : t("home", "heroComingSoon")}</em>
+              </li>
+            ))}
+          </ol>
+        )}
+        <div className="hd-acts hd-rise" style={d(0.3)}>
+          {slide.action === "reserve" && featured ? <Reserve piece={featured} lang={lang} /> : <Ask lang={lang} />}
+          <Explore slide={slide} />
         </div>
-        <div className="hd-vit hd-rise" style={d(0.2)} data-count={niches.length}>
-          {niches.map(({ piece, photo }, i) => {
-            const sizes = "(min-width:1024px) 200px, 45vw";
-            const arch = (
-              <span className="hd-arch block">
-                <span className="hd-arch-in hd-stone block">
-                  {mounted && (piece?.image ? <WholePhoto src={piece.image.url} sizes={sizes} /> : photo && <Photo src={photo} sizes={sizes} className="object-cover" />)}
-                </span>
-              </span>
-            );
-            return (
-              <div key={piece?.slug ?? i} className="hd-niche" data-mid={i === mid ? "" : undefined}>
-                {piece ? (
-                  <Link href={`/products/${piece.slug}`} className="block">
-                    {arch}
-                    <span className="hd-ncap block"><span className="block">{piece.name}</span><em className="hd-num">{[piece.brand, formatMoney(piece.priceJpy)].filter(Boolean).join(" · ")}</em></span>
-                  </Link>
-                ) : (
-                  <div aria-hidden="true">{arch}<span className="hd-ncap block">&nbsp;</span></div>
-                )}
-              </div>
-            );
-          })}
-          <span aria-hidden="true" className="hd-shelf" />
-        </div>
-        <div className="hd-acts hd-v-acts hd-rise" style={d(0.3)}><Ask lang={lang} /><Explore slide={slide} /></div>
       </div>
     </div>
   );
 }
 
-/* ---------------- 5 · Clock ---------------- */
+/* ---------------- 5 · The live Tokyo ruler ---------------- */
 const RULER = Array.from({ length: 121 }, (_, i) => ({ x: (i / 120) * 1000, h: i % 10 === 0 ? 26 : i % 5 === 0 ? 16 : 8 }));
 function Ruler({ stroke }: { stroke: string }) {
   return (
@@ -266,15 +343,15 @@ function Ruler({ stroke }: { stroke: string }) {
 const TOKYO = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit", hour12: false });
 
 /**
- * THE LIVE JAPAN-TIME RULER. The readout is Tokyo's hour and minute
- * (Asia/Tokyo), set once a minute on the minute. The gold hand sweeps the
- * 120-tick ruler once a minute and the ticks it has passed brighten: a
- * transform on the hand and a two-layer reveal for the lit trail, so no
- * layout work per frame. The frame loop runs only while this slide is up and
- * the hero may move (on screen, tab visible, not paused, no reduced motion).
- * Under reduced motion the hand and trail are not drawn at all and only the
- * readout changes, once a minute. The server renders "--:--": the page is
- * cached for 60 s, so a server time would be wrong by the time it is read.
+ * THE LIVE JAPAN-TIME RULER, which is the watches' floor. The readout is
+ * Tokyo's hour and minute (Asia/Tokyo), set once a minute on the minute. The
+ * gold hand sweeps the 120-tick ruler once a minute and the ticks it has
+ * passed brighten: a transform on the hand and a two-layer reveal for the lit
+ * trail, so no layout work per frame. The frame loop runs only while this
+ * slide is up and the hero may move. Under reduced motion the hand and trail
+ * are not drawn at all and only the readout changes, once a minute. The
+ * server renders "--:--": the page is cached for 60 s, so a server time would
+ * be wrong by the time it is read.
  */
 function HeroClock({ lang, run, still }: { lang: Lang; run: boolean; still: boolean }) {
   const t = tr(lang);
@@ -313,92 +390,16 @@ function HeroClock({ lang, run, still }: { lang: Lang; run: boolean; still: bool
 
   return (
     <>
-      <p className="hd-readout hd-rise" style={d(0.4)} aria-label={`${t("home", "heroClockLabel")} ${hm ?? ""}`}>
+      <p className="hd-readout" aria-label={`${t("home", "heroClockLabel")} ${hm ?? ""}`}>
         <span aria-hidden="true">{t("home", "heroClockCity")}</span>
         <b className="hd-num" aria-hidden="true"><time>{hm ?? "--:--"}</time></b>
         <span aria-hidden="true">{t("home", "heroClockZone")}</span>
       </p>
-      <div ref={track} className="hd-track hd-rise" style={d(0.4)} data-still={still ? "" : undefined} aria-hidden="true">
-        <Ruler stroke="rgb(232 210 138 / .32)" />
+      <div ref={track} className="hd-track" data-still={still ? "" : undefined} aria-hidden="true">
+        <Ruler stroke="rgb(232 210 138 / .38)" />
         <div ref={outer} className="hd-trail"><div ref={inner}><Ruler stroke="rgb(232 210 138 / .9)" /></div></div>
         <div ref={hand} className="hd-hand" />
       </div>
     </>
-  );
-}
-function ClockView({ slide, index, lang, active, mounted }: ViewProps & { slide: HeroCategorySlide }) {
-  const { rotateOn, reduced } = useHeroMotion();
-  return (
-    <div className="hd-view hd-clock">
-      <div aria-hidden="true" className="hd-ground" />
-      <div className="hd-clock-photo hd-stone hd-settle">{mounted && slide.image && <Photo src={slide.image} sizes="(min-width:1024px) 58vw, 100vw" className="object-cover" />}</div>
-      <div className="hd-copy hd-pad">
-        <Eyebrow index={index} text={slide.caller} />
-        <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
-        {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
-        <div className="hd-acts hd-rise" style={d(0.3)}><Ask lang={lang} /><Explore slide={slide} /></div>
-      </div>
-      {slide.pieces.length > 0 && (
-        <div className="hd-layer"><div className="hd-in">
-          {/* In front of the category photo (or the stone until there is
-              one), in the right-hand area above the ruler. */}
-          <ul className="hd-watches hd-rise" style={d(0.25)} data-count={slide.pieces.length}>
-            {slide.pieces.map((p) => (
-              <li key={p.slug} className="hd-watch">
-                <Link href={`/products/${p.slug}`} className="hd-wlink">
-                  <span className="hd-wimg hd-stone">{mounted && p.image && <WholePhoto src={p.image.url} sizes="(min-width:1024px) 180px, 45vw" />}</span>
-                  <span className="hd-ncap block"><span className="block">{p.name}</span><em className="hd-num">{[p.brand, formatMoney(p.priceJpy)].filter(Boolean).join(" · ")}</em></span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div></div>
-      )}
-      <div className="hd-layer"><div className="hd-in">{mounted && <HeroClock lang={lang} run={active && rotateOn} still={reduced} />}</div></div>
-    </div>
-  );
-}
-
-/* ---------------- 6 · Index ---------------- */
-const INDEX_EVERY_MS = 1800;
-function IndexView({ slide, index, lang, active, mounted }: ViewProps & { slide: HeroCategorySlide }) {
-  const t = tr(lang);
-  const { rotateOn } = useHeroMotion();
-  const labels = [t("home", "heroAcc1"), t("home", "heroAcc2"), t("home", "heroAcc3"), t("home", "heroAcc4")];
-  const [k, setK] = useState(0);
-  // Steps only while this slide is up and the hero may move; under reduced
-  // motion (rotateOn is false) it holds on 01.
-  useEffect(() => {
-    if (!active || !rotateOn) return;
-    const id = setInterval(() => setK((x) => (x + 1) % labels.length), INDEX_EVERY_MS);
-    return () => clearInterval(id);
-  }, [active, rotateOn, labels.length]);
-  useEffect(() => { if (!active) setK(0); }, [active]);
-  return (
-    <div className="hd-view hd-index">
-      <div aria-hidden="true" className="hd-ground" />
-      <div className="hd-layer"><div className="hd-in">
-        <div className="hd-stage hd-settle" aria-hidden="true">
-          {labels.map((l, i) => {
-            const img = slide.gallery[i] ?? slide.image;
-            return (
-              <div key={l} className="hd-sph hd-stone" data-on={i === k ? "" : undefined}>
-                {mounted && img && <Photo src={img} sizes="(min-width:1024px) 540px, 100vw" className="object-cover" />}
-                <p className="hd-stage-cap"><em className="hd-num">{pad(i + 1)}</em>{l}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div></div>
-      <div className="hd-copy hd-pad">
-        <Eyebrow index={index} text={slide.caller} />
-        <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
-        {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
-        <ol className="hd-idx hd-rise" style={d(0.25)}>
-          {labels.map((l, i) => <li key={l} data-on={i === k ? "" : undefined}><span className="hd-n hd-num">{pad(i + 1)}</span><span className="hd-t">{l}</span><span className="hd-a" aria-hidden="true" /></li>)}
-        </ol>
-        <div className="hd-acts hd-rise" style={d(0.35)}><Ask lang={lang} /><Explore slide={slide} /></div>
-      </div>
-    </div>
   );
 }
