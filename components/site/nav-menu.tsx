@@ -141,7 +141,8 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
 
 /**
  * One row in a menu panel: a thumbnail OR an icon, a title, and an optional
- * one-line description.
+ * one-line description. `media` is a ready 40px thumbnail element (the
+ * category rows: components/site/category-thumb.tsx) and wins over both.
  *
  * Both the icon and the thumbnail are decorative — the title already says
  * where the link goes — so the image carries alt="" rather than repeating the
@@ -156,7 +157,7 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
  * rows without one centre, so a 40px thumbnail and a single line of text share
  * a middle.
  */
-export function NavMenuItem({ href, title, description, icon, thumb }: { href: string; title: string; description?: string; icon?: ReactNode; thumb?: string | null }) {
+export function NavMenuItem({ href, title, description, icon, thumb, media }: { href: string; title: string; description?: string; icon?: ReactNode; thumb?: string | null; media?: ReactNode }) {
   return (
     <Link
       role="menuitem"
@@ -164,11 +165,11 @@ export function NavMenuItem({ href, title, description, icon, thumb }: { href: s
       href={href}
       className={`group flex min-w-0 gap-3 rounded-sm px-3 py-2.5 hover:bg-chalk focus-visible:bg-chalk focus-visible:outline-none ${description ? "items-start" : "items-center"}`}
     >
-      {thumb
+      {media ?? (thumb
         ? <img src={thumb} alt="" width={40} height={40} loading="lazy" className="h-10 w-10 shrink-0 rounded-sm border border-hairline object-cover" />
-        : icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-gold-dark">{icon}</span>}
+        : icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-gold-dark">{icon}</span>)}
       <span className="min-w-0">
-        <span className="block font-medium text-charcoal-deep group-hover:text-gold-dark">{title}</span>
+        <span className="block font-medium text-charcoal-deep [line-break:strict] [word-break:auto-phrase] group-hover:text-gold-dark">{title}</span>
         {description && <span className="mt-0.5 block whitespace-normal break-words text-[13px] leading-snug text-charcoal/70">{description}</span>}
       </span>
     </Link>

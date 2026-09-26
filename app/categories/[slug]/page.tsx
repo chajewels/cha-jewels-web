@@ -4,19 +4,23 @@ import { hub } from "@/lib/hub-api";
 import { tr } from "@/lib/i18n";
 import { categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
-import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
+import { stagePieces } from "@/lib/hero-deck";
 import { HubImage } from "@/components/media/hub-image";
 import { EmptyShelf } from "@/components/catalog/empty-shelf";
 import { ProductCard } from "@/components/catalog/product-card";
+import { CategoryStage } from "@/components/catalog/category-stage";
 
 export const revalidate = 60;
 
 /**
  * A category landing page, mirroring app/collections/[slug]/page.tsx: the
  * Hub's name and description, then the pieces in it as the same ProductCard
- * grid. The banner is the category's own hero_media, falling back to the
- * placeholder for that slug and to no banner at all — a product photo never
- * stands in for a category.
+ * grid. The banner is the category's own hero_media, uploaded by the owner in
+ * the Hub. Without one, the category's own in-stock pieces stand on the hero's
+ * dark stage (CategoryStage), and with none in stock the band carries the text
+ * alone. No bundled photo stands in for a category any more (owner rule
+ * 2026-09-26: no brand logos as decoration; the old placeholders for the
+ * branded lines carried Bvlgari, Cartier, Rolex, YSL, Gucci… marks).
  *
  * The title and description are the CATEGORY's, not a fixed pair from
  * dict.meta: pageMeta() takes a static dictionary key, so routing every
@@ -39,12 +43,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const t = tr(lang);
   const name = categoryName(cat, lang);
   const description = categoryDescription(cat, lang);
-  const banner = cat.hero_media ?? CATEGORY_PLACEHOLDER[cat.slug] ?? null;
+  const banner = cat.hero_media;
+  const eyebrow = t("categories", "eyebrow");
 
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
-        {banner && (
+        {banner ? (<>
           <div className="relative mb-10 aspect-[21/9] overflow-hidden rounded-sm border border-hairline">
             {/* THE PAGE'S LARGEST PAINT. It sits above the fold at every
                 width and it is the first thing a category page shows, so it
@@ -67,10 +72,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
               className="object-cover object-[65%_center]"
             />
           </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{eyebrow}</p>
+          <h1 className="mt-3 text-[clamp(40px,6vw,88px)]">{name}</h1>
+          {description && <p className="mt-4 max-w-[58ch] text-charcoal">{description}</p>}
+        </>) : (
+          <CategoryStage pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} />
         )}
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("categories", "eyebrow")}</p>
-        <h1 className="mt-3 text-[clamp(40px,6vw,88px)]">{name}</h1>
-        {description && <p className="mt-4 max-w-[58ch] text-charcoal">{description}</p>}
         {cat.products.length === 0 ? (
           <EmptyShelf lang={lang} />
         ) : (
