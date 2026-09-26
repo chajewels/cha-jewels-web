@@ -2,7 +2,7 @@ import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
-import { COMPANY_ADDRESS, COMPANY_NAME, COMPANY_PHONE } from "@/lib/content/legal";
+import { COMPANY_ADDRESS, COMPANY_NAME_DISPLAY, COMPANY_PHONE } from "@/lib/content/legal";
 import { contactEmail, follow } from "@/lib/settings";
 import { SocialIcons } from "@/components/site/social-icons";
 import { ContactForm } from "@/components/site/contact-form";
@@ -78,7 +78,7 @@ export default async function Contact() {
               </div>
               <div>
                 <dt className={panelLabel}>{t("contact", "company")}</dt>
-                <dd className="mt-1.5 text-sm text-chalk/85">{COMPANY_NAME}</dd>
+                <dd className="mt-1.5 text-sm text-chalk/85">{COMPANY_NAME_DISPLAY[lang]}</dd>
               </div>
               <div className="sm:col-span-2">
                 <dt className={panelLabel}>{t("contact", "address")}</dt>

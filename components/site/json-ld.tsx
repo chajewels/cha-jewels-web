@@ -1,6 +1,7 @@
 import type { Product } from "@/lib/queries/products";
 import { productAvailability } from "@/lib/availability";
 import { siteUrl } from "@/lib/site";
+import { COMPANY_NAME } from "@/lib/content/legal";
 import { allImages, fromPrice } from "@/lib/queries/products";
 import { metalsLabel, productMetals } from "@/lib/metals";
 /**
@@ -15,7 +16,7 @@ type Props = { type: "store" } | { type: "product"; product: Product } | { type:
 export function JsonLd(props: Props) {
   const base = siteUrl();
   const data = props.type === "store"
-    ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: "Cha Jewels Co., Ltd.", url: base, address: { "@type": "PostalAddress", addressLocality: "Katsushika-ku", addressRegion: "Tokyo", addressCountry: "JP" }, areaServed: ["JP", "PH"], priceRange: "¥¥¥" }
+    ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: base, address: { "@type": "PostalAddress", addressLocality: "Katsushika-ku", addressRegion: "Tokyo", addressCountry: "JP" }, areaServed: ["JP", "PH"], priceRange: "¥¥¥" }
     : props.type === "post"
     ? {
         "@context": "https://schema.org",
