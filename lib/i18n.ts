@@ -299,6 +299,11 @@ export const dict = {
     heroDeck: { ja: "おすすめのスライド", en: "Featured slides" },
     heroFilmName: { ja: "Cha Jewels", en: "Cha Jewels" },
     heroSince: { ja: "2021年創業・東京", en: "Since 2021 · Tokyo" },
+    // Slide 1's outline button (owner approval 2026-09-26): the whole
+    // collection, the same destination as "New on the bench" → home.viewAll.
+    // Its own key because the approved JA wording (作品) differs from
+    // home.viewAll's (商品), which stays as it is.
+    heroViewAll: { ja: "すべての作品を見る", en: "View all pieces" },
     heroReserve: { ja: "この一点を予約する", en: "Reserve this piece" },
     heroAsk: { ja: "在庫について問い合わせる", en: "Ask about availability" },
     // Caller lines above each category title (owner corrections 2026-09-26).
@@ -308,12 +313,15 @@ export const dict = {
     heroCallerBranded: { ja: "プレラブド ブランド・日本で真贋鑑定済み", en: "Preloved branded · Authenticated in Japan" },
     heroCallerWatches: { ja: "プレラブド ウォッチ・日本で真贋鑑定済み", en: "Preloved watches · Authenticated in Japan" },
     heroCallerAccessories: { ja: "プレラブド 小物・日本で真贋鑑定済み", en: "Preloved accessories · Authenticated in Japan" },
-    heroPrelovedBadge: { ja: "プレラブド", en: "Preloved" },
-    heroPurity: { ja: "品位", en: "Purity" }, heroWeight: { ja: "重量", en: "Weight" }, heroSku: { ja: "SKU", en: "SKU" },
-    heroSize: { ja: "{n}号", en: "Size {n}" },
     heroClockCity: { ja: "東京", en: "Tokyo" }, heroClockZone: { ja: "日本時間", en: "JST" },
     heroClockLabel: { ja: "東京の現在時刻", en: "Time in Tokyo now" },
     heroAcc1: { ja: "財布", en: "Wallets" }, heroAcc2: { ja: "カードケース", en: "Cardholders" }, heroAcc3: { ja: "ベルト", en: "Belts" }, heroAcc4: { ja: "小物レザー", en: "Small leather" },
+    // Hero v3 slide 6 (owner approval 2026-09-26): each Index row's stock, or
+    // 「入荷待ち」 / "Coming soon" when that type has none.
+    heroAccCount: { ja: "{n}点", en: "{n} in stock" }, heroComingSoon: { ja: "入荷待ち", en: "Coming soon" },
+    // Preview deployments only (lib/hero-demo.ts): the label on the hero while
+    // demo mode shows the comps' cut-outs. Never rendered in production.
+    heroDemoTag: { ja: "プレビュー専用デモ：承認カンプの切り抜き画像を表示中", en: "Preview-only demo: showing the approved comps' cut-outs" },
     heroPause: { ja: "スライドと映像を一時停止", en: "Pause slides and film" }, heroPlay: { ja: "スライドと映像を再生", en: "Play slides and film" },
     heroSlideLabel: { ja: "{total}枚中{n}枚目：{name}", en: "{n} of {total}: {name}" },
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },

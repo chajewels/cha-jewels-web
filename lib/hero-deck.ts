@@ -1,27 +1,42 @@
 import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { categoryCta, categoryDescription, categoryName, productName } from "@/lib/catalog-i18n";
-import { primaryImage } from "@/lib/queries/products";
-import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
-import { metalsLabel, productMetals } from "@/lib/metals";
+import { allImages, usableCutout } from "@/lib/queries/products";
+import { bundledCutout } from "@/lib/hero-cutouts";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Category, Product, ProductVariant } from "@/lib/types";
 
 /**
- * THE HERO DECK, DECIDED ON THE SERVER, IN ONE PLACE (hero slider v2,
- * owner approvals 2026-09-26; comps in ~/Code/reference/hero-comps/slider-after-v2).
+ * THE HERO DECK, DECIDED ON THE SERVER, IN ONE PLACE (hero v3, owner
+ * approvals 2026-09-26; comps in ~/Code/reference/hero-comps/slider-v3).
  *
- * Slide 1 is the brand film with one real piece beside it. Then one slide per
- * Hub category in the Hub's sort_order, each with its own layout. The pieces
- * on the slides are CHOSEN HERE, from the Hub's catalogue, on every render
- * (ISR 60 s, and the Hub's revalidation webhook): only an active piece with a
- * variant in stock, never a sold one. When a piece sells it drops out of the
- * next render and the next available piece takes its place. There is no SKU
- * in this file and none may be added.
+ * Slide 1 is the gold film ALONE: no piece, no panel. Then one slide per Hub
+ * category in the Hub's sort_order, each an image-led dark stage with up to
+ * three pieces. The pieces are CHOSEN HERE, from the Hub's catalogue, on every
+ * render (ISR 60 s, and the Hub's revalidation webhook): only an active piece
+ * with a variant in stock, never a sold one. When a piece sells it drops out
+ * of the next render and the next available piece takes its place; with fewer
+ * than three in stock the slide shows only those. Slide 1 has no piece, so a
+ * category's slide draws freely from its whole pool. There is no SKU in this
+ * file and none may be added.
  *
- * Every figure is the Hub's: the price is the in-stock variant's `price_jpy`,
- * shown as sent; purity, weight, stone and size are the Hub's fields. Nothing
- * is computed from a price (scripts/check-money.mjs).
+ * Every figure is the Hub's: the name is the product page's (productName) and
+ * the price is the in-stock variant's `price_jpy`, shown as sent. Nothing is
+ * computed from a price (scripts/check-money.mjs).
+ *
+ * PHOTOS. Each piece carries its Hub gallery, in the Hub's order, up to
+ * HERO_PHOTOS: every photo with its cut-out when the Hub has one that may be
+ * shown (`usableCutout`: status ok, auto_fixed or approved); without one the
+ * stage shows that WHOLE photo in a framed well, never cropped. A piece with
+ * two or more cycles through them on the stage (owner request 2026-09-26,
+ * hero-slide-views.tsx). A photo after the first whose cut-out the quality
+ * check HELD (needs_review, e.g. a "BACK" inset) or could not make (failed)
+ * is skipped; the first photo is never skipped, it falls back to its frame.
+ * Nothing is processed here or in the browser.
+ *
+ * BUNDLED CUT-OUTS (interim, production included; lib/hero-cutouts.ts). Where
+ * the Hub sent no cut-out record for a photo, the one bundled with the site for
+ * that exact Hub photo, if any. A Hub cut-out always wins.
  *
  * EMPTY CATEGORIES. `HERO_HIDE_EMPTY_CATEGORIES=1` (server-only, read here and
  * nowhere else) hides a category slide whose catalogue read SUCCEEDED and holds
@@ -35,58 +50,64 @@ export type HeroPiece = {
   slug: string;
   /**
    * The Hub name exactly as the product card and product page show it
-   * (productName, lib/catalog-i18n): never shortened, reordered or stripped
-   * (owner correction 2026-09-26).
+   * (productName, lib/catalog-i18n): never shortened, reordered or stripped;
+   * "750" stays 750 and "K18WG" stays K18WG (owner corrections 2026-09-26).
    */
   name: string;
-  sku: string;
-  /** Every stamp exactly as the Hub sends it ("750" stays "750", "K18" stays "K18"), as the rest of the site shows it. */
-  purity: string | null;
-  /** "2.65g" (JA) / "2.65 g" (EN), or null when the Hub sent no weight. */
-  weight: string | null;
-  /** The Hub's stone text for the variant, as sent. */
-  stone: string | null;
-  /** "18号" (JA) / "Size 18" (EN) for a numeric size; anything else as sent. */
-  size: string | null;
   /** The in-stock variant's yen price, exactly as the Hub sent it. */
   priceJpy: number;
-  image: { url: string; alt: string } | null;
-  /** The Hub's `brand`, shown as text only (never a logo). */
-  brand: string | null;
-  preloved: boolean;
+  /** The photos the stage shows, first one first; never empty for a piece on a stage. */
+  photos: HeroPhoto[];
+  /** Accessories only: which Index row the piece belongs to (0–3, ACC_TYPES). */
+  type: number | null;
 };
 
-/** Which comp a category slide is drawn from. Keyed by slug; an unknown slug gets the ledger. */
-export type HeroLayout = "ledger" | "loupe" | "vitrine" | "clock" | "index";
+/** One photo of a piece: the whole Hub photo, and its cut-out only when it may be shown. */
+export type HeroPhoto = { url: string; alt: string; cutout: { url: string; width: number; height: number } | null };
+
+/** At most this many photos of one piece cycle on the stage. */
+const HERO_PHOTOS = 4;
+const HELD = new Set(["needs_review", "failed"]);
+
+/**
+ * What a category slide's stage holds. `stage` is the dark stage with its gold
+ * floor; `clock` stands the watches on the live Tokyo ruler; `index` adds the
+ * approved accessories Index (and is the stage itself when nothing is in stock).
+ */
+export type HeroLayout = "stage" | "clock" | "index";
 
 const LAYOUT: Record<string, HeroLayout> = {
-  "fine-jewelry": "ledger",
-  "preloved-jewelry": "loupe",
-  "preloved-branded-jewelry": "vitrine",
   "preloved-watches": "clock",
   "preloved-designer-accessories": "index",
 };
 
 /**
- * The category photo a slide may show as its DEFAULT, before the owner
- * uploads her own to the category in the Hub (`hero_media`, which always wins).
- * Only the two whole-photo slides take the repo placeholder. The placeholders
- * for branded jewelry, watches and accessories show brand marks (a BVLGARI
- * engraving, AP / Rolex / Patek dials, YSL / GG / Prada hardware), and no brand
- * logo is used as decoration, so those slides wait for an owner photo and show
- * the dark stone ground until then.
+ * Where the one orange action is "Reserve this piece" (for the featured
+ * piece): the two lines whose pieces are reserved from the slide. Branded,
+ * watches and accessories keep "Ask about availability", as approved. An
+ * unknown category with pieces reserves; any slide without a piece asks.
  */
-const PLACEHOLDER_OK = new Set<HeroLayout>(["ledger", "loupe"]);
+const ASKS = new Set(["preloved-branded-jewelry", "preloved-watches", "preloved-designer-accessories"]);
+
+/** At most three pieces on a stage (owner approval 2026-09-26). */
+const PIECES = 3;
 
 /**
- * How many pieces each layout shows, at most. The vitrine draws one arch per
- * piece it gets (1, 2 or 3), and the clock shows up to three watches above
- * its ruler (owner fix 2026-09-26): fewer in stock, fewer shown, never an
- * empty place. Phones show at most two of either (CSS).
+ * The Index rows of the accessories slide, in the approved order: 財布,
+ * カードケース, ベルト, 小物レザー (lib/i18n heroAcc1–4). The Hub has no
+ * accessory type yet (supabase/contracts/api.md proposes one), so a piece's
+ * row is read from its Hub name; anything unrecognised is small leather.
  */
-const PIECES: Record<HeroLayout, number> = { ledger: 2, loupe: 1, vitrine: 3, clock: 3, index: 0 };
+const ACC_TYPES: RegExp[] = [/wallet|財布|ウォレット/i, /card|カード/i, /belt|ベルト/i];
+export function accessoryType(name: string): number {
+  // Card before wallet: "card wallet" / "カードケース" is a cardholder.
+  if (ACC_TYPES[1].test(name)) return 1;
+  if (ACC_TYPES[0].test(name)) return 0;
+  if (ACC_TYPES[2].test(name)) return 2;
+  return 3;
+}
 
-export type HeroFilmSlide = { kind: "film"; key: "film"; name: string; short: string; piece: HeroPiece | null };
+export type HeroFilmSlide = { kind: "film"; key: "film"; name: string; short: string };
 export type HeroCategorySlide = {
   kind: "category";
   key: string;
@@ -95,7 +116,7 @@ export type HeroCategorySlide = {
   name: string;
   /**
    * The caller line above the title (owner-approved, lib/i18n "home.heroCaller*"),
-   * chosen by layout here; a slug with no approved line gets the generic
+   * chosen by slug here; a slug with no approved line gets the generic
    * 「カテゴリー」 / "Category".
    */
   caller: string;
@@ -103,15 +124,11 @@ export type HeroCategorySlide = {
   short: string;
   description: string | null;
   cta: string;
-  /** The category's Hub photo, else the placeholder where one is allowed, else null. */
-  image: string | null;
-  /**
-   * Extra owner photos for the multi-photo layouts (vitrine niches, index
-   * stage), from the category's `gallery_media` once the Hub sends it
-   * (supabase/contracts/api.md, "Proposed"). Empty today.
-   */
-  gallery: string[];
+  /** The orange action: reserve the featured piece, or ask about availability. */
+  action: "reserve" | "ask";
   pieces: HeroPiece[];
+  /** `index` only: in-stock pieces per Index row, counted over the whole category. */
+  counts: number[] | null;
 };
 export type HeroSlide = HeroFilmSlide | HeroCategorySlide;
 
@@ -129,51 +146,36 @@ export function inStockVariant(p: Pick<Product, "status" | "product_variants">):
   return best;
 }
 
-const NUMBER = /^#?\d+(\.\d+)?$/;
-
-/**
- * The piece's stamps exactly as the Hub sends them, through the site's one
- * metal label (lib/metals.ts). Never normalised: "750" stays "750" and "K18"
- * stays "K18" (owner correction 2026-09-26). null when the Hub sent none.
- */
-export function heroPurity(p: Pick<Product, "metals" | "karat">, lang: Lang): string | null {
-  const list = productMetals(p);
-  return list.length ? metalsLabel(list, lang) : null;
-}
-
-function piece(p: Product, v: ProductVariant, lang: Lang): HeroPiece {
-  // The same first photo and the same name the product card shows.
-  const img = primaryImage(p);
+function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout): HeroPiece {
+  // The same photos, in the same order, and the same name the product page shows.
   const name = productName(p, lang);
-  const size = v.size?.trim() || null;
+  const photos: HeroPhoto[] = [];
+  allImages(p).forEach((m0, i) => {
+    if (photos.length >= HERO_PHOTOS || typeof m0.url !== "string" || !m0.url) return;
+    // No Hub cut-out record at all → the bundled one made from this exact
+    // photo, with its own QA status (a held one is skipped below, exactly as
+    // a held Hub cut-out is). Any Hub record, even held or rejected, stands.
+    const m = m0.cutout == null ? { ...m0, cutout: bundledCutout(m0.url) } : m0;
+    if (i > 0 && m.cutout && HELD.has(m.cutout.status)) return;
+    photos.push({ url: m.url, alt: m.alt ?? name, cutout: usableCutout(m) });
+  });
   return {
     slug: p.slug,
     name,
-    sku: p.sku,
-    purity: heroPurity(p, lang),
-    weight: p.weight_g != null && Number.isFinite(p.weight_g) ? `${p.weight_g.toFixed(2)}${lang === "ja" ? "g" : " g"}` : null,
-    stone: v.stone?.trim() || null,
-    size: size && NUMBER.test(size) ? tr(lang)("home", "heroSize", { n: size.replace(/^#/, "") }) : size,
     priceJpy: v.price_jpy,
-    image: img ? { url: img.url, alt: img.alt ?? name } : null,
-    brand: p.brand?.trim() || null,
-    preloved: p.condition === "Preloved",
+    photos,
+    type: layout === "index" ? accessoryType(`${p.name} ${p.name_en ?? ""} ${p.name_ja ?? ""}`) : null,
   };
 }
 
 /** The available pieces of one category, in the Hub's order. */
-function available(products: Product[], lang: Lang): HeroPiece[] {
+function available(products: Product[], lang: Lang, layout: HeroLayout): HeroPiece[] {
   const out: HeroPiece[] = [];
   for (const p of products) {
     const v = inStockVariant(p);
-    if (v) out.push(piece(p, v, lang));
+    if (v) out.push(piece(p, v, lang, layout));
   }
   return out;
-}
-
-function withoutLead(pool: HeroPiece[], lead: HeroPiece | null): HeroPiece[] {
-  const rest = pool.filter((p) => p.slug !== lead?.slug);
-  return rest.length ? rest : pool;
 }
 
 /** "Preloved Watches" → "Watches", "プレラブド ウォッチ" → "ウォッチ". A name without that prefix, or with nothing after it, is kept. */
@@ -183,15 +185,15 @@ export function segmentName(name: string): string {
   return m && !/^(jewelry|ジュエリー)$/i.test(m[1]) ? m[1] : name;
 }
 
-/** The approved caller line for each layout; anything else is "Category". */
-function callerLine(layout: HeroLayout, slug: string, t: ReturnType<typeof tr>): string {
-  if (!(slug in LAYOUT)) return t("home", "slideEyebrow");
-  switch (layout) {
-    case "ledger": return t("home", "heroCallerFine");
-    case "loupe": return t("home", "heroPrelovedEyebrow");
-    case "vitrine": return t("home", "heroCallerBranded");
-    case "clock": return t("home", "heroCallerWatches");
-    case "index": return t("home", "heroCallerAccessories");
+/** The approved caller line for each category; anything else is "Category". */
+function callerLine(slug: string, t: ReturnType<typeof tr>): string {
+  switch (slug) {
+    case "fine-jewelry": return t("home", "heroCallerFine");
+    case "preloved-jewelry": return t("home", "heroPrelovedEyebrow");
+    case "preloved-branded-jewelry": return t("home", "heroCallerBranded");
+    case "preloved-watches": return t("home", "heroCallerWatches");
+    case "preloved-designer-accessories": return t("home", "heroCallerAccessories");
+    default: return t("home", "slideEyebrow");
   }
 }
 
@@ -209,32 +211,34 @@ export function hideEmptyCategories(): boolean {
   return v === "1" || v === "true";
 }
 
-type CategoryWithGallery = Category & { gallery_media?: string[] | null };
-
 export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise<HeroSlide[]> {
   const t = tr(lang);
   const sorted = [...categories].sort((a, b) => a.sort_order - b.sort_order);
+  const layouts = sorted.map((c) => LAYOUT[c.slug] ?? "stage");
   // One read per category, in parallel, under the same 60 s cache the
   // category pages use (same URL, same entry). null = the read failed.
   const reads = await Promise.all(
     sorted.map((c) => within(hub.category(c.slug), SECONDARY_TIMEOUT_MS).then((r) => r?.products ?? [], () => null)),
   );
-  const pools = reads.map((r) => (r ? available(r, lang) : null));
-
-  // Slide 1's piece: the first available piece with a photo, in category
-  // order; else the first available piece at all.
-  const all = pools.flatMap((p) => p ?? []);
-  const lead = all.find((p) => p.image) ?? all[0] ?? null;
+  const pools = reads.map((r, i) => (r ? available(r, lang, layouts[i]) : null));
 
   const hide = hideEmptyCategories();
-  const slides: HeroSlide[] = [{ kind: "film", key: "film", name: t("home", "heroFilmName"), short: t("home", "heroFilmName"), piece: lead }];
+  const slides: HeroSlide[] = [{ kind: "film", key: "film", name: t("home", "heroFilmName"), short: t("home", "heroFilmName") }];
   sorted.forEach((c, i) => {
     const pool = pools[i];
     // Hidden only when the switch is on AND the read answered AND nothing is available.
     if (hide && pool !== null && pool.length === 0) return;
-    const layout = LAYOUT[c.slug] ?? "ledger";
+    const layout = layouts[i];
     const name = categoryName(c, lang);
-    const gallery = ((c as CategoryWithGallery).gallery_media ?? []).filter((u): u is string => typeof u === "string" && !!u.trim());
+    // The stage is image-led: a piece with no Hub photo at all would stand as
+    // an empty well, so it is left off the stage (it still counts in the
+    // accessories Index, and it is still on its category page).
+    const pieces = (pool ?? []).filter((p) => p.photos.length > 0).slice(0, PIECES);
+    let counts: number[] | null = null;
+    if (layout === "index") {
+      counts = [0, 0, 0, 0];
+      for (const p of pool ?? []) counts[p.type ?? 3] += 1;
+    }
     slides.push({
       kind: "category",
       key: c.slug,
@@ -242,14 +246,12 @@ export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise
       layout,
       name,
       short: segmentName(name),
-      caller: callerLine(layout, c.slug, t),
+      caller: callerLine(c.slug, t),
       description: categoryDescription(c, lang),
       cta: categoryCta(c, lang) ?? t("home", "slideShop", { name }),
-      image: c.hero_media ?? (PLACEHOLDER_OK.has(layout) ? CATEGORY_PLACEHOLDER[c.slug] ?? null : null),
-      gallery,
-      // The film's piece is not repeated on its own category's slide, unless
-      // it is the only piece that category has left.
-      pieces: withoutLead(pool ?? [], lead).slice(0, PIECES[layout]),
+      action: pieces.length && !ASKS.has(c.slug) ? "reserve" : "ask",
+      pieces,
+      counts,
     });
   });
   return slides;

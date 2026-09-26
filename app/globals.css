@@ -671,8 +671,8 @@
   .rule-grid > *:focus-visible { outline-offset: -4px; }
 
   /* ---------------------------------------------------------------------
-     HERO DECK v2 (components/home/hero-slides.tsx, hero-slide-views.tsx).
-     Built to ~/Code/reference/hero-comps/slider-after-v2 (owner approvals
+     HERO DECK (components/home/hero-slides.tsx, hero-slide-views.tsx).
+     Hero v3, built to ~/Code/reference/hero-comps/slider-v3 (owner approvals
      2026-09-26). Phone first; `lg` (1024px) is the desktop comp.
 
      Every slide is stacked in one place and only the current one is shown;
@@ -715,18 +715,15 @@
   @keyframes hd-settle { from { opacity: .25; transform: scale(1.04); } to { opacity: 1; transform: none; } }
 
   /* Gilt: the one gilded title per slide (DESIGN.md, The Gilt Is Earned Rule).
-     On dark every stop is gold or gold-pale; on a cream photo every stop is
-     gold-deep or gold-dark. Both are measured in scripts/check-contrast.mjs
-     ("hero v2 gilt"). The light crossing it is the background moving, once,
-     each time its slide comes up; at rest it sits at its final position. */
-  .hd-gilt, .hd-gilt-dk { -webkit-background-clip: text; background-clip: text; color: transparent; background-size: 220% 100%; background-position: 0 0; }
+     Every stop is gold or gold-pale, measured in scripts/check-contrast.mjs
+     ("hero v3 stage pool", and "hero v2 film scrim" for slide 1). The light
+     crossing it is the background moving, once, each time its slide comes
+     up; at rest it sits at its final position. */
+  .hd-gilt { -webkit-background-clip: text; background-clip: text; color: transparent; background-size: 220% 100%; background-position: 0 0; }
   .hd-gilt { background-image: linear-gradient(100deg, theme('colors.gold.DEFAULT') 0%, theme('colors.gold.pale') 38%, theme('colors.gold.DEFAULT') 62%, theme('colors.gold.pale') 80%, theme('colors.gold.DEFAULT') 100%); }
-  .hd-gilt-dk { background-image: linear-gradient(100deg, theme('colors.gold.deep') 0%, theme('colors.gold.dark') 40%, theme('colors.gold.deep') 62%, theme('colors.gold.dark') 82%, theme('colors.gold.deep') 100%); }
-  .hd-slide[data-active="true"] .hd-gilt,
-  .hd-slide[data-active="true"] .hd-gilt-dk { animation: hd-gilt var(--dur-sheen) var(--ease-sheen) var(--delay-sheen) 1 both; }
+  .hd-slide[data-active="true"] .hd-gilt { animation: hd-gilt var(--dur-sheen) var(--ease-sheen) var(--delay-sheen) 1 both; }
   @keyframes hd-gilt { from { background-position: 100% 0; } to { background-position: 0 0; } }
-  [data-hero-motion="still"] .hd-gilt,
-  [data-hero-motion="still"] .hd-gilt-dk { animation-play-state: paused; }
+  [data-hero-motion="still"] .hd-gilt { animation-play-state: paused; }
 
   /* Type */
   .hd-eyebrow { display: flex; align-items: center; gap: 12px; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: theme('colors.gold.pale'); }
@@ -738,36 +735,12 @@
   .hd-desc { font-size: 12.5px; line-height: 1.6; color: rgb(245 245 242 / .8); max-width: 470px; }
   :lang(ja) .hd-desc { font-size: 12px; line-height: 1.75; }
   .hd-num { font-variant-numeric: lining-nums tabular-nums; }
-  .hd-name { font-family: var(--font-display), Georgia, serif; line-height: 1.2; color: theme('colors.chalk'); }
-  :lang(ja) .hd-name { font-family: var(--font-jp), "Hiragino Mincho ProN", serif; font-weight: 500; line-height: 1.4; }
-  .hd-price { font-family: var(--font-display), Georgia, serif; line-height: 1; color: theme('colors.gold.pale'); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
-  .hd-spec { font-size: 10.5px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: rgb(232 210 138 / .9); font-variant-numeric: lining-nums tabular-nums; }
-  :lang(ja) .hd-spec { text-transform: none; letter-spacing: .02em; }
-  .hd-badge { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 4px 9px; background: theme('colors.charcoal.deep'); color: theme('colors.chalk'); }
-  :lang(ja) .hd-badge { letter-spacing: .05em; text-transform: none; font-size: 10.5px; }
-  .hd-tlink { font-size: 14px; color: theme('colors.gold.deep'); border-bottom: 1px solid rgb(111 85 16 / .35); padding-bottom: 3px; white-space: nowrap; }
   .hd-btn { min-height: 44px; padding: 0 14px; font-size: 13.5px; white-space: nowrap; }
   /* Actions: a label is never broken (a Japanese label broken mid-word read
      「この一点を予約す／る」). Two actions share the row and grow to fill it; if
      they do not fit side by side the second takes its own row. */
   .hd-acts { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
   .hd-acts .hd-btn { flex: 1 1 auto; white-space: nowrap; padding: 0 12px; font-size: 13px; }
-
-  /* Light tone: text straight on a cream photo, ink instead of chalk. */
-  .hd-lt .hd-eyebrow { color: theme('colors.gold.deep'); }
-  .hd-lt .hd-eyebrow::before { background: theme('colors.gold.dark'); }
-  .hd-lt .hd-desc { color: rgb(34 34 34 / .85); }
-  .hd-lt .hd-name, .hd-lt .hd-price { color: theme('colors.charcoal.deep'); }
-  .hd-lt .hd-spec { color: theme('colors.gold.deep'); }
-  .hd-lt :focus-visible { outline-color: theme('colors.charcoal.deep'); }
-
-  /* The dark stone ground: where an owner photo is not in yet. No label, no
-     placeholder box: an empty lit surface. */
-  .hd-stone {
-    background:
-      radial-gradient(ellipse 80% 70% at 50% 28%, #3b3733 0%, #26241f 55%, #1b1a18 100%);
-  }
-  .hd-ground { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 80% at 72% 38%, #35312c 0%, #23211e 55%, #1a1918 100%); }
 
   /* ---- Controls: one cluster, bottom-left ---- */
   .hd-ctrl { position: absolute; z-index: 20; left: 0; right: 0; bottom: 12px; pointer-events: none; }
@@ -787,128 +760,166 @@
   .hd-round { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 9999px; border: 1px solid rgb(245 245 242 / .45); background: rgb(34 34 34 / .5); color: theme('colors.chalk'); }
   .hd-round:hover { border-color: theme('colors.chalk'); }
   .hd-round.hd-arrow { display: none; }
-  .hd-ctrl[data-tone="light"] .hd-count, .hd-ctrl[data-tone="light"] .hd-round { color: theme('colors.charcoal.deep'); }
-  .hd-ctrl[data-tone="light"] .hd-count span, .hd-ctrl[data-tone="light"] .hd-segname { color: rgb(34 34 34 / .78); }
-  .hd-ctrl[data-tone="light"] .hd-segs i { background: rgb(34 34 34 / .22); }
-  .hd-ctrl[data-tone="light"] .hd-segs i[data-done] { background: rgb(111 85 16 / .55); }
-  .hd-ctrl[data-tone="light"] .hd-segs i[data-on]::after { background: theme('colors.gold.deep'); }
-  .hd-ctrl[data-tone="light"] .hd-round { border-color: rgb(34 34 34 / .45); background: rgb(245 245 242 / .6); }
-  .hd-ctrl[data-tone="light"] :focus-visible { outline-color: theme('colors.charcoal.deep'); }
 
-  /* ================= 1 · Film + piece ================= */
+  /* Preview-only demo mode's label (lib/hero-demo.ts). Teal, so it reads as a
+     review tool and never as part of the design. */
+  .hd-demo { position: absolute; z-index: 30; top: 10px; right: 10px; max-width: 44%; padding: 4px 8px; font-size: 9.5px; line-height: 1.35; font-weight: 600; letter-spacing: .04em; color: #08322d; background: #8fd6c9; pointer-events: none; }
+  @media (min-width: 1024px) { .hd-demo { max-width: none; padding: 5px 9px; font-size: 10.5px; letter-spacing: .08em; } }
+
+  /* ================= 1 · The film, alone ================= */
   /* The film slide's scrim. The comp's stops (.78 at 38%, .25 at 62%) left the
      headline's line ends on the film's brightest band — measured in the
      headline's own band (x 38–55%, y 25–75%): poster p95 luma 208, peaks 255;
      the 0:21 flare, 160 across the frame. So the stop holds .82 to the end of
      the copy column and only then opens onto the crucible; on a phone it
      holds .78 behind the copy at the top. Rows: check-contrast.mjs, "hero v2
-     film scrim". */
+     film scrim". Hero v3: no piece and no panel beside it (owner approval
+     2026-09-26), so the film is open to the right of the copy. */
   .hd-film-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(34 34 34 / .8) 0%, rgb(34 34 34 / .78) 34%, rgb(34 34 34 / .9) 55%, theme('colors.charcoal.deep') 78%); }
-  .hd-film .hd-in { display: flex; flex-direction: column; gap: 14px; padding-top: 16px; padding-bottom: 64px; }
-  .hd-cells > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; }
+  .hd-film .hd-in { display: flex; flex-direction: column; padding-top: 16px; padding-bottom: 64px; }
   .hd-film h1 { font-size: 30px; }
   :lang(ja) .hd-film h1 { font-size: 23px; }
   .hd-film .hd-eyebrow { margin-bottom: 10px; }
   .hd-origin { margin-top: 10px; padding-left: 12px; border-left: 1px solid theme('borderColor.rule'); font-size: 12px; line-height: 1.6; color: rgb(245 245 242 / .82); max-width: 460px; }
   :lang(ja) .hd-origin { font-size: 11.5px; line-height: 1.7; }
-  .hd-panel { width: 100%; }
-  .hd-pimg { position: relative; display: block; height: clamp(150px, 22svh, 196px); background: #0b0b0c; outline: 1px solid theme('borderColor.rule'); outline-offset: 5px; overflow: hidden; }
-  .hd-pimg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(118deg, transparent 35%, rgb(232 210 138 / .12) 48%, transparent 60%); pointer-events: none; }
-  .hd-pdet { position: relative; margin: 12px -5px 0; padding: 12px 14px 14px; background: rgb(24 24 24 / .92); border: 1px solid rgb(201 162 39 / .2); border-top: 0; }
-  .hd-pdet::before { content: ""; position: absolute; left: -1px; right: -1px; top: 0; height: 2px; background: linear-gradient(90deg, theme('colors.gold.dark'), theme('colors.gold.pale') 40%, theme('colors.gold.DEFAULT') 70%, rgb(201 162 39 / .2)); }
-  .hd-pdet .hd-name { font-size: 19px; }
-  :lang(ja) .hd-pdet .hd-name { font-size: 15.5px; }
-  .hd-cells { display: none; }
-  .hd-cellv { display: block; font-size: 16px; font-weight: 500; letter-spacing: .02em; color: theme('colors.chalk'); white-space: nowrap; font-variant-numeric: lining-nums tabular-nums; }
-  .hd-cellk { display: block; margin-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgb(232 210 138 / .85); white-space: nowrap; }
-  :lang(ja) .hd-cellk { letter-spacing: .05em; text-transform: none; font-size: 11px; }
-  .hd-pdet .hd-spec { margin-top: 5px; }
-  .hd-pdet .hd-price { display: block; margin-top: 10px; font-size: 26px; }
-  .hd-pdet .hd-btn { width: 100%; margin-top: 10px; }
+  /* Slide 1's one button: under the clarifier, on the text's left edge, its
+     own width (it never stretches across a phone). */
+  .hd-film-acts { margin-top: 16px; }
+  .hd-film-acts .hd-btn { flex: 0 0 auto; min-height: 46px; padding: 0 18px; font-size: 14px; }
 
-  /* ================= 2 · Fine Jewelry: whole photo + ledger card ================= */
-  .hd-photo-top { position: absolute; left: 0; right: 0; top: 0; aspect-ratio: 16 / 9; }
-  .hd-ledger .hd-card { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100vw * 9 / 16); background: theme('colors.charcoal.deep'); }
-  .hd-ledger .hd-card-in { padding: 14px clamp(18px, 4vw, 48px) 0; }
-  .hd-ledger .hd-title { font-size: 24px; margin: 8px 0 6px; }
-  .hd-rows { margin-top: 10px; border-top: 1px solid theme('borderColor.rule'); }
-  .hd-row { display: grid; grid-template-columns: 50px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid theme('borderColor.rule'); }
-  .hd-row .hd-thumb { position: relative; width: 50px; height: 50px; background: #080808; outline: 1px solid rgb(201 162 39 / .2); overflow: hidden; }
-  .hd-row .hd-name { font-size: 16px; }
-  :lang(ja) .hd-row .hd-name { font-size: 13.5px; }
-  .hd-row .hd-spec { margin-top: 3px; }
-  .hd-row .hd-price { font-size: 20px; }
-  .hd-ledger .hd-acts { margin-top: 12px; }
+  /* ================= 2–6 · The stage (hero v3) =================
+     ~/Code/reference/hero-comps/slider-v3. One dark stage per category with a
+     warm pool of light and a gold floor; up to three pieces stand on it.
 
-  /* ================= 3 · Preloved: the photo is the hero, the piece a loupe ================= */
-  .hd-loupe-page { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100vw * 9 / 16); background: #EEE7DC; border-top: 1px solid rgb(138 107 18 / .45); }
-  .hd-loupe .hd-copy { position: absolute; left: 0; right: 0; top: calc(100vw * 9 / 16 + 14px); }
-  .hd-loupe .hd-title { font-size: 23px; margin: 8px 0 6px; }
-  .hd-medal { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgb(111 85 16 / .35); }
-  .hd-lens-wrap { position: relative; display: block; width: 96px; height: 96px; }
-  .hd-lens { display: block; position: absolute; inset: 7px; border-radius: 9999px; overflow: hidden; background: #5b5b5b; box-shadow: 0 10px 22px rgb(60 44 20 / .22), inset 0 0 0 1px rgb(232 210 138 / .35); }
-  .hd-lens-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .hd-medal .hd-name { font-size: 14px; }
-  :lang(ja) .hd-medal .hd-name { font-size: 14px; }
-  .hd-medal .hd-spec { margin-top: 4px; }
-  .hd-medal .hd-price { font-size: 24px; }
-  .hd-medal .hd-badge, .hd-medal .hd-tlink, .hd-medal .hd-medal-btn { display: none; }
-  .hd-loupe .hd-bbtn { margin-top: 12px; }
-  .hd-loupe .hd-bbtn .hd-btn { width: 100%; }
+     PLACES. A piece's place is `data-place` (0 left, 1 centre, 2 right) on a
+     stage of `data-count` pieces, and its geometry is four numbers: --cx (the
+     centre, % of the stage's width), --w (its box width, same units), --s and
+     --lift (how far it is set back). Movement is a transform only: the stage
+     is an inline-size container, so `--cx * 1cqw` is a length the transform
+     can carry, and a turn is that transform transitioning on EASE_LUX /
+     DUR.image. The featured piece stands full size; the others are dimmer.
 
-  /* ================= 4 · Branded: the vitrine ================= */
-  .hd-vitrine .hd-in { display: grid; grid-template-areas: "copy" "vit" "acts"; align-content: start; padding-top: 16px; padding-bottom: 64px; }
-  .hd-v-copy { grid-area: copy; }
-  .hd-vit { grid-area: vit; }
-  .hd-v-acts { grid-area: acts; }
-  .hd-vitrine .hd-title, .hd-clock .hd-title, .hd-index .hd-title { font-size: 23px; margin: 8px 0 6px; }
-  /* Phone: two arches, not three. The Hub's full names (never shortened) need
-     ~170px to wrap between words; a third arch left ~105px, which cut words
-     such as オープンティアドロップ. Desktop shows three. */
-  .hd-vit { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; align-items: end; margin-top: 18px; }
-  .hd-niche:nth-child(3) { display: none; }
-  .hd-niche { display: block; min-width: 0; }
-  .hd-arch { position: relative; height: 170px; padding: 5px; border: 1px solid theme('borderColor.rule'); border-radius: 90px 90px 0 0; }
-  .hd-arch-in { position: relative; height: 100%; border-radius: 85px 85px 0 0; overflow: hidden; }
-  .hd-arch-in::after { content: ""; position: absolute; left: 10%; right: 10%; top: 0; height: 60%; background: radial-gradient(ellipse 50% 80% at 50% 0%, rgb(255 236 190 / .16), transparent 70%); pointer-events: none; }
-  .hd-ncap { margin-top: 8px; text-align: center; font-size: 11px; line-height: 1.4; color: rgb(232 210 138 / .9); }
-  /* Product names are the Hub's full names, never cut: they wrap between
-     words, and only a single token wider than its column may break. */
-  .hd-name, .hd-ncap { overflow-wrap: break-word; font-variant-numeric: lining-nums tabular-nums; }
-  :lang(ja) .hd-name, :lang(ja) .hd-ncap { line-break: strict; word-break: auto-phrase; }
-  .hd-ncap em { display: block; margin-top: 3px; font-style: normal; font-size: 10.5px; color: rgb(245 245 242 / .7); }
-  .hd-shelf { display: none; }
-  .hd-vitrine .hd-acts { margin-top: 18px; }
-  /* One arch per piece, centred as a group: a single piece stands alone in
-     the middle rather than beside an empty arch. */
-  .hd-vit[data-count="1"] { grid-template-columns: minmax(0, calc(50% - 7px)); justify-content: center; }
-  /* A piece's photo, whole (WholePhoto): contained in a box inset from the
-     arch's curved top (the % paddings are of the width, so the box's top
-     corners always sit inside the semicircle), on the stone ground. */
-  .hd-fit { position: absolute; inset: 0; padding: 22% 10% 8%; }
-  .hd-fit > span { position: relative; display: block; height: 100%; }
+     PHOTOS. `.hd-cut` is the Hub's cut-out, contained and standing on its own
+     bottom edge. `.hd-well` is the fallback: the whole photo, contained in a
+     charcoal well with a gold hairline, never cropped. Both sit in `.hd-body`,
+     a size container, so the well and the shadow can size to the smaller of
+     its two sides.
 
-  /* 5 · the watches, in front of the category photo, above the ruler. Two on
-     a phone, three from lg. */
-  .hd-watches { position: absolute; top: 14px; left: clamp(18px, 4vw, 48px); right: clamp(18px, 4vw, 48px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: stretch; pointer-events: auto; }
-  .hd-watch { display: flex; min-width: 0; }
-  .hd-watches[data-count="1"] { grid-template-columns: minmax(0, calc(50% - 6px)); justify-content: center; }
-  .hd-watch:nth-child(3) { display: none; }
-  .hd-wlink { display: block; flex: 1 1 auto; min-width: 0; padding: 5px; background: rgb(27 26 24 / .94); border: 1px solid theme('borderColor.rule'); }
-  .hd-wimg { position: relative; display: block; height: 112px; overflow: hidden; }
-  .hd-wimg .hd-fit { padding: 6px; }
-  .hd-watch .hd-ncap { margin-top: 6px; padding: 0 3px 3px; }
+     MOTION (only on the slide that is up; paused with the hero; none at all
+     under reduced motion, where the blanket rule leaves every resting style,
+     which IS the final state):
+       float   .hd-fl drifts --hero-float-lift over --hero-float-period, the
+               three out of phase by --i; the shadow shrinks as it rises
+       light   .hd-sw, a band crossing a copy of the cut-out every
+               --sheen-every (one DUR.sheen pass = 32.5% of the cycle)
+       turn    the transform transition above; a piece crossing from the right
+               edge to the left fades out, jumps while unseen, and fades in
+       phones  only the featured piece floats, the light crosses once, and
+               there is no reflection */
+  .hd-v3 { display: flex; flex-direction: column; padding-bottom: 72px; background: #15120f; --floor: 88px; --lead: 212px; --gut: clamp(18px, 4vw, 48px); }
+  .hd-pool { position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 38% at 50% 26%, rgb(120 92 40 / .30) 0%, rgb(0 0 0 / 0) 72%),
+      radial-gradient(ellipse 120% 90% at 50% 30%, #231e18 0%, #17140f 60%, #0f0d0a 100%); }
+  /* Phone: the comp's 350px stage band at the top, the text right under it;
+     on a short screen the band gives way first (down to 250px). */
+  .hd-stage { position: relative; flex: 0 1 350px; min-height: 250px; container-type: inline-size; }
+  .hd-floor { position: absolute; left: 6%; right: 6%; bottom: var(--floor); height: 1px; background: linear-gradient(90deg, rgb(201 162 39 / 0), rgb(201 162 39 / .55) 25%, rgb(232 210 138 / .75) 50%, rgb(201 162 39 / .55) 75%, rgb(201 162 39 / 0)); }
 
-  /* ================= 5 · Watches: the live Japan-time ruler ================= */
-  .hd-clock-photo { position: absolute; left: 0; right: 0; top: 0; height: 300px; }
-  .hd-clock-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, theme('colors.charcoal.deep') 0%, rgb(34 34 34 / .3) 22%, transparent 45%); pointer-events: none; }
-  .hd-clock .hd-copy { position: absolute; left: 0; right: 0; top: 340px; }
-  .hd-clock .hd-acts { margin-top: 16px; }
-  .hd-readout { position: absolute; top: 262px; left: clamp(18px, 4vw, 48px); display: flex; align-items: baseline; gap: 8px; color: rgb(232 210 138 / .92); }
+  .hd-stage { --cx: 50; --w: 62; --capw: 60; --s: 1; --lift: 0px; }
+  .hd-stage[data-count="2"] > [data-place="0"] { --cx: 27; --w: 44; --capw: 44; }
+  .hd-stage[data-count="2"] > [data-place="1"] { --cx: 74; --w: 44; --capw: 44; --s: .86; --lift: 8px; }
+  .hd-stage[data-count="3"] > * { --w: 34; --capw: 31; }
+  .hd-stage[data-count="3"] > [data-place="0"] { --cx: 17; --s: .64; --lift: 14px; }
+  .hd-stage[data-count="3"] > [data-place="1"] { --cx: 50; }
+  .hd-stage[data-count="3"] > [data-place="2"] { --cx: 83; --s: .64; --lift: 14px; }
+
+  /* Set back = a shorter box, the SAME width (the comp's rule): a tall piece
+     set back shrinks, a wide one — already limited by its width — hardly
+     does. Its place is a transform; its height transitions with it. */
+  .hd-pc { position: absolute; left: 0; bottom: var(--floor); width: calc(var(--w) * 1cqw); height: calc(min(var(--lead), calc((100% - var(--floor)) * .86)) * var(--s));
+    transform: translateX(calc(var(--cx) * 1cqw - 50%)) translateY(calc(var(--lift) * -1));
+    transition: transform var(--dur-image) var(--ease-lux), height var(--dur-image) var(--ease-lux); }
+  .hd-body { position: absolute; inset: 0; display: block; container-type: size; transition: filter var(--dur-image) var(--ease-lux); }
+  .hd-pc:not([data-feat]) .hd-body { filter: brightness(.8); }
+  .hd-fl { position: absolute; inset: 0; display: block; }
+  /* One layer per photo of the piece; the one showing is `data-on`, and a
+     change of photo is a cross-fade on --dur-reveal. The first photo is on in
+     the server markup, so nothing fades in on first paint. */
+  .hd-ph { position: absolute; inset: 0; display: block; opacity: 0; transition: opacity var(--dur-reveal) var(--ease-lux); }
+  .hd-ph[data-on] { opacity: 1; }
+  .hd-cut { position: absolute; inset: 0; display: block; filter: drop-shadow(0 18px 22px rgb(0 0 0 / .55)) drop-shadow(0 2px 3px rgb(0 0 0 / .4)); }
+  /* A well is square; set back it shrinks by --s like the comp's set-back
+     box (a square well is never limited by its width alone). */
+  .hd-well { position: absolute; left: 50%; bottom: 0; width: min(calc(100cqw * var(--s)), 100cqh); aspect-ratio: 1; transform: translateX(-50%); padding: 7%; background: #121110; border: 1px solid rgb(201 162 39 / .45); box-shadow: 0 18px 30px rgb(0 0 0 / .5), inset 0 0 0 4px #121110, inset 0 0 0 5px rgb(201 162 39 / .14); }
+  .hd-well > span { position: relative; display: block; height: 100%; }
+  /* The comp's contact shadow: 78% of the place's width under a cut-out; under
+     a framed well, 80% of the well. */
+  .hd-pc[data-framed] .hd-shadow { width: calc(min(calc(100cqw * var(--s)), 100cqh) * .8); }
+  .hd-shadow { position: absolute; left: 50%; bottom: -10px; width: 78%; height: 22px; transform: translateX(-50%); background: radial-gradient(ellipse at center, rgb(0 0 0 / .72) 0%, rgb(0 0 0 / .35) 45%, rgb(0 0 0 / 0) 72%); filter: blur(3px); }
+  .hd-refl { display: none; }
+  /* The light: a window 40% of the piece wide crosses it (-100% → 250% of its
+     own width) while its copy of the cut-out moves the other way (40% → -100%
+     of its own, 2.5× wider, width), so the copy stays exactly on the piece and
+     only the band is seen. Both on the same easing, so they never drift. */
+  .hd-swc { position: absolute; inset: 0; overflow: hidden; pointer-events: none; mix-blend-mode: screen; }
+  .hd-sw { position: absolute; top: 0; bottom: 0; left: 0; width: 40%; overflow: hidden; transform: translateX(-100%);
+    -webkit-mask-image: linear-gradient(95deg, transparent 0%, #000 45%, #000 55%, transparent 100%); mask-image: linear-gradient(95deg, transparent 0%, #000 45%, #000 55%, transparent 100%); }
+  .hd-sw-in { position: absolute; top: 0; bottom: 0; left: 0; width: 250%; transform: translateX(40%); opacity: .6; filter: brightness(1.9) sepia(.4) saturate(1.4); }
+  .hd-sw-in > * { pointer-events: none; }
+  @keyframes hd-sw { 0% { transform: translateX(-100%); } 32.5%, 100% { transform: translateX(250%); } }
+  @keyframes hd-sw-in { 0% { transform: translateX(40%); } 32.5%, 100% { transform: translateX(-100%); } }
+  @keyframes hd-float { from { transform: translateY(0); } to { transform: translateY(var(--hero-float-lift)); } }
+  @keyframes hd-shade { from { transform: translateX(-50%) scale(1); opacity: 1; } to { transform: translateX(-50%) scale(.86); opacity: .7; } }
+  .hd-slide[data-active="true"] .hd-fl { animation: hd-float var(--hero-float-period) ease-in-out calc(var(--i, 0) * var(--hero-float-period) / -3) infinite alternate; }
+  .hd-slide[data-active="true"] .hd-shadow { animation: hd-shade var(--hero-float-period) ease-in-out calc(var(--i, 0) * var(--hero-float-period) / -3) infinite alternate; }
+  .hd-slide[data-active="true"] .hd-sw { animation: hd-sw var(--sheen-every) var(--ease-sheen) calc(var(--i, 0) * var(--dur-sheen) / 3) infinite; }
+  .hd-slide[data-active="true"] .hd-sw-in { animation: hd-sw-in var(--sheen-every) var(--ease-sheen) calc(var(--i, 0) * var(--dur-sheen) / 3) infinite; }
+  [data-hero-motion="still"] .hd-fl, [data-hero-motion="still"] .hd-shadow,
+  [data-hero-motion="still"] .hd-sw, [data-hero-motion="still"] .hd-sw-in { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .hd-swc { display: none; } }
+  /* Crossing from the right edge to the left: out, a jump while unseen, in. */
+  @keyframes hd-wrap { 0% { opacity: 1; } 40%, 55% { opacity: 0; } 100% { opacity: 1; } }
+  .hd-pc[data-wrap], .hd-cap[data-wrap] { animation: hd-wrap var(--dur-image) linear both; transition: transform 0s linear calc(var(--dur-image) * .48), height 0s linear calc(var(--dur-image) * .48); }
+
+  /* The name/price line under each piece: the full Hub name, wrapping between
+     words, never cut; the Hub price in pale gilt. The featured line is
+     brighter, with a short gold rule. Phones show only the featured line,
+     under the stage (.hd-pcap); the per-piece lines stay for screen readers. */
+  .hd-cap-nm, .hd-cap-pr { display: block; }
+  .hd-cap-nm { font-size: 11.5px; line-height: 1.45; color: rgb(245 245 242 / .82); overflow-wrap: break-word; font-variant-numeric: lining-nums; }
+  :lang(ja) .hd-cap-nm { line-height: 1.6; line-break: strict; word-break: auto-phrase; }
+  .hd-cap-pr { margin-top: 4px; font-family: var(--font-display), Georgia, serif; font-size: 16px; line-height: 1.2; color: theme('colors.gold.pale'); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+  .hd-cap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .hd-pcap { position: absolute; left: var(--gut); right: var(--gut); top: calc(100% - var(--floor) + 18px); text-align: center; animation: hd-pcap var(--dur-reveal) var(--ease-lux) both; }
+  .hd-pcap .hd-cap-nm { color: theme('colors.chalk'); }
+  @keyframes hd-pcap { from { opacity: 0; } to { opacity: 1; } }
+
+  .hd-copy3 { position: relative; flex: none; padding: 40px var(--gut) 0; }
+  .hd-copy3 .hd-eyebrow { margin-bottom: 10px; }
+  .hd-copy3 .hd-eyebrow .hd-num { color: rgb(232 210 138 / .75); }
+  .hd-copy3 .hd-title { font-size: 30px; }
+  :lang(ja) .hd-copy3 .hd-title { font-size: 26px; }
+  .hd-copy3 .hd-desc { margin-top: 10px; font-size: 13px; line-height: 1.6; }
+  :lang(ja) .hd-copy3 .hd-desc { font-size: 12.5px; line-height: 1.7; }
+  .hd-copy3 .hd-acts { margin-top: 16px; }
+  /* The comp's phone buttons keep their own width and wrap when they must. */
+  .hd-copy3 .hd-acts .hd-btn { flex: 0 0 auto; min-height: 46px; padding: 0 16px; font-size: 14px; }
+  /* Nothing in stock on a jewelry slide (HERO_HIDE_EMPTY_CATEGORIES off): no
+     empty stage. The stage folds away and the text stands alone, at the
+     bottom on a phone and in the centre from lg. The watches keep the live
+     ruler; the accessories' Index becomes the stage. */
+  .hd-v3[data-layout="stage"][data-count="0"] { justify-content: flex-end; }
+  .hd-v3[data-layout="stage"][data-count="0"] .hd-stage { display: none; }
+  /* Slide 6's Index legend: desktop only (the phone has no room beside the stage). */
+  .hd-idx { display: none; }
+
+  /* 5 · the ruler is the floor; the readout sits above its left end. */
+  .hd-readout { position: absolute; z-index: 2; left: var(--gut); top: 12px; display: flex; align-items: baseline; gap: 8px; color: rgb(232 210 138 / .92); }
   .hd-readout b { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 17px; color: theme('colors.chalk'); letter-spacing: .02em; }
   .hd-readout span { font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
   :lang(ja) .hd-readout span { letter-spacing: .08em; font-size: 11.5px; text-transform: none; }
-  .hd-track { position: absolute; top: 300px; height: 16px; left: clamp(18px, 4vw, 48px); right: clamp(18px, 4vw, 48px); }
+  .hd-track { position: absolute; left: 4%; right: 4%; bottom: calc(var(--floor) - 8px); height: 16px; }
   .hd-track svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .hd-trail { position: absolute; inset: 0; overflow: hidden; will-change: transform; transform: translateX(-100%); }
   .hd-trail > div { position: absolute; inset: 0; will-change: transform; transform: translateX(100%); }
@@ -917,32 +928,18 @@
   .hd-track[data-still] .hd-hand, .hd-track[data-still] .hd-trail { display: none; }
   @media (prefers-reduced-motion: reduce) { .hd-hand, .hd-trail { display: none; } }
 
-  /* ================= 6 · Accessories: the index ================= */
-  .hd-stage { position: absolute; left: 0; right: 0; top: 0; height: 232px; }
-  .hd-stage .hd-sph { position: absolute; inset: 0; opacity: 0; transition: opacity .8s var(--ease-lux); }
-  .hd-stage .hd-sph[data-on] { opacity: 1; }
-  .hd-stage-cap { position: absolute; left: 14px; bottom: 12px; display: flex; gap: 10px; align-items: baseline; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: theme('colors.gold.pale'); text-shadow: 0 1px 8px rgb(0 0 0 / .6); }
-  :lang(ja) .hd-stage-cap { letter-spacing: .06em; font-size: 12px; text-transform: none; }
-  .hd-stage-cap em { font-style: normal; font-family: var(--font-display), Georgia, serif; font-size: 15px; letter-spacing: 0; color: rgb(245 245 242 / .75); }
-  .hd-index .hd-copy { position: absolute; left: 0; right: 0; top: 246px; }
-  .hd-idx { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; border-top: 1px solid theme('borderColor.rule'); }
-  .hd-idx > li { position: relative; display: grid; grid-template-columns: 28px 1fr; align-items: center; height: 40px; border-bottom: 1px solid theme('borderColor.rule'); color: rgb(245 245 242 / .7); transition: color .5s var(--ease-lux); }
-  .hd-idx .hd-n { font-family: var(--font-display), Georgia, serif; font-size: 12px; color: rgb(232 210 138 / .7); }
-  .hd-idx .hd-t { font-family: var(--font-display), Georgia, serif; font-size: 16px; }
-  :lang(ja) .hd-idx .hd-t { font-family: var(--font-jp), "Hiragino Mincho ProN", serif; font-size: 13px; font-weight: 500; }
-  .hd-idx .hd-a { display: none; width: 26px; height: 1px; background: theme('colors.gold.pale'); opacity: 0; transform: translateX(-10px); transition: opacity .5s var(--ease-lux), transform .5s var(--ease-lux); }
-  .hd-idx > li::before { content: ""; position: absolute; left: -8px; top: 10px; bottom: 10px; width: 2px; background: theme('colors.gold.pale'); transform: scaleY(0); transition: transform .5s var(--ease-lux); }
-  .hd-idx > li[data-on] { color: theme('colors.chalk'); }
-  .hd-idx > li[data-on] .hd-n { color: theme('colors.gold.pale'); }
-  .hd-idx > li[data-on] .hd-a { opacity: 1; transform: none; }
-  .hd-idx > li[data-on]::before { transform: none; }
-  .hd-index .hd-acts { margin-top: 14px; }
+  /* 6 · nothing in stock: the Index is the stage, set large, outline numerals. */
+  .hd-bigidx { position: absolute; left: var(--gut); right: var(--gut); top: 50%; transform: translateY(-50%); }
+  .hd-bigidx > li { display: flex; align-items: baseline; gap: 16px; padding: 7px 0; border-bottom: 1px solid theme('borderColor.rule'); }
+  .hd-bn { font-family: var(--font-display), Georgia, serif; font-size: 36px; line-height: 1; color: transparent; -webkit-text-stroke: 1px rgb(232 210 138 / .8); }
+  .hd-bigidx b { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 19px; color: theme('colors.chalk'); }
+  :lang(ja) .hd-bigidx b { font-family: var(--font-jp), "Hiragino Mincho ProN", serif; font-weight: 500; font-size: 17px; }
+  .hd-bigidx em { margin-left: auto; font-style: normal; font-size: 12px; letter-spacing: .06em; color: rgb(232 210 138 / .85); white-space: nowrap; }
 
   /* ================= desktop (the 1440 comp) ================= */
   @media (min-width: 1024px) {
     .hd-desc { font-size: 15px; line-height: 1.7; max-width: 440px; }
     :lang(ja) .hd-desc { font-size: 14px; line-height: 1.85; }
-    .hd-spec { font-size: 12px; }
     .hd-btn { min-height: 48px; padding: 0 24px; font-size: 15px; }
     .hd-acts { gap: 14px; align-items: center; }
     .hd-acts .hd-btn { flex: 0 0 auto; padding: 0 24px; font-size: 15px; }
@@ -956,142 +953,94 @@
 
     /* 1 */
     .hd-film-scrim { background: linear-gradient(90deg, rgb(34 34 34 / .95) 0%, rgb(34 34 34 / .88) 30%, rgb(34 34 34 / .82) 54%, rgb(34 34 34 / .3) 70%, rgb(34 34 34 / .55) 100%), linear-gradient(0deg, rgb(34 34 34 / .85) 0%, transparent 30%); }
-    .hd-film .hd-in { display: grid; grid-template-columns: minmax(0, 1fr) 340px; column-gap: 64px; padding-top: 40px; padding-bottom: 96px; align-items: start; }
-    .hd-film[data-nopiece] .hd-in { grid-template-columns: minmax(0, 1fr); }
-    .hd-film .hd-copy { align-self: center; max-width: 740px; }
+    .hd-film .hd-in { justify-content: center; padding-top: 0; padding-bottom: 96px; }
+    .hd-film .hd-copy { max-width: 740px; }
     .hd-film h1 { font-size: clamp(44px, 4vw, 58px); }
     :lang(ja) .hd-film h1 { font-size: clamp(36px, 3.1vw, 44px); }
     .hd-film .hd-eyebrow { margin-bottom: 22px; }
     .hd-origin { margin-top: 26px; padding-left: 16px; font-size: 13.5px; line-height: 1.7; }
     :lang(ja) .hd-origin { font-size: 13px; line-height: 1.85; }
-    .hd-pimg { height: clamp(220px, 36svh, 318px); outline-offset: 8px; }
-    .hd-pdet { margin: 20px -8px 0; padding: 18px 20px 20px; }
-    .hd-pdet .hd-name { font-size: 24px; }
-    :lang(ja) .hd-pdet .hd-name { font-size: 19px; }
-    .hd-pdet .hd-spec { display: none; }
-    .hd-cells { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 14px; border-top: 1px solid theme('borderColor.rule'); border-bottom: 1px solid theme('borderColor.rule'); }
-    .hd-cells > div { padding: 10px 12px; border-right: 1px solid theme('borderColor.rule'); min-width: 0; }
-    .hd-cells > div:first-child { padding-left: 0; }
-    .hd-cells > div:last-child { border-right: 0; }
-    .hd-pdet .hd-price { margin-top: 16px; font-size: 34px; }
-    .hd-pdet .hd-btn { margin-top: 16px; }
+    .hd-film-acts { margin-top: 30px; }
+    .hd-film-acts .hd-btn { min-height: 48px; padding: 0 24px; font-size: 15px; }
 
-    /* 2 */
-    .hd-photo-whole { position: absolute; inset: 0; }
-    .hd-photo-top { bottom: 0; aspect-ratio: auto; }
-    .hd-ledger .hd-card { top: 44px; bottom: auto; left: max(clamp(18px, 4vw, 48px), calc((100% - 1240px) / 2 + clamp(18px, 4vw, 48px))); right: auto; width: 424px; padding: 30px 32px 28px; background: rgb(34 34 34 / .95); border: 1px solid rgb(201 162 39 / .2); box-shadow: 0 24px 60px rgb(60 44 20 / .28); }
-    .hd-ledger .hd-card::before { content: ""; position: absolute; left: -1px; right: -1px; top: -1px; height: 2px; background: linear-gradient(90deg, theme('colors.gold.dark'), theme('colors.gold.pale') 40%, theme('colors.gold.DEFAULT') 70%, rgb(201 162 39 / .2)); }
-    .hd-ledger .hd-card-in { padding: 0; }
-    .hd-ledger .hd-title { font-size: 48px; margin: 18px 0 14px; }
-    :lang(ja) .hd-ledger .hd-title { font-size: 38px; }
-    .hd-ledger .hd-desc { font-size: 14px; }
-    :lang(ja) .hd-ledger .hd-desc { font-size: 13.5px; }
-    .hd-rows { margin-top: 20px; }
-    .hd-row { grid-template-columns: 60px 1fr auto; gap: 14px; padding: 12px 0; }
-    .hd-row .hd-thumb { width: 60px; height: 60px; }
-    .hd-row .hd-name { font-size: 18px; }
-    :lang(ja) .hd-row .hd-name { font-size: 14.5px; }
-    .hd-row .hd-spec { margin-top: 5px; font-size: 11px; }
-    .hd-row .hd-price { font-size: 23px; }
-    .hd-ledger .hd-acts { margin-top: 22px; flex-direction: column; align-items: stretch; gap: 10px; }
+    /* 2–6: text on its side, the stage on the other, reaching to 40px from
+       the screen edge. --col is the site column's edge; --cw the text
+       column's width. The floor stands 206px above the hero's bottom, so the
+       name/price lines end above the controls (bottom-left, every slide) and
+       well clear of the Messenger button (bottom-right). */
+    .hd-v3 { display: block; --floor: 206px; --lead: 470px; --col: max(var(--gut), calc((100% - 1240px) / 2 + var(--gut))); --cw: clamp(360px, 34vw, 470px); }
+    .hd-v3[data-side="left"] .hd-pool { background:
+      radial-gradient(ellipse 46% 62% at 70% 56%, rgb(120 92 40 / .30) 0%, rgb(60 46 24 / .16) 42%, rgb(0 0 0 / 0) 72%),
+      radial-gradient(ellipse 120% 90% at 50% 40%, #231e18 0%, #17140f 60%, #0f0d0a 100%); }
+    .hd-v3[data-side="right"] .hd-pool { background:
+      radial-gradient(ellipse 46% 62% at 30% 56%, rgb(120 92 40 / .30) 0%, rgb(60 46 24 / .16) 42%, rgb(0 0 0 / 0) 72%),
+      radial-gradient(ellipse 120% 90% at 50% 40%, #231e18 0%, #17140f 60%, #0f0d0a 100%); }
+    .hd-stage { position: absolute; top: 0; bottom: 0; min-height: 0; }
+    .hd-v3[data-side="left"] .hd-stage { left: calc(var(--col) + var(--cw) + 60px); right: 40px; }
+    .hd-v3[data-side="right"] .hd-stage { left: 40px; right: calc(var(--col) + var(--cw) + 60px); }
+    .hd-pc { height: calc(min(var(--lead), calc((100% - var(--floor)) * .74)) * var(--s)); }
+    .hd-stage[data-count="3"] > [data-place="0"], .hd-stage[data-count="3"] > [data-place="2"] { --lift: 26px; }
+    .hd-refl { position: absolute; left: 0; right: 0; top: 100%; display: block; height: min(34%, 64px); margin-top: 4px; overflow: hidden; opacity: .2; pointer-events: none;
+      -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 80%); mask-image: linear-gradient(180deg, #000 0%, transparent 80%); }
+    .hd-rl { position: absolute; left: 0; right: 0; top: 0; height: 100cqh; transform: scaleY(-1); filter: blur(1.5px); opacity: 0; transition: opacity var(--dur-reveal) var(--ease-lux); }
+    .hd-rl[data-on] { opacity: 1; }
+    .hd-cap { top: calc(100% - var(--floor) + 20px); left: 0; width: min(236px, calc(var(--capw) * 1cqw)); height: auto; overflow: visible; clip-path: none; white-space: normal; text-align: center;
+      transform: translateX(calc(var(--cx) * 1cqw - 50%)); transition: transform var(--dur-image) var(--ease-lux); }
+    .hd-cap-nm { font-size: 12px; line-height: 1.5; }
+    :lang(ja) .hd-cap-nm { line-height: 1.6; }
+    .hd-cap-pr { margin-top: 5px; font-size: 18px; }
+    .hd-cap[data-feat] .hd-cap-nm { color: theme('colors.chalk'); }
+    .hd-cap[data-feat]::before { content: ""; display: block; width: 26px; height: 1px; margin: 0 auto 10px; background: theme('colors.gold.DEFAULT'); }
+    .hd-cap:hover .hd-cap-nm { color: theme('colors.chalk'); }
+    .hd-pcap { display: none; }
 
-    /* 3 */
-    .hd-loupe-page { display: none; }
-    .hd-loupe .hd-copy { top: 0; bottom: 96px; display: flex; flex-direction: column; justify-content: center; }
-    .hd-loupe .hd-copy > * { max-width: 560px; }
-    .hd-loupe .hd-title { font-size: clamp(44px, 3.9vw, 56px); margin: 18px 0 14px; }
-    :lang(ja) .hd-loupe .hd-title { font-size: clamp(36px, 3.1vw, 44px); }
-    .hd-medal { grid-template-columns: 150px 1fr; gap: 24px; margin-top: 28px; padding-top: 24px; max-width: 520px; }
-    .hd-lens-wrap { width: 150px; height: 150px; }
-    .hd-lens { inset: 11px; }
-    .hd-medal .hd-badge, .hd-medal .hd-medal-btn { display: inline-flex; }
-    .hd-medal .hd-tlink { display: inline-block; margin-top: 14px; }
-    .hd-medal .hd-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .hd-medal .hd-name { font-size: 21px; }
-    :lang(ja) .hd-medal .hd-name { font-size: 16.5px; }
-    .hd-medal .hd-spec { margin-top: 7px; }
-    .hd-medal .hd-buy { display: flex; align-items: center; gap: 18px; margin-top: 14px; }
-    .hd-medal .hd-price { font-size: 30px; }
-    .hd-loupe .hd-bbtn { display: none; }
+    .hd-v3 { padding-bottom: 0; }
+    .hd-copy3 { position: absolute; top: 50%; transform: translateY(-54%); width: var(--cw); padding: 0; }
+    .hd-copy3 .hd-desc { margin-top: 18px; font-size: 15px; line-height: 1.7; }
+    :lang(ja) .hd-copy3 .hd-desc { font-size: 14px; line-height: 1.85; }
+    .hd-copy3 .hd-acts .hd-btn { min-height: 48px; padding: 0 24px; font-size: 15px; }
+    .hd-v3[data-side="left"] .hd-copy3 { left: var(--col); }
+    .hd-v3[data-side="right"] .hd-copy3 { right: var(--col); }
+    .hd-v3[data-layout="stage"][data-count="0"] .hd-copy3 { left: calc(50% - var(--cw) / 2); right: auto; }
+    .hd-v3[data-layout="stage"][data-count="0"] .hd-pool { background:
+      radial-gradient(ellipse 46% 62% at 50% 50%, rgb(120 92 40 / .30) 0%, rgb(60 46 24 / .16) 42%, rgb(0 0 0 / 0) 72%),
+      radial-gradient(ellipse 120% 90% at 50% 40%, #231e18 0%, #17140f 60%, #0f0d0a 100%); }
+    .hd-copy3 .hd-eyebrow { margin-bottom: 18px; }
+    .hd-copy3 .hd-title { font-size: clamp(42px, 3.6vw, 52px); }
+    :lang(ja) .hd-copy3 .hd-title { font-size: clamp(34px, 2.8vw, 40px); }
+    .hd-copy3 .hd-desc { margin-top: 18px; }
+    .hd-copy3 .hd-acts { margin-top: 30px; }
 
-    /* 4 */
-    .hd-vitrine .hd-in { grid-template-columns: minmax(0, 420px) minmax(0, 660px); grid-template-rows: 1fr auto auto 1fr; grid-template-areas: "top vit" "copy vit" "acts vit" "end vit"; justify-content: space-between; align-content: center; column-gap: 48px; padding-top: 0; padding-bottom: 96px; }
-    .hd-vit { align-self: center; }
-    .hd-vitrine .hd-v-acts { align-self: start; }
-    .hd-vitrine .hd-title, .hd-clock .hd-title, .hd-index .hd-title { font-size: clamp(40px, 3.5vw, 50px); margin: 18px 0 14px; }
-    :lang(ja) .hd-vitrine .hd-title, :lang(ja) .hd-index .hd-title { font-size: clamp(32px, 2.8vw, 40px); }
-    .hd-vitrine .hd-acts { margin-top: 26px; flex-direction: row; align-items: center; }
-    .hd-vit { position: relative; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 0; align-self: center; }
-    .hd-niche:nth-child(3) { display: block; }
-    .hd-arch { height: min(440px, 50svh); padding: 8px; border-radius: 200px 200px 0 0; }
-    .hd-niche[data-mid] .hd-arch { height: min(492px, 56svh); }
-    .hd-arch-in { border-radius: 192px 192px 0 0; }
-    .hd-ncap { margin-top: 14px; font-size: 12.5px; letter-spacing: .02em; }
-    .hd-ncap em { margin-top: 5px; font-size: 12px; }
-    .hd-shelf { display: block; position: absolute; left: -28px; right: -28px; bottom: 58px; height: 1px; background: linear-gradient(90deg, transparent, theme('colors.gold.DEFAULT') 15%, theme('colors.gold.pale') 50%, theme('colors.gold.DEFAULT') 85%, transparent); }
-    /* Fewer than three pieces: the same 200px arches, centred on the shelf. */
-    .hd-vit[data-count="1"] { grid-template-columns: minmax(0, 200px); }
-    .hd-vit[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 200px)); justify-content: center; }
+    .hd-idx { display: block; margin-top: 24px; border-top: 1px solid theme('borderColor.rule'); }
+    .hd-idx > li { display: flex; align-items: center; gap: 16px; height: 42px; border-bottom: 1px solid theme('borderColor.rule'); font-size: 14px; color: rgb(245 245 242 / .7); transition: color var(--dur-reveal) var(--ease-lux); }
+    .hd-idx .hd-n { width: 22px; font-family: var(--font-display), Georgia, serif; font-size: 13px; color: rgb(232 210 138 / .7); }
+    .hd-idx em { margin-left: auto; font-style: normal; font-size: 12px; color: rgb(245 245 242 / .7); }
+    .hd-idx > li[data-on] { color: theme('colors.chalk'); }
+    .hd-idx > li[data-on] .hd-n { color: theme('colors.gold.pale'); }
+    .hd-idx > li[data-on]::after { content: ""; width: 26px; height: 1px; background: theme('colors.gold.DEFAULT'); }
 
-    /* 5 */
-    .hd-clock-photo { left: auto; width: 58%; height: auto; bottom: 0; }
-    .hd-clock-photo::after { background: linear-gradient(90deg, theme('colors.charcoal.deep') 0%, rgb(34 34 34 / .5) 16%, transparent 34%); }
-    .hd-clock .hd-copy { top: clamp(64px, 14svh, 120px); }
-    .hd-clock .hd-copy > * { max-width: 560px; }
-    :lang(ja) .hd-clock .hd-title { font-size: clamp(36px, 3.2vw, 46px); }
-    .hd-clock .hd-title { font-size: clamp(46px, 4.2vw, 60px); margin: 20px 0 18px; }
-    .hd-clock .hd-acts { margin-top: 28px; }
-    .hd-readout { top: auto; bottom: 136px; gap: 12px; }
-    /* The watches: the right-hand area over the photo, standing on the
-       readout's line, clear of the copy column on the left. */
-    .hd-watches { top: clamp(40px, 8svh, 88px); bottom: 188px; left: auto; width: min(540px, 38vw); grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-content: end; }
-    .hd-watches[data-count="1"] { grid-template-columns: minmax(0, 190px); }
-    .hd-watches[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 190px)); }
-    .hd-watches[data-count="1"], .hd-watches[data-count="2"] { justify-content: center; }
-    .hd-watch:nth-child(3) { display: flex; }
-    .hd-wlink { padding: 7px; }
-    .hd-wimg { height: auto; aspect-ratio: 4 / 5; max-height: min(260px, 30svh); }
-    .hd-wimg .hd-fit { padding: 8px; }
-    .hd-watch .hd-ncap { margin-top: 10px; padding: 0 4px 4px; }
+    /* The readout sits above the ruler's left end, as the comp. With three
+       watches the left one stands over that spot, so a trio's readout goes
+       just under the ruler instead, and its floor is raised to leave that
+       line clear above the name/price lines. */
+    .hd-readout { left: 4%; top: auto; bottom: calc(var(--floor) + 22px); gap: 12px; }
+    .hd-v3[data-layout="clock"][data-count="3"] { --floor: 244px; }
+    .hd-v3[data-layout="clock"][data-count="3"] .hd-cap { top: calc(100% - var(--floor) + 58px); }
+    .hd-v3[data-layout="clock"][data-count="3"] .hd-readout { bottom: auto; top: calc(100% - var(--floor) + 14px); }
     .hd-readout b { font-size: 22px; }
-    .hd-track { top: auto; bottom: 96px; height: 26px; }
+    .hd-track { height: 18px; bottom: calc(var(--floor) - 9px); }
     .hd-hand { top: -7px; }
 
-    /* 6 */
-    .hd-stage { left: auto; right: clamp(18px, 4vw, 48px); top: 48px; bottom: 96px; height: auto; width: min(540px, 40vw); }
-    .hd-stage::after { content: ""; position: absolute; inset: -12px; border: 1px solid theme('borderColor.rule'); pointer-events: none; }
-    .hd-stage-cap { left: 22px; bottom: 18px; }
-    .hd-index .hd-copy { top: 0; bottom: 96px; display: flex; flex-direction: column; justify-content: center; }
-    .hd-index .hd-copy > * { max-width: 500px; }
-    .hd-idx { display: block; margin-top: 22px; }
-    .hd-idx > li { grid-template-columns: 44px 1fr auto; height: 54px; }
-    .hd-idx > li::before { left: -16px; top: 14px; bottom: 14px; }
-    .hd-idx .hd-n { font-size: 15px; }
-    .hd-idx .hd-t { font-size: 22px; }
-    :lang(ja) .hd-idx .hd-t { font-size: 17px; }
-    .hd-idx .hd-a { display: block; }
-    .hd-index .hd-acts { margin-top: 26px; }
+    .hd-bigidx { left: 20px; right: 0; top: calc(50% - 48px); }
+    .hd-bigidx > li { gap: 26px; padding: 14px 0; }
+    .hd-bn { font-size: 62px; }
+    .hd-bigidx b { font-size: 30px; }
+    :lang(ja) .hd-bigidx b { font-size: 26px; }
   }
-  /* On the desktop cream PHOTO (not the phone's flat cream page) the darkest
-     cream under the copy is luma 192: gold-deep reads 3.87 there, which holds
-     a title but not an 11–14px label, and gold-dark (2.75) holds neither. So
-     from lg the small labels are ink with the gold kept in their rules, and
-     the dark gilt runs gold-deep into a gold-deep/charcoal mix instead of into
-     gold-dark. check-contrast.mjs, "hero v2 cream 192". */
-  @media (min-width: 1024px) {
-    .hd-lt .hd-eyebrow, .hd-lt .hd-spec, .hd-lt .hd-tlink { color: theme('colors.charcoal.deep'); }
-    .hd-lt .hd-tlink { border-bottom-color: theme('colors.gold.dark'); }
-    .hd-lt .hd-gilt-dk { background-image: linear-gradient(100deg, theme('colors.gold.deep') 0%, color-mix(in srgb, theme('colors.gold.deep') 55%, theme('colors.charcoal.deep')) 40%, theme('colors.gold.deep') 62%, color-mix(in srgb, theme('colors.gold.deep') 55%, theme('colors.charcoal.deep')) 82%, theme('colors.gold.deep') 100%); }
-  }
-  /* The controls take the ink tone on a cream photo: slide 3 always, slide 2 from lg. */
-  @media (min-width: 1024px) {
-    .hd-ctrl[data-tone="light-lg"] .hd-count, .hd-ctrl[data-tone="light-lg"] .hd-round { color: theme('colors.charcoal.deep'); }
-    .hd-ctrl[data-tone="light-lg"] .hd-count span, .hd-ctrl[data-tone="light-lg"] .hd-segname { color: rgb(34 34 34 / .78); }
-    .hd-ctrl[data-tone="light-lg"] .hd-segs i { background: rgb(34 34 34 / .22); }
-    .hd-ctrl[data-tone="light-lg"] .hd-segs i[data-done] { background: rgb(111 85 16 / .55); }
-    .hd-ctrl[data-tone="light-lg"] .hd-segs i[data-on]::after { background: theme('colors.gold.deep'); }
-    .hd-ctrl[data-tone="light-lg"] .hd-round { border-color: rgb(34 34 34 / .45); background: rgb(245 245 242 / .6); }
-    .hd-ctrl[data-tone="light-lg"] :focus-visible { outline-color: theme('colors.charcoal.deep'); }
+  /* Phones: only the featured piece floats; the light crosses each cut-out once. */
+  @media (max-width: 1023.98px) {
+    .hd-pc:not([data-feat]) .hd-fl, .hd-pc:not([data-feat]) .hd-shadow { animation: none; }
+    .hd-slide[data-active="true"] .hd-sw, .hd-slide[data-active="true"] .hd-sw-in { animation-iteration-count: 1; }
   }
 }
 

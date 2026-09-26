@@ -1,6 +1,18 @@
 export type { Metal as Karat } from "./metals";
 export type ProductStatus = "draft" | "active" | "archived";
-export type ProductMedia = { url: string; alt: string | null; sort: number };
+/**
+ * The Hub's background-removed version of one product photo (hero v3,
+ * supabase/contracts/api.md "Proposed: product photo cut-outs"): a WebP with
+ * alpha, trimmed to the piece's own bounds, stored beside the untouched
+ * original. Only `ok`, `auto_fixed` and `approved` may be shown
+ * (`usableCutout`, lib/queries/products.ts); any other status, and a missing
+ * cut-out, means the whole original photo in its frame. No image is ever
+ * processed on this side.
+ */
+export type CutoutStatus = "ok" | "auto_fixed" | "needs_review" | "approved" | "rejected" | "failed";
+export type ProductCutout = { url: string; width: number; height: number; status: CutoutStatus };
+/** `cutout` is optional: absent until the Hub ships it, null for a photo that has none. */
+export type ProductMedia = { url: string; alt: string | null; sort: number; cutout?: ProductCutout | null };
 /**
  * `down_payment_jpy` / `down_payment_php` / `down_payment_pct` are the Hub's
  * "reserve with" figures for this piece alone, on the shortest active term —
