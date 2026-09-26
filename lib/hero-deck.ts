@@ -1,7 +1,8 @@
 import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { categoryCta, categoryDescription, categoryName, productName } from "@/lib/catalog-i18n";
-import { primaryImage, usableCutout } from "@/lib/queries/products";
+import { allImages, usableCutout } from "@/lib/queries/products";
+import { demoCutout } from "@/lib/hero-demo";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Category, Product, ProductVariant } from "@/lib/types";
 
@@ -23,10 +24,18 @@ import type { Category, Product, ProductVariant } from "@/lib/types";
  * the price is the in-stock variant's `price_jpy`, shown as sent. Nothing is
  * computed from a price (scripts/check-money.mjs).
  *
- * PHOTOS. Each piece carries its first Hub photo and, when the Hub has one
- * that may be shown, that photo's cut-out (`usableCutout`: status ok,
- * auto_fixed or approved). Without one the stage shows the WHOLE photo in a
- * framed well, never cropped. Nothing is processed here or in the browser.
+ * PHOTOS. Each piece carries its Hub gallery, in the Hub's order, up to
+ * HERO_PHOTOS: every photo with its cut-out when the Hub has one that may be
+ * shown (`usableCutout`: status ok, auto_fixed or approved); without one the
+ * stage shows that WHOLE photo in a framed well, never cropped. A piece with
+ * two or more cycles through them on the stage (owner request 2026-09-26,
+ * hero-slide-views.tsx). A photo after the first whose cut-out the quality
+ * check HELD (needs_review, e.g. a "BACK" inset) or could not make (failed)
+ * is skipped; the first photo is never skipped, it falls back to its frame.
+ * Nothing is processed here or in the browser.
+ *
+ * DEMO. `demo` (lib/hero-demo.ts, preview deployments only) gives a piece's
+ * first photo the cut-out made for the approved comps when the Hub has none.
  *
  * EMPTY CATEGORIES. `HERO_HIDE_EMPTY_CATEGORIES=1` (server-only, read here and
  * nowhere else) hides a category slide whose catalogue read SUCCEEDED and holds
@@ -46,13 +55,18 @@ export type HeroPiece = {
   name: string;
   /** The in-stock variant's yen price, exactly as the Hub sent it. */
   priceJpy: number;
-  /** The piece's first Hub photo, whole. */
-  photo: { url: string; alt: string } | null;
-  /** That photo's cut-out, only when the Hub marked it fit to show. */
-  cutout: { url: string; width: number; height: number } | null;
+  /** The photos the stage shows, first one first; never empty for a piece on a stage. */
+  photos: HeroPhoto[];
   /** Accessories only: which Index row the piece belongs to (0–3, ACC_TYPES). */
   type: number | null;
 };
+
+/** One photo of a piece: the whole Hub photo, and its cut-out only when it may be shown. */
+export type HeroPhoto = { url: string; alt: string; cutout: { url: string; width: number; height: number } | null };
+
+/** At most this many photos of one piece cycle on the stage. */
+const HERO_PHOTOS = 4;
+const HELD = new Set(["needs_review", "failed"]);
 
 /**
  * What a category slide's stage holds. `stage` is the dark stage with its gold
@@ -131,26 +145,32 @@ export function inStockVariant(p: Pick<Product, "status" | "product_variants">):
   return best;
 }
 
-function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout): HeroPiece {
-  // The same first photo and the same name the product card shows.
-  const img = primaryImage(p);
+function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout, demo: boolean): HeroPiece {
+  // The same photos, in the same order, and the same name the product page shows.
   const name = productName(p, lang);
+  const photos: HeroPhoto[] = [];
+  allImages(p).forEach((m, i) => {
+    if (photos.length >= HERO_PHOTOS || typeof m.url !== "string" || !m.url) return;
+    if (i > 0 && m.cutout && HELD.has(m.cutout.status)) return;
+    let cutout = usableCutout(m);
+    if (!cutout && demo && i === 0) cutout = usableCutout({ ...m, cutout: demoCutout(p.sku) });
+    photos.push({ url: m.url, alt: m.alt ?? name, cutout });
+  });
   return {
     slug: p.slug,
     name,
     priceJpy: v.price_jpy,
-    photo: img ? { url: img.url, alt: img.alt ?? name } : null,
-    cutout: usableCutout(img),
+    photos,
     type: layout === "index" ? accessoryType(`${p.name} ${p.name_en ?? ""} ${p.name_ja ?? ""}`) : null,
   };
 }
 
 /** The available pieces of one category, in the Hub's order. */
-function available(products: Product[], lang: Lang, layout: HeroLayout): HeroPiece[] {
+function available(products: Product[], lang: Lang, layout: HeroLayout, demo: boolean): HeroPiece[] {
   const out: HeroPiece[] = [];
   for (const p of products) {
     const v = inStockVariant(p);
-    if (v) out.push(piece(p, v, lang, layout));
+    if (v) out.push(piece(p, v, lang, layout, demo));
   }
   return out;
 }
@@ -188,7 +208,8 @@ export function hideEmptyCategories(): boolean {
   return v === "1" || v === "true";
 }
 
-export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise<HeroSlide[]> {
+export async function buildHeroDeck(lang: Lang, categories: Category[], opts: { demo?: boolean } = {}): Promise<HeroSlide[]> {
+  const demo = !!opts.demo;
   const t = tr(lang);
   const sorted = [...categories].sort((a, b) => a.sort_order - b.sort_order);
   const layouts = sorted.map((c) => LAYOUT[c.slug] ?? "stage");
@@ -197,7 +218,7 @@ export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise
   const reads = await Promise.all(
     sorted.map((c) => within(hub.category(c.slug), SECONDARY_TIMEOUT_MS).then((r) => r?.products ?? [], () => null)),
   );
-  const pools = reads.map((r, i) => (r ? available(r, lang, layouts[i]) : null));
+  const pools = reads.map((r, i) => (r ? available(r, lang, layouts[i], demo) : null));
 
   const hide = hideEmptyCategories();
   const slides: HeroSlide[] = [{ kind: "film", key: "film", name: t("home", "heroFilmName"), short: t("home", "heroFilmName") }];
@@ -210,7 +231,7 @@ export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise
     // The stage is image-led: a piece with no Hub photo at all would stand as
     // an empty well, so it is left off the stage (it still counts in the
     // accessories Index, and it is still on its category page).
-    const pieces = (pool ?? []).filter((p) => p.photo).slice(0, PIECES);
+    const pieces = (pool ?? []).filter((p) => p.photos.length > 0).slice(0, PIECES);
     let counts: number[] | null = null;
     if (layout === "index") {
       counts = [0, 0, 0, 0];

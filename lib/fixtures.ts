@@ -1,6 +1,7 @@
 import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
+import { liveMirrorProducts } from "@/lib/fixtures-live";
 import { blocksToMarkdown, sectionSlug } from "@/lib/content/faq-markdown";
 /** Local preview data. Active only when NEXT_PUBLIC_PREVIEW_FIXTURES=1. Never shipped to production. */
 /** The preview Hub's day rate (PHP per 1 JPY). Preview data only. */
@@ -154,12 +155,13 @@ WATCHES.forEach(([en, ja, brand, photo], k) => {
  *             (rejected), and every fixture with no `cutout` at all
  */
 const cut = (k: string, width: number, height: number, status: CutoutStatus): ProductCutout => ({ url: `/fixtures/cutouts/${k}.webp`, width, height, status });
-products[3].product_variants[0].product_media = [{ url: "/fixtures/pendant-2.svg", alt: null, sort: 0, cutout: cut("al123", 387, 480, "needs_review") }];
-products[8].product_variants[0].product_media[0].cutout = cut("r7828", 433, 480, "ok");
+// (Full-size comp cut-outs, long side 900 px; the dimensions below are theirs.)
+products[3].product_variants[0].product_media = [{ url: "/fixtures/pendant-2.svg", alt: null, sort: 0, cutout: cut("al123", 623, 773, "needs_review") }];
+products[8].product_variants[0].product_media[0].cutout = cut("r7828", 811, 900, "ok");
 products[12].product_variants[0].product_media[0].cutout = cut("r3110", 339, 204, "approved");
-products[13].product_variants[0].product_media[0].cutout = cut("c0983", 368, 480, "auto_fixed");
-products[14].product_variants[0].product_media[0].cutout = cut("c1395", 480, 444, "auto_fixed");
-products[15].product_variants[0].product_media[0].cutout = cut("c1395", 480, 444, "rejected");
+products[13].product_variants[0].product_media[0].cutout = cut("c0983", 690, 900, "auto_fixed");
+products[14].product_variants[0].product_media[0].cutout = cut("c1395", 900, 832, "auto_fixed");
+products[15].product_variants[0].product_media[0].cutout = cut("c1395", 900, 832, "rejected");
 /**
  * Accessories are at 0 in stock in the Hub today, so the preview has none and
  * slide 6 shows the Index as its stage. `NEXT_PUBLIC_PREVIEW_ACCESSORIES=1|2|3`
@@ -196,9 +198,29 @@ products[0].metals = ["PT900", "K18"];
 products[0].product_variants[0].product_media = [1, 2, 3].map((n) => ({ url: `/fixtures/pendant-${n}.svg`, alt: `Double-sided diamond pendant, photo ${n}`, sort: n - 1 }));
 products[1].product_variants[0].product_media = [{ url: "/fixtures/chain-1.svg", alt: null, sort: 0 }];
 // Hero v3 cut-outs for the two pieces photographed just above (see "HERO v3 CUT-OUTS").
-products[0].product_variants[0].product_media[0].cutout = cut("r3341", 462, 480, "ok");
-products[1].product_variants[0].product_media[0].cutout = cut("al3", 228, 480, "ok");
+products[0].product_variants[0].product_media[0].cutout = cut("r3341", 867, 900, "ok");
+products[1].product_variants[0].product_media[0].cutout = cut("al3", 427, 900, "ok");
+// Hero v3 per-piece slideshow (hero-slide-views.tsx): galleries of every
+// length. R3341 (products[0]) has 3 photos; AL3 has 3 of which the second is
+// HELD by the quality check (skipped), so 2 show; C0983 has 5 (4 show); the
+// rest have 1.
+products[1].product_variants[0].product_media.push(
+  { url: "/fixtures/pendant-3.svg", alt: null, sort: 1, cutout: cut("al123", 623, 773, "needs_review") },
+  { url: "/fixtures/pendant-1.svg", alt: null, sort: 2 },
+);
+products[13].product_variants[0].product_media.push(...["watch-square", "watch-tall", "wide-1", "tall-1"].map((f, i) => ({ url: `/fixtures/${f}.svg`, alt: null, sort: i + 1 })));
 if (PREVIEW_NO_CUTOUTS) for (const p of products) for (const v of p.product_variants) for (const m of v.product_media) delete m.cutout;
+/**
+ * `NEXT_PUBLIC_PREVIEW_LIVE_MIRROR=1`: the hero categories hold exactly the
+ * live pieces (lib/fixtures-live.ts) instead of the preview pieces, so the
+ * stage can be compared with the approved comps piece for piece, with the
+ * Hub's real photos and no cut-outs, as a preview deployment sees them.
+ */
+if (process.env.NEXT_PUBLIC_PREVIEW_LIVE_MIRROR === "1") {
+  const hero = new Set(categories.map((c) => c.slug));
+  for (const p of products) p.category_slugs = (p.category_slugs ?? []).filter((c) => !hero.has(c));
+  for (const p of liveMirrorProducts) products.push({ ...p, col: "live" });
+}
 /**
  * The calculator's preview answer, in the shape the real SQL function returns:
  * the configured terms with this amount's eligibility already decided, the

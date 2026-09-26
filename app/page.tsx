@@ -9,7 +9,9 @@ import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { headers } from "next/headers";
 import { buildHeroDeck } from "@/lib/hero-deck";
+import { HERO_DEMO_PARAM, heroDemoAllowed } from "@/lib/hero-demo";
 import { Hero } from "@/components/home/hero";
 import { HERO_POSTER } from "@/components/site/hero-video";
 import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
@@ -29,7 +31,7 @@ export const revalidate = 60;
  * newH, viewAll, layH/layP). Product and collection data is the Hub's only.
  */
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   // ONLY WHAT THE SHELL AND THE HERO NEED. FX, testimonials and the arrivals
   // deck have moved into their own streamed sections (components/home/
   // sections.tsx) — awaiting all six here meant the slowest Hub read decided
@@ -52,7 +54,10 @@ export default async function Home() {
   // Hub's sort_order, each with up to three pieces chosen from the Hub's
   // catalogue on this render — only active pieces in stock, never a sold one —
   // and the empty-category switch applied. All of it in lib/hero-deck.ts.
-  const slides = await buildHeroDeck(lang, categories);
+  // Preview deployments only: `?hero_demo=1` shows the approved comps'
+  // cut-outs on the live pieces (lib/hero-demo.ts). Never on production.
+  const demo = (await searchParams)[HERO_DEMO_PARAM] === "1" && heroDemoAllowed((await headers()).get("host"));
+  const slides = await buildHeroDeck(lang, categories, { demo });
 
   const tabs: Tab[] = [
     { href: "/", label: t("home", "tabHome"), icon: "home" },
@@ -89,6 +94,7 @@ export default async function Home() {
       <Hero
         lang={lang}
         slides={slides}
+        demo={demo}
         className="hd-hero relative isolate flex w-full overflow-clip bg-charcoal-deep"
       />
 

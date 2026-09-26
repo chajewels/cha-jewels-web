@@ -8,7 +8,7 @@ import { useHeroMotion } from "@/components/home/hero";
 import { trackHeroSlideCta } from "@/lib/analytics";
 import { formatMoney } from "@/lib/utils";
 import { HERO_TURN } from "@/lib/motion";
-import type { HeroCategorySlide, HeroPiece, HeroSlide } from "@/lib/hero-deck";
+import type { HeroCategorySlide, HeroPhoto, HeroPiece, HeroSlide } from "@/lib/hero-deck";
 
 /**
  * THE HERO SLIDES (hero v3, owner approvals 2026-09-26; the comps are
@@ -117,27 +117,53 @@ function isFeatured(place: number, n: number): boolean {
 /** The sizes hint for a piece's photo: a trio's place is about a third of the stage, a single piece's about 60%. */
 const PIECE_SIZES = "(min-width:1024px) 400px, 60vw";
 
-function PiecePhoto({ piece, mounted }: { piece: HeroPiece; mounted: boolean }) {
-  if (piece.cutout) {
-    const src = piece.cutout.url;
-    return (
-      <>
-        <span className="hd-cut">{mounted && <HubImage src={src} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}</span>
-        {/* The light: the same image again (same URL, same sizes, so the
-            browser fetches it once), brightened, seen only through a band
-            that crosses the piece. Where the cut-out is transparent there is
-            nothing to brighten, so the light touches the metal only. */}
-        <span className="hd-swc" aria-hidden="true"><span className="hd-sw"><span className="hd-sw-in">
-          {mounted && <HubImage src={src} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}
-        </span></span></span>
-      </>
-    );
+/**
+ * THE STAGE CLOCK. One beat every HERO_TURN / 2 s (1.5 s) while the slide may
+ * move, and at most one change on the stage per beat:
+ *   trio         even beats turn the trio; on each odd beat — 1.5 s after a
+ *                piece has arrived in the centre and its 1.2 s move has
+ *                settled — the featured piece steps to its next photo
+ *   duo, single  every even beat (3 s) one piece steps to its next photo, the
+ *                two of a duo taking turns
+ * Side pieces never change photo. A 9 s trio visit shows each piece in the
+ * centre once with two of its photos; the photo a piece is on is kept when
+ * the deck moves on, so the next visit goes on from there.
+ */
+function stepsFor(j: number, n: number, beat: number): number {
+  let c = 0;
+  for (let b = 1; b <= beat; b++) {
+    if (n === 3) { if (b % 2 === 1 && ((-Math.floor(b / 2)) % 3 + 3) % 3 === j) c++; }
+    else if (b % 2 === 0 && (b / 2 - 1) % n === j) c++;
   }
-  // No cut-out fit to show: the WHOLE photo, contained in a framed well.
+  return c;
+}
+
+/**
+ * One photo of a piece, as a layer that cross-fades (`data-on`). A cut-out
+ * stands on its own bottom edge and carries the light; a photo without one
+ * is the WHOLE photo, contained in a framed well, never cropped.
+ */
+function PhotoLayer({ photo, on, mounted }: { photo: HeroPhoto; on: boolean; mounted: boolean }) {
+  const c = photo.cutout;
   return (
-    <span className="hd-well"><span>
-      {mounted && piece.photo && <HubImage src={piece.photo.url} alt="" fill sizes={PIECE_SIZES} className="object-contain" />}
-    </span></span>
+    <span className="hd-ph" data-on={on ? "" : undefined}>
+      {c ? (
+        <>
+          <span className="hd-cut">{mounted && <HubImage src={c.url} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}</span>
+          {/* The light: the same image again (same URL, same sizes, so the
+              browser fetches it once), brightened, seen only through a band
+              that crosses the piece. Where the cut-out is transparent there is
+              nothing to brighten, so the light touches the metal only. */}
+          <span className="hd-swc" aria-hidden="true"><span className="hd-sw"><span className="hd-sw-in">
+            {mounted && <HubImage src={c.url} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}
+          </span></span></span>
+        </>
+      ) : (
+        <span className="hd-well"><span>
+          {mounted && <HubImage src={photo.url} alt="" fill sizes={PIECE_SIZES} className="object-contain" />}
+        </span></span>
+      )}
+    </span>
   );
 }
 
@@ -146,21 +172,41 @@ function StageView({ slide, index, lang, active, mounted, side, turning }: ViewP
   const { rotateOn, reduced } = useHeroMotion();
   const pieces = slide.pieces;
   const n = pieces.length;
-  // Turns taken since this slide came up. Only a trio turns.
-  const [k, setK] = useState(0);
+  const cycles = pieces.some((p) => p.photos.length > 1);
+  // Beats since this slide came up (see stepsFor). Nothing to do for a
+  // single photo that does not turn.
+  const [beat, setBeat] = useState(0);
+  // Photo steps carried over from earlier visits, per piece.
+  const [base, setBase] = useState<number[]>(() => pieces.map(() => 0));
+  const beatRef = useRef(0);
+  beatRef.current = beat;
   useEffect(() => {
-    if (!turning || n !== 3) return;
-    const id = setInterval(() => setK((x) => x + 1), HERO_TURN * 1000);
+    if (!turning || !(n === 3 || cycles)) return;
+    const id = setInterval(() => setBeat((b) => b + 1), (HERO_TURN * 1000) / 2);
     return () => clearInterval(id);
-  }, [turning, n]);
-  // Every visit starts from the Hub's first piece in the centre.
-  useEffect(() => { if (!active) setK(0); }, [active]);
+  }, [turning, n, cycles]);
+  // Every visit starts from the Hub's first piece in the centre; each piece
+  // keeps the photo it had reached.
+  useEffect(() => {
+    if (active || beatRef.current === 0) return;
+    const b = beatRef.current;
+    setBase((prev) => prev.map((x, j) => x + stepsFor(j, n, b)));
+    setBeat(0);
+  }, [active, n]);
 
+  const k = n === 3 ? Math.floor(beat / 2) : 0;
   const places = pieces.map((_, j) => placeOf(j, n, k));
   const featured = pieces[places.findIndex((p) => isFeatured(p, n))] ?? null;
   // The piece that has just crossed from the right edge to the left: it fades
   // out and in rather than sliding back across the others.
   const wraps = (j: number) => n === 3 && k > 0 && places[j] === 0;
+  // Which photo each piece is on, and how far its photos are mounted: the
+  // ones already seen, plus the next one while the slide is moving, so it has
+  // loaded before it fades in. Nothing past the first loads under reduced
+  // motion, where nothing cycles.
+  const steps = pieces.map((p, j) => (base[j] ?? 0) + stepsFor(j, n, beat));
+  const photoAt = pieces.map((p, j) => steps[j] % p.photos.length);
+  const mountTo = pieces.map((p, j) => Math.min(p.photos.length - 1, steps[j] + (turning ? 1 : 0)));
 
   const labels = [t("home", "heroAcc1"), t("home", "heroAcc2"), t("home", "heroAcc3"), t("home", "heroAcc4")];
   const index0 = slide.layout === "index" && n === 0;
@@ -182,16 +228,24 @@ function StageView({ slide, index, lang, active, mounted, side, turning }: ViewP
             data-place={places[j]}
             data-feat={isFeatured(places[j], n) ? "" : undefined}
             data-wrap={wraps(j) ? "" : undefined}
+            data-framed={p.photos[photoAt[j]]?.cutout ? undefined : ""}
             style={{ ["--i" as string]: j }}
           >
             {/* The picture is a pointer target; the caption below is the
                 piece's link for the keyboard and screen readers. */}
             <Link href={`/products/${p.slug}`} className="hd-body" tabIndex={-1} aria-hidden="true">
               <span className="hd-shadow" />
-              <span className="hd-fl"><PiecePhoto piece={p} mounted={mounted} /></span>
-              {p.cutout && (
+              <span className="hd-fl">
+                {p.photos.map((ph, i) => i <= mountTo[j] && <PhotoLayer key={i} photo={ph} on={i === photoAt[j]} mounted={mounted} />)}
+              </span>
+              {/* The faint reflection of whichever cut-out is showing. */}
+              {p.photos.some((ph) => ph.cutout) && (
                 <span className="hd-refl">
-                  <span>{mounted && <HubImage src={p.cutout.url} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}</span>
+                  {p.photos.map((ph, i) => ph.cutout && i <= mountTo[j] && (
+                    <span key={i} className="hd-rl" data-on={i === photoAt[j] ? "" : undefined}>
+                      {mounted && <HubImage src={ph.cutout.url} alt="" fill sizes={PIECE_SIZES} className="object-contain object-bottom" />}
+                    </span>
+                  ))}
                 </span>
               )}
             </Link>

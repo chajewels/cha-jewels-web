@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DUR, EASE_LUX, EASE_WIPE_IN, HERO_SINK } from "@/lib/motion";
 import { HeroVideo } from "@/components/site/hero-video";
 import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
-import type { Lang } from "@/lib/i18n";
+import { tr, type Lang } from "@/lib/i18n";
 
 /**
  * THE HERO'S MOTION, DECIDED IN ONE PLACE.
@@ -117,10 +117,12 @@ export function useHeroMotion(): HeroMotion {
   return v;
 }
 
-export function Hero({ lang, slides, className }: {
+export function Hero({ lang, slides, className, demo = false }: {
   lang: Lang;
   slides: HeroSlide[];
   className: string;
+  /** Preview-only demo mode (lib/hero-demo.ts): labelled on the hero so it is never mistaken for the live state. */
+  demo?: boolean;
 }) {
   const section = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
@@ -267,6 +269,7 @@ export function Hero({ lang, slides, className }: {
         </div>
         {/* Over the slides, under the arrows, dots and pause button (z-20). */}
         <div ref={curtainRef} aria-hidden="true" className="hero-curtain" />
+        {demo && <p className="hd-demo">{tr(lang)("home", "heroDemoTag")}</p>}
       </section>
     </Ctx.Provider>
   );

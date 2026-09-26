@@ -692,6 +692,11 @@
   .hd-round:hover { border-color: theme('colors.chalk'); }
   .hd-round.hd-arrow { display: none; }
 
+  /* Preview-only demo mode's label (lib/hero-demo.ts). Teal, so it reads as a
+     review tool and never as part of the design. */
+  .hd-demo { position: absolute; z-index: 30; top: 10px; right: 10px; max-width: 44%; padding: 4px 8px; font-size: 9.5px; line-height: 1.35; font-weight: 600; letter-spacing: .04em; color: #08322d; background: #8fd6c9; pointer-events: none; }
+  @media (min-width: 1024px) { .hd-demo { max-width: none; padding: 5px 9px; font-size: 10.5px; letter-spacing: .08em; } }
+
   /* ================= 1 · The film, alone ================= */
   /* The film slide's scrim. The comp's stops (.78 at 38%, .25 at 62%) left the
      headline's line ends on the film's brightest band — measured in the
@@ -738,12 +743,14 @@
                edge to the left fades out, jumps while unseen, and fades in
        phones  only the featured piece floats, the light crosses once, and
                there is no reflection */
-  .hd-v3 { display: flex; flex-direction: column; background: #15120f; --floor: 84px; --lead: 212px; --gut: clamp(18px, 4vw, 48px); }
+  .hd-v3 { display: flex; flex-direction: column; padding-bottom: 72px; background: #15120f; --floor: 88px; --lead: 212px; --gut: clamp(18px, 4vw, 48px); }
   .hd-pool { position: absolute; inset: 0; pointer-events: none;
     background:
       radial-gradient(ellipse 80% 38% at 50% 26%, rgb(120 92 40 / .30) 0%, rgb(0 0 0 / 0) 72%),
       radial-gradient(ellipse 120% 90% at 50% 30%, #231e18 0%, #17140f 60%, #0f0d0a 100%); }
-  .hd-stage { position: relative; flex: 1 1 auto; min-height: 250px; container-type: inline-size; }
+  /* Phone: the comp's 350px stage band at the top, the text right under it;
+     on a short screen the band gives way first (down to 250px). */
+  .hd-stage { position: relative; flex: 0 1 350px; min-height: 250px; container-type: inline-size; }
   .hd-floor { position: absolute; left: 6%; right: 6%; bottom: var(--floor); height: 1px; background: linear-gradient(90deg, rgb(201 162 39 / 0), rgb(201 162 39 / .55) 25%, rgb(232 210 138 / .75) 50%, rgb(201 162 39 / .55) 75%, rgb(201 162 39 / 0)); }
 
   .hd-stage { --cx: 50; --w: 62; --capw: 60; --s: 1; --lift: 0px; }
@@ -754,16 +761,29 @@
   .hd-stage[data-count="3"] > [data-place="1"] { --cx: 50; }
   .hd-stage[data-count="3"] > [data-place="2"] { --cx: 83; --s: .64; --lift: 14px; }
 
-  .hd-pc { position: absolute; left: 0; bottom: var(--floor); width: calc(var(--w) * 1cqw); height: min(var(--lead), calc((100% - var(--floor)) * .86));
-    transform: translateX(calc(var(--cx) * 1cqw - 50%)) translateY(calc(var(--lift) * -1)) scale(var(--s)); transform-origin: 50% 100%;
-    transition: transform var(--dur-image) var(--ease-lux); }
+  /* Set back = a shorter box, the SAME width (the comp's rule): a tall piece
+     set back shrinks, a wide one — already limited by its width — hardly
+     does. Its place is a transform; its height transitions with it. */
+  .hd-pc { position: absolute; left: 0; bottom: var(--floor); width: calc(var(--w) * 1cqw); height: calc(min(var(--lead), calc((100% - var(--floor)) * .86)) * var(--s));
+    transform: translateX(calc(var(--cx) * 1cqw - 50%)) translateY(calc(var(--lift) * -1));
+    transition: transform var(--dur-image) var(--ease-lux), height var(--dur-image) var(--ease-lux); }
   .hd-body { position: absolute; inset: 0; display: block; container-type: size; transition: filter var(--dur-image) var(--ease-lux); }
   .hd-pc:not([data-feat]) .hd-body { filter: brightness(.8); }
   .hd-fl { position: absolute; inset: 0; display: block; }
+  /* One layer per photo of the piece; the one showing is `data-on`, and a
+     change of photo is a cross-fade on --dur-reveal. The first photo is on in
+     the server markup, so nothing fades in on first paint. */
+  .hd-ph { position: absolute; inset: 0; display: block; opacity: 0; transition: opacity var(--dur-reveal) var(--ease-lux); }
+  .hd-ph[data-on] { opacity: 1; }
   .hd-cut { position: absolute; inset: 0; display: block; filter: drop-shadow(0 18px 22px rgb(0 0 0 / .55)) drop-shadow(0 2px 3px rgb(0 0 0 / .4)); }
-  .hd-well { position: absolute; left: 50%; bottom: 0; width: min(100cqw, 100cqh); aspect-ratio: 1; transform: translateX(-50%); padding: 7%; background: #121110; border: 1px solid rgb(201 162 39 / .45); box-shadow: 0 18px 30px rgb(0 0 0 / .5), inset 0 0 0 4px #121110, inset 0 0 0 5px rgb(201 162 39 / .14); }
+  /* A well is square; set back it shrinks by --s like the comp's set-back
+     box (a square well is never limited by its width alone). */
+  .hd-well { position: absolute; left: 50%; bottom: 0; width: min(calc(100cqw * var(--s)), 100cqh); aspect-ratio: 1; transform: translateX(-50%); padding: 7%; background: #121110; border: 1px solid rgb(201 162 39 / .45); box-shadow: 0 18px 30px rgb(0 0 0 / .5), inset 0 0 0 4px #121110, inset 0 0 0 5px rgb(201 162 39 / .14); }
   .hd-well > span { position: relative; display: block; height: 100%; }
-  .hd-shadow { position: absolute; left: 50%; bottom: -10px; width: calc(min(100cqw, 100cqh) * .8); height: 22px; transform: translateX(-50%); background: radial-gradient(ellipse at center, rgb(0 0 0 / .72) 0%, rgb(0 0 0 / .35) 45%, rgb(0 0 0 / 0) 72%); filter: blur(3px); }
+  /* The comp's contact shadow: 78% of the place's width under a cut-out; under
+     a framed well, 80% of the well. */
+  .hd-pc[data-framed] .hd-shadow { width: calc(min(calc(100cqw * var(--s)), 100cqh) * .8); }
+  .hd-shadow { position: absolute; left: 50%; bottom: -10px; width: 78%; height: 22px; transform: translateX(-50%); background: radial-gradient(ellipse at center, rgb(0 0 0 / .72) 0%, rgb(0 0 0 / .35) 45%, rgb(0 0 0 / 0) 72%); filter: blur(3px); }
   .hd-refl { display: none; }
   /* The light: a window 40% of the piece wide crosses it (-100% → 250% of its
      own width) while its copy of the cut-out moves the other way (40% → -100%
@@ -787,28 +807,31 @@
   @media (prefers-reduced-motion: reduce) { .hd-swc { display: none; } }
   /* Crossing from the right edge to the left: out, a jump while unseen, in. */
   @keyframes hd-wrap { 0% { opacity: 1; } 40%, 55% { opacity: 0; } 100% { opacity: 1; } }
-  .hd-pc[data-wrap], .hd-cap[data-wrap] { animation: hd-wrap var(--dur-image) linear both; transition: transform 0s linear calc(var(--dur-image) * .48); }
+  .hd-pc[data-wrap], .hd-cap[data-wrap] { animation: hd-wrap var(--dur-image) linear both; transition: transform 0s linear calc(var(--dur-image) * .48), height 0s linear calc(var(--dur-image) * .48); }
 
   /* The name/price line under each piece: the full Hub name, wrapping between
      words, never cut; the Hub price in pale gilt. The featured line is
      brighter, with a short gold rule. Phones show only the featured line,
      under the stage (.hd-pcap); the per-piece lines stay for screen readers. */
   .hd-cap-nm, .hd-cap-pr { display: block; }
-  .hd-cap-nm { font-size: 11.5px; line-height: 1.45; color: rgb(245 245 242 / .82); overflow-wrap: break-word; font-variant-numeric: lining-nums tabular-nums; }
+  .hd-cap-nm { font-size: 11.5px; line-height: 1.45; color: rgb(245 245 242 / .82); overflow-wrap: break-word; font-variant-numeric: lining-nums; }
   :lang(ja) .hd-cap-nm { line-height: 1.6; line-break: strict; word-break: auto-phrase; }
   .hd-cap-pr { margin-top: 4px; font-family: var(--font-display), Georgia, serif; font-size: 16px; line-height: 1.2; color: theme('colors.gold.pale'); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
   .hd-cap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .hd-pcap { position: absolute; left: var(--gut); right: var(--gut); top: calc(100% - var(--floor) + 14px); text-align: center; animation: hd-pcap var(--dur-reveal) var(--ease-lux) both; }
+  .hd-pcap { position: absolute; left: var(--gut); right: var(--gut); top: calc(100% - var(--floor) + 18px); text-align: center; animation: hd-pcap var(--dur-reveal) var(--ease-lux) both; }
   .hd-pcap .hd-cap-nm { color: theme('colors.chalk'); }
   @keyframes hd-pcap { from { opacity: 0; } to { opacity: 1; } }
 
-  .hd-copy3 { position: relative; flex: none; padding: 4px var(--gut) 76px; }
+  .hd-copy3 { position: relative; flex: none; padding: 40px var(--gut) 0; }
   .hd-copy3 .hd-eyebrow { margin-bottom: 10px; }
   .hd-copy3 .hd-eyebrow .hd-num { color: rgb(232 210 138 / .75); }
-  .hd-copy3 .hd-title { font-size: 28px; }
-  :lang(ja) .hd-copy3 .hd-title { font-size: 25px; }
-  .hd-copy3 .hd-desc { margin-top: 8px; }
-  .hd-copy3 .hd-acts { margin-top: 14px; }
+  .hd-copy3 .hd-title { font-size: 30px; }
+  :lang(ja) .hd-copy3 .hd-title { font-size: 26px; }
+  .hd-copy3 .hd-desc { margin-top: 10px; font-size: 13px; line-height: 1.6; }
+  :lang(ja) .hd-copy3 .hd-desc { font-size: 12.5px; line-height: 1.7; }
+  .hd-copy3 .hd-acts { margin-top: 16px; }
+  /* The comp's phone buttons keep their own width and wrap when they must. */
+  .hd-copy3 .hd-acts .hd-btn { flex: 0 0 auto; min-height: 46px; padding: 0 16px; font-size: 14px; }
   /* Nothing in stock on a jewelry slide (HERO_HIDE_EMPTY_CATEGORIES off): no
      empty stage. The stage folds away and the text stands alone, at the
      bottom on a phone and in the centre from lg. The watches keep the live
@@ -819,7 +842,7 @@
   .hd-idx { display: none; }
 
   /* 5 · the ruler is the floor; the readout sits above its left end. */
-  .hd-readout { position: absolute; left: var(--gut); top: 12px; display: flex; align-items: baseline; gap: 8px; color: rgb(232 210 138 / .92); }
+  .hd-readout { position: absolute; z-index: 2; left: var(--gut); top: 12px; display: flex; align-items: baseline; gap: 8px; color: rgb(232 210 138 / .92); }
   .hd-readout b { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 17px; color: theme('colors.chalk'); letter-spacing: .02em; }
   .hd-readout span { font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
   :lang(ja) .hd-readout span { letter-spacing: .08em; font-size: 11.5px; text-transform: none; }
@@ -880,11 +903,12 @@
     .hd-stage { position: absolute; top: 0; bottom: 0; min-height: 0; }
     .hd-v3[data-side="left"] .hd-stage { left: calc(var(--col) + var(--cw) + 60px); right: 40px; }
     .hd-v3[data-side="right"] .hd-stage { left: 40px; right: calc(var(--col) + var(--cw) + 60px); }
-    .hd-pc { height: min(var(--lead), calc((100% - var(--floor)) * .74)); }
+    .hd-pc { height: calc(min(var(--lead), calc((100% - var(--floor)) * .74)) * var(--s)); }
     .hd-stage[data-count="3"] > [data-place="0"], .hd-stage[data-count="3"] > [data-place="2"] { --lift: 26px; }
     .hd-refl { position: absolute; left: 0; right: 0; top: 100%; display: block; height: min(34%, 64px); margin-top: 4px; overflow: hidden; opacity: .2; pointer-events: none;
       -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 80%); mask-image: linear-gradient(180deg, #000 0%, transparent 80%); }
-    .hd-refl > span { position: absolute; left: 0; right: 0; top: 0; height: 100cqh; transform: scaleY(-1); filter: blur(1.5px); }
+    .hd-rl { position: absolute; left: 0; right: 0; top: 0; height: 100cqh; transform: scaleY(-1); filter: blur(1.5px); opacity: 0; transition: opacity var(--dur-reveal) var(--ease-lux); }
+    .hd-rl[data-on] { opacity: 1; }
     .hd-cap { top: calc(100% - var(--floor) + 20px); left: 0; width: min(236px, calc(var(--capw) * 1cqw)); height: auto; overflow: visible; clip-path: none; white-space: normal; text-align: center;
       transform: translateX(calc(var(--cx) * 1cqw - 50%)); transition: transform var(--dur-image) var(--ease-lux); }
     .hd-cap-nm { font-size: 12px; line-height: 1.5; }
@@ -895,10 +919,17 @@
     .hd-cap:hover .hd-cap-nm { color: theme('colors.chalk'); }
     .hd-pcap { display: none; }
 
-    .hd-copy3 { position: absolute; top: 0; bottom: 96px; width: var(--cw); display: flex; flex-direction: column; justify-content: center; padding: 0; }
+    .hd-v3 { padding-bottom: 0; }
+    .hd-copy3 { position: absolute; top: 50%; transform: translateY(-54%); width: var(--cw); padding: 0; }
+    .hd-copy3 .hd-desc { margin-top: 18px; font-size: 15px; line-height: 1.7; }
+    :lang(ja) .hd-copy3 .hd-desc { font-size: 14px; line-height: 1.85; }
+    .hd-copy3 .hd-acts .hd-btn { min-height: 48px; padding: 0 24px; font-size: 15px; }
     .hd-v3[data-side="left"] .hd-copy3 { left: var(--col); }
     .hd-v3[data-side="right"] .hd-copy3 { right: var(--col); }
     .hd-v3[data-layout="stage"][data-count="0"] .hd-copy3 { left: calc(50% - var(--cw) / 2); right: auto; }
+    .hd-v3[data-layout="stage"][data-count="0"] .hd-pool { background:
+      radial-gradient(ellipse 46% 62% at 50% 50%, rgb(120 92 40 / .30) 0%, rgb(60 46 24 / .16) 42%, rgb(0 0 0 / 0) 72%),
+      radial-gradient(ellipse 120% 90% at 50% 40%, #231e18 0%, #17140f 60%, #0f0d0a 100%); }
     .hd-copy3 .hd-eyebrow { margin-bottom: 18px; }
     .hd-copy3 .hd-title { font-size: clamp(42px, 3.6vw, 52px); }
     :lang(ja) .hd-copy3 .hd-title { font-size: clamp(34px, 2.8vw, 40px); }
@@ -913,13 +944,14 @@
     .hd-idx > li[data-on] .hd-n { color: theme('colors.gold.pale'); }
     .hd-idx > li[data-on]::after { content: ""; width: 26px; height: 1px; background: theme('colors.gold.DEFAULT'); }
 
-    /* The readout sits just under the ruler's left end, where no watch
-       stands (a trio's left place covers the ruler's start from above), and
-       the watches' floor is raised to leave its line clear above the
-       name/price lines. */
-    .hd-v3[data-layout="clock"] { --floor: 244px; }
-    .hd-v3[data-layout="clock"] .hd-cap { top: calc(100% - var(--floor) + 58px); }
-    .hd-readout { left: 4%; top: calc(100% - var(--floor) + 14px); gap: 12px; }
+    /* The readout sits above the ruler's left end, as the comp. With three
+       watches the left one stands over that spot, so a trio's readout goes
+       just under the ruler instead, and its floor is raised to leave that
+       line clear above the name/price lines. */
+    .hd-readout { left: 4%; top: auto; bottom: calc(var(--floor) + 22px); gap: 12px; }
+    .hd-v3[data-layout="clock"][data-count="3"] { --floor: 244px; }
+    .hd-v3[data-layout="clock"][data-count="3"] .hd-cap { top: calc(100% - var(--floor) + 58px); }
+    .hd-v3[data-layout="clock"][data-count="3"] .hd-readout { bottom: auto; top: calc(100% - var(--floor) + 14px); }
     .hd-readout b { font-size: 22px; }
     .hd-track { height: 18px; bottom: calc(var(--floor) - 9px); }
     .hd-hand { top: -7px; }
