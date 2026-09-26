@@ -109,7 +109,7 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 - **Company name by page (owner decision 2026-09-25):**
   - English pages: `Cha Jewels Co., Ltd. (Ｃｈａ　Ｊｅｗｅｌｓ株式会社)`.
   - Japanese pages and legal pages: the legal form only.
-  - (planned) The footer and contact pages will render it this way. The code has not been changed yet.
+  - The footer, /contact and /about render it this way through `COMPANY_NAME_DISPLAY` (`lib/content/legal.ts`).
 - **Direction:** "gilded maximalism, value-driven luxe." **Gold** is the brand accent.
 - **Orange** marks buy and contact actions, per the brand kit and the audit. It is never used for navigation, the language toggle or decorative headings.
 - **Voice:** direct and pragmatic. Short sentences, real numbers, honest conditions ("Estimate. Your signed agreement shows exact dates and amounts."). No exclamation marks, no Title-Case slogans, no unfalsifiable claims.
@@ -136,6 +136,7 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 
 - founded 2021, incorporated 2024, Tokyo
 - qualified-invoice issuer number
+- secondhand dealer permit (古物商許可), Tokyo Metropolitan Public Safety Commission No. 307762418064 (tokusho and footer)
 - Specified Commercial Transactions Act notice
 - hallmark and authentication checks at intake
 
