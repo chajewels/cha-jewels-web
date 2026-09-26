@@ -137,7 +137,12 @@ export const hub = {
   /** One category and the pieces in it. 404 → null, like collection(). */
   category: (slug: string): Promise<(Category & { products: Product[] }) | null> =>
     FIXTURES
-      ? Promise.resolve((() => {
+      // Preview only: NEXT_PUBLIC_PREVIEW_CATEGORY_FAIL=<slug,…> plays a Hub
+      // read that fails, so the hero's "a failed read is never empty" rule
+      // (lib/hero-deck.ts) can be seen without breaking the Hub.
+      ? (process.env.NEXT_PUBLIC_PREVIEW_CATEGORY_FAIL ?? "").split(",").includes(slug)
+        ? Promise.reject(new HubError(503, "preview: category read failed"))
+        : Promise.resolve((() => {
           const c = fx.categories.find((x) => x.slug === slug);
           return c ? { ...c, products: fx.products.filter((p) => (p.category_slugs ?? []).includes(slug)) } : null;
         })())
