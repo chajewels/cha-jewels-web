@@ -244,6 +244,58 @@ export const MAGNET_MAX = 6;
 /** The hero as the reader scrolls past it. */
 export const HERO_SINK = { mediaScale: 1.06, contentDrift: 56, contentFade: 0.35 } as const;
 
+/**
+ * CUSTOMER STORIES, the typing slideshow (components/home/story-show.tsx).
+ * Owner approval 2026-09-26, as comped (reference/section-comps/NOTES.md).
+ *
+ *   typeCps   natural typing speed, by the quote's language: characters
+ *             (graphemes) per second, one at a time.
+ *   typeMax   no story takes longer than this to type, seconds. A longer story
+ *             speeds up to fit (475 characters: ~106 per second).
+ *   readCps   reading speed the hold is sized from (~200 wpm EN, ~480 字/min JA).
+ *   holdMin / holdMax
+ *             the hold after the last character = reading time − typing time,
+ *             clamped to this range, seconds.
+ *   lead      the name and stars settle before the first character, seconds.
+ *   out / in  a story leaving (fade, rise 8px) and arriving (EASE_LUX, 10px).
+ *   swipe     horizontal travel, px, that a touch drag needs to change story.
+ */
+export const STORY = {
+  typeCps: { en: 35, ja: 18 },
+  typeMax: 4.5,
+  readCps: { en: 17, ja: 8 },
+  holdMin: 3.5,
+  holdMax: 10,
+  lead: 0.35,
+  out: 0.35,
+  in: 0.6,
+  swipe: 48,
+} as const;
+
+/**
+ * OUR VALUES, the text burst (components/home/values-tiles.tsx). Owner
+ * approval 2026-09-26: text only — no card glow, rays or particles.
+ *
+ *   cps       letters landing per second, per page language. Faster than
+ *             STORY's typing: a value is a heading and one sentence, and four
+ *             of them run in a row.
+ *   beat      pause between a value's title and its description, seconds.
+ *   letter    one letter's life: in with a gold-pale flash and a small pop
+ *             (scale `pop`), settling to the text's own colour, seconds.
+ *   pop       the letter's largest scale, at 30% of `letter`.
+ *   overlap   the next value starts this long before the previous one's last
+ *             letter has settled, seconds — one sentence hands to the next.
+ *   inView    share of a tile that must be on screen before it may play.
+ */
+export const VALUE_BURST = {
+  cps: { en: 45, ja: 20 },
+  beat: 0.15,
+  letter: 0.55,
+  pop: 1.12,
+  overlap: 0.3,
+  inView: 0.6,
+} as const;
+
 /** The same numbers for CSS: set on :root by the plugin in tailwind.config.ts. */
 export const MOTION_CSS_VARS = {
   "--ease-lux": `cubic-bezier(${EASE_LUX.join(", ")})`,
@@ -266,4 +318,8 @@ export const MOTION_CSS_VARS = {
   "--dur-vignette": `${DUR.vignette}s`,
   "--hero-push": `${HERO_PUSH}`,
   "--delay-shine-touch": `${DELAY.shineTouch}s`,
+  "--dur-story-out": `${STORY.out}s`,
+  "--dur-story-in": `${STORY.in}s`,
+  "--dur-burst-letter": `${VALUE_BURST.letter}s`,
+  "--burst-pop": `${VALUE_BURST.pop}`,
 } as const;

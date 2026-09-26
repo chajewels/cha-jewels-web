@@ -1,10 +1,9 @@
 import Image from "next/image";
-import { Hammer, Scale, ShieldCheck, Sparkles } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
-import { Spotlight } from "@/components/fx/spotlight";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { SplitHeading } from "@/components/fx/split-text";
 import { ArtisanVideo } from "@/components/fx/artisan-video";
+import { ValuesTiles } from "@/components/home/values-tiles";
 
 /**
  * Our Values (Stitch §5): header, then the 7/5 bento — four charcoal cards
@@ -16,17 +15,20 @@ import { ArtisanVideo } from "@/components/fx/artisan-video";
  * overlay legible. object-position 60% center holds the hands and the pearls
  * in frame as the card crops to its tall shape.
  *
- * Motion (components/fx): the four tiles rise in one after another, and each
- * carries a gold spotlight that follows a mouse pointer and lights its edge —
- * on touch, a single rising glow when the tile comes into view.
+ * Motion: TEXT ONLY (owner approval 2026-09-26). Each tile's title and then
+ * its description burst in letter by letter, 1 → 2 → 3 → 4, once per visit —
+ * components/home/values-tiles.tsx. The tiles themselves no longer rise, and
+ * the pointer spotlight is gone: no card glow. The numerals and icons are Pale
+ * Gilt, not orange (DESIGN.md "Orange Means Buy").
  */
 export function ValuesBento({ lang }: { lang: Lang }) {
   const t = tr(lang);
-  const cards = [
-    { Icon: Sparkles, h: t("home", "valueTimelessH"), p: t("home", "valueTimelessP") },
-    { Icon: Scale, h: t("home", "valueWorthH"), p: t("home", "valueWorthP") },
-    { Icon: Hammer, h: t("home", "valueCraftH"), p: t("home", "valueCraftP") },
-    { Icon: ShieldCheck, h: t("home", "valueQualityH"), p: t("home", "valueQualityP") },
+  // Order matters: ValuesTiles gives them their numerals and icons 01–04.
+  const values = [
+    { h: t("home", "valueTimelessH"), p: t("home", "valueTimelessP") },
+    { h: t("home", "valueWorthH"), p: t("home", "valueWorthP") },
+    { h: t("home", "valueCraftH"), p: t("home", "valueCraftP") },
+    { h: t("home", "valueQualityH"), p: t("home", "valueQualityP") },
   ];
   return (
     <section className="py-8 lg:py-16">
@@ -42,20 +44,9 @@ export function ValuesBento({ lang }: { lang: Lang }) {
           <RevealItem index={3}><p className="pt-2 text-sm leading-relaxed text-charcoal/70 lg:text-base">{t("hero", "lede2")}</p></RevealItem>
         </RevealGroup>
         <div className="mt-6 grid gap-3 lg:mt-10 lg:grid-cols-12 lg:gap-6">
-          <RevealGroup className="grid gap-3 sm:grid-cols-2 lg:col-span-7 lg:gap-6">
-            {cards.map(({ Icon, h, p }, i) => (
-              <RevealItem key={h} index={i} className="flex">
-              <Spotlight className="flex w-full flex-col gap-2 rounded-sm bg-charcoal p-5 text-chalk shadow-sm lg:p-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold tracking-widest text-orange" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-                  <Icon aria-hidden="true" className="h-5 w-5 text-orange" />
-                </div>
-                <h3 className="font-display text-xl text-chalk lg:text-2xl">{h}</h3>
-                <p className="text-sm leading-relaxed text-chalk/75">{p}</p>
-              </Spotlight>
-              </RevealItem>
-            ))}
-          </RevealGroup>
+          <div className="grid gap-3 sm:grid-cols-2 lg:col-span-7 lg:gap-6">
+            <ValuesTiles values={values} lang={lang} />
+          </div>
           <RevealGroup className="flex flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm lg:col-span-5">
             <div className="relative min-h-[220px] flex-1 lg:min-h-[320px]">
               {/* The photo wipes up and settles, like the collection cards. */}

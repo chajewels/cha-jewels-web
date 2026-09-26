@@ -332,6 +332,26 @@ add("messenger focus ring inner chalk on charcoal-deep", "chalk", "charcoal-deep
 // Underlined at rest as well, so colour is not the only thing carrying them.
 add("post body link hover (gold-deep) on chalk", "gold-deep", "chalk", TEXT);
 
+// Customer Stories, the typing slideshow (components/home/story-show.tsx,
+// .story-* in app/globals.css). The stage is chalk on the white section; the
+// heading column and the controls sit on white. The typed quote and the whole
+// quote are the same charcoal-deep; the caret is decorative (aria-hidden).
+add("stories quote charcoal-deep on chalk stage", "charcoal-deep", "chalk", TEXT);
+add("stories place/date charcoal/70 on chalk stage", "charcoal", "chalk", TEXT, 0.7);
+add("stories stars gold-dark on chalk stage", "gold-dark", "chalk", NONTEXT);
+add("stories item chip charcoal-deep on white", "charcoal-deep", "white", TEXT);
+add("stories up-next label gold-dark on white", "gold-dark", "white", TEXT);
+add("stories up-next piece charcoal/70 on white", "charcoal", "white", TEXT, 0.7);
+add("stories counter total charcoal-deep/78 on white", "charcoal-deep", "white", TEXT, 0.78);
+add("stories progress fill gold-deep on white", "gold-deep", "white", NONTEXT);
+add("stories round button glyph charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
+add("stories focus ring gold-dark on white", "gold-dark", "white", NONTEXT);
+// Our Values (components/home/values-tiles.tsx): numerals and icons move from
+// orange to Pale Gilt on the charcoal tiles, and each letter's burst flashes
+// gold-pale before settling to chalk / chalk/75 (rows above).
+add("values numeral + icon gold-pale on charcoal tile", "gold-pale", "charcoal", TEXT);
+add("values burst flash gold-pale on charcoal tile", "gold-pale", "charcoal", TEXT);
+
 // The announcement bar (components/site/announcement-bar.tsx): a charcoal-deep
 // strip above the header, chalk sentence, orange link when the Hub's row
 // carries an href, and a chalk/75 close glyph.
