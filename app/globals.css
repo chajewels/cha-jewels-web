@@ -92,33 +92,6 @@
      own 1px ring into a 1px gap and the container clips the outer edge, so an
      empty cell stays the page colour. Focus rings move inside the card so the
      clip never hides them. */
-  /* The testimonial marquee. The track holds the list twice, so translating
-     it exactly -50% lands the copy where the original began — the loop has no
-     seam and no jump. Duration is set inline from the card count, so adding a
-     testimonial makes the track longer rather than faster. */
-  @keyframes marquee-x { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  /* NO PERMANENT `will-change`. It was on the track unconditionally, which
-     asks the compositor for a dedicated layer for the life of the page —
-     including while the section is off screen, paused, or not animating at
-     all. It is promoted only while it is actually moving. */
-  .marquee-track { animation: marquee-x var(--marquee-duration, 36s) linear infinite; }
-  .marquee-track[data-paused="false"] { will-change: transform; }
-  .marquee-track[data-paused="true"] { animation-play-state: paused; will-change: auto; }
-
-  /* THE REDUCED-MOTION LAYOUT IS DECIDED HERE, FROM FIRST PAINT.
-     The component used to render the marquee and then swap itself for a grid
-     in an effect once it had read the media query — so a reader who asks for
-     no motion was served the moving version first and watched it rearrange.
-     Both layouts are now in the markup at once and CSS picks one, which it can
-     do before a single frame is painted. */
-  .marquee-motion { display: block; }
-  .marquee-still { display: none; }
-  @media (prefers-reduced-motion: reduce) {
-    .marquee-track { animation: none; }
-    .marquee-motion { display: none; }
-    .marquee-still { display: grid; }
-  }
-
   /* ---------------------------------------------------------------------
      THE MOBILE DRAWER'S ENTRANCE (components/site/mobile-nav.tsx).
      A short slide down from under the header bar it hangs from, plus the
@@ -250,8 +223,7 @@
 
      No `will-change`: opacity is already cheap, and a permanent hint on
      every card in the grid costs a layer per card for a hover that may never
-     come. The marquee above is the one place that earns it, and it sets it
-     only while it is moving.
+     come.
      --------------------------------------------------------------------- */
   .card-depth {
     box-shadow: 0 1px 2px rgb(35 29 18 / 6%), 0 5px 14px rgb(35 29 18 / 7%), 0 16px 32px rgb(35 29 18 / 5%);
@@ -456,26 +428,123 @@
   }
   [data-reveal="hidden"] .quote-mark__path { stroke-dashoffset: 1; fill-opacity: 0; transition: none; }
 
-  /* TESTIMONIAL CARDS — the why lives in components/home/testimonial-marquee.tsx. */
-  .testi-card { position: relative; transition: transform var(--dur-reveal) var(--ease-lux); }
-  .testi-card::after {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    pointer-events: none;
-    opacity: 0;
-    box-shadow: 0 0 0 1px theme('colors.gold.DEFAULT'), 0 14px 32px rgb(35 29 18 / 12%), 0 0 24px theme('colors.gold.DEFAULT' / 18%);
-    transition: opacity var(--dur-reveal) var(--ease-lux);
+  /* CUSTOMER STORIES — the why lives in components/home/story-show.tsx.
+     Desktop: the heading, "Up next" and the controls in the left column, one
+     story stage on the right. Phone: heading, stage, controls. One control
+     cluster in the markup; the grid places it. */
+  .story-grid { display: grid; row-gap: 24px; grid-template-areas: "head" "stage" "ctrl"; }
+  .story-head { grid-area: head; }
+  .story-next { grid-area: next; display: none; }
+  .story-stage { grid-area: stage; }
+  .story-ctrl { grid-area: ctrl; }
+  @media (min-width: 1024px) {
+    .story-grid { grid-template-columns: 4fr 8fr; column-gap: 48px; row-gap: 0; grid-template-rows: auto auto 1fr; grid-template-areas: "head stage" "next stage" "ctrl stage"; }
+    .story-next { display: block; margin-top: 32px; }
+    .story-ctrl { align-self: end; margin-top: 32px; }
   }
-  @media (hover: hover) and (pointer: fine) {
-    .testi-card:hover { transform: translateY(-6px); }
-    .testi-card:hover::after { opacity: 1; }
+
+  /* The stage: every story stacked in ONE grid cell, so it is always as tall
+     as the tallest story and never changes height between stories. Chalk,
+     with the gold top rule; no orange on a story. */
+  .story-stage { position: relative; display: grid; background: theme('colors.chalk'); border: 1px solid theme('colors.hairline'); border-top: 0; cursor: pointer; touch-action: pan-y; }
+  .story-stage::before { content: ""; position: absolute; z-index: 1; left: -1px; right: -1px; top: 0; height: 2px; background: theme('colors.gold.DEFAULT'); }
+  .story { grid-area: 1 / 1; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; padding: 28px 22px 24px; visibility: hidden; opacity: 0; }
+  @media (min-width: 1024px) { .story { gap: 28px; padding: 44px 48px 36px; } }
+  .story[data-on] { visibility: visible; opacity: 1; }
+  .story[data-leave] { visibility: visible; animation: story-out var(--dur-story-out) ease-in both; }
+  .story[data-enter] .story-top,
+  .story[data-enter] .story-who,
+  .story[data-enter][data-done] .story-q { animation: story-in var(--dur-story-in) var(--ease-lux) both; }
+  @keyframes story-out { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+  @keyframes story-in { from { opacity: 0; transform: translateY(10px); } }
+
+  .story-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .story-stars { display: flex; gap: 2px; color: theme('colors.gold.dark'); }
+  .story-stars svg { width: 16px; height: 16px; }
+  .story-chip { display: inline-flex; min-width: 0; max-width: 60%; align-items: center; gap: 6px; border-radius: 9999px; background: theme('colors.white'); padding: 4px 10px; font-size: 11px; color: theme('colors.charcoal.deep'); }
+  .story-chip-dot { width: 6px; height: 6px; flex: none; transform: rotate(45deg); background: theme('colors.teal'); }
+
+  /* The quote: two layers in one box, the same text in each.
+     .story-q-full  the customer's words, whole, from the first paint — real
+                    text for readers, search and copy. Transparent while the
+                    layer above types over it.
+     .story-q-type  aria-hidden: typed part + caret + the untyped rest in
+                    transparent ink, so every line breaks where the finished
+                    quote breaks.
+     pre-wrap keeps the customer's own line breaks and spaces exactly.
+     Serif, never italic: no faked italic on Japanese (DESIGN.md). */
+  .story-q { position: relative; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-display), Georgia, serif; font-weight: 400; color: theme('colors.charcoal.deep'); font-size: 24px; line-height: 1.45; }
+  .story-q[data-size="m"] { font-size: 19px; line-height: 1.5; }
+  .story-q[data-size="s"] { font-size: 16px; line-height: 1.55; }
+  @media (min-width: 1024px) {
+    .story-q { font-size: 30px; }
+    .story-q[data-size="m"] { font-size: 24px; }
+    .story-q[data-size="s"] { font-size: 20px; line-height: 1.6; }
   }
-  .testi-slot[data-center] .testi-card { transform: translateY(-4px) scale(1.02); }
-  .testi-slot[data-center] .testi-card::after { opacity: 1; }
+  .story-q:lang(ja) { font-family: var(--font-jp), "Hiragino Mincho ProN", serif; font-weight: 500; letter-spacing: .02em; line-height: 1.75; line-break: strict; }
+  .story-q:lang(ja)[data-size="m"] { line-height: 1.8; }
+  .story-q:lang(ja)[data-size="s"] { line-height: 1.85; }
+  .story-q-type { position: absolute; inset: 0; pointer-events: none; }
+  .story-q-rest { color: transparent; }
+  .story:not([data-done]) .story-q-full { color: transparent; }
+  .story[data-done] .story-q-type { visibility: hidden; }
+  /* The caret is an EMPTY INLINE span, not an inline-block: an inline-block is
+     a line-break opportunity, and a word at the end of a line would split at
+     the caret. The negative margin cancels the border's width. */
+  .story-caret { border-left: 2px solid theme('colors.gold.DEFAULT'); margin-right: -2px; }
+
+  .story-who { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid theme('colors.hairline'); padding-top: 14px; }
+  .story-name { font-size: 14px; font-weight: 600; color: theme('colors.charcoal.deep'); }
+  .story-meta { font-size: 12px; color: rgb(51 51 51 / .7); font-variant-numeric: lining-nums tabular-nums; }
+
+  /* Up next (desktop): the next three customers, a ledger of real names. */
+  .story-label { padding-bottom: 8px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: theme('colors.gold.dark'); }
+  :lang(ja) .story-label { letter-spacing: .05em; text-transform: none; }
+  .story-next li { animation: story-in var(--dur-story-in) var(--ease-lux) both; }
+  .story-next button { display: flex; width: 100%; justify-content: space-between; gap: 12px; border-top: 1px solid theme('colors.hairline'); padding: 10px 0; text-align: left; font-size: 13px; color: theme('colors.charcoal.deep'); }
+  .story-next-name { font-weight: 600; transition: color var(--dur-micro); }
+  .story-next button:hover .story-next-name { color: theme('colors.gold.dark'); }
+  .story-next-item { max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: rgb(51 51 51 / .7); }
+  .story-next button:focus-visible { outline: 2px solid theme('colors.gold.dark'); outline-offset: 3px; }
+
+  /* Controls: the hero's cluster in its light tone (.hd-ctrl[data-tone=light]). */
+  .story-ctrl { display: flex; align-items: center; gap: 12px; }
+  .story-count { min-width: 64px; font-family: var(--font-display), Georgia, serif; font-size: 15px; letter-spacing: .02em; font-variant-numeric: lining-nums tabular-nums; color: theme('colors.charcoal.deep'); }
+  .story-count span { font-size: 13px; color: rgb(34 34 34 / .78); }
+  .story-prog { position: relative; flex: 1; max-width: 160px; height: 2px; overflow: hidden; background: rgb(34 34 34 / .18); }
+  .story-prog i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(0); background: theme('colors.gold.deep'); }
+  .story-btns { display: flex; gap: 8px; margin-left: auto; }
+  @media (min-width: 1024px) { .story-btns { margin-left: 0; } }
+  .story-round { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 9999px; border: 1px solid rgb(34 34 34 / .45); background: rgb(245 245 242 / .6); color: theme('colors.charcoal.deep'); transition: border-color var(--dur-micro); }
+  .story-round:hover { border-color: theme('colors.charcoal.deep'); }
+  .story-round:focus-visible { outline: 2px solid theme('colors.gold.dark'); outline-offset: 3px; }
+
+  /* Reduced motion: complete stories, no typing (the engine never starts), no
+     auto-advance — so no pause button and no progress line. Decided here,
+     before the first paint. */
   @media (prefers-reduced-motion: reduce) {
-    .testi-card, .testi-card:hover { transform: none; }
+    .story-pause, .story-prog { display: none; }
+    .story[data-leave] { visibility: hidden; animation: none; }
+    .story[data-enter] .story-top, .story[data-enter] .story-who, .story[data-enter] .story-q, .story-next li { animation: none; }
+  }
+
+  /* OUR VALUES TEXT BURST — the why lives in components/home/values-tiles.tsx.
+     Text only: each letter pops in with a gold-pale flash and settles to the
+     text's own colour (the 100% keyframe names no colour, so it ends on the
+     element's). Transform and opacity plus one colour per letter; no glow, no
+     particles. Kerning is off while split, to match the split letters. */
+  .vb-on { font-kerning: none; font-variant-ligatures: none; }
+  .vb-w { display: inline-block; white-space: nowrap; }
+  .vb-l { display: inline-block; }
+  [data-burst="armed"] .vb-l { opacity: 0; }
+  [data-burst="play"] .vb-l { animation: vb-pop var(--dur-burst-letter) var(--ease-lux) both; }
+  @keyframes vb-pop {
+    0% { opacity: 0; transform: scale(.6); color: theme('colors.gold.pale'); }
+    30% { opacity: 1; transform: scale(var(--burst-pop)); color: theme('colors.gold.pale'); }
+    100% { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-burst] .vb-l { opacity: 1; animation: none; }
   }
 
   /* LAYAWAY BAND — the why lives in components/commerce/layaway-band.tsx. */

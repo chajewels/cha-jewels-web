@@ -286,6 +286,11 @@ export const dict = {
     testiEyebrow: { ja: "ご愛用者様の声", en: "Voices" },
     testiH: { ja: "お客様の声", en: "Customer stories" },
     testiP: { ja: "Cha Jewelsでお選びいただいたお客様からのご感想をご紹介します。", en: "Notes from customers who chose Cha Jewels." },
+    // The typing slideshow's controls (components/home/story-show.tsx). Owner
+    // approval 2026-09-26, wording as drafted in the section comps.
+    storyPrev: { ja: "前のお客様の声", en: "Previous story" }, storyNext: { ja: "次のお客様の声", en: "Next story" },
+    storyPause: { ja: "お客様の声を一時停止", en: "Pause stories" }, storyPlay: { ja: "お客様の声を再生", en: "Play stories" },
+    storyUpNext: { ja: "次のお声", en: "Up next" },
     slideEyebrow: { ja: "カテゴリー", en: "Category" }, slideShop: { ja: "{name}を見る", en: "Shop {name}" },
     slidePrev: { ja: "前のスライド", en: "Previous slide" }, slideNext: { ja: "次のスライド", en: "Next slide" },
     slideDot: { ja: "{n}枚目へ", en: "Go to slide {n}" }, slideOf: { ja: "{total}枚中{n}枚目", en: "{n} of {total}" },
