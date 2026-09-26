@@ -91,11 +91,12 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 ### Locked rules (non-negotiable)
 
 1. **Gold is described by purity: "K18 gold".** Cha Jewels' own text never uses a `<country> gold` phrase as a purity claim, in any language. The forbidden patterns are defined in `scripts/check-terminology.mjs` and CLAUDE.md. Customer testimonials are shown exactly as the customer wrote them; this rule covers our text, not theirs.
-2. **Origin is per-product data.** A Japanese-origin claim appears only in two places:
+2. **Origin is per-product data.** A Japanese-origin claim appears only in three places:
    - `components/catalog/origin-badge.tsx`, only when the Hub says `origin === "JAPAN"`. A branded piece shows its brand name and claims no origin.
-   - The approved clarifier sentence, `brand.originNote` in `lib/i18n.ts`, reproduced exactly.
+   - The approved clarifier sentence, `brand.originNote` in `lib/i18n.ts`, reproduced exactly (hero, About, FAQ).
+   - The Hub footer tagline (`footer.tagline`, EN/JA), which may carry the approved clarifier. Footer text is managed only in the Hub (owner decision 2026-09-26); the footer renders the tagline alone, with its own line breaks, and no longer renders `brand.originNote`.
 
-   No other site-wide origin claims, and that includes the Hub footer tagline, which no longer names an origin (owner decision 2026-09-25). Site-wide copy may say "authenticated in Japan" / "hallmark checked in Japan", which is a claim about our checks, not about origin.
+   No other site-wide origin claims. Site-wide copy may say "authenticated in Japan" / "hallmark checked in Japan", which is a claim about our checks, not about origin.
 3. **Layaway content appears on the English site only.** This covers copy, testimonials, tabs, calculators and CTAs. Japanese pages carry none of it (`layawayOffered(lang)`).
 4. **An out-of-stock piece shows "Sold" / 売約済み, never "Reserved".**
 5. **Every order is a reservation first.** Bank details are never shown before staff confirm the piece.
