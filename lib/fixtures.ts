@@ -81,7 +81,50 @@ export const products = [
   mk(6, "Hoop earrings", "K18", 5.6, 118000, null, "necklaces"),
   mk(7, "Baby bangle", "K18", 6.3, 124000, null, "bracelets"),
   mk(8, "Freshwater drop earrings", "K18", 3.1, 62000, "freshwater pearls", "earrings"),
+  // The hero's preloved medallion (lib/hero-deck.ts), with a 750 stamp shown
+  // exactly as sent.
+  mk(9, "Layered wave ring", "750" as Product["karat"], 19, 679980, "Diamond 2.70ct", "rings"),
+  // Branded pieces for the hero's vitrine. p10 is at zero stock (i % 5), so
+  // the vitrine must pass over it.
+  mk(10, "Open heart pendant", "K18", 3.4, 88000, null, "necklaces", "オープンハート ペンダント"),
+  mk(11, "Spiral band ring", "K18", 9.8, 248000, null, "necklaces", "スパイラル バンドリング"),
+  mk(12, "Double loop bracelet", "K18", 5.2, 196000, null, "bracelets", "ダブルループ ブレスレット"),
 ];
+/**
+ * REAL HUB NAMES (the live catalogue, 2026-09-26), so the hero and every card
+ * are seen with names as long as the Hub's. The hero shows each exactly as
+ * sent, and R3341's EN name is the longest in the catalogue (69 characters).
+ * Preview data only: the prices and stock stay the fixtures'.
+ */
+const HUB_NAMES: Record<number, [string, string]> = {
+  0: ["R3341 Ring K18WG 16.20g Diamond 3.82ct, 0.80ct Dome Sz# 13 [Preloved]", "R3341 リング K18WG 16.20g ダイヤモンド 3.82ct, 0.80ct ドーム Sz# 13 プレラブド"],
+  1: ["AL3 Pendant K18 2.65g Cross INRI", "AL3 ペンダント K18 2.65g クロス INRI"],
+  3: ["AL123 Pendant K18 0.98g Heart shaped 15.0mm", "AL123 ペンダント K18 0.98g ハート型 15.0mm"],
+  8: ["R7828 Ring 750 YG/WG 19.00g Diamond 2.70ct Layered Wave Sz# 18 [Preloved]", "R7828 リング 750 YG/WG 19.00g ダイヤモンド 2.70ct レイヤードウェーブ Sz# 18 プレラブド"],
+  10: ["N4020 Necklace Tiffany & Co. 750 2.0g Open Teardrop 40cm [Preloved]", "N4020 ネックレス Tiffany & Co. 750 2.0g オープンティアドロップ 40cm [プレラブド]"],
+  11: ["R3341 Ring K18WG 16.20g Diamond 3.82ct, 0.80ct Dome Sz# 13 [Preloved]", "R3341 リング K18WG 16.20g ダイヤモンド 3.82ct, 0.80ct ドーム Sz# 13 プレラブド"],
+};
+for (const [i, [en, ja]] of Object.entries(HUB_NAMES)) Object.assign(products[Number(i)], { name: en, name_en: en, name_ja: ja });
+products[8].product_variants[0].size = "18";
+products[8].product_variants[0].product_media = [{ url: "/fixtures/ring-1.svg", alt: null, sort: 0 }];
+for (const i of [9, 10, 11]) {
+  const p = products[i];
+  p.category_slugs = ["preloved-branded-jewelry"];
+  p.condition = "Preloved";
+  p.origin = "BRAND";
+  p.brand = ["BVLGARI", "Tiffany & Co.", "Cartier"][i - 9];
+}
+products[10].product_variants[0].product_media = [{ url: "/fixtures/ring-1.svg", alt: null, sort: 0 }];
+products[11].product_variants[0].product_media = [{ url: "/fixtures/chain-1.svg", alt: null, sort: 0 }];
+/**
+ * `NEXT_PUBLIC_PREVIEW_SOLD=CJ-1001,CJ-1002` plays those pieces selling: their
+ * stock goes to zero, so the hero can be seen swapping to the next available
+ * piece (lib/hero-deck.ts) without touching the Hub.
+ */
+for (const sku of (process.env.NEXT_PUBLIC_PREVIEW_SOLD ?? "").split(",").map((x) => x.trim()).filter(Boolean)) {
+  const p = products.find((x) => x.sku === sku);
+  if (p) for (const v of p.product_variants) v.stock_qty = 0;
+}
 // Preview-only photos and a two-stamp piece, so the gallery and "PT900 / K18"
 // can be seen without the Hub. The SVGs live in public/fixtures/.
 products[0].metals = ["PT900", "K18"];

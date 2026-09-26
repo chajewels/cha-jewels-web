@@ -200,3 +200,10 @@ Apply `supabase/migrations/0001_website_catalog.sql` and `0002_loyalty_signups.s
 4b. `POST /layaway/quote {"price_jpy":72980,"term_months":6,"currency":"PHP"}` → `currency: "PHP"`, `total` = the catalog's `price_php`, `deposit` = HU(`total` × 0.30), `allowed_terms[6].min_amount: 10500`.
 4c. `GET /catalog/products/:slug` → each variant carries `down_payment_jpy`, `down_payment_php`, `down_payment_pct`.
 5. Response bodies contain no `cost_basis` key anywhere.
+
+## Proposed (not built in the Hub): hero slider photo slots and counts (2026-09-26)
+
+Drafted by the storefront for Lovable; nothing here is live. The storefront already reads these fields if they appear and ignores them while absent (`lib/hero-deck.ts`).
+
+- **`Category.gallery_media: string[] | null`** on `GET /catalog/categories`, in upload order. Owner photos for the hero's multi-photo layouts: the Preloved Branded vitrine uses items 1–3 for arches that have no available piece, and the Preloved Designer Accessories index uses items 1–4 for 財布 / カードケース / ベルト / 小物レザー, in that order. It is edited beside `hero_media` in the Hub's category editor. Until it exists, those slots show an empty dark stone ground.
+- **`Category.available_count: number`** on `GET /catalog/categories`: the number of products with `status = 'active'` and at least one variant with `stock_qty > 0`. With it, `HERO_HIDE_EMPTY_CATEGORIES` needs no per-category read. Today the storefront reads `GET /catalog/categories/:slug` for each category (60 s cache) and applies the same rule itself.

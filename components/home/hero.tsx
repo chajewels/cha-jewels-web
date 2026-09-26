@@ -117,14 +117,10 @@ export function useHeroMotion(): HeroMotion {
   return v;
 }
 
-export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className, children }: {
+export function Hero({ lang, slides, className }: {
   lang: Lang;
   slides: HeroSlide[];
-  videoPlayLabel: string;
-  videoPauseLabel: string;
   className: string;
-  /** The scrim, passed through from the server so it keeps its place in the DOM. */
-  children: React.ReactNode;
 }) {
   const section = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
@@ -262,12 +258,11 @@ export function Hero({ lang, slides, videoPlayLabel, videoPauseLabel, className,
   return (
     <Ctx.Provider value={value}>
       <section ref={section} className={className} data-hero-motion={paused || !onScreen || hidden ? "still" : "run"} data-active-slide={active}>
-        <HeroVideo playLabel={videoPlayLabel} pauseLabel={videoPauseLabel} />
-        {children}
+        <HeroVideo />
         {/* Over the video and its scrim, under the words (z-10). */}
         <div aria-hidden="true" className="hero-vignette" />
         <div aria-hidden="true" className="hero-sweep" />
-        <div ref={contentRef} className="relative z-10 w-full self-stretch">
+        <div ref={contentRef} className="relative z-10 h-full w-full self-stretch">
           <HeroSlides lang={lang} slides={slides} />
         </div>
         {/* Over the slides, under the arrows, dots and pause button (z-20). */}
