@@ -77,6 +77,13 @@ export async function Header({ lang }: { lang: Lang }) {
     label: collectionName(c, lang),
     thumb: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
+  // A category with neither keeps the row's 40px column: a plain gold-hairline
+  // tile with the gem mark, never another category's photo or a brand logo.
+  const NO_THUMB = (
+    <span className="-mt-0.5 flex h-10 w-10 items-center justify-center rounded-sm border border-hairline bg-chalk">
+      <Gem className="h-4 w-4" />
+    </span>
+  );
   const categoryItems = categories.map((c) => ({
     key: c.slug,
     href: `/categories/${c.slug}`,
@@ -153,7 +160,7 @@ export async function Header({ lang }: { lang: Lang }) {
                   </div>
                   <div className="min-w-0">
                     <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{t("navMenu", "categories")}</p>
-                    {categoryItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} thumb={it.thumb} />)}
+                    {categoryItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} thumb={it.thumb} icon={it.thumb ? undefined : NO_THUMB} />)}
                   </div>
                 </div>
                 <div className="mt-2 border-t border-hairline pt-2">

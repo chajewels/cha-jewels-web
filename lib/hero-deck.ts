@@ -178,6 +178,16 @@ function available(products: Product[], lang: Lang, layout: HeroLayout): HeroPie
   return out;
 }
 
+/**
+ * The pieces a category's stage shows, chosen exactly as the hero chooses
+ * them: available pieces in the Hub's order, each with at least one photo, at
+ * most three. The /categories/[slug] banner stands these on the same dark
+ * stage when the Hub has no category photo (components/catalog/category-stage.tsx).
+ */
+export function stagePieces(products: Product[], lang: Lang): HeroPiece[] {
+  return available(products, lang, "stage").filter((p) => p.photos.length > 0).slice(0, PIECES);
+}
+
 /** "Preloved Watches" → "Watches", "プレラブド ウォッチ" → "ウォッチ". A name without that prefix, or with nothing after it, is kept. */
 export function segmentName(name: string): string {
   const m = name.match(/^(?:preloved|プレラブド)\s+(.+)$/i);

@@ -223,6 +223,22 @@ add("FAQ current category: gold-dark on chalk", "gold-dark", "chalk", TEXT);
   for (const [label, fg, alpha, need] of rows) pairs.push({ label: `hero v3 stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
 }
 
+// CATEGORY STAGE (components/catalog/category-stage.tsx, app/globals.css
+// "CATEGORY STAGE"), 2026-09-26: the /categories/[slug] banner when the Hub has
+// no category photo. The hero v3 stage's ground and pool, so the same worst
+// case — the pool's centre — and the hero's text colours. The gold-pale
+// eyebrow is also the 11px caps line; the title is chalk at display size.
+{
+  const pool = blend([120, 92, 40], hex("#231e18"), 0.3);
+  const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), pool, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(pool)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  const rows = [
+    ["gold-pale eyebrow", "gold-pale", 1, TEXT],
+    ["chalk title (h1)", "chalk", 1, TEXT],
+    ["chalk/80 description", "chalk", 0.8, TEXT],
+  ];
+  for (const [label, fg, alpha, need] of rows) pairs.push({ label: `category stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
+}
+
 // ---------------------------------------------------------------------------
 // PHASE 4 GROUP A — the light surfaces.
 //
