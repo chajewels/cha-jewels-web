@@ -24,11 +24,11 @@ import { readHeroSource, type HeroSource, type ConnectionLike } from "@/componen
  * every slide change would re-fetch, and the browser's own buffer is the right
  * thing to be reusing when the reader swipes back to slide 0.
  *
- * THE CONTROL REFLECTS THE MEDIA, NOT OUR INTENTION. It used to be set
- * optimistically in the click handler, so a play() the browser refused left a
- * button reading "pause" over a still poster. `playing` comes from the
- * element's own play/pause events, and a rejected play() simply leaves it
- * false — the poster stays, the button offers "play", and nothing pretends.
+ * THE PAUSE CONTROL IS NOT HERE ANY MORE (hero slider v2, 2026-09-26). It
+ * lives in the deck's control cluster, bottom-left (components/home/
+ * hero-slides.tsx), and it still governs the whole hero through `paused`: the
+ * film, the rotation and every light. A play() the browser refuses leaves the
+ * poster, which is a correct picture of the hero rather than a black box.
  */
 /**
  * The poster is the hero's whole first paint, so app/page.tsx preloads it —
@@ -47,11 +47,10 @@ const CLIP: Record<Exclude<HeroSource, "none">, { webm: string; mp4: string }> =
   mobile: { webm: "/videos/hero-artisan-mobile.webm", mp4: "/videos/hero-artisan-mobile.mp4" },
 };
 
-export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseLabel: string }) {
+export function HeroVideo() {
   const ref = useRef<HTMLVideoElement>(null);
-  const { videoOn, paused, toggle, mediaRef } = useHeroMotion();
+  const { videoOn, mediaRef } = useHeroMotion();
   const [armed, setArmed] = useState(false);
-  const [playing, setPlaying] = useState(false);
   /**
    * null until the client has been asked. It starts null rather than "full"
    * for the same reason `asked` exists in hero.tsx: the server cannot know,
@@ -90,18 +89,6 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
     setArmed(true);
   }, [videoOn, source]);
 
-  // The element's own events are the only source of `playing`.
-  useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-    v.addEventListener("play", onPlay);
-    v.addEventListener("pause", onPause);
-    v.addEventListener("ended", onPause);
-    return () => { v.removeEventListener("play", onPlay); v.removeEventListener("pause", onPause); v.removeEventListener("ended", onPause); };
-  }, [armed]);
-
   // Drive the element from the decision, not the other way round.
   useEffect(() => {
     const v = ref.current;
@@ -110,7 +97,7 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
       // play() rejects on a policy refusal and on an interrupted load. Either
       // way the poster is what the reader keeps, which is a correct picture of
       // the hero rather than a black box.
-      void v.play().catch(() => setPlaying(false));
+      void v.play().catch(() => undefined);
     } else if (!v.paused) {
       v.pause();
     }
@@ -145,18 +132,6 @@ export function HeroVideo({ playLabel, pauseLabel }: { playLabel: string; pauseL
       </video>
       </div>
       </div>
-      <button
-        type="button"
-        className="hero-video__toggle"
-        // One control for the whole hero: the label is about the motion, and
-        // `paused` is the reader's own choice rather than `playing`, which
-        // also goes false when the hero simply scrolls out of view.
-        aria-label={paused ? playLabel : pauseLabel}
-        aria-pressed={paused}
-        onClick={toggle}
-      >
-        {paused || !playing ? "▶" : "❚❚"}
-      </button>
     </>
   );
 }

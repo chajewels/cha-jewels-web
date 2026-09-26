@@ -96,34 +96,30 @@ add("charcoal on chalk input (light calculator)", "charcoal", "chalk", TEXT);
 add("white on charcoal-deep (selected term)", "white", "charcoal-deep", TEXT);
 add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "orange", TEXT);
 
-// Hero scrim (app/globals.css .hero-scrim) on the hero video's bright frames.
-// The headline sits under the .80 stop; body copy reaches the .52 stop.
-// Measured against the scrim composited over a flat grey of the stated luma,
-// not against a palette surface.
-//
-// Luma figures are the mean of the top third of the frame (the headline band),
-// sampled with `ffmpeg -vf crop=iw:ih/3:0:0,format=gray`:
-//   68  public/images/home/hero-poster.webp
-//   98  hero-artisan.mp4 at 0:15
-//  160  hero-artisan.mp4 at 0:21.3 — the pour flare, the clip's brightest
-//       top-third frame. 0:15 is NOT the peak; the flare is 60% brighter.
+// HERO v2 FILM SCRIM (app/globals.css .hd-film-scrim), slider v2 2026-09-26.
+// It replaced the vertical .hero-scrim when the headline moved to the left
+// column. Luma is measured in the headline's OWN band (x 38–55%, y 25–75% —
+// where the long lines end; the column's left part is darker), with
+// `ffmpeg -vf crop=…,format=gray`:
+//   poster          mean 115, p95 208, peaks 255
+//   0:15            mean  98, p95 246
+//   0:21.3 flare    mean 156, flat
+// So every row is taken at 255, the bound no frame can pass, as well as at the
+// poster's p95. Desktop: the stop is .82 to the end of the copy column (54%).
+// Phone: .78 behind the copy at the top. The scrim is charcoal-deep.
 {
-  const scrim = [20, 18, 16];
+  const scrim = hex(C["charcoal-deep"]);
   const surface = (a, luma) => blend(scrim, [luma, luma, luma], a);
-  const over = (fgName, a, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
-  const rows = [
-    // Poster: the first paint, before any frame decodes.
-    ["hero scrim .80 @ luma 68 (poster): gold-pale headline", "gold-pale", 0.80, 1, TEXT, 68],
-    ["hero scrim .80 @ luma 68 (poster): white/chalk headline", "chalk", 0.80, 1, TEXT, 68],
-    // 0:15.
-    ["hero scrim .80 @ luma 98 (0:15): gold-pale headline", "gold-pale", 0.80, 1, TEXT, 98],
-    ["hero scrim .80 @ luma 98 (0:15): white/chalk headline", "chalk", 0.80, 1, TEXT, 98],
-    // 0:21.3, the pour flare — the brightest top-third frame in the clip.
-    ["hero scrim .80 @ luma 160 (flare): gold-pale headline", "gold-pale", 0.80, 1, TEXT, 160],
-    ["hero scrim .80 @ luma 160 (flare): white/chalk headline", "chalk", 0.80, 1, TEXT, 160],
-    ["hero scrim .52 @ luma 160 (flare): chalk/75 body", "chalk", 0.52, 0.75, TEXT, 160],
-  ];
-  for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `scrim@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
+  const over = (fgName, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  const rows = [];
+  for (const [where, stop] of [["desktop", 0.82], ["phone", 0.78]]) for (const luma of [208, 255]) {
+    rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: chalk headline`, "chalk", stop, 1, LARGE, luma]);
+    rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: gilt stop gold`, "gold", stop, 1, LARGE, luma]);
+    rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: gilt stop gold-pale`, "gold-pale", stop, 1, LARGE, luma]);
+    rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: gold-pale eyebrow`, "gold-pale", stop, 1, TEXT, luma]);
+    rows.push([`hero v2 film scrim ${where} .${stop * 100} @ luma ${luma}: chalk/82 origin`, "chalk", stop, 0.82, TEXT, luma]);
+  }
+  for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `film@${stop}/${luma}`, need, alpha, ratio: over(fg, surface(stop, luma), alpha) });
 }
 
 // SOLD (components/commerce/add-to-cart.tsx, components/catalog/product-card.tsx):
@@ -187,34 +183,73 @@ add("FAQ current category: gold-dark on chalk", "gold-dark", "chalk", TEXT);
   pairs.push({ label: "spotlight peak: orange numeral (11px bold)", fg: "orange", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("orange") });
 }
 
-// Hero SLIDE scrim (app/globals.css .hero-slide-scrim) on a full-bleed category
-// photo. Horizontal, so the copy sits under the .82 stop at the left edge while
-// the photo clears to nothing on the right.
-//
-// A horizontal scrim over an arbitrary photo is only as good as its worst
-// frame, and the photo is DATA — the Hub can replace any of these tomorrow. So
-// the deck's real extremes are measured and a pure-white frame is measured with
-// them, as the floor no uploaded photo can go under. Left-third mean luma,
-// sampled with `ffmpeg -vf crop=iw/3:ih:0:0,format=gray`:
-//    39  preloved-branded-jewelry.webp — the darkest
-//    44  preloved-watches.webp
-//   222  fine-jewelry.webp — the brightest (its lightest pixels reach 241)
-// 235 stands in for that bright end with margin, 40 for the dark one. 255 is
-// the bound: at the .82 stop even a pure white photo holds gold-pale at 7.2:1,
-// so the stop does not have to be revisited when a photo changes.
+// HERO v2 SLIDES (components/home/hero-slide-views.tsx), slider v2 2026-09-26.
+// The full-bleed .hero-slide-scrim is gone: no category slide puts text on a
+// photo under a scrim any more. The surfaces text now sits on are:
+//   card    the ledger card and the film's piece panel: charcoal-deep at 95% /
+//           #181818 at 92%, over a photo — taken over white, the bound
+//   ground  the dark stone of slides 4–6; its lightest stop is #35312C
+//   cream   the preloved photo's own empty cream, where the copy sits in ink:
+//           luma 192–240 in the text region (p1 194, min 192); 192 is the
+//           darkest, which is the worst case for ink. #EEE7DC is the phone's
+//           cream page under that photo.
+// The gilt is two gradients (app/globals.css .hd-gilt / .hd-gilt-dk), and each
+// of their stops is a row at large-text size: they are only ever titles.
 {
-  const scrim = [20, 18, 16];
-  const surface = (a, luma) => blend(scrim, [luma, luma, luma], a);
-  const over = (fgName, a, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  const W = [255, 255, 255];
+  const card = blend(hex(C["charcoal-deep"]), W, 0.95);
+  const panel = blend([24, 24, 24], W, 0.92);
+  const ground = hex("#35312C");
+  const cream192 = [192, 192, 192];
+  const page = hex("#EEE7DC");
+  const on = (fgName, bgArr, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), bgArr, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(bgArr)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
   const rows = [
-    ["hero slide .82 @ luma 235 (cream photo): gold-pale name", "gold-pale", 0.82, 1, TEXT, 235],
-    ["hero slide .82 @ luma 235 (cream photo): chalk copy", "chalk", 0.82, 1, TEXT, 235],
-    ["hero slide .82 @ luma 40 (dark photo): gold-pale name", "gold-pale", 0.82, 1, TEXT, 40],
-    ["hero slide .82 @ luma 40 (dark photo): chalk copy", "chalk", 0.82, 1, TEXT, 40],
-    ["hero slide .82 @ luma 255 (white bound): gold-pale name", "gold-pale", 0.82, 1, TEXT, 255],
-    ["hero slide .82 @ luma 255 (white bound): chalk copy", "chalk", 0.82, 1, TEXT, 255],
+    // card / panel
+    ["card: chalk name", "chalk", card, "card", 1, TEXT],
+    ["card: chalk/80 description", "chalk", card, "card", 0.8, TEXT],
+    ["card: gold-pale eyebrow", "gold-pale", card, "card", 1, TEXT],
+    ["card: gold-pale/90 spec line", "gold-pale", card, "card", 0.9, TEXT],
+    ["card: gold-pale price", "gold-pale", card, "card", 1, TEXT],
+    ["card: gilt stop gold (title)", "gold", card, "card", 1, LARGE],
+    ["card: outline button edge chalk/55", "chalk", card, "card", 0.55, NONTEXT],
+    ["panel: chalk name and cell values", "chalk", panel, "panel", 1, TEXT],
+    ["panel: gold-pale/85 cell captions", "gold-pale", panel, "panel", 0.85, TEXT],
+    ["panel: gold-pale/90 spec line", "gold-pale", panel, "panel", 0.9, TEXT],
+    ["panel: gold-pale price", "gold-pale", panel, "panel", 1, TEXT],
+    // ground (slides 4–6)
+    ["ground: chalk/80 description", "chalk", ground, "ground", 0.8, TEXT],
+    ["ground: chalk/70 index label and niche price", "chalk", ground, "ground", 0.7, TEXT],
+    ["ground: gold-pale eyebrow and readout", "gold-pale", ground, "ground", 1, TEXT],
+    ["ground: gold-pale/70 index numerals", "gold-pale", ground, "ground", 0.7, TEXT],
+    ["ground: gold-pale/90 niche caption", "gold-pale", ground, "ground", 0.9, TEXT],
+    ["ground: chalk clock figures", "chalk", ground, "ground", 1, TEXT],
+    ["ground: gilt stop gold (title)", "gold", ground, "ground", 1, LARGE],
+    ["ground: gilt stop gold-pale (title)", "gold-pale", ground, "ground", 1, LARGE],
+    ["ground: outline button edge chalk/55", "chalk", ground, "ground", 0.55, NONTEXT],
+    ["ground: control ring chalk/45", "chalk", ground, "ground", 0.45, NONTEXT],
+    ["ground: chalk/70 counter total", "chalk", ground, "ground", 0.7, TEXT],
+    ["ground: chalk/75 slide name", "chalk", ground, "ground", 0.75, TEXT],
+    // cream (slide 3 on every width, slide 2's controls from lg)
+    ["cream 192: charcoal-deep name and price", "charcoal-deep", cream192, "cream192", 1, TEXT],
+    ["cream 192: charcoal-deep/85 description", "charcoal-deep", cream192, "cream192", 0.85, TEXT],
+    // From lg the small labels on the cream photo are ink (gold-deep is 3.87
+    // here: a title, not a label), and the dark gilt never reaches gold-dark.
+    ["cream 192: charcoal-deep eyebrow, spec and link", "charcoal-deep", cream192, "cream192", 1, TEXT],
+    ["cream 192: gilt-dk stop gold-deep (title)", "gold-deep", cream192, "cream192", 1, LARGE],
+    ["cream 192: charcoal-deep counter", "charcoal-deep", cream192, "cream192", 1, TEXT],
+    ["cream 192: charcoal-deep/78 counter total, slide name", "charcoal-deep", cream192, "cream192", 0.78, TEXT],
+    ["cream page: charcoal-deep/85 description", "charcoal-deep", page, "#EEE7DC", 0.85, TEXT],
+    ["cream page: gold-deep eyebrow and spec", "gold-deep", page, "#EEE7DC", 1, TEXT],
+    ["cream page: gilt-dk stop gold-dark (title)", "gold-dark", page, "#EEE7DC", 1, LARGE],
   ];
-  for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `slide@${stop}`, need, alpha, ratio: over(fg, stop, surface(stop, luma), alpha) });
+  for (const [label, fg, bgArr, bgName, alpha, need] of rows) pairs.push({ label: `hero v2 ${label}`, fg, bg: bgName, need, alpha, ratio: on(fg, bgArr, alpha) });
+  // The desktop dark gilt's other stop: gold-deep 55% into charcoal-deep.
+  const mix = blend(hex(C["gold-deep"]), hex(C["charcoal-deep"]), 0.55);
+  { const [L1, L2] = [lum(mix), lum(cream192)]; pairs.push({ label: "hero v2 cream 192: gilt-dk stop gold-deep/charcoal mix (title)", fg: "mix", bg: "cream192", need: LARGE, alpha: 1, ratio: (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05) }); }
+  // The ink control buttons on cream: the icon is what identifies them, on the
+  // button's own chalk/60 fill over the darkest cream.
+  const fill = blend(hex(C.chalk), cream192, 0.6);
+  pairs.push({ label: "hero v2 cream 192: control icon on chalk/60 fill", fg: "charcoal-deep", bg: "cream192+fill", need: NONTEXT, alpha: 1, ratio: on("charcoal-deep", fill) });
 }
 
 // ---------------------------------------------------------------------------

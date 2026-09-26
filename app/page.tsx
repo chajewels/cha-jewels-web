@@ -9,12 +9,10 @@ import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
-import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
-import { categoryCta, categoryDescription, categoryName } from "@/lib/catalog-i18n";
+import { buildHeroDeck } from "@/lib/hero-deck";
 import { Hero } from "@/components/home/hero";
 import { HERO_POSTER } from "@/components/site/hero-video";
 import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
-import type { HeroSlide } from "@/components/home/hero-slides";
 import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { SplitHeading } from "@/components/fx/split-text";
@@ -50,24 +48,11 @@ export default async function Home() {
     c,
     image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
-  // Hero deck: the intro, then one slide per category in the Hub's sort_order.
-  // The order is the Hub's and nothing rearranges it here — the deck used to
-  // put "preloved-" slugs first, which is a merchandising decision the owner
-  // now makes in the Hub by setting sort_order. The image is the category's
-  // own hero_media, else the placeholder for that slug; never a product photo.
-  const slides: HeroSlide[] = [
-    { kind: "intro", layaway },
-    ...[...categories]
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((c) => ({
-        kind: "category" as const,
-        slug: c.slug,
-        name: categoryName(c, lang),
-        description: categoryDescription(c, lang),
-        image: c.hero_media ?? CATEGORY_PLACEHOLDER[c.slug] ?? null,
-        cta: categoryCta(c, lang),
-      })),
-  ];
+  // Hero deck (slider v2): the film with one available piece, then one slide
+  // per category in the Hub's sort_order, each with its pieces chosen from the
+  // Hub's catalogue on this render — only active pieces in stock, never a sold
+  // one — and the empty-category switch applied. All of it in lib/hero-deck.ts.
+  const slides = await buildHeroDeck(lang, categories);
 
   const tabs: Tab[] = [
     { href: "/", label: t("home", "tabHome"), icon: "home" },
@@ -83,24 +68,12 @@ export default async function Home() {
     <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
       <JsonLd type="store" />
 
-      {/* §3 Hero — the Phase 1 video treatment, not the Stitch image one: full
-          bleed, video at full opacity, the single vertical scrim (.hero-scrim)
-          between video and content.
-
-          The desktop height is 16:9, matching the source, so the full video
-          frame shows on wide screens. It replaces the 19:6 band, which was
-          only 56% as tall as the frame at the same width and threw away 44%
-          of it. Below lg the section is h-auto and the content wrapper sets
-          the height, so the headline and both CTAs are never clipped — if the
-          copy runs taller than the viewport the page just scrolls. From lg up
-          the height follows 56.25vw, capped at the viewport and floored at
-          560px — no max-height and no aspect-ratio utility, both shrink the
-          width. The video is absolute inset-0 object-cover at every width, so
-          it fills whatever height the section takes; at 16:9 that means the
-          full width with no crop until the viewport cap or the 560px floor
-          bites, and both crop top and bottom only, around a centred crucible.
-          The 1440px max width applies to the content wrapper only. Copy from
-          hero.*. */}
+      {/* §3 Hero — slider v2 (owner approvals 2026-09-26): the gold film with
+          a real piece and its price on slide 1, then one designed slide per
+          category. The film is the base layer under slide 1, with the film
+          slide's own horizontal scrim (.hd-film-scrim) between it and the
+          copy; every category slide covers it. Copy from lib/i18n, pieces and
+          figures from the Hub (lib/hero-deck.ts). */}
       {/* THE ONE EAGER IMAGE ON THIS PAGE.
           The hero poster is what a visitor sees first: the clip does not load
           until something decides it should play, and no category slide mounts
@@ -110,24 +83,14 @@ export default async function Home() {
           of waiting for the <video> to be parsed. Nothing else on the site
           asks for priority — see components/media/hub-image.tsx. */}
       <link rel="preload" as="image" href={HERO_POSTER} fetchPriority="high" />
+      {/* The deck is stacked slides, so the section has a height at every
+          width (.hd-hero, app/globals.css). overflow-CLIP, never hidden: see
+          hero.tsx, "NOTHING IN THE HERO SCROLLS". */}
       <Hero
         lang={lang}
         slides={slides}
-        videoPlayLabel={t("hero", "videoPlay")}
-        videoPauseLabel={t("hero", "videoPause")}
-        className="relative isolate flex h-auto w-full items-center overflow-clip bg-charcoal py-8 lg:h-[min(56.25vw,100svh)] lg:min-h-[560px] lg:py-0"
-      >
-        <div aria-hidden="true" className="hero-scrim" />
-        {/* Slide 0 is the hero copy as before; slides 1..n are the categories.
-            Swipe, arrows (md+), dots, ← →; see components/home/hero-slides.tsx.
-
-            No `.wrap` here any more, and no padding: a category slide is
-            full-bleed, so its photo has to reach the section's edges. Each
-            slide carries its own `.wrap` around its copy instead, so the text
-            still lines up with the rest of the page. `self-stretch` makes the
-            layer fill the section's height from `lg` up, where the section has
-            one, and collapse to the content height below it. */}
-      </Hero>
+        className="hd-hero relative isolate flex w-full overflow-clip bg-charcoal-deep"
+      />
 
       {/* §6 Diamond divider */}
       <DiamondDivider className="wrap" />
