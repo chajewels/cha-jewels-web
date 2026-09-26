@@ -89,6 +89,14 @@ export const products = [
   mk(10, "Open heart pendant", "K18", 3.4, 88000, null, "necklaces", "オープンハート ペンダント"),
   mk(11, "Spiral band ring", "K18", 9.8, 248000, null, "necklaces", "スパイラル バンドリング"),
   mk(12, "Double loop bracelet", "K18", 5.2, 196000, null, "bracelets", "ダブルループ ブレスレット"),
+  // A third branded piece, so the vitrine can be seen with 1, 2 and 3 arches
+  // (NEXT_PUBLIC_PREVIEW_SOLD=CJ-1013 and CJ-1012,CJ-1013).
+  mk(13, "Open heart ring", "750" as Product["karat"], 3.1, 64800, null, "rings"),
+  // The watches slide's pieces: 3 in stock; sell CJ-1014 / CJ-1015 / CJ-1016
+  // to see 2, 1 and 0.
+  mk(14, "Van Cleef watch", null, 0, 385000, null, "watches"),
+  mk(15, "G-SHOCK watch", null, 0, 58000, null, "watches"),
+  mk(16, "Cartier watch", null, 0, 468000, null, "watches"),
 ];
 /**
  * REAL HUB NAMES (the live catalogue, 2026-09-26), so the hero and every card
@@ -114,8 +122,27 @@ for (const i of [9, 10, 11]) {
   p.origin = "BRAND";
   p.brand = ["BVLGARI", "Tiffany & Co.", "Cartier"][i - 9];
 }
+// The branded photos come in all three ratios the Hub sends — square, portrait
+// and landscape — so the vitrine is seen showing each one whole.
 products[10].product_variants[0].product_media = [{ url: "/fixtures/ring-1.svg", alt: null, sort: 0 }];
-products[11].product_variants[0].product_media = [{ url: "/fixtures/chain-1.svg", alt: null, sort: 0 }];
+products[11].product_variants[0].product_media = [{ url: "/fixtures/tall-1.svg", alt: null, sort: 0 }];
+products[12].product_variants[0].product_media = [{ url: "/fixtures/wide-1.svg", alt: null, sort: 0 }];
+Object.assign(products[12], {
+  name: "R3110 Ring Tiffany & Co. 750 3.10g Open Heart Elsa Perreti Sz# 10.5 [Used]", name_en: "R3110 Ring Tiffany & Co. 750 3.10g Open Heart Elsa Perreti Sz# 10.5 [Used]", name_ja: null,
+  category_slugs: ["preloved-branded-jewelry"], condition: "Preloved", origin: "BRAND", brand: "Tiffany & Co.",
+});
+/** The live Hub watches (names as the Hub sends them), a landscape, a square and a portrait photo. */
+const WATCHES: [string, string, string, string][] = [
+  ["C0983 Watch Van Cleef & Arpels La Collection Quartz SS White 17cm [Used]", "C0983 ウォッチ Van Cleef & Arpels La Collection クォーツ SS ホワイト 17cm", "Van Cleef & Arpels", "watch-wide"],
+  ["C1395 Watch Casio G-SHOCK Full Metal Series Solar SS Black 19cm [Preloved]", "C1395 ウォッチ Casio G-SHOCK フルメタルシリーズ ソーラー SS ブラック 19cm プレラブド", "Casio", "watch-square"],
+  ["C2201 Watch Cartier Tank Solo Quartz SS Silver Leather 18cm [Preloved]", "C2201 ウォッチ Cartier タンクソロ クォーツ SS シルバー レザー 18cm プレラブド", "Cartier", "watch-tall"],
+];
+WATCHES.forEach(([en, ja, brand, photo], k) => {
+  const p = products[13 + k];
+  Object.assign(p, { name: en, name_en: en, name_ja: ja, description_en: `${en}.`, brand, category_slugs: ["preloved-watches"], condition: "Preloved", origin: "BRAND", weight_g: null, metals: [] });
+  p.product_variants[0].stock_qty = 1;
+  p.product_variants[0].product_media = [{ url: `/fixtures/${photo}.svg`, alt: null, sort: 0 }];
+});
 /**
  * `NEXT_PUBLIC_PREVIEW_SOLD=CJ-1001,CJ-1002` plays those pieces selling: their
  * stock goes to zero, so the hero can be seen swapping to the next available

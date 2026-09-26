@@ -18,8 +18,9 @@ import type { HeroCategorySlide, HeroPiece, HeroSlide } from "@/lib/hero-deck";
  *            with its details stacked under it in the right-hand panel
  *   ledger   Fine Jewelry: the category photo whole, a ledger card in its sand
  *   loupe    Preloved: the photo is the hero; the piece is a loupe medallion
- *   vitrine  Branded: three lit arches, one per available piece
- *   clock    Watches: the gold ruler as a live Japan-time clock
+ *   vitrine  Branded: one lit arch per available piece (1–3), never an empty one
+ *   clock    Watches: up to three watches above the gold ruler, a live
+ *            Japan-time clock
  *   index    Accessories: a numbered index stepping with a cross-fading stage
  *
  * AT MOST ONE ORANGE ACTION PER SLIDE, and it buys or contacts: "Reserve this
@@ -69,6 +70,15 @@ function Eyebrow({ index, text }: { index: number; text: string }) {
 }
 function Photo({ src, sizes, className }: { src: string; sizes: string; className: string }) {
   return <HubImage src={src} alt="" fill sizes={sizes} className={className} />;
+}
+/**
+ * A PIECE'S HUB PHOTO, WHOLE. Whatever its ratio (square, landscape, portrait),
+ * it is contained and centred on the dark ground it sits on, never cropped
+ * (owner fix 2026-09-26: R3110 was being cut by the 3:4 arch). `.hd-fit` insets
+ * the box so it also clears an arch's curved top.
+ */
+function WholePhoto({ src, sizes }: { src: string; sizes: string }) {
+  return <span className="hd-fit"><span><Photo src={src} sizes={sizes} className="object-contain" /></span></span>;
 }
 
 /* ---------------- 1 · Film + piece ---------------- */
@@ -195,7 +205,14 @@ function LoupeView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCat
 
 /* ---------------- 4 · Vitrine ---------------- */
 function VitrineView({ slide, index, lang, mounted }: ViewProps & { slide: HeroCategorySlide }) {
-  const niches = [0, 1, 2].map((i) => ({ piece: slide.pieces[i] ?? null, photo: slide.pieces[i] ? null : slide.gallery[i] ?? null }));
+  // One arch per available piece (1, 2 or 3), centred as a group; never an
+  // empty arch. With no piece, the three niches as approved: the owner's
+  // gallery photos once the Hub sends them, else the lit stone.
+  const niches = slide.pieces.length
+    ? slide.pieces.map((piece) => ({ piece, photo: null }))
+    : [0, 1, 2].map((i) => ({ piece: null, photo: slide.gallery[i] ?? null }));
+  // The tall middle arch: the centre of three, or a piece standing alone.
+  const mid = niches.length === 3 ? 1 : niches.length === 1 ? 0 : -1;
   return (
     <div className="hd-view hd-vitrine">
       <div aria-hidden="true" className="hd-ground" />
@@ -205,14 +222,18 @@ function VitrineView({ slide, index, lang, mounted }: ViewProps & { slide: HeroC
           <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
           {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
         </div>
-        <div className="hd-vit hd-rise" style={d(0.2)}>
+        <div className="hd-vit hd-rise" style={d(0.2)} data-count={niches.length}>
           {niches.map(({ piece, photo }, i) => {
-            const img = piece?.image?.url ?? photo;
+            const sizes = "(min-width:1024px) 200px, 45vw";
             const arch = (
-              <span className="hd-arch block"><span className="hd-arch-in hd-stone block">{mounted && img && <Photo src={img} sizes="(min-width:1024px) 200px, 30vw" className="object-cover" />}</span></span>
+              <span className="hd-arch block">
+                <span className="hd-arch-in hd-stone block">
+                  {mounted && (piece?.image ? <WholePhoto src={piece.image.url} sizes={sizes} /> : photo && <Photo src={photo} sizes={sizes} className="object-cover" />)}
+                </span>
+              </span>
             );
             return (
-              <div key={i} className="hd-niche" data-mid={i === 1 ? "" : undefined}>
+              <div key={piece?.slug ?? i} className="hd-niche" data-mid={i === mid ? "" : undefined}>
                 {piece ? (
                   <Link href={`/products/${piece.slug}`} className="block">
                     {arch}
@@ -317,6 +338,22 @@ function ClockView({ slide, index, lang, active, mounted }: ViewProps & { slide:
         {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
         <div className="hd-acts hd-rise" style={d(0.3)}><Ask lang={lang} /><Explore slide={slide} /></div>
       </div>
+      {slide.pieces.length > 0 && (
+        <div className="hd-layer"><div className="hd-in">
+          {/* In front of the category photo (or the stone until there is
+              one), in the right-hand area above the ruler. */}
+          <ul className="hd-watches hd-rise" style={d(0.25)} data-count={slide.pieces.length}>
+            {slide.pieces.map((p) => (
+              <li key={p.slug} className="hd-watch">
+                <Link href={`/products/${p.slug}`} className="hd-wlink">
+                  <span className="hd-wimg hd-stone">{mounted && p.image && <WholePhoto src={p.image.url} sizes="(min-width:1024px) 180px, 45vw" />}</span>
+                  <span className="hd-ncap block"><span className="block">{p.name}</span><em className="hd-num">{[p.brand, formatMoney(p.priceJpy)].filter(Boolean).join(" · ")}</em></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div></div>
+      )}
       <div className="hd-layer"><div className="hd-in">{mounted && <HeroClock lang={lang} run={active && rotateOn} still={reduced} />}</div></div>
     </div>
   );
