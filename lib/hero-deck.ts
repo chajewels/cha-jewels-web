@@ -208,7 +208,7 @@ function callerLine(slug: string, t: ReturnType<typeof tr>): string {
 }
 
 /** A Hub read that gives up after `ms`. A timeout is a failure, and a failure is "not empty". */
-function within<T>(p: Promise<T>, ms: number): Promise<T> {
+export function within<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const t = setTimeout(() => reject(new Error("timeout")), ms);
     p.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });

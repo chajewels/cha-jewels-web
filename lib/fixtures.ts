@@ -60,10 +60,11 @@ const mk = (i: number, name: string, karat: Product["karat"], w: number, jpy: nu
   product_variants: [{ id: `v${i}`, size: null, stone, price_jpy: jpy, price_php: Math.round(jpy * FIXTURE_RATE), ...fixtureDownPayments(jpy), stock_qty: i % 5 === 0 ? 0 : 3, product_media: [] }],
 });
 /**
- * Preview categories, in sort_order. hero_media is null throughout so the
- * preview exercises the placeholder path (lib/category-placeholders.ts) — the
- * Hub's own media always wins over it, and that branch is covered the moment a
- * real category carries a photo.
+ * Preview categories, in sort_order. hero_media is null throughout, so the
+ * preview shows what a category looks like before the owner uploads a photo:
+ * its own pieces on the banner and in the menu thumbnail (lib/category-thumbs.ts).
+ * `NEXT_PUBLIC_PREVIEW_CATEGORY_PHOTO=<slug,…>` plays the owner having uploaded
+ * one (a collection photo stands in), so the "owner photo first" path can be seen.
  */
 export const categories: Category[] = [
   { id: "cat1", slug: "fine-jewelry", name: "Fine Jewelry", name_ja: "ファインジュエリー", description: "K18 gold, pearls and diamonds, hallmark checked in Japan and priced by weight.", description_ja: "K18ゴールド、パール、ダイヤモンド。日本で刻印を確認し、重量に基づいた価格でご案内します。", hero_media: null, cta_label: "Shop fine jewelry", cta_label_ja: "ファインジュエリーを見る", sort_order: 1 },
@@ -72,6 +73,10 @@ export const categories: Category[] = [
   { id: "cat4", slug: "preloved-watches", name: "Preloved Watches", name_ja: "プレラブドウォッチ", description: "Second-hand watches, movement and condition described on every listing.", description_ja: "中古時計。ムーブメントと状態を各商品ページに記載しています。", hero_media: null, cta_label: "Shop watches", cta_label_ja: "ウォッチを見る", sort_order: 4 },
   { id: "cat5", slug: "preloved-designer-accessories", name: "Preloved Designer Accessories", name_ja: "プレラブド デザイナーアクセサリー", description: "Bags and small leather goods from the houses our customers ask for.", description_ja: "お客様からご要望の多いブランドのバッグや革小物。", hero_media: null, cta_label: "Shop accessories", cta_label_ja: "アクセサリーを見る", sort_order: 5 },
 ];
+for (const slug of (process.env.NEXT_PUBLIC_PREVIEW_CATEGORY_PHOTO ?? "").split(",").map((x) => x.trim()).filter(Boolean)) {
+  const c = categories.find((x) => x.slug === slug);
+  if (c) c.hero_media = "/images/collections/pearls.webp";
+}
 export const products = [
   mk(1, "Double-sided diamond pendant", "PT900", 16.9, 1480000, "2.62 ct diamonds", "pendants", "両面ダイヤモンドペンダント"),
   mk(2, "Kihei chain 50 cm", "K18", 20.4, 398000, null, "necklaces", "喜平チェーン 50 cm"),

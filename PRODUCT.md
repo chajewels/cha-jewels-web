@@ -120,7 +120,7 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 **Real assets in the repo:**
 
 - The logo badge (`public/images/brand/`).
-- Category and collection photography (`public/images/categories/`, `public/images/collections/`). The audit rates it the most upscale imagery on the site. Only Fine Jewelry and Preloved Jewelry keep a category photo, as Collections-menu thumbnails. The photos for the three preloved branded lines showed brand logos and were deleted (owner rule 2026-09-26: no brand logos as decoration, brand names in text only). A category page with no Hub photo (`hero_media`) now shows its own in-stock pieces on the hero's dark stage, or its text alone when nothing is in stock (`components/catalog/category-stage.tsx`).
+- Collection photography (`public/images/collections/`). The audit rates it the most upscale imagery on the site. No category photo is bundled any more (owner rule 2026-09-26: no brand logos as decoration, brand names in text only; the owner's own photos or real pieces). The three for the preloved branded lines showed brand logos and were deleted; the Fine Jewelry and Preloved Jewelry ones followed under the same rule. A category page with no Hub photo (`hero_media`) shows its own in-stock pieces on the hero's dark stage, or its text alone when nothing is in stock (`components/catalog/category-stage.tsx`). A Collections-menu category thumbnail is the owner's Hub photo, else one real in-stock piece, else a line icon for the kind of category (`lib/category-thumbs.ts`).
 - The molten-gold hero film (`public/videos/hero-artisan*`).
 - The K18/Pt900 clasp illustrations (`public/images/gold-guide/`).
 - The page emblems (`public/images/emblems/`).
