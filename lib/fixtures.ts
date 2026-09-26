@@ -82,7 +82,7 @@ export const products = [
   mk(7, "Baby bangle", "K18", 6.3, 124000, null, "bracelets"),
   mk(8, "Freshwater drop earrings", "K18", 3.1, 62000, "freshwater pearls", "earrings"),
   // The hero's preloved medallion (lib/hero-deck.ts): a Hub-style SKU name and
-  // a 750 stamp, so the short name and the K18 display can be seen in preview.
+  // a 750 stamp, so the short name and a stamp shown exactly as sent ("750") can be seen in preview.
   mk(9, "CJ-1009 Ring 750 YG/WG 19.00g Diamond 2.70ct Layered Wave Sz# 18 Preloved", "750" as Product["karat"], 19, 679980, "Diamond 2.70ct", "rings", "CJ-1009 リング 750 YG/WG 19.00g ダイヤモンド 2.70ct レイヤードウェーブ Sz# 18 プレラブド"),
   // Branded pieces for the hero's vitrine. p10 is at zero stock (i % 5), so
   // the vitrine must pass over it.

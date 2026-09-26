@@ -2,7 +2,7 @@ import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { categoryCta, categoryDescription, categoryName, productName } from "@/lib/catalog-i18n";
 import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
-import { METALS, metalLabel, productMetals } from "@/lib/metals";
+import { METALS, metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Category, Product, ProductVariant } from "@/lib/types";
 
@@ -35,7 +35,7 @@ export type HeroPiece = {
   /** The short name (see `shortName`). */
   name: string;
   sku: string;
-  /** "K18" for a 750 / 18K stamp (owner approval 2026-09-26: K18, never "750"). */
+  /** Every stamp exactly as the Hub sends it ("750" stays "750", "K18" stays "K18"), as the rest of the site shows it. */
   purity: string | null;
   /** "2.65g" (JA) / "2.65 g" (EN), or null when the Hub sent no weight. */
   weight: string | null;
@@ -152,11 +152,14 @@ export function shortName(name: string, sku: string): string {
   return words.length ? `${words.join(" ")} ${type}` : type;
 }
 
-/** "K18" for the 18-karat stamps; every other stamp as the site shows it. */
+/**
+ * The piece's stamps exactly as the Hub sends them, through the site's one
+ * metal label (lib/metals.ts). Never normalised: "750" stays "750" and "K18"
+ * stays "K18" (owner correction 2026-09-26). null when the Hub sent none.
+ */
 export function heroPurity(p: Pick<Product, "metals" | "karat">, lang: Lang): string | null {
   const list = productMetals(p);
-  if (!list.length) return null;
-  return list.map((m) => (m === "750" || m === "18K" ? "K18" : metalLabel(m, lang))).join(" / ");
+  return list.length ? metalsLabel(list, lang) : null;
 }
 
 function piece(p: Product, v: ProductVariant, lang: Lang): HeroPiece {
