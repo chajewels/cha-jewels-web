@@ -84,6 +84,23 @@ export function tokushoRowsFor(layaway: boolean): TokushoRow[] {
 export const COMPANY_NAME = "\uFF23\uFF48\uFF41\u3000\uFF2A\uFF45\uFF57\uFF45\uFF4C\uFF53\u682A\u5F0F\u4F1A\u793E";
 
 /**
+ * The company name as a page prints it (owner decision 2026-09-25, PRODUCT.md):
+ * English pages give the English form with the registered name in brackets;
+ * Japanese pages the registered name alone. Legal pages keep COMPANY_NAME.
+ */
+export const COMPANY_NAME_DISPLAY: Record<Lang, string> = {
+  ja: COMPANY_NAME,
+  en: `Cha Jewels Co., Ltd. (${COMPANY_NAME})`,
+};
+
+/**
+ * 古物商許可 (Secondhand Articles Dealer permit), owner-provided 2026-09-26
+ * from the permit itself. The number is an identifier: the same digits in both
+ * languages, printed on /legal/tokusho and in the footer.
+ */
+export const SECONDHAND_PERMIT_NO = "307762418064";
+
+/**
  * The registered address, factored out for the same reason COMPANY_NAME is:
  * it is an identifier, and every surface that prints it must print the same
  * characters. The tokusho row below is the statutory disclosure and reads from
@@ -364,8 +381,8 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  * and same wording as returnsUpdated / privacyUpdated / tosUpdated.
  */
 export const tokushoUpdated: Record<Lang, string> = {
-  ja: "最終更新日：2026年9月22日",
-  en: "Last updated: September 22, 2026",
+  ja: "最終更新日：2026年9月26日",
+  en: "Last updated: September 26, 2026",
 };
 
 export const tokusho = {
@@ -423,6 +440,13 @@ export const tokusho = {
     {
       k: { ja: "登録番号", en: "Invoice registration number" },
       v: { ja: "T7011801044120", en: "T7011801044120" },
+    },
+    {
+      k: { ja: "古物商許可", en: "Secondhand dealer permit" },
+      v: {
+        ja: `東京都公安委員会 第${SECONDHAND_PERMIT_NO}号（${COMPANY_NAME}）`,
+        en: `Tokyo Metropolitan Public Safety Commission, Permit No. ${SECONDHAND_PERMIT_NO} (${COMPANY_NAME})`,
+      },
     },
     {
       k: { ja: "販売価格", en: "Price" },

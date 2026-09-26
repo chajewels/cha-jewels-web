@@ -1,4 +1,5 @@
 import { dict, type Lang } from "@/lib/i18n";
+import { COMPANY_NAME_DISPLAY } from "@/lib/content/legal";
 
 /**
  * About page copy, both languages. The page picks by the language cookie.
@@ -43,7 +44,7 @@ export type AboutCopy = {
 export const aboutCopy: Record<Lang, AboutCopy> = {
   ja: {
     h1: "チャジュエルズについて",
-    intro: "チャジュエルズは2021年、フィリピン人コミュニティ向けのライブ販売から始まりました。事業の成長にともない、2024年に株式会社チャジュエルズとして法人化し、東京・葛飾区立石に拠点を構えています。",
+    intro: `チャジュエルズは2021年、フィリピン人コミュニティ向けのライブ販売から始まりました。事業の成長にともない、2024年に${COMPANY_NAME_DISPLAY.ja}として法人化し、東京・葛飾区立石に拠点を構えています。`,
     questionsLead: "私たちの歩みは、お客様から繰り返し寄せられた二つの質問とともにありました。",
     questions: ["これは本物ですか。", "将来、どれくらいの価値になりますか。"],
     body: [
@@ -83,7 +84,7 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
   },
   en: {
     h1: "About Cha Jewels",
-    intro: "Cha Jewels began in 2021 as a sole proprietorship serving the Filipino community through live selling. As the business continued to grow, it was officially incorporated as Cha Jewels Co., Ltd. in 2024, with its base in Tateishi, Katsushika-ku, Tokyo.",
+    intro: `Cha Jewels began in 2021 as a sole proprietorship serving the Filipino community through live selling. As the business continued to grow, it was officially incorporated as ${COMPANY_NAME_DISPLAY.en} in 2024, with its base in Tateishi, Katsushika-ku, Tokyo.`,
     questionsLead: "Our journey was built around two questions customers asked again and again:",
     questions: ["Is it authentic?", "What could it be worth in the future?"],
     body: [

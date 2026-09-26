@@ -4,7 +4,7 @@ import { getCollections } from "@/lib/queries/products";
 import { collectionName } from "@/lib/catalog-i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { follow, footerTagline } from "@/lib/settings";
-import { COMPANY_NAME } from "@/lib/content/legal";
+import { COMPANY_NAME_DISPLAY } from "@/lib/content/legal";
 import { SocialIcons } from "@/components/site/social-icons";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 
@@ -101,12 +101,12 @@ export async function Footer({ lang }: { lang: Lang }) {
         {/* The REGISTERED name, from the one constant that holds it. The i18n
             key this replaced carried the kabushiki-gaisha-first variant of the
             name in its Japanese string — the exact wrong form PR #36 found on
-            the legal pages, and the reason COMPANY_NAME exists — plus a
-            locality suffix that the registered address on /contact and
-            /legal/tokusho both state properly. An identifier is not
-            translated, so this reads the same in either language. */}
-        <span>© {new Date().getFullYear()} {COMPANY_NAME}</span>
+            the legal pages, and the reason COMPANY_NAME exists. English adds
+            "Cha Jewels Co., Ltd." in front of it (owner decision 2026-09-25);
+            the registered name itself is never translated. */}
+        <span>© {new Date().getFullYear()} {COMPANY_NAME_DISPLAY[lang]}</span>
         <span>{t("footer", "invoiceReg")}</span>
+        <span>{t("footer", "secondhandPermit")}</span>
       </div>
     </footer>
   );
