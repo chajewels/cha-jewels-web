@@ -810,6 +810,25 @@
   .hd-ncap em { display: block; margin-top: 3px; font-style: normal; font-size: 10.5px; color: rgb(245 245 242 / .7); }
   .hd-shelf { display: none; }
   .hd-vitrine .hd-acts { margin-top: 18px; }
+  /* One arch per piece, centred as a group: a single piece stands alone in
+     the middle rather than beside an empty arch. */
+  .hd-vit[data-count="1"] { grid-template-columns: minmax(0, calc(50% - 7px)); justify-content: center; }
+  /* A piece's photo, whole (WholePhoto): contained in a box inset from the
+     arch's curved top (the % paddings are of the width, so the box's top
+     corners always sit inside the semicircle), on the stone ground. */
+  .hd-fit { position: absolute; inset: 0; padding: 22% 10% 8%; }
+  .hd-fit > span { position: relative; display: block; height: 100%; }
+
+  /* 5 · the watches, in front of the category photo, above the ruler. Two on
+     a phone, three from lg. */
+  .hd-watches { position: absolute; top: 14px; left: clamp(18px, 4vw, 48px); right: clamp(18px, 4vw, 48px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: stretch; pointer-events: auto; }
+  .hd-watch { display: flex; min-width: 0; }
+  .hd-watches[data-count="1"] { grid-template-columns: minmax(0, calc(50% - 6px)); justify-content: center; }
+  .hd-watch:nth-child(3) { display: none; }
+  .hd-wlink { display: block; flex: 1 1 auto; min-width: 0; padding: 5px; background: rgb(27 26 24 / .94); border: 1px solid theme('borderColor.rule'); }
+  .hd-wimg { position: relative; display: block; height: 112px; overflow: hidden; }
+  .hd-wimg .hd-fit { padding: 6px; }
+  .hd-watch .hd-ncap { margin-top: 6px; padding: 0 3px 3px; }
 
   /* ================= 5 · Watches: the live Japan-time ruler ================= */
   .hd-clock-photo { position: absolute; left: 0; right: 0; top: 0; height: 300px; }
@@ -941,6 +960,9 @@
     .hd-ncap { margin-top: 14px; font-size: 12.5px; letter-spacing: .02em; }
     .hd-ncap em { margin-top: 5px; font-size: 12px; }
     .hd-shelf { display: block; position: absolute; left: -28px; right: -28px; bottom: 58px; height: 1px; background: linear-gradient(90deg, transparent, theme('colors.gold.DEFAULT') 15%, theme('colors.gold.pale') 50%, theme('colors.gold.DEFAULT') 85%, transparent); }
+    /* Fewer than three pieces: the same 200px arches, centred on the shelf. */
+    .hd-vit[data-count="1"] { grid-template-columns: minmax(0, 200px); }
+    .hd-vit[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 200px)); justify-content: center; }
 
     /* 5 */
     .hd-clock-photo { left: auto; width: 58%; height: auto; bottom: 0; }
@@ -951,6 +973,17 @@
     .hd-clock .hd-title { font-size: clamp(46px, 4.2vw, 60px); margin: 20px 0 18px; }
     .hd-clock .hd-acts { margin-top: 28px; }
     .hd-readout { top: auto; bottom: 136px; gap: 12px; }
+    /* The watches: the right-hand area over the photo, standing on the
+       readout's line, clear of the copy column on the left. */
+    .hd-watches { top: clamp(40px, 8svh, 88px); bottom: 188px; left: auto; width: min(540px, 38vw); grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-content: end; }
+    .hd-watches[data-count="1"] { grid-template-columns: minmax(0, 190px); }
+    .hd-watches[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 190px)); }
+    .hd-watches[data-count="1"], .hd-watches[data-count="2"] { justify-content: center; }
+    .hd-watch:nth-child(3) { display: flex; }
+    .hd-wlink { padding: 7px; }
+    .hd-wimg { height: auto; aspect-ratio: 4 / 5; max-height: min(260px, 30svh); }
+    .hd-wimg .hd-fit { padding: 8px; }
+    .hd-watch .hd-ncap { margin-top: 10px; padding: 0 4px 4px; }
     .hd-readout b { font-size: 22px; }
     .hd-track { top: auto; bottom: 96px; height: 26px; }
     .hd-hand { top: -7px; }

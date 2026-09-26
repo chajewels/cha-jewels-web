@@ -78,8 +78,13 @@ const LAYOUT: Record<string, HeroLayout> = {
  */
 const PLACEHOLDER_OK = new Set<HeroLayout>(["ledger", "loupe"]);
 
-/** How many pieces each layout shows. */
-const PIECES: Record<HeroLayout, number> = { ledger: 2, loupe: 1, vitrine: 3, clock: 0, index: 0 };
+/**
+ * How many pieces each layout shows, at most. The vitrine draws one arch per
+ * piece it gets (1, 2 or 3), and the clock shows up to three watches above
+ * its ruler (owner fix 2026-09-26): fewer in stock, fewer shown, never an
+ * empty place. Phones show at most two of either (CSS).
+ */
+const PIECES: Record<HeroLayout, number> = { ledger: 2, loupe: 1, vitrine: 3, clock: 3, index: 0 };
 
 export type HeroFilmSlide = { kind: "film"; key: "film"; name: string; short: string; piece: HeroPiece | null };
 export type HeroCategorySlide = {
