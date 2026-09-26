@@ -25,7 +25,7 @@ export type AboutCopy = {
   /**
    * The origin clarifier, rendered right after body[1] (the "what we offer"
    * paragraph). Read from the shared lib/i18n.ts key brand.originNote, never
-   * retyped here, so it stays identical to the footer and the hero.
+   * retyped here, so it stays identical to the hero.
    */
   originNote: string;
   listHeading: string;

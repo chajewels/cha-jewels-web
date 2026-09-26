@@ -55,11 +55,12 @@ export async function Footer({ lang }: { lang: Lang }) {
             <img src="/images/brand/logo-badge-192.webp" width={48} height={48} alt="" className="h-12 w-12" />
             <p className="gilt font-display text-2xl">Cha Jewels</p>
           </div>
+          {/* The Hub's footer.tagline is the ONLY text under the logo (owner
+              decision 2026-09-26): footer copy is edited in the Hub, so this
+              column adds no sentence of its own — brand.originNote included,
+              which the owner's tagline already carries. Empty or unreachable
+              renders nothing. */}
           {tagline && <p className="mt-4 max-w-[40ch] leading-relaxed text-chalk/75">{tagline}</p>}
-          {/* The origin clarifier (lib/i18n.ts brand.originNote), under the
-              tagline. Code, not a Hub setting, so it renders even when the
-              tagline is empty and check:terms can pin it. */}
-          <p className={`${tagline ? "mt-2" : "mt-4"} max-w-[40ch] text-xs leading-relaxed text-chalk/75`}>{t("brand", "originNote")}</p>
         </div>
         <div className="lg:col-span-3">
           <h2 className={heading}>{t("footer", "collections")}</h2>
