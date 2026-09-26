@@ -53,8 +53,13 @@ type ViewProps = {
   active: boolean;
   mounted: boolean;
   side: "left" | "right";
-  /** The trio may turn now: this slide is up, the hero may move, and nobody is holding the deck. */
-  turning: boolean;
+  /**
+   * The stage may move now: this slide is up and the hero may move (on
+   * screen, tab visible, not paused, no reduced motion). NOT held by hover,
+   * focus or touch — those hold the deck's advance only (hero-slides.tsx):
+   * the pieces keep turning and changing photos while someone looks at them.
+   */
+  moving: boolean;
 };
 
 export function HeroSlideView(props: ViewProps) {
@@ -118,25 +123,22 @@ function isFeatured(place: number, n: number): boolean {
 const PIECE_SIZES = "(min-width:1024px) 400px, 60vw";
 
 /**
- * THE STAGE CLOCK. One beat every HERO_TURN / 2 s (1.5 s) while the slide may
- * move, and at most one change on the stage per beat:
+ * THE STAGE CLOCK. One beat every HERO_TURN / 2 s (1.5 s) while the stage may
+ * move (`moving`), and at most one change on the stage per beat:
  *   trio         even beats turn the trio; on each odd beat — 1.5 s after a
  *                piece has arrived in the centre and its 1.2 s move has
- *                settled — the featured piece steps to its next photo
- *   duo, single  every even beat (3 s) one piece steps to its next photo, the
- *                two of a duo taking turns
+ *                settled — the featured piece steps to its next photo. While
+ *                the pointer rests on the stage the trio does not turn (a
+ *                piece never slides out from under it), but the featured
+ *                piece still steps through its photos, every 3 s.
+ *   duo, single  on each odd beat (1.5 s and 4.5 s into the 6 s visit) one
+ *                piece steps to its next photo, the two of a duo taking turns
+ *                (and carrying on from where the last visit stopped), so both
+ *                change within one visit
  * Side pieces never change photo. A 9 s trio visit shows each piece in the
  * centre once with two of its photos; the photo a piece is on is kept when
  * the deck moves on, so the next visit goes on from there.
  */
-function stepsFor(j: number, n: number, beat: number): number {
-  let c = 0;
-  for (let b = 1; b <= beat; b++) {
-    if (n === 3) { if (b % 2 === 1 && ((-Math.floor(b / 2)) % 3 + 3) % 3 === j) c++; }
-    else if (b % 2 === 0 && (b / 2 - 1) % n === j) c++;
-  }
-  return c;
-}
 
 /**
  * One photo of a piece, as a layer that cross-fades (`data-on`). A cut-out
@@ -167,34 +169,37 @@ function PhotoLayer({ photo, on, mounted }: { photo: HeroPhoto; on: boolean; mou
   );
 }
 
-function StageView({ slide, index, lang, active, mounted, side, turning }: ViewProps & { slide: HeroCategorySlide }) {
+function StageView({ slide, index, lang, active, mounted, side, moving }: ViewProps & { slide: HeroCategorySlide }) {
   const t = tr(lang);
   const { rotateOn, reduced } = useHeroMotion();
   const pieces = slide.pieces;
   const n = pieces.length;
   const cycles = pieces.some((p) => p.photos.length > 1);
-  // Beats since this slide came up (see stepsFor). Nothing to do for a
-  // single photo that does not turn.
-  const [beat, setBeat] = useState(0);
-  // Photo steps carried over from earlier visits, per piece.
-  const [base, setBase] = useState<number[]>(() => pieces.map(() => 0));
-  const beatRef = useRef(0);
-  beatRef.current = beat;
+  // Turns taken this visit (a trio only), and each piece's photo steps, kept
+  // across visits. `pinned`: the pointer is resting on the stage.
+  const [k, setK] = useState(0);
+  const [steps, setSteps] = useState<number[]>(() => pieces.map(() => 0));
+  const kRef = useRef(0);
+  kRef.current = k;
+  const pinned = useRef(false);
+  const duoNext = useRef(0);
   useEffect(() => {
-    if (!turning || !(n === 3 || cycles)) return;
-    const id = setInterval(() => setBeat((b) => b + 1), (HERO_TURN * 1000) / 2);
+    if (!moving || !(n === 3 || cycles)) return;
+    let beat = 0;
+    const step = (j: number) => setSteps((prev) => prev.map((x, i) => (i === j ? x + 1 : x)));
+    const id = setInterval(() => {
+      beat += 1;
+      if (n === 3) {
+        if (beat % 2 === 0) { if (!pinned.current) setK((x) => x + 1); }
+        else step(((-kRef.current % 3) + 3) % 3); // the piece in the centre
+      } else if (beat % 2 === 1) step(duoNext.current++ % n);
+    }, (HERO_TURN * 1000) / 2);
     return () => clearInterval(id);
-  }, [turning, n, cycles]);
+  }, [moving, n, cycles]);
   // Every visit starts from the Hub's first piece in the centre; each piece
   // keeps the photo it had reached.
-  useEffect(() => {
-    if (active || beatRef.current === 0) return;
-    const b = beatRef.current;
-    setBase((prev) => prev.map((x, j) => x + stepsFor(j, n, b)));
-    setBeat(0);
-  }, [active, n]);
+  useEffect(() => { if (!active) setK(0); }, [active]);
 
-  const k = n === 3 ? Math.floor(beat / 2) : 0;
   const places = pieces.map((_, j) => placeOf(j, n, k));
   const featured = pieces[places.findIndex((p) => isFeatured(p, n))] ?? null;
   // The piece that has just crossed from the right edge to the left: it fades
@@ -204,9 +209,8 @@ function StageView({ slide, index, lang, active, mounted, side, turning }: ViewP
   // ones already seen, plus the next one while the slide is moving, so it has
   // loaded before it fades in. Nothing past the first loads under reduced
   // motion, where nothing cycles.
-  const steps = pieces.map((p, j) => (base[j] ?? 0) + stepsFor(j, n, beat));
-  const photoAt = pieces.map((p, j) => steps[j] % p.photos.length);
-  const mountTo = pieces.map((p, j) => Math.min(p.photos.length - 1, steps[j] + (turning ? 1 : 0)));
+  const photoAt = pieces.map((p, j) => (steps[j] ?? 0) % p.photos.length);
+  const mountTo = pieces.map((p, j) => Math.min(p.photos.length - 1, (steps[j] ?? 0) + (moving ? 1 : 0)));
 
   const labels = [t("home", "heroAcc1"), t("home", "heroAcc2"), t("home", "heroAcc3"), t("home", "heroAcc4")];
   const index0 = slide.layout === "index" && n === 0;
@@ -216,7 +220,12 @@ function StageView({ slide, index, lang, active, mounted, side, turning }: ViewP
     <div className="hd-view hd-v3" data-side={side} data-layout={slide.layout} data-count={n}>
       <div aria-hidden="true" className="hd-pool" />
 
-      <div className="hd-stage hd-settle" data-count={n}>
+      <div
+        className="hd-stage hd-settle"
+        data-count={n}
+        onPointerEnter={(e) => { if (e.pointerType === "mouse") pinned.current = true; }}
+        onPointerLeave={() => { pinned.current = false; }}
+      >
         {slide.layout === "clock"
           ? mounted && <HeroClock lang={lang} run={active && rotateOn} still={reduced} />
           : n > 0 && <span aria-hidden="true" className="hd-floor" />}

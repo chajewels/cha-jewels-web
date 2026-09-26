@@ -51,6 +51,12 @@ const SWIPE_PX = 48;
  * the pause button (`rotateOn`). `aria-live` is polite only while the deck is
  * not rotating on its own, so a screen reader is never talked over.
  *
+ * The HOLD is the deck's only: the slide on screen keeps its own motion (the
+ * trio turning, each piece changing photos) while it is hovered, focused or
+ * touched — `moving` is `rotateOn` alone. Holding that too froze the stage for
+ * anyone looking at it (owner report 2026-09-26: "no slideshow"); the pause
+ * button, reduced motion, a hidden tab and scrolling away still stop it.
+ *
  * MEDIA LOADS WHEN IT IS WANTED. `reach` starts at 0: the film slide's piece
  * photo is the only slide photo in the first paint. A later slide mounts its
  * media PRELOAD_LEAD_MS before the deck rotates onto it, or when the reader
@@ -136,7 +142,7 @@ export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }
               active={i === cur}
               mounted={i <= reach}
               side={i % 2 === 0 ? "left" : "right"}
-              turning={i === cur && rotateOn && !held}
+              moving={i === cur && rotateOn}
             />
           </div>
         ))}

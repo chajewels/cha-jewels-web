@@ -34,8 +34,8 @@ import type { Category, Product, ProductVariant } from "@/lib/types";
  * is skipped; the first photo is never skipped, it falls back to its frame.
  * Nothing is processed here or in the browser.
  *
- * DEMO. `demo` (lib/hero-demo.ts, preview deployments only) gives a piece's
- * first photo the cut-out made for the approved comps when the Hub has none.
+ * DEMO. `demo` (lib/hero-demo.ts, preview deployments only) gives each photo
+ * of a live piece the cut-out made for the demo when the Hub has none.
  *
  * EMPTY CATEGORIES. `HERO_HIDE_EMPTY_CATEGORIES=1` (server-only, read here and
  * nowhere else) hides a category slide whose catalogue read SUCCEEDED and holds
@@ -149,12 +149,14 @@ function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout, de
   // The same photos, in the same order, and the same name the product page shows.
   const name = productName(p, lang);
   const photos: HeroPhoto[] = [];
-  allImages(p).forEach((m, i) => {
-    if (photos.length >= HERO_PHOTOS || typeof m.url !== "string" || !m.url) return;
+  allImages(p).forEach((m0, i) => {
+    if (photos.length >= HERO_PHOTOS || typeof m0.url !== "string" || !m0.url) return;
+    // Demo (preview only): where the Hub has no usable cut-out, the one made
+    // for the demo, with its own QA status — so a held one is skipped below,
+    // exactly as a held Hub cut-out would be.
+    const m = demo && !usableCutout(m0) ? { ...m0, cutout: demoCutout(p.sku, i) ?? m0.cutout } : m0;
     if (i > 0 && m.cutout && HELD.has(m.cutout.status)) return;
-    let cutout = usableCutout(m);
-    if (!cutout && demo && i === 0) cutout = usableCutout({ ...m, cutout: demoCutout(p.sku) });
-    photos.push({ url: m.url, alt: m.alt ?? name, cutout });
+    photos.push({ url: m.url, alt: m.alt ?? name, cutout: usableCutout(m) });
   });
   return {
     slug: p.slug,
