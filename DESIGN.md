@@ -384,6 +384,8 @@ The price card is the most "value-driven luxe" object on the site.
 - (live) Molten-gold film (with 720p mobile encode and poster), vertical scrim, vignette, a gold sweep and headline sheen, category slides behind a horizontal scrim, and a gold-edged curtain between slides.
 - (planned) This is the only place, with banners, where 3D may appear (see the 3D rule).
 - Every text-over-image pairing has a row in `check-contrast.mjs`.
+- (live) Category page banner without a Hub photo: the hero v3 stage, still, with up to three of the category's in-stock pieces (cut-out, or whole photo in a framed well), or the text alone when none is in stock. No brand logo is ever decoration (owner rule 2026-09-26).
+- (live) Collections-menu category thumbnails (desktop panel and drawer): the owner's Hub photo, else one real in-stock piece contained on chalk (cut-out with air around it, or the whole photo), else a gold line icon for the kind of category (ring, watch, wallet). Same 40px hairline tile as the collection thumbnails.
 - **Depends on photography:** a real piece in the first viewport, and art-directed mobile crops.
 
 ### Components that depend on better photography

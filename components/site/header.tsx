@@ -5,7 +5,8 @@ import { getCollections } from "@/lib/queries/products";
 import { hub } from "@/lib/hub-api";
 import { collectionName } from "@/lib/catalog-i18n";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
-import { CATEGORY_PLACEHOLDER } from "@/lib/category-placeholders";
+import { categoryThumbs } from "@/lib/category-thumbs";
+import { CategoryThumb } from "./category-thumb";
 import { NavMenu, NavMenuItem } from "./nav-menu";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { readSession, customerFirstName } from "@/lib/session";
@@ -77,11 +78,15 @@ export async function Header({ lang }: { lang: Lang }) {
     label: collectionName(c, lang),
     thumb: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
   }));
+  // Every category has a thumbnail: the owner's Hub photo, else one real
+  // in-stock piece, else a line icon for its kind (lib/category-thumbs.ts).
+  // Never a bundled photo and never a brand logo (owner rule 2026-09-26).
+  const thumbs = await categoryThumbs(categories, lang);
   const categoryItems = categories.map((c) => ({
     key: c.slug,
     href: `/categories/${c.slug}`,
     label: lang === "ja" ? c.name_ja ?? c.name : c.name,
-    thumb: c.hero_media ?? CATEGORY_PLACEHOLDER[c.slug] ?? null,
+    media: <CategoryThumb slug={c.slug} thumb={thumbs[c.slug] ?? { kind: "icon" }} />,
   }));
 
   // The drawer carries the same destinations without the descriptions.
@@ -153,7 +158,7 @@ export async function Header({ lang }: { lang: Lang }) {
                   </div>
                   <div className="min-w-0">
                     <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{t("navMenu", "categories")}</p>
-                    {categoryItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} thumb={it.thumb} />)}
+                    {categoryItems.map((it) => <NavMenuItem key={it.key} href={it.href} title={it.label} media={it.media} />)}
                   </div>
                 </div>
                 <div className="mt-2 border-t border-hairline pt-2">

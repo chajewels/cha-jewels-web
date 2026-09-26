@@ -9,7 +9,8 @@ import type { Lang } from "@/lib/i18n";
 
 /** `name` is a ReactNode: the header streams the real one in. See header.tsx. */
 export type DrawerAccount = { name: React.ReactNode; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
-export type DrawerItem = { key: string; href: string; label: string };
+/** `media`: an optional 40px thumbnail beside the label (the category rows, components/site/category-thumb.tsx). */
+export type DrawerItem = { key: string; href: string; label: string; media?: React.ReactNode };
 export type DrawerGroup = { key: string; label: string; sections: { heading?: string; items: DrawerItem[] }[] };
 
 /**
@@ -191,7 +192,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
                       <ul>
                         {sec.items.map((it) => (
                           <li key={it.key}>
-                            <Link href={it.href} onClick={close} className="block py-2 pl-1 text-lg text-charcoal/85 hover:text-gold-dark">{it.label}</Link>
+                            <Link href={it.href} onClick={close} className={`py-2 pl-1 text-lg text-charcoal/85 hover:text-gold-dark ${it.media ? "flex items-center gap-3" : "block"}`}>{it.media}{it.label}</Link>
                           </li>
                         ))}
                       </ul>
