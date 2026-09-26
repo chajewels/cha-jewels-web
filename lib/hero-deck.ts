@@ -2,7 +2,7 @@ import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { categoryCta, categoryDescription, categoryName, productName } from "@/lib/catalog-i18n";
 import { allImages, usableCutout } from "@/lib/queries/products";
-import { demoCutout } from "@/lib/hero-demo";
+import { bundledCutout } from "@/lib/hero-cutouts";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Category, Product, ProductVariant } from "@/lib/types";
 
@@ -34,8 +34,9 @@ import type { Category, Product, ProductVariant } from "@/lib/types";
  * is skipped; the first photo is never skipped, it falls back to its frame.
  * Nothing is processed here or in the browser.
  *
- * DEMO. `demo` (lib/hero-demo.ts, preview deployments only) gives each photo
- * of a live piece the cut-out made for the demo when the Hub has none.
+ * BUNDLED CUT-OUTS (interim, production included; lib/hero-cutouts.ts). Where
+ * the Hub sent no cut-out record for a photo, the one bundled with the site for
+ * that exact Hub photo, if any. A Hub cut-out always wins.
  *
  * EMPTY CATEGORIES. `HERO_HIDE_EMPTY_CATEGORIES=1` (server-only, read here and
  * nowhere else) hides a category slide whose catalogue read SUCCEEDED and holds
@@ -145,16 +146,16 @@ export function inStockVariant(p: Pick<Product, "status" | "product_variants">):
   return best;
 }
 
-function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout, demo: boolean): HeroPiece {
+function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout): HeroPiece {
   // The same photos, in the same order, and the same name the product page shows.
   const name = productName(p, lang);
   const photos: HeroPhoto[] = [];
   allImages(p).forEach((m0, i) => {
     if (photos.length >= HERO_PHOTOS || typeof m0.url !== "string" || !m0.url) return;
-    // Demo (preview only): where the Hub has no usable cut-out, the one made
-    // for the demo, with its own QA status — so a held one is skipped below,
-    // exactly as a held Hub cut-out would be.
-    const m = demo && !usableCutout(m0) ? { ...m0, cutout: demoCutout(p.sku, i) ?? m0.cutout } : m0;
+    // No Hub cut-out record at all → the bundled one made from this exact
+    // photo, with its own QA status (a held one is skipped below, exactly as
+    // a held Hub cut-out is). Any Hub record, even held or rejected, stands.
+    const m = m0.cutout == null ? { ...m0, cutout: bundledCutout(m0.url) } : m0;
     if (i > 0 && m.cutout && HELD.has(m.cutout.status)) return;
     photos.push({ url: m.url, alt: m.alt ?? name, cutout: usableCutout(m) });
   });
@@ -168,11 +169,11 @@ function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout, de
 }
 
 /** The available pieces of one category, in the Hub's order. */
-function available(products: Product[], lang: Lang, layout: HeroLayout, demo: boolean): HeroPiece[] {
+function available(products: Product[], lang: Lang, layout: HeroLayout): HeroPiece[] {
   const out: HeroPiece[] = [];
   for (const p of products) {
     const v = inStockVariant(p);
-    if (v) out.push(piece(p, v, lang, layout, demo));
+    if (v) out.push(piece(p, v, lang, layout));
   }
   return out;
 }
@@ -210,8 +211,7 @@ export function hideEmptyCategories(): boolean {
   return v === "1" || v === "true";
 }
 
-export async function buildHeroDeck(lang: Lang, categories: Category[], opts: { demo?: boolean } = {}): Promise<HeroSlide[]> {
-  const demo = !!opts.demo;
+export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise<HeroSlide[]> {
   const t = tr(lang);
   const sorted = [...categories].sort((a, b) => a.sort_order - b.sort_order);
   const layouts = sorted.map((c) => LAYOUT[c.slug] ?? "stage");
@@ -220,7 +220,7 @@ export async function buildHeroDeck(lang: Lang, categories: Category[], opts: { 
   const reads = await Promise.all(
     sorted.map((c) => within(hub.category(c.slug), SECONDARY_TIMEOUT_MS).then((r) => r?.products ?? [], () => null)),
   );
-  const pools = reads.map((r, i) => (r ? available(r, lang, layouts[i], demo) : null));
+  const pools = reads.map((r, i) => (r ? available(r, lang, layouts[i]) : null));
 
   const hide = hideEmptyCategories();
   const slides: HeroSlide[] = [{ kind: "film", key: "film", name: t("home", "heroFilmName"), short: t("home", "heroFilmName") }];
