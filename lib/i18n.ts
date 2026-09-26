@@ -309,8 +309,6 @@ export const dict = {
     // Hero v3 slide 6 (owner approval 2026-09-26): each Index row's stock, or
     // 「入荷待ち」 / "Coming soon" when that type has none.
     heroAccCount: { ja: "{n}点", en: "{n} in stock" }, heroComingSoon: { ja: "入荷待ち", en: "Coming soon" },
-    // A hero piece's link, read out whole: the Hub name and the Hub price.
-    heroPieceLabel: { ja: "{name}、{price}", en: "{name}, {price}" },
     heroPause: { ja: "スライドと映像を一時停止", en: "Pause slides and film" }, heroPlay: { ja: "スライドと映像を再生", en: "Play slides and film" },
     heroSlideLabel: { ja: "{total}枚中{n}枚目：{name}", en: "{n} of {total}: {name}" },
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },
