@@ -9,8 +9,6 @@ import { graphemes } from "@/lib/story-timing";
 import type { Lang } from "@/lib/i18n";
 
 const ICONS = [Sparkles, Scale, Hammer, ShieldCheck];
-/** Set when the burst has played in this tab: once per visit. */
-const PLAYED_KEY = "cj-values-burst";
 
 type Tile = "plain" | "armed" | "play";
 type Letter = { ch: string; d: number };
@@ -31,15 +29,20 @@ type Piece = { text: string; units: { space: boolean; text: string; letters: Let
  * each one starts when the reader reaches it.
  *
  * THE SERVER RENDERS THE TEXT, PLAIN AND VISIBLE — for search, screen readers
- * and a slow phone alike. After hydration, only a tile still below the fold is
+ * and a slow phone alike. After hydration, only a tile off screen is
  * "armed": its text becomes an `sr-only` copy (the whole sentence, read once)
  * plus an `aria-hidden` row of letters that are transparent until they play.
  * Nobody sees a tile go blank, because it is off screen when it does. A tile
  * already on screen stays as it is. When a tile's last letter has settled, it
  * goes back to plain text: no letter spans left behind.
  *
- * ONCE PER VISIT (sessionStorage), marked when the first tile plays. Reduced
- * motion: never armed — the text is simply there.
+ * EVERY TIME THE SECTION COMES INTO VIEW (owner decision 2026-09-27; it was
+ * once per visit). When the whole section has left the viewport it is reset —
+ * pending letters cancelled, all four tiles armed — so the next entry, from
+ * either direction, replays 1 → 2 → 3 → 4 from the start. Leaving mid-sequence
+ * stops it cleanly: the reset happens off screen, so no half-finished letters
+ * are ever seen. Reduced motion: never armed — the text is simply there, and
+ * nothing replays.
  *
  * LINE BREAKS DO NOT MOVE. English splits into words (each an unbreakable
  * inline-block of letters, real spaces between them) and Japanese into
@@ -76,38 +79,58 @@ export function ValuesTiles({ values, lang }: { values: { h: string; p: string }
   useEffect(() => {
     if (reduced === null) return;
     if (reduced) { setTiles(values.map(() => "plain")); return; }
-    let played = false;
-    try { played = sessionStorage.getItem(PLAYED_KEY) === "1"; } catch { /* storage blocked: play */ }
-    if (played) return;
 
     const els = refs.current;
-    // Below the fold now: armed. On screen now: left alone, and counted as done.
-    const armed = els.map((el) => !!el && el.getBoundingClientRect().top >= window.innerHeight);
-    if (!armed.some(Boolean)) return;
-    setTiles(armed.map((a) => (a ? "armed" : "plain")));
-
+    const n = values.length;
+    /** Each tile at least VALUE_BURST.inView on screen, now. */
     const seen = values.map(() => false);
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let next = armed.indexOf(true);
-    let readyAt = 0; // performance.now() at which the next tile may start
+    /** Each tile at least partly on screen, now: all false = the section has left. */
+    const near = values.map(() => false);
+    let timers: ReturnType<typeof setTimeout>[] = [];
+    let running = false;   // a sequence may start or continue
+    let pristine = false;  // every tile armed and none played yet
+    let next = 0;          // the tile whose turn it is
+    let readyAt = 0;       // performance.now() at which `next` may start
+    const clear = () => { timers.forEach(clearTimeout); timers = []; };
+
+    // THE RESET. Only ever while the whole section is off screen, so nobody
+    // sees a tile go blank: every pending letter, turn and settle is cancelled
+    // and all four tiles go back to armed, ready to replay from tile 1.
+    const arm = () => {
+      clear();
+      running = true; pristine = true; next = 0; readyAt = 0;
+      setTiles(values.map(() => "armed"));
+    };
 
     const run = () => {
-      if (next < 0 || next >= values.length || !seen[next]) return;
+      if (!running || next >= n || !seen[next]) return;
       const wait = readyAt - performance.now();
       if (wait > 0) { timers.push(setTimeout(run, wait)); return; }
       const i = next;
-      io.unobserve(els[i] as Element);
-      try { sessionStorage.setItem(PLAYED_KEY, "1"); } catch { /* once per visit is best effort */ }
+      pristine = false;
       setTiles((t) => t.map((s, j) => (j === i ? "play" : s)));
       const total = plans[i].total * 1000;
       readyAt = performance.now() + total - VALUE_BURST.overlap * 1000;
+      // Settled: back to plain text, no letter spans left behind.
       timers.push(setTimeout(() => setTiles((t) => t.map((s, j) => (j === i ? "plain" : s))), total));
-      next = armed.indexOf(true, i + 1);
+      next = i + 1;
+      if (next >= n) running = false;
       run();
     };
 
-    // `seen` is "on screen NOW", not "was seen once": a tile whose turn comes
-    // after the reader has scrolled past it waits, armed, until they are back.
+    // FIRST LOAD, as approved: a tile already on screen keeps its text and
+    // counts as played; the ones still below the fold are armed and play in
+    // order when reached.
+    const below = els.map((el) => !!el && el.getBoundingClientRect().top >= window.innerHeight);
+    if (below.every(Boolean)) arm();
+    else if (below.some(Boolean)) {
+      setTiles(below.map((a) => (a ? "armed" : "plain")));
+      running = true;
+      next = below.indexOf(true);
+    }
+
+    // `seen` is "on screen NOW": a tile whose turn comes after the reader has
+    // scrolled past it waits, armed, until they are back.
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
         const i = els.indexOf(e.target as HTMLDivElement);
@@ -115,8 +138,18 @@ export function ValuesTiles({ values, lang }: { values: { h: string; p: string }
       }
       run();
     }, { threshold: VALUE_BURST.inView });
-    els.forEach((el, i) => { if (el && armed[i]) io.observe(el); });
-    return () => { io.disconnect(); timers.forEach(clearTimeout); };
+    // EVERY ENTRY REPLAYS (owner decision 2026-09-27; it was once per visit).
+    // When the last part of the section leaves the viewport, it is reset, so
+    // the next entry — from below or from above — plays 1 → 2 → 3 → 4 again.
+    const vis = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const i = els.indexOf(e.target as HTMLDivElement);
+        if (i >= 0) near[i] = e.isIntersecting;
+      }
+      if (!near.some(Boolean) && !pristine) arm();
+    }, { threshold: 0 });
+    els.forEach((el) => { if (el) { io.observe(el); vis.observe(el); } });
+    return () => { io.disconnect(); vis.disconnect(); clear(); };
     // Runs once the setting is known; the plan is fixed for the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced]);

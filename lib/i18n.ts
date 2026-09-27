@@ -100,7 +100,7 @@ export function resolveLang(
 
 export const dict = {
   newsletter: { placeholder: { ja: "メールアドレス", en: "Email address" }, submit: { ja: "登録", en: "Sign up" }, success: { ja: "ご登録ありがとうございます。", en: "Thank you — you're on the list." }, already: { ja: "すでにご登録いただいています。", en: "You're already subscribed." }, invalid: { ja: "メールアドレスをご確認ください。", en: "Please check the email address." }, rateLimited: { ja: "しばらく時間をおいてからお試しください。", en: "Too many attempts — please try again shortly." }, error: { ja: "登録できませんでした。時間をおいてお試しください。", en: "We couldn't sign you up. Please try again later." }, unsubscribed: { ja: "配信を停止しました。", en: "You're unsubscribed." } },
-  nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, menu: { ja: "メニュー", en: "Menu" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" } },
+  nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, menu: { ja: "メニュー", en: "Menu" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" }, tabBar: { ja: "モバイルナビゲーション", en: "Mobile navigation" } },
   /**
    * Header menu copy. `tr` reads dict[section][key] as a {ja,en} leaf, so these
    * are flat keys in their own section rather than a nested nav.company object,
@@ -137,6 +137,25 @@ export const dict = {
     contactDesc: { ja: "ご連絡先と所在地。", en: "How to reach us, and where we are." },
     affiliations: { ja: "所属団体", en: "Affiliations" },
     affiliationsDesc: { ja: "東京の経済団体への所属。", en: "Our memberships in Tokyo's business community." },
+    // The site frame (build step 1, comps in page-comps/site-frame). Menu
+    // chrome only; the category one-liners are content (lib/content/frame.ts).
+    count: { ja: "{n}点", en: "{n}" },
+    countLabel: { ja: "在庫{n}点", en: "{n} available" },
+    since: { ja: "2021年創業・東京", en: "Since 2021 · Tokyo" },
+    // The menus' customer-story panel links to the home page's section.
+    moreStories: { ja: "お客様の声をもっと見る", en: "More customer stories" },
+  },
+  /** The trust ledger at the foot of every page (components/site/footer.tsx). */
+  trust: {
+    founded: { ja: "創業", en: "Founded" },
+    foundedValue: { ja: "2021年・東京", en: "2021 · Tokyo" },
+    incorporated: { ja: "2024年法人化", en: "Incorporated 2024" },
+    auth: { ja: "真贋・刻印確認", en: "Authentication" },
+    authValue: { ja: "日本で鑑定済み", en: "Authenticated in Japan" },
+    authNote: { ja: "プレラブド品は入荷時に確認", en: "Checked at intake, every preloved piece" },
+    permit: { ja: "古物商許可", en: "Secondhand dealer permit" },
+    invoice: { ja: "適格請求書発行事業者", en: "Qualified invoice issuer" },
+    company: { ja: "会社情報", en: "Company" },
   },
   /**
    * /why-cha-jewels. The ENGLISH IS THE OWNER'S, VERBATIM — do not reword it,
@@ -325,7 +344,9 @@ export const dict = {
     heroDemoTag: { ja: "プレビュー専用デモ：承認カンプの切り抜き画像を表示中", en: "Preview-only demo: showing the approved comps' cut-outs" },
     heroPause: { ja: "スライドと映像を一時停止", en: "Pause slides and film" }, heroPlay: { ja: "スライドと映像を再生", en: "Play slides and film" },
     heroSlideLabel: { ja: "{total}枚中{n}枚目：{name}", en: "{n} of {total}: {name}" },
-    tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "作品一覧", en: "Pieces" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "特典", en: "Rewards" }, tabAccount: { ja: "マイページ", en: "My page" },
+    // The tab bar says what the nav says (site frame; audit: label drift).
+    // tabLayaway is rendered only behind layawayOffered (English only).
+    tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "コレクション", en: "Collections" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "ロイヤルティ", en: "Loyalty" }, tabAccount: { ja: "マイアカウント", en: "Account" },
   },
   product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, openPhoto: { ja: "写真 {n} を全画面で見る", en: "View photo {n} full screen" }, viewer: { ja: "全画面の商品写真", en: "Full-screen photos" }, closeViewer: { ja: "全画面表示を閉じる", en: "Close full screen" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, sold: { ja: "売約済み", en: "Sold" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout." } },
   calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金", en: "Down payment" }, dpPct: { ja: "予約金（{pct}）", en: "Down payment ({pct})" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "目安です。正確なお支払日と金額は、ご予約確定後にアカウントに表示されます。", en: "Estimate. Your exact payment dates and amounts will appear in your account once your reservation is confirmed." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" } },
@@ -350,6 +371,9 @@ export const dict = {
     noneShort: { ja: "該当する商品はありません。", en: "No pieces match." },
     browseAll: { ja: "コレクションを見る", en: "Browse collections" },
     failed: { ja: "検索を利用できません。もう一度お試しください。", en: "Search is unavailable — try again." },
+    pieces: { ja: "作品", en: "Pieces" },
+    collections: { ja: "コレクション", en: "Collections" },
+    hint: { ja: "↑↓で選択、Enterで開く", en: "↑↓ to move, Enter to open" },
   },
   categories: {
     eyebrow: { ja: "カテゴリー", en: "Category" },

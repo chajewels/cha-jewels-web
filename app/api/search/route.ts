@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { asLang, DEFAULT_LANG } from "@/lib/i18n";
 import { normalize, search, toSuggestion } from "@/lib/search";
+import { getCollections } from "@/lib/queries/products";
+import { collectionName } from "@/lib/catalog-i18n";
 
 /**
  * Suggestions for the header search box (components/site/search-box.tsx).
@@ -24,6 +26,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "q_required" }, { status: 400, headers });
   }
 
-  const { products, total } = await search(q, lang);
-  return NextResponse.json({ products: products.map((p) => toSuggestion(p, lang)), total }, { headers });
+  // Collections whose name, in either language, contains what was typed: the
+  // panel offers them as chips beside the pieces (site frame). A Hub that
+  // cannot answer costs the chips, never the suggestions.
+  const needle = normalize(q);
+  const [{ products, total }, collections] = await Promise.all([search(q, lang), getCollections().catch(() => [])]);
+  const matched = collections
+    .filter((c) => [c.name, c.name_en, c.name_ja, c.slug].some((n) => typeof n === "string" && normalize(n).includes(needle)))
+    .slice(0, 4)
+    .map((c) => ({ slug: c.slug, name: collectionName(c, lang) }));
+  return NextResponse.json({ products: products.map((p) => toSuggestion(p, lang)), total, collections: matched }, { headers });
 }

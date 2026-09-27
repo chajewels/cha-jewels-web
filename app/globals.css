@@ -12,7 +12,17 @@
   body { @apply bg-chalk text-charcoal-deep font-sans antialiased; }
   h1, h2, h3 { @apply font-display font-normal leading-[1.02] tracking-[-0.01em]; }
   :lang(ja) h1, :lang(ja) h2, :lang(ja) h3 { @apply font-jp font-medium tracking-[0.01em]; }
-  *:focus-visible { @apply outline outline-2 outline-gold-pale outline-offset-[3px]; }
+  /* THE FOCUS RING (audit P1; site frame 2026-09-27). The ring was gold-pale
+     everywhere, 1.37:1 on the chalk page: on most of the site it could not be
+     seen. Now it takes the gold of the surface it sits on (DESIGN.md, the
+     Gold Has Two Hands rule): gold-dark on light (4.59 on chalk, 5.01 on
+     white), gold-pale inside a dark surface (10.62 on charcoal-deep), and
+     gold-dark again inside a light card set on a dark band. A dark element on
+     a light page keeps the light ring: the ring is drawn outside it, on the
+     page. Rows in scripts/check-contrast.mjs. */
+  *:focus-visible { @apply outline outline-2 outline-gold-dark outline-offset-[3px]; }
+  :is(.band-dark, .bg-charcoal-deep, .bg-charcoal, .bg-charcoal-mid, [data-surface="dark"]) :focus-visible { outline-color: theme('colors.gold.pale'); }
+  :is(.band-dark, .bg-charcoal-deep, .bg-charcoal, .bg-charcoal-mid, [data-surface="dark"]) :is(.bg-white, .bg-chalk, [data-surface="light"]) :focus-visible { outline-color: theme('colors.gold.dark'); }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     /* `scroll-behavior: smooth` on html above is an ANIMATION too, and it is
@@ -158,10 +168,10 @@
      home tab bar (z-40) and the photo viewer (z-100), so none of them is ever
      covered by it.
 
-     THE TAB BAR. Only the home page has one (components/home/mobile-tab-bar,
-     64px plus the bottom inset, below lg). While it is in the document the
-     button sits 12px above it. `:has` rather than a prop, because the button
-     lives in the root layout and the bar in one page.
+     THE TAB BAR. Every page has one below lg (components/site/mobile-tab-bar,
+     64px plus the bottom inset; site frame 2026-09-27). While it is in the
+     document the button sits 12px above it. `:has` rather than a prop, so a
+     page that ever drops the bar needs no change here.
 
      THE FOOTER. The last line of the footer sits at the bottom-right of the
      last screen of every page — exactly where the button is — so the footer
@@ -169,27 +179,34 @@
      gap, plus the tab bar where there is one). Everything above scrolls clear
      of the button on its own.
 
-     THE EDGE. Orange on chalk is 1.81:1, under the 3:1 a control boundary
-     needs, so the charcoal-deep border is what carries the shape on light
-     pages; over the dark footer the orange fill itself is the edge (8.06).
+     THE LOOK (owner decision D1-1, 2026-09-27: the recommended option).
+     Charcoal-deep with a 1px gold edge and a gold-pale glyph, not orange: each
+     view keeps exactly one orange action, and that is the page's own (Add to
+     cart, Send). On chalk the charcoal fill is the edge (16:1); over the dark
+     footer and the hero the gold edge is (5.9:1 on charcoal-deep).
+
+     ABOVE EVERYTHING BUT A DIALOG. z-40, the header's and the tab bar's
+     layer, and later in the document than both, so no page chrome covers it.
+     The drawer and the phone search sheet are dialogs (z-50) and carry their
+     own Messenger action.
 
      THE FOCUS RING is two rings, because the button floats over chalk and
-     over the charcoal footer and one colour cannot pass on both: charcoal-deep
-     outside (on chalk) and chalk inside (on charcoal-deep). The transparent
-     outline is what forced-colors mode turns into a visible ring when it
-     drops the box-shadow. Rows in scripts/check-contrast.mjs.
+     over the dark footer and hero, and one colour cannot pass on both:
+     gold-pale inside (on the dark surfaces) and gold-dark outside (on chalk).
+     The transparent outline is what forced-colors mode turns into a visible
+     ring when it drops the box-shadow. Rows in scripts/check-contrast.mjs.
      --------------------------------------------------------------------- */
   .messenger-fab {
     position: fixed;
-    z-index: 30;
+    z-index: 40;
     right: max(16px, env(safe-area-inset-right));
     bottom: calc(16px + env(safe-area-inset-bottom));
-    box-shadow: 0 1px 2px rgb(35 29 18 / 10%), 0 6px 16px rgb(35 29 18 / 14%);
+    box-shadow: 0 1px 2px rgb(35 29 18 / 14%), 0 8px 22px rgb(35 29 18 / 22%);
   }
   .messenger-fab:focus-visible {
     outline: 2px solid transparent;
     outline-offset: 2px;
-    box-shadow: 0 0 0 2px #F5F5F2, 0 0 0 4px #222222;
+    box-shadow: 0 0 0 2px #E8D28A, 0 0 0 4px #8A6B12;
   }
   body:has(.messenger-fab) > footer {
     padding-bottom: calc(56px + 48px + 16px + env(safe-area-inset-bottom));
@@ -486,12 +503,21 @@
   .story-q:lang(ja)[data-size="s"] { line-height: 1.85; }
   .story-q-type { position: absolute; inset: 0; pointer-events: none; }
   .story-q-rest { color: transparent; }
-  .story:not([data-done]) .story-q-full { color: transparent; }
-  .story[data-done] .story-q-type { visibility: hidden; }
+  /* Keyed on the quote itself (`data-typing`, components/home/story-quote.tsx)
+     so the home section and the mega-menu stories type through one rule. */
+  .story-q[data-typing] .story-q-full { color: transparent; }
+  .story-q:not([data-typing]) .story-q-type { visibility: hidden; }
   /* The caret is an EMPTY INLINE span, not an inline-block: an inline-block is
      a line-break opportunity, and a word at the end of a line would split at
      the caret. The negative margin cancels the border's width. */
   .story-caret { border-left: 2px solid theme('colors.gold.DEFAULT'); margin-right: -2px; }
+
+  /* The mega-menu story panel (components/site/menu-story.tsx): the same
+     typed quote, set smaller and in chalk on the dark panel. */
+  .story-q.menu-story-q { color: theme('colors.chalk'); font-size: 19px; line-height: 1.5; }
+  .story-q.menu-story-q[data-size="m"] { font-size: 17px; line-height: 1.55; }
+  .story-q.menu-story-q[data-size="s"] { font-size: 15px; line-height: 1.6; }
+  .story-q.menu-story-q:lang(ja) { line-height: 1.8; }
 
   .story-who { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid theme('colors.hairline'); padding-top: 14px; }
   .story-name { font-size: 14px; font-weight: 600; color: theme('colors.charcoal.deep'); }

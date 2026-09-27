@@ -8,10 +8,11 @@ import { CartBump } from "@/components/fx/cart-bump";
  * straight from the cookie, so it is correct on first paint with no client
  * fetch and no flash of an empty badge.
  *
- * The word is hidden below `sm`: the header already carries a logo, a language
- * switcher and the menu trigger at 375px, and a wrapping two-character label
- * looked broken. The bag glyph plus the count reads fine on its own, and the
- * aria-label still says "Cart".
+ * Site frame (2026-09-27): an icon + label tool like Account beside it, no
+ * box. The count is a charcoal-deep disc with a gold-pale numeral (10.62:1),
+ * not orange: a count is a status, not a buy action (the Orange Means Buy
+ * rule). The word shows from `sm`; below it the bag and the count stand alone
+ * and the accessible name still says "Cart (n)". 44px tap target.
  */
 export async function CartButton({ lang }: { lang: Lang }) {
   const count = await cartCount();
@@ -22,21 +23,23 @@ export async function CartButton({ lang }: { lang: Lang }) {
     <Link
       href="/cart"
       aria-label={label}
-      className="inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-charcoal/30 px-2 text-sm text-charcoal hover:border-gold-dark hover:text-gold-dark sm:gap-2 sm:px-3"
+      className="group inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-sm px-1.5 text-sm font-medium text-charcoal-deep hover:text-gold-dark sm:px-2"
     >
       {/* Bumps once when a piece is added (components/fx/cart-bump.tsx). */}
-      <CartBump>
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8Z" />
-          <path d="M9 8V6a3 3 0 1 1 6 0v2" />
-        </svg>
-      </CartBump>
+      <span className="relative inline-flex">
+        <CartBump>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8Z" />
+            <path d="M9 8V6a3 3 0 1 1 6 0v2" />
+          </svg>
+        </CartBump>
+        {count > 0 && (
+          <span aria-hidden="true" className="absolute -right-2 -top-2 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-charcoal-deep px-1 text-[11px] font-semibold leading-none text-gold-pale [font-variant-numeric:lining-nums_tabular-nums]">
+            {count}
+          </span>
+        )}
+      </span>
       <span className="hidden sm:inline">{t("nav", "cart")}</span>
-      {count > 0 && (
-        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-orange px-1 text-[11px] font-medium text-charcoal-deep">
-          {count}
-        </span>
-      )}
     </Link>
   );
 }

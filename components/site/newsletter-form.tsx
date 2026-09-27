@@ -42,7 +42,9 @@ export function NewsletterForm({ lang, tone = "light" }: { lang: Lang; tone?: "l
   const field = dark
     // The footer's own field styling, as it was before this form was removed:
     // chalk text on the band (14.57), a chalk/40 edge (3.50), gold-pale ring.
-    ? "min-h-10 w-full min-w-0 flex-1 basis-full rounded-sm border border-chalk/40 bg-transparent px-3 text-sm text-chalk placeholder:text-chalk/70 focus:outline-none focus:ring-2 focus:ring-gold-pale disabled:cursor-not-allowed disabled:opacity-60"
+    // Site frame (2026-09-27): the field and Sign up are one inline control,
+    // 48px, chalk/40 edges; the ring is the dark surface's gold-pale.
+    ? "min-h-12 w-full min-w-0 flex-1 rounded-l-sm rounded-r-none border border-chalk/40 bg-transparent px-3 text-sm text-chalk placeholder:text-chalk/70 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-pale disabled:cursor-not-allowed disabled:opacity-60"
     : `min-h-10 min-w-0 flex-1 basis-[12rem] rounded-sm px-3 text-sm ${inputLight} disabled:cursor-not-allowed disabled:opacity-60`;
 
   const message = state === "success" ? c.success[lang]
@@ -68,7 +70,7 @@ export function NewsletterForm({ lang, tone = "light" }: { lang: Lang; tone?: "l
           the placeholder is readable at every width rather than at wide ones.
           `basis-full` on the input is what forces the break; the button then
           sits under it at its natural width. */}
-      <div className="flex flex-wrap gap-2">
+      <div className={dark ? "flex" : "flex flex-wrap gap-2"}>
         <input
           id="newsletter-email"
           name="email"
@@ -82,7 +84,12 @@ export function NewsletterForm({ lang, tone = "light" }: { lang: Lang; tone?: "l
         <button
           type="submit"
           disabled={pending}
-          className="min-h-10 shrink-0 rounded-sm bg-orange px-4 text-sm font-medium text-charcoal-deep hover:bg-orange-hover disabled:cursor-not-allowed disabled:opacity-60"
+          // NOT ORANGE ON THE FOOTER (owner decision D1-2, 2026-09-27, the
+          // recommended option): signing up is not a buy or contact action.
+          // A chalk-edged button joined to the field, gold-pale label (10.62).
+          className={dark
+            ? "min-h-12 shrink-0 rounded-r-sm border border-l-0 border-chalk/40 px-4 text-sm font-medium text-gold-pale hover:bg-charcoal hover:text-chalk disabled:cursor-not-allowed disabled:opacity-60"
+            : "min-h-10 shrink-0 rounded-sm bg-orange px-4 text-sm font-medium text-charcoal-deep hover:bg-orange-hover disabled:cursor-not-allowed disabled:opacity-60"}
         >
           {c.submit[lang]}
         </button>
