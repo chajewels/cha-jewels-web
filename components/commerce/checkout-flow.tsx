@@ -16,6 +16,7 @@ import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } 
 import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 import { quoteIsReservation } from "@/lib/reservation";
+import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-step";
 
 /**
  * "sign" is not a numbered step and is not in the stepper.
@@ -26,7 +27,7 @@ import { quoteIsReservation } from "@/lib/reservation";
  * cash flow shares, or renumber Review and Payment — both worse than an
  * unnumbered interstitial that says plainly what it wants.
  */
-type Step = 1 | "sign" | 2 | 3;
+type Step = CheckoutStep;
 
 /** The signing page. Public — the customer navigates to it. */
 const AGREEMENT_SIGN_BASE = "https://agreement.chajewelsjp.com/";
@@ -91,14 +92,16 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   const router = useRouter();
   const [pending, start] = useTransition();
 
-  // A rehydrated LAYAWAY quote lands on the signing step — always, signed or
-  // not (owner decision 2026-09-19): the customer has just come back from the
-  // agreement, and this is the page whose "I have signed" carries them on. A
-  // rehydrated full-payment quote has nothing to sign and lands on Review.
-  // Everyone else starts at the beginning.
-  const [step, setStep] = useState<Step>(
-    initialQuote ? (initialQuote.mode === "layaway" ? "sign" : 2) : 1,
-  );
+  // LAYAWAY IS ENGLISH-ONLY (owner decision 2026-09-15) — one rule, in
+  // lib/layaway-availability.
+  const layawayOk = layawayOffered(lang);
+  // Where a ?quote= return opens (lib/checkout-initial-step): a layaway quote on
+  // the signing step, a full-payment quote on Review, nothing on Step 1 — and a
+  // layaway quote brought back to the Japanese site is dropped with its
+  // signature, so it opens like a fresh Japanese checkout. Everything below
+  // seeds from `initial`, never from the raw props.
+  const initial = initialCheckoutState(initialQuote, initialAgreement, layawayOk);
+  const [step, setStep] = useState<Step>(initial.step);
   const [addresses, setAddresses] = useState<HubAddress[]>(initialAddresses);
   const [addressId, setAddressId] = useState<string>(
     initialAddresses.find((a) => a.is_default)?.id ?? initialAddresses[0]?.id ?? "",
@@ -113,30 +116,28 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // How this order is paid, and in what. Both are fixed the moment the quote is
   // taken: the Hub writes the order or plan in the settlement currency, and it
   // does not change currency afterwards.
-  // LAYAWAY IS ENGLISH-ONLY (owner decision 2026-09-15) — one rule, in
-  // lib/layaway-availability. `lang` is a prop refreshed by the server when the
-  // toggle is used, but `mode` is client state that router.refresh() does NOT
-  // reset: a shopper who picks layaway in English and then switches to Japanese
-  // would otherwise still be in layaway mode with the toggle gone. Coerce back
-  // to full when it is not offered, and the server refuses as the backstop.
-  const layawayOk = layawayOffered(lang);
+  // `lang` is a prop refreshed by the server when the toggle is used, but
+  // `mode` is client state that router.refresh() does NOT reset: a shopper who
+  // picks layaway in English and then switches to Japanese would otherwise
+  // still be in layaway mode with the toggle gone. Coerce back to full when it
+  // is not offered, and the server refuses as the backstop.
   // A rehydrated quote fixes the mode too: the quote was taken in it, and the
   // step above was chosen from it.
-  const [mode, setMode] = useState<CheckoutMode>(layawayOk ? (initialQuote?.mode ?? initialMode) : "full");
+  const [mode, setMode] = useState<CheckoutMode>(layawayOk ? (initial.quote?.mode ?? initialMode) : "full");
   useEffect(() => { if (!layawayOk && mode === "layaway") { setMode("full"); setQuote(null); } }, [layawayOk, mode]);
   // Seeded from the rehydrated quote when there is one, so that if it later
   // expires the re-quote asks for the same plan the customer already signed for
   // rather than silently reverting to the defaults.
-  const [settlement, setSettlement] = useState<SettlementCurrency>(initialQuote?.settlement_currency ?? "JPY");
-  const [term, setTerm] = useState(initialQuote?.layaway?.term_months ?? 6);
-  const [quote, setQuote] = useState<HubQuote | null>(initialQuote);
+  const [settlement, setSettlement] = useState<SettlementCurrency>(initial.quote?.settlement_currency ?? "JPY");
+  const [term, setTerm] = useState(initial.quote?.layaway?.term_months ?? 6);
+  const [quote, setQuote] = useState<HubQuote | null>(initial.quote);
   /**
    * What the signing record says, as the SERVER read it. Never set from a
    * customer's assertion — pressing "I have signed" re-asks the server, it does
    * not set this directly. And this is not the gate: payLayawayAction checks
    * again before the plan exists, because anything a browser knows is a claim.
    */
-  const [agreement, setAgreement] = useState<AgreementState>(initialAgreement);
+  const [agreement, setAgreement] = useState<AgreementState>(initial.agreement);
   const [error, setError] = useState<string | null>(null);
   // The Hub's request id for the failure on screen. Shown as "Ref: …" so the
   // next "could not complete" is one log lookup away instead of a mystery.
@@ -296,6 +297,14 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   function placeOrder() {
     if (!quote) return;
     clearError();
+    // Defence in depth for the Japanese site: never send a layaway quote when
+    // layaway is not offered in this language, whatever state got us here —
+    // with `mode` coerced to full it would otherwise go to payAction, which
+    // does not look at the quote's mode. The generic failure, no new wording.
+    if (!layawayOk && (mode === "layaway" || quote.mode === "layaway")) {
+      showError("failed");
+      return;
+    }
     start(async () => {
       // The Hub reads the mode off the quote, so the two answers differ: an
       // order id for a full payment, a plan id for layaway. Each lands on its

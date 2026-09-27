@@ -14,6 +14,7 @@
     "check:analytics": "node scripts/check-analytics.mjs",
     "check:money": "node scripts/check-money.mjs",
     "check:layaway-ja": "node --experimental-strip-types --no-warnings scripts/check-layaway-ja.mjs",
+    "test:unit": "node --experimental-strip-types --no-warnings --test \"tests/**/*.test.mjs\"",
     "e2e:signup": "playwright test --config e2e/playwright.config.ts",
     "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > lib/supabase/database.types.ts"
   },
