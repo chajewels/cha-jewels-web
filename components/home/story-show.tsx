@@ -5,6 +5,7 @@ import { Star } from "lucide-react";
 import { STAGGER, STORY } from "@/lib/motion";
 import { graphemes, storyTiming } from "@/lib/story-timing";
 import { useFinePointer, useReduced } from "@/components/fx/media";
+import { StoryQuote, typedCount } from "@/components/home/story-quote";
 
 /** One story as the server prepared it (lib/stories.ts, the rules that build it). `quote` is the Hub's text, untouched. */
 export type { Story } from "@/lib/stories";
@@ -19,7 +20,8 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * built as comped (reference/section-comps/NOTES.md). Timings: STORY in
  * lib/motion.ts; the arithmetic: lib/story-timing.ts.
  *
- * TWO LAYERS, ONE BOX. Each quote is in the page as whole, real text from the
+ * TWO LAYERS, ONE BOX (components/home/story-quote.tsx, shared with the
+ * header's mega-menu stories). Each quote is in the page as whole, real text from the
  * first paint (`.story-q-full`): screen readers, search, find-in-page and copy
  * get every word at once. While a story types, that text is transparent and an
  * `aria-hidden` layer on top shows the typed part, the caret, and the untyped
@@ -172,7 +174,7 @@ export function StoryShow({ stories, labels, head }: { stories: Story[]; labels:
       last = now;
       if (e.phase === "type") {
         e.t += dt;
-        const n = e.t <= 0 ? 0 : Math.min(m.g.length, Math.floor((e.t / 1000 / m.type) * m.g.length));
+        const n = typedCount(e.t, m.g.length, m.type);
         if (n !== e.shown) { e.shown = n; paint(e.cur, n); }
         progress(Math.max(0, e.t / 1000) / (m.type + m.hold));
         if (n >= m.g.length) complete();
@@ -272,14 +274,12 @@ export function StoryShow({ stories, labels, head }: { stories: Story[]; labels:
                 ) : <span />}
                 {s.item && <span className="story-chip"><span aria-hidden="true" className="story-chip-dot" /><span className="truncate">{s.item}</span></span>}
               </div>
-              <blockquote className="story-q" data-size={s.size} lang={s.qLang}>
-                <p className="story-q-full">{s.quote}</p>
-                <p className="story-q-type" aria-hidden="true">
-                  <span ref={(el) => { typedRefs.current[i] = el; }} />
-                  <span className="story-caret" />
-                  <span className="story-q-rest" ref={(el) => { restRefs.current[i] = el; }} />
-                </p>
-              </blockquote>
+              <StoryQuote
+                story={s}
+                typing={!isDone}
+                typedRef={(el) => { typedRefs.current[i] = el; }}
+                restRef={(el) => { restRefs.current[i] = el; }}
+              />
               <div className="story-who">
                 <p className="story-name">{s.name}</p>
                 {(s.location || s.date) && (

@@ -503,12 +503,21 @@
   .story-q:lang(ja)[data-size="s"] { line-height: 1.85; }
   .story-q-type { position: absolute; inset: 0; pointer-events: none; }
   .story-q-rest { color: transparent; }
-  .story:not([data-done]) .story-q-full { color: transparent; }
-  .story[data-done] .story-q-type { visibility: hidden; }
+  /* Keyed on the quote itself (`data-typing`, components/home/story-quote.tsx)
+     so the home section and the mega-menu stories type through one rule. */
+  .story-q[data-typing] .story-q-full { color: transparent; }
+  .story-q:not([data-typing]) .story-q-type { visibility: hidden; }
   /* The caret is an EMPTY INLINE span, not an inline-block: an inline-block is
      a line-break opportunity, and a word at the end of a line would split at
      the caret. The negative margin cancels the border's width. */
   .story-caret { border-left: 2px solid theme('colors.gold.DEFAULT'); margin-right: -2px; }
+
+  /* The mega-menu story panel (components/site/menu-story.tsx): the same
+     typed quote, set smaller and in chalk on the dark panel. */
+  .story-q.menu-story-q { color: theme('colors.chalk'); font-size: 19px; line-height: 1.5; }
+  .story-q.menu-story-q[data-size="m"] { font-size: 17px; line-height: 1.55; }
+  .story-q.menu-story-q[data-size="s"] { font-size: 15px; line-height: 1.6; }
+  .story-q.menu-story-q:lang(ja) { line-height: 1.8; }
 
   .story-who { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid theme('colors.hairline'); padding-top: 14px; }
   .story-name { font-size: 14px; font-weight: 600; color: theme('colors.charcoal.deep'); }
