@@ -32,10 +32,11 @@ function placeOf(j: number, n: number): number {
 
 const PIECE_SIZES = "(min-width:1024px) 400px, 60vw";
 
-export function CategoryStage({ pieces, eyebrow, title, description }: { pieces: HeroPiece[]; eyebrow: string; title: string; description: string | null }) {
+/** `count`: the live "n available" line under the description (step 2 build). */
+export function CategoryStage({ pieces, eyebrow, title, description, count }: { pieces: HeroPiece[]; eyebrow: string; title: string; description: string | null; count?: React.ReactNode }) {
   const n = pieces.length;
   return (
-    <div className="cs mb-10" data-count={n}>
+    <div className="cs band-dark" data-count={n}>
       <div aria-hidden="true" className="cs-pool" />
       {n > 0 && (
         <div className="cs-stage" data-count={n}>
@@ -72,6 +73,7 @@ export function CategoryStage({ pieces, eyebrow, title, description }: { pieces:
         <p className="cs-eyebrow">{eyebrow}</p>
         <h1 className="cs-title">{title}</h1>
         {description && <p className="cs-desc">{description}</p>}
+        {count && <div className="mt-4">{count}</div>}
       </div>
     </div>
   );

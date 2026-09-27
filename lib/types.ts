@@ -38,8 +38,15 @@ export type Origin = "JAPAN" | "BRAND" | "OTHER" | "UNKNOWN";
  * field for the current lang through lib/catalog-i18n — never read one
  * language's column directly in a component.
  */
+/**
+ * The Hub's item type (owner decision D2-1, proposed in
+ * supabase/contracts/api.md): not sent yet, so optional. The grids' Type filter
+ * appears only once pieces carry it; nothing infers it from a SKU or a name.
+ * `video_url` / `video_poster_url`: the piece's MP4 and its still, same status.
+ */
+export type ItemType = "Jewelry" | "Watch" | "Accessory";
 /** `metals`: every stamp on the piece in the Hub's order (PT900/K18); `karat` is the one-release bridge (= metals[0]) kept until the Hub drops it. */
-export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; category_slugs?: string[]; product_variants: ProductVariant[] };
+export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; category_slugs?: string[]; item_type?: ItemType | null; video_url?: string | null; video_poster_url?: string | null; product_variants: ProductVariant[] };
 /** A published customer testimonial from the Hub (GET /testimonials). Quotes are per language; either may be null. */
 export type Testimonial = { id: string; customer_name: string; location: string | null; quote_en: string | null; quote_ja: string | null; item: string | null; rating: number | null;
   /** ISO date the testimonial was given. Rendered as month + year; null hides the line. */

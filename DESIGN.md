@@ -335,7 +335,8 @@ The price card is the most "value-driven luxe" object on the site.
 - (change) The reserve figure must come from the Hub quote, not the current local 30% calculation.
 
 ### Spec Table (Bugatti-style hairline ledger)
-- (planned) Sits on the product page directly under the price card. It is a 4-column grid, 2 columns on phones, of **value over LABEL** cells:
+- (live, product page 2026-09-27) Built as below, 3 columns desktop / 2 on phones, Hub values only; the Size cell appears only when the Hub sends `size` (D2-8).
+- Sits on the product page directly under the price card. It is a 4-column grid, 2 columns on phones, of **value over LABEL** cells:
   - the value is in Spec at 20–24px, tabular;
   - the caption is in Label, muted;
   - cells are separated by 1px hairlines (`.rule-grid`), gold 32% on dark;
@@ -346,7 +347,8 @@ The price card is the most "value-driven luxe" object on the site.
 - The live card's 3-cell Metal/Weight/Stone strip is the seed of this pattern.
 
 ### Product Card
-- (live) White body on a chalk image well. The Sold badge sits over the image, followed by the condition badge, the name (Title), the metal and weight line, and the price. A second photo appears on hover, with a tilt of up to 6°. Sold cards are quiet: no tilt, no reserve line.
+- (live, step 2 build 2026-09-27) The planned card below is built (`components/catalog/product-card.tsx`): 1:1 chalk well with the cut-out or the whole photo contained, badges on the corner, origin badge or brand text, the exact Hub name in 3 lines, metal · weight, yen price, EN "Down payment ¥ (₱)" from the Hub. One hover response: the gold top rule draws in.
+- (previous) White body on a chalk image well. The Sold badge sits over the image, followed by the condition badge, the name (Title), the metal and weight line, and the price. A second photo appears on hover, with a tilt of up to 6°. Sold cards are quiet: no tilt, no reserve line.
 - (planned) Status badges (Sold / 売約済み, Preloved) go over the image corner. The body holds only name → spec line → price. The SKU becomes a caption, never the title.
 - (change) Square 1:1 contained image (see Layout).
 - **Depends on photography.** One consistent backdrop and the whole piece in frame.
@@ -364,7 +366,8 @@ The price card is the most "value-driven luxe" object on the site.
 - **Mobile tab bar:** (live, every page since the site frame) Home, Collections, Layaway (EN only), Loyalty, Account — the nav's own names. Labels are 11px.
 
 ### Sticky Buy Bar (Apple-style)
-- (planned) Mobile product page only.
+- (live, step 2 build 2026-09-27; `components/commerce/buy-bar.tsx`) Below `lg`, it replaces the tab bar on product pages (D2-6); the Messenger button sits above it.
+- Mobile product page only.
 - It appears once the primary action scrolls out of view: a 64px charcoal-deep bar with a gold rule on top.
 - The yen price in Pale Gilt (lining figures) sits on the left, the orange primary action on the right, and an optional "Layaway" text link (EN only).
 - It hides for Sold pieces.

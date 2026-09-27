@@ -218,6 +218,15 @@
     body:has([data-mobile-tab-bar]):has(.messenger-fab) > footer {
       padding-bottom: calc(56px + 64px + 12px + 48px + 16px + env(safe-area-inset-bottom));
     }
+    /* THE BUY BAR (product pages, components/commerce/buy-bar.tsx) takes the
+       tab bar's place (D2-6) and gets the same clearance, whether or not it
+       has slid up yet, so the button never jumps and is never covered. */
+    body:has([data-buy-bar]) .messenger-fab {
+      bottom: calc(64px + 12px + env(safe-area-inset-bottom));
+    }
+    body:has([data-buy-bar]):has(.messenger-fab) > footer {
+      padding-bottom: calc(56px + 64px + 12px + 48px + 16px + env(safe-area-inset-bottom));
+    }
   }
 
   /* ---------------------------------------------------------------------

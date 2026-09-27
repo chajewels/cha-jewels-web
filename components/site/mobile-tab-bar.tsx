@@ -24,10 +24,17 @@ const OWNS: Record<Tab["icon"], string[]> = {
  *
  * The layaway tab is passed in only when layawayOffered(lang); the bar never
  * decides that. `data-mobile-tab-bar` is how the Messenger button and the
- * footer know to clear it (app/globals.css, .messenger-fab).
+ * footer know to clear it (app/globals.css, .messenger-fab). Not on a
+ * product page (D2-6): the sticky buy bar takes its place there.
  */
 export function MobileTabBar({ tabs, label }: { tabs: Tab[]; label: string }) {
   const path = usePathname();
+  // A PRODUCT PAGE HAS THE BUY BAR INSTEAD (owner decision D2-6, 2026-09-27,
+  // the recommended option): one bar at the foot of the phone screen, and
+  // the Messenger button above it. Decided from the client pathname, like the
+  // Messenger button's own pages, because the layout is not re-rendered on a
+  // client navigation.
+  if (path.startsWith("/products/")) return null;
   return (
     <nav aria-label={label} data-mobile-tab-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-chalk/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
       <div className="flex h-16 items-center justify-around px-1">
