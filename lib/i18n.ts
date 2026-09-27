@@ -633,6 +633,11 @@ export const dict = {
     shipping: { ja: "送料", en: "Shipping" },
     free: { ja: "無料", en: "Free" },
     total: { ja: "合計", en: "Total" },
+    // The order summary's peso figures before the checkout quote: the Hub's
+    // estimate, labelled as one, with the yen beside it (lib/checkout-summary).
+    pesoApprox: { ja: "約 {amount}", en: "≈ {amount}" },
+    pesoEstimateNote: { ja: "（ご注文確定時に一度だけ換算します）", en: "(final amount converted once when you place the order)" },
+    pesoNextStep: { ja: "ペソでの金額は次のステップで表示します。", en: "The peso amount will be shown at the next step." },
     manualQuote: { ja: "この国への送料は個別にお見積りいたします。ご注文前に担当者よりご連絡いたします。", en: "We quote shipping to this country individually. Our team will contact you before the order is placed." },
     payHeading: { ja: "お支払い方法", en: "How you will pay" },
     // Region-neutral by design: a customer is shown the methods for their own
