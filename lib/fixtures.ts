@@ -224,7 +224,27 @@ if (PREVIEW_NO_CUTOUTS) for (const p of products) for (const v of p.product_vari
 if (process.env.NEXT_PUBLIC_PREVIEW_LIVE_MIRROR === "1") {
   const hero = new Set(categories.map((c) => c.slug));
   for (const p of products) p.category_slugs = (p.category_slugs ?? []).filter((c) => !hero.has(c));
-  for (const p of liveMirrorProducts) products.push({ ...p, col: "live" });
+  // The whole catalogue too (grids, related pieces, search): only the live
+  // pieces, so /collections/rings holds R3341, R7828 and R3110, as live.
+  products.length = 0;
+  for (const p of liveMirrorProducts) products.push({ ...p, col: p.col ?? "live" });
+}
+/**
+ * FIELDS THE HUB DOES NOT SEND YET (D2-1, supabase/contracts/api.md "Proposed:
+ * item type and product video"). Preview only, so the grid's Type filter and
+ * the gallery's video slot can be seen before Lovable ships them:
+ *   NEXT_PUBLIC_PREVIEW_ITEM_TYPE=1       every piece carries `item_type`
+ *                                         (watches Watch, the rest Jewelry)
+ *   NEXT_PUBLIC_PREVIEW_VIDEO=<sku,…>     those pieces carry a `video_url`
+ *                                         (the site's own gold film stands in)
+ * Unset, the pieces carry neither: exactly what every deployment receives.
+ */
+if (process.env.NEXT_PUBLIC_PREVIEW_ITEM_TYPE === "1") {
+  for (const p of products) p.item_type = (p.category_slugs ?? []).includes("preloved-watches") || p.col === "watches" ? "Watch" : "Jewelry";
+}
+for (const sku of (process.env.NEXT_PUBLIC_PREVIEW_VIDEO ?? "").split(",").map((x) => x.trim()).filter(Boolean)) {
+  const p = products.find((x) => x.sku === sku);
+  if (p) { p.video_url = "/videos/hero-artisan-mobile.mp4"; p.video_poster_url = p.product_variants[0]?.product_media[0]?.url ?? null; }
 }
 /**
  * The calculator's preview answer, in the shape the real SQL function returns:

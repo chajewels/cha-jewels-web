@@ -5,10 +5,10 @@ import { tr } from "@/lib/i18n";
 import { categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
 import { stagePieces } from "@/lib/hero-deck";
-import { HubImage } from "@/components/media/hub-image";
-import { EmptyShelf } from "@/components/catalog/empty-shelf";
-import { ProductCard } from "@/components/catalog/product-card";
 import { CategoryStage } from "@/components/catalog/category-stage";
+import { CatalogSection, CollectionHead, CountLine, EmptyCatalog } from "@/components/catalog/catalog-section";
+import { catalogue, collectionsWithProducts, isAvailable, stockedCollections } from "@/lib/catalog-context";
+import { follow } from "@/lib/settings";
 
 export const revalidate = 60;
 
@@ -43,49 +43,28 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const t = tr(lang);
   const name = categoryName(cat, lang);
   const description = categoryDescription(cat, lang);
-  const banner = cat.hero_media;
   const eyebrow = t("categories", "eyebrow");
+  const available = cat.products.filter(isAvailable).length;
+  const messenger = await follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null);
+  const empty = cat.products.length === 0;
+  const [cols, all] = empty ? await Promise.all([collectionsWithProducts(), catalogue()]) : [[], []];
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap">
-        {banner ? (<>
-          <div className="relative mb-10 aspect-[21/9] overflow-hidden rounded-sm border border-hairline">
-            {/* THE PAGE'S LARGEST PAINT. It sits above the fold at every
-                width and it is the first thing a category page shows, so it
-                is the one image on this site that asks for priority — and
-                the only one, because marking a second would mean neither.
-
-                Measured: the banner is the wrap's content box, 339 at 375,
-                706.6 at 768 and 1144 at both 1280 and 1440, where
-                max-w-site has capped it. `100vw` below that cap
-                over-declares by the gutter on purpose — never under, so the
-                browser can never pick a candidate too small and land a soft
-                banner across the top of the page. 21/9 is the div's and is
-                reserved before the bytes arrive. */}
-            <HubImage
-              src={banner}
-              alt=""
-              fill
-              priority
-              sizes="(min-width: 1240px) 1144px, 100vw"
-              className="object-cover object-[65%_center]"
-            />
-          </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{eyebrow}</p>
-          <h1 className="mt-3 text-[clamp(40px,6vw,88px)]">{name}</h1>
-          {description && <p className="mt-4 max-w-[58ch] text-charcoal">{description}</p>}
-        </>) : (
-          <CategoryStage pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} />
-        )}
-        {cat.products.length === 0 ? (
-          <EmptyShelf lang={lang} />
-        ) : (
-          <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-4">
-            {cat.products.map((p, i) => <ProductCard key={p.id} product={p} lang={lang} index={i} />)}
-          </div>
-        )}
-      </div>
-    </section>
+    <>
+      {/* The owner's Hub photo leads, as on a collection; without one the
+          category's own in-stock pieces stand on the hero's dark stage
+          (CategoryStage), or its text alone when none is in stock. */}
+      {cat.hero_media ? (
+        <CollectionHead eyebrow={eyebrow} title={name} description={description} available={available} photo={cat.hero_media} lang={lang} />
+      ) : (
+        <div className="wrap pt-[clamp(20px,3vw,40px)]">
+          <CategoryStage pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} count={<CountLine available={available} lang={lang} />} />
+        </div>
+      )}
+      <div className="h-[clamp(12px,2vw,24px)]" />
+      {empty
+        ? <EmptyCatalog lang={lang} stocked={stockedCollections(cols)} now={all.filter(isAvailable).slice(0, 4)} messenger={messenger} />
+        : <CatalogSection products={cat.products} lang={lang} messenger={messenger} />}
+    </>
   );
 }

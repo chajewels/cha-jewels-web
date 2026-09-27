@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
 import { addToCart } from "@/lib/cart-actions";
 import { tr, type Lang } from "@/lib/i18n";
 import { trackAddToCart } from "@/lib/analytics";
@@ -31,8 +32,16 @@ const CSS = `
 @keyframes fx-draw-check { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .fx-check path { stroke-dashoffset: 0; } }`;
 
-export function AddToCart({ variantId, slug, sku, availability, lang, className }: {
+/**
+ * `block`: full width at every size, 56px tall (the product page's buy
+ * column). `compact`: the phone buy bar's button (components/commerce/
+ * buy-bar.tsx) — once added it becomes the "View cart" link itself, since the
+ * bar has no room for a second line. `id` is on the button, so the bar can
+ * watch it leave the screen.
+ */
+export function AddToCart({ variantId, slug, sku, availability, lang, className, block = false, compact = false, id }: {
   variantId: string; slug: string; sku: string; availability: Availability; lang: Lang; className?: string;
+  block?: boolean; compact?: boolean; id?: string;
 }) {
   const t = tr(lang);
   const [pending, start] = useTransition();
@@ -59,11 +68,20 @@ export function AddToCart({ variantId, slug, sku, availability, lang, className 
     );
   }
 
+  if (compact && added) {
+    return (
+      <Button asChild className={`fx-added min-h-[46px] px-[18px] py-2.5 ${className ?? ""}`}>
+        <Link href="/cart">{t("cart", "viewCart")}</Link>
+      </Button>
+    );
+  }
+
   return (
     <div className={className}>
       <ComponentStyle id="fx-add-to-cart" css={CSS} />
       <div className="flex flex-wrap items-center gap-3">
         <Button
+          id={id}
           disabled={pending}
           onClick={() => start(async () => {
             await addToCart(variantId, slug, 1);
@@ -71,13 +89,14 @@ export function AddToCart({ variantId, slug, sku, availability, lang, className 
             window.dispatchEvent(new Event(CART_ADDED));
             trackAddToCart(sku, lang);
           })}
-          className={`w-full sm:w-auto ${added ? "fx-added" : ""}`}
+          className={`${compact ? "min-h-[46px] px-[18px] py-2.5" : block ? "min-h-14 w-full text-base" : "w-full sm:w-auto"} ${added ? "fx-added" : ""}`}
         >
           {added && (
             <svg aria-hidden="true" viewBox="0 0 24 24" className={`h-4 w-4 fx-check`} fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12.5l4.5 4.5L19 7.5" pathLength={1} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
+          {!added && !compact && <ShoppingBag aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={1.6} />}
           {added ? t("cart", "added") : t("cart", "add")}
         </Button>
         {added && (

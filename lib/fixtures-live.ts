@@ -74,9 +74,35 @@ const ROWS: Row[] = [
   ]],
 ];
 
-export const liveMirrorProducts: Product[] = ROWS.map(([sku, category, en, ja, jpy, stock, condition, brand, photos], i) => ({
-  id: `live-${i}`, sku, slug: en.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), name: en, name_en: en, name_ja: ja,
-  karat: null, metals: [], weight_g: null, description_en: en, description_ja: null, description_tl: null, status: "active",
-  condition, origin: brand ? "BRAND" : "UNKNOWN", brand, category_slugs: [category],
-  product_variants: [{ id: `live-v${i}`, size: null, stone: null, price_jpy: jpy || 1, stock_qty: stock, product_media: photos.map((url, sort) => ({ url, alt: null, sort })) }],
-}));
+/**
+ * The rest of each piece's live record, as the storefront showed it on
+ * 2026-09-27 (~/Code/reference/page-comps/_shared/data.js): the stamps, the
+ * weight and stone fields, the Hub's down payments, the descriptions, origin,
+ * the collection it sits in, its slug, and N4020's price before it sold.
+ * AL3's weight field really is 0.02 g while its name says 2.65g, and R7828's
+ * metal field says K18 while its name says 750: both are the Hub's, as sent.
+ */
+type Facts = { metals: string[]; weight_g: number | null; stone: string | null; dp: [number, number] | null; en: string; ja: string; origin: "JAPAN" | "BRAND" | "UNKNOWN"; col: string | null; price: number; slug: string };
+export const LIVE_FACTS: Record<string, Facts> = {
+  AL112: { metals: ["K18"], weight_g: 1.45, stone: null, dp: [16194, 6395], en: "K18 1.45g Heart N' Key Top", ja: "K18 1.45g ハート＆キー トップ", origin: "JAPAN", col: "pendants", price: 53980, slug: "al112-pendant-k18-1-45g-heart-n-key-top" },
+  AL123: { metals: ["K18"], weight_g: 0.98, stone: null, dp: [10194, 4026], en: "K18 0.98g Heart shaped", ja: "K18 0.98g ハート型です。", origin: "JAPAN", col: "pendants", price: 33980, slug: "al123-pendant-k18-0-98g-heart-shaped-15-0mm" },
+  AL3: { metals: ["K18"], weight_g: 0.02, stone: null, dp: [26394, 10423], en: "K18 2.65g Cross INRI", ja: "K18 2.65g クロス INRIでございます。", origin: "JAPAN", col: "pendants", price: 87980, slug: "al3-pendant-k18-2-65g-cross-inri" },
+  R3341: { metals: ["K18"], weight_g: 16.2, stone: "Diamond 3.82ct, 0.80ct", dp: [188694, 74515], en: "K18WG dome ring, 16.20g, set with 3.82ct and 0.80ct diamonds. Size 13. Preloved, authenticated in Japan.", ja: "K18WG製のドームリングです。総重量は16.20gで、3.82ctと0.80ctのダイヤモンドがセッティングされています。サイズは13号です。プレラブド品で、日本で鑑定済みです。", origin: "JAPAN", col: "rings", price: 628980, slug: "r3341-ring-k18-16-20g-diamond-3-82ct-0-80ct-dome-sz-13-preloved" },
+  R7828: { metals: ["K18"], weight_g: 19, stone: "Diamond 2.70ct", dp: [203994, 80557], en: "750 yellow and white gold layered wave ring, 19.0g, 2.70ct diamonds. Size 18. Preloved", ja: "750イエローゴールドとホワイトゴールドのレイヤードウェーブリングです。19.0g、2.70ctのダイヤモンドがあしらわれています。サイズは18号です。プレラブド品です。", origin: "UNKNOWN", col: "rings", price: 679980, slug: "r7828-ring-k18-19-00g-diamond-2-70ct-layered-wave-sz-18-preloved" },
+  R3110: { metals: ["750"], weight_g: 3.1, stone: null, dp: [47694, 18834], en: "Tiffany & Co. 750 3.10g Open Heart Elsa Perreti Sz# 10.5 [Used]", ja: "Tiffany & Co. 750 3.10g オープンハート Elsa Perreti サイズ# 10.5 [中古]", origin: "BRAND", col: "rings", price: 158980, slug: "r3110-ring-tiffany-co-750-3-10g-open-heart-elsa-perreti-sz-10-5-used" },
+  N4020: { metals: ["750"], weight_g: 2.04, stone: null, dp: null, en: "Tiffany & Co. 750 2.0g Open Teardrop 40cm [Preloved]", ja: "Tiffany & Co. 750 2.0g オープンティアドロップ 40cm [プレラブド]", origin: "BRAND", col: "necklaces", price: 72980, slug: "n4020-necklace-tiffany-co-750-2-0g-open-teardrop-40cm-preloved" },
+  C0983: { metals: [], weight_g: null, stone: null, dp: [28794, 11371], en: "Brand: Van Cleef & Arpels Model number: 43106 LB5 Serial: 70001 Product rank: B µovement: Quartz Dial: White Bracelet/Strap: SS Case: SS Accessories: None", ja: "ブランド: Van Cleef & Arpels 型番: 43106 LB5 シリアル: 70001 商品ランク: B ムーブメント: クォーツ 文字盤: ホワイト ブレスレット/ストラップ: SS ケース: SS 付属品: なし", origin: "BRAND", col: null, price: 95980, slug: "c0983-watch-van-cleef-arpels-la-collection-quartz-ss-white-17cm-used" },
+  C1395: { metals: [], weight_g: null, stone: null, dp: [22794, 9001], en: "Brand: Casio Model number: GM-B2100 Serial: 001C018C Product rank: B Movement: Solar Dial: Black Bracelet/Strap: SS Case: SS Accessories: Box, Case, 2 Frames, Booklet", ja: "ブランド: Casio 型番: GM-B2100 シリアル: 001C018C 商品ランク: B ムーブメント: ソーラー 文字盤: ブラック ブレスレット/ストラップ: SS ケース: SS 付属品: 箱、ケース、コマ2個、取扱説明書", origin: "JAPAN", col: null, price: 75980, slug: "c1395-watch-casio-g-shock-full-metal-series-solar-ss-black-19cm-preloved" },
+};
+
+export const liveMirrorProducts: (Product & { col: string | null })[] = ROWS.map(([sku, category, en, ja, jpy, stock, condition, brand, photos], i) => {
+  const f = LIVE_FACTS[sku];
+  return {
+    id: `live-${i}`, sku, slug: f?.slug ?? en.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), name: en, name_en: en, name_ja: ja,
+    karat: f?.metals[0] ?? null, metals: f?.metals ?? [], weight_g: f?.weight_g ?? null, description_en: f?.en ?? en, description_ja: f?.ja ?? null, description_tl: null, status: "active",
+    condition, origin: f?.origin ?? (brand ? "BRAND" : "UNKNOWN"), brand, category_slugs: [category], col: f?.col ?? null,
+    product_variants: [{ id: `live-v${i}`, size: null, stone: f?.stone ?? null, price_jpy: jpy || f?.price || 1, stock_qty: stock,
+      ...(f?.dp && stock > 0 ? { down_payment_jpy: f.dp[0], down_payment_php: f.dp[1] } : {}),
+      product_media: photos.map((url, sort) => ({ url, alt: null, sort })) }],
+  };
+});

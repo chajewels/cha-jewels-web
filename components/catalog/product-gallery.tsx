@@ -9,6 +9,7 @@ import { EASE_SHEEN, EASE_SLIDE, GALLERY, PHOTO_DIM, PHOTO_SETTLE, ZOOM } from "
 import { useFinePointer, useReduced } from "@/components/fx/media";
 import { ComponentStyle, mix } from "@/components/fx/component-style";
 import { SIZES, cubic, passthrough, whenDecoded, type GalleryImage } from "@/components/catalog/gallery-shared";
+import type { GalleryItem } from "@/lib/product-media";
 
 export type { GalleryImage };
 
@@ -61,7 +62,19 @@ const CSS = `
   transition: transform var(--dur-gallery-slide) var(--ease-slide), width var(--dur-gallery-slide) var(--ease-slide);
   pointer-events: none;
 }
-@media (prefers-reduced-motion: reduce) { .fx-zoom, .fx-zoom-hi, .fx-bar { transition: none; } }`;
+.fx-well { background: #F5F5F2; }
+.fx-cut { position: absolute; inset: 11%; filter: drop-shadow(0 26px 24px rgb(35 29 18 / .20)); }
+.fx-round {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 9999px;
+  border: 1px solid rgb(34 34 34 / .45); background: rgb(245 245 242 / .85); color: var(--c-charcoal-deep);
+  transition: border-color var(--dur-micro) var(--ease-lux);
+}
+.fx-round:hover { border-color: var(--c-gold-dark); }
+.fx-ctr { font-family: var(--font-display), Georgia, serif; font-size: 15px; line-height: 1; padding: 6px 10px; background: rgb(245 245 242 / .85); color: var(--c-charcoal-deep); font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
+.fx-rail > button[aria-selected="true"] { border-color: var(--c-gold-dark); box-shadow: inset 0 0 0 1px var(--c-gold-dark); }
+.fx-vid { position: absolute; inset: 0; background: #15120f; }
+.fx-vid video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+@media (prefers-reduced-motion: reduce) { .fx-zoom, .fx-zoom-hi, .fx-bar, .fx-round { transition: none; } }`;
 
 /**
  * All of a piece's photos in Hub sort order: one large image plus a thumbnail
@@ -114,9 +127,20 @@ const CSS = `
  * place once it has decoded, and a swipe is a gesture rather than a drag. The
  * hover zoom and the viewer's zoom still work; they just do not animate.
  */
-export function ProductGallery({ images, name, lang }: { images: GalleryImage[]; name: string; lang: Lang }) {
+export function ProductGallery({ items, name, lang, badge }: { items: GalleryItem[]; name: string; lang: Lang; badge?: React.ReactNode }) {
   const t = tr(lang);
+  const images = items;
   const n = images.length;
+  // The viewer shows the Hub's own photos (never a cut-out, never the video),
+  // so a reader zooming in sees the real picture. Gallery index <-> viewer index.
+  const photos: GalleryImage[] = [];
+  const toViewer: number[] = [];
+  const toGallery: number[] = [];
+  items.forEach((m, k) => {
+    if (m.kind === "video") { toViewer.push(-1); return; }
+    toViewer.push(photos.length); toGallery.push(k);
+    photos.push({ url: m.original, alt: m.alt });
+  });
   const reduced = useReduced() === true;
   const fine = useFinePointer() === true;
   /** What the reader asked for — the counter and thumbnails follow this at once. */
@@ -334,7 +358,7 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
     const onPhoto = !(e.target as HTMLElement).closest("[data-nav]");
     cancelAnimationFrame(hoverFrame.current);
     hoverFrame.current = requestAnimationFrame(() => {
-      if (!onPhoto || busy.current || viewer) { delete box.dataset.zoom; return; }
+      if (!onPhoto || busy.current || viewer || images[shownRef.current]?.kind === "video") { delete box.dataset.zoom; return; }
       // Only now, with the cursor on the photo itself (not an arrow), is its
       // full-resolution file asked for — and only this photo's.
       setZoomFor(shownRef.current);
@@ -351,14 +375,17 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
 
   function open() {
     if (dragged.current) { dragged.current = false; return; }
+    const k = toViewer[shownRef.current];
+    if (k == null || k < 0) return;
     const img = part(0, "fx-photo")?.querySelector("img");
-    const aspect = img?.naturalWidth ? img.naturalWidth / img.naturalHeight : 4 / 5;
+    const aspect = img?.naturalWidth ? img.naturalWidth / img.naturalHeight : 1;
     if (stage.current) delete stage.current.dataset.zoom;
-    setViewer({ k: shownRef.current, aspect });
+    setViewer({ k, aspect });
   }
 
-  if (n === 0) return <div className="relative aspect-[4/5] bg-chalk" aria-hidden="true" />;
-  const alt = (img: GalleryImage) => img.alt?.trim() || name;
+  if (n === 0) return <div className="relative aspect-square fx-well" aria-hidden="true" />;
+  const alt = (m: GalleryItem) => (m.kind === "video" ? "" : m.alt?.trim() || name);
+  const onVideo = images[shown]?.kind === "video";
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowRight") { e.preventDefault(); go(i + 1); }
@@ -370,8 +397,20 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
   const slots: { side: -1 | 0 | 1; k: number }[] = [{ side: 0, k: shown }];
   if (n > 1 && armed) slots.push({ side: 1, k: slotIndex(1) });
   if (n > 1 && (awake || override?.side === -1)) slots.push({ side: -1, k: slotIndex(-1) });
-  const zoomUrl = images[shown].url;
-  const zoomOn = zoomFor === shown;
+  const cur = images[shown];
+  const zoomUrl = cur.src;
+  const zoomOn = zoomFor === shown && cur.kind !== "video";
+  /** One slot's picture: the cut-out standing in the well, the whole photo contained, or the video. */
+  const picture = (m: GalleryItem, k: number, side: -1 | 0 | 1) =>
+    m.kind === "video" ? (
+      <GalleryVideo src={m.src} poster={m.poster} active={side === 0 && k === shown} reduced={reduced} lang={lang} />
+    ) : m.kind === "cut" ? (
+      <span className="fx-cut">
+        <Image src={m.src} alt={side === 0 ? alt(m) : ""} fill sizes={SIZES} draggable={false} className="object-contain" priority={side === 0 && k === 0} unoptimized={passthrough(m.src)} />
+      </span>
+    ) : (
+      <Image src={m.src} alt={side === 0 ? alt(m) : ""} fill sizes={SIZES} draggable={false} className="object-contain" priority={side === 0 && k === 0} unoptimized={passthrough(m.src)} />
+    );
 
   return (
     <div
@@ -380,12 +419,14 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
       aria-label={t("product", "gallery")}
       tabIndex={0}
       onKeyDown={onKeyDown}
-      className="outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-dark"
+      // Desktop: the thumbnail rail on the left of the square well. Phone and
+      // tablet: the strip under it (comp page-comps/product-collection).
+      className={`outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-dark ${n > 1 ? "lg:grid lg:grid-cols-[76px_minmax(0,1fr)] lg:gap-3.5" : ""}`}
     >
       <ComponentStyle id="fx-gallery" css={CSS} />
       <div
         ref={stage}
-        className="relative aspect-[4/5] overflow-hidden bg-chalk fx-stage"
+        className="relative aspect-square overflow-hidden fx-well fx-stage outline outline-1 -outline-offset-1 outline-hairline lg:order-2"
         data-fine={fine ? "" : undefined}
         style={{ ["--zoom" as string]: ZOOM.hover }}
         onPointerDown={down}
@@ -409,90 +450,101 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
               className="fx-slot overflow-hidden"
               style={side === 0 ? undefined : { transform: `translateX(${side * 100}%)` }}
             >
-              <div className="fx-photo">
-                <Image
-                  src={images[k].url}
-                  alt={side === 0 ? alt(images[k]) : ""}
-                  fill
-                  sizes={SIZES}
-                  draggable={false}
-                  className="object-cover"
-                  priority={side === 0 && k === 0}
-                  unoptimized={passthrough(images[k].url)}
-                />
-              </div>
+              <div className="fx-photo">{picture(images[k], k, side)}</div>
               <span aria-hidden="true" className="fx-shade" />
               <span aria-hidden="true" className="fx-sweep" />
             </div>
           ))}
         </div>
         {zoomOn && (
-          <div aria-hidden="true" className="fx-zoom">
-            {/* The photo already on screen (same URL and sizes: a cache hit)
+          <div aria-hidden="true" className="fx-zoom fx-well">
+            {/* The picture already on screen (same URL and sizes: a cache hit)
                 zooms at once; the full-resolution file fades over it once it
-                has decoded. */}
-            <Image src={zoomUrl} alt="" fill sizes={SIZES} draggable={false} className="object-cover" unoptimized={passthrough(zoomUrl)} />
-            <Image
-              key={zoomUrl}
-              src={zoomUrl}
-              alt=""
-              fill
-              sizes={ZOOM_SIZES}
-              loading="eager"
-              draggable={false}
-              data-ready={zoomReady === zoomUrl ? "" : undefined}
-              onLoad={(e) => { const done = () => setZoomReady(zoomUrl); e.currentTarget.decode().then(done, done); }}
-              className="object-cover fx-zoom-hi"
-              unoptimized={passthrough(zoomUrl)}
-            />
+                has decoded. A cut-out zooms as a cut-out, in its well. */}
+            <span className={cur.kind === "cut" ? "fx-cut" : "absolute inset-0"}>
+              <Image src={zoomUrl} alt="" fill sizes={SIZES} draggable={false} className="object-contain" unoptimized={passthrough(zoomUrl)} />
+              <Image
+                key={zoomUrl}
+                src={zoomUrl}
+                alt=""
+                fill
+                sizes={ZOOM_SIZES}
+                loading="eager"
+                draggable={false}
+                data-ready={zoomReady === zoomUrl ? "" : undefined}
+                onLoad={(e) => { const done = () => setZoomReady(zoomUrl); e.currentTarget.decode().then(done, done); }}
+                className="object-contain fx-zoom-hi"
+                unoptimized={passthrough(zoomUrl)}
+              />
+            </span>
           </div>
         )}
-        <button ref={opener} type="button" className="fx-open" onClick={open}
-          aria-label={t("product", "openPhoto", { n: String(shown + 1) })} aria-haspopup="dialog" />
+        {!onVideo && (
+          // A click or tap anywhere on the photo opens the viewer; for the
+          // keyboard and assistive tech that is the round Full screen button,
+          // so this layer stays out of the tab order and the tree.
+          <button type="button" className="fx-open" onClick={open} tabIndex={-1} aria-hidden="true" />
+        )}
+        {badge && <div className="pointer-events-none absolute left-4 top-4 z-10 flex gap-1.5">{badge}</div>}
+        {!onVideo && (
+          <button ref={opener} type="button" data-nav onClick={open} aria-label={t("pdp", "fullScreen")} aria-haspopup="dialog"
+            className="fx-round absolute right-3 top-3 z-10 sm:right-4 sm:top-4">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+          </button>
+        )}
         {n > 1 && (
-          <>
-            <button type="button" data-nav onClick={() => go(i - 1)} aria-label={t("product", "prevPhoto")}
-              className="absolute left-2 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-charcoal/60 bg-white/85 text-charcoal-deep backdrop-blur hover:border-gold-dark">
-              <span aria-hidden="true">&lsaquo;</span>
-            </button>
-            <button type="button" data-nav onClick={() => go(i + 1)} aria-label={t("product", "nextPhoto")}
-              className="absolute right-2 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-sm border border-charcoal/60 bg-white/85 text-charcoal-deep backdrop-blur hover:border-gold-dark">
-              <span aria-hidden="true">&rsaquo;</span>
-            </button>
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex items-center justify-between sm:inset-x-4 sm:bottom-4">
             <Counter i={i} n={n} lang={lang} reduced={reduced} />
-          </>
+            <span className="pointer-events-auto hidden gap-2 sm:flex">
+              <button type="button" data-nav onClick={() => go(i - 1)} aria-label={t("product", "prevPhoto")} className="fx-round">
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="m15 6-6 6 6 6" /></svg>
+              </button>
+              <button type="button" data-nav onClick={() => go(i + 1)} aria-label={t("product", "nextPhoto")} className="fx-round">
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
+              </button>
+            </span>
+          </div>
         )}
       </div>
       {n > 1 && (
         <div ref={thumbs} role="tablist" aria-label={t("product", "gallery")}
-          className={`mt-1.5 flex snap-x snap-mandatory gap-1.5 overflow-x-auto pb-2.5 [scrollbar-width:thin] fx-thumbs`}>
-          {images.map((img, k) => (
+          className="fx-rail mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] lg:order-1 lg:mt-0 lg:flex-col lg:overflow-visible lg:pb-0">
+          {images.map((m, k) => (
             <button
-              key={img.url + k}
+              key={m.src + k}
               type="button"
               role="tab"
               data-i={k}
               aria-selected={k === i}
-              aria-label={t("product", "photoOf", { n: String(k + 1), total: String(n) })}
+              aria-label={m.kind === "video" ? t("pdp", "video") : t("product", "photoOf", { n: String(k + 1), total: String(n) })}
               onClick={() => go(k)}
-              className={`relative h-16 w-16 shrink-0 snap-start overflow-hidden border bg-chalk sm:h-20 sm:w-20 ${k === i ? "border-gold-dark" : "border-hairline opacity-70 hover:opacity-100"}`}
+              className={`relative grid h-[58px] w-[58px] shrink-0 place-items-center overflow-hidden border border-hairline lg:h-[76px] lg:w-[76px] ${m.kind === "video" ? "bg-charcoal-deep text-gold-pale" : "fx-well"}`}
             >
-              <Image src={img.url} alt="" fill sizes="80px" className="object-cover" loading="lazy" unoptimized={passthrough(img.url)} />
+              {m.kind === "video" ? (
+                <span className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em]">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z" /></svg>
+                  {t("pdp", "video")}
+                </span>
+              ) : (
+                <span className={m.kind === "cut" ? "absolute inset-[7%]" : "absolute inset-0"}>
+                  <Image src={m.src} alt="" fill sizes="80px" className="object-contain" loading="lazy" unoptimized={passthrough(m.src)} />
+                </span>
+              )}
             </button>
           ))}
-          <span ref={bar} aria-hidden="true" className="fx-bar" />
+          <span ref={bar} aria-hidden="true" className="hidden" />
         </div>
       )}
       {viewer && (
         <GalleryViewer
-          images={images}
+          images={photos}
           name={name}
           lang={lang}
           start={viewer.k}
           aspect={viewer.aspect}
           getRect={() => stage.current?.getBoundingClientRect() ?? null}
-          onJump={jump}
-          onClosed={() => { setViewer(null); opener.current?.focus({ preventScroll: true }); }}
+          onJump={(k) => jump(toGallery[k] ?? 0)}
+          onClosed={() => { setViewer(null); (opener.current ?? stage.current)?.focus({ preventScroll: true }); }}
         />
       )}
     </div>
@@ -500,10 +552,45 @@ export function ProductGallery({ images, name, lang }: { images: GalleryImage[];
 }
 
 /**
- * "Photo 3 of 4", with the figure ROLLING: the old number leaves upward and
- * the new one rises in (the other way when going back). The words come from
- * the dictionary, split around the number, so Japanese word order is kept.
- * Assistive tech hears the whole sentence once, from an sr-only copy.
+ * THE VIDEO SLOT (D2-1: the Hub has no video field yet; with one, the slot
+ * appears third among the photos). Muted, looping, inline, in the same square
+ * frame. It plays only while it is the slide on screen, and never on its own
+ * for a reader who asked for reduced motion: they see the poster, and the
+ * round button plays it. Anyone can pause it (WCAG 2.2.2).
+ */
+function GalleryVideo({ src, poster, active, reduced, lang }: { src: string; poster: string | null; active: boolean; reduced: boolean; lang: Lang }) {
+  const t = tr(lang);
+  const ref = useRef<HTMLVideoElement>(null);
+  const [want, setWant] = useState<boolean | null>(null); // the reader's own choice, once made
+  const [playing, setPlaying] = useState(false);
+  const play = active && (want ?? !reduced);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    if (play) v.play().catch(() => setPlaying(false)); else v.pause();
+  }, [play]);
+  return (
+    <span className="fx-vid">
+      <video ref={ref} src={src} poster={poster ?? undefined} muted loop playsInline preload={active ? "metadata" : "none"}
+        onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
+      {active && (
+        <button type="button" data-nav onClick={() => setWant(!playing)} aria-label={t("pdp", playing ? "videoPause" : "videoPlay")}
+          className="fx-round absolute right-3 top-3 z-10 sm:right-4 sm:top-4">
+          {playing
+            ? <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
+            : <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z" /></svg>}
+        </button>
+      )}
+    </span>
+  );
+}
+
+const pad = (k: number) => String(k).padStart(2, "0");
+
+/**
+ * "03 / 07", with the figure ROLLING: the old number leaves upward and the
+ * new one rises in (the other way when going back). Assistive tech hears the
+ * dictionary sentence ("Photo 3 of 7") once, from an sr-only copy.
  */
 function Counter({ i, n, lang, reduced }: { i: number; n: number; lang: Lang; reduced: boolean }) {
   const t = tr(lang);
@@ -516,18 +603,18 @@ function Counter({ i, n, lang, reduced }: { i: number; n: number; lang: Lang; re
     const d = (from === n - 1 && i === 0) || (i > from && !(from === 0 && i === n - 1)) ? 1 : -1;
     const ghost = document.createElement("span");
     ghost.className = "fx-num-ghost";
-    ghost.textContent = String(from + 1);
+    ghost.textContent = pad(from + 1);
     box.appendChild(ghost);
     const opts = { duration: GALLERY.slide * 1000, easing: SLIDE };
     ghost.animate([{ transform: "translateY(0)", opacity: 1 }, { transform: `translateY(${-d * 100}%)`, opacity: 0 }], { ...opts, fill: "forwards" })
       .finished.then(() => ghost.remove(), () => ghost.remove());
     cur.animate([{ transform: `translateY(${d * 100}%)`, opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], opts);
   }, [i, n, reduced]);
-  const [pre, post] = t("product", "photoOf", { n: "\u0001", total: String(n) }).split("\u0001");
+  // "01 / 07" in lining figures (comp); the sentence is for assistive tech.
   return (
-    <p aria-live="polite" className="absolute bottom-2 right-2 z-10 rounded-sm border border-hairline bg-white/85 px-2 py-0.5 text-xs text-charcoal backdrop-blur">
+    <p aria-live="polite" className="fx-ctr">
       <span className="sr-only">{t("product", "photoOf", { n: String(i + 1), total: String(n) })}</span>
-      <span aria-hidden="true">{pre}<span ref={num} className="fx-num"><span>{i + 1}</span></span>{post}</span>
+      <span aria-hidden="true"><span ref={num} className="fx-num"><span>{pad(i + 1)}</span></span> / {pad(n)}</span>
     </p>
   );
 }
