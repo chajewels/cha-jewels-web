@@ -20,8 +20,9 @@ import { Button } from "@/components/ui/button";
  * the plan is created at the end of checkout, so an abandoned basket never sits
  * on a one-of-a-kind piece.
  */
-export function ReserveWithLayaway({ variantId, slug, sku, lang, className }: {
-  variantId: string; slug: string; sku: string; lang: Lang; className?: string;
+/** `fill`: the button takes its whole cell (the product page's action grid), and the note is left to the caller. */
+export function ReserveWithLayaway({ variantId, slug, sku, lang, className, fill = false }: {
+  variantId: string; slug: string; sku: string; lang: Lang; className?: string; fill?: boolean;
 }) {
   const t = tr(lang);
   const router = useRouter();
@@ -36,7 +37,7 @@ export function ReserveWithLayaway({ variantId, slug, sku, lang, className }: {
       <Button
         variant="ghost"
         disabled={pending}
-        className="w-full sm:w-auto"
+        className={fill ? "h-full w-full" : "w-full sm:w-auto"}
         onClick={() => start(async () => {
           await addToCart(variantId, slug, 1);
           // Same event as the plain cart button: this is a cart addition that
@@ -48,7 +49,7 @@ export function ReserveWithLayaway({ variantId, slug, sku, lang, className }: {
       >
         {pending ? t("checkout", "reserving") : t("product", "reserveCta")}
       </Button>
-      <p className="mt-2 text-xs text-charcoal/70">{t("product", "reserveNote")}</p>
+      {!fill && <p className="mt-2 text-xs text-charcoal/70">{t("product", "reserveNote")}</p>}
     </div>
   );
 }

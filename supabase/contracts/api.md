@@ -227,3 +227,12 @@ Drafted by the storefront for Lovable; nothing here is live. Background: `~/Code
 - Changing a cut-out (new run, approval, rejection, staff upload) is a `product_media` change and fires the existing `notify_website` revalidation.
 - **Interim (owner decision 2026-09-26):** until the Hub sends `cutout`, the storefront ships its own cut-outs for the photos of the pieces live that day (`lib/hero-cutouts.ts`, matched by the exact photo URL). When the Hub sends a `cutout` object for a photo, whatever its status, it takes precedence over the bundled one; `null` or a missing field leaves the bundled one in place. Once the Hub ships the field, the bundled set is removed.
 - **Accessory type (optional, later).** The hero's Designer Accessories slide counts pieces per type (財布 / カードケース / ベルト / 小物レザー) by reading the Hub name. A `Product.accessory_type: "wallet"|"cardholder"|"belt"|"small_leather"|null` would replace that; until it exists the name is read.
+
+## Proposed (not built in the Hub): item type, product video and size (product and grid pages, 2026-09-27)
+
+Drafted by the storefront for Lovable (owner decisions D2-1 and D2-8, recommended option); nothing here is live. The storefront already reads these fields if they appear and hides what depends on them while they are absent (`lib/types.ts` `Product`, `lib/product-media.ts`, `components/catalog/catalog-grid.tsx`).
+
+- **`Product.item_type: "Jewelry" | "Watch" | "Accessory" | null`** on every endpoint that returns a product. The collection and category grids' **Type** filter (ジュエリー / ウォッチ / アクセサリー) counts and filters by it. Until at least one piece on a page carries it, the Type filter is not shown; the storefront never infers a type from the SKU or the name.
+- **`Product.video_url: string | null`** and **`Product.video_poster_url: string | null`**: a public MP4 (H.264, muted, a few seconds, square or close to it) and a still frame from it. The product gallery shows the video as the third slot among the photos, muted and looping, in the same square frame; with reduced motion it shows the poster and plays only on request. With no `video_url` there is no slot.
+- **`ProductVariant.size: string | null`** is already in the shape and is sent empty today. Filled (e.g. `18号` / `Size 18`, or the Hub's own format), the product page's specification ledger gains a Size cell. The storefront does not parse sizes out of names or descriptions.
+- A change to any of these is a product change and fires the existing `notify_website` revalidation.

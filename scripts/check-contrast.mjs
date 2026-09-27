@@ -239,6 +239,35 @@ add("FAQ current category: gold-dark on chalk", "gold-dark", "chalk", TEXT);
   for (const [label, fg, alpha, need] of rows) pairs.push({ label: `category stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
 }
 
+// PRODUCT + GRID BUILD (step 2, 2026-09-27). The Sold card and the category
+// count line sit on the same stage (worst case: the pool's centre); the
+// collection header's text sits on #17140f; the ask tile, the buy bar and the
+// price card on charcoal-deep (rows above: chalk/55–100, gold-pale).
+{
+  const pool = blend([120, 92, 40], hex("#231e18"), 0.3);
+  const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), pool, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(pool)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  for (const [label, fg, alpha, need] of [
+    ["Sold card chalk/80 body and piece names", "chalk", 0.8, TEXT],
+    ["Sold card gold-pale title, eyebrow, prices", "gold-pale", 1, TEXT],
+    ["count line chalk/75", "chalk", 0.75, TEXT],
+    ["count line gold-pale figure", "gold-pale", 1, TEXT],
+  ]) pairs.push({ label: `step 2 stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
+  const head = hex("#17140f");
+  const onHead = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), head, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(head)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  for (const [label, fg, alpha, need] of [
+    ["collection header chalk title", "chalk", 1, TEXT],
+    ["collection header chalk/80 description", "chalk", 0.8, TEXT],
+    ["collection header chalk/75 count", "chalk", 0.75, TEXT],
+    ["collection header gold-pale eyebrow and figure", "gold-pale", 1, TEXT],
+  ]) pairs.push({ label: `step 2 #17140f: ${label}`, fg, bg: "#17140f", need, alpha, ratio: onHead(fg, alpha) });
+}
+add("step 2 ask tile chalk/80 Messenger edge on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.8);
+add("step 2 trust rows charcoal/80 on chalk", "charcoal", "chalk", TEXT, 0.8);
+add("step 2 card spec gold-dark on white", "gold-dark", "white", TEXT);
+add("step 2 card sold price / down payment charcoal/70 on white", "charcoal", "white", TEXT, 0.7);
+add("step 2 chip count and 0-option charcoal/70 on chalk", "charcoal", "chalk", TEXT, 0.7);
+add("step 2 Sold badge chalk on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+
 // ---------------------------------------------------------------------------
 // PHASE 4 GROUP A — the light surfaces.
 //

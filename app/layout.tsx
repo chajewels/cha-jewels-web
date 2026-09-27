@@ -17,6 +17,7 @@ import { MobileTabBar, type Tab } from "@/components/site/mobile-tab-bar";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
+import { MetricoolTracker } from "@/components/analytics/metricool-tracker";
 import { BootMarker } from "@/components/fx/boot-marker";
 import { PageEnter } from "@/components/fx/page-enter";
 
@@ -117,6 +118,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AnalyticsProvider />
         {/* Web Vitals, behind the same gate and URL redaction as Analytics. */}
         <SpeedInsightsProvider />
+        {/* Metricool traffic statistics, production deployments only: local
+            dev, fixture mode and every Vercel preview (develop included) never
+            render it, so the script is not even requested there. The browser
+            half of the gate and the URL rules are in the component. */}
+        {process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && process.env.NEXT_PUBLIC_PREVIEW_FIXTURES !== "1" && <MetricoolTracker />}
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
