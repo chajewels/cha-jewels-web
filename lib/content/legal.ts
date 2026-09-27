@@ -511,8 +511,8 @@ export const tokusho = {
 };
 
 export const privacyUpdated: Record<Lang, string> = {
-  ja: "最終更新：2026年9月15日",
-  en: "Last updated: September 15, 2026",
+  ja: "最終更新：2026年9月27日",
+  en: "Last updated: September 27, 2026",
 };
 
 /**
@@ -525,6 +525,12 @@ export const privacyUpdated: Record<Lang, string> = {
  * improve the website", which understates what has run in production since
  * 2026-09-15. It now names Vercel Web Analytics and says what it records. The
  * surrounding sentences are as written.
+ *
+ * ONE ADDITION, owner-instructed 2026-09-27: the Metricool paragraph in article
+ * 7, right after the Vercel one, naming what components/analytics/
+ * metricool-tracker.tsx sends and linking Metricool's own policy. Its claim that
+ * sign-in, account and order-confirmation pages are not recorded is what that
+ * component enforces; change the two together.
  *
  * THE JAPANESE IS A TRANSLATION BY CLAUDE AND HAS NOT HAD A NATIVE READ. It
  * follows the register of the other Japanese legal pages (polite form, 当社 /
@@ -746,6 +752,21 @@ export const privacyArticles: LegalArticle[] = [
         },
       },
       { kind: "p", text: { ja: "当社は、アクセス状況の把握およびウェブサイトの改善のため、Vercel Web Analyticsを使用しています。これはCookieを使用しない仕組みで、ページの閲覧に加え、商品の閲覧およびカートへの追加という2種類の商品に関する操作を、その商品のSKUおよびお客様がご覧になっている言語とともに記録します。本ポリシーの日付時点において、当社は広告目的のCookieおよびサイトをまたぐ行動ターゲティング広告のトラッカーを使用していません。", en: "We use Vercel Web Analytics to understand traffic and improve the website. It is cookieless, and it records page views together with two product events — viewing a product and adding one to the cart — each with the item’s SKU and the language you are reading in. As of the date of this policy, we do not use advertising cookies or cross-site behavioral advertising trackers." } },
+      {
+        kind: "rich",
+        runs: {
+          ja: [
+            { t: "また、当社は、アクセス状況の把握のため、Metricoolを使用して匿名のアクセス統計（閲覧されたページ、参照元およびデバイスの種類）を収集しています。Metricoolには、お客様のお名前、メールアドレスまたはご注文の内容は送信されず、ログイン、お客様アカウントおよびご注文完了の各ページの閲覧は記録されません。Metricoolによる情報の取扱いについては、" },
+            { t: "Metricoolのプライバシーポリシー", href: "https://metricool.com/privacy-policy/" },
+            { t: "をご覧ください。" },
+          ],
+          en: [
+            { t: "We also use Metricool to collect anonymous website traffic statistics: the pages visited, the referring page, and the device type. Metricool does not receive your name, email address, or order details, and visits to sign-in, account, and order-confirmation pages are not recorded. For how Metricool handles this information, see " },
+            { t: "Metricool’s Privacy Policy", href: "https://metricool.com/privacy-policy/" },
+            { t: "." },
+          ],
+        },
+      },
       { kind: "p", text: { ja: "Cookieはブラウザの設定で管理いただけます。必要なCookieを無効にされた場合、ウェブサイト、お客様ポータルまたはお支払い手続きの一部が正しく動作しないことがあります。", en: "You can control cookies through your browser settings. Disabling necessary cookies may prevent parts of the website, customer portal, or checkout process from working correctly." } },
       { kind: "p", text: { ja: "将来、任意のアクセス解析技術または広告技術を導入する場合には、本ポリシーを更新し、必要な場合には同意を取得します。", en: "If we introduce optional analytics or advertising technologies in the future, we will update this policy and obtain consent where required." } },
     ],
