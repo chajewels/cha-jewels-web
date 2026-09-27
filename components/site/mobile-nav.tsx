@@ -7,7 +7,9 @@ import { signOutAction } from "@/lib/session-actions";
 import { SearchBox } from "./search-box";
 import { LangSwitcher } from "./lang-switcher";
 import { SocialGlyph } from "./social-icons";
+import { MenuStory } from "./menu-story";
 import type { Lang } from "@/lib/i18n";
+import type { Story } from "@/lib/stories";
 
 /** `name` is a ReactNode: the header streams the real one in. See header.tsx. */
 export type DrawerAccount = { name: React.ReactNode; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
@@ -42,9 +44,19 @@ export type DrawerGroup = {
  * while it is open; focus moves to the close button on open, is kept inside by
  * the Tab handler, and returns to the trigger on close; Escape closes.
  *
+ * A CUSTOMER STORY sits at the end of the scrolling part, just above the dark
+ * foot (owner decision 2026-09-27: below `xl` the mega-menus, and so their
+ * story panel, are never seen). It is the menus' own panel
+ * (components/site/menu-story.tsx, `place="drawer"`), with all its rules:
+ * exact words, English-only layaway stories, only stories that fit, the next
+ * story and fresh typing on every open, a tap completes, closing stops it.
+ * `mt-auto` pins it to the foot when the drawer is short; when it is long the
+ * story scrolls with everything else, so the foot and the rows above it are
+ * never pushed out of reach.
+ *
  * Motion: `.drawer-in` (220ms, ease-lux); reduced motion shows it at once.
  */
-export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, closeLabel, account, accountLink, messenger, since }: {
+export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, closeLabel, account, accountLink, messenger, since, story }: {
   lang: Lang;
   links: { href: string; label: string }[];
   groups?: DrawerGroup[];
@@ -55,6 +67,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
   accountLink: { href: string; label: string };
   messenger: { href: string; label: string } | null;
   since: string;
+  story?: { stories: Story[]; eyebrow: string; moreLabel: string } | null;
 }) {
   const [open, setOpen] = useState(false);
   // Both groups start closed, so the drawer opens at its shortest; opening one
@@ -144,7 +157,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
             </button>
           </div>
 
-          <div className="wrap min-h-0 w-full flex-1 overflow-y-auto pb-8 pt-4">
+          <div className="wrap flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-8 pt-4">
             <SearchBox lang={lang} variant="drawer" onNavigate={close} />
 
             <div className="mt-4">
@@ -224,6 +237,12 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
                   <button type="submit" className="min-h-11 text-[15px] text-gold-dark underline underline-offset-4">{account.signOut}</button>
                 </form>
               </section>
+            )}
+
+            {story && story.stories.length > 0 && (
+              <div className="mt-auto shrink-0 pt-8">
+                <MenuStory stories={story.stories} lang={lang} eyebrow={story.eyebrow} moreLabel={story.moreLabel} place="drawer" onNavigate={close} />
+              </div>
             )}
           </div>
 

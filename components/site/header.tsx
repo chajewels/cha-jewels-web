@@ -245,6 +245,7 @@ export async function Header({ lang }: { lang: Lang }) {
             accountLink={{ href: "/account", label: t("nav", "account") }}
             messenger={messenger ? { href: messenger, label: t("social", "messengerButton") } : null}
             since={t("navMenu", "since")}
+            story={{ stories, eyebrow: t("home", "testiEyebrow"), moreLabel: t("navMenu", "moreStories") }}
           />
         </div>
       </div>

@@ -44,13 +44,28 @@ let cursor = -1;
  *   - Reduced motion: the story is simply there, complete. The setting is read
  *     when the panel mounts, so there is no typed frame to swap afterwards.
  *
+ * THE PHONE DRAWER TOO (owner decision 2026-09-27): below `xl` there are no
+ * mega-menus, so the drawer (components/site/mobile-nav.tsx) shows this same
+ * panel above its dark foot, `place="drawer"`. It is the same component and
+ * the same rotation (the cursor above is shared): it mounts when the drawer
+ * opens and unmounts when it closes, exactly as in a menu. The only
+ * difference is the link — a plain link that closes the drawer
+ * (`onNavigate`), not a `menuitem` kept out of the Tab order.
+ *
  * LONG STORIES ARE NEVER CUT. The panel rotates through the stories that fit
  * it — the home section's "l" and "m" sizes (up to 260 characters in English,
  * about 143 in Japanese). Only if no published story is that short does it
  * take the longer ones, and then the quote scrolls inside the panel (the
  * whole text is still there), with a keyboard-focusable scroll area.
  */
-export function MenuStory({ stories, lang, eyebrow, moreLabel }: { stories: Story[]; lang: Lang; eyebrow: string; moreLabel: string }) {
+export function MenuStory({ stories, lang, eyebrow, moreLabel, place = "menu", onNavigate }: {
+  stories: Story[];
+  lang: Lang;
+  eyebrow: string;
+  moreLabel: string;
+  place?: "menu" | "drawer";
+  onNavigate?: () => void;
+}) {
   const fits = stories.filter((s) => s.size !== "s");
   const pool = fits.length > 0 ? fits : stories;
   const [index] = useState(() => {
@@ -131,7 +146,12 @@ export function MenuStory({ stories, lang, eyebrow, moreLabel }: { stories: Stor
           </p>
         )}
       </figcaption>
-      <Link role="menuitem" tabIndex={-1} href="/#customer-stories" className="mt-5 inline-flex min-h-11 w-fit items-center border-b border-gold-pale/70 text-sm font-medium text-gold-pale hover:border-gold-pale">
+      <Link
+        {...(place === "menu" ? { role: "menuitem", tabIndex: -1 } : {})}
+        href="/#customer-stories"
+        onClick={onNavigate}
+        className="mt-5 inline-flex min-h-11 w-fit items-center border-b border-gold-pale/70 text-sm font-medium text-gold-pale hover:border-gold-pale"
+      >
         {moreLabel}
       </Link>
     </figure>
