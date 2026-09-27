@@ -7,15 +7,13 @@ import { hub } from "@/lib/hub-api";
 import { collectionName, categoryName } from "@/lib/catalog-i18n";
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { categoryMenu } from "@/lib/category-thumbs";
-import { collectionCounts, pieceOfMonth, type PieceOfMonth } from "@/lib/frame-menu";
+import { collectionCounts } from "@/lib/frame-menu";
+import { toStories } from "@/lib/stories";
 import { categoryBlurb } from "@/lib/content/frame";
-import { COMPANY_PHONE, SECONDHAND_PERMIT_NO } from "@/lib/content/legal";
-import { contactEmail, follow } from "@/lib/settings";
+import { follow } from "@/lib/settings";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { readSession, customerFirstName } from "@/lib/session";
-import { formatMoney, formatYenPeso } from "@/lib/utils";
-import { HubImage } from "@/components/media/hub-image";
-import { SocialGlyph } from "./social-icons";
+import { MenuStory } from "./menu-story";
 import { CategoryThumb } from "./category-thumb";
 import { NavMenu, NavMenuItem, NavMenuTile } from "./nav-menu";
 import { LangSwitcher } from "./lang-switcher";
@@ -49,19 +47,30 @@ import { NavUnderline } from "./nav-underline";
  *
  * THE MENUS ARE CHROME, SO THEY DEGRADE. Every Hub read is caught and bounded
  * (lib/frame-menu.ts, lib/category-thumbs.ts): a slow Hub costs a count, a
- * thumbnail or the feature tile, never the header.
+ * thumbnail or the story panel, never the header.
+ *
+ * THE DARK RIGHT-HAND PANEL of both menus is a customer story (owner decision
+ * on PR #168, 2026-09-27), rotating on every open: components/site/menu-story.tsx.
  */
 export async function Header({ lang }: { lang: Lang }) {
   const t = tr(lang);
   const layaway = layawayOffered(lang);
-  const [session, collections, categories, followLinks, email, featured] = await Promise.all([
+  // The testimonials are the home page's own read (hub.testimonials, cached
+  // like the catalogue); a Hub that cannot answer costs the menus their story
+  // panel, never the header.
+  const [session, collections, categories, followLinks, testimonials] = await Promise.all([
     readSession(),
     getCollections().catch(() => []),
     hub.categories().catch(() => []),
     follow().catch(() => []),
-    contactEmail().catch(() => null),
-    pieceOfMonth(lang).catch(() => null),
+    hub.testimonials().catch(() => []),
   ]);
+  // The same stories, by the same rules, as the home page's Customer Stories
+  // (lib/stories.ts): exact words, layaway stories on the English site only.
+  const stories = toStories(testimonials, lang);
+  const story = (
+    <MenuStory stories={stories} lang={lang} eyebrow={t("home", "testiEyebrow")} moreLabel={t("navMenu", "moreStories")} />
+  );
   const [counts, catMenu] = await Promise.all([
     collectionCounts(collections).catch(() => ({} as Record<string, number>)),
     categoryMenu(categories, lang).catch(() => ({} as Awaited<ReturnType<typeof categoryMenu>>)),
@@ -185,7 +194,7 @@ export async function Header({ lang }: { lang: Lang }) {
                       {t("navMenu", "viewAll")}<ArrowRight aria-hidden="true" className="h-4 w-4" />
                     </Link>
                   </div>
-                  {featured ? <FeatureTile piece={featured} lang={lang} showReserve={layaway} /> : <div aria-hidden="true" />}
+                  {story}
                 </div>
               </NavMenu>
             </li>
@@ -200,7 +209,7 @@ export async function Header({ lang }: { lang: Lang }) {
                       ))}
                     </div>
                   </div>
-                  <ContactCard lang={lang} email={email} messenger={messenger} />
+                  {story}
                 </div>
               </NavMenu>
             </li>
@@ -246,80 +255,6 @@ export async function Header({ lang }: { lang: Lang }) {
 /** Menu eyebrow: Label size in gold-dark (4.59:1 on chalk); uppercase-tracked in English only. */
 function eyebrow(lang: Lang) {
   return `text-[11px] font-semibold text-gold-dark ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`;
-}
-
-/**
- * THE PIECE OF THE MONTH (lib/frame-menu.ts decides which). One real piece on
- * the hero v3 stage: charcoal-deep, a warm light from above, the gold floor
- * line. Its exact name, its yen price in Pale Gilt with lining figures, and —
- * English only — the Hub's own down payment, both figures or none. The link
- * is gold, not orange: a menu is navigation.
- */
-function FeatureTile({ piece, lang, showReserve }: { piece: PieceOfMonth; lang: Lang; showReserve: boolean }) {
-  const t = tr(lang);
-  const src = piece.photo.cutout?.url ?? piece.photo.url;
-  return (
-    <Link role="menuitem" tabIndex={-1} href={`/products/${piece.slug}`} data-surface="dark" className="group flex min-w-0 flex-col self-start bg-charcoal-deep p-6 text-chalk focus-visible:outline-offset-2">
-      <span className={`flex items-center gap-3 text-[11px] font-semibold text-gold-pale ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`}>
-        <span aria-hidden="true" className="h-px w-7 bg-gold" />{t("navMenu", "pieceOfMonth")}
-      </span>
-      <span className="relative mt-4 block aspect-[4/3] bg-[radial-gradient(90%_80%_at_50%_10%,#3a3226_0%,#222222_70%)]">
-        <span className={`absolute inset-0 ${piece.photo.cutout ? "p-6" : "p-3"}`}>
-          <HubImage src={src} alt="" width={320} height={240} sizes="320px" className="h-full w-full object-contain transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]" />
-        </span>
-        <span aria-hidden="true" className="absolute inset-x-[8%] bottom-[6%] h-px bg-gradient-to-r from-transparent via-gold to-transparent" />
-      </span>
-      <span className="mt-4 block text-[13px] leading-snug text-chalk/85">{piece.name}</span>
-      <span className="mt-2 block font-display text-[28px] leading-none text-gold-pale [font-variant-numeric:lining-nums_tabular-nums]">{formatMoney(piece.priceJpy)}</span>
-      {showReserve && piece.downPayment && (
-        <span className="mt-2 block text-xs text-chalk/75 [font-variant-numeric:lining-nums_tabular-nums]">{t("navMenu", "reserveFrom", { dp: formatYenPeso(piece.downPayment.jpy, piece.downPayment.php) })}</span>
-      )}
-      <span className="mt-4 inline-flex w-fit items-center gap-2 border-b border-gold-pale/70 pb-0.5 text-sm font-medium text-gold-pale group-hover:border-gold-pale">
-        {t("navMenu", "viewPiece")}
-      </span>
-    </Link>
-  );
-}
-
-/**
- * The Company menu's contact card: a dark ledger of the facts a customer
- * needs to reach a person — the Hub's contact email, the office phone, the
- * secondhand-dealer permit number — and a chalk-outline Messenger action (not orange: the
- * floating button already is the site's Messenger action, and neither is a
- * buy action). A missing Hub setting drops its row, never invents one.
- */
-function ContactCard({ lang, email, messenger }: { lang: Lang; email: string | null; messenger: string | null }) {
-  const t = tr(lang);
-  const row = "flex items-baseline justify-between gap-4 border-b border-rule py-3 text-sm";
-  return (
-    <div data-surface="dark" className="band-dark min-w-0 bg-charcoal-deep p-6 text-chalk">
-      <p className={`flex items-center gap-3 text-[11px] font-semibold text-gold-pale ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`}>
-        <span aria-hidden="true" className="h-px w-7 bg-gold" />{t("navMenu", "since")}
-      </p>
-      <p className={`mt-3 text-[26px] leading-snug text-gold-pale ${lang === "ja" ? "font-jp font-medium" : "font-display"}`}>{t("navMenu", "contactHeading")}</p>
-      <dl className="mt-5 border-t border-rule">
-        {email && (
-          <div className={row}>
-            <dt className="text-chalk/75">{t("navMenu", "email")}</dt>
-            <dd><a role="menuitem" tabIndex={-1} href={`mailto:${email}`} className="text-chalk hover:text-gold-pale">{email}</a></dd>
-          </div>
-        )}
-        <div className={row}>
-          <dt className="text-chalk/75">{t("navMenu", "phoneOffice")}</dt>
-          <dd><a role="menuitem" tabIndex={-1} href={`tel:${COMPANY_PHONE.office.replaceAll("-", "")}`} className="text-chalk [font-variant-numeric:lining-nums_tabular-nums] hover:text-gold-pale">{COMPANY_PHONE.office}</a></dd>
-        </div>
-        <div className={row}>
-          <dt className="text-chalk/75">{t("navMenu", "permit")}</dt>
-          <dd className="text-chalk [font-variant-numeric:lining-nums_tabular-nums]">{t("navMenu", "permitNo", { n: SECONDHAND_PERMIT_NO })}</dd>
-        </div>
-      </dl>
-      {messenger && (
-        <a role="menuitem" tabIndex={-1} href={messenger} target="_blank" rel="noopener noreferrer" className="mt-5 flex min-h-12 items-center justify-center gap-2.5 rounded-sm border border-chalk/70 px-4 text-[15px] font-medium text-chalk hover:border-gold-pale hover:text-gold-pale">
-          <SocialGlyph name="messenger" size={20} />{t("navMenu", "messengerAsk")}
-        </a>
-      )}
-    </div>
-  );
 }
 
 /** The customer's given name, resolved on its own clock (see the header comment). */

@@ -139,18 +139,11 @@ export const dict = {
     affiliationsDesc: { ja: "東京の経済団体への所属。", en: "Our memberships in Tokyo's business community." },
     // The site frame (build step 1, comps in page-comps/site-frame). Menu
     // chrome only; the category one-liners are content (lib/content/frame.ts).
-    pieceOfMonth: { ja: "今月の一点", en: "Piece of the month" },
-    viewPiece: { ja: "この作品を見る", en: "View this piece" },
     count: { ja: "{n}点", en: "{n}" },
     countLabel: { ja: "在庫{n}点", en: "{n} available" },
-    contactHeading: { ja: "作品のご相談は、スタッフへ直接どうぞ。", en: "Ask a person about any piece." },
     since: { ja: "2021年創業・東京", en: "Since 2021 · Tokyo" },
-    email: { ja: "メール", en: "Email" },
-    phoneOffice: { ja: "電話（代表）", en: "Phone (office)" },
-    permit: { ja: "古物商許可", en: "Secondhand dealer permit" },
-    permitNo: { ja: "第{n}号", en: "No. {n}" },
-    messengerAsk: { ja: "Messengerで相談する", en: "Message us on Messenger" },
-    reserveFrom: { ja: "予約金 {dp}", en: "Reserve with {dp}" },
+    // The menus' customer-story panel links to the home page's section.
+    moreStories: { ja: "お客様の声をもっと見る", en: "More customer stories" },
   },
   /** The trust ledger at the foot of every page (components/site/footer.tsx). */
   trust: {

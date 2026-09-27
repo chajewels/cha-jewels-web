@@ -1,9 +1,7 @@
 import { tr, type Lang } from "@/lib/i18n";
-import { layawayOffered } from "@/lib/layaway-availability";
-import { isLayawayTestimonial } from "@/lib/content-rules";
-import { graphemes, storySize, type QuoteLang } from "@/lib/story-timing";
+import { toStories, type Story } from "@/lib/stories";
 import type { Testimonial } from "@/lib/types";
-import { StoryShow, type Story } from "@/components/home/story-show";
+import { StoryShow } from "@/components/home/story-show";
 import { QuoteMark } from "@/components/fx/quote-mark";
 import { SplitHeading } from "@/components/fx/split-text";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
@@ -37,33 +35,14 @@ import { RevealGroup, RevealItem } from "@/components/fx/reveal";
  */
 export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[] }) {
   const t = tr(lang);
-  const quoteOf = (x: Testimonial) => (lang === "ja" ? x.quote_ja ?? x.quote_en : x.quote_en ?? x.quote_ja);
-  // Layaway is English-site only, so a layaway testimonial is hidden on the
-  // Japanese site. Quotes are never filtered for their wording: they are
-  // customers' own words, shown as written (lib/content-rules.ts).
-  const shown = items.filter((x) => quoteOf(x) && x.customer_name && (layawayOffered(lang) || !isLayawayTestimonial(x)));
-  if (shown.length === 0) return null;
-
-  const stories: Story[] = shown.map((x) => {
-    const quote = quoteOf(x) as string;
-    // The language the words are in, not the page's: a Japanese page falls
-    // back to an English quote, which is set, sized and timed as English.
-    const qLang: QuoteLang = quote === x.quote_ja ? "ja" : "en";
-    return {
-      id: x.id,
-      quote,
-      qLang,
-      size: storySize(graphemes(quote, qLang).length, qLang),
-      name: x.customer_name,
-      item: x.item,
-      rating: x.rating == null ? null : Math.max(0, Math.min(5, Math.round(x.rating))),
-      location: x.location,
-      date: storyDate(x.testimonial_date, lang),
-    };
-  });
+  // Which stories, and how each is shown, is lib/stories.ts — the same rules
+  // the header's mega-menus use (site frame, owner decision 2026-09-27).
+  const stories: Story[] = toStories(items, lang);
+  if (stories.length === 0) return null;
 
   return (
-    <section className="bg-white py-8 lg:py-16" aria-roledescription="carousel" aria-label={t("home", "testiH")}>
+    // `id`: the anchor the mega-menus' "more stories" link lands on.
+    <section id="customer-stories" className="scroll-mt-24 bg-white py-8 lg:py-16" aria-roledescription="carousel" aria-label={t("home", "testiH")}>
       <div className="wrap">
         <StoryShow
           stories={stories}
@@ -87,21 +66,4 @@ export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[]
       </div>
     </section>
   );
-}
-
-/**
- * When the testimonial was given, as month and year — never the day.
- *
- * A quote is not an event, and a precise date invites the reader to work out
- * how old it is. `<time dateTime>` still carries the machine-readable value,
- * so the shortened display costs nothing a parser needs.
- *
- * `null` renders nothing: a missing date is not "unknown", it is simply a
- * line this story does not have.
- */
-function storyDate(date: string | null, lang: Lang): Story["date"] {
-  if (!date) return null;
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return null; // a malformed date is no date
-  return { iso: date, label: d.toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long" }) };
 }

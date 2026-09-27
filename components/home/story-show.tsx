@@ -3,21 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Star } from "lucide-react";
 import { STAGGER, STORY } from "@/lib/motion";
-import { graphemes, storyTiming, type QuoteLang } from "@/lib/story-timing";
+import { graphemes, storyTiming } from "@/lib/story-timing";
 import { useFinePointer, useReduced } from "@/components/fx/media";
 
-/** One story as the server prepared it (components/home/testimonials.tsx). `quote` is the Hub's text, untouched. */
-export type Story = {
-  id: string;
-  quote: string;
-  qLang: QuoteLang;
-  size: "l" | "m" | "s";
-  name: string;
-  item: string | null;
-  rating: number | null;
-  location: string | null;
-  date: { iso: string; label: string } | null;
-};
+/** One story as the server prepared it (lib/stories.ts, the rules that build it). `quote` is the Hub's text, untouched. */
+export type { Story } from "@/lib/stories";
+import type { Story } from "@/lib/stories";
 
 type Labels = { prev: string; next: string; pause: string; play: string; upNext: string };
 

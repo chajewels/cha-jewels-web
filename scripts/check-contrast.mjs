@@ -398,10 +398,13 @@ add("menu eyebrow gold-dark on chalk", "gold-dark", "chalk", TEXT);
 add("menu description charcoal/75 on chalk", "charcoal", "chalk", TEXT, 0.75);
 add("menu row hover: charcoal/75 on white", "charcoal", "white", TEXT, 0.75);
 add("menu icon box edge gold-dark on chalk", "gold-dark", "chalk", NONTEXT);
-add("feature tile price gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", TEXT);
-add("feature tile name chalk/85 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.85);
-add("contact card label chalk/75 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.75);
-add("contact card Messenger edge chalk/70 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.7);
+// The menus' customer-story panel (owner decision on PR #168): the quote in
+// chalk, the name and the link in gold-pale, the details in chalk/75, the
+// stars in gold (graphics), all on charcoal-deep.
+add("menu story quote chalk on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+add("menu story name/link gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", TEXT);
+add("menu story details chalk/75 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.75);
+add("menu story stars gold on charcoal-deep", "gold", "charcoal-deep", NONTEXT);
 // Search: marked query gold-dark on white and chalk, Sold badge charcoal/75
 // on chalk, chips' edge charcoal/40 on white (measured at 0.6: see below).
 add("search match gold-dark on white", "gold-dark", "white", TEXT);
