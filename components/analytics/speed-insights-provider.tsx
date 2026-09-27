@@ -2,6 +2,7 @@
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { analyticsEnabled } from "@/lib/analytics";
+import { useHydrated } from "@/components/analytics/use-hydrated";
 import { redactUrl } from "@/components/analytics/analytics-provider";
 
 /**
@@ -16,6 +17,9 @@ import { redactUrl } from "@/components/analytics/analytics-provider";
  * report from previews and send unredacted URLs.
  */
 export function SpeedInsightsProvider() {
+  // Nothing until hydration is over: the server cannot see the host (use-hydrated.ts).
+  const hydrated = useHydrated();
+  if (!hydrated) return null;
   if (!analyticsEnabled()) return null;
   return (
     <SpeedInsights

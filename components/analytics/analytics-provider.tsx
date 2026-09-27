@@ -2,6 +2,7 @@
 
 import { Analytics } from "@vercel/analytics/react";
 import { analyticsEnabled } from "@/lib/analytics";
+import { useHydrated } from "@/components/analytics/use-hydrated";
 
 /**
  * Automatic page views, with the URL scrubbed before anything leaves the
@@ -56,6 +57,9 @@ export function redactUrl(raw: string): string | null {
 }
 
 export function AnalyticsProvider() {
+  // Nothing until hydration is over: the server cannot see the host (use-hydrated.ts).
+  const hydrated = useHydrated();
+  if (!hydrated) return null;
   if (!analyticsEnabled()) return null;
   return (
     <Analytics
