@@ -51,8 +51,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   // catalogue on this render — only active pieces in stock, never a sold one —
   // and the empty-category switch applied. All of it in lib/hero-deck.ts.
   // Preview deployments only: `?hero_demo=1` labels the hero as the review
-  // view (lib/hero-demo.ts). Never on production. The cut-outs themselves are
-  // the same everywhere (lib/hero-cutouts.ts).
+  // view (lib/hero-demo.ts). Never on production. The hero's cut-outs are the
+  // same everywhere: the original tool's only, never Photoroom's
+  // (lib/hero-deck.ts `heroCutout`).
   const demo = (await searchParams)[HERO_DEMO_PARAM] === "1" && heroDemoAllowed((await headers()).get("host"));
   const slides = await buildHeroDeck(lang, categories);
 

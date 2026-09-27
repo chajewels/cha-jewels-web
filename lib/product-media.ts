@@ -1,17 +1,19 @@
 import { allImages, usableCutout } from "@/lib/queries/products";
-import { bundledCutout } from "@/lib/hero-cutouts";
 import type { Product, ProductMedia } from "@/lib/types";
 
 /**
- * WHAT A PRODUCT PHOTO SHOWS AS (step 2 build; the rule the hero set,
- * lib/hero-deck.ts). For each Hub photo, in the Hub's order:
+ * WHAT A PRODUCT PHOTO SHOWS AS (product pages and product cards). For each
+ * Hub photo, in the Hub's order:
  *
- *   1. the Hub's cut-out, when it may be shown (`usableCutout`: ok,
- *      auto_fixed, approved) — the uniform chalk version the pipeline will
- *      send; the field is absent today
- *   2. otherwise, only when the Hub sent no cut-out record at all, the one
- *      bundled with the site for that exact photo (lib/hero-cutouts.ts)
- *   3. otherwise the WHOLE original photo, contained, never cropped
+ *   1. the Hub's Photoroom cut-out (`cutout`), when it may be shown
+ *      (`usableCutout`: ok, auto_fixed, approved); the field is absent today
+ *   2. otherwise the WHOLE original photo, contained, never cropped
+ *
+ * PRODUCTS = PHOTOROOM / NORMAL PHOTOS ONLY; HERO = THE ORIGINAL TOOL ONLY
+ * (owner rule 2026-09-28). A hero cut-out — the bundled set
+ * (lib/hero-cutouts.ts) or the Hub's `hero_cutout` — is never shown here;
+ * those belong to the hero (lib/hero-deck.ts `heroCutout`).
+ * scripts/check-cutouts.mjs (CI) keeps the two apart.
  *
  * `original` is always the untouched Hub photo: the full-screen viewer shows
  * that, so a reader zooming in sees the real picture. Nothing is processed
@@ -29,8 +31,7 @@ export type PieceImage = {
 export type GalleryItem = PieceImage | { kind: "video"; src: string; poster: string | null };
 
 function resolve(m: ProductMedia): PieceImage {
-  const withBundled = m.cutout == null ? { ...m, cutout: bundledCutout(m.url) } : m;
-  const c = usableCutout(withBundled);
+  const c = usableCutout(m);
   return c ? { kind: "cut", src: c.url, original: m.url, alt: m.alt } : { kind: "whole", src: m.url, original: m.url, alt: m.alt };
 }
 

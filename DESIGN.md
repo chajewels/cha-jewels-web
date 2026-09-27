@@ -347,7 +347,7 @@ The price card is the most "value-driven luxe" object on the site.
 - The live card's 3-cell Metal/Weight/Stone strip is the seed of this pattern.
 
 ### Product Card
-- (live, step 2 build 2026-09-27) The planned card below is built (`components/catalog/product-card.tsx`): 1:1 chalk well with the cut-out or the whole photo contained, badges on the corner, origin badge or brand text, the exact Hub name in 3 lines, metal · weight, yen price, EN "Down payment ¥ (₱)" from the Hub. One hover response: the gold top rule draws in.
+- (live, step 2 build 2026-09-27) The planned card below is built (`components/catalog/product-card.tsx`): 1:1 chalk well with the Hub's Photoroom cut-out or the whole photo contained (never a hero cut-out: owner rule 2026-09-28, hero = original tool only, products = Photoroom / normal photos only), badges on the corner, origin badge or brand text, the exact Hub name in 3 lines, metal · weight, yen price, EN "Down payment ¥ (₱)" from the Hub. One hover response: the gold top rule draws in.
 - (previous) White body on a chalk image well. The Sold badge sits over the image, followed by the condition badge, the name (Title), the metal and weight line, and the price. A second photo appears on hover, with a tilt of up to 6°. Sold cards are quiet: no tilt, no reserve line.
 - (planned) Status badges (Sold / 売約済み, Preloved) go over the image corner. The body holds only name → spec line → price. The SKU becomes a caption, never the title.
 - (change) Square 1:1 contained image (see Layout).
@@ -388,8 +388,8 @@ The price card is the most "value-driven luxe" object on the site.
 - (live) Molten-gold film (with 720p mobile encode and poster), vertical scrim, vignette, a gold sweep and headline sheen, category slides behind a horizontal scrim, and a gold-edged curtain between slides.
 - (planned) This is the only place, with banners, where 3D may appear (see the 3D rule).
 - Every text-over-image pairing has a row in `check-contrast.mjs`.
-- (live) Category page banner without a Hub photo: the hero v3 stage, still, with up to three of the category's in-stock pieces (cut-out, or whole photo in a framed well), or the text alone when none is in stock. No brand logo is ever decoration (owner rule 2026-09-26).
-- (live) Collections-menu category thumbnails (desktop panel and drawer): the owner's Hub photo, else one real in-stock piece contained on chalk (cut-out with air around it, or the whole photo), else a gold line icon for the kind of category (ring, watch, wallet). Same 40px hairline tile as the collection thumbnails.
+- (live) Category page banner without a Hub photo: the hero v3 stage, still, with up to three of the category's in-stock pieces (the hero's own cut-out, or whole photo in a framed well; chosen by `stagePieces`, exactly as the hero), or the text alone when none is in stock. No brand logo is ever decoration (owner rule 2026-09-26).
+- (live) Collections-menu category thumbnails (desktop panel and drawer): the owner's Hub photo, else one real in-stock piece contained on chalk (the hero's own cut-out with air around it, via `stagePieces`, or the whole photo), else a gold line icon for the kind of category (ring, watch, wallet). Same 40px hairline tile as the collection thumbnails.
 - **Depends on photography:** a real piece in the first viewport, and art-directed mobile crops.
 
 ### Components that depend on better photography
