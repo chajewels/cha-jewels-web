@@ -15,7 +15,6 @@ import { HERO_DEMO_PARAM, heroDemoAllowed } from "@/lib/hero-demo";
 import { Hero } from "@/components/home/hero";
 import { HERO_POSTER } from "@/components/site/hero-video";
 import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
-import { MobileTabBar, type Tab } from "@/components/home/mobile-tab-bar";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { SplitHeading } from "@/components/fx/split-text";
 export const revalidate = 60;
@@ -60,15 +59,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   const demo = (await searchParams)[HERO_DEMO_PARAM] === "1" && heroDemoAllowed((await headers()).get("host"));
   const slides = await buildHeroDeck(lang, categories);
 
-  const tabs: Tab[] = [
-    { href: "/", label: t("home", "tabHome"), icon: "home" },
-    { href: "/collections", label: t("home", "tabPieces"), icon: "pieces" },
-    // Layaway is offered in English only (owner decision 2026-09-15) — one rule,
-    // in lib/layaway-availability. The JA tab bar has four tabs.
-    ...(layaway ? [{ href: "/layaway", label: t("home", "tabLayaway"), icon: "layaway" as const }] : []),
-    { href: "/loyalty", label: t("home", "tabLoyalty"), icon: "loyalty" },
-    { href: "/account", label: t("home", "tabAccount"), icon: "account" },
-  ];
 
   return (
     <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
@@ -132,8 +122,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
       {/* §10 New arrivals — streamed; real pieces only, no section when none */}
       <ArrivalsSection lang={lang} />
 
-      {/* §13 Mobile-only bottom tab bar */}
-      <MobileTabBar tabs={tabs} />
     </div>
   );
 }

@@ -41,9 +41,14 @@ export function NavUnderline() {
       placed = li;
       const target = li?.querySelector<HTMLElement>("a, button");
       if (!target) { delete line.dataset.on; return; }
-      const n = nav.getBoundingClientRect(), r = target.getBoundingClientRect();
+      // Measured against the line's positioned ancestor — the sticky header
+      // since the site frame (the nav itself is no longer positioned, so the
+      // mega-menu panels can span the header's full width) — and set on the
+      // header's bottom edge, where the open panel begins.
+      const base = (line.offsetParent ?? nav) as HTMLElement;
+      const n = base.getBoundingClientRect(), r = target.getBoundingClientRect();
       line.style.setProperty("--x", `${r.left - n.left}px`);
-      line.style.setProperty("--y", `${r.bottom - n.top + 4}px`);
+      line.style.setProperty("--y", `${n.height - 2}px`);
       line.style.setProperty("--w", `${r.width}px`);
       line.dataset.on = "";
     };

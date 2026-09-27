@@ -3,30 +3,37 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
+/** Fired when a menu opens, so any other open one closes at once (two panels never overlap). */
+const OPEN_EVENT = "cj:navmenu-open";
+/** How long a pointer may be outside trigger and panel before the menu closes: a diagonal path from trigger to panel crosses the header. */
+const CLOSE_DELAY_MS = 160;
+
 /**
- * A header nav menu: trigger + panel, with the same menu semantics as
- * components/site/account-menu.tsx (role="menu"/"menuitem", arrow keys,
- * Home/End, Escape returning focus to the trigger, outside pointerdown and Tab
- * closing). That file is the house pattern; this one adds what a nav menu
- * needs and the account menu does not.
+ * A header mega-menu: trigger + full-width panel (site frame, 2026-09-27).
+ *
+ * Same menu semantics as components/site/account-menu.tsx (role="menu" /
+ * "menuitem", arrow keys, Home/End, Escape returning focus to the trigger,
+ * outside pointerdown and Tab closing). That file is the house pattern.
  *
  * OPENS THREE WAYS, and the way it opened decides whether focus moves:
  *
- *   hover     — pointer devices only, via `(hover: hover) and (pointer: fine)`.
- *               Focus is NOT moved: the pointer is already where the customer
- *               is looking, and yanking focus mid-hover makes the next Tab
- *               land somewhere they never chose. Touch reports no hover, so a
- *               tap is a click, not a hover that sticks open.
- *   click     — toggles. The trigger is a real <button>, so a tap works.
- *   ArrowDown / ArrowUp on the trigger — opens AND focuses the first item,
- *               because a keyboard user has no other way in.
+ *   hover     — pointer devices only, `(hover: hover) and (pointer: fine)`.
+ *               Focus is NOT moved. Leaving trigger and panel closes it after
+ *               CLOSE_DELAY_MS, so a diagonal path from the trigger down to
+ *               the panel does not snap it shut on the way.
+ *   click/tap — toggles. The trigger is a real <button>, so a tap works, and
+ *               touch reports no hover, so a tap never "sticks open".
+ *   ArrowDown / ArrowUp / Enter / Space on the trigger — opens (click for the
+ *               last two) and ArrowDown focuses the first item.
+ *
+ * FULL WIDTH. The panel is positioned against the <header> (sticky, so it is
+ * the containing block), not against this trigger: nothing between them is
+ * positioned. The trigger's wrapper runs the header's full height, so moving
+ * straight down from the trigger stays inside it until the panel begins.
  *
  * The panel is not rendered when closed, so its links are out of the tab order
- * without needing tabindex bookkeeping.
- *
- * The hover region is contiguous: the panel's positioning wrapper carries the
- * gap as padding rather than a margin, so the pointer never crosses dead space
- * on its way down and the menu does not flicker shut between the two.
+ * without tabindex bookkeeping. Motion: `.menu-in` (180ms fade-drop on
+ * ease-lux); reduced motion shows it at once (app/globals.css).
  */
 export function NavMenu({ label, menuLabel, children }: { label: string; menuLabel: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -34,17 +41,28 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
   const panel = useRef<HTMLDivElement>(null);
   /** Did a pointer hover open this, rather than a click or a key? */
   const openedByHover = useRef(false);
+  const closeTimer = useRef<number | null>(null);
   const id = useId();
   const pathname = usePathname();
 
+  const cancelClose = () => { if (closeTimer.current) { window.clearTimeout(closeTimer.current); closeTimer.current = null; } };
   const close = useCallback((refocus: boolean) => {
     setOpen(false);
     if (refocus) trigger.current?.focus();
   }, []);
+  const show = useCallback(() => {
+    setOpen(true);
+    window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: id }));
+  }, [id]);
 
-  // Navigating away closes it. Next keeps the header mounted across routes, so
-  // without this the panel would still be open on the page it sent you to.
+  // Navigating away closes it: Next keeps the header mounted across routes.
   useEffect(() => { setOpen(false); }, [pathname]);
+
+  useEffect(() => {
+    const onOther = (e: Event) => { if ((e as CustomEvent<string>).detail !== id) { cancelClose(); setOpen(false); } };
+    window.addEventListener(OPEN_EVENT, onOther);
+    return () => { window.removeEventListener(OPEN_EVENT, onOther); cancelClose(); };
+  }, [id]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,8 +87,8 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
     const nodes = Array.from(panel.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
     if (nodes.length === 0) return;
     const i = nodes.indexOf(document.activeElement as HTMLElement);
-    if (e.key === "ArrowDown") { e.preventDefault(); nodes[(i + 1) % nodes.length].focus(); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); nodes[(i - 1 + nodes.length) % nodes.length].focus(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") { e.preventDefault(); nodes[(i + 1) % nodes.length].focus(); }
+    else if (e.key === "ArrowUp" || e.key === "ArrowLeft") { e.preventDefault(); nodes[(i - 1 + nodes.length) % nodes.length].focus(); }
     else if (e.key === "Home") { e.preventDefault(); nodes[0].focus(); }
     else if (e.key === "End") { e.preventDefault(); nodes[nodes.length - 1].focus(); }
     else if (e.key === "Tab") close(false);
@@ -78,9 +96,13 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
 
   return (
     <div
-      className="relative"
-      onPointerEnter={() => { if (canHover()) { openedByHover.current = true; setOpen(true); } }}
-      onPointerLeave={() => { if (canHover()) { openedByHover.current = false; setOpen(false); } }}
+      className="flex h-full items-center"
+      onPointerEnter={() => { if (canHover()) { cancelClose(); if (!open) { openedByHover.current = true; show(); } } }}
+      onPointerLeave={() => {
+        if (!canHover() || !openedByHover.current) return;
+        cancelClose();
+        closeTimer.current = window.setTimeout(() => { openedByHover.current = false; setOpen(false); }, CLOSE_DELAY_MS);
+      }}
     >
       <button
         ref={trigger}
@@ -89,47 +111,37 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         onClick={() => {
-          // A CLICK MUST NOT UNDO THE HOVER THAT JUST OPENED THIS. Moving a
-          // mouse onto the trigger opens the menu; clicking it then ran a
-          // plain toggle and shut it again, so a pointer user who reached for
-          // a menu and clicked what they were aiming at got nothing. The menu
-          // was working — it was closing the thing the click had come for.
-          //
-          // So the first click on a hover-opened menu is a no-op that CLAIMS
-          // it: openedByHover is cleared, and a second click closes as before.
-          // Nothing changes on touch (no hover, so the flag is never set) or
-          // for the keyboard, which opens through ArrowDown below.
+          // A click must not undo the hover that just opened this: the first
+          // click on a hover-opened menu CLAIMS it, a second one closes it.
           if (open && openedByHover.current) { openedByHover.current = false; return; }
           openedByHover.current = false;
-          setOpen((o) => !o);
+          if (open) setOpen(false); else show();
         }}
         onKeyDown={(e) => {
-          if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); setOpen(true); focusFirst(); }
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); openedByHover.current = false; show(); focusFirst(); }
         }}
-        className={`inline-flex items-center gap-1 whitespace-nowrap text-sm ${open ? "text-gold-dark" : "text-charcoal/80 hover:text-gold-dark"}`}
+        className={`inline-flex min-h-11 items-center gap-1 whitespace-nowrap text-sm font-medium ${open ? "text-gold-dark" : "text-charcoal-deep hover:text-gold-dark"}`}
       >
         {label}
-        <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-3 w-3 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-3 w-3 shrink-0 text-charcoal/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M2.5 4.5 6 8l3.5-3.5" />
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 pt-2.5">
+        <div
+          className="absolute inset-x-0 top-full z-50 whitespace-normal border-b border-hairline bg-chalk shadow-[0_24px_48px_rgba(35,29,18,0.14)]"
+          onPointerEnter={cancelClose}
+        >
           <div
             ref={panel}
             id={id}
             role="menu"
             aria-label={menuLabel}
             onKeyDown={onMenuKeyDown}
-            // THE WIDTH LIVES HERE, not on each panel's own grid, so both
-            // menus are bounded by one number. `whitespace-normal` is not
-            // decoration: the header's nav <ul> carries `whitespace-nowrap`
-            // for the link row, every descendant INHERITS it, and the panel is
-            // rendered inside one of that list's <li> elements — so the
-            // descriptions were painting as single lines straight through the
-            // panel's right border. Nothing in this file ever set nowrap; it
-            // arrived from two levels up, which is why it was invisible.
-            className="menu-in w-[min(40rem,calc(100vw-2rem))] whitespace-normal rounded-sm border border-hairline bg-white p-3 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
+            // `whitespace-normal` above is not decoration: the nav <ul>
+            // carries `whitespace-nowrap` for the link row and every
+            // descendant inherits it, so descriptions painted as one line.
+            className="menu-in wrap max-h-[calc(100vh-96px)] overflow-y-auto py-8"
           >
             {children}
           </div>
@@ -140,37 +152,44 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
 }
 
 /**
- * One row in a menu panel: a thumbnail OR an icon, a title, and an optional
- * one-line description. `media` is a ready 40px thumbnail element (the
- * category rows: components/site/category-thumb.tsx) and wins over both.
+ * One ledger row in a menu panel: an icon box or a thumbnail, a title, an
+ * optional one-line description and an optional count on the right. `media`
+ * is a ready thumbnail element (components/site/category-thumb.tsx).
  *
- * Both the icon and the thumbnail are decorative — the title already says
- * where the link goes — so the image carries alt="" rather than repeating the
- * name a screen reader is about to read anyway.
- *
- * A plain <img>, not next/image: a collection's thumbnail is `hero_media` from
- * the Hub, whose host next/image is not configured for, falling back to a
- * local placeholder. One element that handles both beats branching on where
- * the URL came from.
- *
- * Rows with a description align to the top so the icon sits with the title;
- * rows without one centre, so a 40px thumbnail and a single line of text share
- * a middle.
+ * The icon and thumbnail are decorative — the title already names the link —
+ * so images are alt="".
  */
-export function NavMenuItem({ href, title, description, icon, thumb, media }: { href: string; title: string; description?: string; icon?: ReactNode; thumb?: string | null; media?: ReactNode }) {
+export function NavMenuItem({ href, title, description, icon, media, count, countLabel }: { href: string; title: string; description?: string | null; icon?: ReactNode; media?: ReactNode; count?: string | null; countLabel?: string }) {
   return (
     <Link
       role="menuitem"
       tabIndex={-1}
       href={href}
-      className={`group flex min-w-0 gap-3 rounded-sm px-3 py-2.5 hover:bg-chalk focus-visible:bg-chalk focus-visible:outline-none ${description ? "items-start" : "items-center"}`}
+      className="group flex min-h-[64px] min-w-0 items-center gap-4 border-b border-hairline py-3 pr-2 hover:bg-white focus-visible:bg-white focus-visible:outline-offset-[-2px]"
     >
-      {media ?? (thumb
-        ? <img src={thumb} alt="" width={40} height={40} loading="lazy" className="h-10 w-10 shrink-0 rounded-sm border border-hairline object-cover" />
-        : icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-gold-dark">{icon}</span>)}
-      <span className="min-w-0">
+      {media ?? (icon && <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-gold-dark text-gold-dark">{icon}</span>)}
+      <span className="min-w-0 flex-1">
         <span className="block font-medium text-charcoal-deep [line-break:strict] [word-break:auto-phrase] group-hover:text-gold-dark">{title}</span>
-        {description && <span className="mt-0.5 block whitespace-normal break-words text-[13px] leading-snug text-charcoal/70">{description}</span>}
+        {description && <span className="mt-0.5 block text-[13px] leading-snug text-charcoal/75">{description}</span>}
+      </span>
+      {count && <span className="shrink-0 text-xs text-charcoal/75 [font-variant-numeric:lining-nums_tabular-nums]"><span aria-hidden="true">{count}</span>{countLabel && <span className="sr-only">{countLabel}</span>}</span>}
+    </Link>
+  );
+}
+
+/**
+ * A collection tile: the owner's 4:3 photo, its name, and the in-stock count
+ * when there is stock (D1-6). The photo is decorative (alt="").
+ */
+export function NavMenuTile({ href, title, thumb, count, countLabel }: { href: string; title: string; thumb: string | null; count?: string | null; countLabel?: string }) {
+  return (
+    <Link role="menuitem" tabIndex={-1} href={href} className="group block min-w-0 focus-visible:outline-offset-2">
+      <span className="block aspect-[4/3] overflow-hidden rounded-sm bg-hairline">
+        {thumb && <img src={thumb} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]" />}
+      </span>
+      <span className="mt-2 flex items-baseline justify-between gap-2">
+        <span className="text-sm font-medium text-charcoal-deep [line-break:strict] [word-break:auto-phrase] group-hover:text-gold-dark">{title}</span>
+        {count && <span className="shrink-0 text-xs text-charcoal/75 [font-variant-numeric:lining-nums_tabular-nums]"><span aria-hidden="true">{count}</span>{countLabel && <span className="sr-only">{countLabel}</span>}</span>}
       </span>
     </Link>
   );

@@ -7,108 +7,163 @@ import { follow, footerTagline } from "@/lib/settings";
 import { COMPANY_NAME_DISPLAY } from "@/lib/content/legal";
 import { SocialIcons } from "@/components/site/social-icons";
 import { NewsletterForm } from "@/components/site/newsletter-form";
+import { LangSwitcher } from "@/components/site/lang-switcher";
 
 /**
- * The Stitch footer (docs/stitch/cha-desktop.html §12): charcoal, four columns
- * — brand, collections, customer care & legal, follow us — orange column
- * headings and the company line at the bottom. The fourth column holds the
- * social icon row where the newsletter form used to be. The row and the brand
- * paragraph come from the Hub (lib/settings.ts) and have no fallback in this
- * repo: a setting the Hub does not hold renders NOTHING — no empty paragraph,
- * no heading over an empty row.
+ * THE SITE FRAME'S FOOTER (build step 1, 2026-09-27; comps in
+ * page-comps/site-frame). A charcoal-deep band under a gold hairline:
  *
- * THE FOOTER IS CHROME, SO IT DEGRADES. Every read here is caught, and a Hub
- * that cannot answer costs this footer its collection list, its paragraph and
- * its icons — not the page it sits at the bottom of. It is on EVERY page,
- * including /about and the four legal documents, none of which contain a word
- * that came from the Hub; a throw here took all of them down with it.
+ *   brand        the logo and the Hub's `footer.tagline`, rendered exactly —
+ *                the ONLY text under the logo (owner decision 2026-09-26),
+ *                with the owner's own line breaks (`whitespace-pre-line`)
+ *   columns      Collections (the Hub's, in the page's language), Company,
+ *                Customer care and legal, Newsletter + Follow us. Headings are
+ *                gold-pale labels, not orange (audit footer #3)
+ *   trust ledger four hairline cells: founded, authentication, the secondhand-dealer
+ *                line and the qualified-invoice line — the last two are the
+ *                live strings, verbatim
+ *   bottom       © the company name as the owner decided per language
+ *                (COMPANY_NAME_DISPLAY) and the language toggle
  *
- * That is the opposite of the rule for a page's own content, and deliberately
- * so — see the header of lib/hub-api.ts. A blank FAQ is a lie about the FAQ. A
- * footer missing its collection links is a footer missing its collection links.
+ * On phones the three link groups are 56px accordions (native <details>, so
+ * they work before hydration and without script) with 44px links; the audit
+ * measured 17px tap targets. From `lg` they are plain columns.
  *
- * Collection links come from the Hub's jewelry types, in the language of the
- * page. Nothing here names a collection: add or rename one in the Hub and the
- * footer follows. If the Hub is unreachable the list is just "All".
- *
- * The Stitch file's shipping-and-returns link pointed at /shipping-returns,
- * which does not exist; it maps to the existing /legal/returns route.
+ * THE FOOTER IS CHROME, SO IT DEGRADES. Every Hub read is caught: an
+ * unreachable Hub costs the collection list, the tagline and the icons, never
+ * the page. A setting the Hub does not hold renders nothing.
  */
 export async function Footer({ lang }: { lang: Lang }) {
   const t = tr(lang);
-  // Independent, so they go together rather than in sequence — and caught
-  // INDIVIDUALLY, so one unavailable setting does not take the other two down
-  // with it. Each falls to the same value an absent setting produces, which is
-  // why nothing below needs to know which of the two happened.
   const [collections, followLinks, tagline] = await Promise.all([
     getCollections().catch(() => []),
     follow().catch(() => []),
     footerTagline(lang).catch(() => null),
   ]);
-  const heading = "mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-orange";
-  const link = "text-chalk/75 hover:text-chalk";
+  const layaway = layawayOffered(lang);
+
+  const groups: { key: string; heading: string; links: { href: string; label: string }[] }[] = [
+    {
+      key: "collections",
+      heading: t("footer", "collections"),
+      links: [...collections.map((c) => ({ href: `/collections/${c.slug}`, label: collectionName(c, lang) })), { href: "/collections", label: t("footer", "all") }],
+    },
+    {
+      key: "company",
+      heading: t("trust", "company"),
+      links: [
+        { href: "/about", label: t("navMenu", "about") },
+        { href: "/why-cha-jewels", label: t("navMenu", "why") },
+        { href: "/faq", label: t("navMenu", "faq") },
+        { href: "/blog", label: t("navMenu", "blog") },
+        { href: "/blog?type=news", label: t("navMenu", "news") },
+        { href: "/contact", label: t("navMenu", "contact") },
+        { href: "/affiliations", label: t("navMenu", "affiliations") },
+        { href: "/loyalty", label: t("nav", "loyalty") },
+        { href: "/wholesale", label: t("nav", "wholesale") },
+      ],
+    },
+    {
+      key: "care",
+      heading: t("footer", "care"),
+      links: [
+        // The FAQ's layaway section, not /layaway: "Layaway terms" promises
+        // terms. English only, because layaway is.
+        ...(layaway ? [{ href: "/faq#payments-and-layaway", label: t("footer", "terms") }] : []),
+        { href: "/faq", label: t("footer", "faq") },
+        { href: "/gold-guide", label: t("footer", "goldGuide") },
+        { href: "/legal/returns", label: t("footer", "returns") },
+        { href: "/legal/tokusho", label: t("footer", "tokusho") },
+        { href: "/legal/privacy", label: t("footer", "privacy") },
+        { href: "/legal/terms", label: t("footer", "sale") },
+      ],
+    },
+  ];
+
+  // `!` because the base layer's `:lang(ja) h2` (serif, 0.01em) outranks a
+  // utility class; a footer heading is a Label, in Inter, on both languages.
+  const heading = `text-[11px] !font-sans !font-semibold !leading-snug text-gold-pale ${lang === "en" ? "uppercase !tracking-[0.14em]" : "!tracking-[0.05em]"}`;
+  const link = "inline-flex min-h-11 items-center text-chalk/80 hover:text-gold-pale lg:min-h-9";
+  const figure = `${lang === "ja" ? "font-jp" : "font-display"} text-[19px] leading-snug text-gold-pale [font-variant-numeric:lining-nums_tabular-nums]`;
+
   return (
-    <footer className="border-t border-charcoal-mid bg-charcoal-deep py-14 text-sm text-chalk">
-      <div className="wrap grid gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-4">
+    <footer className="band-dark relative bg-charcoal-deep pb-10 pt-14 text-sm text-chalk">
+      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-gold-dark via-gold to-gold-dark" />
+      <div className="wrap grid gap-x-8 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1.2fr]">
+        <div>
           <div className="flex items-center gap-3">
             <img src="/images/brand/logo-badge-192.webp" width={48} height={48} alt="" className="h-12 w-12" />
             <p className="gilt font-display text-2xl">Cha Jewels</p>
           </div>
           {/* The Hub's footer.tagline is the ONLY text under the logo (owner
-              decision 2026-09-26): footer copy is edited in the Hub, so this
-              column adds no sentence of its own — brand.originNote included,
-              which the owner's tagline already carries. Empty or unreachable
-              renders nothing. pre-line keeps the owner's own line breaks and
-              blank lines exactly as typed in the Hub; nothing is added. */}
-          {tagline && <p className="mt-4 max-w-[40ch] whitespace-pre-line leading-relaxed text-chalk/75">{tagline}</p>}
+              decision 2026-09-26). pre-line keeps the owner's own line breaks
+              and blank lines exactly as typed in the Hub; nothing is added. */}
+          {tagline && <p className="mt-5 max-w-[40ch] whitespace-pre-line leading-relaxed text-chalk/80">{tagline}</p>}
         </div>
-        <div className="lg:col-span-3">
-          <h2 className={heading}>{t("footer", "collections")}</h2>
-          <ul className="space-y-2">
-            {collections.map((c) => <li key={c.id}><Link href={`/collections/${c.slug}`} className={link}>{collectionName(c, lang)}</Link></li>)}
-            <li><Link href="/collections" className={link}>{t("footer", "all")}</Link></li>
-          </ul>
-        </div>
-        <div className="lg:col-span-3">
-          <h2 className={heading}>{t("footer", "care")}</h2>
-          <ul className="space-y-2">
-            {/* The FAQ's layaway section, not /layaway. "Layaway terms" is a
-                promise of terms, and /layaway is a sales page with a
-                calculator on it — the eight questions that actually answer
-                "what am I agreeing to" are on /faq. Still English-only,
-                because layaway is. */}
-            {layawayOffered(lang) && <li><Link href="/faq#payments-and-layaway" className={link}>{t("footer", "terms")}</Link></li>}
-            <li><Link href="/gold-guide" className={link}>{t("footer", "goldGuide")}</Link></li>
-            <li><Link href="/legal/tokusho" className={link}>{t("footer", "tokusho")}</Link></li>
-            <li><Link href="/legal/returns" className={link}>{t("footer", "returns")}</Link></li>
-            <li><Link href="/legal/privacy" className={link}>{t("footer", "privacy")}</Link></li>
-            <li><Link href="/legal/terms" className={link}>{t("footer", "sale")}</Link></li>
-            <li><Link href="/faq" className={link}>{t("footer", "faq")}</Link></li>
-          </ul>
-        </div>
-        <div className="lg:col-span-2">
+
+        {groups.map((g) => (
+          <div key={g.key} className="border-b border-rule first:border-t lg:border-0">
+            <h2 className={`${heading} hidden lg:block lg:mb-4`}>{g.heading}</h2>
+            <ul className="hidden lg:block">
+              {g.links.map((l) => <li key={l.href}><Link href={l.href} className={link}>{l.label}</Link></li>)}
+            </ul>
+            <details className="group lg:hidden">
+              <summary className={`flex min-h-14 cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden ${heading}`}>
+                <h2 className={heading}>{g.heading}</h2>
+                <svg aria-hidden="true" viewBox="0 0 12 12" className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2.5 4.5 6 8l3.5-3.5" /></svg>
+              </summary>
+              <ul className="pb-4">
+                {g.links.map((l) => <li key={l.href}><Link href={l.href} className={`${link} text-[15px]`}>{l.label}</Link></li>)}
+              </ul>
+            </details>
+          </div>
+        ))}
+
+        <div className="mt-8 lg:mt-0">
           <h2 className={heading}>{t("footer", "newsletter")}</h2>
-          <p className="leading-relaxed text-chalk/75">{t("footer", "newsletterNote")}</p>
+          <p className="mt-3 leading-relaxed text-chalk/80">{t("footer", "newsletterNote")}</p>
           <NewsletterForm lang={lang} tone="dark" />
           {followLinks.length > 0 && (
             <>
               <h2 className={`${heading} mt-8`}>{t("footer", "follow")}</h2>
-              <SocialIcons items={followLinks} tone="dark" lang={lang} />
+              <SocialIcons items={followLinks} tone="dark" lang={lang} className="mt-3" />
             </>
           )}
         </div>
       </div>
-      <div className="wrap mt-10 flex flex-wrap justify-between gap-4 border-t border-charcoal-mid pt-6 text-xs text-chalk/55">
-        {/* The REGISTERED name, from the one constant that holds it. The i18n
-            key this replaced carried the kabushiki-gaisha-first variant of the
-            name in its Japanese string — the exact wrong form PR #36 found on
-            the legal pages, and the reason COMPANY_NAME exists. English adds
-            "Cha Jewels Co., Ltd." in front of it (owner decision 2026-09-25);
-            the registered name itself is never translated. */}
+
+      {/* THE TRUST LEDGER. Hairline cells (gold at 32%, `.band-dark`'s rule).
+          The permit and invoice cells carry the live footer strings verbatim. */}
+      <dl className="wrap mt-12">
+        <div className="grid grid-cols-2 border-y border-rule lg:grid-cols-4">
+          <div className="border-b border-r border-rule py-5 pr-4 lg:border-b-0 lg:pl-0">
+            <dt className={heading}>{t("trust", "founded")}</dt>
+            <dd className={`mt-2 ${figure}`}>{t("trust", "foundedValue")}</dd>
+            <dd className="mt-1 text-xs text-chalk/75">{t("trust", "incorporated")}</dd>
+          </div>
+          <div className="border-b border-rule py-5 pl-4 lg:border-b-0 lg:border-r lg:pr-4">
+            <dt className={heading}>{t("trust", "auth")}</dt>
+            <dd className={`mt-2 ${figure}`}>{t("trust", "authValue")}</dd>
+            <dd className="mt-1 text-xs text-chalk/75">{t("trust", "authNote")}</dd>
+          </div>
+          <div className="border-r border-rule py-5 pr-4 lg:pl-4">
+            {/* The live line already names itself: its caption is for screen readers only. */}
+            <dt className="sr-only">{t("trust", "permit")}</dt>
+            <dd className="text-[13px] leading-relaxed text-chalk/85 [font-variant-numeric:lining-nums_tabular-nums]">{t("footer", "secondhandPermit")}</dd>
+          </div>
+          <div className="py-5 pl-4">
+            {/* The live line already names itself: its caption is for screen readers only. */}
+            <dt className="sr-only">{t("trust", "invoice")}</dt>
+            <dd className="text-[13px] leading-relaxed text-chalk/85 [font-variant-numeric:lining-nums_tabular-nums]">{t("footer", "invoiceReg")}</dd>
+          </div>
+        </div>
+      </dl>
+
+      <div className="wrap mt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-chalk/75">
+        {/* The REGISTERED name, from the one constant that holds it; English
+            adds "Cha Jewels Co., Ltd." in front (owner decision 2026-09-25). */}
         <span>© {new Date().getFullYear()} {COMPANY_NAME_DISPLAY[lang]}</span>
-        <span>{t("footer", "invoiceReg")}</span>
-        <span>{t("footer", "secondhandPermit")}</span>
+        <LangSwitcher lang={lang} tone="dark" />
       </div>
     </footer>
   );

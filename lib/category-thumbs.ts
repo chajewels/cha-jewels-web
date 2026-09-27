@@ -1,6 +1,6 @@
 import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
-import { stagePieces, within } from "@/lib/hero-deck";
+import { inStockVariant, stagePieces, within } from "@/lib/hero-deck";
 import type { Lang } from "@/lib/i18n";
 import type { Category } from "@/lib/types";
 
@@ -30,14 +30,18 @@ export type CategoryThumb =
   | { kind: "piece"; url: string; cutout: boolean }
   | { kind: "icon" };
 
-export async function categoryThumbs(categories: Category[], lang: Lang): Promise<Record<string, CategoryThumb>> {
+/** A category's thumbnail and its in-stock count, from one read. The count is a tally of pieces, shown only when above zero. */
+export type CategoryMenuEntry = { thumb: CategoryThumb; count: number };
+
+export async function categoryMenu(categories: Category[], lang: Lang): Promise<Record<string, CategoryMenuEntry>> {
   const entries = await Promise.all(
-    categories.map(async (c): Promise<[string, CategoryThumb]> => {
-      if (c.hero_media) return [c.slug, { kind: "photo", url: c.hero_media }];
+    categories.map(async (c): Promise<[string, CategoryMenuEntry]> => {
       const products = await within(hub.category(c.slug), SECONDARY_TIMEOUT_MS).then((r) => r?.products ?? [], () => []);
+      const count = products.filter((p) => inStockVariant(p) !== null).length;
+      if (c.hero_media) return [c.slug, { thumb: { kind: "photo", url: c.hero_media }, count }];
       const photo = stagePieces(products, lang)[0]?.photos[0];
-      if (!photo) return [c.slug, { kind: "icon" }];
-      return [c.slug, photo.cutout ? { kind: "piece", url: photo.cutout.url, cutout: true } : { kind: "piece", url: photo.url, cutout: false }];
+      if (!photo) return [c.slug, { thumb: { kind: "icon" }, count }];
+      return [c.slug, { thumb: photo.cutout ? { kind: "piece", url: photo.cutout.url, cutout: true } : { kind: "piece", url: photo.url, cutout: false }, count }];
     }),
   );
   return Object.fromEntries(entries);
