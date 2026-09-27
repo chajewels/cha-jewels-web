@@ -10,8 +10,8 @@ import type { Product, ProductMedia } from "@/lib/types";
  *   2. otherwise the WHOLE original photo, contained, never cropped
  *
  * PRODUCTS = PHOTOROOM / NORMAL PHOTOS ONLY; HERO = THE ORIGINAL TOOL ONLY
- * (owner rule 2026-09-28). A hero cut-out — the bundled set
- * (lib/hero-cutouts.ts) or the Hub's `hero_cutout` — is never shown here;
+ * (owner rule 2026-09-28). A hero cut-out (the Hub's `hero_cutout`) is
+ * never shown here;
  * those belong to the hero (lib/hero-deck.ts `heroCutout`).
  * scripts/check-cutouts.mjs (CI) keeps the two apart.
  *

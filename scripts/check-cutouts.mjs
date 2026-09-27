@@ -6,7 +6,7 @@
 // were shown on eight product pages (lib/product-media.ts), and the Hub's
 // Photoroom cut-out would have taken over the hero the day the Hub sent it.
 //
-//   1. lib/hero-cutouts.ts is imported by lib/hero-deck.ts and nothing else.
+//   1. The bundled interim set is gone (PR 5): nothing imports lib/hero-cutouts.
 //   2. The product side (lib/product-media.ts, components/catalog/*, app/products/**)
 //      never names a hero cut-out.
 //   3. lib/hero-deck.ts never reads a Hub photo's Photoroom `cutout`: no
@@ -39,9 +39,8 @@ const code = (f) => stripComments(readFileSync(f, "utf8"));
 // 1.
 for (const f of [...walk("app"), ...walk("components"), ...walk("lib")]) {
   const rel = relative(".", f);
-  if (rel === "lib/hero-deck.ts" || rel === "lib/hero-cutouts.ts") continue;
   if (/["']@\/lib\/hero-cutouts["']|["'][./]+hero-cutouts["']/.test(code(f))) {
-    fail(`${rel} imports lib/hero-cutouts.ts — the bundled hero cut-outs are for the hero only (lib/hero-deck.ts).`);
+    fail(`${rel} imports lib/hero-cutouts — the bundled set was removed; hero cut-outs come from the Hub's hero record only.`);
   }
 }
 
@@ -61,7 +60,7 @@ const deck = code("lib/hero-deck.ts");
 const access = deck.match(/\.cutout\b/g) ?? [];
 if (access.length) fail(`lib/hero-deck.ts reads \`.cutout\` (${access.length}×) — the Hub's Photoroom cut-out never reaches the hero.`);
 for (const call of deck.match(/usableCutout\([^)]*\)/g) ?? []) {
-  if (!/cutout: (h|b) \}/.test(call)) fail(`lib/hero-deck.ts: ${call} — usableCutout may only check a hero record (h) or a bundled one (b).`);
+  if (!/cutout: h \}/.test(call)) fail(`lib/hero-deck.ts: ${call} — usableCutout may only check the hero record (h).`);
 }
 if (!/export function heroCutout\(/.test(deck)) fail("lib/hero-deck.ts: heroCutout (the one seam for hero cut-outs) is missing.");
 

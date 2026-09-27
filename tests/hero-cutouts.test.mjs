@@ -1,6 +1,6 @@
 // Hero and product cut-outs stay separate (owner rule 2026-09-28):
-// hero = the original tool only (the Hub's hero_cutout, else the bundled set in
-// lib/hero-cutouts.ts, else the whole photo in its framed well); product pages
+// hero = the original tool only (the Hub's approved hero_cutout, else the whole
+// photo in its framed well; the bundled set was removed in PR 5); product pages
 // and cards = the Hub's Photoroom cutout, else the normal photo.
 // Run: npm run test:unit.
 import { test } from "node:test";
@@ -10,7 +10,7 @@ const { heroCutout, stagePieces } = await import("@/lib/hero-deck");
 const { pieceImages, cardImage } = await import("@/lib/product-media");
 
 const HUB = "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/";
-// AL112 photo 1 and C0983 photo 2: both in the bundled set.
+// AL112 photo 1 and C0983 photo 2: both were in the bundled set (removed, PR 5).
 const AL112 = `${HUB}promotions/website/page365/81333344/462264810-1773219921.jpeg`;
 const C0983_2 = `${HUB}promotions/website/page365/80288104/450588975-1758211904.jpeg`;
 // N3940 / W1451-like photo: no bundled cut-out, no larger photo.
@@ -49,9 +49,8 @@ test("hero: ignores a Photoroom cut-out even when one is present and shown", () 
   assert.equal(piece.photos[0].cutout, null);
 });
 
-test("hero: a bundled photo keeps its bundled cut-out even when Photoroom sent one", () => {
-  const c = heroCutout({ url: AL112, alt: null, sort: 0, cutout: photoroom });
-  assert.equal(c.url, "/fixtures/cutouts/al112.webp");
+test("hero: a formerly bundled photo shows whole, even when Photoroom sent a cut-out (PR 5)", () => {
+  assert.equal(heroCutout({ url: AL112, alt: null, sort: 0, cutout: photoroom }), null);
 });
 
 test("hero: a held Photoroom cut-out does not skip a hero photo", () => {
@@ -59,10 +58,15 @@ test("hero: a held Photoroom cut-out does not skip a hero photo", () => {
   assert.equal(piece.photos.length, 2);
 });
 
-// (c) bundled when present, framed well otherwise
-test("hero: uses the bundled cut-out when present", () => {
+// (c) the approved Hub hero cut-out, framed well otherwise — the bundled set is gone (PR 5)
+test("hero: a formerly bundled photo with no Hub record stands whole in its well", () => {
   const [piece] = stagePieces([product([{ url: AL112 }, { url: C0983_2 }])], "en");
-  assert.deepEqual(piece.photos.map((ph) => ph.cutout?.url), ["/fixtures/cutouts/al112.webp", "/fixtures/cutouts/c0983-1.webp"]);
+  assert.deepEqual(piece.photos.map((ph) => ph.cutout), [null, null]);
+});
+
+test("hero: the owner-approved Hub hero cut-out is shown", () => {
+  const [piece] = stagePieces([product([{ url: AL112, hero_cutout: heroRec }])], "en");
+  assert.equal(piece.photos[0].cutout.url, heroRec.url);
 });
 
 test("hero: the whole photo in the framed well otherwise (N3940 / W1451)", () => {
@@ -70,17 +74,12 @@ test("hero: the whole photo in the framed well otherwise (N3940 / W1451)", () =>
   assert.deepEqual(piece.photos.map((ph) => [ph.url, ph.cutout]), [[PLAIN, null], [`${PLAIN}?2`, null]]);
 });
 
-// The order: approved hero record → bundled → framed well.
-test("hero: an owner-approved Hub hero cut-out wins over the bundled one", () => {
-  assert.equal(heroCutout({ url: AL112, alt: null, sort: 0, hero_cutout: heroRec }).url, heroRec.url);
-});
-
-test("hero: a rejected Hub hero cut-out leaves the whole photo, even when a bundled one exists", () => {
+test("hero: a rejected or waiting Hub hero cut-out leaves the whole photo", () => {
   assert.equal(heroCutout({ url: AL112, alt: null, sort: 0, hero_cutout: { status: "rejected" } }), null);
+  assert.equal(heroCutout({ url: AL112, alt: null, sort: 0, hero_cutout: null }), null);
 });
 
-test("hero: a held Hub hero cut-out falls back to the bundled one, else skips a later photo", () => {
-  assert.equal(heroCutout({ url: AL112, alt: null, sort: 0, hero_cutout: { status: "held" } }).url, "/fixtures/cutouts/al112.webp");
+test("hero: a held Hub hero cut-out skips a later photo; the first stays, whole", () => {
   const [piece] = stagePieces([product([{ url: PLAIN }, { url: `${PLAIN}?2`, hero_cutout: { status: "held" } }])], "en");
   assert.equal(piece.photos.length, 1);
   const [first] = stagePieces([product([{ url: PLAIN, hero_cutout: { status: "held" } }])], "en");

@@ -2,7 +2,6 @@ import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { categoryCta, categoryDescription, categoryName, productName } from "@/lib/catalog-i18n";
 import { allImages, usableCutout } from "@/lib/queries/products";
-import { bundledCutout } from "@/lib/hero-cutouts";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Category, Product, ProductMedia, ProductVariant } from "@/lib/types";
 
@@ -36,7 +35,7 @@ import type { Category, Product, ProductMedia, ProductVariant } from "@/lib/type
  * HERO = THE ORIGINAL TOOL ONLY; PRODUCTS = PHOTOROOM / NORMAL PHOTOS ONLY
  * (owner rule 2026-09-28). The hero shows only cut-outs made by the original
  * tool (BiRefNet-general via rembg): the Hub's hero-only record
- * (`hero_cutout`), else the set bundled with the site (lib/hero-cutouts.ts).
+ * (`hero_cutout`), cut by scripts/hero-cutouts/ and approved by the owner.
  * It NEVER reads the Hub's Photoroom cut-out (`cutout` / `usableCutout` on a
  * Hub photo) — that belongs to product pages and cards (lib/product-media.ts),
  * which in turn never read a hero cut-out. scripts/check-cutouts.mjs (CI)
@@ -69,30 +68,22 @@ export type HeroPiece = {
 /** One photo of a piece: the whole Hub photo, and its cut-out only when it may be shown. */
 export type HeroPhoto = { url: string; alt: string; cutout: { url: string; width: number; height: number } | null };
 
-const HELD = new Set(["needs_review", "failed"]);
-
 /**
  * THE HERO'S CUT-OUT FOR ONE PHOTO — the one seam where hero cut-outs enter
  * (owner rule 2026-09-28: the original tool only, never Photoroom):
  *
- *   1. the Hub's hero-only record (`hero_cutout`), once the owner approved it;
- *      a cut-out the owner REJECTED leaves the whole photo, no fallback
- *   2. else the bundled interim set (lib/hero-cutouts.ts), same tool, matched
- *      by the exact photo; a bundled one its own check held is "held"
- *   3. else "held" when the Hub's check held the hero cut-out, or null: the
- *      whole photo in its framed well
+ *   1. the Hub's hero-only record (`hero_cutout`), once the owner approved it
+ *   2. "held" when the Hub's check held it (a photo after the first is skipped)
+ *   3. otherwise — none, waiting, or REJECTED by the owner — null: the whole
+ *      photo in its framed well
  *
- * `m.cutout` (Photoroom) is never read here.
+ * `m.cutout` (Photoroom) is never read here. (The bundled interim set that
+ * stood between 1 and 3 was removed once the owner had approved the same
+ * photos in the Hub — hero auto cut-out PR 5.)
  */
 export function heroCutout(m: ProductMedia): { url: string; width: number; height: number } | "held" | null {
   const h = m.hero_cutout;
-  if (h?.status === "approved") {
-    const c = usableCutout({ url: m.url, alt: null, sort: 0, cutout: h });
-    if (c) return c;
-  }
-  if (h?.status === "rejected") return null;
-  const b = bundledCutout(m.url);
-  if (b) return HELD.has(b.status) ? "held" : usableCutout({ url: m.url, alt: null, sort: 0, cutout: b });
+  if (h?.status === "approved") return usableCutout({ url: m.url, alt: null, sort: 0, cutout: h });
   return h?.status === "held" ? "held" : null;
 }
 
