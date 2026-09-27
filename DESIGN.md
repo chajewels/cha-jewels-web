@@ -228,7 +228,7 @@ Two materials, gold and charcoal, on a chalk page. One action colour, orange. Th
 
 ### Named Rules
 **The Orange Means Buy Rule.** Orange appears on an element only if tapping it buys, reserves, pays or contacts a person. It never appears on navigation, the language toggle, footer headings, eyebrows or badges.
-- (change) The active language toggle (`components/site/lang-switcher.tsx`) moves to charcoal-deep fill with a chalk label.
+- (live, site frame 2026-09-27) The active language toggle (`components/site/lang-switcher.tsx`) is charcoal-deep with a chalk label; on dark surfaces it inverts to chalk with a charcoal-deep label.
 - (change) The hero slides' orange eyebrow (`components/home/hero-slides.tsx`) moves to gold-pale.
 - The old Pomelli homepage exemption for orange headings (≥24px, recorded in `docs/tasks/phase3-palette-plan.md`) is **retired**. Do not use it for new work.
 
@@ -322,7 +322,7 @@ Buttons are tactile and certain, like a stamped gold bar.
 - **Ghost (Assay Gold):** a gold-dark 1px edge and gold-dark label on light. On hover the edge and label turn charcoal-deep. Used for secondary paths (calculate layaway, view collection). On a dark band the call site overrides it to chalk (`hero-slides.tsx` is the one example).
 - **Outline (charcoal):** a charcoal/60 edge and charcoal-deep label. Used for a quiet alternative next to a primary.
 - **Press:** scale 0.985 (`.btn-press`). Disabled controls never animate.
-- **Focus:** a 2px outline, 3px offset. (change) Use gold-dark on light surfaces and gold-pale on dark. The global gold-pale ring is 1.37:1 on chalk (audit P1).
+- **Focus:** a 2px outline, 3px offset. (live, site frame 2026-09-27) Gold-dark on light surfaces (4.59:1 on chalk) and gold-pale inside dark ones (`app/globals.css`); the old global gold-pale ring was 1.37:1 on chalk (audit P1).
 
 ### Price Card (Ferrari-style name / spec line / price)
 The price card is the most "value-driven luxe" object on the site.
@@ -360,8 +360,8 @@ The price card is the most "value-driven luxe" object on the site.
 - The header is light, hides on scroll down and returns on scroll up (`HEADER` in `lib/motion.ts`). It turns solid past 24px.
 - Menus open with a 180ms fade-drop. The mobile drawer is a dialog, with a 220ms entrance.
 - Labels are Inter and consistent across surfaces: one name per destination, in both languages.
-- **Language toggle:** a 2px-edged segmented control. (change) The active segment is charcoal-deep with a chalk label, not orange.
-- **Mobile tab bar:** Home, Pieces, Layaway (EN only), Loyalty, Account. JA labels are 11px minimum (change: 10px today).
+- **Language toggle:** a 2px-edged segmented control. (live) The active segment is charcoal-deep with a chalk label, not orange.
+- **Mobile tab bar:** (live, every page since the site frame) Home, Collections, Layaway (EN only), Loyalty, Account — the nav's own names. Labels are 11px.
 
 ### Sticky Buy Bar (Apple-style)
 - (planned) Mobile product page only.

@@ -13,6 +13,8 @@ import { headers } from "next/headers";
 import { announcement, follow } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { MessengerButton } from "@/components/site/messenger-button";
+import { MobileTabBar, type Tab } from "@/components/site/mobile-tab-bar";
+import { layawayOffered } from "@/lib/layaway-availability";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
 import { BootMarker } from "@/components/fx/boot-marker";
@@ -81,6 +83,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // the same read the footer makes (lib/settings.ts caches it per request). No
   // row, or no Hub, means no button — chrome again, so the failure is caught.
   const messenger = await follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null);
+  // The phone tab bar, on every page (site frame). Layaway is offered in
+  // English only (lib/layaway-availability): the Japanese bar has four tabs.
+  const tabs: Tab[] = [
+    { href: "/", label: t("home", "tabHome"), icon: "home" },
+    { href: "/collections", label: t("home", "tabPieces"), icon: "pieces" },
+    ...(layawayOffered(lang) ? [{ href: "/layaway", label: t("home", "tabLayaway"), icon: "layaway" as const }] : []),
+    { href: "/loyalty", label: t("home", "tabLoyalty"), icon: "loyalty" },
+    { href: "/account", label: t("home", "tabAccount"), icon: "account" },
+  ];
   return (
     <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
       {/* The announcement bar's pre-paint script sets a data attribute here
@@ -118,6 +129,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         <main id="main">{children}</main>
         <Footer lang={lang} />
+        <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
+        {/* Last in the document, so no page chrome paints over it. */}
         {messenger && <MessengerButton href={messenger} label={t("social", "messengerButton")} />}
       </body>
     </html>

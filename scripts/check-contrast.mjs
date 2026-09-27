@@ -363,6 +363,60 @@ add("newsletter input text (chalk) on charcoal-deep", "chalk", "charcoal-deep", 
 add("newsletter input border chalk/40 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.4);
 add("newsletter focus ring gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
 
+// THE SITE FRAME (build step 1, 2026-09-27). Header, mega-menus, search,
+// drawer, tab bar, footer, Messenger button.
+//
+// THE FOCUS RING (audit P1). The global ring was gold-pale, 1.37:1 on chalk;
+// it is now gold-dark on light and gold-pale inside a dark surface
+// (app/globals.css). Both rings are measured on every surface they meet.
+add("focus ring gold-dark on chalk (global, light)", "gold-dark", "chalk", NONTEXT);
+add("focus ring gold-dark on white (menu rows, search panel)", "gold-dark", "white", NONTEXT);
+add("focus ring gold-dark on tab bar chalk/95", "gold-dark", "tintB", NONTEXT);
+add("focus ring gold-pale on charcoal-deep (footer, hero, drawer foot)", "gold-pale", "charcoal-deep", NONTEXT);
+// Messenger button (D1-1): charcoal-deep fill, gold edge, gold-pale glyph,
+// chalk label. The two-ring focus is gold-pale inside, gold-dark outside.
+add("messenger fill charcoal-deep edge on chalk", "charcoal-deep", "chalk", NONTEXT);
+add("messenger gold edge on charcoal-deep (over the footer/hero)", "gold", "charcoal-deep", NONTEXT);
+add("messenger glyph gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
+add("messenger label chalk on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+add("messenger outer ring gold-dark on chalk", "gold-dark", "chalk", NONTEXT);
+add("messenger inner ring gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
+// Language toggle (DESIGN.md change: not orange). Light: charcoal-deep
+// segment with a chalk label; dark (footer, drawer): chalk segment with a
+// charcoal-deep label; the edge charcoal/40 on chalk, chalk/40 on charcoal.
+add("lang toggle active chalk on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+add("lang toggle active charcoal-deep on chalk (dark tone)", "charcoal-deep", "chalk", TEXT);
+add("lang toggle idle charcoal/80 on chalk", "charcoal", "chalk", TEXT, 0.8);
+add("lang toggle idle chalk/80 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.8);
+add("lang toggle, search field, chip and close edges charcoal/60 on chalk", "charcoal", "chalk", NONTEXT, 0.6);
+add("lang toggle edge chalk/40 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.4);
+// Cart count: a charcoal-deep disc with a gold-pale numeral (not orange).
+add("cart count gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", TEXT);
+// Mega-menus: eyebrows gold-dark on chalk, descriptions and counts charcoal/75
+// on chalk and white, the feature tile and contact card on charcoal-deep.
+add("menu eyebrow gold-dark on chalk", "gold-dark", "chalk", TEXT);
+add("menu description charcoal/75 on chalk", "charcoal", "chalk", TEXT, 0.75);
+add("menu row hover: charcoal/75 on white", "charcoal", "white", TEXT, 0.75);
+add("menu icon box edge gold-dark on chalk", "gold-dark", "chalk", NONTEXT);
+add("feature tile price gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", TEXT);
+add("feature tile name chalk/85 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.85);
+add("contact card label chalk/75 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.75);
+add("contact card Messenger edge chalk/70 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.7);
+// Search: marked query gold-dark on white and chalk, Sold badge charcoal/75
+// on chalk, chips' edge charcoal/40 on white (measured at 0.6: see below).
+add("search match gold-dark on white", "gold-dark", "white", TEXT);
+add("search match gold-dark on chalk (active row)", "gold-dark", "chalk", TEXT);
+add("search Sold badge charcoal/75 on chalk", "charcoal", "chalk", TEXT, 0.75);
+// Tab bar: idle labels charcoal/75, active gold-deep, on chalk/95.
+add("tab bar idle label charcoal/75 on chalk/95", "charcoal", "tintB", TEXT, 0.75);
+add("tab bar active label gold-deep on chalk/95", "gold-deep", "tintB", TEXT);
+// Footer: gold-pale headings and figures, chalk/80 links, chalk/75 notes,
+// the gold rule at 32% is ornament (the colour change is the divider).
+add("footer heading gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", TEXT);
+add("footer link chalk/80 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.8);
+add("footer note chalk/75 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.75);
+add("footer Sign up gold-pale on charcoal-deep (D1-2)", "gold-pale", "charcoal-deep", TEXT);
+
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
 // The Phase 4 additions are the tokens that look like they would be fine on a
 // light surface and are not:

@@ -2,73 +2,68 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { signOutAction } from "@/lib/session-actions";
 import { SearchBox } from "./search-box";
 import { LangSwitcher } from "./lang-switcher";
+import { SocialGlyph } from "./social-icons";
 import type { Lang } from "@/lib/i18n";
 
 /** `name` is a ReactNode: the header streams the real one in. See header.tsx. */
 export type DrawerAccount = { name: React.ReactNode; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
-/** `media`: an optional 40px thumbnail beside the label (the category rows, components/site/category-thumb.tsx). */
-export type DrawerItem = { key: string; href: string; label: string; media?: React.ReactNode };
-export type DrawerGroup = { key: string; label: string; sections: { heading?: string; items: DrawerItem[] }[] };
+/** A collection tile (photo + name). */
+export type DrawerTile = { key: string; href: string; label: string; thumb: string | null };
+/** A row: an optional leading media element (thumbnail or icon), the label, and an optional count. */
+export type DrawerRow = { key: string; href: string; label: string; media?: React.ReactNode; count?: string | null; countLabel?: string };
+export type DrawerGroup = {
+  key: string;
+  label: string;
+  tiles?: DrawerTile[];
+  tilesHeading?: string;
+  rows: DrawerRow[];
+  rowsHeading?: string;
+  footer?: { href: string; label: string };
+};
 
 /**
- * The drawer below `xl`. When the customer is signed in, `account` adds a
- * section after the page links: their name as its heading, the account pages,
- * and Sign out on its own at the bottom — the same list the desktop menu shows.
+ * THE PHONE DRAWER (site frame, 2026-09-27), below `xl`.
  *
- * The panel is portalled to <body>. The header's `backdrop-blur` makes the
- * header the containing block for fixed descendants, so a panel rendered
- * inside it had its top/bottom measured against the header bar and collapsed to
- * nothing — the links spilled out unstyled over the page. Outside the header
- * the panel fills the viewport below the bar as intended.
+ * Full screen, over the header: its own top row carries the logo and ONE close
+ * control (the audit found two). Then search; Collections (the owner's photo
+ * tiles, two across, and the category rows with their in-stock counts) and
+ * Company as disclosures; Layaway (English only), Loyalty, Wholesale and
+ * Account as plain rows. A dark foot is pinned at the bottom with the
+ * Messenger action, the language toggle and "Since 2021 · Tokyo". Headings are
+ * 20px (Noto Serif JP on Japanese, Playfair on English), down from ~40px live.
  *
- * IT IS A DIALOG, AND IT BEHAVES LIKE ONE.
+ * IT IS A DIALOG, AND IT BEHAVES LIKE ONE. `role="dialog"` + `aria-modal`,
+ * portalled to its own container in <body> (the header's backdrop-filter would
+ * otherwise be its containing block); every other child of <body> is `inert`
+ * while it is open; focus moves to the close button on open, is kept inside by
+ * the Tab handler, and returns to the trigger on close; Escape closes.
  *
- * It used to be a <div> that appeared: nothing told a screen reader a modal had
- * opened, focus stayed on the page behind it, Tab walked straight out of the
- * drawer into links the reader could not see, and closing left focus wherever
- * it had drifted to. Now: `role="dialog"` + `aria-modal`, named by nav.menu;
- * focus moves to the close button on open and is contained by the Tab handler
- * below; every other child of <body> is `inert` while it is open; Escape
- * closes; and focus goes back to the trigger that opened it.
- *
- * `aria-modal` is a PROMISE that nothing outside the dialog is reachable, so
- * the header goes inert with everything else — including the hamburger, which
- * is why the drawer carries its own close button now. It sits in the drawer's
- * first row, directly under the hamburger it replaces, so the tap lands in the
- * same place. Escape does the same job. Nothing else in the header is lost:
- * the drawer has its own search box and its own Home link.
+ * Motion: `.drawer-in` (220ms, ease-lux); reduced motion shows it at once.
  */
-export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, closeLabel, account }: { lang: Lang; links: { href: string; label: string }[]; groups?: DrawerGroup[]; menuLabel: string; openLabel: string; closeLabel: string; account?: DrawerAccount | null }) {
+export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, closeLabel, account, accountLink, messenger, since }: {
+  lang: Lang;
+  links: { href: string; label: string }[];
+  groups?: DrawerGroup[];
+  menuLabel: string;
+  openLabel: string;
+  closeLabel: string;
+  account?: DrawerAccount | null;
+  accountLink: { href: string; label: string };
+  messenger: { href: string; label: string } | null;
+  since: string;
+}) {
   const [open, setOpen] = useState(false);
-  // One group open at a time is NOT enforced: Collections is long, and a
-  // customer who opened it to compare types should not lose it by glancing at
-  // Company. Both start closed, so the drawer opens at its shortest.
+  // Both groups start closed, so the drawer opens at its shortest; opening one
+  // does not close the other (a reader comparing types keeps Collections open).
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  /**
-   * The portal gets a container of its own rather than <body> directly, so the
-   * effect below can tell the dialog apart from everything it has to make
-   * inert. Portalling straight into <body> left nothing to exclude.
-   */
   const [host, setHost] = useState<HTMLElement | null>(null);
-  /**
-   * WHERE THE HEADER ACTUALLY ENDS.
-   *
-   * This was a hard-coded `top-[68px]` — the height of the header row on its
-   * own. The announcement strip sits ABOVE the sticky header and is part of
-   * the flow, so with the strip up the header runs to 124.8px at 375 and the
-   * drawer's first 57px were underneath it. That row is the search box, the
-   * language toggle and now the close button, so the way out of the dialog was
-   * hidden behind the bar the reader had just tapped. Measured at open instead:
-   * the strip can be dismissed, and it scrolls away, so the number is not a
-   * constant and never was.
-   */
-  const [top, setTop] = useState(68);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -77,22 +72,14 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
     const el = document.createElement("div");
     document.body.appendChild(el);
     setHost(el);
-
-    const measure = () => setTop(document.querySelector("header")?.getBoundingClientRect().bottom ?? 68);
-    measure();
-    window.addEventListener("resize", measure);
-
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     // `inert` rather than aria-hidden: it takes the page behind out of the
-    // accessibility tree AND out of the tab order AND stops it answering
-    // clicks, which is the whole of what aria-modal claims.
+    // accessibility tree AND the tab order AND stops it answering clicks.
     const outside = Array.from(document.body.children).filter((c) => c !== el);
     const hadInert = outside.map((c) => c.hasAttribute("inert"));
     outside.forEach((c) => c.setAttribute("inert", ""));
-
     return () => {
-      window.removeEventListener("resize", measure);
       outside.forEach((c, i) => { if (!hadInert[i]) c.removeAttribute("inert"); });
       document.body.style.overflow = previous;
       el.remove();
@@ -100,13 +87,10 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
     };
   }, [open]);
 
-  // Focus in on open, back to the trigger on close. Not in the effect above:
-  // that one runs before the panel has been portalled into `host`.
+  // Focus in on open, back to the trigger on close (captured now: by cleanup
+  // time React may have replaced the node).
   useEffect(() => {
     if (!host) return;
-    // Captured now, not read in the cleanup: by the time this unwinds React
-    // may have replaced the node, and the focus has to go back to the button
-    // that was actually pressed.
     const trigger = triggerRef.current;
     closeRef.current?.focus();
     return () => { trigger?.focus(); };
@@ -119,8 +103,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
       if (e.key !== "Tab") return;
       const panel = panelRef.current;
       if (!panel) return;
-      // Queried per keystroke, never cached: a disclosure the reader just
-      // opened adds a dozen links, and a stale list would trap them above it.
+      // Queried per keystroke: a disclosure just opened adds a dozen links.
       const focusable = Array.from(
         panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'),
       ).filter((el) => el.offsetParent !== null || el === document.activeElement);
@@ -135,10 +118,13 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
     return () => document.removeEventListener("keydown", onKey);
   }, [open, close]);
 
+  const heading = `${lang === "ja" ? "font-jp font-medium" : "font-display"} text-[20px] leading-tight text-charcoal-deep`;
+  const label = `text-[11px] font-semibold text-gold-dark ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`;
+
   return (
     <>
-      <button ref={triggerRef} type="button" aria-label={open ? closeLabel : openLabel} aria-expanded={open} onClick={() => setOpen(!open)} className="grid h-11 w-11 place-items-center rounded-sm border border-charcoal/30 text-charcoal xl:hidden">
-        <span className="block h-px w-[18px] bg-current" /><span className={`my-1 block h-px w-[18px] bg-current ${open ? "opacity-0" : ""}`} /><span className="block h-px w-[18px] bg-current" />
+      <button ref={triggerRef} type="button" aria-label={open ? closeLabel : openLabel} aria-expanded={open} onClick={() => setOpen(!open)} className="grid h-11 w-11 place-items-center rounded-sm text-charcoal-deep hover:text-gold-dark xl:hidden">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 7h16M4 12h16M9 17h11" /></svg>
       </button>
       {host && createPortal(
         <div
@@ -146,78 +132,116 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
           role="dialog"
           aria-modal="true"
           aria-label={menuLabel}
-          style={{ top }}
-          className="drawer-in fixed inset-x-0 bottom-0 z-30 flex flex-col gap-1 overflow-y-auto bg-chalk px-[clamp(18px,4vw,48px)] py-8 text-charcoal xl:hidden"
+          className="drawer-in fixed inset-0 z-50 flex flex-col bg-chalk text-charcoal-deep xl:hidden"
         >
-          {/* Below `sm` the header row has no room for the language toggle, so it
-              lives here beside the search box; from `sm` the header shows it. */}
-          <div className="mb-4 flex items-center gap-3">
-            <SearchBox lang={lang} variant="drawer" />
-            <div className="shrink-0 sm:hidden"><LangSwitcher lang={lang} /></div>
-            {/* The drawer's own close control, because the hamburger behind it
-                is inert while this is open. Top-right, where the hamburger was,
-                and it is what receives focus when the drawer opens — so the
-                first thing a keyboard or screen-reader user lands on is the
-                way back out. Tab from here walks the links; Shift+Tab reaches
-                the search box and the language toggle beside it. */}
-            <button ref={closeRef} type="button" aria-label={closeLabel} onClick={close} className="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-charcoal/30 text-charcoal hover:border-gold-dark hover:text-gold-dark">
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" /></svg>
+          <div className="wrap flex h-16 w-full shrink-0 items-center justify-between border-b border-hairline">
+            <Link href="/" onClick={close} className="flex items-center gap-2 sm:gap-3" aria-label="Cha Jewels">
+              <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={40} height={40} alt="" className="h-10 w-10" />
+              <span className="gilt font-display text-[22px] font-medium tracking-wide sm:text-[26px]">Cha Jewels</span>
+            </Link>
+            <button ref={closeRef} type="button" aria-label={closeLabel} onClick={close} className="grid h-11 w-11 place-items-center rounded-full border border-charcoal/60 text-charcoal-deep hover:border-gold-dark hover:text-gold-dark">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" /></svg>
             </button>
           </div>
-          {links.filter((l) => l.href === "/").map((l) => (
-            <Link key={l.href} href={l.href} onClick={close} className="border-b border-hairline py-3 font-display text-3xl text-charcoal hover:text-gold-dark">{l.label}</Link>
-          ))}
-          {/* Company and Collections as disclosures. No descriptions here: the
-              drawer is a list of destinations, and a second line under each of
-              a dozen rows turns it into a page to read. */}
-          {groups.map((g) => (
-            <div key={g.key} className="border-b border-hairline">
-              <button
-                type="button"
-                aria-expanded={!!expanded[g.key]}
-                aria-controls={`drawer-${g.key}`}
-                onClick={() => setExpanded((e) => ({ ...e, [g.key]: !e[g.key] }))}
-                className="flex w-full items-center justify-between py-3 text-left font-display text-3xl text-charcoal hover:text-gold-dark"
-              >
-                {g.label}
-                <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-4 w-4 shrink-0 transition-transform ${expanded[g.key] ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M2.5 4.5 6 8l3.5-3.5" />
-                </svg>
-              </button>
-              {expanded[g.key] && (
-                <div id={`drawer-${g.key}`} className="pb-3">
-                  {g.sections.map((sec, i) => (
-                    <div key={sec.heading ?? `s${i}`} className={i > 0 ? "mt-3" : ""}>
-                      {sec.heading && <p className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal/70">{sec.heading}</p>}
-                      <ul>
-                        {sec.items.map((it) => (
-                          <li key={it.key}>
-                            <Link href={it.href} onClick={close} className={`py-2 pl-1 text-lg text-charcoal/85 hover:text-gold-dark ${it.media ? "flex items-center gap-3" : "block"}`}>{it.media}{it.label}</Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              )}
+
+          <div className="wrap min-h-0 w-full flex-1 overflow-y-auto pb-8 pt-4">
+            <SearchBox lang={lang} variant="drawer" onNavigate={close} />
+
+            <div className="mt-4">
+              {groups.map((g) => {
+                const isOpen = !!expanded[g.key];
+                return (
+                  <div key={g.key} className="border-b border-hairline">
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={`drawer-${g.key}`}
+                      onClick={() => setExpanded((e) => ({ ...e, [g.key]: !e[g.key] }))}
+                      className={`flex min-h-[60px] w-full items-center justify-between text-left hover:text-gold-dark ${heading}`}
+                    >
+                      {g.label}
+                      <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M2.5 4.5 6 8l3.5-3.5" />
+                      </svg>
+                    </button>
+                    {isOpen && (
+                      <div id={`drawer-${g.key}`} className="pb-5">
+                        {g.tiles && g.tiles.length > 0 && (
+                          <>
+                            {g.tilesHeading && <p className={`${label} pb-3`}>{g.tilesHeading}</p>}
+                            <ul className="grid grid-cols-2 gap-x-4 gap-y-3">
+                              {g.tiles.map((it) => (
+                                <li key={it.key} className="min-w-0">
+                                  <Link href={it.href} onClick={close} className="flex min-h-11 items-center gap-3 text-[15px] text-charcoal-deep hover:text-gold-dark">
+                                    <span className="block h-11 w-11 shrink-0 overflow-hidden rounded-sm bg-hairline">
+                                      {it.thumb && <img src={it.thumb} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                                    </span>
+                                    <span className="min-w-0 [line-break:strict] [word-break:auto-phrase]">{it.label}</span>
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {g.rowsHeading && <p className={`${label} pb-2 ${g.tiles?.length ? "pt-6" : ""}`}>{g.rowsHeading}</p>}
+                        <ul className="border-t border-hairline">
+                          {g.rows.map((it) => (
+                            <li key={it.key}>
+                              <Link href={it.href} onClick={close} className="flex min-h-[52px] items-center gap-3 border-b border-hairline py-1.5 text-[15px] text-charcoal-deep hover:text-gold-dark">
+                                {it.media}
+                                <span className="min-w-0 flex-1 [line-break:strict] [word-break:auto-phrase]">{it.label}</span>
+                                {it.count && <span className="shrink-0 text-xs text-charcoal/75 [font-variant-numeric:lining-nums_tabular-nums]"><span aria-hidden="true">{it.count}</span>{it.countLabel && <span className="sr-only">{it.countLabel}</span>}</span>}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                        {g.footer && (
+                          <Link href={g.footer.href} onClick={close} className="mt-4 inline-flex min-h-11 items-center gap-2 border-b border-gold-dark text-sm font-medium text-gold-dark">
+                            {g.footer.label}<ArrowRight aria-hidden="true" className="h-4 w-4" />
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {[...links, ...(account ? [] : [accountLink])].map((l) => (
+                <Link key={l.href} href={l.href} onClick={close} className={`flex min-h-[60px] items-center justify-between border-b border-hairline hover:text-gold-dark ${heading}`}>
+                  {l.label}<ArrowRight aria-hidden="true" className="h-5 w-5 text-charcoal/60" strokeWidth={1.5} />
+                </Link>
+              ))}
             </div>
-          ))}
-          {links.filter((l) => l.href !== "/").map((l) => <Link key={l.href} href={l.href} onClick={close} className="border-b border-hairline py-3 font-display text-3xl text-charcoal hover:text-gold-dark">{l.label}</Link>)}
-          {account && (
-            <section aria-label={account.menuLabel} className="mt-8 border-t border-hairline pt-6">
-              <p className="font-display text-2xl text-gold-dark">{account.name}</p>
-              <ul className="mt-3">
-                {account.items.map((it) => (
-                  <li key={it.href}><Link href={it.href} onClick={close} className="block border-b border-hairline py-3 text-lg text-charcoal/85 hover:text-gold-dark">{it.label}</Link></li>
-                ))}
-              </ul>
-              <form action={signOutAction} className="mt-5">
-                <button type="submit" className="min-h-11 text-lg text-gold-dark underline underline-offset-4">{account.signOut}</button>
-              </form>
-            </section>
-          )}
+
+            {account && (
+              <section aria-label={account.menuLabel} className="mt-8">
+                <p className={`${heading} text-gold-dark`}>{account.name}</p>
+                <ul className="mt-2 border-t border-hairline">
+                  {account.items.map((it) => (
+                    <li key={it.href}><Link href={it.href} onClick={close} className="flex min-h-12 items-center border-b border-hairline text-[15px] text-charcoal-deep hover:text-gold-dark">{it.label}</Link></li>
+                  ))}
+                </ul>
+                <form action={signOutAction} className="mt-4">
+                  <button type="submit" className="min-h-11 text-[15px] text-gold-dark underline underline-offset-4">{account.signOut}</button>
+                </form>
+              </section>
+            )}
+          </div>
+
+          <div data-surface="dark" className="shrink-0 bg-charcoal-deep pb-[calc(16px+env(safe-area-inset-bottom))] pt-4 text-chalk">
+            <div className="wrap w-full">
+              {messenger && (
+                <a href={messenger.href} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center gap-2.5 rounded-sm border border-chalk/70 px-4 text-[15px] font-medium text-chalk hover:border-gold-pale hover:text-gold-pale">
+                  <span aria-hidden="true" className="text-gold-pale"><SocialGlyph name="messenger" size={20} /></span>{messenger.label}
+                </a>
+              )}
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <LangSwitcher lang={lang} tone="dark" />
+                <span className="text-xs text-chalk/75">{since}</span>
+              </div>
+            </div>
+          </div>
         </div>,
-        document.body,
+        host,
       )}
     </>
   );

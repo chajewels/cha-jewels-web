@@ -67,8 +67,10 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.R
         aria-controls={open ? id : undefined}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => { if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !open) { e.preventDefault(); setOpen(true); } }}
-        className={`inline-flex min-h-9 max-w-[16ch] items-center gap-1.5 whitespace-nowrap rounded-sm border px-3 text-xs ${open ? "border-gold-dark bg-white text-gold-dark" : "border-charcoal/30 text-charcoal hover:border-gold-dark hover:text-gold-dark"}`}
+        // Site frame: an icon + label tool, like Cart beside it.
+        className={`inline-flex min-h-11 max-w-[18ch] items-center gap-2 whitespace-nowrap rounded-sm px-1.5 text-sm font-medium ${open ? "text-gold-dark" : "text-charcoal-deep hover:text-gold-dark"}`}
       >
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
         <span className="truncate">{name}</span>
         <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-3 w-3 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M2.5 4.5 6 8l3.5-3.5" />
