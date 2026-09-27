@@ -359,6 +359,7 @@ The price card is the most "value-driven luxe" object on the site.
 ### Navigation
 - The header is light, hides on scroll down and returns on scroll up (`HEADER` in `lib/motion.ts`). It turns solid past 24px.
 - Menus open with a 180ms fade-drop. The mobile drawer is a dialog, with a 220ms entrance.
+- (live) Below `xl` the drawer ends with the mega-menus' dark customer-story panel (`menu-story.tsx`, `place="drawer"`), just above its dark foot: the same stories, rotation and typing; it scrolls with the drawer and never pushes the foot out of view (owner decision 2026-09-27).
 - Labels are Inter and consistent across surfaces: one name per destination, in both languages.
 - **Language toggle:** a 2px-edged segmented control. (live) The active segment is charcoal-deep with a chalk label, not orange.
 - **Mobile tab bar:** (live, every page since the site frame) Home, Collections, Layaway (EN only), Loyalty, Account — the nav's own names. Labels are 11px.
