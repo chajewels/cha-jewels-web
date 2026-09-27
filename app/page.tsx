@@ -8,7 +8,7 @@ import { JsonLd } from "@/components/site/json-ld";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
-import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { typeVisual } from "@/lib/type-icons";
 import { headers } from "next/headers";
 import { buildHeroDeck } from "@/lib/hero-deck";
 import { HERO_DEMO_PARAM, heroDemoAllowed } from "@/lib/hero-demo";
@@ -42,13 +42,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   ]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
-  // A card shows the collection's own hero_media, else the Stitch placeholder
-  // for that slug, else the typographic state. A product photo never stands in
-  // for a category.
-  const cards: CollectionCardData[] = collections.map((c) => ({
-    c,
-    image: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
-  }));
+  // A card shows the type's own hero_media, else the Stitch placeholder for
+  // that slug, else the type's line icon (lib/type-icons.ts). A product photo
+  // never stands in for a type.
+  const cards: CollectionCardData[] = collections.map((c) => ({ c, visual: typeVisual(c) }));
   // Hero deck (hero v3): the film alone, then one slide per category in the
   // Hub's sort_order, each with up to three pieces chosen from the Hub's
   // catalogue on this render — only active pieces in stock, never a sold one —

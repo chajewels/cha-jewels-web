@@ -10,7 +10,8 @@ import { collectionName } from "@/lib/catalog-i18n";
 import { fromPrice, type Product } from "@/lib/queries/products";
 import { productMetals, metalLabel } from "@/lib/metals";
 import { isBuyable, productAvailability } from "@/lib/availability";
-import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { typeVisual } from "@/lib/type-icons";
+import { TypeIconWell } from "@/components/catalog/type-icon";
 import type { CollectionWithProducts } from "@/lib/catalog-context";
 
 /**
@@ -123,12 +124,14 @@ export function EmptyCatalog({ lang, stocked, now, messenger }: {
         {stocked.length > 0 && (
           <ul className="grid grid-cols-2 gap-3">
             {stocked.map(({ col, n }) => {
-              const img = col.hero_media ?? COLLECTION_PLACEHOLDER[col.slug] ?? null;
+              const visual = typeVisual(col);
               return (
                 <li key={col.slug}>
                   <Link href={`/collections/${col.slug}`} className="group block">
                     <span className="relative block aspect-[4/3] overflow-hidden bg-hairline">
-                      {img && <HubImage src={img} alt="" fill sizes="(min-width:768px) 22vw, 45vw" className="object-cover transition-transform duration-[1.2s] [transition-timing-function:var(--ease-lux)] group-hover:scale-[1.04] motion-reduce:transition-none" />}
+                      {visual.kind === "photo"
+                        ? <HubImage src={visual.url} alt="" fill sizes="(min-width:768px) 22vw, 45vw" className="object-cover transition-transform duration-[1.2s] [transition-timing-function:var(--ease-lux)] group-hover:scale-[1.04] motion-reduce:transition-none" />
+                        : <TypeIconWell icon={visual.icon} iconClassName="h-8 w-8" />}
                     </span>
                     <span className="flex items-baseline justify-between gap-1.5 pt-2 text-sm font-medium leading-snug">
                       <span>{collectionName(col, lang)}</span>
