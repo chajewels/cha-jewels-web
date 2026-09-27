@@ -3,19 +3,21 @@ import { ArrowRight } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import type { Collection } from "@/lib/types";
+import type { TypeVisual } from "@/lib/type-icons";
+import { TypeIconWell } from "@/components/catalog/type-icon";
 import { HubImage } from "@/components/media/hub-image";
 import { RevealGroup } from "@/components/fx/reveal";
 import { CardEntrance, CardHairline, CardWipe } from "@/components/fx/card-entrance";
 import { STAGGER } from "@/lib/motion";
 
-export type CollectionCardData = { c: Collection; image: string | null };
+export type CollectionCardData = { c: Collection; visual: TypeVisual };
 
 /**
  * Collections (Stitch §8), dynamic from the Hub. Four per row on desktop with
  * the remainder centred; on mobile the file's row card with a square thumbnail.
  * Image: c.hero_media when the Hub has one, else the Stitch placeholder for that
- * slug (lib/collection-placeholders), else a chalk block with the name in
- * Playfair — never a product photo. Description is the Hub's or nothing.
+ * slug (lib/collection-placeholders), else the type's gold line icon on a
+ * chalk well (lib/type-icons.ts) — never a product photo. Description is the Hub's or nothing.
  * Image sizing is measured, not guessed: the thumbnail is a fixed 112px box
  * below `lg` (the mobile row card) and 266px from `lg` up, where four cards
  * share a 1144px row and the container stops growing — 375, 768, 1280 and 1440
@@ -29,7 +31,7 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
   const t = tr(lang);
   return (
     <RevealGroup className="flex flex-wrap justify-center gap-3 lg:gap-6" stagger={STAGGER.card}>
-      {items.map(({ c, image }, i) => {
+      {items.map(({ c, visual }, i) => {
         const name = collectionName(c, lang);
         const desc = collectionDescription(c, lang);
         return (
@@ -40,10 +42,10 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
           <CardHairline />
           <Link href={`/collections/${c.slug}`} className="group flex h-full w-full items-stretch overflow-hidden rounded-sm border border-hairline bg-white lg:flex-col">
             <div className="relative h-28 w-28 shrink-0 overflow-hidden lg:aspect-[4/3] lg:h-auto lg:w-full">
-              {image ? (
-                <CardWipe><HubImage src={image} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" /></CardWipe>
+              {visual.kind === "photo" ? (
+                <CardWipe><HubImage src={visual.url} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" /></CardWipe>
               ) : (
-                <div className="grid h-full w-full place-items-center bg-chalk p-3 text-center"><span className="font-display text-lg text-gold-dark lg:text-2xl">{name}</span></div>
+                <CardWipe><TypeIconWell icon={visual.icon} iconClassName="h-9 w-9 lg:h-14 lg:w-14" /></CardWipe>
               )}
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-between p-3 lg:p-5">

@@ -113,7 +113,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     [t("product", "stone"), variant?.stone?.trim() || "—"],
     ...(variant?.size?.trim() ? [[t("pdp", "size"), variant.size.trim()] as [string, string]] : []),
     [t("pdp", "condition"), p.condition === "Preloved" ? t("collection", "filterPreloved") : t("collection", "filterNew")],
-    [t("pdp", "category"), category ? categoryName(category, lang) : "—"],
+    // The jewelry type: the piece's collection (Rings, Earrings…) — the one the
+    // crumb names. The Hub's product does not carry `category_slugs`, so a
+    // merchandising category is only a fallback, and with neither the row is
+    // left out rather than showing a dash.
+    ...(col ? [[t("pdp", "category"), collectionName(col, lang)] as [string, string]]
+      : category ? [[t("pdp", "category"), categoryName(category, lang)] as [string, string]] : []),
     ["SKU", p.sku],
   ];
 

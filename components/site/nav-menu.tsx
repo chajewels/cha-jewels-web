@@ -1,7 +1,9 @@
 "use client";
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import type { TypeVisual } from "@/lib/type-icons";
+import { TypeIconWell } from "@/components/catalog/type-icon";
 
 /** Fired when a menu opens, so any other open one closes at once (two panels never overlap). */
 const OPEN_EVENT = "cj:navmenu-open";
@@ -75,6 +77,18 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
     document.addEventListener("pointerdown", onPointer);
     return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onPointer); };
   }, [open, close]);
+
+  // The panel may be as tall as the space left below the header, measured
+  // rather than assumed: the announcement bar above the header moves where the
+  // panel starts, and a fixed calc cut the bottom of a long menu off-screen.
+  useLayoutEffect(() => {
+    if (!open) return;
+    // The wrapper's top, not the panel's: .menu-in slides the panel while it opens.
+    const fit = () => { const el = panel.current; const top = el?.parentElement?.getBoundingClientRect().top; if (el && top !== undefined) el.style.maxHeight = `${Math.max(240, window.innerHeight - top)}px`; };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [open]);
 
   const focusFirst = () => {
     requestAnimationFrame(() => panel.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus());
@@ -181,14 +195,16 @@ export function NavMenuItem({ href, title, description, icon, media, count, coun
  * A collection tile: the owner's 4:3 photo, its name, and the in-stock count
  * when there is stock (D1-6). The photo is decorative (alt="").
  */
-export function NavMenuTile({ href, title, thumb, count, countLabel }: { href: string; title: string; thumb: string | null; count?: string | null; countLabel?: string }) {
+export function NavMenuTile({ href, title, thumb, count, countLabel }: { href: string; title: string; thumb: TypeVisual; count?: string | null; countLabel?: string }) {
   return (
     <Link role="menuitem" tabIndex={-1} href={href} className="group block min-w-0 focus-visible:outline-offset-2">
       <span className="block aspect-[4/3] overflow-hidden rounded-sm bg-hairline">
-        {thumb && <img src={thumb} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]" />}
+        {thumb.kind === "photo"
+          ? <img src={thumb.url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]" />
+          : <TypeIconWell icon={thumb.icon} iconClassName="h-7 w-7" on="chalk" />}
       </span>
       <span className="mt-2 flex items-baseline justify-between gap-2">
-        <span className="text-sm font-medium text-charcoal-deep [line-break:strict] [word-break:auto-phrase] group-hover:text-gold-dark">{title}</span>
+        <span className="min-w-0 text-sm font-medium text-charcoal-deep [line-break:strict] [overflow-wrap:anywhere] [word-break:auto-phrase] group-hover:text-gold-dark">{title}</span>
         {count && <span className="shrink-0 text-xs text-charcoal/75 [font-variant-numeric:lining-nums_tabular-nums]"><span aria-hidden="true">{count}</span>{countLabel && <span className="sr-only">{countLabel}</span>}</span>}
       </span>
     </Link>

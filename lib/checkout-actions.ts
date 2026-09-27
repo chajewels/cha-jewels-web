@@ -7,7 +7,7 @@ import { TERM_NOT_LAUNCHED, termLaunched, LAYAWAY_UNAVAILABLE } from "@/lib/laya
 import { layawayOfferedNow } from "@/lib/layaway-availability-server";
 import { AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 import { agreementStatus, type AgreementStatus } from "@/lib/agreement-lookup";
-import { readCart, hydrateCart } from "@/lib/cart";
+import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
@@ -259,4 +259,36 @@ export async function agreementStatusAction(
   return status.signed
     ? { ok: true, data: { signed: true, version: status.version, signed_at: status.signedAt } }
     : { ok: true, data: { signed: false, version: null, signed_at: null } };
+}
+
+/**
+ * The Hub's peso figures for the basket, for the order summary BEFORE the
+ * checkout quote exists (Step 1 with pesos chosen). Display only: the order is
+ * still priced by /checkout/quote and written by the Hub, and nothing here is
+ * stored or sent back.
+ *
+ * NOTHING IS CONVERTED ON THIS SIDE (owner rule 2026-09-25). The yen subtotal
+ * is re-read from the cart and the Hub here — never taken from the browser —
+ * and handed to the Hub's layaway_quote in pesos, which converts it once at
+ * the day's rate (half-up to a whole peso, the same maths the peso checkout
+ * stores) and, for a plan, computes the peso deposit and monthly. No rate →
+ * `rate_unavailable`, and the summary keeps the yen with "shown at the next
+ * step"; a peso figure is never guessed.
+ *
+ * The plan figures are asked for only where layaway is offered; the Japanese
+ * site gets the total alone.
+ */
+export async function pesoEstimateAction(input: { mode: CheckoutMode; term_months: number }): Promise<ActionResult<{ total: number; deposit: number | null; monthly: number | null }>> {
+  const { items } = await hydrateCart(await readCart());
+  const subtotal = cartSubtotal(items);
+  if (subtotal <= 0) return { ok: false, code: "empty_cart" };
+  const layaway = input.mode === "layaway" && (await layawayOfferedNow());
+  const term = layaway && termLaunched(input.term_months) ? input.term_months : 6;
+  try {
+    const q = await hub.layawayQuote(subtotal, term, "PHP");
+    if (q.currency !== "PHP" || !Number.isFinite(q.total)) return { ok: false, code: "failed" };
+    return { ok: true, data: { total: q.total, deposit: layaway ? q.down_payment : null, monthly: layaway ? q.monthly : null } };
+  } catch (err) {
+    return fail(err);
+  }
 }

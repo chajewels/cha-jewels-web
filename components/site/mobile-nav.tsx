@@ -10,11 +10,13 @@ import { SocialGlyph } from "./social-icons";
 import { MenuStory } from "./menu-story";
 import type { Lang } from "@/lib/i18n";
 import type { Story } from "@/lib/stories";
+import type { TypeVisual } from "@/lib/type-icons";
+import { TypeIconWell } from "@/components/catalog/type-icon";
 
 /** `name` is a ReactNode: the header streams the real one in. See header.tsx. */
 export type DrawerAccount = { name: React.ReactNode; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
-/** A collection tile (photo + name). */
-export type DrawerTile = { key: string; href: string; label: string; thumb: string | null };
+/** A product type tile (photo or line icon, lib/type-icons.ts, + name). */
+export type DrawerTile = { key: string; href: string; label: string; thumb: TypeVisual };
 /** A row: an optional leading media element (thumbnail or icon), the label, and an optional count. */
 export type DrawerRow = { key: string; href: string; label: string; media?: React.ReactNode; count?: string | null; countLabel?: string };
 export type DrawerGroup = {
@@ -187,7 +189,9 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
                                 <li key={it.key} className="min-w-0">
                                   <Link href={it.href} onClick={close} className="flex min-h-11 items-center gap-3 text-[15px] text-charcoal-deep hover:text-gold-dark">
                                     <span className="block h-11 w-11 shrink-0 overflow-hidden rounded-sm bg-hairline">
-                                      {it.thumb && <img src={it.thumb} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                                      {it.thumb.kind === "photo"
+                                        ? <img src={it.thumb.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                                        : <TypeIconWell icon={it.thumb.icon} iconClassName="h-5 w-5" on="chalk" />}
                                     </span>
                                     <span className="min-w-0 [line-break:strict] [word-break:auto-phrase]">{it.label}</span>
                                   </Link>

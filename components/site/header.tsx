@@ -5,7 +5,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { getCollections } from "@/lib/queries/products";
 import { hub } from "@/lib/hub-api";
 import { collectionName, categoryName } from "@/lib/catalog-i18n";
-import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { typeVisual } from "@/lib/type-icons";
 import { categoryMenu } from "@/lib/category-thumbs";
 import { collectionCounts } from "@/lib/frame-menu";
 import { toStories } from "@/lib/stories";
@@ -99,12 +99,12 @@ export async function Header({ lang }: { lang: Lang }) {
   ];
 
   // The Hub's own photo wins; the placeholder map covers a slug it has none
-  // for; a slug in neither has no photo and the tile keeps its name.
+  // for; a slug in neither shows the type's line icon (lib/type-icons.ts).
   const typeItems = collections.map((c) => ({
     key: c.slug,
     href: `/collections/${c.slug}`,
     label: collectionName(c, lang),
-    thumb: c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null,
+    thumb: typeVisual(c),
     count: countText(counts[c.slug]),
     countLabel: countLabel(counts[c.slug]),
   }));

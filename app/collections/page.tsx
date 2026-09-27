@@ -4,7 +4,8 @@ import { getCollections } from "@/lib/queries/products";
 import { getLang, } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
-import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
+import { typeVisual } from "@/lib/type-icons";
+import { TypeIconWell } from "@/components/catalog/type-icon";
 import { HubImage } from "@/components/media/hub-image";
 export const generateMetadata = () => pageMeta("collections");
 export const revalidate = 60;
@@ -19,7 +20,8 @@ export default async function CollectionsIndex() {
           {collections.map((c) => (
             <Link key={c.id} href={`/collections/${c.slug}`} className="flex min-h-[200px] flex-col bg-white hover:underline underline-offset-8">
               {/* hero_media when the Hub has one, else the Stitch placeholder for
-                  that slug, else the typographic card. Never a product photo.
+                  that slug, else the type's line icon (lib/type-icons.ts), so
+                  every card in the grid has the same 4/3 box. Never a product photo.
 
                   Two columns of the wrap below `lg` and three above it, so the
                   card is a fraction of the viewport until the wrap stops
@@ -30,12 +32,14 @@ export default async function CollectionsIndex() {
                   costs nothing and can never land a soft image. The 4/3 box is
                   the <div>'s, reserved before the bytes arrive. */}
               {(() => {
-                const image = c.hero_media ?? COLLECTION_PLACEHOLDER[c.slug] ?? null;
-                return image ? (
+                const visual = typeVisual(c);
+                return (
                   <div className="relative aspect-[4/3] w-full overflow-hidden">
-                    <HubImage src={image} alt="" fill sizes="(min-width: 1024px) 381px, 50vw" className="object-cover" />
+                    {visual.kind === "photo"
+                      ? <HubImage src={visual.url} alt="" fill sizes="(min-width: 1024px) 381px, 50vw" className="object-cover" />
+                      : <TypeIconWell icon={visual.icon} iconClassName="h-10 w-10 lg:h-16 lg:w-16" />}
                   </div>
-                ) : null;
+                );
               })()}
               <div className="p-6">
                 <h2 className="text-[28px] text-charcoal-deep">{collectionName(c, lang)}</h2>
