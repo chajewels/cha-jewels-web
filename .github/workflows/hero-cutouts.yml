@@ -1,0 +1,97 @@
+name: Hero cut-outs
+
+# The hero's cut-outs, made by the ORIGINAL tool only (owner rule 2026-09-28):
+# BiRefNet-general via rembg on CPU, the verbatim post-processing of the
+# approved 2026-09-26 set, plus the 2026-09-28 checks (interior holes, a photo
+# keeping far less of the piece than the main photo, < 1200 px). Results go to
+# the Hub's hero-only record (not Photoroom), where every new cut-out waits for
+# the owner's approval unless the owner switched automatic go-live on.
+# scripts/hero-cutouts/README.md has the whole picture.
+#
+# Every in-stock piece of every hero category is covered (on the slides AND
+# next in line); a photo is cut once per unchanged source, held ones included.
+#
+# Secrets (repo → Settings → Secrets and variables → Actions):
+#   HUB_API_URL, HUB_API_KEY   the Website API, as the storefront uses it
+#   HERO_CUTOUT_KEY            the hero record's own key (same value as the Hub's edge secret)
+# A missing secret stops the run with a message; nothing is read or written.
+#
+# Free: this repository is public, and standard GitHub-hosted runners are free
+# for public repositories. Scheduled runs start only from the default branch.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: cut and check, write nothing to the Hub"
+        type: boolean
+        default: false
+
+concurrency:
+  group: hero-cutouts
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      REMBG_HOME: ${{ github.workspace }}/.rembg
+    steps:
+      # Secrets reach only this step and "Cut".
+      - name: Secrets present
+        env:
+          HUB_API_URL: ${{ secrets.HUB_API_URL }}
+          HUB_API_KEY: ${{ secrets.HUB_API_KEY }}
+          HERO_CUTOUT_KEY: ${{ secrets.HERO_CUTOUT_KEY }}
+        run: |
+          missing=""
+          for k in HUB_API_URL HUB_API_KEY HERO_CUTOUT_KEY; do
+            [ -n "${!k}" ] || missing="$missing $k"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing secret(s):$missing. Add them in GitHub: repo → Settings → Secrets and variables → Actions → New repository secret. Nothing was read or written."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: scripts/hero-cutouts/requirements.txt
+
+      # The 973 MB model, keyed by its sha256 (selftest.py checks it).
+      - uses: actions/cache@v4
+        with:
+          path: .rembg
+          key: rembg-birefnet-general-58f621f00f5d756097615970a88a791584600dcf7c45b18a0a6267535a1ebd3c
+
+      - run: pip install -r scripts/hero-cutouts/requirements.txt
+
+      - name: Unit tests (the checks, on real photos)
+        run: python -m unittest discover -s scripts/hero-cutouts/tests
+
+      - name: Self-test (model sha256; AL112 matches the approved cut-out)
+        run: python scripts/hero-cutouts/selftest.py
+
+      - name: Cut
+        env:
+          HUB_API_URL: ${{ secrets.HUB_API_URL }}
+          HUB_API_KEY: ${{ secrets.HUB_API_KEY }}
+          HERO_CUTOUT_KEY: ${{ secrets.HERO_CUTOUT_KEY }}
+        run: python scripts/hero-cutouts/run.py --out hero-cutouts-out ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hero-cutouts-${{ github.run_id }}
+          path: hero-cutouts-out
+          if-no-files-found: ignore
+          retention-days: 14
