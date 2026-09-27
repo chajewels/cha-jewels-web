@@ -214,7 +214,17 @@ products[1].product_variants[0].product_media.push(
   { url: "/fixtures/pendant-1.svg", alt: null, sort: 2 },
 );
 products[13].product_variants[0].product_media.push(...["watch-square", "watch-tall", "wide-1", "tall-1"].map((f, i) => ({ url: `/fixtures/${f}.svg`, alt: null, sort: i + 1 })));
-if (PREVIEW_NO_CUTOUTS) for (const p of products) for (const v of p.product_variants) for (const m of v.product_media) delete m.cutout;
+// The hero reads only its own record (`hero_cutout`, owner rule 2026-09-28,
+// lib/hero-deck.ts); the fixtures' comp cut-outs stand in for both records, so
+// the preview hero and the preview product cards look as they did.
+for (const p of products) for (const v of p.product_variants) for (const m of v.product_media) {
+  const c = m.cutout;
+  if (!c) continue;
+  m.hero_cutout = c.status === "rejected" ? { status: "rejected" }
+    : c.status === "needs_review" || c.status === "failed" ? { status: "held" }
+    : { status: "approved", url: c.url, width: c.width, height: c.height };
+}
+if (PREVIEW_NO_CUTOUTS) for (const p of products) for (const v of p.product_variants) for (const m of v.product_media) { delete m.cutout; delete m.hero_cutout; }
 /**
  * `NEXT_PUBLIC_PREVIEW_LIVE_MIRROR=1`: the hero categories hold exactly the
  * live pieces (lib/fixtures-live.ts) instead of the preview pieces, so the

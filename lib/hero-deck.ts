@@ -4,7 +4,7 @@ import { categoryCta, categoryDescription, categoryName, productName } from "@/l
 import { allImages, usableCutout } from "@/lib/queries/products";
 import { bundledCutout } from "@/lib/hero-cutouts";
 import { tr, type Lang } from "@/lib/i18n";
-import type { Category, Product, ProductVariant } from "@/lib/types";
+import type { Category, Product, ProductMedia, ProductVariant } from "@/lib/types";
 
 /**
  * THE HERO DECK, DECIDED ON THE SERVER, IN ONE PLACE (hero v3, owner
@@ -25,18 +25,22 @@ import type { Category, Product, ProductVariant } from "@/lib/types";
  * computed from a price (scripts/check-money.mjs).
  *
  * PHOTOS. Each piece carries its Hub gallery, in the Hub's order, up to
- * HERO_PHOTOS: every photo with its cut-out when the Hub has one that may be
- * shown (`usableCutout`: status ok, auto_fixed or approved); without one the
- * stage shows that WHOLE photo in a framed well, never cropped. A piece with
- * two or more cycles through them on the stage (owner request 2026-09-26,
- * hero-slide-views.tsx). A photo after the first whose cut-out the quality
- * check HELD (needs_review, e.g. a "BACK" inset) or could not make (failed)
- * is skipped; the first photo is never skipped, it falls back to its frame.
- * Nothing is processed here or in the browser.
+ * HERO_PHOTOS: every photo with its HERO cut-out when there is one that may be
+ * shown (`heroCutout` below); without one the stage shows that WHOLE photo in
+ * a framed well, never cropped. A piece with two or more cycles through them
+ * on the stage (owner request 2026-09-26, hero-slide-views.tsx). A photo
+ * after the first whose cut-out the quality check HELD (needs_review, e.g. a
+ * "BACK" inset, or failed) is skipped; the first photo is never skipped, it
+ * falls back to its frame. Nothing is processed here or in the browser.
  *
- * BUNDLED CUT-OUTS (interim, production included; lib/hero-cutouts.ts). Where
- * the Hub sent no cut-out record for a photo, the one bundled with the site for
- * that exact Hub photo, if any. A Hub cut-out always wins.
+ * HERO = THE ORIGINAL TOOL ONLY; PRODUCTS = PHOTOROOM / NORMAL PHOTOS ONLY
+ * (owner rule 2026-09-28). The hero shows only cut-outs made by the original
+ * tool (BiRefNet-general via rembg): the Hub's hero-only record
+ * (`hero_cutout`), else the set bundled with the site (lib/hero-cutouts.ts).
+ * It NEVER reads the Hub's Photoroom cut-out (`cutout` / `usableCutout` on a
+ * Hub photo) — that belongs to product pages and cards (lib/product-media.ts),
+ * which in turn never read a hero cut-out. scripts/check-cutouts.mjs (CI)
+ * keeps the two apart.
  *
  * EMPTY CATEGORIES. `HERO_HIDE_EMPTY_CATEGORIES=1` (server-only, read here and
  * nowhere else) hides a category slide whose catalogue read SUCCEEDED and holds
@@ -65,9 +69,35 @@ export type HeroPiece = {
 /** One photo of a piece: the whole Hub photo, and its cut-out only when it may be shown. */
 export type HeroPhoto = { url: string; alt: string; cutout: { url: string; width: number; height: number } | null };
 
+const HELD = new Set(["needs_review", "failed"]);
+
+/**
+ * THE HERO'S CUT-OUT FOR ONE PHOTO — the one seam where hero cut-outs enter
+ * (owner rule 2026-09-28: the original tool only, never Photoroom):
+ *
+ *   1. the Hub's hero-only record (`hero_cutout`), once the owner approved it;
+ *      a cut-out the owner REJECTED leaves the whole photo, no fallback
+ *   2. else the bundled interim set (lib/hero-cutouts.ts), same tool, matched
+ *      by the exact photo; a bundled one its own check held is "held"
+ *   3. else "held" when the Hub's check held the hero cut-out, or null: the
+ *      whole photo in its framed well
+ *
+ * `m.cutout` (Photoroom) is never read here.
+ */
+export function heroCutout(m: ProductMedia): { url: string; width: number; height: number } | "held" | null {
+  const h = m.hero_cutout;
+  if (h?.status === "approved") {
+    const c = usableCutout({ url: m.url, alt: null, sort: 0, cutout: h });
+    if (c) return c;
+  }
+  if (h?.status === "rejected") return null;
+  const b = bundledCutout(m.url);
+  if (b) return HELD.has(b.status) ? "held" : usableCutout({ url: m.url, alt: null, sort: 0, cutout: b });
+  return h?.status === "held" ? "held" : null;
+}
+
 /** At most this many photos of one piece cycle on the stage. */
 const HERO_PHOTOS = 4;
-const HELD = new Set(["needs_review", "failed"]);
 
 /**
  * What a category slide's stage holds. `stage` is the dark stage with its gold
@@ -150,14 +180,12 @@ function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout): H
   // The same photos, in the same order, and the same name the product page shows.
   const name = productName(p, lang);
   const photos: HeroPhoto[] = [];
-  allImages(p).forEach((m0, i) => {
-    if (photos.length >= HERO_PHOTOS || typeof m0.url !== "string" || !m0.url) return;
-    // No Hub cut-out record at all → the bundled one made from this exact
-    // photo, with its own QA status (a held one is skipped below, exactly as
-    // a held Hub cut-out is). Any Hub record, even held or rejected, stands.
-    const m = m0.cutout == null ? { ...m0, cutout: bundledCutout(m0.url) } : m0;
-    if (i > 0 && m.cutout && HELD.has(m.cutout.status)) return;
-    photos.push({ url: m.url, alt: m.alt ?? name, cutout: usableCutout(m) });
+  allImages(p).forEach((m, i) => {
+    if (photos.length >= HERO_PHOTOS || typeof m.url !== "string" || !m.url) return;
+    // The hero's own cut-out only (heroCutout: original tool, never Photoroom).
+    const c = heroCutout(m);
+    if (c === "held" && i > 0) return;
+    photos.push({ url: m.url, alt: m.alt ?? name, cutout: c === "held" ? null : c });
   });
   return {
     slug: p.slug,

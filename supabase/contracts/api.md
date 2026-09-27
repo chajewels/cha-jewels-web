@@ -208,9 +208,11 @@ Drafted by the storefront for Lovable; nothing here is live. The storefront alre
 - **`Category.gallery_media: string[] | null`** on `GET /catalog/categories`, in upload order. Owner photos for the hero's multi-photo layouts: the Preloved Branded vitrine uses items 1–3 for arches that have no available piece, and the Preloved Designer Accessories index uses items 1–4 for 財布 / カードケース / ベルト / 小物レザー, in that order. It is edited beside `hero_media` in the Hub's category editor. Until it exists, those slots show an empty dark stone ground.
 - **`Category.available_count: number`** on `GET /catalog/categories`: the number of products with `status = 'active'` and at least one variant with `stock_qty > 0`. With it, `HERO_HIDE_EMPTY_CATEGORIES` needs no per-category read. Today the storefront reads `GET /catalog/categories/:slug` for each category (60 s cache) and applies the same rule itself.
 
-## Proposed (not built in the Hub): product photo cut-outs (hero v3, 2026-09-26)
+## Proposed (not built in the Hub): product photo cut-outs (hero v3, 2026-09-26; PRODUCTS ONLY since 2026-09-28)
 
-Drafted by the storefront for Lovable; nothing here is live. Background: `~/Code/reference/hero-comps/slider-v3/README.md`, "Production method". The storefront already reads this field if it appears and falls back while it is absent (`lib/types.ts` `ProductCutout`, `lib/queries/products.ts` `usableCutout`, `lib/hero-deck.ts`).
+Drafted by the storefront for Lovable; nothing here is live. Background: `~/Code/reference/hero-comps/slider-v3/README.md`, "Production method". The storefront already reads this field if it appears and falls back while it is absent (`lib/types.ts` `ProductCutout`, `lib/queries/products.ts` `usableCutout`, `lib/product-media.ts`).
+
+**Owner rule 2026-09-28: this `cutout` (the Hub's Photoroom pipeline) is for product pages and cards only. The hero never reads it** — the hero has its own record, `hero_cutout`, below. `scripts/check-cutouts.mjs` (CI) keeps the two apart.
 
 - **`cutout`** on every entry of `product_media` (`GET /catalog/products/:slug`, `GET /catalog/categories/:slug`, and every other endpoint that returns `product_media`):
 
@@ -225,8 +227,30 @@ Drafted by the storefront for Lovable; nothing here is live. Background: `~/Code
   - `status`: the automatic QA result or the staff decision. The storefront shows the cut-out **only** for `ok`, `auto_fixed` and `approved`. For `needs_review`, `rejected`, `failed`, a `null` cutout, or no `cutout` key, it shows the whole original photo, uncropped, in a framed well. Sending the other statuses is optional: `cutout: null` is equivalent.
   - Nothing else about the pipeline (model, source hash, flags) crosses the API.
 - Changing a cut-out (new run, approval, rejection, staff upload) is a `product_media` change and fires the existing `notify_website` revalidation.
-- **Interim (owner decision 2026-09-26):** until the Hub sends `cutout`, the storefront ships its own cut-outs for the photos of the pieces live that day (`lib/hero-cutouts.ts`, matched by the exact photo URL). When the Hub sends a `cutout` object for a photo, whatever its status, it takes precedence over the bundled one; `null` or a missing field leaves the bundled one in place. Once the Hub ships the field, the bundled set is removed.
+- **Bundled interim set:** the storefront's own cut-outs (`lib/hero-cutouts.ts`, owner decision 2026-09-26) are hero cut-outs and have nothing to do with this field; product pages and cards never show them (2026-09-28).
 - **Accessory type (optional, later).** The hero's Designer Accessories slide counts pieces per type (財布 / カードケース / ベルト / 小物レザー) by reading the Hub name. A `Product.accessory_type: "wallet"|"cardholder"|"belt"|"small_leather"|null` would replace that; until it exists the name is read.
+
+## Proposed (not built in the Hub): hero cut-outs — original tool, hero only (2026-09-28)
+
+Drafted by the storefront; nothing here is live. Plan: `~/Code/reference/hero-comps/AUTO-HERO-CUTOUT.md`; the edge-function part in full: `~/Code/reference/hero-comps/EDGE-FUNCTION-SPEC.md`. The storefront already reads `hero_cutout` if it appears (`lib/types.ts` `HeroCutout`, `lib/hero-deck.ts` `heroCutout`) and falls back while it is absent.
+
+The hero shows only cut-outs made by the original tool (BiRefNet-general via rembg, run by the storefront's scheduled workflow `scripts/hero-cutouts/`), kept in a hero-only Hub record (`website_hero_cutouts`), separate from Photoroom's `website_media_cutouts`. Every new cut-out waits for the owner's approval (automatic go-live exists and ships switched off); the owner can reject any one at any time.
+
+- **`hero_cutout`** on every entry of `product_media`, beside `cutout`:
+
+  ```ts
+  hero_cutout: { status: "approved", url: string, width: number, height: number }
+             | { status: "held" }       // the quality check held it (needs_review / failed); no file
+             | { status: "rejected" }   // the owner rejected it; no file
+             | null                     // no record, or waiting for the owner's approval
+  ```
+
+  - A file (`url`, a public WebP with alpha, trimmed, long side ≤ 900 px) is sent **only** once the owner approved it (or, with the go-live switch on, once it passed the checks). Nothing else about the pipeline crosses the API.
+  - The hero's order per photo: an approved `hero_cutout` → else, unless `rejected`, the bundled interim set (`lib/hero-cutouts.ts`) → else the whole photo in its framed well. `held` skips a photo after the first, exactly as a held bundled cut-out does.
+  - A change (a new cut-out, approval, rejection) revalidates the pages that show the photo.
+- **Workflow endpoints** (the scheduled workflow only; header `x-hero-cutout-key: <HERO_CUTOUT_KEY>`, a secret of its own, never the read key):
+  - `GET /hero-cutouts` → `{ items: [{ source_url, source_sha256, status, coverage }] }`, every record whatever its status, so a photo already processed — including a held one — is never cut again while its source is unchanged.
+  - `POST /hero-cutouts`, `multipart/form-data`: `meta` (JSON: `source_url`, `source_sha256`, `source_width`, `source_height`, `status` ∈ `ok|auto_fixed|needs_review|failed`, `flags`, `coverage`, `width`, `height`, `model`, `toolchain`) and `file` (the WebP; absent for `failed`). The workflow can never set `approved` or `rejected`; those are the owner's, in the Hub, audited.
 
 ## Proposed (not built in the Hub): item type, product video and size (product and grid pages, 2026-09-27)
 
