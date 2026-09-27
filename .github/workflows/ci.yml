@@ -43,6 +43,10 @@ jobs:
       # hardcoded rate in app/, components/ or lib/ (fixtures excepted).
       - run: npm run check:money
 
+      # Hero = the original tool's cut-outs only; product pages and cards =
+      # Photoroom / normal photos only (owner rule 2026-09-28).
+      - run: npm run check:cutouts
+
       - run: npm run typecheck
 
       - run: npm run lint

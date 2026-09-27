@@ -6,8 +6,8 @@ import type { Product } from "@/lib/types";
  * their Hub names, prices and photo galleries (the Hub's public photo URLs,
  * in the Hub's order, read from the public product pages). N4020 is sold.
  * The Hub sends no cut-outs yet, so these carry none — exactly what every
- * deployment receives; the bundled cut-outs (lib/hero-cutouts.ts) attach to
- * these same photo URLs. Ordered so each stage stands its pieces where the
+ * deployment receives; on the hero only, the bundled cut-outs
+ * (lib/hero-cutouts.ts) attach to these same photo URLs. Ordered so each stage stands its pieces where the
  * approved comps do. Accessories: none, as live.
  */
 type Row = [sku: string, category: string, en: string, ja: string, jpy: number, stock: number, condition: "New" | "Preloved", brand: string | null, photos: string[]];

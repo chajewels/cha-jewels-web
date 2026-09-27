@@ -15,12 +15,17 @@ import type { CutoutStatus, ProductCutout } from "@/lib/types";
  * moves storage, the key no longer matches and that photo shows whole in its
  * frame — a cut-out can never stand beside the wrong photo.
  *
- * THE HUB WINS. lib/hero-deck.ts asks here only when the Hub sent no cut-out
- * record for the photo at all; any Hub cut-out — shown, held or rejected — is
- * the Hub's decision and stands. Status is each cut-out's own QA result, so a
- * held one would be skipped exactly as a held Hub cut-out is.
+ * HERO ONLY (owner rule 2026-09-28: hero = the original tool only; products =
+ * Photoroom / normal photos only). Read by lib/hero-deck.ts `heroCutout` and
+ * nowhere else — never by product pages or cards (lib/product-media.ts;
+ * enforced by scripts/check-cutouts.mjs). The hero asks here after the Hub's
+ * hero-only record (`hero_cutout`): an owner-approved Hub hero cut-out wins, a
+ * rejected one leaves the whole photo, anything else falls back to this set.
+ * The Hub's Photoroom `cutout` plays no part. Status is each cut-out's own QA
+ * result, so a held one is skipped exactly as a held Hub hero cut-out is.
  *
- * Remove this file and the files it names once the Hub sends `cutout`.
+ * Remove this file and the files only it names once the owner has approved the
+ * same photos in the Hub's hero-only record (plan: AUTO-HERO-CUTOUT.md PR 5).
  */
 const BUNDLED: Record<string, [file: string, width: number, height: number, status: CutoutStatus]> = {
   "promotions/website/page365/81333344/462264810-1773219921.jpeg": ["al112", 900, 693, "approved"], // AL112 photo 1
