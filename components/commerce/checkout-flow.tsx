@@ -7,7 +7,8 @@ import { tr, type Lang } from "@/lib/i18n";
 import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { agreementStatusAction, payAction, payLayawayAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { agreementStatusAction, payAction, payLayawayAction, pesoEstimateAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { checkoutSummary, type PesoEstimateState } from "@/lib/checkout-summary";
 import { enrolInLoyaltyAction } from "@/lib/loyalty-actions";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
@@ -197,26 +198,30 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // at the moment the customer decides whether they can afford it.
   //
   // EVERY MONEY FIGURE A CUSTOMER SEES COMES FROM THE HUB (owner rule): the
-  // browser never converts. Before a peso quote exists the peso figures are
-  // dashes, in the same cells, and the Hub's quote fills them in exactly. (Until
-  // 2026-09-25 they were previewed here as cart × the day's rate.)
-  const summary: {
-    currency: SettlementCurrency;
-    subtotal: number | null;
-    shipping: number | null;
-    total: number | null;
-  } = quote !== null && quoteCurrency === intendedCurrency
-    ? {
-        currency: intendedCurrency,
-        subtotal: quote.subtotal_settlement ?? quote.subtotal_jpy,
-        shipping: quote.shipping_settlement ?? quote.shipping_jpy,
-        total: quote.total_settlement ?? quote.total_jpy,
-      }
-    : intendedCurrency === "JPY"
-      // Yen is the cart's own currency, so the cart's own figures already stand.
-      ? { currency: "JPY", subtotal, shipping: null, total: subtotal }
-      : { currency: "PHP", subtotal: null, shipping: null, total: null };
-  const summaryMoney = (n: number | null) => (n === null ? "\u2014" : formatMoney(n, summary.currency));
+  // browser never converts. Before a peso quote exists the summary shows the
+  // Hub's own peso estimate for the basket (pesoEstimateAction), labelled as an
+  // estimate with the yen beside it; the quote then replaces it exactly. The
+  // rule is lib/checkout-summary.ts, unit-tested.
+  const [peso, setPeso] = useState<PesoEstimateState>({ status: "idle" });
+  const needsPesoEstimate = intendedCurrency === "PHP" && !(quote !== null && quoteCurrency === "PHP");
+  // A plan's deposit and monthly depend on the term; a full payment's total does not.
+  const pesoTerm = mode === "layaway" ? term : 0;
+  useEffect(() => {
+    if (!needsPesoEstimate) return;
+    let live = true;
+    setPeso({ status: "loading" });
+    pesoEstimateAction({ mode, term_months: pesoTerm || 6 }).then(
+      (res) => { if (live) setPeso(res.ok ? { status: "ok", estimate: res.data } : { status: "unavailable" }); },
+      () => { if (live) setPeso({ status: "unavailable" }); },
+    );
+    return () => { live = false; };
+  }, [needsPesoEstimate, mode, pesoTerm, subtotal]);
+  const summary = checkoutSummary({ quote, intended: intendedCurrency, subtotal, mode, peso });
+  const summaryMoney = (n: number | null) => {
+    if (n === null) return "\u2014";
+    const f = formatMoney(n, summary.currency);
+    return summary.estimate ? t("checkout", "pesoApprox", { amount: f }) : f;
+  };
 
   const quoteInput = () => ({
     ship_to_address_id: addressId,
@@ -798,11 +803,22 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             v={summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping)}
           />
           {plan && <Line k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />}
+          {/* Before the quote, a peso plan's deposit and monthly are the Hub's
+              estimate for this basket and term. */}
+          {!plan && summary.deposit !== null && <Line k={t("checkout", "layawayDeposit")} v={summaryMoney(summary.deposit)} />}
+          {!plan && summary.monthly !== null && <Line k={t("checkout", "layawayMonthly")} v={summaryMoney(summary.monthly)} />}
         </dl>
         <div className="mt-4 flex items-baseline justify-between border-t border-hairline pt-4">
           <span className="text-charcoal/70">{t("checkout", "total")}</span>
           <span className="font-display text-2xl text-gold-dark">{summaryMoney(summary.total)}</span>
         </div>
+        {/* Pesos chosen: the yen beside the peso total, and what the estimate
+            is — or, with no peso figure to be had, when it will be shown. */}
+        {summary.yenTotal !== null && (
+          <p className="mt-1 text-right text-sm text-charcoal/70">{formatMoney(summary.yenTotal, "JPY")}</p>
+        )}
+        {summary.estimate && <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "pesoEstimateNote")}</p>}
+        {summary.pesoPending && <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "pesoNextStep")}</p>}
         <Link href="/cart" className="mt-4 inline-block text-xs text-charcoal/70 underline underline-offset-4">
           {t("cart", "h1")}
         </Link>
