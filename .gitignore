@@ -12,3 +12,7 @@ playwright-report/
 
 # Impeccable engine binary (downloaded on first run; not committed)
 .claude/skills/impeccable/scripts/bin/
+
+# Hero cut-out runs (scripts/hero-cutouts)
+hero-cutouts-out/
+__pycache__/
