@@ -174,7 +174,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     {messenger && <MessengerButton href={messenger} lang={lang} />}
                   </div>
                 </div>
-                <p className="pdp-onepiece flex items-center gap-2 text-[13px] text-charcoal/70">{t("cart", "oneOfAKind")}</p>
+                {/* Only a single unit is "one of a kind" — the same rule the cart uses
+                    (cart-lines.tsx: stock_qty <= 1). A piece with more in stock says how
+                    many; the quantity is chosen in the cart. */}
+                <p className="pdp-onepiece flex items-center gap-2 text-[13px] text-charcoal/70">
+                  {variant.stock_qty <= 1
+                    ? t("cart", "oneOfAKind")
+                    : t("cart", "inStockCount").replace("{n}", String(variant.stock_qty))}
+                </p>
                 {layaway && <p className="-mt-2.5 text-xs text-charcoal/70">{t("product", "reserveNote")}</p>}
               </>
             ) : (
