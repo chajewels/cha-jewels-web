@@ -29,7 +29,10 @@ export async function createServiceRequestAction(form: FormData): Promise<Action
 
   const orderId = str(form, "cash_order_id");
   const planId = str(form, "layaway_plan_id");
-  if ((orderId ? 1 : 0) + (planId ? 1 : 0) !== 1) return { ok: false, code: "bad_target" };
+  // Website orders (Hub PR 6, W2-5): a request on a draft still waiting for
+  // confirmation. The Hub checks it is this customer's and still open.
+  const draftId = str(form, "draft_id");
+  if ((orderId ? 1 : 0) + (planId ? 1 : 0) + (draftId ? 1 : 0) !== 1) return { ok: false, code: "bad_target" };
 
   const kind = str(form, "kind");
   if (!isServiceKind(kind)) return { ok: false, code: "bad_kind" };
@@ -48,7 +51,7 @@ export async function createServiceRequestAction(form: FormData): Promise<Action
     kind,
     details,
     lang: await getLang(),
-    ...(orderId ? { cash_order_id: orderId } : { layaway_plan_id: planId }),
+    ...(orderId ? { cash_order_id: orderId } : draftId ? { draft_id: draftId } : { layaway_plan_id: planId }),
     ...(itemTitle ? { item_title: itemTitle } : {}),
     // Dropped unless the kind asks for it, so a size typed and then a kind
     // changed never reaches the Hub as noise.
@@ -57,7 +60,7 @@ export async function createServiceRequestAction(form: FormData): Promise<Action
 
   try {
     const created = await hub.createServiceRequest(jwt, body);
-    revalidatePath(orderId ? `/account/orders/${orderId}` : `/account/layaway/${planId}`);
+    revalidatePath(orderId ? `/account/orders/${orderId}` : draftId ? `/checkout/complete/d/${draftId}` : `/account/layaway/${planId}`);
     revalidatePath("/account/service-requests");
     return { ok: true, data: created };
   } catch (e) {

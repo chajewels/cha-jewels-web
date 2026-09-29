@@ -172,7 +172,7 @@ export type HubMe = {
    * sentences and only one of them is true. Optional: an older Hub deploy
    * does not send it.
    */
-  records?: { layaway: number; orders: number };
+  records?: { layaway: number; orders: number; drafts?: number };
   /** True when another customer record carries this same email address. */
   shares_email?: boolean;
   /** Where every action lives. Built by the Hub, never assembled here. */
@@ -250,6 +250,17 @@ export type HubQuote = {
    * storefront changes at the same moment as the Hub switch.
    */
   reservation_mode?: boolean;
+  /**
+   * WEBSITE ORDERS (Hub PR 6). Present only while the Hub's web_checkout_mode
+   * is 'draft': checkout then writes a DRAFT that staff confirm before any
+   * payment. `shipping_at_confirmation` — this destination has no published
+   * rate; shipping_jpy is null and the checkout may continue ("added when we
+   * confirm"). `provisional` — every figure may still change at confirmation
+   * (shipping, a service, a discount). Absent = today's flow; read from the
+   * response, never from a flag on this side.
+   */
+  shipping_at_confirmation?: boolean;
+  provisional?: boolean;
 };
 /**
  * The two flags the Hub adds to every order and plan (reserve-first A2), both
@@ -306,6 +317,62 @@ export type HubPayResult = {
   transfer_region: TransferRegion; transfer_methods: TransferMethod[];
   reservation_mode?: boolean; awaiting_confirmation?: boolean;
 };
+/**
+ * WEBSITE ORDERS (Hub PR 6). What /checkout/pay answers in draft mode, for a
+ * full payment and a layaway alike: a DRAFT, not an order. No order_id, no
+ * account_id, no bank details, no deadline — staff confirm the piece, add any
+ * shipping or service, and the real order is created then. Every figure is
+ * provisional, in the settlement currency.
+ */
+export type HubDraftPayResult = {
+  draft_id: string;
+  web_reference: string;
+  mode: CheckoutMode;
+  currency: SettlementCurrency;
+  total: number;
+  total_jpy?: number;
+  shipping_pending: boolean;
+  deposit: number | null;
+  term_months: number | null;
+  provisional: true;
+  awaiting_confirmation: true;
+  transfer_due_at: null;
+  transfer_region: TransferRegion;
+  transfer_methods: TransferMethod[];
+};
+
+export type DraftStatus = "to_confirm" | "confirmed" | "declined" | "expired";
+/** A draft as GET /drafts lists it (Hub PR 6). Money: settlement currency, provisional. */
+export type HubDraft = {
+  id: string;
+  kind: "draft";
+  web_reference: string;
+  status: DraftStatus;
+  mode: CheckoutMode;
+  term_months: number | null;
+  currency: SettlementCurrency;
+  subtotal: number;
+  shipping: number | null;
+  shipping_pending: boolean;
+  total: number;
+  deposit: number | null;
+  schedule: LayawayScheduleRow[] | null;
+  provisional: boolean;
+  /** The reason the customer was told, on a declined draft only. */
+  decline_reason: string | null;
+  created_at: string;
+  decided_at: string | null;
+  /** Set once staff confirm: the real order / plan. */
+  order_id: string | null;
+  account_id: string | null;
+};
+export type HubDraftLine = {
+  id: string; variant_id: string | null; product_id: string | null;
+  title: string; title_ja?: string | null; sku: string | null; quantity: number;
+  unit_price_jpy: number; line_total_jpy: number; image_url: string | null;
+};
+export type HubDraftDetail = { draft: HubDraft & { ship_to_address: HubAddress | null }; items: HubDraftLine[] };
+
 /** `status` is the Hub's cash_order_status; `payment_status` is the web-facing one. */
 export type HubOrder = ReservationFlags & {
   id: string; web_reference: string | null; invoice_number: string | null;
@@ -486,6 +553,8 @@ export type ServiceRequest = {
   id: string;
   cash_order_id: string | null;
   layaway_plan_id: string | null;
+  /** A website order still waiting for confirmation (Hub PR 6); the Hub moves it to the order at Confirm. */
+  draft_id?: string | null;
   /** The order line it concerns, as the English title frozen at order time; null for the whole order. */
   item_title: string | null;
   kind: ServiceRequestKind;
@@ -501,6 +570,7 @@ export type ServiceRequest = {
 export type ServiceRequestInput = {
   cash_order_id?: string;
   layaway_plan_id?: string;
+  draft_id?: string;
   item_title?: string;
   kind: ServiceRequestKind;
   details: string;

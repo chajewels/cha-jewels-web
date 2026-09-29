@@ -17,6 +17,7 @@ import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } 
 import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 import { quoteIsReservation } from "@/lib/reservation";
+import { draftCompletePath, isDraftPayResult } from "@/lib/drafts";
 import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-step";
 
 /**
@@ -153,6 +154,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     : code === "below_plan_minimum" ? t("checkout", "belowMinimum")
     : code === "currency_unsupported" ? t("checkout", "currencyUnsupported")
     : code === "rate_unavailable" ? t("checkout", "rateUnavailable")
+    : code === "manual_quote" ? t("checkout", "manualQuote")
     : code === TERM_NOT_LAUNCHED ? t("checkout", "termNotLaunchedHint")
     : code === LAYAWAY_UNAVAILABLE ? t("checkout", "layawayUnavailable")
     // Two codes, never one message: "you have not signed" and "we could not
@@ -181,7 +183,11 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   // flag on this side, so checkout changes at the same moment as the Hub's
   // switch. A reservation shows no bank details and no deadline (owner rule):
   // staff confirm the piece first, and the payment email follows.
-  const reserving = quoteIsReservation(quote);
+  // WEBSITE ORDERS (Hub PR 6): a draft checkout is a reservation too — no
+  // bank details, no deadline, figures provisional until staff confirm.
+  const reserving = quoteIsReservation(quote) || quote?.provisional === true;
+  // No published rate for this destination: shipping is added when we confirm.
+  const shippingLater = quote?.shipping_at_confirmation === true;
   // What this order will actually settle in: the customer's choice, for a full
   // payment and a layaway alike (owner decision 2026-09-25; yen by default).
   // Same value quoteInput() sends, kept in one place.
@@ -336,6 +342,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             enrolInLoyaltyAction(country),
             new Promise((resolve) => setTimeout(resolve, 2500)),
           ]);
+        }
+        // Draft mode (Hub PR 6): a draft id, never an order or plan id — the
+        // draft page, which moves on to the real order once staff confirm.
+        if (isDraftPayResult(res.data)) {
+          router.push(draftCompletePath(res.data.draft_id));
+          return;
         }
         router.push(mode === "layaway"
           ? `/account/layaway/${(res.data as { account_id: string }).account_id}?placed=1`
@@ -653,6 +665,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             {quote.requires_manual_quote && (
               <p className="border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("checkout", "manualQuote")}</p>
             )}
+            {shippingLater && (
+              <p className="border border-hairline bg-white px-4 py-3 text-sm text-charcoal">{t("checkout", "shippingAtConfirmation")}</p>
+            )}
             {/* What the server read from the signing record — the version they
                 actually signed and when, the same two values the plan will
                 store. Shown rather than assumed, so a wrong version is visible
@@ -686,6 +701,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
                 {reserving ? (
                   <>
                     <p className="mt-4 text-xs text-charcoal/70">{t("checkout", "layawayScheduleProvisional")}</p>
+                    {quote.provisional && <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "layawayFiguresProvisional")}</p>}
                     <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "layawayReserveNote")}</p>
                   </>
                 ) : (
@@ -800,7 +816,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           <Line k={t("checkout", "subtotal")} v={summaryMoney(summary.subtotal)} />
           <Line
             k={t("checkout", "shipping")}
-            v={summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping)}
+            v={shippingLater ? t("checkout", "shippingLaterShort") : summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping)}
           />
           {plan && <Line k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />}
           {/* Before the quote, a peso plan's deposit and monthly are the Hub's
@@ -809,7 +825,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
           {!plan && summary.monthly !== null && <Line k={t("checkout", "layawayMonthly")} v={summaryMoney(summary.monthly)} />}
         </dl>
         <div className="mt-4 flex items-baseline justify-between border-t border-hairline pt-4">
-          <span className="text-charcoal/70">{t("checkout", "total")}</span>
+          <span className="text-charcoal/70">{t("checkout", shippingLater ? "totalBeforeShipping" : "total")}</span>
           <span className="font-display text-2xl text-gold-dark">{summaryMoney(summary.total)}</span>
         </div>
         {/* Pesos chosen: the yen beside the peso total, and what the estimate

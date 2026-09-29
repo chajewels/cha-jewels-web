@@ -641,6 +641,9 @@ export const dict = {
     pesoEstimateNote: { ja: "（ご注文確定時に一度だけ換算します）", en: "(final amount converted once when you place the order)" },
     pesoNextStep: { ja: "ペソでの金額は次のステップで表示します。", en: "The peso amount will be shown at the next step." },
     manualQuote: { ja: "この国への送料は個別にお見積りいたします。ご注文前に担当者よりご連絡いたします。", en: "We quote shipping to this country individually. Our team will contact you before the order is placed." },
+    shippingAtConfirmation: { ja: "送料は、スタッフがご注文を確認する際に加算いたします。確定した合計金額とお支払い方法はメールでお知らせします。現時点でお支払いの必要はございません。", en: "Shipping is added when we confirm your order. We will email you the final total and how to pay. There is nothing to pay yet." },
+    shippingLaterShort: { ja: "確認時に加算", en: "Added when we confirm" },
+    totalBeforeShipping: { ja: "合計（送料別）", en: "Total before shipping" },
     payHeading: { ja: "お支払い方法", en: "How you will pay" },
     // Region-neutral by design: a customer is shown the methods for their own
     // destination and must never learn what the other region pays into.
@@ -779,6 +782,7 @@ export const dict = {
     // and the schedule is re-dated to that day, so neither gets a number here.
     layawayReserveNote: { ja: "商品の確認後に、お申込金のお振込先と期限をメールでお知らせします。お支払い期限はそこから始まります。それまでお支払いは発生しません。", en: "Once we confirm your piece, we email you where to send the deposit and by when — the deadline starts then. Nothing is owed before that." },
     layawayScheduleProvisional: { ja: "お支払い日は、商品を確認した日から数えて決まります。", en: "The dates are counted from the day we confirm your piece." },
+    layawayFiguresProvisional: { ja: "お申込金とお支払い予定は確認の際に確定し、送料やご依頼のサービス料金が加わる場合があります。", en: "The deposit and schedule are final when we confirm, and may then include shipping and any service you asked for." },
     reservePiece: { ja: "この内容で予約する", en: "Reserve this piece" },
     reserving: { ja: "手続き中…", en: "Reserving…" },
     belowMinimum: { ja: "このご注文金額では、お選びの回数をご利用いただけません。ご利用いただける回数からお選びください。", en: "That number of months is not available at this order total. Please choose from the terms shown." },
@@ -864,6 +868,41 @@ export const dict = {
      * Without this line the order page showed a total and nothing else.
      */
     arrangedWithUs: { ja: "このご注文は当店にて直接承ったものです。お品物とお届け先の詳細はご請求書に記載しております。ご確認が必要な場合はご連絡ください。", en: "This order was arranged with us directly, so the pieces and the delivery details are on your invoice rather than here. Ask us any time and we will send it again." },
+  },
+  /**
+   * WEBSITE ORDERS (Hub PR 6 / storefront PR 7): a checkout the Hub holds as a
+   * DRAFT until staff confirm the piece. Nothing to pay until then; the figures
+   * are provisional. Layaway wording is English-only in effect: a layaway draft
+   * page is not found on the Japanese site (layawayOffered).
+   */
+  draft: {
+    h1: { ja: "ご注文を承りました", en: "We have your order" },
+    lede: { ja: "スタッフがお品物を確認しております。確認が取れ次第、確定した合計金額とお支払い方法をメールでお知らせします。", en: "Our staff are confirming your piece. As soon as it is confirmed we will email you the final total and how to pay." },
+    layawayH1: { ja: "お申込みを承りました", en: "We have your layaway request" },
+    layawayLede: { ja: "スタッフがお品物を確認しております。確認が取れ次第、お申込金、お振込先、お支払い予定をメールでお知らせします。", en: "Our staff are confirming your piece. As soon as it is confirmed we will email you the deposit, where to send it and your payment schedule." },
+    nothingYet: { ja: "現時点でお支払いの必要はございません。確認のメールが届くまでお振込はお控えください。", en: "There is nothing to pay yet. Please don't send any payment until that email arrives." },
+    provisional: { ja: "表示の金額は確認前の目安です。送料やご依頼のサービス料金が加わる場合があります。", en: "These figures are provisional. Shipping, and any service you asked for, may be added when we confirm." },
+    reference: { ja: "ご注文番号", en: "Order reference" },
+    totalSoFar: { ja: "合計（確認前）", en: "Total so far" },
+    shipping: { ja: "送料", en: "Shipping" },
+    shippingLater: { ja: "確認時に加算", en: "Added when we confirm" },
+    deposit: { ja: "お申込金（確認前）", en: "Deposit (provisional)" },
+    term: { ja: "期間", en: "Term" },
+    months: { ja: "{n}か月", en: "{n} months" },
+    pieces: { ja: "ご注文商品", en: "Pieces" },
+    shipTo: { ja: "お届け先", en: "Shipping to" },
+    statusWaiting: { ja: "確認中", en: "Confirming your piece" },
+    statusDeclined: { ja: "ご用意できませんでした", en: "We could not supply this piece" },
+    statusExpired: { ja: "キャンセルされました", en: "Cancelled" },
+    declinedH1: { ja: "申し訳ございません。お品物をご用意できませんでした", en: "We're sorry — we could not supply this piece" },
+    declinedLede: { ja: "このご注文はキャンセルとなりました。お支払いは発生しておりません。", en: "This order is cancelled. Nothing was charged." },
+    expiredH1: { ja: "このご注文はキャンセルされました", en: "This order was cancelled" },
+    expiredLede: { ja: "72時間以内にお品物の確認ができなかったため、ご注文をキャンセルいたしました。お支払いは発生しておりません。", en: "We could not confirm your piece within 72 hours, so the order was cancelled. Nothing was charged." },
+    reason: { ja: "理由", en: "Reason" },
+    shop: { ja: "コレクションを見る", en: "Browse the collections" },
+    waitingH: { ja: "確認中のご注文", en: "Waiting for confirmation" },
+    view: { ja: "詳細", en: "View" },
+    notFound: { ja: "ご注文が見つかりませんでした。", en: "We could not find that order." },
   },
   /** Phase 2 step 4 — layaway plans in the account area, and the pay-now form. */
   plans: {
