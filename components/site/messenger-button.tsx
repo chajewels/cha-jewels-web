@@ -4,7 +4,7 @@ import { SocialGlyph } from "@/components/site/social-icons";
 
 /**
  * The floating "Message us on Messenger" button, bottom-right on every page
- * except checkout and sign-in.
+ * except checkout, sign-in and the profile step.
  *
  * AN m.me LINK, NOT A CHAT WIDGET. Meta retired the embedded Messenger chat
  * plugin (May 2024) and guest mode with it. An m.me link opens the visitor's
@@ -27,7 +27,9 @@ import { SocialGlyph } from "@/components/site/social-icons";
  * `.messenger-fab` in app/globals.css. Below `sm` it is a 52px round icon and
  * the label is its accessible name; from `sm` up the label shows as well.
  */
-const HIDDEN_ON = ["/checkout", "/login"];
+// The profile step is a single-task page on the way to checkout too (build
+// step 3, D3-11: the rule named it and the button still showed there).
+const HIDDEN_ON = ["/checkout", "/login", "/account/complete-profile"];
 
 export function MessengerButton({ href, label }: { href: string; label: string }) {
   const path = usePathname();

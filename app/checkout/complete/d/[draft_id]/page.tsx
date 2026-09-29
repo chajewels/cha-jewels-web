@@ -12,6 +12,8 @@ import { confirmedDestination } from "@/lib/drafts";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { Button } from "@/components/ui/button";
 import { ServiceRequestForm } from "@/components/account/service-request-form";
+import { NextSteps } from "@/components/commerce/commerce-ui";
+import { ConfirmationActions, ConfirmationLayout, linePicture } from "@/components/commerce/confirmation";
 import type { ServiceRequest } from "@/lib/types";
 
 /**
@@ -93,49 +95,59 @@ export default async function DraftCompletePage({ params, searchParams }: {
 
   const address = draft.ship_to_address;
   const ownRequests = requests.filter((r) => r.draft_id === draft.id);
+  const layawayNext = isLayaway;
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[720px]">
-        <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("draft", isLayaway ? "layawayH1" : "h1")}</h1>
-        <p className="mt-4 text-charcoal">{t("draft", isLayaway ? "layawayLede" : "lede")}</p>
+    <ConfirmationLayout
+      lang={lang}
+      reference={draft.web_reference}
+      heading={t("draft", isLayaway ? "layawayH1" : "h1")}
+      lede={<>
+        <p>{t("draft", isLayaway ? "layawayLede" : "lede")}</p>
+        <p className="mt-2 text-[15px] font-semibold">{t("draft", "nothingYet")}</p>
+      </>}
+      slab={{
+        title: t("draft", "pieces"),
+        lines: items.map((line) => ({
+          key: line.id,
+          name: `${orderLineTitle({ title: line.title, title_ja: line.title_ja ?? null }, lang)}${line.quantity > 1 ? ` × ${line.quantity}` : ""}`,
+          image: linePicture(line.image_url),
+          // Lines are yen, the price of record: shown on a yen draft only
+          // (owner decision D1 — two currencies never share a screen).
+          price: draft.currency === "JPY" ? formatMoney(Number(line.line_total_jpy), "JPY") : null,
+        })),
+        rows: [
+          { k: t("draft", "shipping"), v: draft.shipping_pending || draft.shipping === null ? t("draft", "shippingLater") : money(draft.shipping) },
+          ...(isLayaway && draft.deposit !== null ? [{ k: t("draft", "deposit"), v: money(draft.deposit) }] : []),
+          ...(isLayaway && draft.term_months !== null ? [{ k: t("draft", "term"), v: t("draft", "months", { n: String(draft.term_months) }) }] : []),
+        ],
+        total: { k: t("draft", "totalSoFar"), v: money(draft.total), sub: t("draft", "provisional") },
+      }}
+    >
+      {/* What happens next. The draft is held (its stock came off when it was
+          made); staff confirm it — no "within one business day" here, the
+          draft copy never promised a time — then the payment email with the
+          Hub's own deadline (D3-8: no number of hours on this page). */}
+      <NextSteps
+        heading={t("complete", "nextH")}
+        items={layawayNext ? [
+          { title: t("complete", "next1"), body: t("complete", "next1p"), now: true },
+          { title: t("complete", "next2Plain"), body: t("complete", "next2p") },
+          { title: t("complete", "next3Layaway"), body: t("checkout", "layawayDeadlineNote") },
+          { title: t("complete", "next4Layaway"), body: t("complete", "next4LayawayP") },
+        ] : [
+          { title: t("complete", "next1"), body: t("complete", "next1p"), now: true },
+          { title: t("complete", "next2Plain"), body: t("complete", "next2p") },
+          { title: t("complete", "next3"), body: t("checkout", "deadlineNote") },
+          { title: t("complete", "next4") },
+        ]}
+      />
 
-        <dl className="rule-grid mt-10 grid gap-px sm:grid-cols-2">
-          <Cell k={t("draft", "reference")} v={draft.web_reference} mono />
-          <Cell k={t("draft", "totalSoFar")} v={money(draft.total)} />
-          <Cell k={t("draft", "shipping")} v={draft.shipping_pending || draft.shipping === null ? t("draft", "shippingLater") : money(draft.shipping)} />
-          {isLayaway && draft.deposit !== null && <Cell k={t("draft", "deposit")} v={money(draft.deposit)} />}
-          {isLayaway && draft.term_months !== null && (
-            <Cell k={t("draft", "term")} v={t("draft", "months", { n: String(draft.term_months) })} />
-          )}
-        </dl>
-        <p className="mt-4 text-sm text-charcoal/70">{t("draft", "provisional")}</p>
+      <ConfirmationActions lang={lang} href="/account/orders" label={t("orders", "back")} />
 
-        {items.length > 0 && (
-          <div className="mt-10">
-            <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("draft", "pieces")}</h2>
-            <ul className="rule-grid grid gap-px">
-              {items.map((line) => (
-                <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-white p-4 text-sm">
-                  <span className="text-charcoal-deep">
-                    {orderLineTitle({ title: line.title, title_ja: line.title_ja ?? null }, lang)}
-                    {line.quantity > 1 ? ` × ${line.quantity}` : ""}
-                  </span>
-                  {/* Lines are yen, the price of record: shown on a yen draft only
-                      (owner decision D1 — two currencies never share a screen). */}
-                  {draft.currency === "JPY" && (
-                    <span className="text-charcoal">{formatMoney(Number(line.line_total_jpy), "JPY")}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <p className="mt-8 border border-hairline bg-white px-4 py-3 text-sm text-charcoal-deep">{t("draft", "nothingYet")}</p>
-
-        {/* W2-5: a service on the piece may be asked for now; staff see it on
-            the review screen and add the fee before confirming. */}
+      {/* W2-5: a service on the piece may be asked for now; staff see it on
+          the review screen and add the fee before confirming. */}
+      <div className="mt-10">
         <ServiceRequestForm
           lang={lang}
           target={{ draft_id: draft.id }}
@@ -143,20 +155,18 @@ export default async function DraftCompletePage({ params, searchParams }: {
           initial={ownRequests}
           canRequest={draft.status === "to_confirm"}
         />
-
-        {address && (
-          <div className="mt-10 border border-hairline p-5 text-sm text-charcoal">
-            <h2 className="font-display text-lg text-charcoal-deep">{t("draft", "shipTo")}</h2>
-            <p className="mt-2">{address.recipient_name ?? "—"}</p>
-            <p>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p>
-            <p>{[address.city, address.region, address.postal_code].filter(Boolean).join(", ")}</p>
-            <p>{address.country ?? ""}</p>
-          </div>
-        )}
-
-        <Button asChild variant="ghost" className="mt-8"><Link href="/account">{t("account", "h1")}</Link></Button>
       </div>
-    </section>
+
+      {address && (
+        <div className="mt-10 border border-hairline bg-white p-5 text-sm text-charcoal-deep">
+          <h2 className="font-display text-lg">{t("draft", "shipTo")}</h2>
+          <p className="mt-2">{address.recipient_name ?? "—"}</p>
+          <p>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p>
+          <p>{[address.city, address.region, address.postal_code].filter(Boolean).join(", ")}</p>
+          <p>{address.country ?? ""}</p>
+        </div>
+      )}
+    </ConfirmationLayout>
   );
 }
 

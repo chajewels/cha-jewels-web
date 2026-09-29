@@ -17,19 +17,26 @@ import { PRODUCT_TRUST } from "@/lib/content/product-trust";
  *                   the full policy one link away
  *
  * It says nothing about layaway, so it is the same on both sites.
+ *
+ * The cart shows all five; checkout shows the payment, shipping and returns
+ * rows beside every step (build step 3, D3-17) — `only` picks them, in this
+ * order, with the wording unchanged.
  */
-export function ProductTrust({ lang }: { lang: Lang }) {
+export type TrustRow = "auth" | "permit" | "pay" | "ship" | "returns";
+
+export function ProductTrust({ lang, only }: { lang: Lang; only?: TrustRow[] }) {
   const t = tr(lang);
-  const rows: [LucideIcon, string, React.ReactNode][] = [
-    [ShieldCheck, t("trust", "authValue"), t("home", "valueQualityP")],
-    [FileText, t("trust", "permit"), PRODUCT_TRUST.permit[lang]],
-    [Lock, t("pdp", "securePay"), t("checkout", "reserveExplain")],
-    [Truck, t("pdp", "shipping"), PRODUCT_TRUST.shipping[lang]],
-    [RotateCcw, t("pdp", "reserveReturns"), <>
+  const all: [TrustRow, LucideIcon, string, React.ReactNode][] = [
+    ["auth", ShieldCheck, t("trust", "authValue"), t("home", "valueQualityP")],
+    ["permit", FileText, t("trust", "permit"), PRODUCT_TRUST.permit[lang]],
+    ["pay", Lock, t("pdp", "securePay"), t("checkout", "reserveExplain")],
+    ["ship", Truck, t("pdp", "shipping"), PRODUCT_TRUST.shipping[lang]],
+    ["returns", RotateCcw, t("pdp", "reserveReturns"), <>
       {PRODUCT_TRUST.returns[lang]}{" "}
       <Link href="/legal/returns" className="whitespace-nowrap font-medium text-gold-dark underline-offset-4 hover:underline">{t("footer", "returns")} →</Link>
     </>],
   ];
+  const rows = all.filter(([key]) => !only || only.includes(key)).map(([, ...rest]) => rest);
   return (
     <ul className="border-t border-charcoal-deep">
       {rows.map(([Icon, head, body]) => (

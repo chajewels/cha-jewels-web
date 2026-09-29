@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { ChevronDown, ExternalLink, Info, Lock, Plus, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { tr, type Lang } from "@/lib/i18n";
@@ -15,19 +16,26 @@ import type { CartItem } from "@/lib/cart";
 import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
 import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } from "@/lib/layaway-availability";
 import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
-import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
+import { alertLight, inputLight } from "@/lib/form-classes";
+import { siteDay } from "@/lib/site-time";
+import { CommerceStyle, Notice, OrderSlab, PieceWell, Stepper, StickyAct } from "@/components/commerce/commerce-ui";
 import { quoteIsReservation } from "@/lib/reservation";
 import { draftCompletePath, isDraftPayResult } from "@/lib/drafts";
 import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-step";
 
 /**
+ * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
+ * 1 Your details (name and email as the Hub holds them, the delivery address)
+ * → 2 Delivery (order type, when it ships) → 3 Payment (EN: full or layaway;
+ * yen or pesos; how you will pay) → 4 Review, where the piece is reserved.
+ * The quote is taken on leaving Payment, with exactly the inputs it always
+ * had; only the layout and the order of the screens moved.
+ *
  * "sign" is not a numbered step and is not in the stepper.
  *
  * It is a GATE, not a stage of ordering: it appears for layaway only, between
- * choosing the term and seeing Review, and a full-price order never meets it.
- * Numbering it would either add a fourth item to a three-item stepper that the
- * cash flow shares, or renumber Review and Payment — both worse than an
- * unnumbered interstitial that says plainly what it wants.
+ * Payment and Review, and a full-price order never meets it. While it shows,
+ * the stepper keeps Payment lit — the customer has not reached Review yet.
  */
 type Step = CheckoutStep;
 
@@ -70,8 +78,16 @@ const DEFAULT_TERMS: LayawayTerm[] = [3, 6, 8, 10, 12].map((months) => ({
   months, label: `${months}`, min_amount: 0, dp_percentage: 0.3, eligible: true,
 }));
 
-export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialMode = "full", offerLoyalty = false, initialQuote = null, initialAgreement = null }: {
+export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer, aside = null, initialMode = "full", offerLoyalty = false, initialQuote = null, initialAgreement = null }: {
   lang: Lang; items: CartItem[]; subtotal: number; initialAddresses: HubAddress[];
+  /**
+   * The name and email the Hub holds for this customer (GET /me), shown read
+   * only on "Your details" (D3-6): the quote has no name or email field, so an
+   * edit typed here would go nowhere. Either may be null.
+   */
+  customer: { name: string | null; email: string | null };
+  /** Rendered under the summary slab: the trust rows, from the server (D3-17). */
+  aside?: ReactNode;
   /**
    * The quote named by `?quote=`, already read back by the server. Present only
    * when the customer returned from signing in the SAME TAB — the signing link
@@ -172,8 +188,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
   function clearError() { setError(null); setErrorRef(null); }
 
   // The signing gate is not a numbered step, so while it is showing the stepper
-  // keeps Delivery lit — the customer has not reached Review yet.
-  const stepperAt: 1 | 2 | 3 = step === "sign" ? 1 : step;
+  // keeps Payment lit — the customer has not reached Review yet.
+  const stepperAt: 1 | 2 | 3 | 4 = step === "sign" ? 3 : step;
 
   // The Hub's own term list once a quote exists; the configured months until
   // then. Never a hardcoded array of what the calculator used to offer.
@@ -269,7 +285,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
       if (!res.ok) { showError(res.code, res.requestId); return; }
       setQuote(res.data);
       // A full-price order has no agreement to sign and goes straight to Review.
-      if (mode !== "layaway") { setAgreement(null); setStep(2); return; }
+      if (mode !== "layaway") { setAgreement(null); setStep(4); return; }
       // The quote was created a moment ago, so nobody can have signed against
       // its id yet: there is nothing to look up. Go straight to the signing
       // step. (Until 2026-09-18 this asked the signing record here as well —
@@ -295,12 +311,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     // return): nothing to ask again. Straight to Review. payLayawayAction still
     // verifies before the plan exists, so this shortcut moves a screen, not the
     // gate.
-    if (agreement?.signed) { setStep(2); return; }
+    if (agreement?.signed) { setStep(4); return; }
     start(async () => {
       const st = await agreementStatusAction(quote.quote_id);
       if (!st.ok) { showError(st.code, st.requestId); return; }
       setAgreement(st.data);
-      if (st.data.signed) setStep(2);
+      if (st.data.signed) setStep(4);
       else showError(AGREEMENT_REQUIRED);
     });
   }
@@ -370,12 +386,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
             const st = await agreementStatusAction(fresh.data.quote_id);
             const signed = st.ok && st.data.signed;
             setAgreement(st.ok ? st.data : null);
-            setStep(signed ? 2 : "sign");
+            setStep(signed ? 4 : "sign");
             setError(signed ? t("checkout", "expiredRequoted") : t("checkout", "expiredResign"));
             setErrorRef(null);
             return;
           }
-          setStep(2);
+          setStep(4);
           setError(t("checkout", "expiredRequoted"));
           setErrorRef(null);
         } else {
@@ -408,448 +424,557 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, initialM
     });
   }
 
+  // ── Layout helpers ─────────────────────────────────────────────────────────
+  const selectedAddress = addresses.find((a) => a.id === addressId) ?? null;
+  const orderTypeLabel = (type: OrderType) => type === "SELF" ? t("checkout", "self") : type === "GIFT" ? t("checkout", "gift") : t("checkout", "proxy");
+  const payLabel = mode === "layaway"
+    ? `${t("checkout", "modeLayaway")} · ${t("checkout", "termMonths", { n: String(term) })} · ${settlement === "PHP" ? t("checkout", "settlementPhp") : t("checkout", "settlementJpy")}`
+    : settlement === "PHP" ? t("checkout", "payPhp") : t("checkout", "payJpy");
+  const steps = [t("checkout", "stepDetails"), t("checkout", "stepDelivery"), t("checkout", "stepPayment"), t("checkout", "stepReview")];
+
+  // The step's ONE orange action. Rendered in the flow from `lg` up and in the
+  // phone/tablet sticky bar below it (D3-5) — the same button, never two.
+  const primary: { label: string; onClick: () => void; disabled: boolean } | null =
+    step === 1 ? { label: t("checkout", "continueDelivery"), onClick: () => { clearError(); setStep(2); }, disabled: pending || !addressId }
+    : step === 2 ? { label: t("checkout", "continuePayment"), onClick: () => { clearError(); setStep(3); }, disabled: pending || !addressId }
+    : step === 3 ? { label: t("checkout", "continueReview"), onClick: toReview, disabled: pending || !addressId }
+    : step === "sign" && quote ? { label: pending ? t("checkout", "agreementChecking") : t("checkout", "agreementDone"), onClick: recheckAgreement, disabled: pending }
+    : step === 4 && quote ? {
+        label: reserving
+          ? (pending ? t("checkout", "reserving") : t("checkout", "reserveNow"))
+          : mode === "layaway"
+          ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
+          : (pending ? t("checkout", "placing") : t("checkout", "placeOrder")),
+        onClick: placeOrder,
+        disabled: pending || !quote.transfer_available || quote.requires_manual_quote,
+      }
+    : null;
+  const back: { label: string; to: Step | "cart" } | null =
+    step === 1 ? { label: t("checkout", "backToCart"), to: "cart" }
+    : step === 2 ? { label: t("checkout", "back"), to: 1 }
+    : step === 3 ? { label: t("checkout", "back"), to: 2 }
+    : step === "sign" ? { label: t("checkout", "back"), to: 3 }
+    : { label: t("checkout", "back"), to: 3 };
+
+  // A new screen starts at its top — on a phone the button that moved the
+  // customer on sits at the bottom of the screen, and the next step's first
+  // field would otherwise be somewhere above. Not on first paint.
+  const topRef = useRef<HTMLDivElement>(null);
+  const firstPaint = useRef(true);
+  useEffect(() => {
+    if (firstPaint.current) { firstPaint.current = false; return; }
+    topRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
+  }, [step]);
+  // An error raised from the sticky bar must be seen, not left above the fold.
+  const errorRef2 = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (error) errorRef2.current?.scrollIntoView({ block: "center", behavior: "auto" }); }, [error]);
+
+  const quoteShown = quote !== null && quoteCurrency === summary.currency;
+  const shippingValue = shippingLater
+    ? t("checkout", "shippingLaterShort")
+    : !quoteShown || summary.shipping === null ? t("cart", "shippingCalc")
+    : summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping);
+  const totalLabel = !quoteShown ? t("checkout", "cartTotal") : t("checkout", shippingLater ? "totalBeforeShipping" : "total");
+  const count = items.reduce((n, i) => n + i.qty, 0);
+  const countLabel = count === 1 ? t("cart", "pieceOne") : t("cart", "pieces", { n: String(count) });
+
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
-      <div>
-        <ol className="mb-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          {([[1, t("checkout", "step1")], [2, t("checkout", "step2")], [3, t("checkout", "step3")]] as const).map(([n, label]) => (
-            <li key={n} className={n === stepperAt ? "text-gold-dark" : "text-charcoal/70"}>
-              <span className="font-display">{n}.</span> {label}
-            </li>
-          ))}
-        </ol>
+    <>
+      <CommerceStyle />
+      {/* Phone and tablet: the order at a glance, under the header (comp).
+          It jumps to the full summary below the steps. */}
+      <a href="#order-summary" className="band-dark flex min-h-14 items-center justify-between gap-4 bg-charcoal-deep px-4 text-sm text-chalk lg:hidden">
+        <span>{t("cart", "summaryH")} · {countLabel}<span className="sr-only"> — {t("checkout", "seeSummary")}</span></span>
+        <b className="cj-fig flex items-center gap-1.5 font-display text-[20px] font-normal text-gold-pale">
+          {summaryMoney(summary.total)}<ChevronDown aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
+        </b>
+      </a>
+      <div ref={topRef} className="wrap scroll-mt-24 pt-6 sm:pt-12">
+        <div className="mb-6 sm:mb-8">
+          <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{t("checkout", "eyebrow")}</p>
+          <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
+        </div>
+        <Stepper steps={steps} current={stepperAt} label={t("checkout", "stepsLabel")} stepOf={(n, label) => t("checkout", "stepOf", { n: String(n), label })} />
 
-        {error && (
-          <div role="alert" className={`mb-6 ${alertLight} p-4 text-sm`}>
-            <p>{error}</p>
-            {errorRef && (
-              <p className="mt-2 font-mono text-xs text-charcoal/70">{t("checkout", "ref")}: {errorRef}</p>
-            )}
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-8">
-            <fieldset>
-              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "chooseAddress")}</legend>
-              {addresses.length > 0 && (
-                <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {addresses.map((a, i) => (
-                    <li key={a.id ?? i}>
-                      <label className={`block cursor-pointer border p-4 text-sm ${addressId === a.id ? "border-gold-dark text-charcoal-deep" : "border-hairline text-charcoal/70"}`}>
-                        <input
-                          type="radio" name="address" className="sr-only"
-                          checked={addressId === a.id}
-                          onChange={() => setAddressId(a.id ?? "")}
-                        />
-                        <span className="block">{a.recipient_name ?? "—"}</span>
-                        <span className="block">{a.line1}{a.line2 ? `, ${a.line2}` : ""}</span>
-                        <span className="block">{[a.city, a.region, a.postal_code].filter(Boolean).join(" ")}</span>
-                        <span className="block text-charcoal/70">{a.country}</span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {!showNew ? (
-                <button type="button" onClick={() => setShowNew(true)} className="mt-4 text-sm text-gold-dark underline underline-offset-4">
-                  {t("checkout", "newAddress")}
-                </button>
-              ) : (
-                <form
-                  className="mt-4 grid gap-3 border border-hairline p-4 sm:grid-cols-2"
-                  action={saveAddress}
-                >
-                  <Field name="recipient_name" label={t("checkout", "recipientName")} />
-                  <Field name="phone" label={t("checkout", "phone")} />
-                  <Field name="line1" label={t("checkout", "line1")} required className="sm:col-span-2" />
-                  <Field name="line2" label={t("checkout", "line2")} className="sm:col-span-2" />
-                  <Field name="city" label={t("checkout", "city")} />
-                  <Field name="region" label={t("checkout", "region")} />
-                  <Field name="postal_code" label={t("checkout", "postal")} />
-                  <Field name="country" label={t("checkout", "country")} defaultValue="JP" />
-                  <div className="sm:col-span-2">
-                    <Button type="submit" disabled={pending}>{t("checkout", "saveAddress")}</Button>
-                  </div>
-                </form>
-              )}
-            </fieldset>
-
-            <fieldset>
-              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "orderType")}</legend>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {ORDER_TYPES.map((type) => (
-                  <button
-                    key={type} type="button" onClick={() => setOrderType(type)}
-                    className={`border px-4 py-2 text-sm ${orderType === type ? "border-gold-dark text-gold-dark" : "border-hairline text-charcoal/70"}`}
-                  >
-                    {type === "SELF" ? t("checkout", "self") : type === "GIFT" ? t("checkout", "gift") : t("checkout", "proxy")}
-                  </button>
-                ))}
-              </div>
-              {orderType !== "SELF" && (
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <label className="text-sm text-charcoal/70">
-                    {t("checkout", "recipientName")}
-                    <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
-                  </label>
-                  <label className="text-sm text-charcoal/70">
-                    {t("checkout", "recipientPhone")}
-                    <input value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
-                  </label>
-                  {orderType === "GIFT" && (
-                    <label className="text-sm text-charcoal/70 sm:col-span-2">
-                      {t("checkout", "giftNote")}
-                      <textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} rows={3} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
-                    </label>
-                  )}
-                </div>
-              )}
-            </fieldset>
-
-            {/* One way to pay where layaway is not offered, so there is nothing
-                to choose between and the fieldset goes entirely. */}
-            {layawayOk && (
-            <fieldset>
-              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "modeH")}</legend>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {(["full", "layaway"] as const).map((m) => (
-                  <button
-                    key={m} type="button" onClick={() => setMode(m)}
-                    aria-pressed={mode === m}
-                    className={`border p-4 text-left text-sm ${mode === m ? "border-gold-dark text-charcoal-deep" : "border-hairline text-charcoal/70"}`}
-                  >
-                    <span className="block text-gold-dark">{m === "full" ? t("checkout", "modeFull") : t("checkout", "modeLayaway")}</span>
-                    <span className="mt-1 block text-xs text-charcoal/70">
-                      {m === "full" ? t("checkout", "modeFullNote") : t("checkout", "modeLayawayNote")}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            )}
-
-            {/* Yen or pesos, for a full payment and a layaway alike (owner
-                decision 2026-09-25), on both languages. The note follows the
-                mode: a full payment's never names a plan, so the Japanese site,
-                which offers full payment only, carries no layaway wording. */}
-            <fieldset>
-              <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "settlementH")}</legend>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {(["JPY", "PHP"] as const).map((cur) => (
-                  <button
-                    key={cur} type="button" onClick={() => setSettlement(cur)}
-                    aria-pressed={settlement === cur}
-                    className={`border px-4 py-2 text-sm ${settlement === cur ? "border-orange bg-orange text-charcoal-deep" : "border-hairline text-charcoal/70"}`}
-                  >
-                    {cur === "JPY" ? t("checkout", "settlementJpy") : t("checkout", "settlementPhp")}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-2 text-xs text-charcoal/70">
-                {mode === "layaway" ? t("checkout", "settlementNote") : t("checkout", "settlementOrderNote")}
-              </p>
-            </fieldset>
-
-            {/* The term belongs to a plan, not to a one-off payment. */}
-            {mode === "layaway" && (
-              <>
-                <fieldset>
-                  <legend className="font-display text-xl text-charcoal-deep">{t("checkout", "termH")}</legend>
-                  {/* Before the first quote there is no eligibility to show, so
-                      every configured term is offered and the Hub decides. After
-                      it, the terms this basket cannot reach are disabled with
-                      their minimum named.
-
-                      A NOT-LAUNCHED TERM IS SHOWN AND DISABLED, never hidden
-                      (owner decision 2026-09-16): a 12-month plan exists in the
-                      Hub and is not yet open to web customers, and the customer
-                      should be able to see that rather than wonder why the list
-                      stops at eight. Its reason is stated in its own words —
-                      "Coming soon", not the basket-too-small message — because
-                      the two are fixed by different things and only one of them
-                      is the customer's to fix. */}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {termOptions.map((tm) => {
-                      const launched = termLaunched(tm.months);
-                      const pickable = launched && tm.eligible;
-                      return (
-                        <button
-                          key={tm.months} type="button" disabled={!pickable}
-                          onClick={() => setTerm(tm.months)}
-                          aria-pressed={term === tm.months}
-                          title={launched ? (tm.eligible ? undefined : t("checkout", "termUnavailable")) : t("checkout", "termNotLaunchedHint")}
-                          className={`border px-4 py-2 text-left text-sm disabled:opacity-40 ${term === tm.months && pickable ? "border-gold-dark text-gold-dark" : "border-hairline text-charcoal/70"}`}
-                        >
-                          <span className="block">{t("checkout", "termMonths", { n: String(tm.months) })}</span>
-                          {!launched ? (
-                            <span className="block text-[11px] text-charcoal/70">{t("checkout", "termNotLaunched")}</span>
-                          ) : tm.min_amount > 0 ? (
-                            <span className="block text-[11px] text-charcoal/70">
-                              {t("checkout", "termMin", { amount: formatMoney(tm.min_amount, settlement) })}
-                            </span>
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              </>
-            )}
-
-            <Button disabled={pending || !addressId} onClick={toReview}>{t("checkout", "continue")}</Button>
-          </div>
-        )}
-
-        {/* THE GATE. No plan is created until the agreement is signed (owner
-            decision), and this is the path to it — not the enforcement. The
-            enforcement is payLayawayAction, which re-checks server-side and
-            refuses, so a customer who skips this screen still cannot get a
-            plan. The agreement is one document written in Tagalog with English;
-            there is no language to pick. */}
-        {step === "sign" && quote && (
-          <div className="space-y-6">
-            <h2 className="font-display text-xl text-charcoal-deep">{t("checkout", "agreementHeading")}</h2>
-            <div className="border border-hairline p-5 text-sm text-charcoal">
-              <p>{t("checkout", "agreementIntro")}</p>
-              <p className="mt-3 text-xs text-charcoal/70">{t("checkout", "agreementLanguageNote")}</p>
-              {/* A NEW TAB, deliberately. The checkout keeps its state — step,
-                  term, currency and quote are React state and a same-tab
-                  navigation loses all of it. The ?quote= path exists for the
-                  customer who leaves anyway; this is how most never need it. */}
-              <a
-                href={signUrl(quote.quote_id, quote.invoice_number ?? null)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-block border border-gold-dark px-5 py-2 text-sm text-gold-dark hover:bg-gold-dark/10"
-              >
-                {t("checkout", "agreementOpen")}
-              </a>
-              <p className="mt-3 text-xs text-charcoal/70">{t("checkout", "agreementNewTabNote")}</p>
-            </div>
-            {/* What the server already read from the signing record on the way
-                back in — shown here so the customer sees the signature landed
-                before pressing on; "I have signed" then goes straight to Review. */}
-            {agreement?.signed && (
-              <p className="border border-hairline bg-white px-4 py-3 text-sm text-charcoal">
-                {t("checkout", "agreementSigned", {
-                  version: agreement.version ?? "",
-                  date: (agreement.signed_at ?? "").slice(0, 10),
-                })}
-              </p>
-            )}
-            <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
-              <Button onClick={recheckAgreement} disabled={pending}>
-                {pending ? t("checkout", "agreementChecking") : t("checkout", "agreementDone")}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && quote && (
-          <div className="space-y-6">
-            <ul className="rule-grid grid gap-px">
-              {quote.items.map((line) => (
-                <li key={line.variant_id} className="flex items-baseline justify-between gap-4 bg-white p-4 text-sm">
-                  <span>{quoteItemName(line, lang)} × {line.qty}</span>
-                  {/* Lines are yen, the price of record. Beside a peso total
-                      they would put two currencies on one screen, so a peso
-                      quote lists the pieces without a price (owner decision D1). */}
-                  {quoteCurrency === "JPY" && (
-                    <span className="font-display text-lg text-gold-dark">{formatMoney(line.line_total_jpy)}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {quote.requires_manual_quote && (
-              <p className="border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("checkout", "manualQuote")}</p>
-            )}
-            {shippingLater && (
-              <p className="border border-hairline bg-white px-4 py-3 text-sm text-charcoal">{t("checkout", "shippingAtConfirmation")}</p>
-            )}
-            {/* What the server read from the signing record — the version they
-                actually signed and when, the same two values the plan will
-                store. Shown rather than assumed, so a wrong version is visible
-                before the plan exists. */}
-            {mode === "layaway" && agreement?.signed && (
-              <p className="border border-hairline bg-white px-4 py-3 text-sm text-charcoal">
-                {t("checkout", "agreementSigned", {
-                  version: agreement.version ?? "",
-                  date: (agreement.signed_at ?? "").slice(0, 10),
-                })}
-              </p>
-            )}
-            {/* The plan exactly as the Hub computed it, in the currency it will
-                be written in. Nothing here is recalculated on this side. */}
-            {plan && (
-              <div className="border border-hairline p-5">
-                <dl className="grid gap-4 sm:grid-cols-3">
-                  <PlanFigure k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />
-                  <PlanFigure k={t("checkout", "layawayMonthly")} v={money(plan.monthly)} />
-                  <PlanFigure k={t("checkout", "layawayLast")} v={money(plan.last_month)} />
-                </dl>
-                <h3 className="mt-6 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("checkout", "layawaySchedule")}</h3>
-                <ul className="mt-3 space-y-1 text-sm text-charcoal">
-                  {plan.schedule.map((row) => (
-                    <li key={row.installment_number} className="flex justify-between gap-4">
-                      <span>{row.due_date}</span>
-                      <span className="text-charcoal-deep">{money(row.amount)}</span>
-                    </li>
-                  ))}
-                </ul>
-                {reserving ? (
-                  <>
-                    <p className="mt-4 text-xs text-charcoal/70">{t("checkout", "layawayScheduleProvisional")}</p>
-                    {quote.provisional && <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "layawayFiguresProvisional")}</p>}
-                    <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "layawayReserveNote")}</p>
-                  </>
-                ) : (
-                  /* The number the Hub will store — 24 on a first order, 72
-                     after that — or no number at all when it sent none. */
-                  <p className="mt-4 text-xs text-charcoal/70">
-                    {typeof quote.deposit_deadline_hours === "number"
-                      ? t("checkout", "layawayDepositWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
-                      : ""}
-                    {t("checkout", "layawayDeadlineNote")}
-                  </p>
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="min-w-0">
+            {error && (
+              <div ref={errorRef2} role="alert" className={`mb-6 ${alertLight} p-4 text-sm`}>
+                <p>{error}</p>
+                {errorRef && (
+                  <p className="mt-2 font-mono text-xs text-charcoal/70">{t("checkout", "ref")}: {errorRef}</p>
                 )}
               </div>
             )}
-            <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setStep(1)} disabled={pending}>{t("checkout", "back")}</Button>
-              <Button onClick={() => setStep(3)} disabled={pending || quote.requires_manual_quote}>{t("checkout", "continue")}</Button>
-            </div>
-          </div>
-        )}
 
-        {step === 3 && quote && (
-          <div className="space-y-6">
-            <h2 className="font-display text-xl text-charcoal-deep">{t("checkout", "payHeading")}</h2>
-            {/* A region with no complete, active method in the Hub is not
-                offered transfer at all. Showing the method and failing at the
-                last click — or worse, taking an order we cannot be paid for —
-                is the outcome this prevents. The Hub enforces the same rule
-                server-side; this is the courteous half of it. */}
-            {quote.transfer_available && reserving ? (
-              /* A reservation: how they will pay, and that the details come
-                 after we confirm the piece. No accounts, no deadline — the Hub
-                 sends no methods in this mode, and this renders none. */
-              <div className="border border-hairline bg-white p-4 text-sm text-charcoal">
-                <p>{t("checkout", "transferOnly")}</p>
-                <p className="mt-2">{t("checkout", "reserveExplain")}</p>
-              </div>
-            ) : quote.transfer_available ? (
-              <>
-                <div className="border border-hairline bg-white p-4 text-sm text-charcoal">
-                  <p>{t("checkout", "transferOnly")}</p>
-                  <p className="mt-2">{t("checkout", "transferPreview")}</p>
-                  {/* The number the Hub will actually store, not a constant.
-                      Omitted rather than guessed when the Hub sent none: an
-                      unnumbered sentence is true, and "72 hours" was not. */}
-                  <p className="mt-2">
-                    {typeof quote.deposit_deadline_hours === "number"
-                      ? t("checkout", "deadlineWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
-                      : ""}
-                    {t("checkout", "deadlineNote")}
+            {step === 1 && (
+              <section className="border border-hairline bg-white p-5 sm:p-7">
+                <h2 className={SEC}>{t("checkout", "stepDetails")}</h2>
+                <dl className="grid gap-x-5 gap-y-2.5 text-sm sm:grid-cols-[160px_minmax(0,1fr)]">
+                  <dt className="text-charcoal/75">{t("account", "name")}</dt><dd className="m-0 break-words text-charcoal-deep">{customer.name ?? "—"}</dd>
+                  <dt className="text-charcoal/75">{t("account", "email")}</dt><dd className="m-0 break-all text-charcoal-deep">{customer.email ?? "—"}</dd>
+                </dl>
+
+                <fieldset className="mt-7">
+                  <legend className={SEC}>{t("checkout", "chooseAddress")}</legend>
+                  {addresses.length > 0 && (
+                    <ul className="grid gap-2.5">
+                      {addresses.map((a, i) => (
+                        <li key={a.id ?? i}>
+                          <label className={`${OPT} ${addressId === a.id ? OPT_ON : ""}`}>
+                            <input type="radio" name="address" className="sr-only" checked={addressId === a.id} onChange={() => setAddressId(a.id ?? "")} />
+                            <Radio on={addressId === a.id} />
+                            <span className="text-sm text-charcoal-deep">
+                              <b className="block text-[15px] font-semibold">{a.recipient_name ?? "—"}</b>
+                              <span className="block">{a.line1}{a.line2 ? `, ${a.line2}` : ""}</span>
+                              <span className="block">{[a.city, a.region, a.postal_code].filter(Boolean).join(" ")}</span>
+                              <span className="block text-charcoal/75">{a.country}</span>
+                            </span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {!showNew ? (
+                    <button type="button" onClick={() => setShowNew(true)} className="mt-2 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-gold-dark underline underline-offset-4">
+                      <Plus aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />{t("checkout", "newAddress")}
+                    </button>
+                  ) : (
+                    <form className="mt-2 grid gap-x-4 border border-hairline p-4 sm:grid-cols-2 sm:p-5" action={saveAddress}>
+                      <p className="mb-3 text-[15px] font-semibold text-charcoal-deep sm:col-span-2">{t("checkout", "newAddress")}</p>
+                      <Field name="recipient_name" label={t("checkout", "recipientName")} autoComplete="name" />
+                      <Field name="phone" label={t("checkout", "phone")} autoComplete="tel" type="tel" />
+                      <Field name="line1" label={t("checkout", "line1")} required className="sm:col-span-2" autoComplete="address-line1" />
+                      <Field name="line2" label={t("checkout", "line2")} className="sm:col-span-2" autoComplete="address-line2" />
+                      <Field name="city" label={t("checkout", "city")} autoComplete="address-level2" />
+                      <Field name="region" label={t("checkout", "region")} autoComplete="address-level1" />
+                      <Field name="postal_code" label={t("checkout", "postal")} autoComplete="postal-code" />
+                      <Field name="country" label={t("checkout", "country")} defaultValue="JP" autoComplete="country" />
+                      {/* Required, and never the orange action (D3-7): the quote
+                          needs a saved address, and "Continue" is this step's buy. */}
+                      <div className="sm:col-span-2">
+                        <Button type="submit" variant="outline" disabled={pending}>{t("checkout", "saveAddress")}</Button>
+                      </div>
+                    </form>
+                  )}
+                </fieldset>
+              </section>
+            )}
+
+            {step === 2 && (
+              <section className="border border-hairline bg-white p-5 sm:p-7">
+                <fieldset>
+                  <legend className={SEC}>{t("checkout", "orderType")}</legend>
+                  <div className="grid gap-2.5">
+                    {ORDER_TYPES.map((type) => (
+                      <button key={type} type="button" onClick={() => setOrderType(type)} aria-pressed={orderType === type} className={`${OPT} text-left ${orderType === type ? OPT_ON : ""}`}>
+                        <Radio on={orderType === type} />
+                        <b className="text-[15px] font-semibold text-charcoal-deep">{orderTypeLabel(type)}</b>
+                      </button>
+                    ))}
+                  </div>
+                  {orderType !== "SELF" && (
+                    <div className="mt-4 grid gap-x-4 sm:grid-cols-2">
+                      <label className={FIELD_LABEL}>
+                        {t("checkout", "recipientName")}
+                        <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} autoComplete="off" className={INPUT} />
+                      </label>
+                      <label className={FIELD_LABEL}>
+                        {t("checkout", "recipientPhone")}
+                        <input value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} type="tel" autoComplete="off" className={INPUT} />
+                      </label>
+                      {orderType === "GIFT" && (
+                        <label className={`${FIELD_LABEL} sm:col-span-2`}>
+                          {t("checkout", "giftNote")}
+                          <textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} rows={3} className={`mt-1.5 w-full px-3.5 py-3 text-[15px] ${inputLight}`} />
+                        </label>
+                      )}
+                    </div>
+                  )}
+                </fieldset>
+
+                <h2 className={`${SEC} mt-7`}>{t("checkout", "stepDelivery")}</h2>
+                <dl className="grid gap-x-5 gap-y-2.5 text-sm sm:grid-cols-[160px_minmax(0,1fr)]">
+                  <dt className="text-charcoal/75">{t("checkout", "reviewShipTo")}</dt>
+                  <dd className="m-0 text-charcoal-deep">
+                    {selectedAddress ? addressText(selectedAddress) : "—"}{" "}
+                    <ChangeLink label={t("checkout", "change")} srLabel={t("checkout", "changeItem", { item: t("checkout", "reviewShipTo") })} onClick={() => setStep(1)} />
+                  </dd>
+                  <dt className="text-charcoal/75">{t("checkout", "whenShips")}</dt>
+                  <dd className="m-0 text-charcoal-deep">{t("checkout", "shipsWithin")}</dd>
+                  <dt className="text-charcoal/75">{t("checkout", "shipping")}</dt>
+                  <dd className="m-0 text-charcoal-deep">{t("cart", "shippingCalc")}</dd>
+                </dl>
+              </section>
+            )}
+
+            {step === 3 && (
+              <section className="border border-hairline bg-white p-5 sm:p-7">
+                {/* One way to pay where layaway is not offered, so there is
+                    nothing to choose between and the fieldset goes entirely. */}
+                {layawayOk && (
+                  <fieldset className="mb-7">
+                    <legend className={SEC}>{t("checkout", "modeH")}</legend>
+                    <div className="grid gap-2.5">
+                      {(["full", "layaway"] as const).map((m) => (
+                        <button key={m} type="button" onClick={() => setMode(m)} aria-pressed={mode === m} className={`${OPT} text-left ${mode === m ? OPT_ON : ""}`}>
+                          <Radio on={mode === m} />
+                          <span>
+                            <b className="block text-[15px] font-semibold text-charcoal-deep">{m === "full" ? t("checkout", "modeFull") : t("checkout", "modeLayaway")}</b>
+                            <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{m === "full" ? t("checkout", "modeFullNote") : t("checkout", "modeLayawayNote")}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {/* The term belongs to a plan, not to a one-off payment.
+                        Before the first quote there is no eligibility to show,
+                        so every configured term is offered and the Hub
+                        decides; after it, the terms this basket cannot reach
+                        are disabled with their minimum named. A NOT-LAUNCHED
+                        TERM IS SHOWN AND DISABLED, never hidden (owner decision
+                        2026-09-16), with its own reason. */}
+                    {mode === "layaway" && (
+                      <div className="mt-4 sm:ml-9">
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark">{t("checkout", "termH")}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {termOptions.map((tm) => {
+                            const launched = termLaunched(tm.months);
+                            const pickable = launched && tm.eligible;
+                            const on = term === tm.months && pickable;
+                            return (
+                              <button
+                                key={tm.months} type="button" disabled={!pickable}
+                                onClick={() => setTerm(tm.months)}
+                                aria-pressed={term === tm.months}
+                                title={launched ? (tm.eligible ? undefined : t("checkout", "termUnavailable")) : t("checkout", "termNotLaunchedHint")}
+                                className={`min-h-11 border px-4 py-1.5 text-left text-sm disabled:border-dashed disabled:opacity-60 ${on ? "border-charcoal-deep bg-charcoal-deep text-chalk" : "border-charcoal/60 text-charcoal-deep"}`}
+                              >
+                                <span className="block font-medium">{t("checkout", "termMonths", { n: String(tm.months) })}</span>
+                                {!launched ? (
+                                  <span className={`block text-[11px] ${on ? "text-chalk/80" : "text-charcoal/75"}`}>{t("checkout", "termNotLaunched")}</span>
+                                ) : tm.min_amount > 0 ? (
+                                  <span className={`block text-[11px] ${on ? "text-chalk/80" : "text-charcoal/75"}`}>
+                                    {t("checkout", "termMin", { amount: formatMoney(tm.min_amount, settlement) })}
+                                  </span>
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </fieldset>
+                )}
+
+                {/* Yen or pesos, for a full payment and a layaway alike (owner
+                    decision 2026-09-25), on both languages. Charcoal, not
+                    orange (D3-4): orange means buy. The note follows the mode,
+                    so the Japanese site carries no layaway wording. */}
+                <fieldset>
+                  <legend className={SEC}>{t("checkout", "settlementH")}</legend>
+                  <div role="group" className="inline-flex border border-charcoal/60">
+                    {(["JPY", "PHP"] as const).map((cur) => (
+                      <button
+                        key={cur} type="button" onClick={() => setSettlement(cur)}
+                        aria-pressed={settlement === cur}
+                        className={`min-h-11 px-4 text-sm font-medium sm:px-[18px] ${settlement === cur ? "bg-charcoal-deep text-chalk" : "text-charcoal-deep hover:bg-chalk"}`}
+                      >
+                        {cur === "JPY" ? `${t("checkout", "settlementJpy")} ¥` : `${t("checkout", "settlementPhp")} ₱`}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2.5 text-[13px] leading-relaxed text-charcoal/75">
+                    {mode === "layaway" ? t("checkout", "settlementNote") : t("checkout", "settlementOrderNote")}
                   </p>
+                </fieldset>
+
+                <h2 className={`${SEC} mt-7`}>{t("checkout", "payHeading")}</h2>
+                <div className={`${OPT} ${OPT_ON}`}>
+                  <Radio on />
+                  <span>
+                    <b className="block text-[15px] font-semibold text-charcoal-deep">{settlement === "PHP" ? t("checkout", "payPhp") : t("checkout", "payJpy")}</b>
+                    <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{t("checkout", "transferOnly")}</span>
+                  </span>
                 </div>
-                {/* The Hub sends only this destination's region, so these are
-                    the accounts this customer will actually pay into — and the
-                    other region's are not in the payload to leak. */}
-                <TransferDetails methods={quote.transfer_methods} lang={lang} />
-              </>
-            ) : (
-              <p role="alert" className={`${alertLight} px-4 py-3 text-sm`}>
-                {t("checkout", "transferUnavailable")}
-              </p>
+              </section>
             )}
-            {/* Offered only to a signed-in non-member, and never pre-ticked:
-                this is consent. What they earn is on the label; what we do
-                with the details they just typed is in the note. The programme
-                itself is explained at /loyalty rather than here. */}
-            {offerLoyalty && (
-              <div className="mb-2 border border-hairline bg-white p-4">
-                <label className="flex cursor-pointer items-start gap-3 text-sm text-charcoal">
-                  <input
-                    type="checkbox"
-                    checked={joinLoyalty}
-                    onChange={(e) => setJoinLoyalty(e.target.checked)}
-                    disabled={pending}
-                    className="mt-1 h-4 w-4 shrink-0 accent-gold"
-                  />
-                  <span>{t("checkout", "joinLoyalty")}</span>
-                </label>
-                <p className="mt-2 pl-7 text-xs text-charcoal/70">
-                  {t("checkout", "joinLoyaltyNote")}{" "}
-                  <Link href="/loyalty" className="underline underline-offset-4 hover:text-gold-dark">
-                    {t("checkout", "joinLoyaltyLink")}
-                  </Link>
-                </p>
-              </div>
+
+            {/* THE GATE. No plan is created until the agreement is signed
+                (owner decision), and this is the path to it — not the
+                enforcement. The enforcement is payLayawayAction, which
+                re-checks server-side and refuses, so a customer who skips this
+                screen still cannot get a plan. The agreement is one document
+                written in Tagalog with English; there is no language to pick. */}
+            {step === "sign" && quote && (
+              <section className="relative border border-hairline bg-white p-5 sm:p-7">
+                <span aria-hidden="true" className="cj-slab-rule" />
+                <h2 className={SEC}>{t("checkout", "agreementHeading")}</h2>
+                <p className="text-sm leading-relaxed text-charcoal-deep">{t("checkout", "agreementIntro")}</p>
+                <p className="mt-3 text-[13px] text-charcoal/75">{t("checkout", "agreementLanguageNote")}</p>
+                {/* A NEW TAB, deliberately. The checkout keeps its state —
+                    step, term, currency and quote are React state and a
+                    same-tab navigation loses all of it. The ?quote= path exists
+                    for the customer who leaves anyway. */}
+                <Button asChild variant="ghost" className="mt-5">
+                  <a href={signUrl(quote.quote_id, quote.invoice_number ?? null)} target="_blank" rel="noopener noreferrer">
+                    {t("checkout", "agreementOpen")}<ExternalLink aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
+                  </a>
+                </Button>
+                <p className="mt-3 text-[13px] text-charcoal/75">{t("checkout", "agreementNewTabNote")}</p>
+                {/* What the server already read from the signing record on the
+                    way back in — shown so the customer sees the signature
+                    landed before pressing on. */}
+                {agreement?.signed && (
+                  <p className="mt-5 inline-flex items-center gap-2 border border-hairline bg-chalk px-3 py-1.5 text-[13px] font-semibold text-charcoal-deep before:h-2 before:w-2 before:rounded-full before:bg-teal">
+                    {t("checkout", "agreementSigned", { version: agreement.version ?? "", date: agreement.signed_at ? siteDay(agreement.signed_at) : "" })}
+                  </p>
+                )}
+              </section>
             )}
-            <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setStep(2)} disabled={pending}>{t("checkout", "back")}</Button>
-              <Button onClick={placeOrder} disabled={pending || !quote.transfer_available}>
-                {reserving
-                  ? (pending ? t("checkout", "reserving") : t("checkout", "reserveNow"))
-                  : mode === "layaway"
-                  ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
-                  : (pending ? t("checkout", "placing") : t("checkout", "placeOrder"))}
-              </Button>
+
+            {step === 4 && quote && (
+              <section className="border border-hairline bg-white p-5 sm:p-7">
+                <h2 className={SEC}>{t("checkout", "stepReview")}</h2>
+                <dl className="grid gap-x-5 gap-y-2.5 text-sm sm:grid-cols-[160px_minmax(0,1fr)]">
+                  <dt className="text-charcoal/75">{t("checkout", "reviewName")}</dt>
+                  <dd className="m-0 text-charcoal-deep">{customer.name ?? "—"}</dd>
+                  <dt className="text-charcoal/75">{t("checkout", "reviewShipTo")}</dt>
+                  <dd className="m-0 text-charcoal-deep">
+                    {selectedAddress ? addressText(selectedAddress) : "—"}{" "}
+                    <ChangeLink label={t("checkout", "change")} srLabel={t("checkout", "changeItem", { item: t("checkout", "reviewShipTo") })} onClick={() => setStep(1)} />
+                  </dd>
+                  <dt className="text-charcoal/75">{t("checkout", "orderType")}</dt>
+                  <dd className="m-0 text-charcoal-deep">
+                    {orderTypeLabel(orderType)}{" "}
+                    <ChangeLink label={t("checkout", "change")} srLabel={t("checkout", "changeItem", { item: t("checkout", "orderType") })} onClick={() => setStep(2)} />
+                  </dd>
+                  <dt className="text-charcoal/75">{t("checkout", "reviewPayment")}</dt>
+                  <dd className="m-0 text-charcoal-deep">
+                    {payLabel}{" "}
+                    <ChangeLink label={t("checkout", "change")} srLabel={t("checkout", "changeItem", { item: t("checkout", "reviewPayment") })} onClick={() => setStep(3)} />
+                  </dd>
+                </dl>
+                {/* What the server read from the signing record — the version
+                    they actually signed and when, the same two values the plan
+                    will store. Shown rather than assumed. */}
+                {mode === "layaway" && agreement?.signed && (
+                  <p className="mt-4 inline-flex items-center gap-2 border border-hairline bg-chalk px-3 py-1.5 text-[13px] font-semibold text-charcoal-deep before:h-2 before:w-2 before:rounded-full before:bg-teal">
+                    {t("checkout", "agreementSigned", { version: agreement.version ?? "", date: agreement.signed_at ? siteDay(agreement.signed_at) : "" })}
+                  </p>
+                )}
+
+                <ul className="mt-6 grid gap-px border-y border-hairline bg-hairline">
+                  {quote.items.map((line) => {
+                    const cartLine = items.find((i) => i.variant_id === line.variant_id);
+                    const name = quoteItemName(line, lang);
+                    return (
+                      <li key={line.variant_id} className="grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3.5 bg-white py-3 text-sm">
+                        <PieceWell image={cartLine?.picture ?? null} alt={name} />
+                        <span className="text-charcoal-deep [font-variant-numeric:lining-nums]">{name}{line.qty > 1 ? ` × ${line.qty}` : ""}</span>
+                        {/* Lines are yen, the price of record. Beside a peso
+                            total they would put two currencies on one screen,
+                            so a peso quote lists the pieces without a price
+                            (owner decision D1). */}
+                        <span className="cj-fig whitespace-nowrap font-display text-[17px] text-charcoal-deep">{quoteCurrency === "JPY" ? formatMoney(line.line_total_jpy) : ""}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {quote.requires_manual_quote && (
+                  <Notice icon={<Info className="h-5 w-5" strokeWidth={1.5} />} className="mt-5">{t("checkout", "manualQuote")}</Notice>
+                )}
+                {shippingLater && (
+                  <Notice icon={<Truck className="h-5 w-5" strokeWidth={1.5} />} className="mt-5">{t("checkout", "shippingAtConfirmation")}</Notice>
+                )}
+
+                {/* The plan exactly as the Hub computed it, in the currency it
+                    will be written in. Nothing here is recalculated. */}
+                {plan && (
+                  <div className="mt-6 border border-hairline p-5">
+                    <dl className="grid gap-4 sm:grid-cols-3">
+                      <PlanFigure k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />
+                      <PlanFigure k={t("checkout", "layawayMonthly")} v={money(plan.monthly)} />
+                      <PlanFigure k={t("checkout", "layawayLast")} v={money(plan.last_month)} />
+                    </dl>
+                    <h3 className="mt-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark">{t("checkout", "layawaySchedule")}</h3>
+                    <ul className="mt-3 space-y-1 text-sm text-charcoal-deep">
+                      {plan.schedule.map((row) => (
+                        <li key={row.installment_number} className="cj-fig flex justify-between gap-4">
+                          <span>{row.due_date}</span>
+                          <span>{money(row.amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {reserving ? (
+                      <>
+                        <p className="mt-4 text-[13px] text-charcoal/75">{t("checkout", "layawayScheduleProvisional")}</p>
+                        {quote.provisional && <p className="mt-2 text-[13px] text-charcoal/75">{t("checkout", "layawayFiguresProvisional")}</p>}
+                      </>
+                    ) : (
+                      /* The number the Hub will store — 24 on a first order,
+                         72 after that — or no number at all when it sent none. */
+                      <p className="mt-4 text-[13px] text-charcoal/75">
+                        {typeof quote.deposit_deadline_hours === "number"
+                          ? t("checkout", "layawayDepositWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
+                          : ""}
+                        {t("checkout", "layawayDeadlineNote")}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* How they will pay. A region with no complete, active method
+                    in the Hub is not offered transfer at all — the Hub enforces
+                    the same rule; this is the courteous half of it. */}
+                {quote.transfer_available && reserving ? (
+                  /* RESERVE FIRST: no accounts, no deadline — the Hub sends no
+                     methods in this mode and this renders none (D3-8: no fixed
+                     "72 hours"; the deadline arrives with the payment email). */
+                  <Notice icon={<Lock className="h-5 w-5" strokeWidth={1.5} />} className="mt-6">
+                    <b className="font-semibold">{t("checkout", "reserveFirstH")}</b>{" "}
+                    {mode === "layaway" ? t("checkout", "layawayReserveNote") : t("checkout", "reserveExplain")}
+                  </Notice>
+                ) : quote.transfer_available ? (
+                  <div className="mt-6">
+                    <div className="border border-hairline bg-chalk p-4 text-sm text-charcoal-deep">
+                      <p>{t("checkout", "transferOnly")}</p>
+                      <p className="mt-2">{t("checkout", "transferPreview")}</p>
+                      {/* The number the Hub will actually store, not a
+                          constant. Omitted rather than guessed. */}
+                      <p className="mt-2">
+                        {typeof quote.deposit_deadline_hours === "number"
+                          ? t("checkout", "deadlineWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
+                          : ""}
+                        {t("checkout", "deadlineNote")}
+                      </p>
+                    </div>
+                    {/* Only this destination's region, so these are the
+                        accounts this customer will actually pay into. */}
+                    <div className="mt-4"><TransferDetails methods={quote.transfer_methods} lang={lang} /></div>
+                  </div>
+                ) : (
+                  <p role="alert" className={`mt-6 ${alertLight} px-4 py-3 text-sm`}>{t("checkout", "transferUnavailable")}</p>
+                )}
+
+                {/* Offered only to a signed-in non-member, and never
+                    pre-ticked: this is consent. */}
+                {offerLoyalty && (
+                  <div className="mt-6 border border-hairline p-4">
+                    <label className="flex cursor-pointer items-start gap-3 text-sm text-charcoal-deep">
+                      <input
+                        type="checkbox"
+                        checked={joinLoyalty}
+                        onChange={(e) => setJoinLoyalty(e.target.checked)}
+                        disabled={pending}
+                        className="mt-0.5 h-5 w-5 shrink-0 accent-gold-dark"
+                      />
+                      <span>{t("checkout", "joinLoyalty")}</span>
+                    </label>
+                    <p className="mt-2 pl-8 text-[13px] text-charcoal/75">
+                      {t("checkout", "joinLoyaltyNote")}{" "}
+                      <Link href="/loyalty" className="font-medium text-gold-dark underline underline-offset-4">
+                        {t("checkout", "joinLoyaltyLink")}
+                      </Link>
+                    </p>
+                  </div>
+                )}
+              </section>
+            )}
+
+            <div className="mt-6 flex items-center justify-between gap-4">
+              {back?.to === "cart" ? (
+                <Link href="/cart" className={BACK}>← {back.label}</Link>
+              ) : back ? (
+                <button type="button" className={BACK} disabled={pending} onClick={() => { clearError(); setStep(back.to as Step); }}>← {back.label}</button>
+              ) : <span />}
+              {primary && <Button className="hidden lg:inline-flex" onClick={primary.onClick} disabled={primary.disabled}>{primary.label}</Button>}
             </div>
           </div>
-        )}
+
+          <div className="grid gap-4">
+            <OrderSlab
+              id="order-summary"
+              title={t("cart", "summaryH")}
+              lines={items.map((i) => ({
+                key: i.variant_id,
+                name: `${cartItemName(i, lang)}${i.qty > 1 ? ` × ${i.qty}` : ""}`,
+                image: i.picture,
+                // Yen cart lines only beside yen totals (owner decision D1).
+                price: summary.currency === "JPY" ? formatMoney(i.line_total_jpy) : null,
+              }))}
+              rows={[
+                { k: t("checkout", "subtotal"), v: summaryMoney(summary.subtotal) },
+                { k: t("checkout", "shipping"), v: shippingValue },
+                ...(plan ? [{ k: t("checkout", "layawayDeposit"), v: money(plan.deposit) }, { k: t("checkout", "layawayMonthly"), v: money(plan.monthly) }] : []),
+                // Before the quote, a peso plan's deposit and monthly are the
+                // Hub's estimate for this basket and term.
+                ...(!plan && summary.deposit !== null ? [{ k: t("checkout", "layawayDeposit"), v: summaryMoney(summary.deposit) }] : []),
+                ...(!plan && summary.monthly !== null ? [{ k: t("checkout", "layawayMonthly"), v: summaryMoney(summary.monthly) }] : []),
+              ]}
+              total={{
+                k: totalLabel,
+                v: summaryMoney(summary.total),
+                // Pesos chosen: the yen beside the peso total, and what the
+                // estimate is — or, with no peso figure, when it will be shown.
+                sub: (summary.yenTotal !== null || summary.estimate || summary.pesoPending) ? (
+                  <>
+                    {summary.yenTotal !== null && <span className="block">{formatMoney(summary.yenTotal, "JPY")}</span>}
+                    {summary.estimate && <span className="block">{t("checkout", "pesoEstimateNote")}</span>}
+                    {summary.pesoPending && <span className="block">{t("checkout", "pesoNextStep")}</span>}
+                  </>
+                ) : undefined,
+              }}
+            >
+              <Link href="/cart" className="mt-4 inline-flex min-h-11 items-center text-[13px] text-chalk/80 underline underline-offset-4 hover:text-chalk">{t("cart", "h1")}</Link>
+            </OrderSlab>
+            {aside}
+          </div>
+        </div>
       </div>
 
-      <aside className="h-fit border border-hairline bg-white p-6">
-        <ul className="space-y-2 text-sm text-charcoal">
-          {items.map((i) => (
-            <li key={i.variant_id} className="flex justify-between gap-4">
-              <span>{cartItemName(i, lang)}{i.qty > 1 ? ` × ${i.qty}` : ""}</span>
-              {/* Yen cart lines only beside yen totals (owner decision D1). */}
-              {summary.currency === "JPY" && <span>{formatMoney(i.line_total_jpy)}</span>}
-            </li>
-          ))}
-        </ul>
-        <dl className="mt-5 space-y-2 border-t border-hairline pt-4 text-sm">
-          <Line k={t("checkout", "subtotal")} v={summaryMoney(summary.subtotal)} />
-          <Line
-            k={t("checkout", "shipping")}
-            v={shippingLater ? t("checkout", "shippingLaterShort") : summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping)}
-          />
-          {plan && <Line k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />}
-          {/* Before the quote, a peso plan's deposit and monthly are the Hub's
-              estimate for this basket and term. */}
-          {!plan && summary.deposit !== null && <Line k={t("checkout", "layawayDeposit")} v={summaryMoney(summary.deposit)} />}
-          {!plan && summary.monthly !== null && <Line k={t("checkout", "layawayMonthly")} v={summaryMoney(summary.monthly)} />}
-        </dl>
-        <div className="mt-4 flex items-baseline justify-between border-t border-hairline pt-4">
-          <span className="text-charcoal/70">{t("checkout", shippingLater ? "totalBeforeShipping" : "total")}</span>
-          <span className="font-display text-2xl text-gold-dark">{summaryMoney(summary.total)}</span>
-        </div>
-        {/* Pesos chosen: the yen beside the peso total, and what the estimate
-            is — or, with no peso figure to be had, when it will be shown. */}
-        {summary.yenTotal !== null && (
-          <p className="mt-1 text-right text-sm text-charcoal/70">{formatMoney(summary.yenTotal, "JPY")}</p>
-        )}
-        {summary.estimate && <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "pesoEstimateNote")}</p>}
-        {summary.pesoPending && <p className="mt-2 text-xs text-charcoal/70">{t("checkout", "pesoNextStep")}</p>}
-        <Link href="/cart" className="mt-4 inline-block text-xs text-charcoal/70 underline underline-offset-4">
-          {t("cart", "h1")}
-        </Link>
-      </aside>
-    </div>
+      {primary && (
+        <StickyAct label={t("cart", "summaryH")} figure={summaryMoney(summary.total)} note={quoteShown && !shippingLater ? undefined : t("cart", "plusShipping")}>
+          <Button onClick={primary.onClick} disabled={primary.disabled}>{primary.label}</Button>
+        </StickyAct>
+      )}
+    </>
   );
 }
 
-function Field({ name, label, required, defaultValue, className }: {
-  name: string; label: string; required?: boolean; defaultValue?: string; className?: string;
+const SEC = "mb-4 font-display text-[22px] leading-snug text-charcoal-deep [:lang(ja)_&]:text-[19px]";
+const OPT = "grid min-h-11 w-full cursor-pointer grid-cols-[22px_minmax(0,1fr)] items-start gap-3.5 border border-hairline bg-white p-4 sm:p-[18px]";
+const OPT_ON = "border-gold-dark shadow-[inset_3px_0_0_#8A6B12]";
+const BACK = "inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep disabled:opacity-60";
+const FIELD_LABEL = "mb-4 block text-[13px] font-semibold text-charcoal/85";
+const INPUT = `mt-1.5 h-12 w-full px-3.5 text-[15px] ${inputLight}`;
+
+function addressText(a: HubAddress): string {
+  return [a.recipient_name, [a.line1, a.line2].filter(Boolean).join(", "), [a.city, a.region, a.postal_code].filter(Boolean).join(" "), a.country].filter(Boolean).join(" · ");
+}
+
+function Radio({ on }: { on: boolean }) {
+  return (
+    <span aria-hidden="true" className={`mt-0.5 grid h-5 w-5 place-items-center rounded-full border-[1.5px] ${on ? "border-gold-dark" : "border-charcoal/60"}`}>
+      {on && <span className="h-2.5 w-2.5 rounded-full bg-gold-dark" />}
+    </span>
+  );
+}
+
+function ChangeLink({ label, srLabel, onClick }: { label: string; srLabel: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="inline-flex min-h-11 items-center align-middle text-[13px] font-semibold text-gold-dark underline underline-offset-[3px] sm:min-h-0">
+      <span aria-hidden="true">{label}</span><span className="sr-only">{srLabel}</span>
+    </button>
+  );
+}
+
+function Field({ name, label, required, defaultValue, className, autoComplete, type }: {
+  name: string; label: string; required?: boolean; defaultValue?: string; className?: string; autoComplete?: string; type?: string;
 }) {
   return (
-    <label className={`text-sm ${labelLight} ${className ?? ""}`}>
+    <label className={`${FIELD_LABEL} ${className ?? ""}`}>
       {label}{required && <span className="text-gold-dark"> *</span>}
-      <input name={name} required={required} defaultValue={defaultValue} className={`mt-1 w-full px-3 py-2 ${inputLight}`} />
+      <input name={name} required={required} defaultValue={defaultValue} autoComplete={autoComplete} type={type ?? "text"} className={INPUT} />
     </label>
   );
 }
@@ -857,17 +982,8 @@ function Field({ name, label, required, defaultValue, className }: {
 function PlanFigure({ k, v }: { k: string; v: string }) {
   return (
     <div>
-      <dt className="text-xs text-charcoal/70">{k}</dt>
-      <dd className="mt-1 font-display text-2xl text-gold-dark">{v}</dd>
-    </div>
-  );
-}
-
-function Line({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex justify-between gap-4">
-      <dt className="text-charcoal/70">{k}</dt>
-      <dd className="text-charcoal-deep">{v}</dd>
+      <dt className="text-xs text-charcoal/75">{k}</dt>
+      <dd className="cj-fig mt-1 font-display text-2xl text-charcoal-deep">{v}</dd>
     </div>
   );
 }

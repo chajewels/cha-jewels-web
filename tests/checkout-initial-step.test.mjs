@@ -32,15 +32,15 @@ test("EN + layaway quote, signed: signing step (owner decision 2026-09-19), sign
   assert.deepEqual(initialCheckoutState(layawayQuote, signed, EN), { step: "sign", quote: layawayQuote, agreement: signed });
 });
 
-test("JA and EN + full quote: Review, quote kept", () => {
+test("JA and EN + full quote: Review (step 4), quote kept", () => {
   for (const ok of [JA, EN]) {
-    assert.deepEqual(initialCheckoutState(fullQuote, null, ok), { step: 2, quote: fullQuote, agreement: null });
+    assert.deepEqual(initialCheckoutState(fullQuote, null, ok), { step: 4, quote: fullQuote, agreement: null });
   }
 });
 
 test("A quote without a mode (older Hub) is a full payment: Review in both languages", () => {
   const legacy = { quote_id: "q-old" };
-  for (const ok of [JA, EN]) assert.equal(initialCheckoutState(legacy, null, ok).step, 2);
+  for (const ok of [JA, EN]) assert.equal(initialCheckoutState(legacy, null, ok).step, 4);
 });
 
 test("No quote: Step 1 in both languages", () => {
