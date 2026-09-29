@@ -7,7 +7,9 @@ import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hubMe } from "@/lib/session";
 import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
-import type { HubMe } from "@/lib/types";
+import type { HubDraft, HubMe } from "@/lib/types";
+import { hub } from "@/lib/hub-api";
+import { DraftRows } from "@/components/account/draft-rows";
 import { formatMoney } from "@/lib/utils";
 import { SignOutButton } from "@/components/account/sign-out-button";
 import { MemberGroups } from "@/components/loyalty/member-groups";
@@ -41,6 +43,12 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   } else {
     failure = failure ?? "session";
   }
+  // Website orders (storefront PR 7): open drafts, the layaway ones only where
+  // layaway is offered. A failed read only hides them.
+  const openDrafts: HubDraft[] = jwt && me
+    ? (await hub.drafts(jwt).catch(() => [] as HubDraft[]))
+        .filter((d) => d.status === "to_confirm" && (d.mode === "full" || layawayOffered(lang)))
+    : [];
   // redirect() throws, so it stays outside the catch above.
   // `link` is dropped from `next`: it is the callback's "linking failed" flag,
   // and carrying it through would show that notice after the link succeeded.
@@ -142,7 +150,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           a staff notification for it, because the customer cannot fix the data
           and staff can.
         */}
-        {me?.records && me.records.layaway === 0 && me.records.orders === 0 && (
+        {/* Website orders still waiting for staff to confirm them (storefront PR 7). */}
+        <DraftRows drafts={openDrafts} lang={lang} />
+
+        {me?.records && me.records.layaway === 0 && me.records.orders === 0 && (me.records.drafts ?? 0) === 0 && (
           <p className="mt-10 border border-hairline bg-white p-5 text-sm text-charcoal-deep">
             {me.shares_email ? t("account", "noRecordsShared") : t("account", "noRecords")}
           </p>

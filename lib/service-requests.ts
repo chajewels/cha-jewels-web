@@ -47,6 +47,9 @@ export function serviceStatusLabel(status: ServiceRequestStatus, lang: Lang): { 
 export function serviceRequestHref(r: ServiceRequest): { href: string; kind: "order" | "plan" } | null {
   if (r.cash_order_id) return { href: `/account/orders/${r.cash_order_id}`, kind: "order" };
   if (r.layaway_plan_id) return { href: `/account/layaway/${r.layaway_plan_id}`, kind: "plan" };
+  // A website order still waiting for confirmation (Hub PR 6). Once staff
+  // confirm it the Hub sets cash_order_id / layaway_plan_id and the lines above win.
+  if (r.draft_id) return { href: `/checkout/complete/d/${encodeURIComponent(r.draft_id)}`, kind: "order" };
   return null;
 }
 

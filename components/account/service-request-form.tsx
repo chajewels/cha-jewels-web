@@ -10,8 +10,12 @@ import { Button } from "@/components/ui/button";
 import { ServiceRequestRow } from "@/components/account/service-request-row";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 
-/** The order or the plan the request is raised against — exactly one. */
-export type ServiceTarget = { cash_order_id: string } | { layaway_plan_id: string };
+/**
+ * The order, the plan or the website DRAFT (an order still waiting for staff to
+ * confirm it; the Hub moves the request to the real order at Confirm) the
+ * request is raised against — exactly one.
+ */
+export type ServiceTarget = { cash_order_id: string } | { layaway_plan_id: string } | { draft_id: string };
 
 /**
  * "Request a service" under an order's or a plan's items, with the requests
@@ -95,6 +99,8 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest }:
           <form ref={formRef} action={submit} className="print-hide mt-6 grid gap-4 border border-hairline p-5 sm:grid-cols-2">
             {"cash_order_id" in target
               ? <input type="hidden" name="cash_order_id" value={target.cash_order_id} />
+              : "draft_id" in target
+              ? <input type="hidden" name="draft_id" value={target.draft_id} />
               : <input type="hidden" name="layaway_plan_id" value={target.layaway_plan_id} />}
 
             <label className="text-sm text-charcoal/70">

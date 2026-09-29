@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { liveMirrorProducts } from "@/lib/fixtures-live";
@@ -28,6 +28,12 @@ function fixtureDownPayments(jpy: number) {
  * is exactly what it was — the switch-off world.
  */
 const PREVIEW_RESERVATION = process.env.NEXT_PUBLIC_PREVIEW_RESERVATION === "1";
+// Website orders (Hub PR 6 / storefront PR 7): NEXT_PUBLIC_PREVIEW_DRAFTS=1
+// makes the preview Hub answer checkout with a DRAFT and list drafts in the
+// account, as the live Hub does with web_checkout_mode = 'draft'.
+const PREVIEW_DRAFTS = process.env.NEXT_PUBLIC_PREVIEW_DRAFTS === "1";
+export const FIXTURE_DRAFT_ID = "00000000-0000-4000-8000-00000000d001";
+export const FIXTURE_DRAFT_REFERENCE = "CJ-W-900070";
 const RESERVED_ORDER_ID = "order-reserved";
 const RESERVED_ORDER_REFERENCE = "CJ-W-000003";
 const RESERVED_PLAN_ID = "plan-reserved";
@@ -498,7 +504,43 @@ const fixtureTerms: LayawayTerm[] = [
   { months: 12, label: "12 Months", min_amount: 1000000, dp_percentage: 0.3, eligible: false },
 ];
 
-export function payFixture(): HubPayResult {
+export function draftPayFixture(mode: CheckoutMode = "full"): HubDraftPayResult {
+  return {
+    draft_id: FIXTURE_DRAFT_ID, web_reference: FIXTURE_DRAFT_REFERENCE, mode, currency: "JPY",
+    total: 236000, total_jpy: 236000, shipping_pending: true,
+    deposit: mode === "layaway" ? 70800 : null, term_months: mode === "layaway" ? 6 : null,
+    provisional: true, awaiting_confirmation: true, transfer_due_at: null, transfer_region: "OVERSEAS", transfer_methods: [],
+  };
+}
+
+const fixtureDraft: HubDraft = {
+  id: FIXTURE_DRAFT_ID, kind: "draft", web_reference: FIXTURE_DRAFT_REFERENCE, status: "to_confirm",
+  mode: "full", term_months: null, currency: "JPY", subtotal: 236000, shipping: null, shipping_pending: true,
+  total: 236000, deposit: null, schedule: null, provisional: true, decline_reason: null,
+  created_at: new Date().toISOString(), decided_at: null, order_id: null, account_id: null,
+};
+
+export function draftsFixture(): HubDraft[] {
+  if (!PREVIEW_DRAFTS) return [];
+  return [
+    fixtureDraft,
+    { ...fixtureDraft, id: "00000000-0000-4000-8000-00000000d002", web_reference: "CJ-W-900066", status: "declined",
+      decline_reason: "The piece did not pass our final inspection.", decided_at: new Date(Date.now() - 864e5).toISOString(),
+      created_at: new Date(Date.now() - 2 * 864e5).toISOString(), shipping: 1500, shipping_pending: false, total: 99500, subtotal: 98000 },
+  ];
+}
+
+export function draftFixture(id: string): HubDraftDetail | null {
+  const d = draftsFixture().find((x) => x.id === id) ?? (id === FIXTURE_DRAFT_ID ? fixtureDraft : null);
+  if (!d) return null;
+  return {
+    draft: { ...d, ship_to_address: { line1: "123 Rizal Avenue", city: "Makati", region: "Metro Manila", postal_code: "1200", country: "PH", recipient_name: "Maria Santos" } },
+    items: [{ id: "l1", variant_id: null, product_id: null, title: "K18 Diamond Pendant / 45cm", title_ja: "K18 ダイヤモンドペンダント / 45cm", sku: "AL3", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null }],
+  };
+}
+
+export function payFixture(): HubPayResult | HubDraftPayResult {
+  if (PREVIEW_DRAFTS) return draftPayFixture("full");
   if (PREVIEW_RESERVATION) {
     return {
       reservation_mode: true, awaiting_confirmation: true,
@@ -642,7 +684,8 @@ function fixtureDueDate(monthsAhead: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function layawayPayFixture(): HubLayawayPayResult {
+export function layawayPayFixture(): HubLayawayPayResult | HubDraftPayResult {
+  if (PREVIEW_DRAFTS) return draftPayFixture("layaway");
   if (PREVIEW_RESERVATION) {
     return {
       mode: "layaway", reservation_mode: true, awaiting_confirmation: true,
