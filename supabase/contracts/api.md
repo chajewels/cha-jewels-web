@@ -227,7 +227,7 @@ Drafted by the storefront for Lovable; nothing here is live. Background: `~/Code
   - `status`: the automatic QA result or the staff decision. The storefront shows the cut-out **only** for `ok`, `auto_fixed` and `approved`. For `needs_review`, `rejected`, `failed`, a `null` cutout, or no `cutout` key, it shows the whole original photo, uncropped, in a framed well. Sending the other statuses is optional: `cutout: null` is equivalent.
   - Nothing else about the pipeline (model, source hash, flags) crosses the API.
 - Changing a cut-out (new run, approval, rejection, staff upload) is a `product_media` change and fires the existing `notify_website` revalidation.
-- **Bundled interim set:** the storefront's own cut-outs (`lib/hero-cutouts.ts`, owner decision 2026-09-26) are hero cut-outs and have nothing to do with this field; product pages and cards never show them (2026-09-28).
+- **Bundled interim set:** removed (hero auto cut-out PR 5) once the owner had approved the same photos in the Hub's hero record. It never had anything to do with this field.
 - **Accessory type (optional, later).** The hero's Designer Accessories slide counts pieces per type (財布 / カードケース / ベルト / 小物レザー) by reading the Hub name. A `Product.accessory_type: "wallet"|"cardholder"|"belt"|"small_leather"|null` would replace that; until it exists the name is read.
 
 ## Proposed (not built in the Hub): hero cut-outs — original tool, hero only (2026-09-28)
@@ -246,7 +246,7 @@ The hero shows only cut-outs made by the original tool (BiRefNet-general via rem
   ```
 
   - A file (`url`, a public WebP with alpha, trimmed, long side ≤ 900 px) is sent **only** once the owner approved it (or, with the go-live switch on, once it passed the checks). Nothing else about the pipeline crosses the API.
-  - The hero's order per photo: an approved `hero_cutout` → else, unless `rejected`, the bundled interim set (`lib/hero-cutouts.ts`) → else the whole photo in its framed well. `held` skips a photo after the first, exactly as a held bundled cut-out does.
+  - The hero's order per photo: an approved `hero_cutout` → else the whole photo in its framed well. `held` skips a photo after the first.
   - A change (a new cut-out, approval, rejection) revalidates the pages that show the photo.
 - **Workflow endpoints** (the scheduled workflow only; header `x-hero-cutout-key: <HERO_CUTOUT_KEY>`, a secret of its own, never the read key):
   - `GET /hero-cutouts` → `{ items: [{ source_url, source_sha256, status, coverage }] }`, every record whatever its status, so a photo already processed — including a held one — is never cut again while its source is unchanged.
