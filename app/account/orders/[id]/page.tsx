@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { formatDeadline, formatSiteDate, siteDay } from "@/lib/site-time";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
@@ -59,15 +60,13 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const { order, items, transfer_methods: methods } = detail;
   const status = orderStatusLabel(order, lang);
   const address = order.ship_to_address;
-  const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
-  const locale = lang === "ja" ? "ja-JP" : "en-GB";
-  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { dateStyle: "medium" });
+  const fmtDate = (iso: string) => formatSiteDate(iso, lang);
   const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
   const refund = refundLabel(order.refund_status, lang);
   const ownRequests = requests.filter((r) => r.cash_order_id === order.id);
   const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order);
 
-  const placed = (order.order_date ?? order.created_at).slice(0, 10);
+  const placed = siteDay(order.order_date ?? order.created_at);
 
   return (
     <section className="print-invoice py-[clamp(48px,7vw,96px)]">
@@ -98,7 +97,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
           <PaymentDueCard
             lang={lang}
             amount={Number(order.remaining_balance) > 0 ? formatMoney(Number(order.remaining_balance), order.currency) : null}
-            deadline={due ? due.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : null}
+            deadline={order.transfer_due_at ? formatDeadline(order.transfer_due_at, lang) : null}
           >
             <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
             <TransferDetails methods={methods} lang={lang} />
