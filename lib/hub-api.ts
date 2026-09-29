@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 
@@ -342,7 +342,11 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(null)
       : notFoundToNull(call(`/checkout/quote/${encodeURIComponent(quote_id)}`, { jwt, revalidate: false })),
-  pay: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubPayResult> =>
+  /**
+   * With the Hub's web_checkout_mode = 'draft' (Hub PR 6) the answer is a
+   * DRAFT (`draft_id`, no order_id) — see lib/drafts.ts isDraftPayResult.
+   */
+  pay: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubPayResult | HubDraftPayResult> =>
     FIXTURES
       ? Promise.resolve(fx.payFixture())
       : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer", lang }), jwt, revalidate: false }),
@@ -363,7 +367,7 @@ export const hub = {
      * live agreement ever since, which is the defect not to repeat.
      */
     agreement: { version: string; signed_at: string },
-  ): Promise<HubLayawayPayResult> =>
+  ): Promise<HubLayawayPayResult | HubDraftPayResult> =>
     FIXTURES
       ? Promise.resolve(fx.layawayPayFixture())
       : call("/checkout/pay", {
@@ -378,6 +382,18 @@ export const hub = {
           jwt,
           revalidate: false,
         }),
+  /**
+   * WEBSITE ORDERS (Hub PR 6): the customer's drafts — checkouts staff have not
+   * confirmed yet, and ones that ended without an order — newest first. Kept
+   * apart from /orders and /layaway on purpose; see lib/drafts.ts.
+   */
+  drafts: (jwt: string): Promise<HubDraft[]> =>
+    FIXTURES ? Promise.resolve(fx.draftsFixture()) : call("/drafts", { jwt, revalidate: false }),
+  /** One draft with its pieces. null = not this customer's / not found. */
+  draft: (jwt: string, id: string): Promise<HubDraftDetail | null> =>
+    FIXTURES
+      ? Promise.resolve(fx.draftFixture(id))
+      : notFoundToNull(call(`/drafts/${encodeURIComponent(id)}`, { jwt, revalidate: false })),
   /** The customer's own plans, newest first. */
   layawayPlans: (jwt: string): Promise<HubLayawayPlan[]> =>
     FIXTURES ? Promise.resolve(fx.layawayPlansFixture) : call("/layaway", { jwt, revalidate: false }),

@@ -161,7 +161,11 @@ site shows (`toCode` in `lib/checkout-actions.ts`):
 | `product_unavailable` | 409 | quote | product not active; `variant_id` | sold out |
 | `out_of_stock` | 409 | quote, pay | `variant_id` (+ `available` on quote) | sold out |
 | `fx_unavailable` | 503 | quote | PHP requested but no usable `fx_rates` row. Retry later or choose yen; a peso figure is never guessed. | rate unavailable |
-| `shipping_quote_required` | 400 | quote (layaway), pay | no published shipping rate for the address | failed |
+| `shipping_quote_required` | 400 | quote (layaway), pay | no published shipping rate for the address (order mode; in draft mode only when the destination HAS a rate but the quote carries no fee) | manual quote |
+| `agreement_missing` | 400 | pay (draft mode) | a layaway draft without the signed agreement | agreement required |
+| `unsupported_mode` | 400 | pay (draft mode) | quote mode not full / layaway | failed |
+| `checkout_mode_not_draft` | 409 | pay (draft mode) | the switch flipped back between the Hub's two reads | failed |
+| `draft_closed` | 409 | POST /me/service-requests | the draft is no longer waiting (confirmed, declined or expired); `status` | failed |
 | `below_plan_minimum` | 409 | quote, pay | layaway: amount/term not allowed; `allowed_terms`, `max_term_months` | below minimum |
 | `quote_id_required` | 400 | GET quote, pay | | failed |
 | `quote_already_used` | 409 | GET quote, pay | quote consumed — re-quote | expired (re-quotes) |
@@ -175,6 +179,45 @@ site shows (`toCode` in `lib/checkout-actions.ts`):
 | `empty_quote` | 400 | pay | total ≤ 0 | failed |
 | `variant_missing` | 409 | pay | a quoted variant no longer exists | sold out |
 | `layaway_not_yet` / `not_a_layaway_quote` / `full_not_layaway` | 501 / 400 / 400 | pay | mode mismatch between quote and writer | failed |
+
+### Website orders — drafts (Hub PR 6, 2026-09-29; storefront PR 7)
+
+Behind the Hub switch `system_settings.web_checkout_mode` (`order` | `draft`,
+fails closed to `order`). In `order` mode every answer above is unchanged. In
+`draft` mode a checkout writes a **draft** that staff confirm on the Hub before
+any payment; the real order or plan is created then, with the same
+`web_reference`. The site reads the mode from the responses, never from a flag
+of its own, so it works under either value.
+
+- **Quote** (POST and GET) gains `shipping_at_confirmation` and `provisional`
+  (both `false` in order mode). In draft mode a destination with no published
+  rate answers `shipping_jpy: null`, `shipping_at_confirmation: true`,
+  `requires_manual_quote: false` — the checkout continues and says "shipping is
+  added when we confirm"; a layaway quote is priced without shipping instead of
+  refusing `shipping_quote_required`. Every figure is provisional.
+- **Pay** (either mode) answers `{ draft_id, web_reference, mode, currency,
+  total (provisional), total_jpy, shipping_pending, deposit, term_months,
+  provisional: true, awaiting_confirmation: true, reservation_mode: true,
+  transfer_due_at: null, transfer_region, transfer_methods: [] }` — **no
+  `order_id` / `account_id`**. The site redirects to `/checkout/complete/d/:draft_id`
+  (`isDraftPayResult`, `lib/drafts.ts`).
+- **`GET /drafts`** — the customer's drafts, newest first. **`GET /drafts/:id`** —
+  `{ draft, items }`; `draft.ship_to_address` is the snapshot. A draft:
+  `id, kind: "draft", web_reference, status (to_confirm | confirmed | declined |
+  expired), mode, term_months, currency, subtotal, shipping (null = to be added),
+  shipping_pending, total, deposit, schedule, provisional, decline_reason
+  (declined only), created_at, decided_at, order_id, account_id` (the last two
+  set once confirmed — the draft page then redirects there). Item
+  `line_total_jpy` is yen (D1 applies).
+- `GET /orders` and `GET /layaway` do **not** include drafts (kept for older
+  builds); the account pages read `/drafts` beside them.
+- `GET /me` `records` gains `drafts` (open drafts).
+- `POST /me/service-requests` accepts `draft_id` (exactly one target); service
+  request rows carry `draft_id`. At Confirm the Hub points the request at the
+  real order.
+- Emails: "we have your order / layaway request" (provisional) at checkout,
+  "can't supply" with the reason, and "not confirmed within 72 hours"; links go
+  to `/checkout/complete/d/:draft_id`.
 
 **Retired:** `currency_not_supported_for_full` (400) — was returned for a PHP
 full-payment quote until 2026-09-25. The Hub no longer sends it; the site keeps

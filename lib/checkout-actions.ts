@@ -9,7 +9,7 @@ import { AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreemen
 import { agreementStatus, type AgreementStatus } from "@/lib/agreement-lookup";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
-import type { CheckoutMode, HubAddress, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
+import type { CheckoutMode, HubAddress, HubDraftPayResult, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
 /**
  * Checkout runs entirely on the server.
@@ -56,6 +56,10 @@ function toCode(err: unknown): string {
     // No peso figure without a rate: fx_unavailable is the quote's refusal,
     // fx_rate_missing the order writer's. Both are "try again or choose yen".
     if (err.code === "fx_unavailable" || err.code === "fx_rate_missing") return "rate_unavailable";
+    // Website orders (Hub PR 6). A quote taken before the destination needed a
+    // manual shipping quote, or a draft writer that saw the agreement missing.
+    if (err.code === "shipping_quote_required") return "manual_quote";
+    if (err.code === "agreement_missing") return AGREEMENT_REQUIRED;
     if (err.status === 409) return "sold_out";
     if (err.status === 401 || err.status === 403) return "signed_out";
   }
@@ -150,7 +154,7 @@ export async function quoteAction(input: {
   }
 }
 
-export async function payAction(quoteId: string): Promise<ActionResult<HubPayResult>> {
+export async function payAction(quoteId: string): Promise<ActionResult<HubPayResult | HubDraftPayResult>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!quoteId) return { ok: false, code: "failed" };
@@ -178,7 +182,7 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
  * No money moves here. The plan is created, the piece comes off the shelf, and
  * the customer is told where to send the deposit and by when.
  */
-export async function payLayawayAction(quoteId: string): Promise<ActionResult<HubLayawayPayResult>> {
+export async function payLayawayAction(quoteId: string): Promise<ActionResult<HubLayawayPayResult | HubDraftPayResult>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!quoteId) return { ok: false, code: "failed" };

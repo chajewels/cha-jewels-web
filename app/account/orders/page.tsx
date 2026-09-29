@@ -9,7 +9,9 @@ import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { isClosedOrder, orderStatusLabel, refundLabel } from "@/lib/order-status";
 import { StatusBadge } from "@/components/account/status-badge";
-import type { HubOrder } from "@/lib/types";
+import type { HubDraft, HubOrder } from "@/lib/types";
+import { listableDraft } from "@/lib/drafts";
+import { DraftRows } from "@/components/account/draft-rows";
 import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("orders");
@@ -26,8 +28,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const jwt = sessionData.session?.access_token;
 
   let orders: HubOrder[] = [];
+  let drafts: HubDraft[] = [];
   let failed = false;
   if (jwt) {
+    // Website orders still waiting for confirmation (storefront PR 7). A failed
+    // read only hides them; the orders themselves still show.
+    drafts = (await hub.drafts(jwt).catch(() => [] as HubDraft[])).filter((d) => d.mode === "full" && listableDraft(d));
     try { orders = await hub.orders(jwt); } catch (e) {
       // Signed in, no customer record yet: the profile step, not an error.
       if (isNotLinked(e)) redirect(profileUrl(withQuery("/account/orders", query)));
@@ -49,7 +55,9 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
         )}
 
-        {!failed && orders.length === 0 && <p className="mt-10 text-charcoal">{t("orders", "empty")}</p>}
+        <DraftRows drafts={drafts} lang={lang} />
+
+        {!failed && orders.length === 0 && drafts.length === 0 && <p className="mt-10 text-charcoal">{t("orders", "empty")}</p>}
 
         {orders.length > 0 && (
           <ul className="rule-grid mt-10 grid gap-px">

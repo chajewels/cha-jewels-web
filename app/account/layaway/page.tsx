@@ -10,7 +10,9 @@ import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { planFigure, planStatusLabel } from "@/lib/plan-status";
 import { StatusBadge } from "@/components/account/status-badge";
-import type { HubLayawayPlan } from "@/lib/types";
+import type { HubDraft, HubLayawayPlan } from "@/lib/types";
+import { listableDraft } from "@/lib/drafts";
+import { DraftRows } from "@/components/account/draft-rows";
 import { alertLight } from "@/lib/form-classes";
 
 export const generateMetadata = () => pageMeta("layaway");
@@ -46,8 +48,11 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
   const jwt = sessionData.session?.access_token;
 
   let plans: HubLayawayPlan[] = [];
+  let drafts: HubDraft[] = [];
   let failed = false;
   if (jwt) {
+    // Layaway requests still waiting for confirmation (storefront PR 7).
+    drafts = (await hub.drafts(jwt).catch(() => [] as HubDraft[])).filter((d) => d.mode === "layaway" && listableDraft(d));
     try { plans = await hub.layawayPlans(jwt); } catch (e) {
       // Signed in, no customer record yet: the profile step, not an error.
       if (isNotLinked(e)) redirect(profileUrl(withQuery("/account/layaway", query)));
@@ -71,7 +76,9 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
           <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
         )}
 
-        {!failed && plans.length === 0 && (
+        <DraftRows drafts={drafts} lang={lang} />
+
+        {!failed && plans.length === 0 && drafts.length === 0 && (
           <>
             <p className="mt-10 text-charcoal">{t("plans", "empty")}</p>
             <Link href="/layaway" className="mt-6 inline-block text-gold-dark underline underline-offset-4">{t("account", "layawayLearn")}</Link>
