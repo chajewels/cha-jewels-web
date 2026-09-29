@@ -3,8 +3,8 @@ import "server-only";
 /**
  * HERO DEMO MODE — PREVIEW DEPLOYMENTS ONLY (owner request 2026-09-26). It
  * began as the only way to see the comps' cut-outs on real Hub data; since the
- * owner released those cut-outs to production (lib/hero-cutouts.ts, same
- * day; hero only since 2026-09-28), every deployment shows them, and `/?hero_demo=1` now only puts the
+ * owner released those cut-outs to production (bundled 2026-09-26; since
+ * 2026-09-28 the Hub's hero-only record), every deployment shows them, and `/?hero_demo=1` now only puts the
  * teal review label on the hero of a preview.
  *
  * NEVER IN PRODUCTION. `heroDemoAllowed` is false when Vercel says this is

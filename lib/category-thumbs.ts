@@ -14,7 +14,7 @@ import type { Category } from "@/lib/types";
  *           `stagePieces` (lib/hero-deck.ts) exactly as the hero and the
  *           category banner choose: active, stock > 0, never sold, and
  *           replaced by the next one when it sells. Its usable cut-out if it
- *           has one (Hub, else the interim bundled set), else its whole photo
+ *           has one (the Hub's hero record), else its whole photo
  *   icon    else — nothing in stock, or the read failed or timed out — a line
  *           icon for the kind of category (components/site/category-thumb.tsx)
  *
