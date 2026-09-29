@@ -42,11 +42,27 @@ import type { Category, Product, ProductMedia, ProductVariant } from "@/lib/type
  * which in turn never read a hero cut-out. scripts/check-cutouts.mjs (CI)
  * keeps the two apart.
  *
+ * TWO MODES, CHOSEN PER CATEGORY READ (hero order, 2026-09-29; the Hub's
+ * switch `system_settings.hero_photo_source`, supabase/contracts/api.md).
+ *   HERO-RECORD MODE (`hero_record`, today): the response carries no
+ *     `hero_place` and no `picked_at`; everything above applies, unchanged.
+ *   TICKS MODE (`product_ticks`): any product carries the own property
+ *     `hero_place` (even null), or any photo's hero cut-out carries
+ *     `picked_at`. The slide shows only pieces an admin TICKED (a photo whose
+ *     `hero_cutout` has `picked_at`), in the Hub's running order: `hero_place`
+ *     ascending, a null place not shown; if every place is null (the Hub could
+ *     not read its order) the earliest `picked_at` of the piece's photos, oldest
+ *     first, ties in the response's order. Never an untagged piece, never a
+ *     framed photo: a piece shows only its ticked photos, as cut-outs, in
+ *     gallery order, at most HERO_PHOTOS of them, from ANYWHERE in the gallery
+ *     (no cut window: a ticked photo 5 shows). See `tickedPieces`.
+ *
  * EMPTY CATEGORIES. `HERO_HIDE_EMPTY_CATEGORIES=1` (server-only, read here and
  * nowhere else) hides a category slide whose catalogue read SUCCEEDED and holds
  * no available piece. Unset, the default, every slide shows, which is how
  * Development and every Vercel Preview stay. A read that fails or times out is
  * never "empty": a Hub hiccup must not blank the deck. Slide 1 is never hidden.
+ * In ticks mode "no available piece" means no ticked piece in stock.
  */
 
 /** A piece as a slide shows it. Display strings are resolved for `lang` here. */
@@ -204,12 +220,80 @@ function available(products: Product[], lang: Lang, layout: HeroLayout): HeroPie
 }
 
 /**
+ * TICKS MODE for one category read: a product carries the own property
+ * `hero_place` (even null), or a photo's hero cut-out carries `picked_at`.
+ * Neither ever appears on the hero record, so today's reads stay in
+ * hero-record mode.
+ */
+export function ticksMode(products: Product[]): boolean {
+  return products.some((p) => Object.hasOwn(p, "hero_place")
+    || p.product_variants?.some((v) => v.product_media?.some((m) => m.hero_cutout?.status === "approved" && m.hero_cutout.picked_at != null)));
+}
+
+/** A ticked photo's tick time, or null when the photo is not ticked. */
+function pickedAt(m: ProductMedia): string | null {
+  const h = m.hero_cutout;
+  return h?.status === "approved" && typeof h.picked_at === "string" && h.picked_at ? h.picked_at : null;
+}
+
+/** Oldest first; an unreadable timestamp sorts after every readable one. */
+function pickTime(at: string): number {
+  const t = Date.parse(at);
+  return Number.isFinite(t) ? t : Infinity;
+}
+
+/**
+ * TICKS MODE: the pieces a category's slide may show, in the Hub's running
+ * order, NOT yet cut to PIECES. Only an in-stock active piece (inStockVariant)
+ * with at least one ticked photo that shows as a cut-out; its photos are ONLY
+ * those, in the Hub's gallery order, from anywhere in the gallery (no cut
+ * window), at most HERO_PHOTOS, the earliest in the gallery first. Ordered by
+ * `hero_place` when any candidate has one (a null place is then not shown);
+ * when every place is null, by the earliest `picked_at` of the piece's ticked
+ * photos, oldest first, ties in the response's order (a stable sort).
+ */
+export function tickedPieces(products: Product[], lang: Lang, layout: HeroLayout): HeroPiece[] {
+  const cands: { piece: HeroPiece; place: number | null; first: number }[] = [];
+  for (const p of products) {
+    const v = inStockVariant(p);
+    if (!v) continue;
+    const name = productName(p, lang);
+    const photos: HeroPhoto[] = [];
+    let first = Infinity;
+    for (const m of allImages(p)) {
+      if (photos.length >= HERO_PHOTOS) break;
+      const at = typeof m.url === "string" && m.url ? pickedAt(m) : null;
+      if (!at) continue;
+      // Shown as its cut-out, never framed: a ticked photo whose file is not
+      // usable (heroCutout → usableCutout) is left out.
+      const c = heroCutout(m);
+      if (!c || c === "held") continue;
+      photos.push({ url: m.url, alt: m.alt ?? name, cutout: c });
+      first = Math.min(first, pickTime(at));
+    }
+    if (!photos.length) continue;
+    const place = typeof p.hero_place === "number" && Number.isFinite(p.hero_place) ? p.hero_place : null;
+    cands.push({
+      piece: { slug: p.slug, name, priceJpy: v.price_jpy, photos, type: layout === "index" ? accessoryType(`${p.name} ${p.name_en ?? ""} ${p.name_ja ?? ""}`) : null },
+      place,
+      first,
+    });
+  }
+  const placed = cands.filter((c) => c.place !== null);
+  const order = placed.length
+    ? placed.sort((a, b) => (a.place as number) - (b.place as number))
+    : cands.sort((a, b) => a.first - b.first);
+  return order.map((c) => c.piece);
+}
+
+/**
  * The pieces a category's stage shows, chosen exactly as the hero chooses
  * them: available pieces in the Hub's order, each with at least one photo, at
- * most three. The /categories/[slug] banner stands these on the same dark
+ * most three (in ticks mode: the ticked pieces in the Hub's running order). The /categories/[slug] banner stands these on the same dark
  * stage when the Hub has no category photo (components/catalog/category-stage.tsx).
  */
 export function stagePieces(products: Product[], lang: Lang): HeroPiece[] {
+  if (ticksMode(products)) return tickedPieces(products, lang, "stage").slice(0, PIECES);
   return available(products, lang, "stage").filter((p) => p.photos.length > 0).slice(0, PIECES);
 }
 
@@ -255,20 +339,28 @@ export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise
   const reads = await Promise.all(
     sorted.map((c) => within(hub.category(c.slug), SECONDARY_TIMEOUT_MS).then((r) => r?.products ?? [], () => null)),
   );
+  // `pools`: every available piece (the accessories Index counts them, in
+  // both modes). `stages`: the pieces a slide may stand on its stage — in
+  // hero-record mode the available pieces with a photo, in ticks mode the
+  // ticked pieces in the Hub's running order. null = the read failed.
   const pools = reads.map((r, i) => (r ? available(r, lang, layouts[i]) : null));
+  const ticks = reads.map((r) => (r ? ticksMode(r) : false));
+  const stages = reads.map((r, i) => (r ? (ticks[i] ? tickedPieces(r, lang, layouts[i]) : null) : null));
 
   const hide = hideEmptyCategories();
   const slides: HeroSlide[] = [{ kind: "film", key: "film", name: t("home", "heroFilmName"), short: t("home", "heroFilmName") }];
   sorted.forEach((c, i) => {
     const pool = pools[i];
-    // Hidden only when the switch is on AND the read answered AND nothing is available.
-    if (hide && pool !== null && pool.length === 0) return;
+    const ticked = stages[i];
+    // Hidden only when the switch is on AND the read answered AND nothing is
+    // available (in ticks mode: no ticked piece in stock).
+    if (hide && pool !== null && (ticks[i] ? ticked?.length === 0 : pool.length === 0)) return;
     const layout = layouts[i];
     const name = categoryName(c, lang);
     // The stage is image-led: a piece with no Hub photo at all would stand as
     // an empty well, so it is left off the stage (it still counts in the
     // accessories Index, and it is still on its category page).
-    const pieces = (pool ?? []).filter((p) => p.photos.length > 0).slice(0, PIECES);
+    const pieces = (ticks[i] ? ticked ?? [] : (pool ?? []).filter((p) => p.photos.length > 0)).slice(0, PIECES);
     let counts: number[] | null = null;
     if (layout === "index") {
       counts = [0, 0, 0, 0];

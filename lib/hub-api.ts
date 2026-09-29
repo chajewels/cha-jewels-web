@@ -144,7 +144,7 @@ export const hub = {
         ? Promise.reject(new HubError(503, "preview: category read failed"))
         : Promise.resolve((() => {
           const c = fx.categories.find((x) => x.slug === slug);
-          return c ? { ...c, products: fx.products.filter((p) => (p.category_slugs ?? []).includes(slug)) } : null;
+          return c ? { ...c, products: fx.categoryProducts(slug) } : null;
         })())
       : notFoundToNull(call(`/catalog/categories/${encodeURIComponent(slug)}`)),
   collections: (): Promise<Collection[]> => FIXTURES ? Promise.resolve(fx.collections) : call("/catalog/collections"),
