@@ -226,6 +226,53 @@ for (const p of products) for (const v of p.product_variants) for (const m of v.
 }
 if (PREVIEW_NO_CUTOUTS) for (const p of products) for (const v of p.product_variants) for (const m of v.product_media) { delete m.cutout; delete m.hero_cutout; }
 /**
+ * HERO ORDER, TICKS MODE (hero order PART 4, 2026-09-29).
+ * `NEXT_PUBLIC_PREVIEW_HERO_TICKS=1` plays the Hub with
+ * `hero_photo_source = product_ticks`: a photo an admin ticked "Use on hero"
+ * carries its PRODUCT cut-out as `hero_cutout` with `picked_at`, every other
+ * photo `hero_cutout: null`, and each category read gives every piece a
+ * `hero_place` (categoryProducts below). `=unordered` plays the Hub unable to
+ * read its order: every `hero_place` null, so the hero orders by `picked_at`.
+ * Unset, nothing here runs: the hero-record world above, exactly as before.
+ *   Fine Jewelry     AL3 1, R3341 2, Hoop earrings 3 — Baby bangle 4 WAITS;
+ *                    Freshwater drop earrings in stock, never ticked, not shown
+ *   Preloved         R7828 1; Solitaire ring ticked first but SOLD → null
+ *   Branded          R3110 1 only (the other in-stock pieces are not ticked)
+ *   Watches          C0983 1 (photos 1 and 5 ticked, photo 5 shows), C1395 2;
+ *                    the Cartier watch is not ticked
+ *   Accessories      nothing ticked: the slide is as with nothing in stock
+ */
+const HERO_TICKS = process.env.NEXT_PUBLIC_PREVIEW_HERO_TICKS;
+if (HERO_TICKS === "1" || HERO_TICKS === "unordered") {
+  const bySku = (sku: string) => products.find((p) => p.sku === sku);
+  // Pieces with no photo yet get one, with a product cut-out to tick.
+  const photo = (sku: string, url: string, c: ProductCutout) => { const p = bySku(sku); if (p) p.product_variants[0].product_media = [{ url, alt: null, sort: 0, cutout: c }]; };
+  photo("CJ-1006", "/fixtures/pendant-2.svg", cut("al112", 623, 773, "ok"));
+  photo("CJ-1007", "/fixtures/ring-1.svg", cut("r7828", 811, 900, "ok"));
+  photo("CJ-1005", "/fixtures/ring-1.svg", cut("r3110", 339, 204, "approved"));
+  const c0983 = bySku("CJ-1014")?.product_variants[0].product_media[4];
+  if (c0983) c0983.cutout = cut("c1395", 900, 832, "ok");
+  // [sku, gallery position (0 = first), picked_at]
+  const TICKED: [string, number, string][] = [
+    ["CJ-1014", 0, "2026-09-18T09:00:00Z"], ["CJ-1014", 4, "2026-09-26T09:00:00Z"],
+    ["CJ-1005", 0, "2026-09-19T09:00:00Z"],
+    ["CJ-1002", 0, "2026-09-20T09:00:00Z"],
+    ["CJ-1001", 0, "2026-09-21T09:00:00Z"],
+    ["CJ-1006", 0, "2026-09-22T09:00:00Z"],
+    ["CJ-1007", 0, "2026-09-23T09:00:00Z"],
+    ["CJ-1009", 0, "2026-09-24T09:00:00Z"],
+    ["CJ-1015", 0, "2026-09-25T09:00:00Z"],
+    ["CJ-1013", 0, "2026-09-26T09:00:00Z"],
+  ];
+  for (const p of products) for (const v of p.product_variants) for (const m of v.product_media) m.hero_cutout = null;
+  for (const [sku, i, at] of TICKED) {
+    const m = [...(bySku(sku)?.product_variants[0].product_media ?? [])].sort((a, b) => a.sort - b.sort)[i];
+    const c = m?.cutout;
+    if (m && c) m.hero_cutout = { status: "approved", url: c.url, width: c.width, height: c.height, picked_at: at };
+  }
+  bySku("CJ-1005")!.product_variants[0].stock_qty = 0;
+}
+/**
  * `NEXT_PUBLIC_PREVIEW_LIVE_MIRROR=1`: the hero categories hold exactly the
  * live pieces (lib/fixtures-live.ts) instead of the preview pieces, so the
  * stage can be compared with the approved comps piece for piece, with the
@@ -255,6 +302,23 @@ if (process.env.NEXT_PUBLIC_PREVIEW_ITEM_TYPE === "1") {
 for (const sku of (process.env.NEXT_PUBLIC_PREVIEW_VIDEO ?? "").split(",").map((x) => x.trim()).filter(Boolean)) {
   const p = products.find((x) => x.sku === sku);
   if (p) { p.video_url = "/videos/hero-artisan-mobile.mp4"; p.video_poster_url = p.product_variants[0]?.product_media[0]?.url ?? null; }
+}
+/**
+ * One category's pieces as GET /catalog/categories/:slug sends them. In ticks
+ * mode (NEXT_PUBLIC_PREVIEW_HERO_TICKS) each carries the Hub's `hero_place`,
+ * worked out as the Hub does (hero_lineup_rows): ticked, active and in stock,
+ * oldest tick first, ties in the category's order; the rest null. Unset, the
+ * pieces are exactly as before, with no `hero_place` at all.
+ */
+export function categoryProducts(slug: string): Product[] {
+  const list = products.filter((p) => (p.category_slugs ?? []).includes(slug));
+  if (HERO_TICKS !== "1" && HERO_TICKS !== "unordered") return list;
+  const firstTick = (p: Product) => {
+    const ts = p.product_variants.flatMap((v) => v.product_media).map((m) => (m.hero_cutout?.status === "approved" ? m.hero_cutout.picked_at : undefined)).filter((x): x is string => !!x).sort();
+    return p.status === "active" && p.product_variants.some((v) => v.stock_qty > 0) ? ts[0] ?? null : null;
+  };
+  const queue = list.filter((p) => firstTick(p)).sort((a, b) => (firstTick(a)! < firstTick(b)! ? -1 : firstTick(a)! > firstTick(b)! ? 1 : 0));
+  return list.map((p) => ({ ...p, hero_place: HERO_TICKS === "unordered" || !queue.includes(p) ? null : queue.indexOf(p) + 1 }));
 }
 /**
  * The calculator's preview answer, in the shape the real SQL function returns:
