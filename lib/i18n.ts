@@ -597,6 +597,8 @@ export const dict = {
     remove: { ja: "削除", en: "Remove" },
     qty: { ja: "数量", en: "Qty" },
     oneOfAKind: { ja: "一点物のため数量は1点のみです。", en: "One of a kind — quantity is fixed at 1." },
+    // Product page, stock above 1 (owner 2026-09-29, NL366 showed "one of a kind" with 6 in stock).
+    inStockCount: { ja: "在庫{n}点。数量はカートで選べます。", en: "{n} in stock — choose the quantity in your cart." },
     soldOut: { ja: "売り切れ", en: "Sold out" },
     subtotal: { ja: "小計", en: "Subtotal" },
     shippingNote: { ja: "送料はお届け先の入力後に計算します。", en: "Shipping is calculated once you enter a delivery address." },

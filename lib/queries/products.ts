@@ -22,9 +22,20 @@ export function fromVariant(p: Product) {
   const min = fromPrice(p);
   return min == null ? null : p.product_variants.find((v) => v.price_jpy === min) ?? null;
 }
-/** Every photo of the piece, across variants, in Hub sort order. */
+/**
+ * Every photo of the piece, across variants, in Hub sort order, each URL once:
+ * a photo shared by two variants is kept at its first place only. The hero
+ * cut-out workflow builds its list the same way (scripts/hero-cutouts/run.py
+ * `all_images`), so the hero's photo window and the cut window are one list.
+ */
 export function allImages(p: Product) {
-  return p.product_variants.flatMap((v) => v.product_media).sort((a, b) => a.sort - b.sort);
+  const seen = new Set<string>();
+  return p.product_variants.flatMap((v) => v.product_media).sort((a, b) => a.sort - b.sort).filter((m) => {
+    if (typeof m.url !== "string" || !m.url) return true;
+    if (seen.has(m.url)) return false;
+    seen.add(m.url);
+    return true;
+  });
 }
 export function primaryImage(p: Product) {
   return allImages(p)[0] ?? null;

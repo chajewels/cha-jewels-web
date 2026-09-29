@@ -23,8 +23,9 @@ import type { Category, Product, ProductMedia, ProductVariant } from "@/lib/type
  * the price is the in-stock variant's `price_jpy`, shown as sent. Nothing is
  * computed from a price (scripts/check-money.mjs).
  *
- * PHOTOS. Each piece carries its Hub gallery, in the Hub's order, up to
- * HERO_PHOTOS: every photo with its HERO cut-out when there is one that may be
+ * PHOTOS. Each piece carries its Hub gallery, in the Hub's order, from its
+ * first HERO_PHOTOS photos only — the window the cut-out workflow cuts
+ * (scripts/hero-cutouts/run.py): every photo with its HERO cut-out when there is one that may be
  * shown (`heroCutout` below); without one the stage shows that WHOLE photo in
  * a framed well, never cropped. A piece with two or more cycles through them
  * on the stage (owner request 2026-09-26, hero-slide-views.tsx). A photo
@@ -171,8 +172,13 @@ function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout): H
   // The same photos, in the same order, and the same name the product page shows.
   const name = productName(p, lang);
   const photos: HeroPhoto[] = [];
-  allImages(p).forEach((m, i) => {
-    if (photos.length >= HERO_PHOTOS || typeof m.url !== "string" || !m.url) return;
+  // THE CUT WINDOW: the first HERO_PHOTOS photos, counted as the workflow
+  // counts them (run.py `all_images(p)[:HERO_PHOTOS]`: photos with a URL, each
+  // URL once). A held photo inside the window is skipped, never replaced by
+  // one from past it: that one was never cut and would stand framed (C0853 and
+  // W2527 gallery photo 5, 2026-09-28).
+  allImages(p).filter((m) => typeof m.url === "string" && m.url).forEach((m, i) => {
+    if (i >= HERO_PHOTOS) return;
     // The hero's own cut-out only (heroCutout: original tool, never Photoroom).
     const c = heroCutout(m);
     if (c === "held" && i > 0) return;
