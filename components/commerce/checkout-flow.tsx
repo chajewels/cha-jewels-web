@@ -766,7 +766,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 <ul className="mt-6 grid gap-px border-y border-hairline bg-hairline">
                   {quote.items.map((line) => {
                     const cartLine = items.find((i) => i.variant_id === line.variant_id);
-                    const name = quoteItemName(line, lang);
+                    // The cart's own name for the piece (it carries the Hub's
+                    // Japanese name); the quote line's title only when the
+                    // piece is not in the cart any more.
+                    const name = cartLine ? cartItemName(cartLine, lang) : quoteItemName(line, lang);
                     return (
                       <li key={line.variant_id} className="grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3.5 bg-white py-3 text-sm">
                         <PieceWell image={cartLine?.picture ?? null} alt={name} />

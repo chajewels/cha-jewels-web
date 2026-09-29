@@ -87,7 +87,8 @@ export default async function DraftCompletePage({ params, searchParams }: {
             <Cell k={t("draft", "reference")} v={draft.web_reference} mono />
             {declined && draft.decline_reason && <Cell k={t("draft", "reason")} v={draft.decline_reason} />}
           </dl>
-          <Button asChild className="mt-8"><Link href="/collections">{t("draft", "shop")}</Link></Button>
+          {/* No orange on a confirmation page (D3-10): nothing here buys. */}
+          <Button asChild variant="outline" className="mt-8"><Link href="/collections">{t("draft", "shop")}</Link></Button>
         </div>
       </section>
     );
