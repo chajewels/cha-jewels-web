@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { formatDeadline, formatSiteDate, siteDay } from "@/lib/site-time";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
@@ -89,9 +90,9 @@ export default async function LayawayPlanPage({ params, searchParams }: {
   const status = planStatusLabel(plan, lang);
   const ownRequests = requests.filter((r) => r.layaway_plan_id === plan.id);
   const money = (n: number) => formatMoney(n, plan.currency);
-  const locale = lang === "ja" ? "ja-JP" : "en-GB";
-  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { dateStyle: "medium" });
-  const fmtStamp = (iso: string) => new Date(iso).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
+  // Japan time, zone named on deadlines (lib/site-time.ts).
+  const fmtDate = (iso: string) => formatSiteDate(iso, lang);
+  const fmtStamp = (iso: string) => formatDeadline(iso, lang);
 
   const live = isLivePlan(plan);
   const payHere = canPayHere(plan);
@@ -134,7 +135,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
     ? (plan.transfer_due_at ? fmtStamp(plan.transfer_due_at) : null)
     : (nextRow ? fmtDate(nextRow.due_date) : null);
 
-  const placed = (plan.order_date ?? plan.created_at).slice(0, 10);
+  const placed = siteDay(plan.order_date ?? plan.created_at);
 
   return (
     <section className="print-invoice py-[clamp(48px,7vw,96px)]">

@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { formatDeadline } from "@/lib/site-time";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
@@ -56,7 +57,6 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
   }
 
   const { order, items, transfer_methods: methods } = detail;
-  const due = order.transfer_due_at ? new Date(order.transfer_due_at) : null;
 
   // RESERVE FIRST (Hub A2). The order read back says whether it is a
   // reservation — the same answer the Hub gives everywhere else, so this page
@@ -118,7 +118,7 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
           <Cell k={t("complete", "amount")} v={formatMoney(Number(order.total_amount), order.currency)} />
           <Cell
             k={t("complete", "deadline")}
-            v={due ? due.toLocaleString(lang === "ja" ? "ja-JP" : "en-GB", { dateStyle: "medium", timeStyle: "short" }) : "—"}
+            v={order.transfer_due_at ? formatDeadline(order.transfer_due_at, lang) : "—"}
           />
         </dl>
 

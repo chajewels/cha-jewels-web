@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { siteDay } from "@/lib/site-time";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
@@ -73,7 +74,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <div>
                     <p className="font-mono text-gold-dark">{order.web_reference ?? order.invoice_number ?? "—"}</p>
                     <p className="mt-1 text-xs text-charcoal/70">
-                      {t("orders", "placed")} {(order.order_date ?? order.created_at).slice(0, 10)}
+                      {t("orders", "placed")} {siteDay(order.order_date ?? order.created_at)}
                     </p>
                   </div>
                   <div className="flex flex-col items-start gap-1">

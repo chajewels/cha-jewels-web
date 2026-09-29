@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { siteDay } from "@/lib/site-time";
 import { tr, type Lang } from "@/lib/i18n";
 import { serviceKindLabel, serviceRequestHref, serviceStatusLabel } from "@/lib/service-requests";
 import type { ServiceRequest } from "@/lib/types";
@@ -30,7 +31,7 @@ export function ServiceRequestRow({ request, lang, showTarget = false }: { reque
             {request.item_title ? <span className="text-charcoal/70"> · {request.item_title}</span> : null}
           </p>
           <p className="mt-1 text-xs text-charcoal/70">
-            {t("service", "requestedOn", { date: request.created_at.slice(0, 10) })}
+            {t("service", "requestedOn", { date: siteDay(request.created_at) })}
             {request.ring_size ? ` · ${t("service", "ringSize")} ${request.ring_size}` : ""}
           </p>
         </div>
