@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { siteDay } from "@/lib/site-time";
 import { submitLayawayPaymentAction } from "@/lib/layaway-actions";
 import { tr, type Lang } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
@@ -59,9 +60,9 @@ export function LayawayPayForm({ accountId, lang, currency, suggestedAmount, met
   }
 
   const field = `mt-1 w-full px-3 py-2 ${inputLight}`;
-  // Today in the customer's own clock is the sensible default and the latest
-  // date that can be true; a transfer cannot have been sent tomorrow.
-  const today = new Date().toISOString().slice(0, 10);
+  // Today in Japan time (the shop's clock) is the default and the latest date
+  // allowed. toISOString() was UTC, which is still yesterday before 09:00 JST.
+  const today = siteDay(new Date().toISOString());
 
   return (
     <div className="mt-10 border border-hairline p-6">

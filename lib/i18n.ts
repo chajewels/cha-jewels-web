@@ -901,6 +901,7 @@ export const dict = {
     reason: { ja: "理由", en: "Reason" },
     shop: { ja: "コレクションを見る", en: "Browse the collections" },
     waitingH: { ja: "確認中のご注文", en: "Waiting for confirmation" },
+    closedH: { ja: "キャンセルされたご注文", en: "Cancelled before confirmation" },
     view: { ja: "詳細", en: "View" },
     notFound: { ja: "ご注文が見つかりませんでした。", en: "We could not find that order." },
   },
