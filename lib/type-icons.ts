@@ -13,18 +13,18 @@ import type { Collection } from "@/lib/types";
  *
  * so a type the owner adds in the Hub never shows an empty tile.
  */
-export type TypeIconName = "watch" | "wallet" | "belt" | "bag" | "accessory";
+export type TypeIconName = "watch" | "wallet" | "bag" | "accessory";
 export type TypeVisual = { kind: "photo"; url: string } | { kind: "icon"; icon: TypeIconName };
 
 /**
  * The icon per Hub slug (slugs as live on 2026-09-27). A slug that is not
  * here — Other Accessories, or any type added later — gets the generic
- * accessory icon.
+ * accessory icon. Luxury Belt was removed as a type (owner 2026-09-29): belts
+ * now sit under Other Accessories.
  */
 export const TYPE_ICON: Record<string, TypeIconName> = {
   "luxury-watches": "watch",
   "luxury-wallet": "wallet",
-  "luxury-belt": "belt",
   "luxury-bags": "bag",
   "other-accessories": "accessory",
 };
