@@ -7,7 +7,7 @@ type IconProps = { className?: string; strokeWidth?: number };
  * A product type's line icon (lib/type-icons.ts picks which), in the style of
  * the Collections menu's category icons (components/site/category-thumb.tsx):
  * lucide's line, gold-dark, no brand logos. Lucide has a watch and a wallet;
- * the belt, the bag and the generic accessory (a hang tag) are drawn here on
+ * the bag and the generic accessory (a hang tag) are drawn here on
  * the same 24 grid with round caps. Decorative: the tile's own title names
  * the type.
  */
@@ -15,7 +15,6 @@ export function TypeIcon({ icon, className, strokeWidth = 1.5 }: IconProps & { i
   const p = { className, strokeWidth, "aria-hidden": true as const };
   if (icon === "watch") return <Watch {...p} />;
   if (icon === "wallet") return <Wallet {...p} />;
-  if (icon === "belt") return <Line {...p}><path d="M2 10h6.5M2 14h6.5M15.5 10H22M15.5 14H22M11 12h4.5" /><rect x="8.5" y="7" width="7" height="10" rx="1.5" /><circle cx="19" cy="12" r="0.6" /></Line>;
   if (icon === "bag") return <Line {...p}><path d="M4.5 9h15l-1.2 10.2a2 2 0 0 1-2 1.8H7.7a2 2 0 0 1-2-1.8z" /><path d="M8.5 9V7a3.5 3.5 0 0 1 7 0v2M10.5 13h3" /></Line>;
   return <Line {...p}><path d="M7 10 12 5.5l5 4.5v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z" /><circle cx="12" cy="10" r="1.3" /><path d="M12 8.7C12 5.5 13.8 3 17 3" /></Line>;
 }
