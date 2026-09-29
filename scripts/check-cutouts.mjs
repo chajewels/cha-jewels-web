@@ -11,6 +11,9 @@
 //      never names a hero cut-out.
 //   3. lib/hero-deck.ts never reads a Hub photo's Photoroom `cutout`: no
 //      `.cutout` access at all, and usableCutout only on a hero record.
+//   4. The hero order (`hero_place`, `picked_at`; hero order 2026-09-29) is read
+//      by lib/hero-deck.ts only: nothing else in app/, components/ or lib/
+//      names it except the types, the Hub client and the preview fixtures.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -63,6 +66,15 @@ for (const call of deck.match(/usableCutout\([^)]*\)/g) ?? []) {
   if (!/cutout: h \}/.test(call)) fail(`lib/hero-deck.ts: ${call} — usableCutout may only check the hero record (h).`);
 }
 if (!/export function heroCutout\(/.test(deck)) fail("lib/hero-deck.ts: heroCutout (the one seam for hero cut-outs) is missing.");
+
+// 4.
+const ORDER_OK = new Set(["lib/hero-deck.ts", "lib/types.ts", "lib/hub-api.ts", "lib/fixtures.ts"]);
+for (const f of [...walk("app"), ...walk("components"), ...walk("lib")]) {
+  const rel = relative(".", f);
+  if (ORDER_OK.has(rel)) continue;
+  const m = code(f).match(/hero_place|picked_at/);
+  if (m) fail(`${rel} names \`${m[0]}\` — the hero order is read by lib/hero-deck.ts only.`);
+}
 
 if (failed) {
   console.error(`\ncheck:cutouts — ${failed} problem(s). Hero = original tool only; products = Photoroom / normal photos only.`);
