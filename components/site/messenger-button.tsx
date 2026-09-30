@@ -3,8 +3,8 @@ import { usePathname } from "next/navigation";
 import { SocialGlyph } from "@/components/site/social-icons";
 
 /**
- * The floating "Message us on Messenger" button, bottom-right on every page
- * except checkout, sign-in and the profile step.
+ * The floating "Message us on Messenger" button, bottom-right — only on the
+ * shopping pages (SHOWN_ON below).
  *
  * AN m.me LINK, NOT A CHAT WIDGET. Meta retired the embedded Messenger chat
  * plugin (May 2024) and guest mode with it. An m.me link opens the visitor's
@@ -15,25 +15,26 @@ import { SocialGlyph } from "@/components/site/social-icons";
  * `social.follow` setting (lib/settings.ts); with no such row it renders no
  * button at all. Nothing here knows the Page's address.
  *
- * NOT ON CHECKOUT OR SIGN-IN (the approved behaviour, restored by owner
- * decision on PR #168, 2026-09-27). Both are single-task pages where a
- * floating action competes with the one button that matters. Decided here,
- * from the client pathname, because the root layout is not re-rendered on a
- * client navigation — a server-side path check would keep whatever the first
- * page decided. Its look is the site frame's: charcoal with a gold edge
- * (D1-1), not orange.
+ * ONLY WHERE A CUSTOMER IS SHOPPING (owner, 2026-09-30, replacing the old
+ * "everywhere except checkout and sign-in" rule): product pages, collections
+ * and product types, cart and checkout, Layaway, Loyalty and Wholesale.
+ * Everywhere else — home, legal, About, FAQ, Contact, search, account,
+ * sign-in — has no floating button (Contact, FAQ and search keep their own
+ * in-page Messenger links). Decided here, from the client pathname, because
+ * the root layout is not re-rendered on a client navigation — a server-side
+ * path check would keep whatever the first page decided. Its look is the site
+ * frame's: charcoal with a gold edge (D1-1), not orange. On a phone the cart
+ * and checkout sticky bar lifts it (commerce-ui.tsx, [data-sticky-act]).
  *
  * Look, position, tab-bar clearance, footer clearance and the focus ring are
  * `.messenger-fab` in app/globals.css. Below `sm` it is a 52px round icon and
  * the label is its accessible name; from `sm` up the label shows as well.
  */
-// The profile step is a single-task page on the way to checkout too (build
-// step 3, D3-11: the rule named it and the button still showed there).
-const HIDDEN_ON = ["/checkout", "/login", "/account/complete-profile"];
+const SHOWN_ON = ["/products", "/collections", "/categories", "/cart", "/checkout", "/layaway", "/loyalty", "/wholesale"];
 
 export function MessengerButton({ href, label }: { href: string; label: string }) {
   const path = usePathname();
-  if (HIDDEN_ON.some((p) => path === p || path.startsWith(`${p}/`))) return null;
+  if (!SHOWN_ON.some((p) => path === p || path.startsWith(`${p}/`))) return null;
   return (
     <a
       href={href}
