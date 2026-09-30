@@ -1,10 +1,11 @@
 import { pageMeta } from "@/lib/page-meta";
 import { Award, FileText, Gem, House } from "lucide-react";
 import { getLang } from "@/lib/i18n-server";
-import { tr } from "@/lib/i18n";
+import { tr, type Lang } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { catalogue } from "@/lib/catalog-context";
-import { stagePieces } from "@/lib/hero-deck";
+import { stagePieces, type HeroPiece } from "@/lib/hero-deck";
+import type { Product } from "@/lib/types";
 import { follow } from "@/lib/settings";
 import { LoginForm } from "@/components/account/login-form";
 import { SignInStage } from "@/components/account/sign-in-stage";
@@ -28,7 +29,7 @@ export default async function LoginPage() {
     follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null),
   ]);
   const t = tr(lang);
-  const pieces = stagePieces(products, lang);
+  const pieces = signInPieces(products, lang);
   const perks = [
     { icon: FileText, text: t("account", "perkOrders") },
     ...(layawayOffered(lang) ? [{ icon: Award, text: t("account", "perkLayaway") }] : []),
@@ -63,4 +64,26 @@ export default async function LoginPage() {
       </aside>
     </section>
   );
+}
+
+/**
+ * Up to three pieces, one per category: each category's first stage piece,
+ * chosen by `stagePieces` exactly as that category's hero slide chooses it.
+ * (Across the whole catalogue at once, ticks mode keeps only the pieces with
+ * a hero place, which left the stage with a single piece.)
+ */
+function signInPieces(products: Product[], lang: Lang): HeroPiece[] {
+  const byCat = new Map<string, Product[]>();
+  for (const p of products) {
+    const c = p.category_slugs?.[0];
+    if (!c) continue;
+    byCat.set(c, [...(byCat.get(c) ?? []), p]);
+  }
+  const out: HeroPiece[] = [];
+  for (const group of byCat.values()) {
+    const first = stagePieces(group, lang)[0];
+    if (first && !out.some((x) => x.slug === first.slug)) out.push(first);
+    if (out.length === 3) break;
+  }
+  return out;
 }
