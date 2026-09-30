@@ -36,9 +36,9 @@ export function SignInStage({ pieces }: { pieces: HeroPiece[] }) {
           >
             <span className="cs-shadow" />
             {c ? (
-              <span className="cs-cut"><HubImage src={c.url} alt="" fill sizes="(min-width:1024px) 240px, 40vw" className="object-contain object-bottom" /></span>
+              <span className="cs-cut"><HubImage src={c.url} alt="" fill sizes="(min-width:1024px) 360px, 50vw" className="object-contain object-bottom" /></span>
             ) : (
-              <span className="cs-well"><span><HubImage src={photo.url} alt="" fill sizes="(min-width:1024px) 240px, 40vw" className="object-contain" /></span></span>
+              <span className="cs-well"><span><HubImage src={photo.url} alt="" fill sizes="(min-width:1024px) 360px, 50vw" className="object-contain" /></span></span>
             )}
           </span>
         );

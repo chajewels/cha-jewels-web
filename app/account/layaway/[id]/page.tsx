@@ -161,10 +161,13 @@ export default async function LayawayPlanPage({ params, searchParams }: {
       <section aria-label={t("plans", "total")} className="band-dark relative mb-6 bg-charcoal-deep p-5 text-chalk outline outline-1 -outline-offset-1 outline-gold/35 sm:p-[26px]">
         <span aria-hidden="true" className="cj-slab-rule" />
         <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[104px_minmax(0,1fr)]">
-            <span className="relative block aspect-square overflow-hidden bg-white outline outline-1 -outline-offset-1 outline-gold/35">
-              {first?.image_url && <HubImage src={first.image_url} alt={firstName ?? ""} fill sizes="104px" className="object-contain" />}
-            </span>
+          <div className={first?.image_url ? "grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[104px_minmax(0,1fr)]" : ""}>
+            {/* No photo on the line (a Hub-arranged plan): no empty frame. */}
+            {first?.image_url && (
+              <span className="relative block aspect-square overflow-hidden bg-white outline outline-1 -outline-offset-1 outline-gold/35">
+                <HubImage src={first.image_url} alt={firstName ?? ""} fill sizes="104px" className="object-contain" />
+              </span>
+            )}
             <div className="min-w-0">
               <StatusBadgeDark tone={status.tone} text={status.text} />
               {firstName && <p className="mt-2.5 text-sm leading-relaxed text-chalk/90">{firstName}{items.length > 1 ? ` +${items.length - 1}` : ""}</p>}
@@ -175,7 +178,8 @@ export default async function LayawayPlanPage({ params, searchParams }: {
           </div>
           <div className="sm:text-right">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-pale">{t("plans", "total")}</p>
-            <p className="cj-fig mt-1 font-display text-[30px] leading-[1.1] text-gold-pale sm:text-[36px]">{money(Number(plan.total_amount))}</p>
+            {/* A closed plan's figure is never gold (the lists' rule). */}
+            <p className={`cj-fig mt-1 font-display text-[30px] leading-[1.1] sm:text-[36px] ${status.tone === "dead" ? "text-chalk/75" : "text-gold-pale"}`}>{money(Number(plan.total_amount))}</p>
             <p className="cj-fig mt-1 text-[13px] text-chalk/80">
               {t("plans", "paid")} {money(Number(plan.total_paid))}
               {/* Hidden on a closed plan that left nothing unpaid: "Unpaid when

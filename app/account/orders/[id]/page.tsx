@@ -135,22 +135,20 @@ export default async function OrderDetailPage({ params, searchParams }: {
               {items.map((line) => {
                 const name = orderLineTitle(line, lang);
                 return (
-                  <li key={line.id} className="grid grid-cols-[80px_minmax(0,1fr)] gap-3.5 border border-hairline bg-white p-4 sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:gap-5 sm:p-5">
+                  <li key={line.id} className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-3.5 border border-hairline bg-white p-4 sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-5 sm:p-5">
                     <PieceWell image={linePicture(line.image_url, name)} alt={name} />
                     <div className="min-w-0">
                       <p className="font-display text-[15px] leading-[1.45] text-charcoal-deep [font-variant-numeric:lining-nums] sm:text-[17px]">{name}</p>
                       <p className="mt-1.5 text-xs text-charcoal/75">
                         {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
                       </p>
+                      {/* line_total_jpy is always yen, the price of record: shown
+                          on a yen order only. A peso order lists its pieces
+                          without a price and gives the total in pesos (D1). */}
+                      {order.currency === "JPY" && (
+                        <p className="cj-fig mt-2.5 font-display text-[20px] text-charcoal-deep">{formatMoney(Number(line.line_total_jpy), "JPY")}</p>
+                      )}
                     </div>
-                    {/* line_total_jpy is always yen, the price of record: shown
-                        on a yen order only. A peso order lists its pieces
-                        without a price and gives the total in pesos (D1). */}
-                    {order.currency === "JPY" && (
-                      <p className="cj-fig col-span-2 whitespace-nowrap border-t border-hairline pt-2 text-right font-display text-[20px] text-charcoal-deep sm:col-span-1 sm:border-0 sm:pt-0">
-                        {formatMoney(Number(line.line_total_jpy), "JPY")}
-                      </p>
-                    )}
                   </li>
                 );
               })}

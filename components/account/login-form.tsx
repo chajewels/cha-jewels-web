@@ -87,7 +87,7 @@ export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string |
         <span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full border border-gold-dark text-gold-dark">
           <Mail className="h-6 w-6" strokeWidth={1.5} />
         </span>
-        <h1 className="mb-3 mt-[22px] text-[clamp(32px,4vw,48px)]">{c.sentH[lang]}</h1>
+        <h1 className="mb-3 mt-[22px] text-[clamp(32px,4vw,48px)] [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:[word-break:auto-phrase]">{c.sentH[lang]}</h1>
         <p className="text-[17px] leading-relaxed text-charcoal-deep">{c.sentTo[lang].replace("{email}", sentTo)}</p>
         {/* The expiry is read from configuration, never guessed — when nobody
             has set it this says the link works once and claims nothing about
@@ -122,7 +122,7 @@ export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string |
   return (
     <div>
       <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{dict.nav.account[lang]}</p>
-      <h1 className="mb-3 mt-3.5 text-[clamp(32px,4vw,48px)]">{c.loginH[lang]}</h1>
+      <h1 className="mb-3 mt-3.5 text-[clamp(32px,4vw,48px)] [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:[word-break:auto-phrase]">{c.loginH[lang]}</h1>
       <p className="mb-[26px] max-w-[44ch] text-[17px] leading-relaxed text-charcoal-deep">{c.loginP[lang]}</p>
       <form onSubmit={submit} noValidate className="grid gap-4 text-sm">
         {configError && (
