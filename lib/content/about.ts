@@ -54,9 +54,10 @@ export type AboutCopy = {
   example: string;
   /**
    * Alt text for the owner's own photographs (D5-6). Real photos only.
-   * `orders` stands in the hero; the other three sit under the services list.
+   * `orders` stands in the hero; `founder` sits beside Our Mission / Our Vision
+   * (owner approval 2026-10-01); the other three sit under the services list.
    */
-  photos: { orders: string; showroom: string; display: string; sorting: string };
+  photos: { orders: string; founder: string; showroom: string; display: string; sorting: string };
 };
 
 export const aboutCopy: Record<Lang, AboutCopy> = {
@@ -111,6 +112,7 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
     example: "例：{name}",
     photos: {
       orders: "お客様のご注文品を詰めた箱を手にするチャジュエルズの代表",
+      founder: "チャジュエルズ創業者・代表のシンシア（ショールームにて）",
       showroom: "ネックレス、真珠、リング、ピアスを並べたチャジュエルズの展示テーブル",
       display: "チャジュエルズのロゴサインの前に並べたネックレスとトレイ",
       sorting: "天然石ピアスのトレイを手作業で仕分けする様子",
@@ -168,6 +170,7 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
     example: "Example: {name}",
     photos: {
       orders: "The owner of Cha Jewels holding a box of packed customer orders",
+      founder: "Cynthia, founder and CEO of Cha Jewels, in the showroom",
       showroom: "Necklaces, pearls, rings and earrings laid out on the Cha Jewels display table",
       display: "Necklace stands and trays in front of the Cha Jewels logo sign",
       sorting: "Sorting trays of gemstone earrings by hand",
