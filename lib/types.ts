@@ -159,6 +159,15 @@ export type HubLoyalty = {
   reduced?: boolean;
   earned_tier?: string | null;
   regain_jpy?: number | null;
+  /**
+   * Build step 4 (Hub commit 1f26c20): lifetime purchases and the next level,
+   * all worked out by the Hub. The three next_* fields are null on the top
+   * level and while the level is reduced. Optional: an older Hub omits them.
+   */
+  lifetime_jpy?: number;
+  next_tier?: string | null;
+  next_threshold_jpy?: number | null;
+  to_next_jpy?: number | null;
 };
 export type HubMe = {
   customer: HubCustomer;
@@ -343,7 +352,13 @@ export type HubDraftPayResult = {
 
 export type DraftStatus = "to_confirm" | "confirmed" | "declined" | "expired";
 /** A draft as GET /drafts lists it (Hub PR 6). Money: settlement currency, provisional. */
+/** The first piece on a list row (Hub commit 1f26c20); null when the order has no lines. */
+export type HubListItem = { title: string | null; title_ja?: string | null; image_url: string | null };
+
 export type HubDraft = {
+  /** List rows only (GET /drafts); absent from an older Hub. */
+  first_item?: HubListItem | null;
+  item_count?: number;
   id: string;
   kind: "draft";
   web_reference: string;
@@ -375,6 +390,9 @@ export type HubDraftDetail = { draft: HubDraft & { ship_to_address: HubAddress |
 
 /** `status` is the Hub's cash_order_status; `payment_status` is the web-facing one. */
 export type HubOrder = ReservationFlags & {
+  /** List rows only (GET /orders); absent from an older Hub. */
+  first_item?: HubListItem | null;
+  item_count?: number;
   id: string; web_reference: string | null; invoice_number: string | null;
   status: "pending" | "completed" | "cancelled" | "expired";
   /**
