@@ -1,14 +1,15 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useReduced } from "@/components/fx/media";
-import { ComponentStyle, mix } from "@/components/fx/component-style";
+import { ComponentStyle } from "@/components/fx/component-style";
 
 /**
- * The FAQ's category navigation: plain in-page links to each section's
- * existing id (so /faq#payments-and-layaway and every other anchor keep
- * working, and the links work before hydration). The category being read is
- * marked aria-current="location", turns gold, and a gold indicator slides to
- * it — down the side of the list from lg up, under the chip in the phone bar.
+ * The FAQ's section index (build step 6): plain in-page links to each
+ * section's existing id (so /faq#payments-and-layaway and every other anchor
+ * keep working, and the links work before hydration), each with its number of
+ * questions from lg up. The section being read is marked
+ * aria-current="location": gold with a gold bar in the desktop list, a filled
+ * chip in the phone bar.
  *
  * "Being read" is the section crossing a band a third of the way down the
  * screen (IntersectionObserver). A tap marks its target at once, before the
@@ -18,10 +19,9 @@ import { ComponentStyle, mix } from "@/components/fx/component-style";
  * Layout and colours are the page's (app/faq/page.tsx, component CSS).
  * Reduced motion: the indicator moves without sliding.
  */
-export function FaqNav({ label, items }: { label: string; items: { slug: string; heading: string }[] }) {
+export function FaqNav({ label, items }: { label: string; items: { slug: string; heading: string; count: number; countLabel: string }[] }) {
   const [active, setActive] = useState(items[0]?.slug ?? "");
   const list = useRef<HTMLUListElement>(null);
-  const ind = useRef<HTMLSpanElement>(null);
   const reduced = useReduced();
 
   useEffect(() => {
@@ -39,24 +39,13 @@ export function FaqNav({ label, items }: { label: string; items: { slug: string;
     return () => { io.disconnect(); window.removeEventListener("hashchange", fromHash); };
   }, [items]);
 
-  // The indicator, and (phone bar) the current chip scrolled into view.
+  // Phone bar: keep the current chip in view (the bar scrolls, never the page).
   useLayoutEffect(() => {
-    const ul = list.current, bar = ind.current;
+    const ul = list.current;
     const a = ul?.querySelector<HTMLElement>(`a[href="#${CSS.escape(active)}"]`);
-    if (!ul || !bar || !a) return;
-    const place = () => {
-      bar.style.setProperty("--x", `${a.offsetLeft}px`);
-      bar.style.setProperty("--w", `${a.offsetWidth}px`);
-      bar.style.setProperty("--y", `${a.offsetTop}px`);
-      bar.style.setProperty("--h", `${a.offsetHeight}px`);
-      if (ul.scrollWidth > ul.clientWidth) {
-        const left = a.offsetLeft - (ul.clientWidth - a.offsetWidth) / 2;
-        ul.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
-      }
-    };
-    place();
-    window.addEventListener("resize", place);
-    return () => window.removeEventListener("resize", place);
+    if (!ul || !a || ul.scrollWidth <= ul.clientWidth) return;
+    const left = a.offsetLeft - (ul.clientWidth - a.offsetWidth) / 2;
+    ul.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
   }, [active, reduced]);
 
   return (
@@ -65,11 +54,11 @@ export function FaqNav({ label, items }: { label: string; items: { slug: string;
         {items.map((i) => (
           <li key={i.slug}>
             <a href={`#${i.slug}`} aria-current={i.slug === active ? "location" : undefined} onClick={() => setActive(i.slug)}>
-              {i.heading}
+              <span>{i.heading}</span>
+              <span className="fx-faq-n cj-fig" aria-label={i.countLabel}>{i.count}</span>
             </a>
           </li>
         ))}
-        <li aria-hidden="true" className="fx-faq-ind-li"><span ref={ind} className="fx-faq-ind" /></li>
       </ul>
     </nav>
   );
@@ -99,37 +88,32 @@ export function FaqNav({ label, items }: { label: string; items: { slug: string;
 const FAQ_CSS = `
 .fx-faq { display: grid; grid-template-columns: minmax(0, 1fr); }
 .fx-faq-side { display: contents; }
-.fx-faq-head { padding-bottom: clamp(28px, 5vw, 48px); }
-.fx-faq-head .fx-emblem { margin-bottom: 1.5rem; }
 .fx-faq-nav { position: sticky; top: var(--hdr-h, 68px); z-index: 20; margin: 0 calc(-1 * clamp(18px, 4vw, 48px));
   background: color-mix(in srgb, var(--c-chalk) 96%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
-  transition: top var(--dur-hdr-show) var(--ease-lux); }
-.fx-faq-list { position: relative; display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; padding: 0 clamp(18px, 4vw, 48px); list-style: none; margin: 0; }
+  border-bottom: 1px solid var(--rule); transition: top var(--dur-hdr-show) var(--ease-lux); }
+.fx-faq-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 10px clamp(18px, 4vw, 48px); list-style: none; margin: 0; }
 .fx-faq-list::-webkit-scrollbar { display: none; }
-.fx-faq-list a { display: block; white-space: nowrap; padding: 14px 10px; font-size: .875rem; color: color-mix(in srgb, var(--c-charcoal-deep) 80%, transparent); transition: color var(--dur-micro) var(--ease-lux); }
-.fx-faq-list a:hover, .fx-faq-list a[aria-current] { color: var(--c-gold-dark); }
-.fx-faq-list a:focus-visible { outline: 2px solid var(--c-gold-dark); outline-offset: -2px; }
-.fx-faq-ind { position: absolute; left: 0; bottom: 0; height: 2px; width: var(--w, 0px); transform: translateX(var(--x, 0px));
-  background: var(--c-gold); box-shadow: 0 0 8px ${mix("gold", 55)}; pointer-events: none;
-  transition: transform var(--dur-reveal) var(--ease-lux), width var(--dur-reveal) var(--ease-lux), height var(--dur-reveal) var(--ease-lux); }
-.fx-faq-main { padding-top: clamp(32px, 5vw, 56px); }
+.fx-faq-list a { display: flex; align-items: center; min-height: 40px; white-space: nowrap; padding: 0 12px; font-size: .875rem; border: 1px solid #E5E5E0; border-radius: 2px; background: #fff;
+  color: var(--c-charcoal-deep); transition: color var(--dur-micro) var(--ease-lux), background-color var(--dur-micro) var(--ease-lux); }
+.fx-faq-list a[aria-current] { background: var(--c-charcoal-deep); border-color: var(--c-charcoal-deep); color: var(--c-chalk); }
+.fx-faq-list a:focus-visible { outline: 2px solid var(--c-gold-dark); outline-offset: 2px; }
+.fx-faq-n { display: none; }
+.fx-faq-main { padding-top: clamp(28px, 5vw, 48px); }
 .fx-faq-main > section { scroll-margin-top: 132px; }
 @media (min-width: 1024px) {
-  .fx-faq { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: clamp(40px, 5vw, 88px); }
-  .fx-faq-side { display: block; position: sticky; align-self: start; top: calc(var(--hdr-h, 68px) + 32px);
-    max-height: calc(100vh - var(--hdr-h, 68px) - 56px); overflow-y: auto; scrollbar-width: thin;
+  .fx-faq { grid-template-columns: 280px minmax(0, 1fr); gap: 56px; }
+  .fx-faq-side { display: block; position: sticky; align-self: start; top: calc(var(--hdr-h, 68px) + 24px);
+    max-height: calc(100vh - var(--hdr-h, 68px) - 48px); overflow-y: auto; scrollbar-width: thin;
     transition: top var(--dur-hdr-show) var(--ease-lux), max-height var(--dur-hdr-show) var(--ease-lux); }
-  .fx-faq-head { padding-bottom: 0; }
-  .fx-faq-head h1 { font-size: clamp(36px, 3.4vw, 54px); }
-  .fx-faq-nav { position: static; margin: 2rem 0 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; }
-  .fx-faq-list { display: block; padding: 0 0 0 1rem; overflow: visible; border-left: 1px solid var(--rule); }
-  .fx-faq-list a { white-space: normal; padding: 7px 0; font-size: .9375rem; }
-  .fx-faq-ind { left: -1px; top: 0; bottom: auto; width: 2px; height: var(--h, 0px); transform: translateY(var(--y, 0px)); }
+  .fx-faq-nav { position: static; margin: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; }
+  .fx-faq-list { display: block; padding: 0; overflow: visible; border-top: 1px solid #E5E5E0; }
+  .fx-faq-list a { justify-content: space-between; gap: 12px; min-height: 48px; white-space: normal; padding: 8px 4px; border: 0; border-bottom: 1px solid #E5E5E0; border-radius: 0; background: none; font-size: .875rem; line-height: 1.4; }
+  .fx-faq-list a[aria-current] { background: none; color: var(--c-gold-dark); font-weight: 600; box-shadow: inset 2px 0 0 var(--c-gold-dark); padding-left: 12px; border-color: #E5E5E0; }
+  .fx-faq-n { display: inline; flex: none; font-size: 12px; font-weight: 400; color: color-mix(in srgb, var(--c-charcoal) 70%, transparent); }
   .fx-faq-main { padding-top: 0; }
   .fx-faq-main > section { scroll-margin-top: 92px; }
 }
-@media (prefers-reduced-motion: reduce) { .fx-faq-nav, .fx-faq-side, .fx-faq-ind, .fx-faq-list a { transition: none; } }`;
+@media (prefers-reduced-motion: reduce) { .fx-faq-nav, .fx-faq-side, .fx-faq-list a { transition: none; } }`;
 
 export function FaqStyle() {
   return <ComponentStyle id="fx-faq" css={FAQ_CSS} />;

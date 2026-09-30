@@ -133,7 +133,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <PageEnter />
         <Header lang={lang} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
-        <main id="main">{children}</main>
+        {/* data-messenger: the Hub's Messenger link, for app/error.tsx — a client
+            error boundary that cannot read the Hub itself. */}
+        <main id="main" data-messenger={messenger ?? undefined}>{children}</main>
         <Footer lang={lang} />
         <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
         {/* Last in the document, so no page chrome paints over it. */}
