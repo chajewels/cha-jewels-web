@@ -1160,7 +1160,8 @@
   body:has(.print-invoice) header,
   body:has(.print-invoice) footer,
   body:has(.print-invoice) nav,
-  body:has(.print-invoice) .print-hide { display: none !important; }
+  body:has(.print-invoice) .print-hide,
+  body:has(.print-invoice) .messenger-fab { display: none !important; }
 
   /* The legal pages (build step 7, "Print this page"): the document alone.
      The site chrome, the tabs, the contents list and the end links go; the
@@ -1171,7 +1172,14 @@
   body:has(.print-legal) nav,
   body:has(.print-legal) [data-mobile-tab-bar],
   body:has(.print-legal) .print-hide,
-  body:has(.print-legal) .fixed { display: none !important; }
+  body:has(.print-legal) .fixed,
+  body:has(.print-legal) .messenger-fab { display: none !important; }
+  /* The floating Messenger button is positioned by .messenger-fab, not the
+     .fixed utility, so it is named above; it printed over the text
+     (checked 2026-09-30). The chalk bands flatten to white paper, even with
+     "Background graphics" ticked. */
+  body:has(.print-legal),
+  .print-legal [class*="bg-chalk"] { background: #fff !important; }
   .print-legal .wrap { max-width: none !important; padding-left: 0 !important; padding-right: 0 !important; }
   .print-legal article,
   .print-legal dl > div { break-inside: auto; }
