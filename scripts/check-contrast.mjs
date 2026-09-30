@@ -449,6 +449,43 @@ add("footer link chalk/80 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.8
 add("footer note chalk/75 on charcoal-deep", "chalk", "charcoal-deep", TEXT, 0.75);
 add("footer Sign up gold-pale on charcoal-deep (D1-2)", "gold-pale", "charcoal-deep", TEXT);
 
+// STEP 5 BRAND PAGES (components/site/brand-ui.tsx; About, Why, Affiliations,
+// Layaway, Loyalty, Wholesale). The hero stage (StageBand) is the category
+// stage's ground and pool, so every line on it is measured at the pool's
+// centre, the lightest point; the plain dark band is charcoal-deep (rows
+// above cover chalk/70–100 and gold-pale there). The gold rules are
+// rgba(201,162,39,.32): ornament, not a boundary — the cells are separated by
+// their content, as in the footer ledger.
+{
+  const pool = blend([120, 92, 40], hex("#231e18"), 0.3);
+  const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), pool, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(pool)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  for (const [label, fg, alpha, need] of [
+    ["gold-pale eyebrow, labels, step titles, figures", "gold-pale", 1, TEXT],
+    ["gilt stop gold (h1)", "gold", 1, LARGE],
+    ["chalk/85 lede and piece name", "chalk", 0.85, TEXT],
+    ["chalk/80 step text and ledger notes", "chalk", 0.8, TEXT],
+    ["chalk/75 ledger small print", "chalk", 0.75, TEXT],
+    ["chalk button fill edge (Join free, D5-3)", "chalk", 1, NONTEXT],
+    ["orange step disc edge", "orange", 1, NONTEXT],
+  ]) pairs.push({ label: `step 5 stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
+}
+add("step 5 Join free label charcoal-deep on chalk (dark stage)", "charcoal-deep", "chalk", TEXT);
+add("step 5 Join free label charcoal-deep on white (hover)", "charcoal-deep", "white", TEXT);
+add("step 5 Join free label chalk on charcoal-deep (light band)", "chalk", "charcoal-deep", TEXT);
+add("step 5 Join free hover chalk on charcoal", "chalk", "charcoal", TEXT);
+add("step 5 lede charcoal/85 on chalk", "charcoal", "chalk", TEXT, 0.85);
+add("step 5 tier multiplier chalk on charcoal-deep", "chalk", "charcoal-deep", TEXT);
+add("step 5 term minimum chalk/80 on charcoal-deep (selected term)", "chalk", "charcoal-deep", TEXT, 0.8);
+add("step 5 term label charcoal-deep on white", "charcoal-deep", "white", TEXT);
+add("step 5 term segment edge charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
+add("step 5 wholesale radio chip edge charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
+add("step 5 cells charcoal/70 label on white", "charcoal", "white", TEXT, 0.7);
+add("step 5 reasons numeral gold-dark on chalk", "gold-dark", "chalk", LARGE);
+add("step 5 proof card labels gold-dark on white", "gold-dark", "white", TEXT);
+add("step 5 proof card values charcoal/75 on white", "charcoal", "white", TEXT, 0.75);
+add("step 5 dark band outline button edge chalk/55 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.55);
+add("step 5 second question gold-dark display on chalk", "gold-dark", "chalk", LARGE);
+
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
 // The Phase 4 additions are the tokens that look like they would be fine on a
 // light surface and are not:

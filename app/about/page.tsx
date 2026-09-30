@@ -1,83 +1,159 @@
 import { pageMeta } from "@/lib/page-meta";
+import Image from "next/image";
 import Link from "next/link";
-import { Fragment } from "react";
+import { ArrowRight } from "lucide-react";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
-import { Button } from "@/components/ui/button";
-import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 import { aboutCopy } from "@/lib/content/about";
-import { AboutLogoVideo } from "@/components/fx/about-logo-video";
-import { StickyColumn } from "@/components/fx/sticky-column";
-import { ComponentStyle } from "@/components/fx/component-style";
+import { catalogue } from "@/lib/catalog-context";
+import { Eyebrow } from "@/components/site/support-stage";
+import { DarkBand, H_DISPLAY, H_HEAD, H_TITLE, LEDE, LEDE_DARK, Label, Proof, ProofCells, SEC, SEC_S, StageBand, specExample } from "@/components/site/brand-ui";
 
-/** Stacked below lg; copy and a steady right column from lg (component CSS, not utilities — docs/perf-baseline.md). */
-const CSS = `@media (min-width: 1024px) { .about-grid { grid-template-columns: 1.2fr .8fr; } }`;
 export const generateMetadata = () => pageMeta("about");
+
+/**
+ * ABOUT (build step 5; comp page-comps/brand-programmes "about").
+ *
+ *  1. The dark stage: the eyebrow, the title and the founding story. The AI
+ *     logo coin is gone (audit About #1).
+ *  2. The two customer questions set as display type, the answer under them,
+ *     and the body copy beside them (with the approved origin clarifier).
+ *  3. The timeline ledger on a dark band, every date real.
+ *  4. What every listing states: the six details as cells, and a real piece's
+ *     Hub data as the example.
+ *  5. Mission and vision on a dark band.
+ *  6. The products and services ledger, the closing line, the collections
+ *     button and the affiliations link.
+ *
+ * PHOTOS (owner decision D5-6). The owner's own photographs, no stock
+ * imagery: the owner with a box of customer orders in the hero's right
+ * column (the handwritten names on the order notes and the people behind
+ * her are blurred), and a row of three under the services list (the display
+ * table, the logo-sign display, hands sorting gemstone earrings — cropped so
+ * no one's face is in it). Sources: public/images/about/about-*.jpg.
+ *
+ * All copy is lib/content/about.ts, word for word the live page's.
+ */
 export default async function About() {
   const lang = await getLang();
   const t = tr(lang);
   const c = aboutCopy[lang];
+  const example = specExample(await catalogue(), lang);
+
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <ComponentStyle id="about-grid" css={CSS} />
-      <div className="wrap about-grid grid gap-12">
+    <>
+      <StageBand>
+        <div className={`wrap ${SEC} grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
+          <div className="max-w-[760px]">
+            <Eyebrow dark rule>{t("home", "heroSince")}</Eyebrow>
+            <h1 className={`mt-[18px] text-gold-pale ${H_DISPLAY}`}>{c.h1}</h1>
+            <p className={`mt-[18px] ${LEDE_DARK}`}>{c.intro}</p>
+          </div>
+          <Image
+            src="/images/about/about-orders.jpg"
+            alt={c.photos.orders}
+            width={1086}
+            height={1448}
+            // The page's largest element on desktop, so it is not lazy.
+            priority
+            sizes="(min-width: 1024px) 40vw, 100vw"
+            className="aspect-[4/5] w-full rounded-sm object-cover object-[50%_60%] lg:max-w-[460px] lg:justify-self-end"
+          />
+        </div>
+      </StageBand>
+
+      <section className={`wrap ${SEC} grid items-start gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
         <div>
-          <NavHeading text={c.h1} lang={lang} className="text-[clamp(36px,5.5vw,80px)]" />
-          <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
-            <p>{c.intro}</p>
-            <p>{c.questionsLead}</p>
-          </div>
-          {/* The two questions carry the gold-pale display treatment the facts
-              block used for its <dt>, so the page keeps its visual anchor. */}
-          <ul className="mt-6 max-w-[58ch] space-y-3 border-l border-hairline pl-6">
-            {c.questions.map((q) => <li key={q} className="font-display text-2xl text-charcoal-deep">{q}</li>)}
-          </ul>
-          <div className="mt-6 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
-            {c.body.map((p, i) => (
-              <Fragment key={p}>
-                <p>{p}</p>
-                {i === 1 && <p>{c.originNote}</p>}
-              </Fragment>
+          <p className="mb-[18px] text-charcoal/75">{c.questionsLead}</p>
+          <ul className="grid gap-2.5">
+            {c.questions.map((q, i) => (
+              <li key={q} className={`font-display text-[clamp(28px,3.6vw,48px)] leading-[1.2] [:lang(ja)_&]:text-[clamp(24px,3vw,40px)] [:lang(ja)_&]:leading-[1.45] [:lang(ja)_&]:[word-break:auto-phrase] ${i === 0 ? "text-charcoal-deep" : "text-gold-dark"}`}>{q}</li>
             ))}
-          </div>
-          {/* Mission and Vision. Headed sections, so they take the page's
-              display type for the heading and sit between the body and the
-              closing statement. */}
+          </ul>
+          <p className={`mt-[18px] ${LEDE}`}>{c.body[0]}</p>
+        </div>
+        <div className="max-w-[68ch] space-y-[1.1em] pt-1.5 text-base leading-[1.85] text-charcoal-deep [:lang(ja)_&]:text-[15.5px] [:lang(ja)_&]:leading-[2]">
+          <p>{c.body[1]}</p>
+          <p>{c.originNote}</p>
+          <p>{c.body[3]}</p>
+        </div>
+      </section>
+
+      <DarkBand>
+        <div className={`wrap ${SEC_S}`}>
+          <h2><Label dark>{c.recordLabel}</Label></h2>
+          <ol className="mt-[18px] grid grid-cols-2 border-t border-rule lg:grid-cols-4">
+            {c.timeline.map((e, i) => (
+              <li key={e.year} className={`border-rule py-4 pr-3 lg:py-[22px] lg:pr-[22px] ${i % 2 === 1 ? "pl-3 lg:pl-[22px]" : ""} ${i === 2 ? "lg:pl-[22px]" : ""} ${i < 2 ? "border-b lg:border-b-0" : ""} ${i % 2 === 0 ? "border-r" : "lg:border-r"} lg:last:border-r-0`}>
+                <p className="font-display text-[28px] leading-none text-gold-pale lining-nums lg:text-[34px]">{e.year}</p>
+                <p className="mt-2.5 text-sm leading-relaxed text-chalk/80">{e.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </DarkBand>
+
+      <section className={`wrap ${SEC} grid items-start gap-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-16`}>
+        <div>
+          <h2><Label>{c.listingLabel}</Label></h2>
+          <p className={`mt-[18px] !text-base ${LEDE}`}>{c.body[2]}</p>
+        </div>
+        <div>
+          <ul className="grid grid-cols-2 border-l border-t border-hairline sm:grid-cols-3">
+            {c.listingCells.map((cell) => (
+              <li key={cell} className="flex min-h-[64px] items-center gap-2.5 border-b border-r border-hairline bg-white px-4 py-4 text-[15px] font-medium text-charcoal-deep before:h-1.5 before:w-1.5 before:flex-none before:rotate-45 before:border before:border-gold-dark">{cell}</li>
+            ))}
+          </ul>
+          {example && (
+            <Proof className="mt-4" label={<Link href={`/products/${example.slug}`} className="underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{c.example.replace("{name}", example.sku)}</Link>}>
+              <ProofCells cells={[
+                { v: example.metal, k: t("product", "metal") },
+                { v: example.weight, k: t("product", "weight") },
+                ...(example.stone ? [{ v: example.stone, k: t("product", "stone") }] : []),
+              ]} />
+            </Proof>
+          )}
+        </div>
+      </section>
+
+      <DarkBand>
+        <div className={`wrap ${SEC} grid items-start gap-10 lg:grid-cols-2 lg:gap-16`}>
           {c.sections.map((s) => (
-            <div key={s.heading} className="mt-8 max-w-[58ch] border-t border-hairline pt-6">
-              <SplitHeading text={s.heading} lang={lang} className="font-display text-2xl text-charcoal-deep" />
-              <p className="mt-3 text-[17px] text-charcoal-deep">{s.body}</p>
+            <div key={s.heading}>
+              <h2 className={`text-gold-pale ${H_HEAD}`}>{s.heading}</h2>
+              <p className={`mt-[18px] ${LEDE_DARK}`}>{s.body}</p>
             </div>
           ))}
-          <div className="mt-8 max-w-[58ch] space-y-5 text-[17px] text-charcoal-deep">
-            <p>{c.closing[0]}</p>
-            <p className="font-display text-2xl text-charcoal-deep">{c.closing[1]}</p>
-          </div>
-          {/* One line to the memberships, rather than listing them here: they
-              are facts about the business, and /affiliations is where the
-              business's facts live next to the address and the registration
-              number. */}
-          <p className="mt-8 max-w-[58ch] text-[17px] text-charcoal-deep">
-            <Link href="/affiliations" className="text-gold-dark underline underline-offset-4">{t("contact", "affiliationsFromAbout")}</Link>
-          </p>
-          <div className="mt-8"><Button asChild><Link href="/collections">{c.cta}</Link></Button></div>
         </div>
-        {/* THE RIGHT COLUMN, STEADY FROM lg (components/fx/sticky-column.tsx):
-            the logo clip above the products-and-services panel, both in the
-            page's white hairline panel. Below lg it follows the copy. */}
-        <StickyColumn>
-          <div className="border border-hairline bg-white p-2">
-            <AboutLogoVideo alt={t("about", "logoAlt")} sizes="(min-width: 1024px) 38vw, 100vw" />
-          </div>
-          {/* Replaces the former facts grid in the same column, same panel treatment. */}
-          <div className="mt-6 border border-hairline bg-white p-6">
-            <SplitHeading text={c.listHeading} lang={lang} className="font-display text-2xl text-charcoal-deep" />
-            <ul className="rule-grid mt-5 grid">
-              {c.list.map((item) => <li key={item} className="px-4 py-3 text-sm text-charcoal-deep">{item}</li>)}
-            </ul>
-          </div>
-        </StickyColumn>
-      </div>
-    </section>
+      </DarkBand>
+
+      <section className={`wrap ${SEC}`}>
+        <h2 className={`text-charcoal-deep ${H_HEAD}`}>{c.listHeading}</h2>
+        <ul className="mt-6 gap-x-10 sm:columns-2 lg:columns-3">
+          {c.list.map((item) => (
+            <li key={item} className="flex break-inside-avoid items-baseline gap-2.5 border-b border-hairline py-3 text-[15px] text-charcoal-deep before:h-1.5 before:w-1.5 before:flex-none before:-translate-y-0.5 before:rotate-45 before:border before:border-gold-dark">{item}</li>
+          ))}
+        </ul>
+        <ul className="mt-12 grid gap-4 sm:grid-cols-3">
+          {([
+            ["about-showroom", 1200, 1600, c.photos.showroom],
+            ["about-sorting", 560, 700, c.photos.sorting],
+            ["about-display", 1200, 1600, c.photos.display],
+          ] as const).map(([file, w, h, alt]) => (
+            <li key={file}>
+              <Image src={`/images/about/${file}.jpg`} alt={alt} width={w} height={h} sizes="(min-width: 640px) 30vw, 100vw" className="aspect-[4/5] w-full rounded-sm object-cover" />
+            </li>
+          ))}
+        </ul>
+        <p className="mt-12 max-w-[68ch] text-[17px] leading-relaxed text-charcoal-deep">{c.closing[0]}</p>
+        <p className={`mt-4 font-display text-gold-dark ${H_TITLE}`}>{c.closing[1]}</p>
+        <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link href="/collections" className="btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-gold-dark px-6 py-3 text-[15px] font-medium text-gold-dark hover:border-charcoal-deep hover:text-charcoal-deep">
+            {c.cta} <ArrowRight aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
+          </Link>
+          <Link href="/affiliations" className="inline-flex min-h-11 items-center text-[15px] text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("contact", "affiliationsFromAbout")}</Link>
+        </div>
+      </section>
+    </>
   );
 }

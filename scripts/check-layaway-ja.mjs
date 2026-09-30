@@ -24,6 +24,7 @@ const load = (rel) => import(pathToFileURL(join(process.cwd(), rel)).href);
 const LAYAWAY_GATED_KEYS = new Set([
   "nav.layaway", // header: layawayOffered
   "why.s4p", // why-cha-jewels: layaway ? [...]
+  "why.howLayaway", // why-cha-jewels: s4's proof card, rendered only with s4
   "hero.cta2", // hero slide: s.layaway
   "home.layCalcH", // LayawayBand: rendered only when layaway
   "product.reserveCta", // ReserveWithLayaway: product page `layaway &&`

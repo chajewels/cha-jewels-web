@@ -62,3 +62,13 @@ export const volumeLabel: Record<Volume, Record<Lang, string>> = {
   "50_200": { ja: "50〜200点", en: "50–200" },
   "200_PLUS": { ja: "200点以上", en: "200+" },
 };
+
+/**
+ * Build step 5 (comp page-comps/brand-programmes "wholesale"): each bullet
+ * above leads with its fact, set large in the gold ledger on the dark stage.
+ * Same order as `wholesaleBullets`; the figures are the bullets' own.
+ */
+export const wholesaleFigures: Record<Lang, string[]> = {
+  ja: ["10点から", "5営業日以内", "円・ペソ"],
+  en: ["10 pieces", "5 business days", "JPY or PHP"],
+};
