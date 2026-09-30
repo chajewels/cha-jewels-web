@@ -550,6 +550,9 @@ export const dict = {
     yourLevel: { ja: "会員レベル", en: "Your level" },
     pointsRate: { ja: "ポイント倍率 {n} · 1ポイント＝¥1", en: "Points {n} · 1 point = ¥1" },
     pointsYen: { ja: "ポイントは常に円で計算", en: "Always calculated in yen" },
+    // The next level, from the Hub's own figures (lifetime_jpy, to_next_jpy).
+    toNext: { ja: "{tier}まであと{amount}", en: "{amount} more to {tier}" },
+    topLevel: { ja: "最上位のレベルです", en: "You are at the top level" },
     pointsSpend: { ja: "ポイントのご利用はカスタマーポータルから承ります。ポイントは譲渡・換金できません。", en: "Points are spent in the customer portal. Points cannot be transferred or cashed out." },
     seeAddresses: { ja: "住所を見る", en: "See addresses" },
     addressCount: { ja: "{n}件のお届け先", en: "{n} saved" },
