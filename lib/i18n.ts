@@ -170,7 +170,9 @@ export const dict = {
    * the copy is not the thing blocking it.
    */
   why: {
-    h1: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels Is the Right Choice for You!" },
+    // EN title "Why Cha Jewels", the nav label (owner decision D5-1,
+    // 2026-09-30); it was "Why Cha Jewels Is the Right Choice for You!".
+    h1: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" },
     sub: { ja: "心を込めて選んだジュエリー。明確な情報。お一人おひとりへの丁寧な対応。", en: "Thoughtfully chosen jewelry. Clear details. Personal care." },
     intro: { ja: "ジュエリーは、お客様の物語の一部になります。Cha Jewelsでは、お客様らしさを映し、人生の節目を彩り、長く大切に思っていただける一点をお選びいただけるようお手伝いします。", en: "Jewelry becomes part of your story. At Cha Jewels, we help you choose pieces that reflect your style, celebrate your milestones, and feel meaningful for years to come." },
     s1h: { ja: "日本を拠点とした、お一人おひとりとのつながり", en: "A Personal Connection, Rooted in Japan" },
@@ -186,6 +188,18 @@ export const dict = {
     close: { ja: "お客様の物語の一部となる一点を、ぜひ見つけてください。", en: "Find a piece that becomes part of your story." },
     cta: { ja: "コレクションを見る", en: "Explore Our Collections" },
     imageAlt: { ja: "クリーム色の布の上に並べたCha Jewelsのゴールドネックレス、リング、パールピアス", en: "A Cha Jewels gold necklace, ring and pearl earrings arranged on cream fabric" },
+    // Build step 5 (comp brand-programmes "why"): the proof beside each
+    // reason. Labels only; every figure beside them is a real date on record
+    // or the Hub's own data (category counts, a piece's spec and down payment).
+    proofRecord: { ja: "記録", en: "On record" },
+    founded: { ja: "創業", en: "Founded" }, incorporated: { ja: "法人化", en: "Incorporated" },
+    tokyo: { ja: "東京", en: "Tokyo" }, tateishi: { ja: "葛飾区立石", en: "Tateishi" },
+    proofExample: { ja: "例：{sku}", en: "Example: {sku}" },
+    pieces: { ja: "{n}点", en: "{n} pieces" }, piece: { ja: "1点", en: "1 piece" }, noneInStock: { ja: "入荷待ち", en: "None in stock" },
+    // s4 (layaway) proof: rendered only where s4 is, behind layawayOffered.
+    dpOn: { ja: "{sku}の予約金", en: "Down payment on {sku}" },
+    howLayaway: { ja: "分割予約について", en: "How layaway works" },
+    proofReach: { ja: "連絡先", en: "Reach a person" },
   },
   /**
    * /contact. Every VALUE on that page is read from lib/content/legal.ts —

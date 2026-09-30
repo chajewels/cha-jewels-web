@@ -39,6 +39,19 @@ export type AboutCopy = {
   /** Closing paragraph then the closing line, rendered in order. */
   closing: [string, string];
   cta: string;
+  /**
+   * Build step 5 (comp page-comps/brand-programmes "about"): the dark
+   * timeline ledger, all real dates (founding, incorporation, and the two
+   * memberships on /affiliations), and the six things a listing states, set
+   * as cells. The cells name the details; the example under them is a real
+   * piece's Hub data, never typed here.
+   */
+  recordLabel: string;
+  timeline: { year: string; text: string }[];
+  listingLabel: string;
+  listingCells: string[];
+  /** "{name}" is the example piece's Hub name. */
+  example: string;
 };
 
 export const aboutCopy: Record<Lang, AboutCopy> = {
@@ -81,6 +94,16 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
       "確かな素材。明確な情報。自信を持ってお選びいただけるジュエリーです。",
     ],
     cta: "コレクションを見る",
+    recordLabel: "歩み",
+    timeline: [
+      { year: "2021", text: "ライブ販売でスタート（個人事業）" },
+      { year: "2024", text: `${COMPANY_NAME_DISPLAY.ja}として法人化、東京・葛飾区立石` },
+      { year: "2026.03", text: "東京商工会議所 入会（葛飾支部 商業部会）" },
+      { year: "2026.09", text: "東京葛飾中央ロータリークラブ 入会" },
+    ],
+    listingLabel: "商品ページの記載事項",
+    listingCells: ["金属の純度", "刻印", "グラム重量", "石の情報", "コンディション", "鑑定書の有無"],
+    example: "例：{name}",
   },
   en: {
     h1: "About Cha Jewels",
@@ -122,5 +145,15 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
       "Real materials. Clear details. Jewelry you can choose with confidence.",
     ],
     cta: "Shop the collections",
+    recordLabel: "Our record",
+    timeline: [
+      { year: "2021", text: "Began live selling as a sole proprietorship" },
+      { year: "2024", text: "Incorporated as Cha Jewels Co., Ltd., Tateishi, Tokyo" },
+      { year: "2026.03", text: "Joined the Tokyo Chamber of Commerce and Industry" },
+      { year: "2026.09", text: "Joined the Tokyo Katsushika Central Rotary Club" },
+    ],
+    listingLabel: "What every listing states",
+    listingCells: ["Metal purity", "Hallmark", "Gram weight", "Gemstone", "Condition", "Certification"],
+    example: "Example: {name}",
   },
 };

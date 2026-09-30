@@ -482,6 +482,9 @@ add("step 5 wholesale radio chip edge charcoal/60 on white", "charcoal", "white"
 add("step 5 cells charcoal/70 label on white", "charcoal", "white", TEXT, 0.7);
 add("step 5 reasons numeral gold-dark on chalk", "gold-dark", "chalk", LARGE);
 add("step 5 proof card labels gold-dark on white", "gold-dark", "white", TEXT);
+add("step 5 proof card values charcoal/75 on white", "charcoal", "white", TEXT, 0.75);
+add("step 5 dark band outline button edge chalk/55 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.55);
+add("step 5 second question gold-dark display on chalk", "gold-dark", "chalk", LARGE);
 
 // Sanity: known-bad pairs must FAIL, or the arithmetic is broken.
 // The Phase 4 additions are the tokens that look like they would be fine on a
