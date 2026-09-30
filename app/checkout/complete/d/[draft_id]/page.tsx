@@ -155,6 +155,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
           items={items.map((line) => ({ value: line.title, label: orderLineTitle({ title: line.title, title_ja: line.title_ja ?? null }, lang) }))}
           initial={ownRequests}
           canRequest={draft.status === "to_confirm"}
+          quiet
         />
       </div>
 
