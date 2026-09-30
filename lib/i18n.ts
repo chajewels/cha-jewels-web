@@ -349,7 +349,12 @@ export const dict = {
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "コレクション", en: "Collections" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "ロイヤルティ", en: "Loyalty" }, tabAccount: { ja: "マイアカウント", en: "Account" },
   },
   product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, openPhoto: { ja: "写真 {n} を全画面で見る", en: "View photo {n} full screen" }, viewer: { ja: "全画面の商品写真", en: "Full-screen photos" }, closeViewer: { ja: "全画面表示を閉じる", en: "Close full screen" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, sold: { ja: "売約済み", en: "Sold" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout." } },
-  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金", en: "Down payment" }, dpPct: { ja: "予約金（{pct}）", en: "Down payment ({pct})" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "目安です。正確なお支払日と金額は、ご予約確定後にアカウントに表示されます。", en: "Estimate. Your exact payment dates and amounts will appear in your account once your reservation is confirmed." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" } },
+  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金", en: "Down payment" }, dpPct: { ja: "予約金（{pct}）", en: "Down payment ({pct})" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "目安です。正確なお支払日と金額は、ご予約確定後にアカウントに表示されます。", en: "Estimate. Your exact payment dates and amounts will appear in your account once your reservation is confirmed." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" },
+    // /layaway's piece mode (build step 5, comp brand-programmes "layaway"):
+    // the term buttons read "6 months", a minimum under it as "orders from ¥…"
+    // so it is not read as a price. English only in practice (/layaway is not
+    // found on ja); the Japanese is kept for the day it opens.
+    termPlain: { ja: "期間", en: "Term" }, monthsN: { ja: "{n}か月", en: "{n} months" }, ordersFrom: { ja: "{amount}以上のご注文", en: "orders from {amount}" } },
   search: {
     placeholder: { ja: "ジュエリーを検索", en: "Search jewelry" },
     prompt: { ja: "品名、ブランド名、素材、商品番号などを入力してください。", en: "Type a name, a brand, a metal or a product number." },
@@ -454,10 +459,6 @@ export const dict = {
     threshold: { ja: "これまでのお買い上げ合計", en: "Lifetime purchases" }, perks: { ja: "特典", en: "Perks" },
     multiplier: { ja: "ポイント倍率", en: "Points" }, requalify: { ja: "復帰条件", en: "To regain after 180 days of inactivity" },
     requalifyNone: { ja: "不要", en: "Not required" },
-    holdNote: { ja: "ご予約いただいた商品は、はじめてのお客様は24時間、2回目以降のお客様は72時間お取り置きします。会員レベルによる違いはありません。", en: "A claimed piece is held for 24 hours for a new customer and 72 hours for a returning one. This does not vary by level." },
-    // RESERVE FIRST (Hub A2). The time to pay starts when staff confirm the
-    // piece, and the customer is told the deadline then — so no number here.
-    holdNoteReserve: { ja: "ご予約いただいた商品は、確認が済むまでお取り置きします。お支払い期限は商品の確認後に始まり、期限はメールでお知らせします。会員レベルによる違いはありません。", en: "We hold a reserved piece while we confirm it. The time to pay starts once we have confirmed it, and we email you the deadline then. This does not vary by level." },
     join: { ja: "無料で入会する", en: "Join free" }, joinH: { ja: "入会はこちら", en: "Join the program" },
     joinP: { ja: "入会は無料です。メールアドレスでサインインすると、次回のお買い物からポイントが貯まります。", en: "Joining is free. Sign in with your email and points start with your next purchase." },
     name: { ja: "お名前", en: "Your name" }, contact: { ja: "携帯番号またはメール", en: "Mobile number or email" }, region: { ja: "お住まいの地域", en: "Where you live" }, submit: { ja: "入会する", en: "Join" },
@@ -467,6 +468,25 @@ export const dict = {
     consent: { ja: "入会により利用規約とプライバシーポリシーに同意したものとみなします。", en: "By joining you agree to the terms of sale and privacy policy." },
     groupH: { ja: "会員グループに参加", en: "Join the member group" },
     groupP: { ja: "会員限定のお知らせ・先行案内・サポート", en: "Members-only updates, early previews and support." },
+    // The hero's two-cell ledger (build step 5, comp brand-programmes
+    // "loyalty"). Both facts are the lede's own words set as figures — 1% at
+    // Glimmer, one point = ¥1 — not new claims and not computed.
+    baseRate: { ja: "基本付与率", en: "Base rate" }, baseRateValue: { ja: "1%", en: "1%" },
+    pointValue: { ja: "ポイントの価値", en: "Point value" }, pointValueValue: { ja: "1 = ¥1", en: "1 = ¥1" },
+    onNextPiece: { ja: "次回のお買い物に", en: "on your next piece" },
+  },
+  /**
+   * /layaway (build step 5, comp brand-programmes "layaway"): the calculator's
+   * chosen piece and the strip of pieces under it. The page is not found on
+   * ja (layawayOffered), so only the English renders; the Japanese is kept
+   * neutral for the day it opens.
+   */
+  layawayPage: {
+    chosenPiece: { ja: "選んだ商品", en: "Chosen piece" },
+    choosePiece: { ja: "ほかの商品を選ぶ", en: "Choose another piece" },
+    reserveThis: { ja: "この商品を予約する", en: "Reserve this piece with layaway" },
+    reserveToday: { ja: "今すぐ予約できる商品", en: "Pieces you can reserve today" },
+    allPieces: { ja: "すべての商品", en: "All pieces" },
   },
   /**
    * The announcement bar (components/site/announcement-bar.tsx). Its SENTENCE
