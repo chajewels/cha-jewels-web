@@ -14,6 +14,7 @@ import type { HubDraft, HubLayawayPlan } from "@/lib/types";
 import { listableDraft } from "@/lib/drafts";
 import { DraftRows } from "@/components/account/draft-rows";
 import { alertLight } from "@/lib/form-classes";
+import { AccountShell } from "@/components/account/account-shell";
 
 export const generateMetadata = () => pageMeta("layaway");
 export const dynamic = "force-dynamic";
@@ -63,14 +64,8 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[900px]">
-        <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("plans", "h1")}</h1>
-          <Link href="/account" className="text-sm text-charcoal/70 underline underline-offset-4">{t("account", "h1")}</Link>
-        </div>
-
-        <p className="mt-6 max-w-[70ch] text-sm text-charcoal/70">{t("plans", "readOnlyNote")}</p>
+    <AccountShell lang={lang} current="layaway" eyebrow={t("accountMenu", "layaway")} title={t("plans", "h1")}>
+        <p className="max-w-[70ch] text-[15px] leading-relaxed text-charcoal-deep">{t("plans", "readOnlyNote")}</p>
 
         {failed && (
           <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
@@ -86,7 +81,7 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
         )}
 
         {plans.length > 0 && (
-          <ul className="rule-grid mt-10 grid gap-px">
+          <ul className="rule-grid mt-8 grid gap-px border border-hairline">
             {plans.map((plan) => {
               const status = planStatusLabel(plan, lang);
               const money = (n: number) => formatMoney(n, plan.currency);
@@ -120,7 +115,6 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
             })}
           </ul>
         )}
-      </div>
-    </section>
+    </AccountShell>
   );
 }
