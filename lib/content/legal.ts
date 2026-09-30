@@ -115,6 +115,15 @@ export const COMPANY_ADDRESS: Record<Lang, string> = {
 };
 
 /**
+ * WHAT THE /contact "View on Google Maps" LINK SEARCHES FOR — one query for
+ * both languages. The full display address sends Google to the wrong place:
+ * "Time Mansion 301, ..." matched a nearby hotel (checked 2026-09-30). The
+ * Japanese street address with no building name or room number resolves
+ * exactly to 6-chōme-5-1 Tateishi, so it is used in EN and JA alike.
+ */
+export const COMPANY_MAP_QUERY = "\u3012124-0012 \u6771\u4eac\u90fd\u845b\u98fe\u533a\u7acb\u77f36-5-1";
+
+/**
  * THE TWO TELEPHONE NUMBERS, factored out for the reason COMPANY_NAME and
  * COMPANY_ADDRESS are: they are identifiers, and every surface that prints one
  * must print the same digits. The statutory tokusho row below builds its
