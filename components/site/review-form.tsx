@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { reviewAction } from "@/app/actions/review";
+import { reviewSentKey } from "@/components/site/review-done";
 import { dict, type Lang } from "@/lib/i18n";
 import { alertLight, inputLight, labelLight } from "@/lib/form-classes";
 import {
@@ -134,8 +135,18 @@ export function ReviewForm({ token, lang }: { token: string; lang: Lang }) {
     for (const p of photos) fd.append("photos", p.file, p.file.name);
     startTransition(async () => {
       try {
-        setState(await reviewAction(fd));
+        // Remember, in this browser only, that this link's review is being
+        // sent: on success the page re-renders as "already used" before this
+        // continues, so the flag has to exist first (review-done.tsx). Removed
+        // again if the send did not succeed.
+        try { window.sessionStorage.setItem(reviewSentKey(token), "1"); } catch { /* storage blocked */ }
+        const result = await reviewAction(fd);
+        if (result !== "success") {
+          try { window.sessionStorage.removeItem(reviewSentKey(token)); } catch { /* storage blocked */ }
+        }
+        setState(result);
       } catch {
+        try { window.sessionStorage.removeItem(reviewSentKey(token)); } catch { /* storage blocked */ }
         // A request the platform refuses before the action runs (too large, a
         // dropped connection) never reaches the action's own error handling.
         setState("error");
