@@ -8,6 +8,7 @@ import { isOptimizableImage } from "@/lib/image-hosts";
 import { follow } from "@/lib/settings";
 import type { ReviewInvite } from "@/lib/reviews";
 import { ReviewForm } from "@/components/site/review-form";
+import { ReviewUsedOrThanks } from "@/components/site/review-done";
 import { Eyebrow, MessengerCta } from "@/components/site/support-stage";
 
 /**
@@ -62,8 +63,16 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
         <div className="wrap max-w-[720px]">
           <Eyebrow rule>{t("reviews", "pageEyebrow")}</Eyebrow>
           <div className="mt-6 grid gap-5 border border-hairline bg-white p-[22px] sm:p-8">
-            <h1 className="text-[clamp(26px,3vw,36px)] leading-tight text-charcoal-deep [:lang(ja)_&]:text-[clamp(22px,2.6vw,30px)] [:lang(ja)_&]:leading-[1.45]">{h}</h1>
-            <p className="text-[16px] leading-[1.75] text-charcoal/85">{p}</p>
+            {invite?.status === "used" ? (
+              // The sender's own browser gets the thank-you, not "already used"
+              // (components/site/review-done.tsx says why).
+              <ReviewUsedOrThanks token={token} usedH={h} usedP={p} thanksH={t("reviews", "thanksH")} thanksP={t("reviews", "thanksP")} />
+            ) : (
+              <>
+                <h1 className="text-[clamp(26px,3vw,36px)] leading-tight text-charcoal-deep [:lang(ja)_&]:text-[clamp(22px,2.6vw,30px)] [:lang(ja)_&]:leading-[1.45]">{h}</h1>
+                <p className="text-[16px] leading-[1.75] text-charcoal/85">{p}</p>
+              </>
+            )}
             <div className="flex flex-wrap items-center gap-4">
               {invite?.status !== "used" && messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} />}
               <Link href="/collections" className="inline-flex min-h-11 items-center text-sm font-semibold text-gold-dark underline underline-offset-4">{t("reviews", "browse")} →</Link>
