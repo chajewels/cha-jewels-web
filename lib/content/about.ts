@@ -52,6 +52,11 @@ export type AboutCopy = {
   listingCells: string[];
   /** "{name}" is the example piece's Hub name. */
   example: string;
+  /**
+   * Alt text for the owner's own photographs (D5-6). Real photos only.
+   * `orders` stands in the hero; the other three sit under the services list.
+   */
+  photos: { orders: string; showroom: string; display: string; sorting: string };
 };
 
 export const aboutCopy: Record<Lang, AboutCopy> = {
@@ -104,6 +109,12 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
     listingLabel: "商品ページの記載事項",
     listingCells: ["金属の純度", "刻印", "グラム重量", "石の情報", "コンディション", "鑑定書の有無"],
     example: "例：{name}",
+    photos: {
+      orders: "お客様のご注文品を詰めた箱を手にするチャジュエルズの代表",
+      showroom: "ネックレス、真珠、リング、ピアスを並べたチャジュエルズの展示テーブル",
+      display: "チャジュエルズのロゴサインの前に並べたネックレスとトレイ",
+      sorting: "天然石ピアスのトレイを手作業で仕分けする様子",
+    },
   },
   en: {
     h1: "About Cha Jewels",
@@ -155,5 +166,11 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
     listingLabel: "What every listing states",
     listingCells: ["Metal purity", "Hallmark", "Gram weight", "Gemstone", "Condition", "Certification"],
     example: "Example: {name}",
+    photos: {
+      orders: "The owner of Cha Jewels holding a box of packed customer orders",
+      showroom: "Necklaces, pearls, rings and earrings laid out on the Cha Jewels display table",
+      display: "Necklace stands and trays in front of the Cha Jewels logo sign",
+      sorting: "Sorting trays of gemstone earrings by hand",
+    },
   },
 };

@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getLang } from "@/lib/i18n-server";
@@ -24,12 +25,12 @@ export const generateMetadata = () => pageMeta("about");
  *  6. The products and services ledger, the closing line, the collections
  *     button and the affiliations link.
  *
- * PHOTOS (owner decision D5-6). The owner's photographs are not in the repo
- * yet, so the page ships WITHOUT photo slots and the timeline carries it.
- * Where they go when they exist — see the two OWNER-PHOTOS hooks below: the
- * hero's right column (the founder, or a live-selling still) and a row of
- * three under the services list (the showroom, hands at a hallmark check, a
- * live-selling session). Real photos only; no stock imagery.
+ * PHOTOS (owner decision D5-6). The owner's own photographs, no stock
+ * imagery: the owner with a box of customer orders in the hero's right
+ * column (the handwritten names on the order notes and the people behind
+ * her are blurred), and a row of three under the services list (the display
+ * table, the logo-sign display, hands sorting gemstone earrings — cropped so
+ * no one's face is in it). Sources: public/images/about/about-*.jpg.
  *
  * All copy is lib/content/about.ts, word for word the live page's.
  */
@@ -42,14 +43,22 @@ export default async function About() {
   return (
     <>
       <StageBand>
-        <div className={`wrap ${SEC}`}>
-          {/* OWNER-PHOTOS hook 1: with a photo, this becomes two columns
-              (lg:grid-cols-[1.1fr_.9fr]) and the photo stands on the right. */}
+        <div className={`wrap ${SEC} grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
           <div className="max-w-[760px]">
             <Eyebrow dark rule>{t("home", "heroSince")}</Eyebrow>
             <h1 className={`mt-[18px] text-gold-pale ${H_DISPLAY}`}>{c.h1}</h1>
             <p className={`mt-[18px] ${LEDE_DARK}`}>{c.intro}</p>
           </div>
+          <Image
+            src="/images/about/about-orders.jpg"
+            alt={c.photos.orders}
+            width={1086}
+            height={1448}
+            // The page's largest element on desktop, so it is not lazy.
+            priority
+            sizes="(min-width: 1024px) 40vw, 100vw"
+            className="aspect-[4/5] w-full rounded-sm object-cover object-[50%_60%] lg:max-w-[460px] lg:justify-self-end"
+          />
         </div>
       </StageBand>
 
@@ -125,9 +134,17 @@ export default async function About() {
             <li key={item} className="flex break-inside-avoid items-baseline gap-2.5 border-b border-hairline py-3 text-[15px] text-charcoal-deep before:h-1.5 before:w-1.5 before:flex-none before:-translate-y-0.5 before:rotate-45 before:border before:border-gold-dark">{item}</li>
           ))}
         </ul>
-        {/* OWNER-PHOTOS hook 2: three real photos go here when they exist —
-            the showroom or office, hands at a hallmark check, a live-selling
-            session (grid, 1 column on a phone, 3 from sm). */}
+        <ul className="mt-12 grid gap-4 sm:grid-cols-3">
+          {([
+            ["about-showroom", 1200, 1600, c.photos.showroom],
+            ["about-sorting", 560, 700, c.photos.sorting],
+            ["about-display", 1200, 1600, c.photos.display],
+          ] as const).map(([file, w, h, alt]) => (
+            <li key={file}>
+              <Image src={`/images/about/${file}.jpg`} alt={alt} width={w} height={h} sizes="(min-width: 640px) 30vw, 100vw" className="aspect-[4/5] w-full rounded-sm object-cover" />
+            </li>
+          ))}
+        </ul>
         <p className="mt-12 max-w-[68ch] text-[17px] leading-relaxed text-charcoal-deep">{c.closing[0]}</p>
         <p className={`mt-4 font-display text-gold-dark ${H_TITLE}`}>{c.closing[1]}</p>
         <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
