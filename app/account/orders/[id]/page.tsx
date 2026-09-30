@@ -2,6 +2,7 @@ import { pageMeta } from "@/lib/page-meta";
 import { formatDeadline, formatSiteDate, siteDay } from "@/lib/site-time";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Lock } from "lucide-react";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
@@ -18,11 +19,24 @@ import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
 import { ServiceRequestForm } from "@/components/account/service-request-form";
-import { PaymentDueCard, ReservedStatusCard } from "@/components/account/payment-due-card";
+import { PaymentDueCard } from "@/components/account/payment-due-card";
+import { AccountShell } from "@/components/account/account-shell";
+import { OrderProgress, orderStage } from "@/components/account/order-progress";
+import { Notice, PieceWell } from "@/components/commerce/commerce-ui";
+import { linePicture } from "@/components/commerce/confirmation";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
 
+/**
+ * ONE ORDER (build step 4; comp page-comps/account-signin "Order detail").
+ * The reference is the eyebrow and the status is the heading; under it the
+ * five-stage status line, then — while money is due — how to pay (owner
+ * request 2026-09-24: payment first), or the live reserved note while staff
+ * confirm. The pieces sit left, and a side card holds when it was placed,
+ * where it goes, how it is paid and the Hub's total. Print / save as PDF is
+ * beside the heading.
+ */
 export default async function OrderDetailPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -48,52 +62,50 @@ export default async function OrderDetailPage({ params, searchParams }: {
   if (link.hit) redirect(profileUrl(withQuery(`/account/orders/${id}`, query)));
   if (!detail) {
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
-        <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("orders", "notFound")}</h1>
-          <Button asChild variant="ghost" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
-        </div>
-      </section>
+      <AccountShell lang={lang} current="orders" eyebrow={t("accountMenu", "orders")} title={t("orders", "notFound")} back={{ href: "/account/orders", label: t("orders", "back") }}>
+        <Button asChild variant="outline"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
+      </AccountShell>
     );
   }
 
   const { order, items, transfer_methods: methods } = detail;
   const status = orderStatusLabel(order, lang);
+  const stage = orderStage(order);
   const address = order.ship_to_address;
   const fmtDate = (iso: string) => formatSiteDate(iso, lang);
   const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
   const refund = refundLabel(order.refund_status, lang);
   const ownRequests = requests.filter((r) => r.cash_order_id === order.id);
   const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order);
-
+  const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
+  const payment = order.payment_method === "transfer"
+    ? t("orders", "payVia", { method: t("orders", "bankTransfer"), currency: order.currency === "PHP" ? t("orders", "currencyPHP") : t("orders", "currencyJPY") })
+    : null;
+  const shipping = order.shipping_fee != null && Number(order.shipping_fee) > 0 ? formatMoney(Number(order.shipping_fee), order.currency) : null;
 
   return (
-    <section className="print-invoice py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[820px]">
-        <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
+    <AccountShell
+      lang={lang}
+      current="orders"
+      className="print-invoice"
+      back={{ href: "/account/orders", label: t("orders", "back") }}
+      eyebrow={<>{t("draft", "reference")} <span className="cj-fig font-mono text-[13px] normal-case tracking-[0.04em] text-charcoal-deep">{reference}</span></>}
+      title={status.text}
+      headAside={<PrintButton label={t("account", "print")} />}
+    >
+      <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
-        <Link href="/account/orders" className="print-hide text-sm text-charcoal/70 underline underline-offset-4">{t("orders", "back")}</Link>
+      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={status.text} /></div>}
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="font-mono text-[clamp(24px,3vw,38px)] text-charcoal-deep">{order.web_reference ?? order.invoice_number ?? "—"}</h1>
-          <div className="flex flex-wrap items-center gap-3">
-            <StatusBadge tone={status.tone} text={status.text} />
-            <PrintButton label={t("account", "print")} />
-          </div>
-        </div>
-
-        {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how
-            to pay is the first thing under the heading — above the pieces,
-            the totals, the address and the request form — on screen and on
-            paper. Otherwise the page reads as it always did.
-
-            Instructions only while the money is still outstanding — and, since
-            reserve-first, only once the Hub says the order can be paid. A
-            reservation reads payment_status "awaiting_confirmation", so the
-            first test already excludes it; the second is belt and braces, the
-            same pair the Hub checks before it sends any methods. */}
-        {payDue && (
+      {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how to
+          pay is the first thing under the heading, on screen and on paper —
+          and, since reserve-first, only once the Hub says the order can be
+          paid. A reservation reads payment_status "awaiting_confirmation", so
+          the first test already excludes it; the second is belt and braces,
+          the same pair the Hub checks before it sends any methods. */}
+      {payDue && (
+        <div className="mb-6 [&>section]:mt-0">
           <PaymentDueCard
             lang={lang}
             amount={Number(order.remaining_balance) > 0 ? formatMoney(Number(order.remaining_balance), order.currency) : null}
@@ -101,104 +113,110 @@ export default async function OrderDetailPage({ params, searchParams }: {
           >
             <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
             <TransferDetails methods={methods} lang={lang} />
-            {methods.length > 0 && (
-              <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>
-            )}
+            {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
           </PaymentDueCard>
-        )}
+        </div>
+      )}
 
-        {/* A reservation staff have not confirmed yet (Hub A2): the same top
-            slot, what happens next, and no payment details until it is
-            confirmed. */}
-        {isAwaitingConfirmation(order) && (
-          <ReservedStatusCard heading={t("orders", "statusReserved")}>
-            <p>{t("orders", "reservedNote")}</p>
-          </ReservedStatusCard>
-        )}
+      {/* A reservation staff have not confirmed yet (Hub A2): what happens
+          next, and no payment details until it is confirmed. */}
+      {isAwaitingConfirmation(order) && (
+        <Notice icon={<Lock className="h-5 w-5" strokeWidth={1.5} />} className="mb-6">{t("orders", "reservedNote")}</Notice>
+      )}
 
-        {/* A Hub-arranged order records its pieces on the invoice, not in this
-            table: 153 of the 154 carry no lines and none carries a saved
-            address. Rendering an empty list left the page showing a total and
-            nothing else. */}
-        {items.length === 0 && (
-          <p className="mt-10 text-sm text-charcoal/70">{t("orders", "arrangedWithUs")}</p>
-        )}
-
-        {items.length > 0 && (
-        <ul className="rule-grid mt-10 grid gap-px">
-          {items.map((line) => (
-            <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-white p-5">
-              <div>
-                <p className="text-charcoal-deep">{orderLineTitle(line, lang)}</p>
-                <p className="mt-1 text-xs text-charcoal/70">
-                  {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
-                </p>
-              </div>
-              {/* line_total_jpy is always yen, the price of record: shown on a
-                  yen order only. A peso order lists its pieces without a price
-                  and gives shipping and total in pesos below (owner decision D1). */}
-              {order.currency === "JPY" && (
-                <p className="font-display text-xl text-gold-dark">{formatMoney(Number(line.line_total_jpy), "JPY")}</p>
-              )}
-            </li>
-          ))}
-        </ul>
-        )}
-
-        <dl className="mt-6 space-y-2 border-t border-hairline pt-4 text-sm">
-          {order.shipping_fee != null && Number(order.shipping_fee) > 0 && (
-            <Row k={t("checkout", "shipping")} v={formatMoney(Number(order.shipping_fee), order.currency)} />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
+          {/* A Hub-arranged order records its pieces on the invoice, not in
+              this table: most carry no lines and no saved address. */}
+          {items.length === 0 ? (
+            <p className="border border-hairline bg-white p-5 text-sm leading-relaxed text-charcoal/80">{t("orders", "arrangedWithUs")}</p>
+          ) : (
+            <ul className="grid gap-3">
+              {items.map((line) => {
+                const name = orderLineTitle(line, lang);
+                return (
+                  <li key={line.id} className="grid grid-cols-[80px_minmax(0,1fr)] gap-3.5 border border-hairline bg-white p-4 sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:gap-5 sm:p-5">
+                    <PieceWell image={linePicture(line.image_url, name)} alt={name} />
+                    <div className="min-w-0">
+                      <p className="font-display text-[15px] leading-[1.45] text-charcoal-deep [font-variant-numeric:lining-nums] sm:text-[17px]">{name}</p>
+                      <p className="mt-1.5 text-xs text-charcoal/75">
+                        {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
+                      </p>
+                    </div>
+                    {/* line_total_jpy is always yen, the price of record: shown
+                        on a yen order only. A peso order lists its pieces
+                        without a price and gives the total in pesos (D1). */}
+                    {order.currency === "JPY" && (
+                      <p className="cj-fig col-span-2 whitespace-nowrap border-t border-hairline pt-2 text-right font-display text-[20px] text-charcoal-deep sm:col-span-1 sm:border-0 sm:pt-0">
+                        {formatMoney(Number(line.line_total_jpy), "JPY")}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           )}
-          <Row k={t("orders", "total")} v={formatMoney(Number(order.total_amount), order.currency)} />
-        </dl>
 
-        {/* Work on the piece — a resize, a cleaning, a repair — asked for here,
-            next to the order it came with. Not offered on a closed order. */}
-        <ServiceRequestForm
-          lang={lang}
-          target={{ cash_order_id: order.id }}
-          items={items.map((line) => ({ value: line.title, label: orderLineTitle(line, lang) }))}
-          initial={ownRequests}
-          canRequest={status.tone !== "dead"}
-        />
+          {/* The Hub decided the cancellation and the refund; this block only reports them. */}
+          {cancelled && (
+            <div className="mt-6 border border-hairline bg-white p-5 text-sm text-charcoal sm:p-6">
+              <h2 className="font-display text-xl text-charcoal-deep">{t("orders", "statusCancelled")}</h2>
+              <dl className="mt-4 space-y-2">
+                {order.cancelled_at && <Row k={t("orders", "cancelledOn")} v={fmtDate(order.cancelled_at)} />}
+                {order.cancellation_reason && <Row k={t("orders", "cancelReason")} v={order.cancellation_reason} />}
+                {refund && <Row k={t("orders", "refund")} v={refund} />}
+              </dl>
+              {order.refund_note && <p className="mt-4 whitespace-pre-line text-charcoal/70">{order.refund_note}</p>}
+            </div>
+          )}
 
-        {address && (
-          <div className="mt-10 border border-hairline p-5 text-sm text-charcoal">
-            <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "shipTo")}</h2>
-            <p className="mt-2">{address.recipient_name ?? "—"}</p>
-            <p>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p>
-            <p>{[address.city, address.region, address.postal_code].filter(Boolean).join(" ")}</p>
-            <p className="text-charcoal/70">{address.country}</p>
-          </div>
-        )}
+          {order.status === "expired" && (
+            <p className="mt-6 text-sm text-charcoal/75">
+              {t("orders", "statusExpired")}{order.expired_at ? ` · ${fmtDate(order.expired_at)}` : ""}
+            </p>
+          )}
 
-        {/* The Hub decided the cancellation and the refund; this block only reports them. */}
-        {cancelled && (
-          <div className="mt-10 border border-hairline p-6 text-sm text-charcoal">
-            <h2 className="font-display text-xl text-charcoal-deep">{t("orders", "statusCancelled")}</h2>
-            <dl className="mt-4 space-y-2">
-              {order.cancelled_at && <Row k={t("orders", "cancelledOn")} v={fmtDate(order.cancelled_at)} />}
-              {order.cancellation_reason && <Row k={t("orders", "cancelReason")} v={order.cancellation_reason} />}
-              {refund && <Row k={t("orders", "refund")} v={refund} />}
-            </dl>
-            {order.refund_note && <p className="mt-4 whitespace-pre-line text-charcoal/70">{order.refund_note}</p>}
-          </div>
-        )}
+          {/* Work on the piece — a resize, a cleaning, a repair — asked for
+              here, next to the order it came with. Not on a closed order. */}
+          <ServiceRequestForm
+            lang={lang}
+            target={{ cash_order_id: order.id }}
+            items={items.map((line) => ({ value: line.title, label: orderLineTitle(line, lang) }))}
+            initial={ownRequests}
+            canRequest={status.tone !== "dead"}
+          />
+        </div>
 
-        {order.status === "expired" && (
-          <p className="mt-10 text-sm text-charcoal/70">
-            {t("orders", "statusExpired")}{order.expired_at ? ` · ${fmtDate(order.expired_at)}` : ""}
-          </p>
-        )}
-
-        {order.tracking_number && (
-          <p className="mt-6 text-sm text-charcoal">
-            {t("orders", "tracking")} <span className="font-mono text-gold-dark">{order.tracking_number}</span>
-          </p>
-        )}
-
+        <aside className="border border-hairline bg-white p-5 sm:p-6">
+          <dl className="grid gap-1 text-sm">
+            <Kv k={t("orders", "placed")}><span className="cj-fig">{placed}</span></Kv>
+            {address && (
+              <Kv k={t("orders", "shipTo")}>
+                <span className="block">{address.recipient_name ?? "—"}</span>
+                <span className="block">{address.line1}{address.line2 ? `, ${address.line2}` : ""}</span>
+                <span className="block">{[address.city, address.region, address.postal_code].filter(Boolean).join(" ")}</span>
+                <span className="block text-charcoal/75">{address.country}</span>
+              </Kv>
+            )}
+            {payment && <Kv k={t("orders", "payment")}>{payment}</Kv>}
+            {shipping && <Kv k={t("checkout", "shipping")}><span className="cj-fig">{shipping}</span></Kv>}
+            {order.tracking_number && <Kv k={t("orders", "tracking")}><span className="font-mono text-gold-dark">{order.tracking_number}</span></Kv>}
+            <Kv k={t("orders", "total")} last>
+              <span className={`cj-fig font-display text-[26px] leading-tight ${status.tone === "dead" ? "text-charcoal/70" : "text-charcoal-deep"}`}>{formatMoney(Number(order.total_amount), order.currency)}</span>
+            </Kv>
+          </dl>
+        </aside>
       </div>
-    </section>
+    </AccountShell>
+  );
+}
+
+function Kv({ k, children, last }: { k: string; children: React.ReactNode; last?: boolean }) {
+  return (
+    <div className={last ? "pt-3" : "border-b border-hairline pb-3 pt-3 first:pt-0"}>
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{k}</dt>
+      <dd className="mt-1 text-charcoal-deep">{children}</dd>
+    </div>
   );
 }
 

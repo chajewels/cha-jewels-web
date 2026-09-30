@@ -11,6 +11,7 @@ import { newestFirst } from "@/lib/service-requests";
 import type { ServiceRequest } from "@/lib/types";
 import { ServiceRequestRow } from "@/components/account/service-request-row";
 import { alertLight } from "@/lib/form-classes";
+import { AccountShell } from "@/components/account/account-shell";
 
 export const generateMetadata = () => pageMeta("serviceRequests");
 export const dynamic = "force-dynamic";
@@ -43,37 +44,29 @@ export default async function ServiceRequestsPage({ searchParams }: { searchPara
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[900px]">
-        <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("service", "h1")}</h1>
-          <Link href="/account" className="text-sm text-charcoal/70 underline underline-offset-4">{t("account", "h1")}</Link>
-        </div>
-        <p className="mt-4 max-w-[62ch] text-charcoal">{t("service", "lede")}</p>
+    <AccountShell lang={lang} current="service" eyebrow={t("accountMenu", "service")} title={t("service", "h1")}>
+      <p className="mb-6 max-w-[62ch] text-[15px] leading-relaxed text-charcoal-deep">{t("service", "lede")}</p>
 
-        {failed && (
-          <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
-        )}
+      {failed && <p className={`mb-6 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>}
 
-        {!failed && requests.length === 0 && (
-          <p className="mt-10 text-charcoal">
-            {t("service", "empty")}{" "}
-            <Link href="/account/orders" className="text-gold-dark underline underline-offset-4">{t("orders", "h1")}</Link>
-            {layawayOffered(lang) && (
-              <>
-                {" · "}
-                <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>
-              </>
-            )}
-          </p>
-        )}
+      {!failed && requests.length === 0 && (
+        <p className="border border-hairline bg-white p-5 text-charcoal-deep">
+          {t("service", "empty")}{" "}
+          <Link href="/account/orders" className="text-gold-dark underline underline-offset-4">{t("orders", "h1")}</Link>
+          {layawayOffered(lang) && (
+            <>
+              {" · "}
+              <Link href="/account/layaway" className="text-gold-dark underline underline-offset-4">{t("plans", "h1")}</Link>
+            </>
+          )}
+        </p>
+      )}
 
-        {requests.length > 0 && (
-          <ul className="rule-grid mt-10 grid gap-px">
-            {requests.map((r) => <ServiceRequestRow key={r.id} request={r} lang={lang} showTarget />)}
-          </ul>
-        )}
-      </div>
-    </section>
+      {requests.length > 0 && (
+        <ul className="rule-grid grid gap-px border border-hairline">
+          {requests.map((r) => <ServiceRequestRow key={r.id} request={r} lang={lang} showTarget />)}
+        </ul>
+      )}
+    </AccountShell>
   );
 }

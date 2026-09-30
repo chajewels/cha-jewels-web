@@ -32,6 +32,7 @@ const LAYAWAY_GATED_KEYS = new Set([
   "account.layawayH", // unused
   "account.layawaySoon", // unused
   "account.layawayLearn", // /account/layaway: notFound on ja
+  "account.perkLayaway", // sign-in "what your account holds": layawayOffered(lang) &&
   "checkout.agreementHeading", // layaway signing step: mode === "layaway", impossible on ja
   "checkout.agreementIntro", // same
   "checkout.agreementRequired", // same
