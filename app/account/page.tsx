@@ -269,12 +269,12 @@ function LevelCard({ me, tiers, lang }: { me: HubMe; tiers: HubTier[]; lang: Lan
           {/* LIFETIME PURCHASES AND THE NEXT LEVEL (D4-2). Every figure is
               the Hub's — lifetime_jpy and to_next_jpy come worked out; no bar is
               drawn, because its width would be a percentage computed here. */}
-          {typeof L.lifetime_jpy === "number" && L.reduced !== true && (
+          {typeof L.lifetime_jpy === "number" && (
             <p className="cj-fig mt-5 flex flex-wrap justify-between gap-x-4 gap-y-1 border-t border-chalk/20 pt-3 text-[13px] text-chalk/85">
               <span>{t("loyalty", "threshold")} {formatMoney(L.lifetime_jpy, "JP")}</span>
               {L.next_tier && typeof L.to_next_jpy === "number" ? (
                 <span className="text-gold-pale">{t("account", "toNext", { tier: L.next_tier, amount: formatMoney(L.to_next_jpy, "JP") })}</span>
-              ) : L.next_tier === null && L.tier ? (
+              ) : L.next_tier === null && L.tier && L.reduced !== true ? (
                 <span className="text-gold-pale">{t("account", "topLevel")}</span>
               ) : null}
             </p>
