@@ -2,6 +2,7 @@ import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tokusho, tokushoRowsFor, tokushoUpdated } from "@/lib/content/legal";
 import { layawayOffered } from "@/lib/layaway-availability";
+import { LegalFrame } from "@/components/site/legal-frame";
 
 export const generateMetadata = () => pageMeta("tokusho");
 
@@ -24,23 +25,22 @@ export const generateMetadata = () => pageMeta("tokusho");
 export default async function Tokusho() {
   const lang = await getLang();
 
+  const layaway = layawayOffered(lang);
   return (
-    <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[820px]">
-        <h1 className="text-[clamp(32px,4vw,56px)]">{tokusho.title[lang]}</h1>
-        <p className="mt-4 text-sm text-charcoal/70">{tokushoUpdated[lang]}</p>
-        <dl className="mt-10 divide-y divide-hairline border-y border-hairline">
-          {/* No layaway row on the Japanese site (owner decision 2026-09-25). */}
-          {tokushoRowsFor(layawayOffered(lang)).map(({ k, v }) => (
-            // Keyed on the Japanese label because it is stable — the key must
-            // not change when the toggle does.
-            <div key={k.ja} className="grid gap-2 py-4 sm:grid-cols-[200px_1fr]">
-              <dt className="text-charcoal/70">{k[lang]}</dt>
-              <dd>{v[lang]}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
+    <LegalFrame lang={lang} page="tokusho" title={tokusho.title[lang]} updated={tokushoUpdated[lang]} toc={[]}>
+      {/* Build step 7: a hairline ledger, the item in gold-dark beside its
+          detail. On EN the ※ layaway row is tinted so it reads as a footnote;
+          on JA it is not there at all (owner decision 2026-09-25). */}
+      <dl className="border-t border-hairline text-[16px] leading-[1.8] [:lang(ja)_&]:text-[15.5px] [:lang(ja)_&]:leading-[1.95]">
+        {tokushoRowsFor(layaway).map(({ k, v, layaway: note }) => (
+          // Keyed on the Japanese label because it is stable — the key must
+          // not change when the toggle does.
+          <div key={k.ja} className={`grid gap-1 border-b border-hairline py-[18px] sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-6 lg:grid-cols-[300px_minmax(0,1fr)] ${note ? "-mx-4 bg-white px-4" : ""}`}>
+            <dt className="pt-[3px] text-[12px] font-semibold uppercase leading-[1.6] tracking-[0.1em] text-gold-dark [:lang(ja)_&]:text-[13.5px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{k[lang]}</dt>
+            <dd className="min-w-0 break-words text-charcoal-deep">{v[lang]}</dd>
+          </div>
+        ))}
+      </dl>
+    </LegalFrame>
   );
 }

@@ -3,7 +3,9 @@ import type { Lang } from "@/lib/i18n";
 import type { LegalArticle, LegalBlock } from "@/lib/content/legal";
 
 /**
- * A numbered legal document, rendered wholly in the selected language.
+ * A numbered legal document, rendered wholly in the selected language. Since
+ * build step 7 the title band, tabs, contents and business details are
+ * LegalFrame's (components/site/legal-frame.tsx); this file is the text.
  *
  * The renderer for all three of them now: privacy, returns and the terms of
  * service. It takes numbered articles whose bodies mix paragraphs, sub-headings,
@@ -33,7 +35,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // gold display face marks an article, and a sub-heading competing with it
       // would make a twelve-section document read as twenty-eight.
       return (
-        <h3 className="mt-8 font-display text-[clamp(16px,1.6vw,20px)] text-charcoal-deep">
+        <h3 className="mt-8 font-display text-[clamp(17px,1.6vw,20px)] leading-snug text-charcoal-deep">
           {block.text[lang]}
         </h3>
       );
@@ -49,10 +51,17 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // list-disc + marker: cannot fail that way: there is no string to escape.
       // Tailwind Preflight sets `list-style: none` on every ul, which is why a
       // marker has to be asked for explicitly here and in legal-doc.tsx.
+      //
+      // Build step 7: the marker is a small gold diamond (DESIGN's one
+      // ornament), drawn as an empty span rather than generated `content`, so
+      // there is still no string to escape. The FAQ shares it through Block.
       return (
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-charcoal marker:text-gold-dark">
+        <ul className="mt-3.5 space-y-2 text-charcoal">
           {block.items[lang].map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item} className="relative pl-[22px]">
+              <span aria-hidden="true" className="absolute left-1 top-[0.72em] h-1.5 w-1.5 rotate-45 bg-gold" />
+              {item}
+            </li>
           ))}
         </ul>
       );
@@ -81,7 +90,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // Line breaks carry meaning here (a postal address), so each line is its
       // own row rather than wrapped prose.
       return (
-        <div className="mt-4 text-charcoal">
+        <div className="mt-4 border-l-2 border-gold-dark bg-white px-5 py-4 text-charcoal-deep">
           {block.lines[lang].map((line) => (
             <div key={line}>{line}</div>
           ))}
@@ -90,55 +99,75 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
   }
 }
 
+/** The id a section's heading carries, for the contents list. */
+export const sectionId = (i: number) => `s${i + 1}`;
+
+/** The contents list: each heading's own text, as it read before step 7 ("1. …"). */
+export function legalToc(articles: LegalArticle[], lang: Lang) {
+  return articles.map((a, i) => ({ id: sectionId(i), label: a.n === undefined ? a.h[lang] : `${a.n}. ${a.h[lang]}` }));
+}
+
+/**
+ * The document itself, inside LegalFrame (build step 7). Styling only.
+ *
+ * - Body text 16px/1.8 on EN, 15.5px/1.95 on JA, in a 70ch column.
+ * - A numbered heading shows its number as a gold-dark Playfair "01" (D7-2):
+ *   display only, the data keeps `n`, and the contents list still reads "1.".
+ * - An unnumbered article ahead of §1 (the returns policy's Important
+ *   Summary) is the part customers need, so it is a dark ledger box.
+ */
 export function LegalArticles({
   lang,
-  title,
-  updated,
   intro,
   articles,
 }: {
   lang: Lang;
-  title: Record<Lang, string>;
-  updated: Record<Lang, string>;
   /** Blocks shown above the first article — a scope note, an identifying line. */
   intro?: LegalBlock[];
   articles: LegalArticle[];
 }) {
   return (
-    <section lang={lang} className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[72ch]">
-        <h1 className="text-[clamp(32px,4.6vw,64px)]">{title[lang]}</h1>
-        {/* The document carries its own last-updated line, so the shared draft
-            banner is not rendered here -- it states an older date and the two
-            together would contradict each other on a legal page. */}
-        <p className="mt-4 text-sm text-charcoal/70">{updated[lang]}</p>
-
-        {intro ? (
-          <div className="mt-8">
-            {intro.map((block, i) => (
-              <Block key={i} block={block} lang={lang} />
-            ))}
-          </div>
-        ) : null}
-
-        <div className="mt-12">
-          {articles.map((a, ai) => (
-            // Index, not a.n: an article may legitimately have no number (a
-            // summary block ahead of section 1), and `key={undefined}` is a
-            // silent duplicate-key bug rather than a visible one.
-            <article key={ai} className="border-t border-hairline py-6">
-              <h2 className="font-display text-[clamp(20px,2.4vw,28px)] text-charcoal-deep">
-                {a.n === undefined ? a.h[lang] : `${a.n}. ${a.h[lang]}`}
-              </h2>
-              {a.blocks.map((block, i) => (
-                // Index is a safe key: the blocks of one article are a fixed,
-                // ordered list that never reorders or filters.
-                <Block key={i} block={block} lang={lang} />
-              ))}
-            </article>
+    <div className="max-w-[70ch] text-[16px] leading-[1.8] [:lang(ja)_&]:text-[15.5px] [:lang(ja)_&]:leading-[1.95]">
+      {intro ? (
+        <div className="mb-12 [&>:first-child]:mt-0">
+          {intro.map((block, i) => (
+            <Block key={i} block={block} lang={lang} />
           ))}
         </div>
-      </div>
-    </section>
+      ) : null}
+
+      {articles.map((a, ai) =>
+        // Index, not a.n: an article may legitimately have no number (a
+        // summary block ahead of section 1), and `key={undefined}` is a
+        // silent duplicate-key bug rather than a visible one.
+        a.n === undefined ? (
+          <article key={ai} className="band-dark mb-2 bg-charcoal-deep px-[clamp(18px,4vw,28px)] pb-6 pt-7 text-chalk max-sm:-mx-[clamp(18px,4vw,48px)] [&_a]:text-gold-pale [&_li]:text-chalk/90 [&_p]:text-chalk/90 [&_ul]:text-chalk/90 [&_h3]:text-gold-pale print:bg-white print:text-charcoal-deep print:[&_p]:text-charcoal print:[&_li]:text-charcoal">
+            <h2 id={sectionId(ai)} className="scroll-mt-24 text-[22px] leading-snug text-gold-pale print:text-charcoal-deep [:lang(ja)_&]:text-[20px] [:lang(ja)_&]:leading-[1.5]">
+              {a.h[lang]}
+            </h2>
+            {a.blocks.map((block, i) => (
+              <Block key={i} block={block} lang={lang} />
+            ))}
+          </article>
+        ) : (
+          <article key={ai} className="mt-14 border-t border-hairline pt-[22px] first:mt-0">
+            <h2
+              id={sectionId(ai)}
+              className="flex scroll-mt-24 items-baseline gap-3.5 text-[22px] leading-[1.25] text-charcoal-deep sm:text-[26px] [:lang(ja)_&]:text-[20px] [:lang(ja)_&]:leading-[1.5] [:lang(ja)_&]:[word-break:auto-phrase] sm:[:lang(ja)_&]:text-[22px]"
+            >
+              <span className="min-w-[1.4em] flex-none font-display text-[24px] font-normal leading-none text-gold-dark [font-variant-numeric:lining-nums_tabular-nums] sm:text-[30px]">
+                {String(a.n).padStart(2, "0")}
+              </span>
+              <span className="min-w-0">{a.h[lang]}</span>
+            </h2>
+            {a.blocks.map((block, i) => (
+              // Index is a safe key: the blocks of one article are a fixed,
+              // ordered list that never reorders or filters.
+              <Block key={i} block={block} lang={lang} />
+            ))}
+          </article>
+        ),
+      )}
+    </div>
   );
 }

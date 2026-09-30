@@ -1097,6 +1097,15 @@ export const dict = {
     errNotReady: { ja: "まだ商品を確認中のため、お支払いをお受けできません。準備が整いしだい、メールでお知らせします。", en: "We're still confirming this piece, so we can't take a payment yet. We'll email you as soon as it's ready." },
     errFailed: { ja: "送信できませんでした。もう一度お試しください。", en: "We could not send that. Please try again." },
   },
+  /** Build step 7 (comp page-comps/legal): the frame around the four legal pages. The documents' own text lives in lib/content/legal.ts and is unchanged. */
+  legalPage: {
+    pages: { ja: "法的情報のページ", en: "Legal pages" },
+    contents: { ja: "目次", en: "Contents" },
+    business: { ja: "事業者情報", en: "Business details" },
+    print: { ja: "このページを印刷", en: "Print this page" },
+    questions: { ja: "内容についてご不明な点は、担当者がお答えします。", en: "Questions about these terms? A person will answer." },
+    contact: { ja: "お問い合わせ", en: "Contact" },
+  },
   about: { h1: { ja: "私たちについて", en: "About Us" }, logoAlt: { ja: "Cha Jewels ロゴ", en: "Cha Jewels logo" } },
   blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" }, empty: { ja: "この分類の記事はまだありません。", en: "Nothing here yet." } },
   notFound: { h1: { ja: "そのお品物はここにはありません。", en: "That piece is not here." }, p: { ja: "すでに売れたか、リンクが古い可能性があります。", en: "It may have sold, or the link is old." }, back: { ja: "コレクションに戻る", en: "Back to the collections" } },
