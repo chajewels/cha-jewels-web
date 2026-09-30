@@ -1,5 +1,6 @@
 import { pageMeta } from "@/lib/page-meta";
-import { LegalArticles } from "@/components/site/legal-articles";
+import { LegalArticles, legalToc } from "@/components/site/legal-articles";
+import { LegalFrame } from "@/components/site/legal-frame";
 import { getLang } from "@/lib/i18n-server";
 import { legalArticlesFor, tosArticles, tosTitle, tosUpdated } from "@/lib/content/legal";
 import { layawayOffered } from "@/lib/layaway-availability";
@@ -17,5 +18,10 @@ export default async function TermsPage() {
   // layaway mentions in the other sections were removed from the Japanese text
   // itself. See legalArticlesFor in lib/content/legal.ts.
   const lang = await getLang();
-  return <LegalArticles lang={lang} title={tosTitle} updated={tosUpdated} articles={legalArticlesFor(tosArticles, layawayOffered(lang))} />;
+  const articles = legalArticlesFor(tosArticles, layawayOffered(lang));
+  return (
+    <LegalFrame lang={lang} page="terms" title={tosTitle[lang]} updated={tosUpdated[lang]} toc={legalToc(articles, lang)}>
+      <LegalArticles lang={lang} articles={articles} />
+    </LegalFrame>
+  );
 }
