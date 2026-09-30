@@ -1227,7 +1227,66 @@ export const dict = {
     registeredSignedOut: { ja: "セキュリティのため、サインアウトいたしました。", en: "For your security, you have been signed out." },
     contactCta: { ja: "Cha Jewelsにお問い合わせ", en: "Contact Cha Jewels" },
   },
+  /**
+   * Product reviews (PR-R2). The review page is reached only from a personal
+   * link staff send on Messenger after a completed order, so its copy speaks to
+   * someone who has already bought. No layaway wording anywhere here: the
+   * review sections show on the Japanese site too.
+   */
+  reviews: {
+    eyebrow: { ja: "カスタマーレビュー", en: "Customer reviews" },
+    h: { ja: "お客様の声", en: "What our customers say" },
+    p: { ja: "実際にご購入いただいたお客様からいただいたレビューです。内容を確認のうえ掲載しています。", en: "Reviews from customers who bought from us, checked by our team before they appear." },
+    pdpH: { ja: "この商品のレビュー", en: "Reviews of this piece" },
+    summary: { ja: "{avg}（{n}件のレビュー）", en: "{avg} ({n} reviews)" },
+    summaryOne: { ja: "{avg}（1件のレビュー）", en: "{avg} (1 review)" },
+    stars: { ja: "5段階中{n}", en: "{n} out of 5 stars" },
+    verified: { ja: "ご購入者", en: "Verified buyer" },
+    photoAlt: { ja: "{name}様のお写真 {n}", en: "Photo {n} from {name}" },
+    // The review page (/review/[token]).
+    pageEyebrow: { ja: "レビューのお願い", en: "Your review" },
+    hello: { ja: "{name}様、Cha Jewelsをご利用いただきありがとうございます。", en: "Hi {name}, thank you for shopping with Cha Jewels." },
+    helloNoName: { ja: "Cha Jewelsをご利用いただきありがとうございます。", en: "Thank you for shopping with Cha Jewels." },
+    ask: { ja: "{piece}の使い心地はいかがですか？", en: "How do you like your {piece}?" },
+    askNoPiece: { ja: "お買い上げの商品はいかがですか？", en: "How do you like your piece?" },
+    lede: { ja: "率直なご感想をお聞かせください。いただいたレビューは確認後、お名前（名と姓のイニシャル）とともにサイトに掲載されます。", en: "Tell us honestly what you think. We check every review before it appears on our website, with your first name and last initial only." },
+    rating: { ja: "評価", en: "Your rating" },
+    ratingOption: { ja: "{n}つ星", en: "{n} stars" },
+    ratingOptionOne: { ja: "1つ星", en: "1 star" },
+    body: { ja: "レビュー", en: "Your review" },
+    bodyHint: { ja: "{min}文字以上でご記入ください。", en: "At least {min} characters." },
+    count: { ja: "{n} / {max}", en: "{n} / {max}" },
+    photos: { ja: "写真（任意・最大{max}枚）", en: "Photos (optional, up to {max})" },
+    photosHint: { ja: "JPEG・PNG・WebP。送信前に自動で縮小されます。", en: "JPEG, PNG or WebP. They are made smaller automatically before sending." },
+    addPhotos: { ja: "写真を追加", en: "Add photos" },
+    removePhoto: { ja: "写真{n}を削除", en: "Remove photo {n}" },
+    preparing: { ja: "写真を準備しています…", en: "Preparing photos…" },
+    send: { ja: "レビューを送信", en: "Send review" },
+    sending: { ja: "送信しています…", en: "Sending…" },
+    thanksH: { ja: "ありがとうございました", en: "Thank you!" },
+    thanksP: { ja: "レビューを受け付けました。スタッフが確認したのち、サイトに掲載いたします。", en: "We've received your review. It will appear on our website once our team has checked it." },
+    browse: { ja: "コレクションを見る", en: "Browse the collection" },
+    usedH: { ja: "レビューは送信済みです", en: "You've already sent your review" },
+    usedP: { ja: "このリンクからのレビューはすでにお受けしております。ありがとうございました。", en: "This link has already been used to send a review. Thank you!" },
+    expiredH: { ja: "リンクの有効期限が切れています", en: "This review link has expired" },
+    expiredP: { ja: "お手数ですが、Messengerでご連絡ください。新しいリンクをお送りします。", en: "Please message us on Messenger and we'll send you a new one." },
+    notFoundH: { ja: "リンクが見つかりません", en: "We couldn't find this review link" },
+    notFoundP: { ja: "リンクをもう一度ご確認いただくか、Messengerでご連絡ください。", en: "Please check the link, or message us on Messenger." },
+    unavailableH: { ja: "ただいまページを開けません", en: "We can't open this page right now" },
+    unavailableP: { ja: "しばらくしてから、もう一度お試しください。", en: "Please try again in a few minutes." },
+    // Errors after Send.
+    errRating: { ja: "星の数をお選びください。", en: "Please choose a star rating." },
+    errShort: { ja: "レビューを{min}文字以上でご記入ください。", en: "Please write at least {min} characters." },
+    errLong: { ja: "レビューは{max}文字以内でご記入ください。", en: "Please keep your review under {max} characters." },
+    errPhotoCount: { ja: "写真は{max}枚までです。", en: "You can add up to {max} photos." },
+    errPhotoSize: { ja: "写真のサイズが大きすぎます。枚数を減らしてお試しください。", en: "The photos are too large. Please try fewer photos." },
+    errPhotoType: { ja: "JPEG・PNG・WebPの写真をお選びください。", en: "Please choose JPEG, PNG or WebP photos." },
+    errPhotoRead: { ja: "この写真を読み込めませんでした。別の写真をお選びください。", en: "We couldn't read this photo. Please choose another one." },
+    errRate: { ja: "しばらく時間をおいてからお試しください。", en: "Too many attempts. Please try again shortly." },
+    errGeneric: { ja: "送信できませんでした。時間をおいてお試しください。", en: "We couldn't send your review. Please try again later." },
+  },
   meta: {
+    review: { title: { ja: "レビューを書く", en: "Write a review" } },
     // NO BLANKET CERTIFICATE CLAIM. This said "certified diamonds" /
     // 鑑定書付きダイヤモンド, which is not true of every diamond we sell — the
     // FAQ is explicit that "a certificate or laboratory report is included

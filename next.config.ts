@@ -4,6 +4,14 @@ import { OPTIMIZED_IMAGE_HOSTS } from "./lib/image-hosts";
 
 const config: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
+  experimental: {
+    // The review form (/review/[token]) sends up to four photos through a
+    // Server Action, whose default body limit is 1 MB. The photos are shrunk
+    // in the browser first and the whole set is capped at 4 MB
+    // (lib/reviews.ts, REVIEW_BODY_LIMIT_BYTES); this leaves room for the text
+    // and stays under the hosting platform's own 4.5 MB request cap.
+    serverActions: { bodySizeLimit: "4.4mb" },
+  },
   images: {
     // The hosts come from lib/image-hosts.ts, which the components read too, so
     // the optimiser and the <Image>/<img> decision can never disagree. The Hub
