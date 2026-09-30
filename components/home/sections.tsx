@@ -9,6 +9,8 @@ import { LayawayBand } from "@/components/commerce/layaway-band";
 import { SectionBoundary } from "@/components/home/section-boundary";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { SplitHeading } from "@/components/fx/split-text";
+import { ReviewGrid, ReviewSummary } from "@/components/reviews/review-list";
+import { showable } from "@/lib/reviews";
 
 /**
  * THE HOMEPAGE'S SECONDARY SECTIONS, EACH WAITING ON ITS OWN.
@@ -61,6 +63,42 @@ async function TestimonialsAsync({ lang }: { lang: Lang }) {
   // not let a Hub outage be cached as a homepage that has no customers.
   const items = await hub.testimonials();
   return <Testimonials lang={lang} items={items} />;
+}
+
+/**
+ * Approved product reviews (PR-R2). Nothing approved yet, nothing rendered: no
+ * heading, no gap. Like the testimonials, a Hub failure is not caught here; the
+ * boundary turns it into no section without caching an empty one.
+ */
+export function ReviewsSection({ lang }: { lang: Lang }) {
+  return (
+    <SectionBoundary>
+      <Suspense fallback={null}>
+        <ReviewsAsync lang={lang} />
+      </Suspense>
+    </SectionBoundary>
+  );
+}
+async function ReviewsAsync({ lang }: { lang: Lang }) {
+  const t = tr(lang);
+  const { reviews, count, average } = await hub.reviews({ lang, limit: 6 });
+  const shown = showable(reviews);
+  if (shown.length === 0) return null;
+  return (
+    <section id="customer-reviews" className="scroll-mt-24 border-t border-hairline bg-chalk py-16 lg:py-20">
+      <div className="wrap">
+        <RevealGroup className="mb-10 flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-[62ch]">
+            <RevealItem index={0}><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("reviews", "eyebrow")}</p></RevealItem>
+            <SplitHeading text={t("reviews", "h")} lang={lang} className="mt-3 text-[clamp(28px,3.6vw,44px)]" />
+            <RevealItem index={2}><p className="mt-3 text-sm text-charcoal/75">{t("reviews", "p")}</p></RevealItem>
+          </div>
+          {average != null && count > 0 && <RevealItem index={3}><ReviewSummary average={average} count={count} lang={lang} /></RevealItem>}
+        </RevealGroup>
+        <ReviewGrid reviews={shown} lang={lang} />
+      </div>
+    </section>
+  );
 }
 
 export function ArrivalsSection({ lang }: { lang: Lang }) {
