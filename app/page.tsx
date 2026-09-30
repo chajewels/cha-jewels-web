@@ -14,7 +14,7 @@ import { buildHeroDeck } from "@/lib/hero-deck";
 import { HERO_DEMO_PARAM, heroDemoAllowed } from "@/lib/hero-demo";
 import { Hero } from "@/components/home/hero";
 import { HERO_POSTER } from "@/components/site/hero-video";
-import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
+import { ArrivalsSection, LayawaySection, ReviewsSection, TestimonialsSection } from "@/components/home/sections";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { SplitHeading } from "@/components/fx/split-text";
 export const revalidate = 60;
@@ -116,6 +116,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
       {/* §9 Testimonials — streamed; no section when none are published, and
           no section when the Hub cannot be reached either. */}
       <TestimonialsSection lang={lang} />
+
+      {/* Customer reviews (PR-R2) — owner-approved reviews from buyers; no
+          section until the first one is approved. */}
+      <ReviewsSection lang={lang} />
 
       {/* §10 New arrivals — streamed; real pieces only, no section when none */}
       <ArrivalsSection lang={lang} />

@@ -29,6 +29,9 @@ import { catalogue, categoryOf, collectionOf, collectionsWithProducts, relatedPi
 import { follow } from "@/lib/settings";
 import { formatMoney } from "@/lib/utils";
 import type { Product } from "@/lib/types";
+import { hub } from "@/lib/hub-api";
+import { showable } from "@/lib/reviews";
+import { ReviewGrid, ReviewSummary } from "@/components/reviews/review-list";
 
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -94,12 +97,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   // The rest of the catalogue, for the crumb, the ledger's category, related
   // pieces and a sold piece's alternatives. All secondary (lib/catalog-context).
-  const [cols, category, all, messenger] = await Promise.all([
+  const [cols, category, all, messenger, reviewData] = await Promise.all([
     collectionsWithProducts(),
     categoryOf(p),
     catalogue(),
     follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null),
+    // Secondary: a review read that fails is no review section, never a broken
+    // product page (reviews are an addition to the piece, not the piece).
+    hub.reviews({ product: p.slug, lang, limit: 12 }).catch(() => null),
   ]);
+  const reviews = reviewData ? showable(reviewData.reviews) : [];
+  const reviewCount = reviewData?.count ?? 0;
+  const reviewAverage = reviewData?.average ?? null;
   const col = collectionOf(p, cols);
   const alternatives = buyable ? [] : soldAlternatives(p, all);
   const related = relatedPieces(p, col, all, 4, alternatives);
@@ -154,6 +163,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <OriginBadge origin={p.origin} brand={p.brand} lang={lang} />
             </div>
             <h1 className="pdp-name">{name}</h1>
+            {reviews.length > 0 && reviewAverage != null && (
+              <div className="-mt-2"><ReviewSummary average={reviewAverage} count={reviewCount} lang={lang} href="#pdp-reviews" /></div>
+            )}
             {spec.length > 0 && (
               <p className="pdp-spec pdp-fig flex flex-wrap gap-x-3.5 gap-y-1 text-[13px] font-medium tracking-[0.06em] text-gold-dark">
                 {spec.map((s) => <span key={s}>{s}</span>)}
@@ -214,6 +226,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               buy column). Not on a sold piece; never on the Japanese site. */}
           {layaway && price != null && buyable && <LayawayCalculator lang={lang} initialPrice={price} className="mt-10 max-w-2xl sm:mt-14" />}
         </section>
+
+        {reviews.length > 0 && (
+          <section id="pdp-reviews" aria-labelledby="pdp-reviews-h" className={`scroll-mt-24 pt-10 sm:pt-14 ${related.length > 0 ? "" : "pb-16 sm:pb-24"}`}>
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <h2 id="pdp-reviews-h" className="text-[clamp(26px,3.2vw,40px)] leading-[1.1]">{t("reviews", "pdpH")}</h2>
+              {reviewAverage != null && <ReviewSummary average={reviewAverage} count={reviewCount} lang={lang} />}
+            </div>
+            {/* The piece is this page, so the cards do not repeat its name. */}
+            <ReviewGrid reviews={reviews} lang={lang} showPiece={false} />
+          </section>
+        )}
 
         {related.length > 0 && (
           <section aria-labelledby="pdp-related" className="pb-16 pt-10 sm:pb-24 sm:pt-14">

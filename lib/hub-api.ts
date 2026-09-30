@@ -2,6 +2,7 @@ import "server-only";
 import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
+import type { ReviewInvite, ReviewList } from "@/lib/reviews";
 
 /**
  * The website's only door into Cha Jewels Hub.
@@ -428,9 +429,73 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(fx.createServiceRequestFixture(body))
       : call("/me/service-requests", { method: "POST", body: JSON.stringify(body), jwt, revalidate: false }),
+  /**
+   * APPROVED reviews, newest approval first, with the count and average for
+   * the same filter. `product` narrows to one website piece; without it, every
+   * approved review. The Hub picks the text for `lang` (the Japanese
+   * translation on ja; the customer's own words on en, or the English
+   * translation when she wrote in Japanese).
+   *
+   * Tag "reviews", its own: an approval is not a catalog or a content event.
+   * 60s is how long an approved review can take to appear. THROWS like the
+   * other content reads; the callers are secondary sections and catch.
+   */
+  reviews: (opts: { product?: string; limit?: number; lang: "ja" | "en" }): Promise<ReviewList> => {
+    if (FIXTURES) return Promise.resolve({ reviews: [], count: 0, average: null });
+    const q = new URLSearchParams({ lang: opts.lang, limit: String(opts.limit ?? 12) });
+    if (opts.product) q.set("product", opts.product);
+    return call(`/reviews?${q.toString()}`, { tags: ["reviews"], timeout: SECONDARY_TIMEOUT_MS });
+  },
+  /**
+   * Is this personal review link usable? Never cached: a link turns "used" the
+   * moment its review is sent, and a cached "valid" would offer the form again.
+   * A revoked link reads as not_found (the Hub's rule).
+   */
+  reviewInvite: (token: string): Promise<ReviewInvite> =>
+    FIXTURES
+      ? Promise.resolve(token === "preview-used"
+        ? { status: "used" as const, first_name: null, piece_name: null, product: null }
+        : { status: "valid" as const, first_name: "Maria", piece_name: "K18 ring", product: null })
+      : call(`/review-invite/${encodeURIComponent(token)}`, { revalidate: false }),
   wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };
+
+/**
+ * Sends one review through its personal link: multipart (rating, body, up to
+ * four photos), which is why it is not `call()` — that sets a JSON
+ * content-type, and a multipart body must let fetch write its own boundary.
+ *
+ * `clientIp` is the customer's address as the site saw it. The Hub rate-limits
+ * per x-forwarded-for; without it every review would arrive from the site's own
+ * server address and all customers would share one budget.
+ *
+ * NEVER throws. Every outcome is the Hub's error code (or "error"), for the
+ * form to show inline.
+ */
+export async function submitReview(token: string, form: FormData, clientIp: string | null): Promise<{ ok: true } | { ok: false; code: string; status: number | null; requestId: string | null }> {
+  if (FIXTURES) return { ok: true };
+  if (!BASE || !KEY) return { ok: false, code: "error", status: null, requestId: null };
+  try {
+    const res = await fetch(`${BASE}/review-invite/${encodeURIComponent(token)}`, {
+      method: "POST",
+      headers: { "x-api-key": KEY, ...(clientIp ? { "x-forwarded-for": clientIp } : {}) },
+      body: form,
+      cache: "no-store",
+      signal: AbortSignal.timeout(30000),
+    });
+    const body = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; request_id?: string } | null;
+    if (res.ok && body?.ok) return { ok: true };
+    return {
+      ok: false,
+      code: typeof body?.error === "string" ? body.error : "error",
+      status: res.status,
+      requestId: (typeof body?.request_id === "string" && body.request_id) || res.headers.get("x-request-id") || null,
+    };
+  } catch {
+    return { ok: false, code: "error", status: null, requestId: null };
+  }
+}
 
 /**
  * Uploads a proof of payment and returns its public URL.
