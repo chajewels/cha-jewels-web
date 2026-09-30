@@ -69,7 +69,7 @@ export default async function LoyaltyPage() {
       <DarkBand className="border-t border-chalk/10">
         <div className={`wrap ${SEC}`}>
           <h2 className={`text-gold-pale ${H_HEAD}`}>{t("loyalty", "levelsH")}</h2>
-          <p className={`mt-[18px] ${LEDE_DARK}`}>{t("loyalty", "levelsP")} {t("loyalty", "inactivityP")}</p>
+          <p className={`mt-[18px] ${LEDE_DARK}`}>{t("loyalty", "levelsP")}{lang === "ja" ? "" : " "}{t("loyalty", "inactivityP")}</p>
           {/* THE LADDER (components/fx/tier-ladder.tsx): a gold rail fills as
               the reader scrolls, each tier lights as it reaches it, and the
               top tier's edge turns slowly in gold. Dark tone on this band. */}

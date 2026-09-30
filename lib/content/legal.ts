@@ -100,6 +100,9 @@ export const COMPANY_NAME_DISPLAY: Record<Lang, string> = {
  */
 export const SECONDHAND_PERMIT_NO = "307762418064";
 
+/** The qualified invoice issuer registration number (tokusho; /affiliations and /wholesale since build step 5). */
+export const INVOICE_REG_NO = "T7011801044120";
+
 /**
  * The registered address, factored out for the same reason COMPANY_NAME is:
  * it is an identifier, and every surface that prints it must print the same
@@ -448,7 +451,7 @@ export const tokusho = {
     },
     {
       k: { ja: "登録番号", en: "Invoice registration number" },
-      v: { ja: "T7011801044120", en: "T7011801044120" },
+      v: { ja: INVOICE_REG_NO, en: INVOICE_REG_NO },
     },
     {
       k: { ja: "古物商許可", en: "Secondhand dealer permit" },

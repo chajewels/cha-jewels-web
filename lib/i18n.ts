@@ -247,9 +247,17 @@ export const dict = {
     affiliationsH: { ja: "所属団体", en: "Affiliations" },
     affiliationsLede: { ja: "Cha Jewelsが所属している東京の経済団体です。", en: "The business organisations Cha Jewels belongs to in Tokyo." },
     afCciName: { ja: "東京商工会議所", en: "Tokyo Chamber of Commerce and Industry" },
-    afCciDetail: { ja: "2026年3月入会／葛飾支部 商業部会", en: "Member since March 2026 · Katsushika Branch, Commerce Division" },
+    // Build step 5 (comp brand-programmes "affiliations"): each card's detail
+    // line is split into a Joined row and a Section row, same words as the
+    // former afCciDetail / afRotaryDetail.
+    afJoined: { ja: "入会", en: "Joined" }, afSection: { ja: "所属", en: "Section" },
+    afCciJoined: { ja: "2026年3月入会", en: "Member since March 2026" },
+    afCciSection: { ja: "葛飾支部 商業部会", en: "Katsushika Branch, Commerce Division" },
     afRotaryName: { ja: "東京葛飾中央ロータリークラブ", en: "Tokyo Katsushika Central Rotary Club" },
-    afRotaryDetail: { ja: "2026年9月入会", en: "Member since September 2026" },
+    afRotaryJoined: { ja: "2026年9月入会", en: "Member since September 2026" },
+    // The trust ledger under the cards: the permit's number and authority.
+    permitNo: { ja: "第{n}号", en: "No. {n}" },
+    permitAuthority: { ja: "東京都公安委員会", en: "Tokyo Metropolitan Public Safety Commission" },
     affiliationsFromAbout: { ja: "所属する経済団体については、所属団体のページをご覧ください。", en: "The business organisations we belong to are listed on our affiliations page." },
   },
   /**
