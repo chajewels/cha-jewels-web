@@ -31,8 +31,10 @@ export type ServiceTarget = { cash_order_id: string } | { layaway_plan_id: strin
  * forfeited — where asking for work on the piece makes no sense. Requests
  * already raised are still listed; with none, the section renders nothing.
  */
-export function ServiceRequestForm({ lang, target, items, initial, canRequest }: {
+export function ServiceRequestForm({ lang, target, items, initial, canRequest, quiet = false }: {
   lang: Lang;
+  /** Outline submit instead of orange — on the draft confirmation page, where nothing orange shows (build step 3, D3-10). */
+  quiet?: boolean;
   target: ServiceTarget;
   /** The order's lines: `value` is the English title the Hub stores, `label` the title in the page's language. */
   items: { value: string; label: string }[];
@@ -141,7 +143,7 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest }:
             </label>
 
             <div className="sm:col-span-2">
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" variant={quiet ? "outline" : "solid"} disabled={pending}>
                 {pending ? t("service", "submitting") : t("service", "submit")}
               </Button>
             </div>

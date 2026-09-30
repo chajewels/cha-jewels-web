@@ -3,7 +3,7 @@ import type { CheckoutMode } from "@/lib/types";
 /**
  * "sign" is not a numbered step and is not in the stepper — see CheckoutFlow.
  */
-export type CheckoutStep = 1 | "sign" | 2 | 3;
+export type CheckoutStep = 1 | 2 | 3 | "sign" | 4;
 
 /**
  * WHERE CHECKOUT OPENS, and with what, for the `?quote=` return.
@@ -14,7 +14,9 @@ export type CheckoutStep = 1 | "sign" | 2 | 3;
  * - A rehydrated LAYAWAY quote lands on the signing step — always, signed or
  *   not (owner decision 2026-09-19): the customer has just come back from the
  *   agreement, and the signing step's "I have signed" carries them on.
- * - A rehydrated full-payment quote has nothing to sign and lands on Review.
+ * - A rehydrated full-payment quote has nothing to sign and lands on Review
+ *   (step 4 since the four-step checkout, D3-1: Details → Delivery → Payment
+ *   → Review).
  * - No quote: the beginning.
  *
  * NOTHING LAYAWAY-RELATED ON THE JAPANESE SITE (owner decision 2026-09-25). A
@@ -35,5 +37,5 @@ export function initialCheckoutState<Q extends { mode?: CheckoutMode }, A>(
     if (!layawayOk) return { step: 1, quote: null, agreement: null };
     return { step: "sign", quote, agreement };
   }
-  return { step: 2, quote, agreement };
+  return { step: 4, quote, agreement };
 }
