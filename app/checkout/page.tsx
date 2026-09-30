@@ -8,9 +8,10 @@ import { hub } from "@/lib/hub-api";
 import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { CheckoutFlow } from "@/components/commerce/checkout-flow";
+import { ProductTrust } from "@/components/catalog/product-trust";
 import { Button } from "@/components/ui/button";
 import { agreementStatusAction } from "@/lib/checkout-actions";
-import type { HubAddress, HubMe, HubQuote } from "@/lib/types";
+import type { HubAddress, HubMe } from "@/lib/types";
 
 export const generateMetadata = () => pageMeta("checkout");
 export const dynamic = "force-dynamic";
@@ -103,7 +104,7 @@ export default async function CheckoutPage({ searchParams }: {
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
           <p className="mt-8 text-charcoal">{t("checkout", "emptyCart")}</p>
-          <Button asChild variant="ghost" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
+          <Button asChild variant="outline" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
         </div>
       </section>
     );
@@ -122,14 +123,24 @@ export default async function CheckoutPage({ searchParams }: {
   const initialAgreement: { signed: boolean; version: string | null; signed_at: string | null } | null =
     initialQuote && agreementResult && agreementResult.ok ? agreementResult.data : null;
 
+  // THE FOUR-STEP CHECKOUT (build step 3; comp page-comps/cart-checkout).
+  // The flow draws its own header, stepper and summary; the page adds the
+  // trust rows beside it (payment, shipping, returns — the product page's
+  // approved wording, D3-17), rendered here on the server.
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap">
-        <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
-        <div className="mt-10">
-          <CheckoutFlow lang={lang} items={items} subtotal={cartSubtotal(items)} initialAddresses={addresses} initialMode={initialMode} offerLoyalty={offerLoyalty} initialQuote={initialQuote} initialAgreement={initialAgreement} />
-        </div>
-      </div>
+    <section className="pb-24">
+      <CheckoutFlow
+        lang={lang}
+        items={items}
+        subtotal={cartSubtotal(items)}
+        initialAddresses={addresses}
+        customer={{ name: me?.customer.full_name ?? null, email: me?.customer.email ?? auth.user.email ?? null }}
+        aside={<div className="border border-hairline bg-white px-4"><ProductTrust lang={lang} only={["pay", "ship", "returns"]} /></div>}
+        initialMode={initialMode}
+        offerLoyalty={offerLoyalty}
+        initialQuote={initialQuote}
+        initialAgreement={initialAgreement}
+      />
     </section>
   );
 }

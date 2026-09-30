@@ -1,7 +1,9 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { getProductBySlug, primaryImage } from "@/lib/queries/products";
-import type { Product, ProductVariant } from "@/lib/types";
+import { cardImage, type PieceImage } from "@/lib/product-media";
+import { productMetals } from "@/lib/metals";
+import type { Condition, Product, ProductVariant } from "@/lib/types";
 
 /**
  * The cart lives in a cookie, not a database row.
@@ -39,6 +41,22 @@ export type CartItem = {
   line_total_jpy: number;
   stock_qty: number;
   image: { url: string; alt: string | null } | null;
+  /**
+   * What the cart and checkout show (build step 3, D3-12): the product card's
+   * picture — the cut-out, or the whole photo contained — from the same
+   * product read. `image` stays for anything that still wants the raw photo.
+   */
+  picture: PieceImage | null;
+  /** The spec line (D3-13), exactly as the Hub sends them: stamps, weight. */
+  metals: string[];
+  weight_g: number | null;
+  condition: Condition | null;
+  /**
+   * The variant's Hub down payment (piece alone, owner decision D1), for the
+   * English cart's reserve line (D3-14). Either may be absent; never computed.
+   */
+  down_payment_jpy: number | null;
+  down_payment_php: number | null;
 };
 
 function parse(raw: string | undefined): CartLine[] {
@@ -125,6 +143,12 @@ export async function hydrateCart(lines: CartLine[]): Promise<{ items: CartItem[
       line_total_jpy: variant.price_jpy * qty,
       stock_qty: variant.stock_qty,
       image: img ? { url: img.url, alt: img.alt } : null,
+      picture: cardImage(product),
+      metals: productMetals(product),
+      weight_g: product.weight_g ?? null,
+      condition: product.condition ?? null,
+      down_payment_jpy: variant.down_payment_jpy ?? null,
+      down_payment_php: variant.down_payment_php ?? null,
     });
   }
   return { items, dropped };

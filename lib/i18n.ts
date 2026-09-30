@@ -602,16 +602,57 @@ export const dict = {
     soldOut: { ja: "売り切れ", en: "Sold out" },
     subtotal: { ja: "小計", en: "Subtotal" },
     shippingNote: { ja: "送料はお届け先の入力後に計算します。", en: "Shipping is calculated once you enter a delivery address." },
-    checkout: { ja: "お支払いへ進む", en: "Checkout" },
+    // STEP 3 REDESIGN (comp page-comps/cart-checkout, D3-3): every order is a
+    // reservation first, so the cart's one orange action says so.
+    checkout: { ja: "ご予約手続きへ進む", en: "Continue to reserve" },
+    checkoutShort: { ja: "ご予約手続きへ", en: "Continue to reserve" },
+    plusShipping: { ja: "送料別", en: "+ shipping" },
+    shippingCalc: { ja: "お届け先確定後に計算", en: "Calculated after the address" },
+    // A quote never reserves stock (CLAUDE.md); the cart says so plainly.
+    notHeld: { ja: "カートに入れても商品は確保されません。ご予約の確定時に在庫を確保し、スタッフが商品を確認してからお支払い方法をお送りします。", en: "A cart does not hold the piece. It is held when you reserve; staff then confirm it and send you how to pay." },
+    continueShopping: { ja: "お買い物を続ける", en: "Continue shopping" },
+    youMayLike: { ja: "あわせて見たい作品", en: "You may also like" },
+    availableNow: { ja: "いまご予約いただける作品", en: "Available to reserve now" },
+    emptyHelp: { ja: "一点物のため、気になる作品はお早めにご予約ください。ご質問はスタッフへどうぞ。", en: "Most pieces are one of a kind. Reserve the one you like, or ask us about it." },
+    summaryH: { ja: "ご注文内容", en: "Your order" },
+    removeItem: { ja: "{name}をカートから削除", en: "Remove {name} from the cart" },
+    pieceOne: { ja: "1点", en: "1 piece" },
+    pieces: { ja: "{n}点", en: "{n} pieces" },
     add: { ja: "カートに入れる", en: "Add to cart" },
     added: { ja: "カートに入れました", en: "Added to cart" },
     viewCart: { ja: "カートを見る", en: "View cart" },
   },
   checkout: {
     h1: { ja: "ご注文手続き", en: "Checkout" },
-    step1: { ja: "お届け先", en: "Delivery" },
-    step2: { ja: "ご注文内容の確認", en: "Review" },
-    step3: { ja: "お支払い", en: "Payment" },
+    // FOUR STEPS (D3-1, comp page-comps/cart-checkout): the customer reviews
+    // last and reserves from the page that shows everything.
+    stepDetails: { ja: "お客様情報", en: "Your details" },
+    stepDelivery: { ja: "配送", en: "Delivery" },
+    stepPayment: { ja: "お支払い", en: "Payment" },
+    stepReview: { ja: "ご確認", en: "Review" },
+    stepsLabel: { ja: "手続きの段階", en: "Checkout steps" },
+    stepOf: { ja: "ステップ {n} / 4：{label}", en: "Step {n} of 4: {label}" },
+    eyebrow: { ja: "ご予約手続き", en: "Reserve" },
+    continueDelivery: { ja: "次へ：配送", en: "Continue: delivery" },
+    continuePayment: { ja: "次へ：お支払い", en: "Continue: payment" },
+    continueReview: { ja: "次へ：ご確認", en: "Continue: review" },
+    backToCart: { ja: "カートへ戻る", en: "Back to cart" },
+    // Before the Hub's quote the summary's figure is the pieces alone, not a
+    // total: shipping is not known yet, so the label does not claim one.
+    cartTotal: { ja: "商品合計", en: "Pieces total" },
+    whenShips: { ja: "発送時期", en: "When it ships" },
+    // The approved legal notice's own sentence (lib/content/legal.ts,
+    // tokusho "delivery"): its first sentence only on EN, whose second names layaway.
+    shipsWithin: { ja: "入金確認後5営業日以内に発送。", en: "Dispatched within five business days of payment clearing." },
+    reviewName: { ja: "お客様", en: "Name" },
+    reviewShipTo: { ja: "お届け先", en: "Shipping to" },
+    reviewPayment: { ja: "お支払い", en: "Payment" },
+    change: { ja: "変更", en: "Change" },
+    changeItem: { ja: "{item}を変更", en: "Change {item}" },
+    payJpy: { ja: "銀行振込（円）", en: "Bank transfer in yen" },
+    payPhp: { ja: "振込（ペソ）", en: "Transfer in pesos" },
+    reserveFirstH: { ja: "ご予約が先、お支払いは後です。", en: "Reserve first, pay after." },
+    seeSummary: { ja: "ご注文内容を見る", en: "See your order" },
     chooseAddress: { ja: "お届け先を選択", en: "Choose a delivery address" },
     newAddress: { ja: "新しいお届け先を追加", en: "Add a new address" },
     recipientName: { ja: "お受け取りの方のお名前", en: "Recipient name" },
@@ -833,6 +874,22 @@ export const dict = {
     reservedNoPayment: { ja: "お支払いは、確認のメールをお受け取りになるまでお待ちください。", en: "Please don't send any payment until that email arrives." },
     reservedPieces: { ja: "ご予約商品", en: "Pieces" },
     reservedTotal: { ja: "合計", en: "Total" },
+    // WHAT HAPPENS NEXT (comp page-comps/cart-checkout, confirmation). No fixed
+    // "72 hours" anywhere (D3-8): a first order gets 24, so the deadline is the
+    // one in the payment email. No tracking promise (D3-20).
+    nextH: { ja: "このあとの流れ", en: "What happens next" },
+    next1: { ja: "ご予約受付 — 本日", en: "Reserved — today" },
+    next1p: { ja: "商品はお取り置き中です。ほかの方はご予約できません。", en: "The piece is held. Nobody else can reserve it." },
+    // "within one business day" only where reservedLede already promises it.
+    next2: { ja: "スタッフが商品を確認 — 1営業日以内", en: "We confirm the piece — within one business day" },
+    next2Plain: { ja: "スタッフが商品を確認", en: "We confirm the piece" },
+    next2p: { ja: "刻印・状態を確認し、メールでご連絡します。", en: "We check the stamp and condition, then email you." },
+    next3: { ja: "お振込 — メールに記載の期限まで", en: "You transfer — by the deadline in that email" },
+    next4: { ja: "発送 — 入金確認後5営業日以内", en: "We ship — within 5 business days of your payment" },
+    // English site only (layaway drafts are not found on ja).
+    next3Layaway: { ja: "お申込金のお振込 — メールに記載の期限まで", en: "Send the deposit — by the deadline in that email" },
+    next4Layaway: { ja: "月々のお支払いのあと発送", en: "Monthly payments, then we ship" },
+    next4LayawayP: { ja: "全額のお支払い完了後に発送します。", en: "The piece ships once the plan is paid in full." },
   },
   orders: {
     h1: { ja: "ご注文履歴", en: "Your orders" },

@@ -12,6 +12,8 @@ import { orderLineTitle } from "@/lib/catalog-i18n";
 import { isAwaitingConfirmation } from "@/lib/reservation";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
+import { NextSteps } from "@/components/commerce/commerce-ui";
+import { ConfirmationActions, ConfirmationLayout, linePicture } from "@/components/commerce/confirmation";
 import { MemberGroups } from "@/components/loyalty/member-groups";
 import { loyaltyGroups } from "@/lib/settings";
 
@@ -57,100 +59,85 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
   }
 
   const { order, items, transfer_methods: methods } = detail;
+  const money = formatMoney(Number(order.total_amount), order.currency);
+  const slabLines = items.map((line) => ({
+    key: line.id,
+    name: `${orderLineTitle(line, lang)}${line.quantity > 1 ? ` × ${line.quantity}` : ""}`,
+    image: linePicture(line.image_url),
+    // line_total_jpy is always yen, the price of record: shown on a yen order
+    // only. A peso order lists the pieces and gives its total in pesos (D1).
+    price: order.currency === "JPY" ? formatMoney(Number(line.line_total_jpy), "JPY") : null,
+  }));
+  const actions = <ConfirmationActions lang={lang} href={`/account/orders/${order.id}`} label={t("complete", "viewOrder")} />;
+  const members = isMember && (
+    <div className="mt-10 border border-hairline bg-white p-6">
+      <MemberGroups items={groups} lang={lang} />
+    </div>
+  );
 
   // RESERVE FIRST (Hub A2). The order read back says whether it is a
   // reservation — the same answer the Hub gives everywhere else, so this page
   // flips with the switch and never on a flag of its own. No bank details, no
-  // deadline and no "after the deadline" line: there is no deadline yet.
+  // deadline and no number of hours (D3-8): the deadline arrives with the
+  // payment email.
   if (isAwaitingConfirmation(order)) {
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
-        <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("complete", "reservedH1")}</h1>
-          <p className="mt-4 text-charcoal">{t("complete", "reservedLede")}</p>
-
-          <dl className="rule-grid mt-10 grid gap-px sm:grid-cols-2">
-            <Cell k={t("complete", "reference")} v={order.web_reference ?? "—"} mono />
-            <Cell k={t("complete", "reservedTotal")} v={formatMoney(Number(order.total_amount), order.currency)} />
-          </dl>
-
-          {items.length > 0 && (
-            <div className="mt-10">
-              <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "reservedPieces")}</h2>
-              <ul className="rule-grid grid gap-px">
-                {items.map((line) => (
-                  <li key={line.id} className="flex flex-wrap items-baseline justify-between gap-4 bg-white p-4 text-sm">
-                    <span className="text-charcoal-deep">{orderLineTitle(line, lang)}{line.quantity > 1 ? ` × ${line.quantity}` : ""}</span>
-                    {/* line_total_jpy is always yen, the price of record: shown
-                        on a yen order only. A peso order lists the pieces and
-                        gives its total in pesos (owner decision D1). */}
-                    {order.currency === "JPY" && (
-                      <span className="text-charcoal">{formatMoney(Number(line.line_total_jpy), "JPY")}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <p className="mt-8 text-sm text-charcoal/70">{t("complete", "reservedNoPayment")}</p>
-
-          <Button asChild className="mt-8"><Link href={`/account/orders/${order.id}`}>{t("complete", "viewOrder")}</Link></Button>
-
-          {isMember && (
-            <div className="mt-10 border border-hairline bg-white p-6">
-              <MemberGroups items={groups} lang={lang} />
-            </div>
-          )}
-        </div>
-      </section>
+      <ConfirmationLayout
+        lang={lang}
+        reference={order.web_reference ?? "—"}
+        heading={t("complete", "reservedH1")}
+        lede={<>
+          <p>{t("complete", "reservedLede")}</p>
+          <p className="mt-2 text-[15px] font-semibold">{t("complete", "reservedNoPayment")}</p>
+        </>}
+        slab={{ title: t("complete", "reservedPieces"), lines: slabLines, rows: [], total: { k: t("complete", "reservedTotal"), v: money } }}
+      >
+        <NextSteps
+          heading={t("complete", "nextH")}
+          items={[
+            { title: t("complete", "next1"), body: t("complete", "next1p"), now: true },
+            { title: t("complete", "next2"), body: t("complete", "next2p") },
+            { title: t("complete", "next3"), body: t("checkout", "deadlineNote") },
+            { title: t("complete", "next4") },
+          ]}
+        />
+        {actions}
+        {members}
+      </ConfirmationLayout>
     );
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[720px]">
-        <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("complete", "h1")}</h1>
-        <p className="mt-4 text-charcoal">{t("complete", "lede")}</p>
+    <ConfirmationLayout
+      lang={lang}
+      reference={order.web_reference ?? "—"}
+      heading={t("complete", "h1")}
+      lede={<p>{t("complete", "lede")}</p>}
+      slab={{ title: t("complete", "reservedPieces"), lines: slabLines, rows: [], total: { k: t("complete", "amount"), v: money } }}
+    >
+      <dl className="mt-8 grid gap-px border border-hairline bg-hairline sm:grid-cols-2">
+        <Cell k={t("complete", "amount")} v={money} />
+        <Cell k={t("complete", "deadline")} v={order.transfer_due_at ? formatDeadline(order.transfer_due_at, lang) : "—"} />
+      </dl>
 
-        <dl className="rule-grid mt-10 grid gap-px sm:grid-cols-3">
-          <Cell k={t("complete", "reference")} v={order.web_reference ?? "—"} mono />
-          <Cell k={t("complete", "amount")} v={formatMoney(Number(order.total_amount), order.currency)} />
-          <Cell
-            k={t("complete", "deadline")}
-            v={order.transfer_due_at ? formatDeadline(order.transfer_due_at, lang) : "—"}
-          />
-        </dl>
-
-        <div className="mt-10">
-          <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">
-            {t("complete", "instructions")}
-          </h2>
-          <TransferDetails methods={methods} lang={lang} />
-          {methods.length > 0 && (
-            <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>
-          )}
-        </div>
-
-        <p className="mt-8 text-sm text-charcoal/70">{t("checkout", "deadlineNote")}</p>
-
-        <Button asChild className="mt-8"><Link href={`/account/orders/${order.id}`}>{t("complete", "viewOrder")}</Link></Button>
-
-        {isMember && (
-          <div className="mt-10 border border-hairline bg-white p-6">
-            <MemberGroups items={groups} lang={lang} />
-          </div>
-        )}
+      <div className="mt-10">
+        <h2 className="mb-4 font-display text-[22px] text-charcoal-deep">{t("complete", "instructions")}</h2>
+        <TransferDetails methods={methods} lang={lang} />
+        {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/80">{t("complete", "keepRef")}</p>}
       </div>
-    </section>
+
+      <p className="mb-8 mt-6 text-sm text-charcoal/80">{t("checkout", "deadlineNote")}</p>
+      {actions}
+      {members}
+    </ConfirmationLayout>
   );
 }
 
-function Cell({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
+function Cell({ k, v }: { k: string; v: string }) {
   return (
     <div className="bg-white p-5">
-      <dt className="text-xs text-charcoal/70">{k}</dt>
-      <dd className={`mt-1 text-gold-dark ${mono ? "font-mono text-lg" : "font-display text-xl"}`}>{v}</dd>
+      <dt className="text-xs text-charcoal/75">{k}</dt>
+      <dd className="cj-fig mt-1 font-display text-xl text-charcoal-deep">{v}</dd>
     </div>
   );
 }
