@@ -2,7 +2,7 @@ import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
-import { COMPANY_ADDRESS, COMPANY_NAME_DISPLAY, COMPANY_PHONE } from "@/lib/content/legal";
+import { COMPANY_ADDRESS, COMPANY_MAP_QUERY, COMPANY_NAME_DISPLAY, COMPANY_PHONE } from "@/lib/content/legal";
 import { contactEmail, follow } from "@/lib/settings";
 import { SocialIcons } from "@/components/site/social-icons";
 import { ContactForm } from "@/components/site/contact-form";
@@ -34,9 +34,9 @@ export default async function Contact() {
   const address = COMPANY_ADDRESS[lang];
   const [email, followLinks] = await Promise.all([contactEmail(), follow()]);
   const messenger = followLinks.find((l) => l.key === "messenger")?.href ?? null;
-  // Built from the address rather than a stored place id, so it follows the
-  // address if that ever changes.
-  const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  // Searches the bare street address (COMPANY_MAP_QUERY): the display address
+  // with the building name sent Google to a nearby hotel instead.
+  const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(COMPANY_MAP_QUERY)}`;
 
   const panelLink = "inline-flex min-h-8 items-center text-gold-pale underline-offset-4 hover:underline";
   // tel: needs the digits unpunctuated; the label carries which line it is.
