@@ -170,7 +170,9 @@ export const dict = {
    * the copy is not the thing blocking it.
    */
   why: {
-    h1: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels Is the Right Choice for You!" },
+    // EN title "Why Cha Jewels", the nav label (owner decision D5-1,
+    // 2026-09-30); it was "Why Cha Jewels Is the Right Choice for You!".
+    h1: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" },
     sub: { ja: "心を込めて選んだジュエリー。明確な情報。お一人おひとりへの丁寧な対応。", en: "Thoughtfully chosen jewelry. Clear details. Personal care." },
     intro: { ja: "ジュエリーは、お客様の物語の一部になります。Cha Jewelsでは、お客様らしさを映し、人生の節目を彩り、長く大切に思っていただける一点をお選びいただけるようお手伝いします。", en: "Jewelry becomes part of your story. At Cha Jewels, we help you choose pieces that reflect your style, celebrate your milestones, and feel meaningful for years to come." },
     s1h: { ja: "日本を拠点とした、お一人おひとりとのつながり", en: "A Personal Connection, Rooted in Japan" },
@@ -186,6 +188,18 @@ export const dict = {
     close: { ja: "お客様の物語の一部となる一点を、ぜひ見つけてください。", en: "Find a piece that becomes part of your story." },
     cta: { ja: "コレクションを見る", en: "Explore Our Collections" },
     imageAlt: { ja: "クリーム色の布の上に並べたCha Jewelsのゴールドネックレス、リング、パールピアス", en: "A Cha Jewels gold necklace, ring and pearl earrings arranged on cream fabric" },
+    // Build step 5 (comp brand-programmes "why"): the proof beside each
+    // reason. Labels only; every figure beside them is a real date on record
+    // or the Hub's own data (category counts, a piece's spec and down payment).
+    proofRecord: { ja: "記録", en: "On record" },
+    founded: { ja: "創業", en: "Founded" }, incorporated: { ja: "法人化", en: "Incorporated" },
+    tokyo: { ja: "東京", en: "Tokyo" }, tateishi: { ja: "葛飾区立石", en: "Tateishi" },
+    proofExample: { ja: "例：{sku}", en: "Example: {sku}" },
+    pieces: { ja: "{n}点", en: "{n} pieces" }, piece: { ja: "1点", en: "1 piece" }, noneInStock: { ja: "入荷待ち", en: "None in stock" },
+    // s4 (layaway) proof: rendered only where s4 is, behind layawayOffered.
+    dpOn: { ja: "{sku}の予約金", en: "Down payment on {sku}" },
+    howLayaway: { ja: "分割予約について", en: "How layaway works" },
+    proofReach: { ja: "連絡先", en: "Reach a person" },
   },
   /**
    * /contact. Every VALUE on that page is read from lib/content/legal.ts —
@@ -233,9 +247,17 @@ export const dict = {
     affiliationsH: { ja: "所属団体", en: "Affiliations" },
     affiliationsLede: { ja: "Cha Jewelsが所属している東京の経済団体です。", en: "The business organisations Cha Jewels belongs to in Tokyo." },
     afCciName: { ja: "東京商工会議所", en: "Tokyo Chamber of Commerce and Industry" },
-    afCciDetail: { ja: "2026年3月入会／葛飾支部 商業部会", en: "Member since March 2026 · Katsushika Branch, Commerce Division" },
+    // Build step 5 (comp brand-programmes "affiliations"): each card's detail
+    // line is split into a Joined row and a Section row, same words as the
+    // former afCciDetail / afRotaryDetail.
+    afJoined: { ja: "入会", en: "Joined" }, afSection: { ja: "所属", en: "Section" },
+    afCciJoined: { ja: "2026年3月入会", en: "Member since March 2026" },
+    afCciSection: { ja: "葛飾支部 商業部会", en: "Katsushika Branch, Commerce Division" },
     afRotaryName: { ja: "東京葛飾中央ロータリークラブ", en: "Tokyo Katsushika Central Rotary Club" },
-    afRotaryDetail: { ja: "2026年9月入会", en: "Member since September 2026" },
+    afRotaryJoined: { ja: "2026年9月入会", en: "Member since September 2026" },
+    // The trust ledger under the cards: the permit's number and authority.
+    permitNo: { ja: "第{n}号", en: "No. {n}" },
+    permitAuthority: { ja: "東京都公安委員会", en: "Tokyo Metropolitan Public Safety Commission" },
     affiliationsFromAbout: { ja: "所属する経済団体については、所属団体のページをご覧ください。", en: "The business organisations we belong to are listed on our affiliations page." },
   },
   /**
@@ -349,7 +371,12 @@ export const dict = {
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "コレクション", en: "Collections" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "ロイヤルティ", en: "Loyalty" }, tabAccount: { ja: "マイアカウント", en: "Account" },
   },
   product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, openPhoto: { ja: "写真 {n} を全画面で見る", en: "View photo {n} full screen" }, viewer: { ja: "全画面の商品写真", en: "Full-screen photos" }, closeViewer: { ja: "全画面表示を閉じる", en: "Close full screen" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, sold: { ja: "売約済み", en: "Sold" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout." } },
-  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金", en: "Down payment" }, dpPct: { ja: "予約金（{pct}）", en: "Down payment ({pct})" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "目安です。正確なお支払日と金額は、ご予約確定後にアカウントに表示されます。", en: "Estimate. Your exact payment dates and amounts will appear in your account once your reservation is confirmed." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" } },
+  calc: { jpy: { ja: "¥ 円", en: "¥ JPY" }, php: { ja: "₱ ペソ", en: "₱ PHP" }, price: { ja: "商品価格", en: "Piece price" }, term: { ja: "期間（か月）", en: "Term (months)" }, currency: { ja: "通貨", en: "Currency" }, dp: { ja: "予約金", en: "Down payment" }, dpPct: { ja: "予約金（{pct}）", en: "Down payment ({pct})" }, monthly: { ja: "月々", en: "Monthly" }, total: { ja: "合計", en: "Total" }, note: { ja: "目安です。正確なお支払日と金額は、ご予約確定後にアカウントに表示されます。", en: "Estimate. Your exact payment dates and amounts will appear in your account once your reservation is confirmed." }, updating: { ja: "更新中…", en: "Updating…" }, err: { ja: "見積もりを取得できませんでした", en: "Could not get a quote" }, eightNote: { ja: "（¥300,000以上）", en: "(¥300,000+)" }, unavailableTerm: { ja: "この金額ではご利用いただけません", en: "Not available at this amount" }, invalidPrice: { ja: "0より大きい金額を入力してください", en: "Enter a price greater than zero" }, notLaunched: { ja: "準備中", en: "coming soon" }, minFrom: { ja: "{amount}以上", en: "from {amount}" },
+    // /layaway's piece mode (build step 5, comp brand-programmes "layaway"):
+    // the term buttons read "6 months", a minimum under it as "orders from ¥…"
+    // so it is not read as a price. English only in practice (/layaway is not
+    // found on ja); the Japanese is kept for the day it opens.
+    termPlain: { ja: "期間", en: "Term" }, monthsN: { ja: "{n}か月", en: "{n} months" }, ordersFrom: { ja: "{amount}以上のご注文", en: "orders from {amount}" } },
   search: {
     placeholder: { ja: "ジュエリーを検索", en: "Search jewelry" },
     prompt: { ja: "品名、ブランド名、素材、商品番号などを入力してください。", en: "Type a name, a brand, a metal or a product number." },
@@ -454,10 +481,6 @@ export const dict = {
     threshold: { ja: "これまでのお買い上げ合計", en: "Lifetime purchases" }, perks: { ja: "特典", en: "Perks" },
     multiplier: { ja: "ポイント倍率", en: "Points" }, requalify: { ja: "復帰条件", en: "To regain after 180 days of inactivity" },
     requalifyNone: { ja: "不要", en: "Not required" },
-    holdNote: { ja: "ご予約いただいた商品は、はじめてのお客様は24時間、2回目以降のお客様は72時間お取り置きします。会員レベルによる違いはありません。", en: "A claimed piece is held for 24 hours for a new customer and 72 hours for a returning one. This does not vary by level." },
-    // RESERVE FIRST (Hub A2). The time to pay starts when staff confirm the
-    // piece, and the customer is told the deadline then — so no number here.
-    holdNoteReserve: { ja: "ご予約いただいた商品は、確認が済むまでお取り置きします。お支払い期限は商品の確認後に始まり、期限はメールでお知らせします。会員レベルによる違いはありません。", en: "We hold a reserved piece while we confirm it. The time to pay starts once we have confirmed it, and we email you the deadline then. This does not vary by level." },
     join: { ja: "無料で入会する", en: "Join free" }, joinH: { ja: "入会はこちら", en: "Join the program" },
     joinP: { ja: "入会は無料です。メールアドレスでサインインすると、次回のお買い物からポイントが貯まります。", en: "Joining is free. Sign in with your email and points start with your next purchase." },
     name: { ja: "お名前", en: "Your name" }, contact: { ja: "携帯番号またはメール", en: "Mobile number or email" }, region: { ja: "お住まいの地域", en: "Where you live" }, submit: { ja: "入会する", en: "Join" },
@@ -467,6 +490,25 @@ export const dict = {
     consent: { ja: "入会により利用規約とプライバシーポリシーに同意したものとみなします。", en: "By joining you agree to the terms of sale and privacy policy." },
     groupH: { ja: "会員グループに参加", en: "Join the member group" },
     groupP: { ja: "会員限定のお知らせ・先行案内・サポート", en: "Members-only updates, early previews and support." },
+    // The hero's two-cell ledger (build step 5, comp brand-programmes
+    // "loyalty"). Both facts are the lede's own words set as figures — 1% at
+    // Glimmer, one point = ¥1 — not new claims and not computed.
+    baseRate: { ja: "基本付与率", en: "Base rate" }, baseRateValue: { ja: "1%", en: "1%" },
+    pointValue: { ja: "ポイントの価値", en: "Point value" }, pointValueValue: { ja: "1 = ¥1", en: "1 = ¥1" },
+    onNextPiece: { ja: "次回のお買い物に", en: "on your next piece" },
+  },
+  /**
+   * /layaway (build step 5, comp brand-programmes "layaway"): the calculator's
+   * chosen piece and the strip of pieces under it. The page is not found on
+   * ja (layawayOffered), so only the English renders; the Japanese is kept
+   * neutral for the day it opens.
+   */
+  layawayPage: {
+    chosenPiece: { ja: "選んだ商品", en: "Chosen piece" },
+    choosePiece: { ja: "ほかの商品を選ぶ", en: "Choose another piece" },
+    reserveThis: { ja: "この商品を予約する", en: "Reserve this piece with layaway" },
+    reserveToday: { ja: "今すぐ予約できる商品", en: "Pieces you can reserve today" },
+    allPieces: { ja: "すべての商品", en: "All pieces" },
   },
   /**
    * The announcement bar (components/site/announcement-bar.tsx). Its SENTENCE

@@ -33,9 +33,10 @@ export type Tier = {
  * It is NOT a per-tier number any more, which is why it does not live on `Tier`
  * — it turns on the customer's history, not their level.
  *
- * The rendered copy is `dict.loyalty.holdNote`; these constants exist so the
- * rule has one home and the numbers in the dictionary can be checked against
- * something. Do not render them directly.
+ * Nothing on the site renders this rule any more: the loyalty page's
+ * order-holds paragraph (dict.loyalty.holdNote / holdNoteReserve) was removed
+ * by owner decision D5-5 (2026-09-30) and moves to the Hub FAQ as content.
+ * These constants keep the rule's one home. Do not render them directly.
  *
  * THE HUB STILL SAYS 60 and is NOT authoritative. `loyalty_tiers.hold_minutes`
  * defaults to 60 and GET /loyalty/tiers still serves it, so `HubTier` carries

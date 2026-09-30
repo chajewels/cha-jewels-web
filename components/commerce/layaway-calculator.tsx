@@ -46,12 +46,22 @@ const TONES = {
  * furniture (the homepage passes them); with neither, and tone "dark", the
  * markup is exactly what it was before the prop existed.
  */
-export function LayawayCalculator({ lang, initialPrice = 150000, className, header, cta }: {
+export function LayawayCalculator({ lang, initialPrice = 150000, className, header, cta, fixedPiece = false }: {
   lang: Lang;
   initialPrice?: number;
   className?: string;
   header?: { title: string; sub: string; chip: string };
   cta?: { label: string; href: string };
+  /**
+   * THE /layaway PAGE'S PIECE MODE (build step 5, comp brand-programmes
+   * "layaway"). The price is a real piece's Hub price, chosen by the page, so
+   * there is no price field; the terms read "3 months" with any minimum under
+   * the term as "orders from ¥…"; and a term that is not launched is left out
+   * of the list rather than shown as "coming soon". The quote is still the
+   * Hub's (hub.layawayQuote), for exactly that price. The homepage band and
+   * the product page do not pass this, so they are unchanged.
+   */
+  fixedPiece?: boolean;
 }) {
   const c = dict.calc;
   const s = TONES.light;
@@ -128,6 +138,9 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
   const termOff = (tm: (typeof terms)[number]) => !termLaunched(tm.months) || !tm.eligible;
   const termSuffix = (tm: (typeof terms)[number]) =>
     !termLaunched(tm.months) ? ` · ${c.notLaunched[lang]}` : tm.min_amount > 0 ? ` · ${c.minFrom[lang].replace("{amount}", fmt(tm.min_amount))}` : "";
+  // Piece mode lists launched terms only (see the prop). The Hub's list is
+  // otherwise unchanged: same order, same eligibility, same minimums.
+  const listed = fixedPiece ? terms.filter((tm) => termLaunched(tm.months)) : terms;
   const field = s.field;
   // THE FIGURES MOVE WHEN THE PLAN CHANGES — display only. Each cell rolls to
   // the Hub's new figure (components/fx/rolling.tsx: the last frame is the
@@ -160,6 +173,28 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
           </span>
         </div>
       )}
+      {fixedPiece ? (
+        <fieldset className="grid gap-2">
+          <legend className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{c.termPlain[lang]}</legend>
+          <div className="grid auto-cols-fr grid-flow-col overflow-hidden rounded-sm border border-charcoal/60">
+            {listed.map((tm) => (
+              <button
+                key={tm.months}
+                type="button"
+                disabled={termOff(tm)}
+                aria-pressed={term === tm.months}
+                onClick={() => setTerm(tm.months)}
+                className={`grid min-h-12 place-content-center border-r border-charcoal/30 px-2 py-1.5 text-center text-sm leading-tight last:border-r-0 ${term === tm.months ? "bg-charcoal-deep text-white" : "bg-white text-charcoal-deep hover:bg-chalk"} disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <span className="lining-nums">{c.monthsN[lang].replace("{n}", String(tm.months))}</span>
+                {tm.min_amount > 0 && (
+                  <small className={`lining-nums mt-0.5 block text-[11.5px] ${term === tm.months ? "text-chalk/80" : "text-charcoal/70"}`}>{c.ordersFrom[lang].replace("{amount}", fmt(tm.min_amount))}</small>
+                )}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      ) : (
       <div className="grid gap-3">
         <label className={s.label}>{c.price[lang]} (¥)
           <input
@@ -192,14 +227,16 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
             </div>
           </fieldset>
       </div>
+      )}
       <div role="group" aria-label={c.currency[lang]} className={s.toggle}>
-        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`min-h-9 px-3 ${display === cur ? s.toggleOn : s.toggleOff}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
+        {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`${fixedPiece ? "min-h-11" : "min-h-9"} px-3 ${display === cur ? (fixedPiece ? "bg-charcoal-deep text-chalk" : s.toggleOn) : s.toggleOff}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
-      <output ref={cells} aria-live="polite" className="grid grid-cols-3 gap-3">
-        <Cell k={dpLabel} v={<RollingValue value={shown ? shown.down_payment : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} />
-        <Cell k={c.monthly[lang]} v={<RollingValue value={shown ? shown.monthly : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellMonthly} />
-        <Cell k={c.total[lang]} v={<RollingValue value={shown ? shown.total : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} />
+      <output ref={cells} aria-live="polite" className={fixedPiece ? "grid border-l border-t border-hairline sm:grid-cols-3" : "grid grid-cols-3 gap-3"}>
+        <Cell k={dpLabel} v={<RollingValue value={shown ? shown.down_payment : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} boxClass={fixedPiece ? PIECE_CELL : undefined} />
+        <Cell k={c.monthly[lang]} v={<RollingValue value={shown ? shown.monthly : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellMonthly} boxClass={fixedPiece ? PIECE_CELL : undefined} />
+        <Cell k={c.total[lang]} v={<RollingValue value={shown ? shown.total : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} boxClass={fixedPiece ? PIECE_CELL : undefined} />
       </output>
+      {fixedPiece && !error && validPrice && !pending && <p className={s.note}>{shown?.term_downgraded ? c.unavailableTerm[lang] : c.note[lang]}</p>}
       {cta && (
         // A <button disabled>, not a styled-down link: a link with
         // pointer-events:none is still in the tab order and still announced as
@@ -215,15 +252,22 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
           <Button type="button" disabled className="disabled:cursor-not-allowed disabled:opacity-50">{cta.label}</Button>
         )
       )}
-      <p id={priceErrorId} className={!validPrice ? "text-xs text-garnet" : s.note}>
-        {!validPrice ? c.invalidPrice[lang]
-          : pending ? c.updating[lang]
-          : error ?? (shown?.term_downgraded ? c.unavailableTerm[lang] : c.note[lang])}
-      </p>
+      {/* Piece mode shows the estimate note above its button (comp); this
+          line then carries only "updating" or an error. */}
+      {!(fixedPiece && validPrice && !pending && !error) && (
+        <p id={priceErrorId} className={!validPrice ? "text-xs text-garnet" : s.note}>
+          {!validPrice ? c.invalidPrice[lang]
+            : pending ? c.updating[lang]
+            : error ?? (shown?.term_downgraded ? c.unavailableTerm[lang] : c.note[lang])}
+        </p>
+      )}
     </form>
   );
 }
 /** Only reached against a Hub that predates allowed_terms. */
 const FALLBACK_TERMS = [3, 6, 8, 10, 12];
 
-function Cell({ k, v, keyClass, valueClass }: { k: string; v: React.ReactNode; keyClass: string; valueClass: string }) { return <div><span className={keyClass}>{k}</span><b className={valueClass}>{v}</b></div>; }
+/** Piece mode's result cells: value over label in a hairline ledger (comp). */
+const PIECE_CELL = "border-b border-r border-hairline p-4";
+
+function Cell({ k, v, keyClass, valueClass, boxClass }: { k: string; v: React.ReactNode; keyClass: string; valueClass: string; boxClass?: string }) { return <div className={boxClass}><span className={keyClass}>{k}</span><b className={valueClass}>{v}</b></div>; }

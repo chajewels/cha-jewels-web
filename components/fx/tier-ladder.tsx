@@ -28,6 +28,10 @@ const CSS = `
 .fx-ladder li { transition: box-shadow var(--dur-reveal) var(--ease-lux); }
 .fx-ladder li[data-lit] { box-shadow: 0 0 0 1px var(--c-gold), inset 0 0 28px ${mix("gold", 14)}; }
 .fx-ladder li[data-lit] h3 { color: var(--c-gold-dark); transition: color var(--dur-reveal) var(--ease-lux); }
+/* On a dark band (the loyalty page since build step 5): a chalk rail, and a
+   lit title stays in the light gold — gold-dark would fail on charcoal. */
+.fx-ladder[data-tone="dark"] .fx-rail { background: var(--c-chalk); opacity: .14; }
+.fx-ladder[data-tone="dark"] li[data-lit] h3 { color: var(--c-gold-pale); }
 
 /* THE CROWN TIER: light turning slowly around its edge. */
 @property --fx-crown { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
@@ -81,7 +85,7 @@ const sheen = bezier(...EASE_SHEEN);
  * rail is full, every tier is lit and the crown border is still — the
  * finished state, with no movement.
  */
-export function TierLadder({ className = "", children }: { className?: string; children: React.ReactNode }) {
+export function TierLadder({ className = "", tone = "light", children }: { className?: string; tone?: "light" | "dark"; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReduced();
 
@@ -165,7 +169,7 @@ export function TierLadder({ className = "", children }: { className?: string; c
   }, [reduced]);
 
   return (
-    <div ref={ref} className={`fx-ladder ${className}`}>
+    <div ref={ref} data-tone={tone} className={`fx-ladder ${className}`}>
       <ComponentStyle id="fx-ladder" css={CSS} />
       <span aria-hidden="true" className="fx-rail" />
       <span aria-hidden="true" className="fx-rail-fill" />
