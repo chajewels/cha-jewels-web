@@ -1098,6 +1098,28 @@ export const dict = {
     errFailed: { ja: "送信できませんでした。もう一度お試しください。", en: "We could not send that. Please try again." },
   },
   /** Build step 7 (comp page-comps/legal): the frame around the four legal pages. The documents' own text lives in lib/content/legal.ts and is unchanged. */
+  /** Build step 7 is legalPage below; build step 6 (comp page-comps/supporting): search, 404, error, Contact and FAQ. New wording is marked D6 in the PR for the owner's review. */
+  support: {
+    search: { ja: "検索", en: "Search" },
+    inStockNow: { ja: "いま在庫のある作品", en: "In stock now" },
+    seeAll: { ja: "すべて見る", en: "See all" },
+    all: { ja: "すべて", en: "All" },
+    inStock: { ja: "在庫あり", en: "In stock" },
+    filters: { ja: "絞り込み", en: "Filters" },
+    tileEyebrow: { ja: "お探しの一点が見つからない場合", en: "Looking for something else?" },
+    tileLine: { ja: "サイズや素材のご希望を、スタッフにお伝えください。", en: "Tell a person the size and metal you want." },
+    tryThese: { ja: "こちらで探してみてください", en: "Try one of these" },
+    lookEyebrow: { ja: "スタッフが探します", en: "We can look for it" },
+    lookLine: { ja: "一点物が多いため、店頭に出ていない作品もあります。", en: "Most pieces are one of a kind, and not every piece is listed yet." },
+    errorH: { ja: "ただいまページを表示できません。", en: "This page could not load." },
+    errorP: { ja: "時間をおいて、もう一度お試しください。お急ぎの場合はMessengerでご連絡ください。", en: "Please try again in a moment. If it is urgent, message us on Messenger." },
+    retry: { ja: "もう一度読み込む", en: "Try again" },
+    fastest: { ja: "いちばん早い連絡方法", en: "Fastest way to reach us" },
+    contactLine: { ja: "作品のこと、サイズのこと、お支払いのこと。スタッフが直接お答えします。", en: "About a piece, a size or a payment: a person answers." },
+    orNote: { ja: "フォームで送る", en: "Or send a note" },
+    askH: { ja: "答えが見つからない場合は、スタッフへ。", en: "Not answered here? Ask a person." },
+    questions: { ja: "{n}問", en: "{n} questions" },
+  },
   legalPage: {
     pages: { ja: "法的情報のページ", en: "Legal pages" },
     contents: { ja: "目次", en: "Contents" },

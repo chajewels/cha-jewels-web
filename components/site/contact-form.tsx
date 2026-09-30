@@ -112,8 +112,9 @@ export function ContactForm({ lang }: { lang: Lang }) {
         </p>
       </div>
 
-      <label className="flex items-start gap-2.5 text-sm text-charcoal-deep">
-        <input type="checkbox" name="newsletter" value="1" disabled={pending} className="mt-0.5 h-4 w-4 shrink-0 rounded-sm border-charcoal/60 text-gold-dark focus:ring-2 focus:ring-gold-dark" />
+      {/* A 22px box inside a 44px label (build step 6): the whole row is the target. */}
+      <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-charcoal-deep">
+        <input type="checkbox" name="newsletter" value="1" disabled={pending} className="h-[22px] w-[22px] shrink-0 rounded-sm border-charcoal/60 text-charcoal-deep focus:ring-2 focus:ring-gold-dark" />
         <span>{t("newsletterOptIn")}</span>
       </label>
 
@@ -124,7 +125,9 @@ export function ContactForm({ lang }: { lang: Lang }) {
       <button
         type="submit"
         disabled={pending}
-        className="min-h-11 w-full rounded-sm bg-orange px-5 text-sm font-semibold text-charcoal-deep transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        // Charcoal, not orange (build step 6, D6-2): on /contact the one orange
+        // action is Messenger, where most customers already talk to us.
+        className="btn-press min-h-12 w-full rounded-sm bg-charcoal-deep px-6 text-[15px] font-medium text-chalk transition-colors hover:bg-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? t("sending") : t("send")}
       </button>
