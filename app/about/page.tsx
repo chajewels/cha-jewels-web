@@ -117,13 +117,23 @@ export default async function About() {
       </section>
 
       <DarkBand>
-        <div className={`wrap ${SEC} grid items-start gap-10 lg:grid-cols-2 lg:gap-16`}>
-          {c.sections.map((s) => (
-            <div key={s.heading}>
-              <h2 className={`text-gold-pale ${H_HEAD}`}>{s.heading}</h2>
-              <p className={`mt-[18px] ${LEDE_DARK}`}>{s.body}</p>
-            </div>
-          ))}
+        <div className={`wrap ${SEC} grid items-center gap-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-16`}>
+          <Image
+            src="/images/about/about-founder.jpg"
+            alt={c.photos.founder}
+            width={688}
+            height={1024}
+            sizes="(min-width: 1024px) 34vw, 100vw"
+            className="aspect-[2/3] w-full rounded-sm object-cover object-top lg:max-w-[420px]"
+          />
+          <div className="grid gap-10">
+            {c.sections.map((s) => (
+              <div key={s.heading}>
+                <h2 className={`text-gold-pale ${H_HEAD}`}>{s.heading}</h2>
+                <p className={`mt-[18px] ${LEDE_DARK}`}>{s.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </DarkBand>
 
