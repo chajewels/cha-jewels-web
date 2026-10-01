@@ -9,6 +9,7 @@ import type { Product } from "@/lib/types";
 import { follow } from "@/lib/settings";
 import { LoginForm } from "@/components/account/login-form";
 import { SignInStage } from "@/components/account/sign-in-stage";
+import { AboutLogoVideo } from "@/components/fx/about-logo-video";
 
 export const generateMetadata = () => pageMeta("login");
 
@@ -21,6 +22,13 @@ export const generateMetadata = () => pageMeta("login");
  * true of email-link sign-in.
  *
  * Layaway is one of the listed things only where it is offered (EN).
+ *
+ * The logo film (owner decision 2026-10-01, "both pages"): the six-second
+ * clip of the Cha Jewels sign turning to face the reader, once used on
+ * About, now heads the form column here and the Finish-signing-in page, so
+ * both ends of the email-link sign-in open the same way. Its own rules keep
+ * it cheap: a still until it is near the viewport, no clip at all on Data
+ * Saver or reduced motion (components/fx/about-logo-video.tsx).
  */
 export default async function LoginPage() {
   const [lang, products, messenger] = await Promise.all([
@@ -41,6 +49,7 @@ export default async function LoginPage() {
     <section className="grid lg:min-h-[640px] lg:grid-cols-2">
       <div className="flex flex-col justify-center px-[clamp(18px,4vw,48px)] pb-7 pt-8 sm:py-12 lg:px-16 lg:py-[72px]">
         <div className="w-full max-w-[520px] lg:ml-auto lg:mr-0 xl:mr-8">
+          <AboutLogoVideo alt={t("about", "logoAlt")} sizes="176px" className="mb-6 w-[144px] rounded-sm sm:w-[176px]" />
           <LoginForm lang={lang} messenger={messenger} />
         </div>
       </div>
