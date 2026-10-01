@@ -9,6 +9,7 @@ import { AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreemen
 import { agreementStatus, type AgreementStatus } from "@/lib/agreement-lookup";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
+import { saveCartLater } from "@/lib/cart-sync";
 import type { CheckoutMode, HubAddress, HubDraftPayResult, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
 /**
@@ -166,6 +167,9 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
     // The order exists and holds the stock; the cart has served its purpose.
     // Emptied only on success, so a failed payment leaves the basket intact.
     await writeCart([]);
+    // ...and the Hub's copy, so no cart reminder can follow an order (the Hub
+    // also refuses one on its own once an order exists — this is the courtesy).
+    await saveCartLater();
     return { ok: true, data: result };
   } catch (err) {
     // expired / sold_out / transfer_unavailable / failed — decided by the
@@ -220,6 +224,9 @@ export async function payLayawayAction(quoteId: string): Promise<ActionResult<Hu
     // The plan holds the stock now, so the basket has served its purpose.
     // Cleared only on success — a refused plan leaves the cart intact.
     await writeCart([]);
+    // ...and the Hub's copy, so no cart reminder can follow an order (the Hub
+    // also refuses one on its own once an order exists — this is the courtesy).
+    await saveCartLater();
     return { ok: true, data: result };
   } catch (err) {
     return fail(err);

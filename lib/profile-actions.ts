@@ -7,6 +7,8 @@ import { COUNTRIES, toLocationString, type LocationType } from "@/lib/countries"
 import { REGISTERED_PATH, isAlreadyRegistered, profileNext } from "@/lib/profile";
 import type { ActionResult } from "@/lib/checkout-actions";
 import type { HubProfileInput } from "@/lib/types";
+import { CART_REMINDER_TEXT_VERSION } from "@/lib/cart-reminders";
+import { getLang } from "@/lib/i18n-server";
 
 /**
  * Submits the "Complete your profile" step to the Hub (POST /auth/customer).
@@ -68,6 +70,16 @@ export async function completeProfileAction(form: FormData): Promise<ActionResul
     if (isAlreadyRegistered(e)) registered = true;
     else if (e instanceof HubError) return { ok: false, code: e.code ?? `http_${e.status}`, requestId: e.requestId };
     else return { ok: false, code: "failed" };
+  }
+  // Cart reminders: the box is OFF by default and only an explicit tick is
+  // recorded (an opt-in, with the wording version). Written after the profile
+  // exists; a failure never blocks the step — she can set it on /account.
+  if (!registered && str(form, "cart_reminders") === "1") {
+    try {
+      await hub.putCartReminders(jwt, { opted_in: true, source: "complete_profile", lang: await getLang(), text_version: CART_REMINDER_TEXT_VERSION });
+    } catch (e) {
+      console.warn("[completeProfileAction] cart-reminder consent not saved (non-blocking):", (e as Error)?.message ?? e);
+    }
   }
   // redirect() throws, so both stay outside the try/catch above.
   if (registered) redirect(REGISTERED_PATH);

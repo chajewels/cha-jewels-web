@@ -523,8 +523,8 @@ export const tokusho = {
 };
 
 export const privacyUpdated: Record<Lang, string> = {
-  ja: "最終更新：2026年9月27日",
-  en: "Last updated: September 27, 2026",
+  ja: "最終更新：2026年10月1日",
+  en: "Last updated: October 1, 2026",
 };
 
 /**
@@ -763,6 +763,7 @@ export const privacyArticles: LegalArticle[] = [
           ],
         },
       },
+      { kind: "p", text: { ja: "ログインしているお客様がカートに入れた商品は、お客様アカウントにも保存されます。これにより、別の端末でも同じカートをご利用いただけるほか、ご希望いただいた場合に限り、カートに残した商品についてのお知らせメールをお送りします。カートの内容は、最後の変更から90日を経過すると削除されます。", en: "When you are signed in, the items in your cart are also saved to your customer account. This lets you pick up the same cart on another device and, only if you have asked for them, lets us send you reminder emails about pieces left in your cart. Saved cart contents are deleted 90 days after the last change." } },
       { kind: "p", text: { ja: "当社は、アクセス状況の把握およびウェブサイトの改善のため、Vercel Web Analyticsを使用しています。これはCookieを使用しない仕組みで、ページの閲覧に加え、商品の閲覧およびカートへの追加という2種類の商品に関する操作を、その商品のSKUおよびお客様がご覧になっている言語とともに記録します。本ポリシーの日付時点において、当社は広告目的のCookieおよびサイトをまたぐ行動ターゲティング広告のトラッカーを使用していません。", en: "We use Vercel Web Analytics to understand traffic and improve the website. It is cookieless, and it records page views together with two product events — viewing a product and adding one to the cart — each with the item’s SKU and the language you are reading in. As of the date of this policy, we do not use advertising cookies or cross-site behavioral advertising trackers." } },
       {
         kind: "rich",

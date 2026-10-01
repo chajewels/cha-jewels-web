@@ -20,6 +20,7 @@ import { loyaltyGroups } from "@/lib/settings";
 import { alertLight } from "@/lib/form-classes";
 import { AccountShell, AccountTile } from "@/components/account/account-shell";
 import { StatusBadge } from "@/components/account/status-badge";
+import { CartReminderToggle } from "@/components/account/cart-reminder-toggle";
 import { PieceWell } from "@/components/commerce/commerce-ui";
 import { Button } from "@/components/ui/button";
 import type { Tone } from "@/lib/order-status";
@@ -155,6 +156,11 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
               <dt className="text-charcoal/75">{t("account", "email")}</dt><dd className="break-all text-charcoal-deep">{me.customer.email ?? "—"}</dd>
               <dt className="text-charcoal/75">{t("account", "code")}</dt><dd className="cj-fig font-mono text-charcoal-deep">{me.customer.customer_code ?? "—"}</dd>
             </dl>
+          </AccountTile>
+
+          {/* Cart reminders: the opt-in, OFF until she ticks it (promotional email). */}
+          <AccountTile label={t("cartReminders", "h")} id="cart-reminders" className="sm:col-span-2">
+            <CartReminderToggle lang={lang} optedIn={me.cart_reminders?.opted_in === true} />
           </AccountTile>
 
           <AccountTile label={t("account", "addresses")}>

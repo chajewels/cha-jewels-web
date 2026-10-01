@@ -1237,6 +1237,22 @@ export const dict = {
    * Hub's New Customer modal, minus staff-only Notes. Country values stay in
    * English in both languages: they are what the Hub stores.
    */
+  // Cart reminders (opt-in, promotional; the Hub's docs/CART-REMINDERS.md).
+  // CHANGING label OR help CHANGES THE CONSENT WORDING: bump
+  // CART_REMINDER_TEXT_VERSION in lib/cart-reminders.ts in the same commit.
+  cartReminders: {
+    h: { ja: "カートのお知らせメール", en: "Cart reminder emails" },
+    label: { ja: "カートに残した商品や、お手続きが完了しなかったご注文の商品についてのお知らせメール（Cha Jewelsからの販促メール）を受け取る", en: "Email me about pieces I leave in my cart or don't finish ordering (promotional emails from Cha Jewels)" },
+    help: { ja: "お知らせは各1回まで、購入可能な商品のみご案内します。ご注文に関するメールやお支払いのご案内とは別のもので、本ページまたはお知らせメールからいつでも停止できます。", en: "At most one reminder each time, only for pieces still available. Separate from your order emails and payment reminders, which you always receive. You can turn this off here or from any of these emails." },
+    on: { ja: "カートのお知らせ：オンにしました。", en: "Cart reminders are on." },
+    off: { ja: "カートのお知らせ：オフにしました。", en: "Cart reminders are off." },
+    stateOn: { ja: "オン", en: "On" },
+    stateOff: { ja: "オフ", en: "Off" },
+    saving: { ja: "保存しています…", en: "Saving…" },
+    failed: { ja: "設定を保存できませんでした。もう一度お試しください。", en: "We couldn't save that. Please try again." },
+    unsubscribed: { ja: "カートのお知らせを停止しました。", en: "Cart reminders are stopped." },
+    unsubscribedNote: { ja: "ご注文に関するメールやお支払いのご案内は、引き続きお届けします。", en: "Your order emails and payment reminders are not affected." },
+  },
   profile: {
     h1: { ja: "お客様情報のご登録", en: "Complete your profile" },
     lede: { ja: "アカウントを作成するため、お客様情報をご入力ください。ご注文やお問い合わせの際に、ご本人様の確認に使用いたします。", en: "Tell us who you are so we can set up your account. We use these details to recognise you when you order or message us." },

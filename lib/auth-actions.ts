@@ -5,6 +5,10 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
+import { readCart, writeCart } from "@/lib/cart";
+import { mergeSavedCart } from "@/lib/cart-sync";
+import { sameLines } from "@/lib/cart-merge";
+import { getLang } from "@/lib/i18n-server";
 
 /**
  * Completes an email sign-in link ON CLICK, not on load.
@@ -42,6 +46,13 @@ export async function confirmSignInAction(formData: FormData): Promise<void> {
     } else {
       try {
         await hub.authCustomer(data.session.access_token);
+        // The saved cart, merged into the cookie (cart reminders) — the same
+        // step as /auth/callback. Never fails the sign-in.
+        try {
+          const cookieLines = await readCart();
+          const merged = await mergeSavedCart(data.session.access_token, cookieLines, await getLang());
+          if (merged && !sameLines(merged, cookieLines)) await writeCart(merged);
+        } catch { /* the cart is a convenience; the sign-in is not */ }
       } catch (e) {
         // Same three outcomes as /auth/callback: the profile step, the
         // already-registered notice, or — the session being valid either
