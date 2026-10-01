@@ -54,6 +54,12 @@ export async function SeoLinks() {
   return (
     <>
       <link rel="canonical" href={self} />
+      {/* og:url is the link's identity for Facebook and Messenger: without it
+          the scraper falls back to whatever URL was pasted (with ?lang, utm_*
+          and the like), so one page becomes several previews and a cached one
+          can miss the image. Owner request 2026-10-01. Same value as the
+          canonical, for the same reason. */}
+      <meta property="og:url" content={self} />
       {/* ja is the site default and needs no parameter. en carries the one the
           middleware honours, so the URL resolves for a crawler that sends no
           Accept-Language — which is most of them. x-default points at the
