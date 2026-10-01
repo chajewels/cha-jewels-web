@@ -466,6 +466,7 @@ export const dict = {
     soldBody: { ja: "近い作品をご覧いただくか、スタッフにお探しの一点をお伝えください。", en: "See the closest pieces we have now, or tell us what you are looking for." },
     soldAsk: { ja: "Messengerで似た作品を相談する", en: "Ask about a similar piece on Messenger" },
     buyBar: { ja: "購入バー", en: "Buy bar" },
+    trustRows: { ja: "安心のポイント", en: "Why buy from us" },
   },
   footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." } },
   loyalty: {
@@ -1377,7 +1378,7 @@ export const dict = {
     why: { title: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" }, description: { ja: "心を込めて選んだジュエリー、明確な情報、お一人おひとりへの丁寧な対応。東京を拠点とするCha Jewelsが選ばれる理由。", en: "Thoughtfully chosen jewelry, clear details and personal care — why customers choose Tokyo-based Cha Jewels." } },
     contact: { title: { ja: "お問い合わせ", en: "Contact" }, description: { ja: "Cha Jewelsの所在地とご連絡先。メールおよびSNSからお問い合わせいただけます。", en: "How to reach Cha Jewels: our registered address, email and social channels." } },
     affiliations: { title: { ja: "所属団体", en: "Affiliations" }, description: { ja: "Cha Jewelsが所属している東京の経済団体。東京商工会議所および東京葛飾中央ロータリークラブ。", en: "The business organisations Cha Jewels belongs to in Tokyo: the Tokyo Chamber of Commerce and Industry and the Tokyo Katsushika Central Rotary Club." } },
-    faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "フィリピンへの配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, shipping to the Philippines, buying for family, claims from Live, buy-back and wholesale minimums." } },
+    faq: { title: { ja: "よくある質問", en: "FAQ" }, description: { ja: "海外への配送、ご家族へのご購入、ライブからの予約、買取、卸売の最低数量について。", en: "Layaway, worldwide shipping, buying for family, claims from Live, buy-back and wholesale minimums." } },
     collections: { title: { ja: "コレクション", en: "Collections" } },
     terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },
     privacy: { title: { ja: "プライバシーポリシー", en: "Privacy policy" }, description: { ja: "Cha Jewelsが収集する情報、その目的、第三者への提供、開示・削除のご請求方法。", en: "What Cha Jewels collects, why, who else sees it, and how to ask for a copy or a deletion." } },
