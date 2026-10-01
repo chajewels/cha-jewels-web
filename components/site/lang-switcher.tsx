@@ -12,7 +12,7 @@ import { tr, type Lang } from "@/lib/i18n";
  * charcoal-deep label. The page stays where it is: the cookie is set and the
  * same route re-renders in the other language.
  */
-export function LangSwitcher({ lang, tone = "light" }: { lang: Lang; tone?: "light" | "dark" }) {
+export function LangSwitcher({ lang, tone = "light", compact = false }: { lang: Lang; tone?: "light" | "dark"; compact?: boolean }) {
   const router = useRouter();
   const t = tr(lang);
   const [pending, start] = useTransition();
@@ -21,6 +21,21 @@ export function LangSwitcher({ lang, tone = "light" }: { lang: Lang; tone?: "lig
     start(async () => { await fetch("/api/lang", { method: "POST", body: JSON.stringify({ lang: l }) }); router.refresh(); });
   }
   const dark = tone === "dark";
+  if (compact) {
+    // THE PHONE HEADER (owner 2026-10-01: the toggle was only at the foot of
+    // the page and the drawer, "hard to click"). The two-segment control does
+    // not fit beside the logo, search, bag and menu at 390px, so the header
+    // shows ONE 44px button naming the OTHER language: "EN" on the Japanese
+    // site, the Japanese label on the English one. One tap switches; same cookie, same
+    // route, as the full control. Not orange (Orange Means Buy).
+    const other: Lang = lang === "ja" ? "en" : "ja";
+    return (
+      <button type="button" lang={other} disabled={pending} onClick={() => set(other)} aria-label={t("nav", "language")}
+        className={`inline-flex h-11 min-w-11 items-center justify-center whitespace-nowrap rounded-sm border px-2 text-xs font-medium ${dark ? "border-chalk/40 text-chalk" : "border-charcoal/60 text-charcoal-deep hover:text-gold-dark"}`}>
+        {other === "ja" ? t("nav", "langJa") : t("nav", "langEn")}
+      </button>
+    );
+  }
   return (
     <div role="group" aria-label={t("nav", "language")} className={`flex min-h-10 rounded-sm border text-xs ${dark ? "border-chalk/40 text-chalk" : "border-charcoal/60 text-charcoal"}`}>
       {(["ja", "en"] as const).map((l) => {

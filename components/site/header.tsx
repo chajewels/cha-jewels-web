@@ -224,6 +224,7 @@ export async function Header({ lang }: { lang: Lang }) {
         <div className="flex items-center gap-1 sm:gap-3">
           <SearchBox lang={lang} />
           <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>
+          <div className="sm:hidden"><LangSwitcher lang={lang} compact /></div>
           <div className="hidden xl:block">
             {account
               ? <AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} />
