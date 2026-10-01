@@ -100,13 +100,22 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
     const id = setTimeout(() => start(async () => {
       try {
         const r = await layawayQuote(price, term, currency);
-        if (r.ok) { setQuote({ q: r.quote, price, term, currency }); setError(null); }
+        if (r.ok) {
+          setQuote({ q: r.quote, price, term, currency }); setError(null);
+          // PIECE MODE FOLLOWS THE HUB'S TERM. A piece below a term's minimum
+          // is quoted on the term the Hub could give (term_downgraded); with the
+          // asked-for button still lit, the figures belonged to a term the
+          // reader had not chosen (live, 2026-10-01: "6 months" lit, 3-month
+          // figures). The lit button becomes the Hub's term; the figures are
+          // untouched — nothing here computes money.
+          if (fixedPiece && r.quote.term_downgraded && r.quote.term_months !== term) setTerm(r.quote.term_months);
+        }
         else { setQuote(null); setError(r.code === "rate_unavailable" ? dict.checkout.rateUnavailable[lang] : c.err[lang]); }
       }
       catch { setQuote(null); setError(c.err[lang]); }
     }), 250);
     return () => clearTimeout(id);
-  }, [price, term, display, validPrice, lang, c.err]);
+  }, [price, term, display, validPrice, lang, c.err, fixedPiece]);
 
   /**
    * FRESH means: these figures were computed for the number in the field and
