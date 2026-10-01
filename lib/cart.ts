@@ -83,20 +83,29 @@ export async function readCart(): Promise<CartLine[]> {
   return parse((await cookies()).get(CART_COOKIE)?.value);
 }
 
+/** The cookie's attributes, shared with a route handler that sets it on its own redirect response. */
+export const CART_COOKIE_OPTIONS = {
+  path: "/",
+  maxAge: MAX_AGE,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+};
+
+/** The cookie value for these lines, or null when there is nothing to keep (delete the cookie). */
+export function serializeCart(lines: CartLine[]): string | null {
+  const kept = lines.filter((l) => l.q > 0).slice(0, MAX_LINES);
+  return kept.length === 0 ? null : JSON.stringify(kept);
+}
+
 /** Only callable from a Server Action or Route Handler — Next forbids writing cookies during render. */
 export async function writeCart(lines: CartLine[]) {
   const jar = await cookies();
-  const kept = lines.filter((l) => l.q > 0).slice(0, MAX_LINES);
-  if (kept.length === 0) {
+  const value = serializeCart(lines);
+  if (value === null) {
     jar.delete(CART_COOKIE);
     return;
   }
-  jar.set(CART_COOKIE, JSON.stringify(kept), {
-    path: "/",
-    maxAge: MAX_AGE,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
+  jar.set(CART_COOKIE, value, CART_COOKIE_OPTIONS);
 }
 
 export async function cartCount(): Promise<number> {

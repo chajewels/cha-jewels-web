@@ -140,6 +140,19 @@ export function CompleteProfileForm({ lang, email, next }: { lang: Lang; email: 
         <span id="cp-email-note" className="mt-1 block text-[11px] text-charcoal/70">{t("profile", "emailNote")}</span>
       </label>
 
+      {/*
+        Cart reminders: a separate, unticked box (promotional email, so it is
+        never pre-checked). Saved AFTER the profile is created, and a failure
+        there never blocks this step — /account shows the true state.
+      */}
+      <div className="sm:col-span-2">
+        <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm text-charcoal-deep">
+          <input type="checkbox" name="cart_reminders" value="1" disabled={pending} aria-describedby="cp-cart-reminders-help" className="mt-0.5 h-[22px] w-[22px] shrink-0 rounded-sm border-charcoal/60 text-charcoal-deep focus:ring-2 focus:ring-gold-dark" />
+          <span>{t("cartReminders", "label")}</span>
+        </label>
+        <p id="cp-cart-reminders-help" className="mt-1 text-xs leading-relaxed text-charcoal/70">{t("cartReminders", "help")}</p>
+      </div>
+
       <div className="sm:col-span-2">
         <Button type="submit" disabled={pending}>
           {pending ? t("profile", "submitting") : t("profile", "submit")}

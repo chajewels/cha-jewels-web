@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, CheckoutMode, Collection, FxRate, HubAddress, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
@@ -311,6 +311,29 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(process.env.NEXT_PUBLIC_PREVIEW_BLANK === "1" ? fx.meBlankFixture : fx.meFixture)
       : call("/me", { jwt, revalidate: false }),
+  /**
+   * Cart reminders (the Hub's docs/CART-REMINDERS.md). The browser cookie stays
+   * the cart; this is the server copy a reminder email and a cross-device
+   * restore read. Every call needs the customer JWT. Fixtures keep one cart in
+   * memory for the preview.
+   */
+  getCart: (jwt: string): Promise<{ lines: HubCartLine[] }> =>
+    FIXTURES ? Promise.resolve({ lines: fx.savedCart() }) : call("/me/cart", { jwt, revalidate: false }),
+  /** The WHOLE list (an empty list clears it); last write wins by `as_of`; `updated_at` moves only when the lines changed. */
+  putCart: (jwt: string, body: { lines: { variant_id: string; qty: number; slug: string }[]; lang: string; as_of: string }): Promise<{ ok: true; changed?: boolean; stale?: boolean; lines?: number }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true, changed: fx.rememberCart(body.lines), lines: body.lines.length })
+      : call("/me/cart", { method: "PUT", body: JSON.stringify(body), jwt, revalidate: false }),
+  /** Records the consent (and the exact wording version shown) in the Hub's append-only record. */
+  putCartReminders: (jwt: string, body: { opted_in: boolean; source: CartReminderSource; lang: string; text_version: string }): Promise<{ ok: true; opted_in: boolean }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true, opted_in: fx.rememberCartReminders(body.opted_in) })
+      : call("/me/cart-reminders", { method: "PUT", body: JSON.stringify(body), jwt, revalidate: false }),
+  /** The link in every cart reminder. ALWAYS answers `unsubscribed`, like the newsletter one; touches only the cart-reminder consent. */
+  cartRemindersUnsubscribe: (token: string): Promise<{ status: "unsubscribed" }> =>
+    FIXTURES
+      ? Promise.resolve({ status: "unsubscribed" })
+      : call(`/cart-reminders/unsubscribe?token=${encodeURIComponent(token)}`, { revalidate: false }),
   /** Replaces the whole address list. The Hub applies it atomically. */
   putAddresses: (jwt: string, addresses: HubAddress[]): Promise<{ ok: true; count: number }> =>
     FIXTURES

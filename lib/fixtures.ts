@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { liveMirrorProducts } from "@/lib/fixtures-live";
@@ -374,7 +374,23 @@ export const meFixture: HubMe = {
   records: { layaway: layawayPlansFixtureCount, orders: 1 },
   shares_email: false,
   portal_url: "https://portal.chajewelsjp.com/portal",
+  get cart_reminders() { return { opted_in: cartRemindersFixture }; },
 };
+
+/** Cart reminders in the preview: one saved cart and one consent flag, in memory. */
+let savedCartFixture: HubCartLine[] = [];
+let cartRemindersFixture = false;
+export const savedCart = (): HubCartLine[] => savedCartFixture.map((l) => ({ ...l }));
+export function rememberCart(lines: { variant_id: string; qty: number; slug: string }[]): boolean {
+  const next = lines.map((l) => ({ variant_id: l.variant_id, qty: l.qty, slug: l.slug }));
+  const changed = JSON.stringify(next) !== JSON.stringify(savedCartFixture);
+  savedCartFixture = next;
+  return changed;
+}
+export function rememberCartReminders(optedIn: boolean): boolean {
+  cartRemindersFixture = optedIn;
+  return optedIn;
+}
 
 /**
  * The blank-record case, which is the one that used to render as an empty page:

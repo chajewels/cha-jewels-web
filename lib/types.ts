@@ -186,7 +186,18 @@ export type HubMe = {
   shares_email?: boolean;
   /** Where every action lives. Built by the Hub, never assembled here. */
   portal_url?: string | null;
+  /**
+   * Cart reminders (promotional, opt-in; docs/CART-REMINDERS.md in the Hub):
+   * the customer's current consent. Optional: an older Hub deploy does not
+   * send it, and absent reads as off.
+   */
+  cart_reminders?: { opted_in: boolean };
 };
+
+/** A saved cart line as `GET /me/cart` returns it (the slug is joined by the Hub at read time). */
+export type HubCartLine = { variant_id: string; qty: number; slug: string };
+/** Where a cart-reminder consent was given or withdrawn — the Hub records it with the wording version. */
+export type CartReminderSource = "account" | "complete_profile" | "checkout";
 
 /** Phase 2 step 2 — cart, checkout and orders. */
 export type OrderType = "SELF" | "GIFT" | "PROXY";

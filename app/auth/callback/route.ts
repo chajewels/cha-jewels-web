@@ -4,6 +4,10 @@ import { cookies } from "next/headers";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { hub } from "@/lib/hub-api";
 import { REGISTERED_PATH, isAlreadyRegistered, isProfileRequired, profileUrl } from "@/lib/profile";
+import { CART_COOKIE, CART_COOKIE_OPTIONS, readCart, serializeCart } from "@/lib/cart";
+import { mergeSavedCart } from "@/lib/cart-sync";
+import { sameLines } from "@/lib/cart-merge";
+import { getLang } from "@/lib/i18n-server";
 
 /**
  * Completes the email sign-in link, then links the auth user to their customer
@@ -65,8 +69,18 @@ export async function GET(req: Request) {
     if (error || !data.session) return toLogin(error?.code ?? "exchange_failed");
 
     let target = next;
+    // The saved cart, merged into the cookie once the customer is linked
+    // (cart reminders): cookie ∪ saved, larger quantity wins. Set on the
+    // redirect below. A 422/409 from authCustomer means no merge — those
+    // paths are unchanged. A Hub failure here leaves the cookie as it was.
+    let cartCookie: string | null | undefined;
     try {
       await hub.authCustomer(data.session.access_token);
+      try {
+        const cookieLines = await readCart();
+        const merged = await mergeSavedCart(data.session.access_token, cookieLines, await getLang());
+        if (merged && !sameLines(merged, cookieLines)) cartCookie = serializeCart(merged);
+      } catch { /* the cart is a convenience; the sign-in is not */ }
     } catch (e) {
       // No customer holds this email: the profile step, then where she was
       // going. Her details match an existing customer: the notice, which signs
@@ -79,6 +93,10 @@ export async function GET(req: Request) {
     }
     const res = NextResponse.redirect(new URL(target, url.origin));
     pending.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
+    if (cartCookie !== undefined) {
+      if (cartCookie === null) res.cookies.delete(CART_COOKIE);
+      else res.cookies.set(CART_COOKIE, cartCookie, CART_COOKIE_OPTIONS);
+    }
     return res;
   } catch {
     // Missing env, a network failure to Auth, anything unexpected: still a
