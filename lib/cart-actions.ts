@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { readCart, writeCart, type CartLine } from "@/lib/cart";
+import { saveCartLater } from "@/lib/cart-sync";
 
 /**
  * Cart mutations. Server Actions rather than a route handler: cookies can only
@@ -10,6 +11,10 @@ import { readCart, writeCart, type CartLine } from "@/lib/cart";
  *
  * Quantity is clamped here as well as in the cart reader, because these are the
  * only two places a number reaches the cookie.
+ *
+ * After every write, saveCartLater() hands the Hub a copy for a signed-in
+ * customer (cart reminders) — in after(), so add-to-cart never waits on the
+ * Hub and a Hub failure never breaks the cart. The cookie is written first.
  */
 const MAX_QTY = 20;
 
@@ -25,6 +30,7 @@ export async function addToCart(variantId: string, slug: string, qty = 1) {
   const clean = Math.max(1, Math.min(Math.floor(qty) || 1, MAX_QTY));
   if (!variantId || !slug) return;
   await writeCart(merge(await readCart(), { v: variantId, s: slug, q: clean }));
+  await saveCartLater();
   revalidatePath("/cart");
 }
 
@@ -36,15 +42,18 @@ export async function setCartQty(variantId: string, qty: number) {
       ? lines.filter((l) => l.v !== variantId)
       : lines.map((l) => (l.v === variantId ? { ...l, q: clean } : l)),
   );
+  await saveCartLater();
   revalidatePath("/cart");
 }
 
 export async function removeFromCart(variantId: string) {
   await writeCart((await readCart()).filter((l) => l.v !== variantId));
+  await saveCartLater();
   revalidatePath("/cart");
 }
 
 export async function clearCart() {
   await writeCart([]);
+  await saveCartLater();
   revalidatePath("/cart");
 }
