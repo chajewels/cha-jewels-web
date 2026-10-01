@@ -93,6 +93,28 @@ export default async function About() {
         </div>
       </DarkBand>
 
+      {/* The 2021 photos (owner OK 2026-10-01): the first year, right under the
+          record band that names it. People are lightly blurred in the files. */}
+      <section className={`wrap ${SEC}`}>
+        <div className="grid items-end gap-4 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
+          <h2><Label>{c.early.label}</Label></h2>
+          <p className={`!text-base ${LEDE}`}>{c.early.body}</p>
+        </div>
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+          {([
+            ["about-2021-trays", 1200, 900, c.early.trays],
+            ["about-2021-sorting", 1200, 1600, c.early.sorting],
+            ["about-2021-orders", 1200, 1600, c.early.orders],
+            ["about-2021-live-desk", 1200, 1600, c.early.liveDesk],
+            ["about-2021-live-display", 1200, 1600, c.early.liveDisplay],
+          ] as const).map(([file, w, h, alt], i) => (
+            <li key={file} className={i === 4 ? "col-span-2 lg:col-span-1" : undefined}>
+              <Image src={`/images/about/${file}.jpg`} alt={alt} width={w} height={h} sizes="(min-width: 1024px) 18vw, 48vw" className={`${i === 4 ? "aspect-[8/5] lg:aspect-[4/5]" : "aspect-[4/5]"} w-full rounded-sm object-cover`} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section className={`wrap ${SEC} grid items-start gap-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-16`}>
         <div>
           <h2><Label>{c.listingLabel}</Label></h2>
