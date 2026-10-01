@@ -1356,7 +1356,7 @@ export const dict = {
     // "authenticated in Japan" stays: that is the site-wide wording CLAUDE.md
     // sanctions, and it is a claim about our own checking rather than about
     // documents travelling with the stone.
-    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、ダイヤモンド。東京からの卸売、日本・フィリピン・海外への配送。", en: "K18 gold, Akoya pearls and diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping to Japan, the Philippines and worldwide." } },
+    site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、ダイヤモンド。東京からの卸売、世界中へ配送。", en: "K18 gold, Akoya pearls and diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping worldwide." } },
     layaway: { title: { ja: "分割予約", en: "Layaway" } },
     blog: { title: { ja: "ブログ", en: "Blog" } },
     account: { title: { ja: "アカウント", en: "Account" } },
