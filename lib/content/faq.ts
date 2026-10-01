@@ -238,9 +238,9 @@ export const faqSections: FaqSection[] = [
     h: { ja: "配送", en: "Shipping" },
     items: [
       {
-        q: { ja: "フィリピンへ発送できますか？", en: "Do you ship to the Philippines?" },
+        q: { ja: "どこへ発送できますか？", en: "Where do you ship?" },
         a: [
-          { kind: "p", text: { ja: "はい。東京から、フィリピンおよびお取り扱いのある海外の国・地域のお客様へ発送しています。", en: "Yes. We ship from Tokyo to customers in the Philippines and other supported international destinations." } },
+          { kind: "p", text: { ja: "はい。東京から世界中のお客様へ発送しています。", en: "Yes. We ship from Tokyo to customers worldwide." } },
           { kind: "p", text: { ja: "ご利用いただける配送方法、送料およびお届けの目安は、ご注文手続きの画面に表示し、または請求書でご確認いただけます。", en: "Available shipping methods, charges, and estimated delivery times are shown during checkout or confirmed on your invoice." } },
         ],
       },
