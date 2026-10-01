@@ -170,7 +170,10 @@ export async function Header({ lang }: { lang: Lang }) {
       <div className="wrap flex h-16 items-center justify-between gap-3 lg:h-[72px] xl:gap-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3" aria-label="Cha Jewels">
           <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={44} height={44} alt="" className="h-10 w-10 shrink-0 lg:h-11 lg:w-11" />
-          <span className="gilt font-display text-[22px] font-medium tracking-wide sm:text-[26px]">Cha Jewels</span>
+          {/* Below 380px the row (badge, wordmark, search, language, bag, menu —
+              four 44px targets) no longer fits, so the narrowest phones keep the
+              badge alone; the drawer and footer still carry the name. */}
+          <span className="gilt hidden font-display text-[22px] font-medium tracking-wide min-[380px]:inline sm:text-[26px]">Cha Jewels</span>
         </Link>
         <nav aria-label={t("nav", "primary")} className="hidden h-full xl:block">
           <ul className="flex h-full items-stretch gap-7 whitespace-nowrap text-sm 2xl:gap-8">
@@ -224,6 +227,7 @@ export async function Header({ lang }: { lang: Lang }) {
         <div className="flex items-center gap-1 sm:gap-3">
           <SearchBox lang={lang} />
           <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>
+          <div className="sm:hidden"><LangSwitcher lang={lang} compact /></div>
           <div className="hidden xl:block">
             {account
               ? <AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} />
