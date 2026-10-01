@@ -60,6 +60,12 @@ export async function SeoLinks() {
           can miss the image. Owner request 2026-10-01. Same value as the
           canonical, for the same reason. */}
       <meta property="og:url" content={self} />
+      {/* The owner's Facebook App ("Test", developers.facebook.com, owner
+          2026-10-01). Only ties shares of this site to that app for Facebook's
+          Insights and clears the Sharing Debugger's "missing fb:app_id"
+          warning; it changes nothing in how a link previews. An App ID is
+          public by design (it is in every Facebook SDK call). */}
+      <meta property="fb:app_id" content="812262777044447" />
       {/* ja is the site default and needs no parameter. en carries the one the
           middleware honours, so the URL resolves for a crawler that sends no
           Accept-Language — which is most of them. x-default points at the
