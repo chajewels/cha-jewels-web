@@ -7,6 +7,13 @@ import { contactEmail, follow } from "@/lib/settings";
 import { COMPANY_PHONE } from "@/lib/content/legal";
 import { Eyebrow, MessengerCta } from "@/components/site/support-stage";
 import { FaqNav, FaqStyle } from "@/components/faq/faq-nav";
+import { Emblem } from "@/components/fx/emblem";
+import { ComponentStyle } from "@/components/fx/component-style";
+
+// The emblem beside the title, as on Affiliations and Blog. It was dropped by
+// the step 6 redesign without an owner decision (2026-10-01); restored.
+const TITLE_CSS = `.fx-titled { display: flex; flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+@media (min-width: 640px) { .fx-titled { flex-direction: row; align-items: center; gap: clamp(24px, 3.4vw, 40px); } }`;
 
 export const generateMetadata = () => pageMeta("faq");
 
@@ -32,9 +39,15 @@ export default async function FaqPage() {
       <FaqStyle />
       <section className="pb-[clamp(48px,7vw,88px)] pt-[clamp(40px,6vw,88px)]">
         <div className="wrap">
-          <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
-          <h1 className="mt-3.5 max-w-[18ch] text-[clamp(34px,4.6vw,60px)] leading-[1.08] text-charcoal-deep [:lang(ja)_&]:text-[clamp(28px,3.4vw,44px)] [:lang(ja)_&]:leading-[1.35]">{t("faq", "h1")}</h1>
-          <p className="mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-charcoal/85 [:lang(ja)_&]:text-[15.5px]">{t("faq", "lede")}</p>
+          <ComponentStyle id="fx-titled" css={TITLE_CSS} />
+          <div className="fx-titled">
+            <Emblem name="faq" sm={96} lg={128} />
+            <div>
+              <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
+              <h1 className="mt-3.5 max-w-[18ch] text-[clamp(34px,4.6vw,60px)] leading-[1.08] text-charcoal-deep [:lang(ja)_&]:text-[clamp(28px,3.4vw,44px)] [:lang(ja)_&]:leading-[1.35]">{t("faq", "h1")}</h1>
+              <p className="mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-charcoal/85 [:lang(ja)_&]:text-[15.5px]">{t("faq", "lede")}</p>
+            </div>
+          </div>
         </div>
         <div className="wrap fx-faq mt-8 lg:mt-11">
           <div className="fx-faq-side">
