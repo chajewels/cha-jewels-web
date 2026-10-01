@@ -20,6 +20,7 @@ import { AddToCart } from "@/components/commerce/add-to-cart";
 import { ReserveWithLayaway } from "@/components/commerce/reserve-with-layaway";
 import { BuyBar } from "@/components/commerce/buy-bar";
 import { SocialGlyph } from "@/components/site/social-icons";
+import { MessengerAnchor } from "@/components/site/messenger-anchor";
 import { Button } from "@/components/ui/button";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { JsonLd } from "@/components/site/json-ld";
@@ -272,10 +273,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 function MessengerButton({ href, lang }: { href: string; lang: Lang }) {
   return (
     <Button asChild variant="outline" className="h-full w-full whitespace-nowrap px-4">
-      <a href={href} target="_blank" rel="noopener noreferrer">
+      <MessengerAnchor href={href}>
         <SocialGlyph name="messenger" size={18} />
         {tr(lang)("social", "messenger")}
-      </a>
+      </MessengerAnchor>
     </Button>
   );
 }

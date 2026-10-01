@@ -1,4 +1,5 @@
 import { SocialGlyph } from "@/components/site/social-icons";
+import { MessengerAnchor } from "@/components/site/messenger-anchor";
 
 /**
  * The parts of the supporting pages (build step 6) that the client error
@@ -6,18 +7,16 @@ import { SocialGlyph } from "@/components/site/social-icons";
  * boundary does not pull the product card into its bundle. No server imports.
  */
 
-/** The view's one orange action: open Messenger (an m.me link, as the floating button). */
+/** The view's one orange action: open Messenger (the Hub's m.me link; on a phone the app first — messenger-anchor.tsx). */
 export function MessengerCta({ href, label, className = "" }: { href: string; label: string; className?: string }) {
   return (
-    <a
+    <MessengerAnchor
       href={href}
-      target="_blank"
-      rel="noreferrer"
       className={`btn-press inline-flex min-h-12 items-center justify-center gap-2.5 rounded-sm bg-orange px-6 py-3 text-[15px] font-medium text-charcoal-deep hover:bg-orange-hover ${className}`}
     >
       <SocialGlyph name="messenger" size={18} />
       {label}
-    </a>
+    </MessengerAnchor>
   );
 }
 
