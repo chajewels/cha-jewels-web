@@ -19,7 +19,6 @@ import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/
 import { alertLight, inputLight } from "@/lib/form-classes";
 import { siteDay } from "@/lib/site-time";
 import { CommerceStyle, Notice, OrderSlab, PieceWell, Stepper, StickyAct } from "@/components/commerce/commerce-ui";
-import { quoteIsReservation } from "@/lib/reservation";
 import { draftCompletePath, isDraftPayResult } from "@/lib/drafts";
 import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-step";
 
@@ -195,13 +194,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
   // then. Never a hardcoded array of what the calculator used to offer.
   const termOptions: LayawayTerm[] = quote?.layaway?.allowed_terms ?? DEFAULT_TERMS;
   const plan = mode === "layaway" ? quote?.layaway ?? null : null;
-  // RESERVE FIRST (Hub A2). Read off the QUOTE the Hub just priced, never a
-  // flag on this side, so checkout changes at the same moment as the Hub's
-  // switch. A reservation shows no bank details and no deadline (owner rule):
-  // staff confirm the piece first, and the payment email follows.
-  // WEBSITE ORDERS (Hub PR 6): a draft checkout is a reservation too — no
-  // bank details, no deadline, figures provisional until staff confirm.
-  const reserving = quoteIsReservation(quote) || quote?.provisional === true;
+  // RESERVE FIRST, ALWAYS (Hub website orders PR 10, 2026-10-01; owner D3).
+  // Every checkout is a draft staff confirm: no bank details and no deadline
+  // on this screen (owner rule), figures provisional until they confirm, and
+  // the payment email follows. The Hub's reserve-first switch is retired, so
+  // this no longer reads a flag off the quote.
+  const reserving = true;
   // No published rate for this destination: shipping is added when we confirm.
   const shippingLater = quote?.shipping_at_confirmation === true;
   // What this order will actually settle in: the customer's choice, for a full

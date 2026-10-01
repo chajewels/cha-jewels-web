@@ -110,8 +110,12 @@ Quote response (POST and GET) — currency fields:
 - `subtotal_settlement`, `shipping_settlement`, `total_settlement` — in the
   settlement currency. For yen they equal the `*_jpy` figures.
 - `transfer_region` / `transfer_methods` / `transfer_available` — keyed on the
-  settlement currency (PHP → the Philippine accounts). Methods are `[]` while
-  reserve-first is on.
+  settlement currency (PHP → the Philippine accounts). Methods are always `[]`
+  on a quote (Hub website orders PR 10, 2026-10-01: every checkout is a draft;
+  the bank details arrive with the payment email after staff confirm).
+  `reservation_mode` and `provisional` are always `true`, and
+  `requires_manual_quote` is always `false` — a destination with no published
+  rate answers `shipping_at_confirmation: true` instead.
 
 **Peso rounding.** Converted once, `PHP = JPY × fx_rate`, rounded **half-up to a
 whole peso** (Postgres `round(numeric)`). Shipping is converted on its own and
@@ -122,14 +126,13 @@ matches `create_web_order_atomic` exactly, so `total_settlement` is the order's
 2026-09-25 (Hub H3), matching `create_web_layaway_atomic`'s `round(total_jpy *
 fx_rate)`; its peso deposit and schedule then come from `layaway_quote`.
 
-**Pay response** (`POST /checkout/pay`, full payment): `order_id`,
-`web_reference`, `currency` (`JPY` | `PHP`), `total` (in `currency`),
-`total_jpy` (kept for older storefront builds — yen, not what a peso order
-owes), `transfer_due_at` (null while a reservation awaits staff),
-`transfer_region`, `transfer_methods` (`[]` for a reservation), plus
-`reservation_mode` / `awaiting_confirmation` on a reservation. A layaway answers
-`mode: "layaway"`, `account_id`, `currency`, `total`, `deposit`, `term_months`,
-`schedule`, … as before.
+**Pay response** (`POST /checkout/pay`): since Hub website orders PR 10
+(2026-10-01) it is ALWAYS the draft shape documented under "Website orders —
+drafts" (`draft_id`, `web_reference`, `mode`, `currency`, `total`, `total_jpy`,
+`shipping_pending`, `deposit`, `term_months`, `provisional: true`,
+`awaiting_confirmation: true`, `reservation_mode: true`, `transfer_due_at:
+null`, `transfer_region`, `transfer_methods: []`). The former direct
+`order_id` / `account_id` replies no longer exist.
 
 **`GET /orders/:id`**: `currency` is the order's settlement currency;
 `total_amount`, `total_paid`, `remaining_balance`, `shipping_fee` are in it.
