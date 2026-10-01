@@ -59,7 +59,7 @@ export type AboutCopy = {
    */
   photos: { orders: string; founder: string; showroom: string; display: string; sorting: string };
   /** The 2021 photos under the record band (owner OK 2026-10-01, people lightly blurred). */
-  early: { label: string; body: string; trays: string; sorting: string; event: string; orders: string };
+  early: { label: string; body: string; trays: string; sorting: string; orders: string; liveDesk: string; liveDisplay: string };
 };
 
 export const aboutCopy: Record<Lang, AboutCopy> = {
@@ -121,11 +121,12 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
     },
     early: {
       label: "2021年、はじまりの頃",
-      body: "ライブ販売の最初の年。床いっぱいに広げたトレイ、ひとつずつ仕分けたピアス、ピンクの注文票。すべてはここから始まりました。",
+      body: "ライブ販売の最初の年。床いっぱいに広げたトレイ、ひとつずつ仕分けたピアス、ピンクの注文票、そしてデスクからのライブ配信。すべてはここから始まりました。",
       trays: "2021年、床に並べたピアスのトレイを仕分けする様子",
       sorting: "2021年、ふたりでピアスのトレイを仕分けする様子（後ろ姿）",
-      event: "2021年、仕入れ会場で注文品の箱を手にする創業者",
       orders: "2021年、注文票を添えて箱に詰めたお客様のご注文品",
+      liveDesk: "デスクからライブ配信を行う創業者と、値札付きのピアスのトレイ",
+      liveDisplay: "ライブ配信中の商品ディスプレイ — ネックレス、リング、真珠、ピアスのトレイ",
     },
   },
   en: {
@@ -187,11 +188,12 @@ export const aboutCopy: Record<Lang, AboutCopy> = {
     },
     early: {
       label: "2021 — where it started",
-      body: "The first year of live selling: trays spread across the floor, earrings sorted one by one, pink order slips in every box. Everything began here.",
+      body: "The first year of live selling: trays spread across the floor, earrings sorted one by one, pink order slips in every box, and the lives themselves from the desk. Everything began here.",
       trays: "2021: sorting trays of earrings laid out across the floor",
       sorting: "2021: two people sorting earring trays, seen from behind",
-      event: "2021: the founder holding a box of orders at a sourcing event",
       orders: "2021: customer orders packed in boxes with their pink order slips",
+      liveDesk: "The founder selling live from the desk, a tray of tagged earrings in front",
+      liveDisplay: "The live-selling display: necklaces, rings, pearls and a tray of tagged earrings in front of the phone",
     },
   },
 };
