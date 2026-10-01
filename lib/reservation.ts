@@ -1,25 +1,18 @@
-import type { HubQuote, ReservationFlags } from "@/lib/types";
+import type { ReservationFlags } from "@/lib/types";
 
 /**
- * RESERVE FIRST, PAY AFTER STAFF CONFIRM (Hub A2, 2026-09-24).
+ * RESERVE FIRST, PAY AFTER STAFF CONFIRM (Hub A2, 2026-09-24; the only path
+ * since Hub website orders PR 10, 2026-10-01).
  *
- * With the Hub's `system_settings.web_reservation_mode` on, checkout creates a
- * reservation: the piece is held, staff confirm they can supply it, and only
- * then does the customer get the bank details and a deadline. With it off,
- * nothing here changes a thing — every helper below answers exactly as the
- * page did before.
- *
- * THE SWITCH IS NEVER READ ON THIS SIDE. Each answer comes from the Hub's
- * response for the thing being rendered — the quote, the order, the plan — so
- * the storefront flips at the same moment the Hub does, and an order placed
- * before the switch keeps the state it was written in.
+ * Every checkout is a draft: the piece is held, staff confirm they can supply
+ * it, and only then does the customer get the bank details and a deadline. The
+ * Hub's reserve-first switch is retired, so the checkout no longer reads a
+ * mode off the quote. The per-order flags below still come from the Hub's
+ * response for the thing being rendered — the order, the plan — so an order
+ * keeps the state it was written in.
  *
  * Owner rule: no bank details anywhere before staff confirm.
  */
-
-/** The quote was taken in reservation mode: no bank details, no deadline yet. */
-export const quoteIsReservation = (quote: HubQuote | null | undefined) =>
-  quote?.reservation_mode === true;
 
 /** A live, unconfirmed reservation. The Hub's flag, already live-only. */
 export const isAwaitingConfirmation = (row: ReservationFlags) =>

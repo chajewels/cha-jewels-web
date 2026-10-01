@@ -262,12 +262,10 @@ export type HubQuote = {
    */
   deposit_deadline_hours?: number | null;
   /**
-   * RESERVE FIRST (Hub A2, docs/RESERVE-FIRST.md in the Hub repo). Present, and
-   * true, only while the Hub's `web_reservation_mode` switch is on: the order
-   * this quote becomes is a reservation that staff confirm before any payment
-   * is asked for, and `transfer_methods` comes back empty. Absent means today's
-   * flow. Read from the response, never from a flag on this side, so the
-   * storefront changes at the same moment as the Hub switch.
+   * RESERVE FIRST (Hub A2). Since Hub website orders PR 10 (2026-10-01) this is
+   * always true: every checkout is a draft that staff confirm before any
+   * payment is asked for, and `transfer_methods` comes back empty. Kept on the
+   * type for older responses; the checkout no longer branches on it.
    */
   reservation_mode?: boolean;
   /**
