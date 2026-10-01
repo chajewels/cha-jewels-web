@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { LANG_PARAM, tr, type Lang } from "@/lib/i18n";
 
 /**
  * The JA / EN toggle. Japanese first: it is the site's primary language.
@@ -18,7 +18,21 @@ export function LangSwitcher({ lang, tone = "light", compact = false }: { lang: 
   const [pending, start] = useTransition();
   function set(l: Lang) {
     if (l === lang) return;
-    start(async () => { await fetch("/api/lang", { method: "POST", body: JSON.stringify({ lang: l }) }); router.refresh(); });
+    start(async () => {
+      await fetch("/api/lang", { method: "POST", body: JSON.stringify({ lang: l }) });
+      // A URL carrying ?lang= (a shared English link) wins over the cookie in
+      // the middleware on every request, so a plain refresh would undo the
+      // choice just made and the control would look dead (found 2026-10-01).
+      // Drop the parameter and land on the clean URL; otherwise refresh in place.
+      const url = new URL(window.location.href);
+      if (url.searchParams.has(LANG_PARAM)) {
+        url.searchParams.delete(LANG_PARAM);
+        router.replace(`${url.pathname}${url.search}${url.hash}`);
+      }
+      // Always refresh: a soft navigation alone does not re-render the root
+      // layout, so <html lang> and the header would keep the old language.
+      router.refresh();
+    });
   }
   const dark = tone === "dark";
   if (compact) {
@@ -31,7 +45,7 @@ export function LangSwitcher({ lang, tone = "light", compact = false }: { lang: 
     const other: Lang = lang === "ja" ? "en" : "ja";
     return (
       <button type="button" lang={other} disabled={pending} onClick={() => set(other)} aria-label={t("nav", "language")}
-        className={`inline-flex h-11 min-w-11 items-center justify-center whitespace-nowrap rounded-sm border px-2 text-xs font-medium ${dark ? "border-chalk/40 text-chalk" : "border-charcoal/60 text-charcoal-deep hover:text-gold-dark"}`}>
+        className={`inline-flex h-11 min-w-11 items-center justify-center whitespace-nowrap rounded-sm border px-1.5 text-xs font-medium ${dark ? "border-chalk/40 text-chalk" : "border-charcoal/60 text-charcoal-deep hover:text-gold-dark"}`}>
         {other === "ja" ? t("nav", "langJa") : t("nav", "langEn")}
       </button>
     );
