@@ -146,8 +146,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </ol>
         </nav>
 
-        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 pb-8 sm:gap-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10 lg:pb-[72px] xl:grid-cols-[minmax(0,1.18fr)_minmax(0,1fr)] xl:gap-14">
-          <section aria-label={t("product", "gallery")} className="-mx-[clamp(18px,4vw,48px)] min-w-0 sm:mx-auto sm:w-full sm:max-w-[640px] lg:sticky lg:top-24 lg:max-w-none">
+        {/* Owner blueprint 2026-10-01 (every product page): on desktop the
+            photo column is a fixed 470 px — square photo + one thumbnail strip —
+            so the buy column, with the layaway calculator right under its
+            buttons, sits on the first screen. The "one of a kind" note, the
+            trust rows and the SKU move under the photos (second row of the
+            photo column); the buy column spans both rows. On a phone the DOM
+            order is the reading order: photos, buy column, trust rows. */}
+        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 pb-8 sm:gap-7 lg:grid-cols-[470px_minmax(0,1fr)] lg:gap-10 lg:pb-[72px] xl:gap-14">
+          <section aria-label={t("product", "gallery")} className="-mx-[clamp(18px,4vw,48px)] min-w-0 sm:mx-auto sm:w-full sm:max-w-[640px] lg:col-start-1 lg:row-start-1 lg:mx-0 lg:max-w-none">
             <ProductGallery
               items={galleryItems(p)}
               name={name}
@@ -156,7 +163,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             />
           </section>
 
-          <section className="flex min-w-0 flex-col gap-[18px]">
+          <section className="flex min-w-0 flex-col gap-[18px] lg:col-start-2 lg:row-start-1 lg:row-span-2">
             <div className="flex flex-wrap gap-2 empty:hidden">
               {!buyable && <span className="badge-status bg-charcoal-deep text-chalk">{t("product", availabilityKey(avail))}</span>}
               <ConditionBadge condition={p.condition} lang={lang} />
@@ -186,6 +193,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     {messenger && <MessengerButton href={messenger} lang={lang} />}
                   </div>
                 </div>
+                {/* The calculator right under the buttons (owner decision
+                    2026-10-01) — on a PC it is on the first screen. Not on a
+                    sold piece; never on the Japanese site. */}
+                {layaway && price != null && <LayawayCalculator lang={lang} initialPrice={price} fixedPiece className="mt-1" />}
+              </>
+            ) : (
+              <SoldCard alternatives={alternatives} messenger={messenger} lang={lang} />
+            )}
+          </section>
+
+          <section aria-label={t("pdp", "trustRows")} className="flex min-w-0 flex-col gap-[18px] lg:col-start-1 lg:row-start-2">
+            {buyable && variant && (
+              <>
                 {/* Only a single unit is "one of a kind" — the same rule the cart uses
                     (cart-lines.tsx: stock_qty <= 1). A piece with more in stock says how
                     many; the quantity is chosen in the cart. */}
@@ -196,10 +216,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 </p>
                 {layaway && <p className="-mt-2.5 text-xs text-charcoal/70">{t("product", "reserveNote")}</p>}
               </>
-            ) : (
-              <SoldCard alternatives={alternatives} messenger={messenger} lang={lang} />
             )}
-
             <ProductTrust lang={lang} />
             <p className="pdp-fig text-[12.5px] text-charcoal/70">SKU {p.sku}</p>
           </section>
@@ -221,10 +238,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <p className="max-w-[64ch] whitespace-pre-line text-[15px] leading-[1.8] sm:text-base">{desc}</p>
             </div>
           )}
-          {/* The EN calculator stays on the page (it is live today), below the
-              facts rather than between the price and the button (the comp's
-              buy column). Not on a sold piece; never on the Japanese site. */}
-          {layaway && price != null && buyable && <LayawayCalculator lang={lang} initialPrice={price} className="mt-10 max-w-2xl sm:mt-14" />}
         </section>
 
         {reviews.length > 0 && (

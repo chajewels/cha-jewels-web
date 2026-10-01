@@ -466,6 +466,7 @@ export const dict = {
     soldBody: { ja: "近い作品をご覧いただくか、スタッフにお探しの一点をお伝えください。", en: "See the closest pieces we have now, or tell us what you are looking for." },
     soldAsk: { ja: "Messengerで似た作品を相談する", en: "Ask about a similar piece on Messenger" },
     buyBar: { ja: "購入バー", en: "Buy bar" },
+    trustRows: { ja: "安心のポイント", en: "Why buy from us" },
   },
   footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." } },
   loyalty: {

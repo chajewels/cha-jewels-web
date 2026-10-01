@@ -419,14 +419,15 @@ export function ProductGallery({ items, name, lang, badge }: { items: GalleryIte
       aria-label={t("product", "gallery")}
       tabIndex={0}
       onKeyDown={onKeyDown}
-      // Desktop: the thumbnail rail on the left of the square well. Phone and
-      // tablet: the strip under it (comp page-comps/product-collection).
-      className={`outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-dark ${n > 1 ? "lg:grid lg:grid-cols-[76px_minmax(0,1fr)] lg:gap-3.5" : ""}`}
+      // The thumbnails are one strip UNDER the square well at every width
+      // (owner blueprint 2026-10-01): the desktop rail beside the photo ran
+      // ~900 px down the page for ten photos and pushed everything else away.
+      className="outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-dark"
     >
       <ComponentStyle id="fx-gallery" css={CSS} />
       <div
         ref={stage}
-        className="relative aspect-square overflow-hidden fx-well fx-stage outline outline-1 -outline-offset-1 outline-hairline lg:order-2"
+        className="relative aspect-square overflow-hidden fx-well fx-stage outline outline-1 -outline-offset-1 outline-hairline"
         data-fine={fine ? "" : undefined}
         style={{ ["--zoom" as string]: ZOOM.hover }}
         onPointerDown={down}
@@ -508,7 +509,7 @@ export function ProductGallery({ items, name, lang, badge }: { items: GalleryIte
       </div>
       {n > 1 && (
         <div ref={thumbs} role="tablist" aria-label={t("product", "gallery")}
-          className="fx-rail mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] lg:order-1 lg:mt-0 lg:flex-col lg:overflow-visible lg:pb-0">
+          className="fx-rail mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
           {images.map((m, k) => (
             <button
               key={m.src + k}
@@ -518,7 +519,7 @@ export function ProductGallery({ items, name, lang, badge }: { items: GalleryIte
               aria-selected={k === i}
               aria-label={m.kind === "video" ? t("pdp", "video") : t("product", "photoOf", { n: String(k + 1), total: String(n) })}
               onClick={() => go(k)}
-              className={`relative grid h-[58px] w-[58px] shrink-0 place-items-center overflow-hidden border border-hairline lg:h-[76px] lg:w-[76px] ${m.kind === "video" ? "bg-charcoal-deep text-gold-pale" : "fx-well"}`}
+              className={`relative grid h-[58px] w-[58px] shrink-0 place-items-center overflow-hidden border border-hairline lg:h-[52px] lg:w-[52px] ${m.kind === "video" ? "bg-charcoal-deep text-gold-pale" : "fx-well"}`}
             >
               {m.kind === "video" ? (
                 <span className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em]">
