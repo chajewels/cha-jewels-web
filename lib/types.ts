@@ -4,8 +4,8 @@ export type ProductStatus = "draft" | "active" | "archived";
  * THE PRODUCT cut-out: the Hub's Photoroom background-removed version of one
  * product photo (supabase/contracts/api.md "Proposed: product photo
  * cut-outs"): a WebP with alpha, trimmed to the piece's own bounds, stored
- * beside the untouched original. Only `ok`, `auto_fixed` and `approved` may be
- * shown (`usableCutout`, lib/queries/products.ts); any other status, and a
+ * beside the untouched original. Only `approved` may be shown (approval first,
+ * owner 2026-10-02; `usableCutout`, lib/queries/products.ts); any other status, and a
  * missing cut-out, means the whole original photo. Product pages and cards
  * only — the hero never reads it (owner rule 2026-09-28, lib/hero-deck.ts).
  * No image is ever processed on this side.

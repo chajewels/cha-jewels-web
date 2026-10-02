@@ -16,7 +16,7 @@ const C0983_2 = `${HUB}promotions/website/page365/80288104/450588975-1758211904.
 // N3940 / W1451-like photo: no bundled cut-out, no larger photo.
 const PLAIN = `${HUB}promotions/website/page365/99999999/000000000-0000000000.jpeg`;
 
-const photoroom = { url: "https://hub.example/derived/abc/cutout.webp", width: 800, height: 800, status: "ok" };
+const photoroom = { url: "https://hub.example/derived/abc/cutout.webp", width: 800, height: 800, status: "approved" }; // approval first: only approved is shown
 const heroRec = { status: "approved", url: "https://hub.example/derived/hero/abc/cutout.webp", width: 700, height: 900 };
 
 const product = (media) => ({
@@ -40,6 +40,11 @@ test("product page and card: the Hub's hero record is never shown", () => {
 test("product page and card: the Photoroom cut-out still shows where the product logic used one", () => {
   const p = product([{ url: AL112, cutout: photoroom }, { url: PLAIN, cutout: { ...photoroom, status: "needs_review" } }]);
   assert.deepEqual(pieceImages(p).map((i) => [i.kind, i.src]), [["cut", photoroom.url], ["whole", PLAIN]]);
+  // Approval first (owner 2026-10-02): a cut-out that only passed the checks is not shown.
+  for (const status of ["ok", "auto_fixed"]) {
+    const q = product([{ url: AL112, cutout: { ...photoroom, status } }]);
+    assert.deepEqual(pieceImages(q).map((i) => [i.kind, i.src]), [["whole", AL112]]);
+  }
 });
 
 // (b) the hero ignores Photoroom

@@ -6,7 +6,7 @@ import type { Product, ProductMedia } from "@/lib/types";
  * Hub photo, in the Hub's order:
  *
  *   1. the Hub's Photoroom cut-out (`cutout`), when it may be shown
- *      (`usableCutout`: ok, auto_fixed, approved); the field is absent today
+ *      (`usableCutout`: approved only — approval first, 2026-10-02); the field is absent today
  *   2. otherwise the WHOLE original photo, contained, never cropped
  *
  * PRODUCTS = PHOTOROOM / NORMAL PHOTOS ONLY; HERO = THE ORIGINAL TOOL ONLY
