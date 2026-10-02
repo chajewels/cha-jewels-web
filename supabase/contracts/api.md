@@ -270,7 +270,7 @@ Drafted by the storefront for Lovable; nothing here is live. Background: `~/Code
 
   - `url`: a public WebP **with alpha**, the background removed, **trimmed to the piece's own bounds** (no transparent margin), long side about 900 px. The original photo at `product_media.url` is never changed.
   - `width` / `height`: the cut-out's pixel size.
-  - `status`: the automatic QA result or the staff decision. The storefront shows the cut-out **only** for `ok`, `auto_fixed` and `approved`. For `needs_review`, `rejected`, `failed`, a `null` cutout, or no `cutout` key, it shows the whole original photo, uncropped, in a framed well. Sending the other statuses is optional: `cutout: null` is equivalent.
+  - `status`: the staff decision. **Approval first (owner 2026-10-02, Hub migration 20261026100000): the storefront shows the cut-out only for `approved`.** `ok` and `auto_fixed` (passed the checks, not yet approved), `needs_review`, `rejected`, `failed`, a `null` cutout, or no `cutout` key → it shows the whole original photo, uncropped, in a framed well. Sending the other statuses is optional: `cutout: null` is equivalent.
   - Nothing else about the pipeline (model, source hash, flags) crosses the API.
 - Changing a cut-out (new run, approval, rejection, staff upload) is a `product_media` change and fires the existing `notify_website` revalidation.
 - **Bundled interim set:** removed (hero auto cut-out PR 5) once the owner had approved the same photos in the Hub's hero record. It never had anything to do with this field.

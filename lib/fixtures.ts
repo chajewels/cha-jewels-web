@@ -161,14 +161,15 @@ WATCHES.forEach(([en, ja, brand, photo], k) => {
  * down for preview (public/fixtures/cutouts), on the fixtures that carry those
  * pieces' names — in every status, so the stage is seen with cut-outs, with
  * whole framed photos, and with both on one slide:
- *   shown     R3341, AL3, R7828 (ok); C0983, C1395 (auto_fixed); R3110 (approved)
- *   framed    AL123 (needs_review, as the QA held it), the Cartier watch
- *             (rejected), and every fixture with no `cutout` at all
+ *   shown     R7828, R3110 (approved — approval first, 2026-10-02: only approved is shown)
+ *   framed    C0983, C1395 (auto_fixed = To approve, not yet approved), AL123
+ *             (needs_review, as the QA held it), the Cartier watch (rejected),
+ *             and every fixture with no `cutout` at all
  */
 const cut = (k: string, width: number, height: number, status: CutoutStatus): ProductCutout => ({ url: `/fixtures/cutouts/${k}.webp`, width, height, status });
 // (Full-size comp cut-outs, long side 900 px; the dimensions below are theirs.)
 products[3].product_variants[0].product_media = [{ url: "/fixtures/pendant-2.svg", alt: null, sort: 0, cutout: cut("al123", 623, 773, "needs_review") }];
-products[8].product_variants[0].product_media[0].cutout = cut("r7828", 811, 900, "ok");
+products[8].product_variants[0].product_media[0].cutout = cut("r7828", 811, 900, "approved");
 products[12].product_variants[0].product_media[0].cutout = cut("r3110", 339, 204, "approved");
 products[13].product_variants[0].product_media[0].cutout = cut("c0983", 690, 900, "auto_fixed");
 products[14].product_variants[0].product_media[0].cutout = cut("c1395", 900, 832, "auto_fixed");
