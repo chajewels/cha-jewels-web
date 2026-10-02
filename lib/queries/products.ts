@@ -41,7 +41,8 @@ export function primaryImage(p: Product) {
   return allImages(p)[0] ?? null;
 }
 
-const SHOWN_CUTOUT = new Set<string>(["ok", "auto_fixed", "approved"]);
+// APPROVAL FIRST (owner 2026-10-02, Hub migration 20261026100000): only a staff-approved cut-out is shown.
+const SHOWN_CUTOUT = new Set<string>(["approved"]);
 /**
  * A photo's cut-out, when the Hub has one that may be shown: status ok,
  * auto_fixed or approved, with a URL and real dimensions. Anything else —
