@@ -7,13 +7,12 @@ import { tiers as fallbackTiers } from "@/lib/loyalty";
 import type { HubTier } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { TierLadder } from "@/components/fx/tier-ladder";
+import { TierIcon } from "@/components/fx/tier-icon";
 import { Eyebrow } from "@/components/site/support-stage";
 import { DarkBand, H_DISPLAY, H_HEAD, H_TITLE, LEDE_DARK, Label, SEC, SEC_S, StageBand } from "@/components/site/brand-ui";
 export const generateMetadata = () => pageMeta("loyalty");
 export const revalidate = 300;
 
-/** The tier medallions' numerals: the ladder's order, not a Hub value. */
-const ROMAN = ["I", "II", "III", "IV", "V", "VI"];
 
 /**
  * "Join free" is NOT orange (owner decision D5-3): joining is neither a buy
@@ -27,8 +26,8 @@ const JOIN_ON_LIGHT = "btn-press inline-flex min-h-12 items-center justify-cente
  *
  * The hero stage carries the gilt headline, the lede and a two-cell ledger of
  * the lede's own base facts. The tier ladder is a four-column gold-ruled
- * ledger on a dark band with numeral medallions (replacing the off-palette
- * tier art, audit Loyalty #3); the crown tier keeps its gold edge. Tiers,
+ * ledger on a dark band with the animated tier medallions (restored 2026-10-03,
+ * owner decision); the crown tier keeps its gold edge. Tiers,
  * thresholds, multipliers and perks are the Hub's (hub.loyaltyTiers()),
  * shown as they are: Radiant and Elite are both 2x by the owner's rule (D5-4).
  *
@@ -84,7 +83,10 @@ export default async function LoyaltyPage() {
                     data-crown={crown ? "" : undefined}
                     className={`flex flex-col gap-4 border-rule p-6 max-lg:border-b sm:[&:nth-child(odd)]:border-r lg:border-r lg:last:border-r-0 ${crown ? "bg-[linear-gradient(180deg,rgb(201_162_39/.10),transparent_60%)] outline outline-1 -outline-offset-1 outline-gold" : ""}`}
                   >
-                    <span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full border border-gold font-display text-xl text-gold-pale shadow-[inset_0_0_0_4px_#222222,inset_0_0_0_5px_rgb(201_162_39/.4)]">{ROMAN[i] ?? i + 1}</span>
+                    {/* The animated medallion (components/fx/tier-icon.tsx), restored
+                        2026-10-03 by owner decision: the step 5 redesign had replaced it
+                        with a plain numeral without asking. It lights with the ladder. */}
+                    <TierIcon slug={tier.slug} sm={72} lg={88} />
                     <div>
                       <Label dark>{t("loyalty", "level", { n: String(i + 1) })}</Label>
                       <h3 className={`mt-1 text-gold-pale ${H_TITLE}`}>{tier.name}</h3>
