@@ -128,6 +128,8 @@ export type LayawayQuote = {
 };
 export type HubTier = { slug: string; name: string; threshold_jpy: number; requalify_spend: number | null; multiplier: number | null; hold_minutes: number; benefits_ja: string[]; benefits_en: string[] };
 export type FxRate = { jpy_php: number; as_of: string };
+/** GET /paidy/widget — true only while the Hub's paidy_mode is 'on' (owner W3, 2026-10-03). */
+export type PaidyWidgetFlag = { enabled: boolean };
 
 /** Phase 2 step 1 — customer account. */
 export type HubCustomer = { id: string; customer_code: string | null; full_name: string | null; email: string | null; mobile_number: string | null };
