@@ -25,6 +25,10 @@ import { LangSwitcher } from "@/components/site/lang-switcher";
  *   bottom       © the company name as the owner decided per language
  *                (COMPANY_NAME_DISPLAY) and the language toggle
  *
+ * Compacted 2026-10-03 (owner: "too large for a footer"): 32px link rhythm
+ * from lg, Collections in two columns, tighter padding and ledger; phones
+ * unchanged except the padding.
+ *
  * On phones the three link groups are 56px accordions (native <details>, so
  * they work before hydration and without script) with 44px links; the audit
  * measured 17px tap targets. From `lg` they are plain columns.
@@ -83,13 +87,16 @@ export async function Footer({ lang }: { lang: Lang }) {
   // `!` because the base layer's `:lang(ja) h2` (serif, 0.01em) outranks a
   // utility class; a footer heading is a Label, in Inter, on both languages.
   const heading = `text-[11px] !font-sans !font-semibold !leading-snug text-gold-pale ${lang === "en" ? "uppercase !tracking-[0.14em]" : "!tracking-[0.05em]"}`;
-  const link = "inline-flex min-h-11 items-center text-chalk/80 hover:text-gold-pale lg:min-h-9";
-  const figure = `${lang === "ja" ? "font-jp" : "font-display"} text-[19px] leading-snug text-gold-pale [font-variant-numeric:lining-nums_tabular-nums]`;
+  // Owner 2026-10-03 22:21: the footer was too tall. From lg the links sit on
+  // a 32px rhythm (phones keep the 44px tap target) and Collections runs in
+  // two columns, so the tallest column is seven rows, not thirteen.
+  const link = "inline-flex min-h-11 items-center text-chalk/80 hover:text-gold-pale lg:min-h-8 lg:text-[13.5px]";
+  const figure = `${lang === "ja" ? "font-jp" : "font-display"} text-[17px] leading-snug text-gold-pale [font-variant-numeric:lining-nums_tabular-nums]`;
 
   return (
-    <footer className="band-dark relative bg-charcoal-deep pb-10 pt-14 text-sm text-chalk">
+    <footer className="band-dark relative bg-charcoal-deep pb-8 pt-10 text-sm text-chalk lg:pt-12">
       <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-gold-dark via-gold to-gold-dark" />
-      <div className="wrap grid gap-x-8 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1.2fr]">
+      <div className="wrap grid gap-x-8 lg:grid-cols-[1.2fr_1.5fr_1fr_1fr_1.2fr]">
         <div>
           <div className="flex items-center gap-3">
             <img src="/images/brand/logo-badge-192.webp" width={48} height={48} alt="" className="h-12 w-12" />
@@ -98,14 +105,14 @@ export async function Footer({ lang }: { lang: Lang }) {
           {/* The Hub's footer.tagline is the ONLY text under the logo (owner
               decision 2026-09-26). pre-line keeps the owner's own line breaks
               and blank lines exactly as typed in the Hub; nothing is added. */}
-          {tagline && <p className="mt-5 max-w-[40ch] whitespace-pre-line leading-relaxed text-chalk/80">{tagline}</p>}
+          {tagline && <p className="mt-4 max-w-[40ch] whitespace-pre-line text-[13.5px] leading-relaxed text-chalk/80">{tagline}</p>}
         </div>
 
         {groups.map((g) => (
           <div key={g.key} className="border-b border-rule first:border-t lg:border-0">
-            <h2 className={`${heading} hidden lg:block lg:mb-4`}>{g.heading}</h2>
-            <ul className="hidden lg:block">
-              {g.links.map((l) => <li key={l.href}><Link href={l.href} className={link}>{l.label}</Link></li>)}
+            <h2 className={`${heading} hidden lg:block lg:mb-3`}>{g.heading}</h2>
+            <ul className={`hidden lg:block ${g.key === "collections" ? "lg:columns-2 lg:gap-x-6" : ""}`}>
+              {g.links.map((l) => <li key={l.href} className="break-inside-avoid"><Link href={l.href} className={link}>{l.label}</Link></li>)}
             </ul>
             <details className="group lg:hidden">
               <summary className={`flex min-h-14 cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden ${heading}`}>
@@ -121,12 +128,12 @@ export async function Footer({ lang }: { lang: Lang }) {
 
         <div className="mt-8 lg:mt-0">
           <h2 className={heading}>{t("footer", "newsletter")}</h2>
-          <p className="mt-3 leading-relaxed text-chalk/80">{t("footer", "newsletterNote")}</p>
+          <p className="mt-2 text-[13.5px] leading-relaxed text-chalk/80">{t("footer", "newsletterNote")}</p>
           <NewsletterForm lang={lang} tone="dark" />
           {followLinks.length > 0 && (
             <>
-              <h2 className={`${heading} mt-8`}>{t("footer", "follow")}</h2>
-              <SocialIcons items={followLinks} tone="dark" lang={lang} className="mt-3" />
+              <h2 className={`${heading} mt-6`}>{t("footer", "follow")}</h2>
+              <SocialIcons items={followLinks} tone="dark" lang={lang} className="mt-2" />
             </>
           )}
         </div>
@@ -134,24 +141,24 @@ export async function Footer({ lang }: { lang: Lang }) {
 
       {/* THE TRUST LEDGER. Hairline cells (gold at 32%, `.band-dark`'s rule).
           The permit and invoice cells carry the live footer strings verbatim. */}
-      <dl className="wrap mt-12">
+      <dl className="wrap mt-8 lg:mt-10">
         <div className="grid grid-cols-2 border-y border-rule lg:grid-cols-4">
-          <div className="border-b border-r border-rule py-5 pr-4 lg:border-b-0 lg:pl-0">
+          <div className="border-b border-r border-rule py-4 pr-4 lg:border-b-0 lg:pl-0">
             <dt className={heading}>{t("trust", "founded")}</dt>
             <dd className={`mt-2 ${figure}`}>{t("trust", "foundedValue")}</dd>
             <dd className="mt-1 text-xs text-chalk/75">{t("trust", "incorporated")}</dd>
           </div>
-          <div className="border-b border-rule py-5 pl-4 lg:border-b-0 lg:border-r lg:pr-4">
+          <div className="border-b border-rule py-4 pl-4 lg:border-b-0 lg:border-r lg:pr-4">
             <dt className={heading}>{t("trust", "auth")}</dt>
             <dd className={`mt-2 ${figure}`}>{t("trust", "authValue")}</dd>
             <dd className="mt-1 text-xs text-chalk/75">{t("trust", "authNote")}</dd>
           </div>
-          <div className="border-r border-rule py-5 pr-4 lg:pl-4">
+          <div className="border-r border-rule py-4 pr-4 lg:pl-4">
             {/* The live line already names itself: its caption is for screen readers only. */}
             <dt className="sr-only">{t("trust", "permit")}</dt>
             <dd className="text-[13px] leading-relaxed text-chalk/85 [font-variant-numeric:lining-nums_tabular-nums]">{t("footer", "secondhandPermit")}</dd>
           </div>
-          <div className="py-5 pl-4">
+          <div className="py-4 pl-4">
             {/* The live line already names itself: its caption is for screen readers only. */}
             <dt className="sr-only">{t("trust", "invoice")}</dt>
             <dd className="text-[13px] leading-relaxed text-chalk/85 [font-variant-numeric:lining-nums_tabular-nums]">{t("footer", "invoiceReg")}</dd>
@@ -159,7 +166,7 @@ export async function Footer({ lang }: { lang: Lang }) {
         </div>
       </dl>
 
-      <div className="wrap mt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-chalk/75">
+      <div className="wrap mt-5 flex flex-wrap items-center justify-between gap-4 text-xs text-chalk/75">
         {/* The REGISTERED name, from the one constant that holds it; English
             adds "Cha Jewels Co., Ltd." in front (owner decision 2026-09-25). */}
         <span>© {new Date().getFullYear()} {COMPANY_NAME_DISPLAY[lang]}</span>
