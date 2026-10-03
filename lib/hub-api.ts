@@ -1,5 +1,5 @@
 import "server-only";
-import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
@@ -285,6 +285,16 @@ export const hub = {
       : call(`/newsletter/unsubscribe?token=${encodeURIComponent(token)}`, { revalidate: false }),
 
   fx: (): Promise<FxRate> => FIXTURES ? Promise.resolve({ jpy_php: fx.FIXTURE_RATE, as_of: "2026-09-08" }) : call("/fx", { revalidate: 3600, tags: ["fx"], timeout: SECONDARY_TIMEOUT_MS }),
+  /**
+   * Whether the product page shows Paidy's N-Pay widget (owner W1–W5,
+   * 2026-10-03): the Hub says yes only while paidy_mode is 'on', so in test
+   * the banner never reaches a customer. Re-read hourly — flipping the switch
+   * needs no deploy. Secondary: a failure is "no widget", never a broken page.
+   */
+  paidyWidget: (): Promise<PaidyWidgetFlag> =>
+    FIXTURES
+      ? Promise.resolve({ enabled: fx.PREVIEW_PAIDY })
+      : call<PaidyWidgetFlag>("/paidy/widget", { revalidate: 3600, tags: ["paidy"], timeout: SECONDARY_TIMEOUT_MS }).catch(() => ({ enabled: false })),
   loyaltyTiers: (): Promise<HubTier[]> =>
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>

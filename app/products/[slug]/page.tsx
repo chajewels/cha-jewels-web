@@ -20,6 +20,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { AddToCart } from "@/components/commerce/add-to-cart";
 import { ReserveWithLayaway } from "@/components/commerce/reserve-with-layaway";
 import { PointsLine } from "@/components/commerce/points-line";
+import { PaidyWidget } from "@/components/commerce/paidy-widget";
 import { BuyBar } from "@/components/commerce/buy-bar";
 import { SocialGlyph } from "@/components/site/social-icons";
 import { MessengerAnchor } from "@/components/site/messenger-anchor";
@@ -105,7 +106,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   // The rest of the catalogue, for the crumb, the ledger's category, related
   // pieces and a sold piece's alternatives. All secondary (lib/catalog-context).
-  const [cols, category, all, messenger, reviewData] = await Promise.all([
+  const [cols, category, all, messenger, reviewData, paidyWidget] = await Promise.all([
     collectionsWithProducts(),
     categoryOf(p),
     catalogue(),
@@ -113,6 +114,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     // Secondary: a review read that fails is no review section, never a broken
     // product page (reviews are an addition to the piece, not the piece).
     hub.reviews({ product: p.slug, lang, limit: 12 }).catch(() => null),
+    // Secondary: Paidy's N-Pay widget shows only while the Hub says paidy_mode
+    // is 'on' (owner W3); a failed read is "no widget" inside hub.paidyWidget.
+    hub.paidyWidget(),
   ]);
   const reviews = reviewData ? showable(reviewData.reviews) : [];
   const reviewCount = reviewData?.count ?? 0;
@@ -189,6 +193,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {price != null && (
               <PriceBlock price={price} downPayment={{ jpy: variant?.down_payment_jpy, php: variant?.down_payment_php }} lang={lang} showReserve={layaway && buyable} sold={!buyable} />
             )}
+            {/* Paidy's N-Pay widget right under the price band, EN and JA, on
+                a buyable piece, only while the Hub's Paidy switch is on (owner
+                W1–W5, 2026-10-03). The figure it shows is Paidy's own. */}
+            {paidyWidget.enabled && buyable && price != null && <PaidyWidget amountJpy={price} className="-mt-2" />}
 
             {buyable && variant ? (
               <>

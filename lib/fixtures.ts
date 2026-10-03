@@ -29,7 +29,7 @@ function fixtureDownPayments(jpy: number) {
  */
 const PREVIEW_RESERVATION = process.env.NEXT_PUBLIC_PREVIEW_RESERVATION === "1";
 /** NEXT_PUBLIC_PREVIEW_PAIDY=1 offers Paidy ato-barai on the preview's yen order (the Hub's test-key shape). */
-const PREVIEW_PAIDY = process.env.NEXT_PUBLIC_PREVIEW_PAIDY === "1";
+export const PREVIEW_PAIDY = process.env.NEXT_PUBLIC_PREVIEW_PAIDY === "1";
 // Website orders (Hub PR 6 / storefront PR 7): NEXT_PUBLIC_PREVIEW_DRAFTS=1
 // makes the preview Hub answer checkout with a DRAFT and list drafts in the
 // account, as the live Hub does with web_checkout_mode = 'draft'.
