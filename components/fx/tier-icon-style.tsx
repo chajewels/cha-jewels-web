@@ -41,10 +41,31 @@ const eF2 = pc(T.facets * T.flashAt + 0.2, T.eliteEvery);
 const eF3 = pc(T.facets * T.flashAt + 0.7, T.eliteEvery);
 const cS = pc(T.shimmer, T.crownEvery);
 
+const dS = T.coinRise + T.sheenDelay; // the sheen follows the coin's rise
+
 const CSS = `
-.ti { display: block; flex-shrink: 0; margin-bottom: 16px; width: var(--ti-sm); height: var(--ti-sm); }
+.ti { display: block; flex-shrink: 0; margin-bottom: 16px; width: var(--ti-sm); height: var(--ti-sm); perspective: 420px; }
 @media (min-width: 1024px) { .ti { width: var(--ti-lg); height: var(--ti-lg); } }
-.ti svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.ti .ti-coin { display: block; width: 100%; height: 100%; transform-style: preserve-3d; transform: rotateX(var(--ti-rx, 0deg)) rotateY(var(--ti-ry, 0deg)); transition: transform .35s var(--ease-lux); will-change: transform; }
+.ti .ti-coin[data-tilting] { transition: transform .08s linear; }
+.ti svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 10px rgb(0 0 0 / .45)); }
+
+/* THE COIN'S ARRIVAL (every tier): lowered and small until the ladder lights
+   the card, then it rises into place; a band of light crosses the disc once
+   as it settles. The tier's own symbol motion follows. */
+.fx-ladder[data-armed] li:not([data-shown]) .ti svg { opacity: 0; transform: translateY(${T.coinRiseFrom}px) scale(${T.coinScaleFrom}); }
+${SHOWN} .ti svg { animation: ti-coin-rise ${T.coinRise}s var(--ease-lux) both; }
+${SHOWN} .ti .ti-sheen { animation: ti-coin-sheen ${T.sheen}s var(--ease-sheen) ${f(dS)}s both; }
+@keyframes ti-coin-rise { from { opacity: 0; transform: translateY(${T.coinRiseFrom}px) scale(${T.coinScaleFrom}); } to { opacity: 1; transform: none; } }
+@keyframes ti-coin-sheen { 0% { opacity: 0; transform: translateX(0) skewX(-20deg); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(96px) skewX(-20deg); } }
+.ti .ti-sheen { opacity: 0; }
+
+/* CROWN VIP's aura: breathes while the card is on screen. */
+.ti .ti-aura { opacity: 0; transform-box: view-box; transform-origin: 32px 32px; }
+${SHOWN} .ti[data-ti=crown] .ti-aura { animation: ti-aura-in ${T.coinRise}s var(--ease-lux) both, ti-aura-breathe ${T.auraEvery}s var(--ease-sheen) ${f(T.coinRise)}s infinite alternate; animation-play-state: running, paused; }
+@keyframes ti-aura-in { from { opacity: 0; transform: scale(.8); } to { opacity: .55; transform: none; } }
+@keyframes ti-aura-breathe { from { opacity: .35; transform: scale(.96); } to { opacity: .8; transform: scale(1.06); } }
+${RUN} .ti .ti-aura { animation-play-state: running, running; }
 .ti .ti-sym, .ti .ti-star, .ti .ti-rays { transform-box: view-box; transform-origin: 32px 32px; }
 .ti .ti-glint, .ti .ti-flash { transform-box: fill-box; transform-origin: center; }
 .ti .ti-glow, .ti .ti-facet-light, .ti .ti-shimmer, .ti .ti-flash { opacity: 0; }
@@ -102,6 +123,9 @@ ${RUN} .ti .ti-facet-light, ${RUN} .ti .ti-flash, ${RUN} .ti .ti-sym, ${RUN} .ti
 @media (prefers-reduced-motion: reduce) {
   .ti * { animation: none !important; }
   .fx-ladder[data-armed] li:not([data-shown]) .ti[data-ti=crown] .ti-sym { transform: none; }
+  .fx-ladder[data-armed] li:not([data-shown]) .ti svg { opacity: 1; transform: none; }
+  .ti .ti-coin { transform: none !important; transition: none; }
+  .ti[data-ti=crown] .ti-aura { opacity: .45; }
 }`;
 
 export function TierIconStyle() {
