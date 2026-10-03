@@ -448,6 +448,17 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(fx.orderFixture(id))
       : notFoundToNull(call(`/orders/${encodeURIComponent(id)}`, { jwt, revalidate: false })),
+  /**
+   * Hands the Hub a Paidy authorisation for this order (Paidy ato-barai,
+   * 2026-10-03). Like `layawayPay`, this creates a SUBMISSION, never a
+   * payment: the Hub re-reads the authorisation from Paidy with its secret
+   * key, checks it matches the order, and files it for a reviewer. The money
+   * is captured only when the reviewer confirms; Reject releases it.
+   */
+  orderPaidy: (jwt: string, id: string, paidyPaymentId: string): Promise<{ ok: true }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const })
+      : call(`/orders/${encodeURIComponent(id)}/paidy`, { method: "POST", body: JSON.stringify({ paidy_payment_id: paidyPaymentId }), jwt, revalidate: false }),
   /** The customer's own service requests, every order and plan, newest first. */
   serviceRequests: (jwt: string): Promise<ServiceRequest[]> =>
     FIXTURES ? Promise.resolve(fx.serviceRequestsFixture()) : call("/me/service-requests", { jwt, revalidate: false }),

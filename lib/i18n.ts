@@ -964,7 +964,33 @@ export const dict = {
     next4Layaway: { ja: "月々のお支払いのあと発送", en: "Monthly payments, then we ship" },
     next4LayawayP: { ja: "全額のお支払い完了後に発送します。", en: "The piece ships once the plan is paid in full." },
   },
+  // 『あと払い（ペイディ）』 on a confirmed order (Paidy, 2026-10-03). The label
+  // is Paidy's prescribed one, exactly; the explainer names the two plans the
+  // merchant terms enable (pay next month, or 3 instalments chosen in the
+  // Paidy app). Every amount shown is the Hub's; nothing here states a fee.
+  paidy: {
+    label: { ja: "あと払い（ペイディ）", en: "Paidy — あと払い（ペイディ）" },
+    lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。3回あと払いもペイディアプリからお選びいただけます。", en: "Pay next month with just your email and mobile number, or split into 3 in the Paidy app. For delivery addresses in Japan." },
+    button: { ja: "ペイディで支払う", en: "Pay with Paidy" },
+    filing: { ja: "確認中…", en: "Confirming…" },
+    note: { ja: "ペイディでのお申込み後、Cha Jewelsが内容を確認してからご請求が確定します。確定後、ご利用額は翌月にペイディからご請求されます（コンビニ払い・銀行振込・口座振替）。", en: "After Paidy approves, Cha Jewels confirms the order before the charge is final. Paidy then bills you next month (convenience store, bank transfer or direct debit)." },
+    testMode: { ja: "テストモード：実際の請求は発生しません。", en: "Test mode — nothing is charged." },
+    rejected: { ja: "ペイディでのお支払いはご利用いただけませんでした。下記の銀行振込をご利用ください。", en: "Paidy could not approve this payment. The bank details below are still available." },
+    errMismatch: { ja: "ペイディの承認内容がご注文と一致しなかったため、取り消しました。もう一度お試しいただくか、銀行振込をご利用ください。", en: "Paidy's approval did not match this order, so it was cancelled. Please try again, or use bank transfer." },
+    errNotOffered: { ja: "このご注文では現在ペイディをご利用いただけません。ページを再読み込みしてご確認ください。", en: "Paidy is not available for this order right now. Please reload the page." },
+    errPending: { ja: "このご注文には確認中のお支払いがあります。", en: "A payment on this order is already being checked." },
+    errTooMany: { ja: "お支払いの登録が上限に達しました。しばらくしてからお試しください。", en: "Too many payment attempts for now. Please try again later." },
+    errSignedOut: { ja: "セッションが切れました。もう一度サインインしてください。", en: "Your session ended. Please sign in again." },
+    errFailed: { ja: "ペイディのお支払いを登録できませんでした。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We could not record the Paidy payment. Please try again, or use bank transfer." },
+  },
   orders: {
+    // A submission the Hub is still checking (a transfer slip or a Paidy
+    // authorisation): shown instead of the payment card until a reviewer
+    // confirms or rejects it. Same shape as plans.pending.
+    pending: { ja: "お支払いを確認中です", en: "Your payment is being checked" },
+    pendingNote: { ja: "{amount}（{date}・{method}）を確認中です。確認後にメールでお知らせします。", en: "{amount} ({date}, {method}) is being checked. We will email you once it is confirmed." },
+    methodPaidy: { ja: "あと払い（ペイディ）", en: "Paidy" },
+    methodTransfer: { ja: "お振込", en: "bank transfer" },
     h1: { ja: "ご注文履歴", en: "Your orders" },
     empty: { ja: "まだご注文はありません。", en: "No orders yet." },
     reference: { ja: "ご注文番号", en: "Reference" },
