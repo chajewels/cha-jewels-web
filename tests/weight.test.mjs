@@ -1,4 +1,5 @@
-// Weight is shown with two decimals everywhere on the site (owner, 2026-10-03):
+// Weight is shown with two decimals everywhere on the site (owner, 2026-10-03),
+// except whole grams, which show none ("19 g"; owner refinement the same day):
 // the Hub stores weight_g as numeric(8,2) and its editor shows "8.80" (Hub
 // #326), but JSON drops the trailing zero (8.80 → 8.8) and the site printed
 // the raw number — "8.8 g" on the product page, cards, cart and brand pages.
@@ -10,13 +11,18 @@ import { join } from "node:path";
 
 const { formatWeight } = await import(pathToFileURL(join(process.cwd(), "lib/utils.ts")).href);
 
-test("a weight is always two decimals with the unit", () => {
+test("a fractional weight is two decimals with the unit", () => {
   assert.equal(formatWeight(8.8), "8.80 g");
-  assert.equal(formatWeight(19), "19.00 g");
   assert.equal(formatWeight(2.2), "2.20 g");
   assert.equal(formatWeight(16.2), "16.20 g");
   assert.equal(formatWeight(0.98), "0.98 g");
   assert.equal(formatWeight(3.345), "3.35 g");
+});
+
+test("a whole number of grams shows no decimals", () => {
+  assert.equal(formatWeight(19), "19 g");
+  assert.equal(formatWeight(5), "5 g");
+  assert.equal(formatWeight(9.0), "9 g");
 });
 
 test("no weight → no line, never 0.00 g", () => {

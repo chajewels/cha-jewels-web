@@ -17,13 +17,15 @@ export function formatYenPeso(jpy: number, php: number) {
   return `${formatMoney(jpy, "JPY")} (${formatMoney(php, "PHP")})`;
 }
 /**
- * Weight in grams, always two decimals (owner, 2026-10-03): the Hub stores
- * weight_g as numeric(8,2) and its editor shows "8.80", but JSON drops the
- * trailing zero (8.80 → 8.8), so the site must restore it. Null / 0 / NaN →
- * null (no weight line), never "0.00 g".
+ * Weight in grams (owner, 2026-10-03): two decimals — the Hub stores weight_g
+ * as numeric(8,2) and its editor shows "8.80", but JSON drops the trailing
+ * zero (8.80 → 8.8), so the site restores it — except a whole number of
+ * grams, which shows none ("19 g", not "19.00 g"; owner refinement the same
+ * day). Null / 0 / NaN → null (no weight line), never "0.00 g".
  */
 export function formatWeight(g: number | null | undefined): string | null {
-  return typeof g === "number" && Number.isFinite(g) && g > 0 ? `${g.toFixed(2)} g` : null;
+  if (typeof g !== "number" || !Number.isFinite(g) || g <= 0) return null;
+  return Number.isInteger(g) ? `${g} g` : `${g.toFixed(2)} g`;
 }
 /** A number the Hub actually sent — not absent, not null, not NaN. */
 export const isFigure = (n: number | null | undefined): n is number => typeof n === "number" && Number.isFinite(n);
