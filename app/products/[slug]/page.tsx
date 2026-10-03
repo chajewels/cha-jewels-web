@@ -30,7 +30,7 @@ import { ProductView } from "@/components/analytics/product-view";
 import { galleryItems } from "@/lib/product-media";
 import { catalogue, categoryOf, collectionOf, collectionsWithProducts, relatedPieces, soldAlternatives } from "@/lib/catalog-context";
 import { follow } from "@/lib/settings";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, formatWeight } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { hub } from "@/lib/hub-api";
 import { showable } from "@/lib/reviews";
@@ -123,10 +123,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const crumb = col ? { href: `/collections/${col.slug}`, name: collectionName(col, lang) }
     : category ? { href: `/categories/${category.slug}`, name: categoryName(category, lang) } : null;
 
-  const spec = [metals.length ? metalsLabel(metals, lang) : null, p.weight_g ? `${p.weight_g} g` : null, variant?.stone?.trim() || null].filter((x): x is string => !!x);
+  const spec = [metals.length ? metalsLabel(metals, lang) : null, formatWeight(p.weight_g), variant?.stone?.trim() || null].filter((x): x is string => !!x);
   const ledger: [string, string][] = [
     [t("product", "metal"), metals.length ? metalsLabel(metals, lang) : "—"],
-    [t("product", "weight"), p.weight_g ? `${p.weight_g} g` : "—"],
+    [t("product", "weight"), formatWeight(p.weight_g) ?? "—"],
     [t("product", "stone"), variant?.stone?.trim() || "—"],
     ...(variant?.size?.trim() ? [[t("pdp", "size"), variant.size.trim()] as [string, string]] : []),
     [t("pdp", "condition"), p.condition === "Preloved" ? t("collection", "filterPreloved") : t("collection", "filterNew")],

@@ -5,7 +5,7 @@ import { availabilityKey, isBuyable, variantAvailability } from "@/lib/availabil
 import Link from "next/link";
 import { useTransition } from "react";
 import { removeFromCart, setCartQty } from "@/lib/cart-actions";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, formatWeight } from "@/lib/utils";
 import { tr, type Lang } from "@/lib/i18n";
 import type { CartItem } from "@/lib/cart";
 import { cartItemName } from "@/lib/catalog-i18n";
@@ -43,7 +43,7 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
         const name = cartItemName(item, lang);
         const spec = [
           item.metals.length ? metalsLabel(item.metals, lang) : null,
-          item.weight_g ? `${item.weight_g} g` : null,
+          formatWeight(item.weight_g),
           item.stone?.trim() || null,
         ].filter((x): x is string => !!x);
         return (
