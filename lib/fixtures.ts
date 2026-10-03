@@ -28,6 +28,8 @@ function fixtureDownPayments(jpy: number) {
  * is exactly what it was — the switch-off world.
  */
 const PREVIEW_RESERVATION = process.env.NEXT_PUBLIC_PREVIEW_RESERVATION === "1";
+/** NEXT_PUBLIC_PREVIEW_PAIDY=1 offers Paidy ato-barai on the preview's yen order (the Hub's test-key shape). */
+const PREVIEW_PAIDY = process.env.NEXT_PUBLIC_PREVIEW_PAIDY === "1";
 // Website orders (Hub PR 6 / storefront PR 7): NEXT_PUBLIC_PREVIEW_DRAFTS=1
 // makes the preview Hub answer checkout with a DRAFT and list drafts in the
 // account, as the live Hub does with web_checkout_mode = 'draft'.
@@ -683,6 +685,21 @@ export function orderFixture(id: string): HubOrderDetail | null {
     // never before staff confirm the piece.
     transfer_region: order.currency === "PHP" ? "OVERSEAS" : "JP",
     transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? fixtureMethods : [],
+    pending_submissions: [],
+    ...(PREVIEW_PAIDY && order.currency === "JPY" && order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? {
+      paidy: {
+        offered: true,
+        public_key: "pk_test_preview",
+        test: true,
+        checkout: {
+          amount: Number(order.remaining_balance), currency: "JPY", store_name: "Cha Jewels",
+          buyer: { email: meFixture.customer.email ?? undefined, name1: meFixture.customer.full_name ?? "Preview Customer", phone: "08000000001" },
+          buyer_data: { user_id: "CJ-2026-00008", ltv: 0, account_registration_date: "2026-09-01", order_count: 0 },
+          order: { items: [{ id: "v3", quantity: 1, title: "Twist bangle", unit_price: 236000 }], order_ref: order.web_reference ?? undefined, shipping: Number(order.shipping_fee ?? 0), tax: 0 },
+          shipping_address: { line1: meFixture.addresses[0].line1, line2: meFixture.addresses[0].line2 ?? undefined, city: meFixture.addresses[0].city ?? undefined, state: meFixture.addresses[0].region ?? undefined, zip: meFixture.addresses[0].postal_code ?? "" },
+        },
+      },
+    } : {}),
   };
 }
 
