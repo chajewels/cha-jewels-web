@@ -1,4 +1,5 @@
 import { TierIconStyle } from "@/components/fx/tier-icon-style";
+import { TierCoin } from "@/components/fx/tier-coin";
 
 /**
  * A LOYALTY TIER'S MEDALLION — the mark at the top of its card on /loyalty.
@@ -11,9 +12,17 @@ import { TierIconStyle } from "@/components/fx/tier-icon-style";
  * others must not take its neighbour's crown. An unknown slug gets DEFAULT, a
  * plain medallion that claims no rank.
  *
- * Explicit width and height (no layout shift), no request, no JavaScript: a
- * server component. The motion lives in tier-icon-style.tsx and is started by
- * the ladder (components/fx/tier-ladder.tsx) lighting the card.
+ * Explicit width and height (no layout shift), no request. The motion lives
+ * in tier-icon-style.tsx and is started by the ladder
+ * (components/fx/tier-ladder.tsx) lighting the card.
+ *
+ * UPGRADE (owner decision A, 2026-10-03): the disc sits in an engraved gold
+ * rim — a bevelled outer ring and a hairline inner ring — with an inner
+ * shadow and a top highlight so it reads as struck metal; the whole coin
+ * rises and catches one pass of light on arrival (every tier), the Crown
+ * carries a breathing gold aura, and on a fine pointer the coin tilts after
+ * the cursor (TierCoin, the only script here). The tier symbols and their
+ * idle motion are the original artwork's, unchanged.
  */
 
 type Mark = { from: string; to: string; symbol: React.ReactNode; kind: string };
@@ -109,28 +118,66 @@ export function TierIcon({ slug, sm = 72, lg = 88 }: { slug: string; sm?: number
   const m = tierMark(slug);
   // Ids are per kind: a page shows each tier once, and the default mark uses no id.
   const g = `ti-g-${m.kind}`;
+  const k = m.kind;
   return (
-    <span aria-hidden="true" className="ti" data-ti={m.kind} style={{ ["--ti-sm" as string]: `${sm}px`, ["--ti-lg" as string]: `${lg}px` }}>
+    <span aria-hidden="true" className="ti" data-ti={k} style={{ ["--ti-sm" as string]: `${sm}px`, ["--ti-lg" as string]: `${lg}px` }}>
       <TierIconStyle />
+      <TierCoin>
       <svg viewBox="0 0 64 64" width={sm} height={sm} focusable="false">
         <defs>
           <linearGradient id={g} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stopColor={m.from} />
             <stop offset="1" stopColor={m.to} />
           </linearGradient>
-          <radialGradient id={`ti-glow-${m.kind}`}>
+          <radialGradient id={`ti-glow-${k}`}>
             <stop offset="0" stopColor="#FFF6E0" stopOpacity="1" />
             <stop offset="1" stopColor="#FFF6E0" stopOpacity="0" />
           </radialGradient>
+          {/* The rim: brushed gold, lit from the upper left, dark at the lower right. */}
+          <linearGradient id={`ti-rim-${k}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#F3DFA4" />
+            <stop offset=".35" stopColor="#C9A227" />
+            <stop offset=".62" stopColor="#8C6A14" />
+            <stop offset="1" stopColor="#E5C860" />
+          </linearGradient>
+          {/* Depth: the disc darkens toward its edge, as a struck coin does. */}
+          <radialGradient id={`ti-depth-${k}`} cx=".5" cy=".5" r=".5">
+            <stop offset=".62" stopColor="#000" stopOpacity="0" />
+            <stop offset="1" stopColor="#000" stopOpacity=".42" />
+          </radialGradient>
+          {/* The sheen: one soft band of light that crosses the disc on arrival. */}
+          <linearGradient id={`ti-sheen-${k}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#FFF6E0" stopOpacity="0" />
+            <stop offset=".5" stopColor="#FFF6E0" stopOpacity=".55" />
+            <stop offset="1" stopColor="#FFF6E0" stopOpacity="0" />
+          </linearGradient>
+          <clipPath id={`ti-disc-${k}`}><circle cx="32" cy="32" r="27" /></clipPath>
+          {k === "crown" && (
+            <radialGradient id="ti-aura-crown" cx=".5" cy=".5" r=".5">
+              <stop offset=".55" stopColor="#E5C860" stopOpacity=".55" />
+              <stop offset="1" stopColor="#E5C860" stopOpacity="0" />
+            </radialGradient>
+          )}
           {m.kind === "elite" && <clipPath id="ti-elite-stone"><path d="M23 19 H41 L50 27 L32 47 L14 27 Z" /></clipPath>}
           {m.kind === "crown" && <clipPath id="ti-crown-shape"><path d="M18 40 L15.5 24 L22.5 31 L24.5 20 L29 29 L32 17.5 L35 29 L39.5 20 L41.5 31 L48.5 24 L46 40 Z M18 41.5 H46 V44.7 H18 Z" /></clipPath>}
         </defs>
-        <circle cx="32" cy="32" r="31" fill={`url(#${g})`} />
-        <circle cx="32" cy="32" r="29" fill="none" stroke={GOLD_RING} strokeWidth="1" opacity=".9" />
+        {k === "crown" && <circle className="ti-aura" cx="32" cy="32" r="38" fill="url(#ti-aura-crown)" />}
+        {/* Rim: a bevelled gold ring with a dark seat under it, and the hairline inner ring. */}
+        <circle cx="32" cy="32" r="31.5" fill="#2A1F12" />
+        <circle className="ti-rim" cx="32" cy="32" r="29.6" fill="none" stroke={`url(#ti-rim-${k})`} strokeWidth="3.2" />
+        <circle cx="32" cy="32" r="27" fill={`url(#${g})`} />
+        <circle cx="32" cy="32" r="27" fill={`url(#ti-depth-${k})`} />
+        <circle cx="32" cy="32" r="25.6" fill="none" stroke={GOLD_RING} strokeWidth=".8" opacity=".85" />
+        {/* Top-left highlight on the disc, the light the rim is lit by. */}
+        <path d="M12 24 A22 22 0 0 1 40 10.5" fill="none" stroke="#FFF6E0" strokeWidth="1.2" strokeLinecap="round" opacity=".28" />
         {m.symbol}
+        <g clipPath={`url(#ti-disc-${k})`}>
+          <rect className="ti-sheen" x="-26" y="0" width="22" height="64" fill={`url(#ti-sheen-${k})`} transform="skewX(-20)" />
+        </g>
         {/* Brightness, as light laid over the mark (opacity only). */}
-        <circle className="ti-glow" cx="32" cy="32" r="26" fill={`url(#ti-glow-${m.kind})`} />
+        <circle className="ti-glow" cx="32" cy="32" r="26" fill={`url(#ti-glow-${k})`} />
       </svg>
+      </TierCoin>
     </span>
   );
 }

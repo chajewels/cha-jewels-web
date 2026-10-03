@@ -190,6 +190,17 @@ export const TIER_ICON = {
   float: 3,
   crownEvery: 4.2,
   offset: { glimmer: 0.2, radiant: 0, elite: 0.9, crown: 1.6 },
+  // Medallion upgrade (owner A, 2026-10-03): the coin's own arrival — it
+  // rises and catches one pass of light — before the tier's symbol plays.
+  coinRise: DUR.image,
+  coinRiseFrom: 10,
+  coinScaleFrom: 0.92,
+  sheen: 1.1,
+  sheenDelay: 0.25,
+  /** The Crown's gold aura breathes on this period while on screen. */
+  auraEvery: 4.8,
+  /** Desktop hover: the coin turns in hand, at most this many degrees. */
+  tiltMax: 14,
 } as const;
 
 /** The scale an arriving gallery photo starts at before settling to 1. */

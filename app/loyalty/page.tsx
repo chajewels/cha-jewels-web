@@ -86,7 +86,7 @@ export default async function LoyaltyPage() {
                     {/* The animated medallion (components/fx/tier-icon.tsx), restored
                         2026-10-03 by owner decision: the step 5 redesign had replaced it
                         with a plain numeral without asking. It lights with the ladder. */}
-                    <TierIcon slug={tier.slug} sm={64} lg={72} />
+                    <TierIcon slug={tier.slug} sm={72} lg={88} />
                     <div>
                       <Label dark>{t("loyalty", "level", { n: String(i + 1) })}</Label>
                       <h3 className={`mt-1 text-gold-pale ${H_TITLE}`}>{tier.name}</h3>
