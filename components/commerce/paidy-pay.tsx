@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { paidyAuthorizedAction } from "@/lib/paidy-actions";
+import { paidyStatus } from "@/lib/paidy";
 import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
 
 /**
@@ -28,7 +29,12 @@ import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
  */
 const PAIDY_SRC = "https://apps.paidy.com/";
 
-type PaidyResult = { id: string; amount: number; currency: string; created_at: string; status: "AUTHORIZED" | "REJECTED" | "CLOSED" };
+// Paidy's reference documents the status in upper case; the live Checkout
+// (test run 2026-10-03, pay_asDHekoAAEkAmsmA) sent "authorized" in lower case,
+// so paidyStatus() compares case-insensitively. An exact compare dropped a real
+// authorisation as "window closed".
+type PaidyResult = { id: string; amount: number; currency: string; created_at: string; status: string };
+
 type PaidyHandler = { launch: (payload: PaidyCheckoutPayload) => void };
 type PaidyGlobal = { configure: (opts: { api_key: string; logo_url?: string; closed: (r: PaidyResult) => void }) => PaidyHandler };
 
@@ -55,7 +61,8 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
       api_key: paidy.public_key,
       logo_url: logoUrl,
       closed: (result) => {
-        if (result.status === "AUTHORIZED") {
+        const status = paidyStatus(result.status);
+        if (status === "AUTHORIZED") {
           setState("filing");
           start(async () => {
             const r = await paidyAuthorizedAction(orderId, result.id);
@@ -68,7 +75,7 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
               setState("error");
             }
           });
-        } else if (result.status === "REJECTED") {
+        } else if (status === "REJECTED") {
           setState("rejected");
         } else {
           setState("idle");

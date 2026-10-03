@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
 
-const { paidyOffer, pendingSubmissions } = await import(pathToFileURL(join(process.cwd(), "lib/paidy.ts")).href);
+const { paidyOffer, pendingSubmissions, paidyStatus } = await import(pathToFileURL(join(process.cwd(), "lib/paidy.ts")).href);
 
 const checkout = (over = {}) => ({
   amount: 236800, currency: "JPY", buyer: { name1: "Preview Customer" },
@@ -42,4 +42,13 @@ test("only submitted / under_review count as pending", () => {
   ];
   assert.deepEqual(pendingSubmissions({ pending_submissions: subs }).map((s) => s.id), ["a", "c"]);
   assert.deepEqual(pendingSubmissions({}), []);
+});
+
+test("the closed-callback status is read case-insensitively (Paidy sends lower case)", () => {
+  assert.equal(paidyStatus("authorized"), "AUTHORIZED");
+  assert.equal(paidyStatus("AUTHORIZED"), "AUTHORIZED");
+  assert.equal(paidyStatus("rejected"), "REJECTED");
+  assert.equal(paidyStatus("closed"), "CLOSED");
+  assert.equal(paidyStatus(undefined), "CLOSED");
+  assert.equal(paidyStatus("anything-else"), "CLOSED");
 });

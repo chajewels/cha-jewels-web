@@ -24,3 +24,15 @@ export function paidyOffer(detail: Pick<HubOrderDetail, "paidy" | "order">): Hub
 export function pendingSubmissions(detail: Pick<HubOrderDetail, "pending_submissions">): HubLayawaySubmission[] {
   return (detail.pending_submissions ?? []).filter((s) => s.status === "submitted" || s.status === "under_review");
 }
+
+/**
+ * Paidy Checkout's closed-callback status, compared case-insensitively. The
+ * reference documents AUTHORIZED | REJECTED | CLOSED; the live Checkout sent
+ * "authorized" in lower case (test run 2026-10-03, pay_asDHekoAAEkAmsmA) and an
+ * exact compare dropped a real authorisation as "window closed". Anything that
+ * is not AUTHORIZED / REJECTED is CLOSED (the customer left).
+ */
+export function paidyStatus(raw: unknown): "AUTHORIZED" | "REJECTED" | "CLOSED" {
+  const s = String(raw ?? "").trim().toUpperCase();
+  return s === "AUTHORIZED" || s === "REJECTED" ? s : "CLOSED";
+}
