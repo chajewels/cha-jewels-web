@@ -19,6 +19,7 @@ import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { AddToCart } from "@/components/commerce/add-to-cart";
 import { ReserveWithLayaway } from "@/components/commerce/reserve-with-layaway";
+import { PointsLine } from "@/components/commerce/points-line";
 import { BuyBar } from "@/components/commerce/buy-bar";
 import { SocialGlyph } from "@/components/site/social-icons";
 import { MessengerAnchor } from "@/components/site/messenger-anchor";
@@ -191,6 +192,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
             {buyable && variant ? (
               <>
+                {/* Signed-in only; renders nothing otherwise (owner 2026-10-03). */}
+                <PointsLine variantId={variant.id} lang={lang} />
                 <div className="grid gap-2.5">
                   <AddToCart id="pdp-atc" variantId={variant.id} slug={p.slug} sku={p.sku} availability={avail} lang={lang} block />
                   {/* EN: the gold ghost for layaway beside the quiet Messenger
