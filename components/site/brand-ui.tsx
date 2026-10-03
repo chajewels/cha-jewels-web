@@ -15,6 +15,7 @@ import { productName } from "@/lib/catalog-i18n";
 import { isBuyable, productAvailability } from "@/lib/availability";
 import type { Lang } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
+import { formatWeight } from "@/lib/utils";
 
 /**
  * A real piece to show "what a listing states" with (About, Why): the first
@@ -28,7 +29,7 @@ export function specExample(products: Product[], lang: Lang): SpecPiece | null {
     const v = fromVariant(p);
     const metals = productMetals(p);
     if (!v || !isBuyable(productAvailability(p)) || !metals.length || !p.weight_g) return null;
-    return { slug: p.slug, sku: p.sku, name: productName(p, lang), metal: metalsLabel(metals, lang), weight: `${p.weight_g} g`, stone: v.stone?.trim() || null };
+    return { slug: p.slug, sku: p.sku, name: productName(p, lang), metal: metalsLabel(metals, lang), weight: formatWeight(p.weight_g) ?? "", stone: v.stone?.trim() || null };
   };
   const all = products.map(make).filter((x): x is SpecPiece => !!x);
   return all.find((x) => x.stone) ?? all[0] ?? null;

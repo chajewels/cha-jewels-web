@@ -3,7 +3,7 @@ import { fromPrice, fromVariant, type Product } from "@/lib/queries/products";
 import { CardFx } from "@/components/fx/card-fx";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { HubImage } from "@/components/media/hub-image";
-import { formatMoney, formatYenPeso, isFigure } from "@/lib/utils";
+import { formatMoney, formatWeight, formatYenPeso, isFigure } from "@/lib/utils";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import { productName } from "@/lib/catalog-i18n";
@@ -59,7 +59,7 @@ export function ProductCard({ product, lang, index = 0, priority = false }: { pr
   const dpJpy = dpVariant?.down_payment_jpy;
   const dpPhp = dpVariant?.down_payment_php;
   const metals = productMetals(product);
-  const spec = [metals.length ? metalsLabel(metals, lang) : null, product.weight_g ? `${product.weight_g} g` : null].filter(Boolean).join(" · ");
+  const spec = [metals.length ? metalsLabel(metals, lang) : null, formatWeight(product.weight_g)].filter(Boolean).join(" · ");
   const img = cardImage(product);
   const name = productName(product, lang);
   // The SAME word the product page shows (lib/availability.ts).
