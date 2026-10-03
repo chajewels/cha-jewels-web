@@ -43,25 +43,32 @@ const pick = (value: string | null | undefined): string | null =>
 /**
  * A Hub row in this language, or null when it has no words in it.
  *
- * A TITLE AND A BODY ARE BOTH REQUIRED. A row with an English title and no
- * English body is a draft somebody saved, not a post — rendering its empty page
- * is worse than not listing it. The excerpt is allowed to be missing and falls
- * back to nothing; an excerpt is a convenience, a body is the post.
+ * A TITLE IS ALWAYS REQUIRED. THE BODY ONLY ON THE ARTICLE PAGE: the Hub's list
+ * route (GET /content/posts) deliberately sends no body — only
+ * /content/posts/:slug does. Requiring one on list rows dropped every post, so
+ * /blog was empty and every article 404'd (found 2026-10-02 in the launch pass;
+ * the fixtures carry a body in the list, which is why previews looked fine).
+ * On the article page a row with no body in this language is still a draft
+ * somebody saved, not a post, and is refused.
+ *
+ * THE COVER is `cover_media` from the Hub; `cover_url` is the older fixture
+ * name and is read first only so the fixtures keep working.
  */
-function fromHub(row: HubPost, lang: Lang): ViewPost | null {
+function fromHub(row: HubPost, lang: Lang, needBody: boolean): ViewPost | null {
   if (!row || typeof row.slug !== "string" || !row.slug.trim()) return null;
   const title = pick(lang === "ja" ? row.title_ja : row.title_en);
   const body = pick(lang === "ja" ? row.body_ja : row.body_en);
-  if (!title || !body) return null;
+  if (!title || (needBody && !body)) return null;
+  const cover = pick(row.cover_url) ?? pick(row.cover_media);
   return {
     slug: row.slug.trim(),
     type: row.type === "news" ? "news" : "article",
     date: day(row.published_at),
     title,
     excerpt: pick(lang === "ja" ? row.excerpt_ja : row.excerpt_en) ?? "",
-    cover: typeof row.cover_url === "string" && row.cover_url.trim() ? row.cover_url.trim() : null,
+    cover,
     layawayOnly: row.layaway_only === true,
-    bodyHtml: renderMarkdown(body),
+    bodyHtml: body ? renderMarkdown(body) : "",
   };
 }
 
@@ -75,7 +82,7 @@ function fromHub(row: HubPost, lang: Lang): ViewPost | null {
 export async function merge(lang: Lang, type?: PostType): Promise<ViewPost[]> {
   return (await hubPosts())
     .flatMap((row) => {
-      const view = fromHub(row, lang);
+      const view = fromHub(row, lang, false);
       return view ? [view] : [];
     })
     .filter((p) => !p.layawayOnly || layawayOffered(lang))
@@ -86,12 +93,19 @@ export async function merge(lang: Lang, type?: PostType): Promise<ViewPost[]> {
 /**
  * One post, or null when this language may not read it.
  *
- * Goes through merge() rather than hub.post() so the language rule and the
- * layaway rule are decided in exactly one place. The list page and the post
- * page cannot disagree about what exists.
+ * The list (merge) decides WHETHER this language may read it — the language
+ * rule and the layaway rule live there, so the list page and the post page
+ * cannot disagree about what exists. Only then is the full row fetched from
+ * /content/posts/:slug for the body, and refused if it has none in this
+ * language.
  */
 export async function getPost(slug: string, lang: Lang): Promise<ViewPost | null> {
-  return (await merge(lang)).find((p) => p.slug === slug) ?? null;
+  const listed = (await merge(lang)).find((p) => p.slug === slug);
+  if (!listed) return null;
+  const full = await hub.post(slug);
+  if (!full) return null;
+  const view = fromHub(full, lang, true);
+  return view ? { ...view, layawayOnly: listed.layawayOnly } : null;
 }
 
 /**

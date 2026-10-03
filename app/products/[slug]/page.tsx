@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getProductBySlug, primaryImage } from "@/lib/queries/products";
 import { tr, type Lang } from "@/lib/i18n";
 import { categoryName, collectionName, productDescription, productName } from "@/lib/catalog-i18n";
+import { productMetaDescription, productTitle } from "@/lib/meta-text";
 import { getLang } from "@/lib/i18n-server";
 import { PriceBlock } from "@/components/commerce/price-block";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
@@ -39,7 +40,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const [p, lang] = await Promise.all([getProductBySlug((await params).slug), getLang()]);
   if (!p) return {};
   const img = primaryImage(p);
-  return { title: productName(p, lang), description: productDescription(p, lang) ?? undefined, openGraph: img ? { images: [img.url] } : undefined };
+  const name = productName(p, lang);
+  return {
+    title: productTitle(name),
+    description: productMetaDescription(name, productDescription(p, lang), lang),
+    openGraph: img ? { images: [img.url] } : undefined,
+  };
 }
 
 /**

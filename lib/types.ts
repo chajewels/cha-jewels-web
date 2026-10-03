@@ -705,6 +705,8 @@ export type HubPost = {
   published?: boolean;
   /** Hero image. Absent is normal and renders no header image at all. */
   cover_url?: string | null;
+  /** The Hub's name for the cover (website_posts.cover_media). Read after cover_url. */
+  cover_media?: string | null;
   /**
    * Listed and readable only where layaway is offered — English only
    * (lib/layaway-availability.ts, owner decision 2026-09-15). The same rule the

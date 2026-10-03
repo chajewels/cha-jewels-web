@@ -35,6 +35,9 @@ const GATED = ["/account", "/checkout", "/loyalty/join"];
 const isGated = (pathname: string) =>
   GATED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
+/** How long the sign-in check may take before the session is treated as unverifiable. */
+const AUTH_TIMEOUT_MS = 6000;
+
 /** Send an anonymous (or unverifiable) visitor to sign in, remembering where they were. */
 function toLogin(req: NextRequest, reason?: string) {
   const to = req.nextUrl.clone();
@@ -81,7 +84,7 @@ export async function middleware(req: NextRequest) {
   fwd.set(PATH_HEADER, req.nextUrl.pathname);
 
   const gated = isGated(req.nextUrl.pathname);
-  const res = NextResponse.next({ request: { headers: fwd } });
+  let res = NextResponse.next({ request: { headers: fwd } });
 
   /**
    * Persist the decision (if any) on whatever response we end up returning.
@@ -120,8 +123,18 @@ export async function middleware(req: NextRequest) {
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll: () => req.cookies.getAll(),
-      setAll: (all: { name: string; value: string; options: CookieOptions }[]) =>
-        all.forEach(({ name, value, options }) => res.cookies.set(name, value, options)),
+      // A REFRESHED SESSION GOES TO THE PAGE AS WELL AS THE BROWSER (launch
+      // pass 2026-10-02). Writing the new cookies only on the response left the
+      // page rendering THIS request holding the expired token, so its own
+      // getUser() refreshed again with a refresh token the middleware had just
+      // spent. Supabase's documented middleware pattern: set them on the
+      // request, rebuild the pass-through response from it, then on the response.
+      setAll: (all: { name: string; value: string; options: CookieOptions }[]) => {
+        all.forEach(({ name, value }) => req.cookies.set(name, value));
+        fwd.set("cookie", req.cookies.toString());
+        res = NextResponse.next({ request: { headers: fwd } });
+        all.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
+      },
     },
   });
 
@@ -130,12 +143,33 @@ export async function middleware(req: NextRequest) {
   // DNS blip must not take the whole site down with it, so a throw is read as
   // "we cannot prove who this is": public pages carry on, gated pages ask for a
   // sign-in. Failing closed on the gate, open on everything else.
+  //
+  // AND IT MUST NOT HANG (launch pass 2026-10-02): a customer whose access token
+  // had expired got "504 MIDDLEWARE_INVOCATION_TIMEOUT" on /account and
+  // /checkout. Refreshing a session retries a failing call for up to ~30 s
+  // inside auth-js, past Vercel's 25 s limit for an initial response. Past
+  // AUTH_TIMEOUT_MS the session cannot be verified: the stale auth cookies are
+  // cleared, so the next visit starts clean, and the customer signs in again.
   let signedIn = false;
+  let timedOut = false;
   try {
-    const { data, error } = await supabase.auth.getUser();
-    signedIn = !error && !!data?.user;
+    const outcome = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<"timeout">((resolve) => setTimeout(() => resolve("timeout"), AUTH_TIMEOUT_MS)),
+    ]);
+    if (outcome === "timeout") timedOut = true;
+    else signedIn = !outcome.error && !!outcome.data?.user;
   } catch {
     signedIn = false;
+  }
+
+  if (timedOut) {
+    console.error(`[middleware] auth check timed out after ${AUTH_TIMEOUT_MS} ms on ${req.nextUrl.pathname}`);
+    const out = toLogin(req, "session");
+    for (const c of req.cookies.getAll()) {
+      if (/^sb-.+-auth-token/.test(c.name)) out.cookies.set(c.name, "", { path: "/", maxAge: 0 });
+    }
+    return withLang(out);
   }
 
   if (!signedIn) return withLang(toLogin(req));
