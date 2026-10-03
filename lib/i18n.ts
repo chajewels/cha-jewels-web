@@ -982,6 +982,13 @@ export const dict = {
     errTooMany: { ja: "お支払いの登録が上限に達しました。しばらくしてからお試しください。", en: "Too many payment attempts for now. Please try again later." },
     errSignedOut: { ja: "セッションが切れました。もう一度サインインしてください。", en: "Your session ended. Please sign in again." },
     errFailed: { ja: "ペイディのお支払いを登録できませんでした。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We could not record the Paidy payment. Please try again, or use bank transfer." },
+    // Under the N-Pay widget on every product page (owner decisions 2026-10-03
+    // 22:01 / 22:04: the widget stays visible to every visitor; the condition
+    // is stated right under it, never hidden by geography — and the condition
+    // is WHO the customer is (lives in Japan: Japanese mobile, Paidy identity
+    // check, pays in Japan), never "a delivery address in Japan", which would
+    // read as usable by an overseas buyer shipping to a friend here).
+    widgetNote: { ja: "ペイディは日本国内にお住まいのお客様向けです。日本の携帯電話番号と本人確認が必要で、お支払いは日本国内（コンビニ・銀行振込・口座振替）で行います。", en: "Paidy is for customers living in Japan: it requires a Japanese mobile number and Paidy's identity check, and you pay Paidy in Japan (convenience store, bank transfer or direct debit). Not available to customers outside Japan." },
   },
   orders: {
     // A submission the Hub is still checking (a transfer slip or a Paidy

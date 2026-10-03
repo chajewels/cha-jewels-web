@@ -196,7 +196,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {/* Paidy's N-Pay widget right under the price band, EN and JA, on
                 a buyable piece, only while the Hub's Paidy switch is on (owner
                 W1–W5, 2026-10-03). The figure it shows is Paidy's own. */}
-            {paidyWidget.enabled && buyable && price != null && <PaidyWidget amountJpy={price} className="-mt-2" />}
+            {paidyWidget.enabled && buyable && price != null && <PaidyWidget amountJpy={price} lang={lang} className="-mt-2" />}
 
             {buyable && variant ? (
               <>
