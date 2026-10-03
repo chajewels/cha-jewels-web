@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { liveMirrorProducts } from "@/lib/fixtures-live";
@@ -1060,4 +1060,22 @@ export function faqFixture(): HubFaqSection[] {
       })),
     };
   });
+}
+
+/**
+ * Preview stand-in for GET /me/points-preview: a Radiant (2×) member, fixed
+ * figures, with a promo bonus so every branch of the line can be looked at.
+ * NEXT_PUBLIC_PREVIEW_POINTS=join shows the non-member line instead.
+ */
+export function pointsPreviewFixture(variantIds: string[]): HubPointsPreview {
+  const join = process.env.NEXT_PUBLIC_PREVIEW_POINTS === "join";
+  return {
+    enabled: true,
+    enrolled: !join,
+    tier: join ? null : "Radiant",
+    multiplier: join ? null : 2,
+    items: variantIds.map((id) => join
+      ? { variant_id: id, eligible: true, points: 1500, base_points: 1500, promo_points: 0, multiplier: 1, tier: "Glimmer", upgraded_to: null }
+      : { variant_id: id, eligible: true, points: 3600, base_points: 3000, promo_points: 600, multiplier: 2, tier: "Radiant", upgraded_to: null }),
+  };
 }
