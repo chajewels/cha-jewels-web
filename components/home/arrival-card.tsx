@@ -2,7 +2,7 @@ import Link from "next/link";
 import { allImages, fromPrice, primaryImage } from "@/lib/queries/products";
 import { CardFx, CardMedia } from "@/components/fx/card-fx";
 import type { Product } from "@/lib/types";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, formatWeight } from "@/lib/utils";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { productName } from "@/lib/catalog-i18n";
 import { tr, type Lang } from "@/lib/i18n";
@@ -42,7 +42,7 @@ export function ArrivalCard({ product, lang, index = 0 }: { product: Product; la
   const second = allImages(product)[1];
   const price = fromPrice(product)!;
   const metal = metalsLabel(productMetals(product), lang);
-  const meta = [metal, product.weight_g ? `${product.weight_g} g` : null].filter(Boolean).join(" · ");
+  const meta = [metal, formatWeight(product.weight_g)].filter(Boolean).join(" · ");
   return (
     // Motion (components/fx/card-fx.tsx): rise-in, tilt + glint + second photo
     // under a mouse, a gold glint and press feedback on touch.
