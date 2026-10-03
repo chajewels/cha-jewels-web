@@ -970,7 +970,7 @@ export const dict = {
   // Paidy app). Every amount shown is the Hub's; nothing here states a fee.
   paidy: {
     label: { ja: "あと払い（ペイディ）", en: "Paidy — あと払い（ペイディ）" },
-    lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。3回あと払いもペイディアプリからお選びいただけます。", en: "Pay next month with just your email and mobile number, or split into 3 in the Paidy app. For delivery addresses in Japan." },
+    lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。3回あと払いもペイディアプリからお選びいただけます。", en: "Pay next month with just your email and Japanese mobile number, or split into 3 in the Paidy app. For customers living in Japan." },
     button: { ja: "ペイディで支払う", en: "Pay with Paidy" },
     filing: { ja: "確認中…", en: "Confirming…" },
     note: { ja: "ペイディでのお申込み後、Cha Jewelsが内容を確認してからご請求が確定します。確定後、ご利用額は翌月にペイディからご請求されます（コンビニ払い・銀行振込・口座振替）。", en: "After Paidy approves, Cha Jewels confirms the order before the charge is final. Paidy then bills you next month (convenience store, bank transfer or direct debit)." },
