@@ -982,6 +982,10 @@ export const dict = {
     errTooMany: { ja: "お支払いの登録が上限に達しました。しばらくしてからお試しください。", en: "Too many payment attempts for now. Please try again later." },
     errSignedOut: { ja: "セッションが切れました。もう一度サインインしてください。", en: "Your session ended. Please sign in again." },
     errFailed: { ja: "ペイディのお支払いを登録できませんでした。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We could not record the Paidy payment. Please try again, or use bank transfer." },
+    // Under the N-Pay widget on every product page (owner decision 2026-10-03
+    // 22:01: the widget stays visible to every visitor; the condition is
+    // stated right under it, never hidden by geography).
+    widgetNote: { ja: "ペイディは日本国内のお届け先・円建てのご注文のみご利用いただけます。", en: "Paidy is available only for delivery addresses in Japan, on orders in yen." },
   },
   orders: {
     // A submission the Hub is still checking (a transfer slip or a Paidy

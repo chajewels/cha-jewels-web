@@ -477,7 +477,7 @@ export const tokusho = {
         // Paidy ato-barai added 2026-10-03 (Paidy's prescribed label; the
         // row wording is the owner's to compare with Paidy's 記載例 before release).
         ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）",
-        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）), and layaway※",
+        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; Japan delivery addresses only, orders in yen), and layaway※",
       },
     },
     {
