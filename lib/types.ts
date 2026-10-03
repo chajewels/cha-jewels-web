@@ -458,7 +458,43 @@ export type HubOrder = ReservationFlags & {
 };
 /** `title` is the English line title frozen at order time; `title_ja` is derived by the Hub from the product's current Japanese name and may be null. */
 export type HubOrderItem = { id: string; variant_id: string | null; product_id: string | null; title: string; title_ja?: string | null; sku: string | null; quantity: number; unit_price_jpy: number; line_total_jpy: number; image_url: string | null };
-export type HubOrderDetail = { order: HubOrder; items: HubOrderItem[]; transfer_region: TransferRegion; transfer_methods: TransferMethod[] };
+export type HubOrderDetail = {
+  order: HubOrder; items: HubOrderItem[]; transfer_region: TransferRegion; transfer_methods: TransferMethod[];
+  /**
+   * Paidy ato-barai on this order (Paidy, 2026-10-03). Present and
+   * `offered: true` only when the Hub says so: its switch is on, the order is
+   * a confirmed yen order with money due and a complete Japanese delivery
+   * address, and no submission is pending. Absent from an older Hub.
+   */
+  paidy?: HubOrderPaidy | null;
+  /**
+   * Submissions a reviewer has not decided yet (status submitted /
+   * under_review), oldest first — the same shape the plan page gets. Absent
+   * from an older Hub, which means "none known", not "none".
+   */
+  pending_submissions?: HubLayawaySubmission[];
+};
+/**
+ * Everything Paidy Checkout needs, assembled by the Hub. `checkout` is passed
+ * to `Paidy.launch()` exactly as received — every figure in it (amount, item
+ * prices, shipping, the buyer's history) is the Hub's; the storefront never
+ * builds or edits it. `test` says which key family the Hub is on, so the page
+ * can say so.
+ */
+export type HubOrderPaidy = {
+  offered: boolean;
+  public_key: string;
+  test: boolean;
+  checkout: PaidyCheckoutPayload;
+};
+/** The Paidy Checkout `launch()` payload (paidy.com/docs/en/paidycheckout.html), as the Hub builds it. */
+export type PaidyCheckoutPayload = {
+  amount: number; currency: "JPY"; store_name?: string; description?: string;
+  buyer: { email?: string; name1: string; name2?: string; phone?: string };
+  buyer_data: { user_id: string; ltv: number; account_registration_date: string; order_count?: number; last_order_amount?: number };
+  order: { items: { id?: string; quantity: number; title?: string; unit_price: number; description?: string }[]; order_ref?: string; shipping?: number; tax?: number };
+  shipping_address: { line1?: string; line2?: string; city?: string; state?: string; zip: string };
+};
 /** The Hub answers checkout failures with a code, not an HTTP body we should guess at. */
 export type HubCheckoutError = { error: string; variant_id?: string; available?: number; request_id?: string };
 

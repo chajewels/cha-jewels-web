@@ -474,15 +474,17 @@ export const tokusho = {
     {
       k: { ja: "支払方法", en: "Payment methods" },
       v: {
-        ja: "クレジットカード、銀行振込、コンビニ決済",
-        en: "Credit card, bank transfer, convenience-store payment, and layaway※",
+        // Paidy ato-barai added 2026-10-03 (Paidy's prescribed label; the
+        // row wording is the owner's to compare with Paidy's 記載例 before release).
+        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）",
+        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）), and layaway※",
       },
     },
     {
       k: { ja: "支払時期", en: "When payment is due" },
       v: {
-        ja: "注文時。",
-        en: "At the time of order. For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+        ja: "注文時。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。",
+        en: "At the time of order. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {

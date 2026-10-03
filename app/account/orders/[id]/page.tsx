@@ -15,6 +15,9 @@ import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
 import type { ServiceRequest } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
+import { PaidyPay } from "@/components/commerce/paidy-pay";
+import { siteUrl } from "@/lib/site";
+import { paidyOffer, pendingSubmissions } from "@/lib/paidy";
 import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
@@ -69,6 +72,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
   }
 
   const { order, items, transfer_methods: methods } = detail;
+  const paidy = paidyOffer(detail);
   const status = orderStatusLabel(order, lang);
   const stage = orderStage(order);
   const address = order.ship_to_address;
@@ -76,7 +80,11 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
   const refund = refundLabel(order.refund_status, lang);
   const ownRequests = requests.filter((r) => r.cash_order_id === order.id);
-  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order);
+  // A submission the Hub is still checking replaces the payment card: she
+  // has paid (or Paidy has authorised), and asking again would be wrong.
+  const pending = pendingSubmissions(detail);
+  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0;
+  const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
   const payment = order.payment_method === "transfer"
@@ -111,10 +119,27 @@ export default async function OrderDetailPage({ params, searchParams }: {
             amount={Number(order.remaining_balance) > 0 ? formatMoney(Number(order.remaining_balance), order.currency) : null}
             deadline={order.transfer_due_at ? formatDeadline(order.transfer_due_at, lang) : null}
           >
+            {/* Paidy (ato-barai) first when the Hub offers it (PD2): a
+                Japanese delivery address, a yen order, nothing pending. The
+                bank details stay underneath — one more way to pay. */}
+            {paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
             <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
             <TransferDetails methods={methods} lang={lang} />
             {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
           </PaymentDueCard>
+        </div>
+      )}
+
+      {pending.length > 0 && (
+        <div className="mb-6 border border-gold-dark bg-white p-5">
+          <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "pending")}</h2>
+          <ul className="mt-3 space-y-1 text-sm text-charcoal/80">
+            {pending.map((sub) => (
+              <li key={sub.id}>
+                {t("orders", "pendingNote", { amount: formatMoney(Number(sub.submitted_amount), order.currency), date: fmtDate(sub.payment_date), method: methodName(sub.payment_method) })}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

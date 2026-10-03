@@ -142,6 +142,41 @@ the site shows the pieces without a per-line price and the totals in ₱ (owner
 decision D1), on checkout Review, `/checkout/complete/:id` and
 `/account/orders/:id` alike. The stored rate is not returned.
 
+### Paidy ato-barai on a confirmed order (storefront PR, 2026-10-03; Hub PR pending)
+
+`GET /orders/:id` gains two optional fields (an older Hub omits both):
+
+- `pending_submissions: { id, submitted_amount, payment_date, payment_method, status, created_at }[]` —
+  this order's `payment_submissions` in status `submitted` / `under_review`, oldest
+  first (the plan page's shape). While one exists the site shows "being checked"
+  and hides the payment card.
+- `paidy: { offered, public_key, test, checkout } | null` — present with
+  `offered: true` only when ALL hold: `system_settings.paidy_mode` is `on` (or
+  `test` and the customer `is_test`); `currency = 'JPY'`; `payment_status =
+  'pending_transfer'` and not an unconfirmed reservation; `remaining_balance > 0`;
+  the ship-to snapshot's `country = 'JP'` with line1, city, region and postal code
+  present; no pending submission. `public_key` is the Paidy PUBLIC key for the
+  mode (`pk_test_…` / `pk_live_…`) — never the secret. `checkout` is the exact
+  `Paidy.launch()` payload (paidy.com/docs/en/paidycheckout.html): `amount =
+  remaining_balance`, `currency "JPY"`, `store_name`, `buyer {email, name1,
+  phone}`, `buyer_data {user_id = customer_code, ltv = lifetime paid yen,
+  account_registration_date, order_count}`, `order {items[{id, quantity, title,
+  unit_price}], order_ref = web_reference, shipping, tax: 0}`,
+  `shipping_address {line1, line2, city, state, zip "NNN-NNNN"}`. The site passes
+  it through untouched.
+
+`POST /orders/:id/paidy` — body `{ paidy_payment_id }` (customer JWT). The Hub
+reads the payment from Paidy with its secret key; it must be `AUTHORIZED`, for
+`remaining_balance` in JPY, with `order_ref = web_reference` and the mode's
+`test` flag. It then inserts `paidy_payments` and a `payment_submissions` row
+(`payment_method 'paidy'`, `reference_number = paidy_payment_id`, no proof —
+PD1) and notifies staff. Returns `{ ok: true }`. Errors: 404 `not_found`; 409
+`paidy_not_offered` (the `offered` rule no longer holds), `paidy_mismatch`
+(the Hub CLOSED that Paidy payment; nothing filed), `submission_pending`,
+`not_ready_for_payment`; 429 `too_many_submissions` (3 per 24 h per order);
+502 `paidy_unavailable`. Capture happens on reviewer Confirm in the Hub;
+Reject closes the authorisation. The storefront never calls Paidy's API.
+
 **Error codes** (`{ error, … }`; `request_id` on RPC refusals), and what the
 site shows (`toCode` in `lib/checkout-actions.ts`):
 
