@@ -169,6 +169,28 @@ export type HubLoyalty = {
   next_threshold_jpy?: number | null;
   to_next_jpy?: number | null;
 };
+/**
+ * GET /me/points-preview (Hub, 2026-10-03): the loyalty points a signed-in
+ * customer would earn on a piece at her level. Every figure is the Hub's
+ * (a mirror of its award rule); the storefront only shows it.
+ */
+export type HubPointsPreviewItem = {
+  variant_id: string;
+  eligible: boolean;
+  points: number;
+  base_points: number;
+  promo_points: number;
+  multiplier: number | null;
+  tier: string | null;
+  upgraded_to: string | null;
+};
+export type HubPointsPreview = {
+  enabled: boolean;
+  enrolled: boolean;
+  tier: string | null;
+  multiplier?: number | null;
+  items: HubPointsPreviewItem[];
+};
 export type HubMe = {
   customer: HubCustomer;
   addresses: HubAddress[];

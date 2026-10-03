@@ -1,5 +1,5 @@
 import "server-only";
-import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
@@ -311,6 +311,14 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(process.env.NEXT_PUBLIC_PREVIEW_BLANK === "1" ? fx.meBlankFixture : fx.meFixture)
       : call("/me", { jwt, revalidate: false }),
+  /**
+   * Loyalty points this signed-in customer would earn on each variant, at her
+   * level (the Hub's figures; nothing is computed here). Product page only.
+   */
+  pointsPreview: (jwt: string, variantIds: string[]): Promise<HubPointsPreview> =>
+    FIXTURES
+      ? Promise.resolve(fx.pointsPreviewFixture(variantIds))
+      : call(`/me/points-preview?variant_ids=${variantIds.map(encodeURIComponent).join(",")}`, { jwt, revalidate: false }),
   /**
    * Cart reminders (the Hub's docs/CART-REMINDERS.md). The browser cookie stays
    * the cart; this is the server copy a reminder email and a cross-device
