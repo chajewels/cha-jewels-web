@@ -1,19 +1,20 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { cardOffer, cardSignUrl } from "@/lib/card";
+import { cardAgreementGate, cardOffer, cardSignUrl, type CardAgreementGate } from "@/lib/card";
+import { cardAgreementContextToken } from "@/lib/card-agreement-link";
 import { pendingSubmissions } from "@/lib/paidy";
 import { agreementStatus } from "@/lib/agreement-lookup";
-import type { HubMe } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { AccountShell } from "@/components/account/account-shell";
-import { CardPay, type BillingContact } from "@/components/commerce/card-pay";
+import { CardPay, type CardDelivery } from "@/components/commerce/card-pay";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -30,10 +31,18 @@ export const dynamic = "force-dynamic";
  * THE AGREEMENT COMES FIRST (owner D9). When the Hub says the Card Purchase
  * Agreement is required, the signature is checked server-side — the record
  * lives on agreement.chajewelsjp.com (a Sheet row + PDF), keyed by this
- * order's id — and the card form is drawn only once it is there. Three
- * answers, three screens: signed → the form; not signed → the signing link
- * (it brings her back here); could not check → say so, never "not signed".
- * The server action checks again before it touches the Hub.
+ * order's id — and the card form is drawn only once it is there. Four
+ * answers, four screens: signed for THIS customer and THIS amount → the form;
+ * not signed → the signing link (it brings her back here); signed but for
+ * another amount, or a legacy unbound signature → "sign again" with the link
+ * (owner 5A); could not check → say so, never "not signed". The signing link
+ * carries a context the server signed (lib/card-agreement-link.ts); without
+ * the key there is no link, and the page says "could not check". The server
+ * action checks all of it again before it touches the Hub.
+ *
+ * CSP (owner 6A, SQ19): this is the one page with an ENFORCED policy
+ * (middleware.ts, lib/csp.ts). The nonce arrives as the `x-nonce` request
+ * header and is handed to the Square SDK's <Script>.
  */
 export default async function PayCardPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
@@ -50,9 +59,7 @@ export default async function PayCardPage({ params, searchParams }: {
   const jwt = sessionData.session?.access_token;
 
   const link = notLinkedProbe();
-  const [detail, me] = jwt
-    ? await Promise.all([hub.order(jwt, id).catch(link.or(null)), hub.me(jwt).catch(link.or<HubMe | null>(null))])
-    : [null, null];
+  const detail = jwt ? await hub.order(jwt, id).catch(link.or(null)) : null;
   if (link.hit) redirect(profileUrl(withQuery(`${orderPath}/pay-card`, query)));
   if (!detail) {
     return (
@@ -64,9 +71,10 @@ export default async function PayCardPage({ params, searchParams }: {
 
   const { order } = detail;
   const card = cardOffer(detail);
-  // Not offered any more (paid, pending, switch off, not yet confirmed): the
-  // order page says what is happening; this page has nothing to show.
-  if (!card || pendingSubmissions(detail).length > 0) redirect(orderPath);
+  // Not offered any more (paid, pending, an open card payment, switch off, not
+  // yet confirmed): the order page says what is happening; this page has
+  // nothing to show.
+  if (!card || detail.card_payment || pendingSubmissions(detail).length > 0) redirect(orderPath);
 
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const amountLabel = formatMoney(card.amount_jpy, "JPY");
@@ -75,25 +83,37 @@ export default async function PayCardPage({ params, searchParams }: {
 
   // The gate. `?signed=1` is only the return from the signing page — it
   // changes nothing here; the lookup is the only thing that decides.
-  let gate: "form" | "sign" | "unverified" = "form";
+  let gate: CardAgreementGate["gate"] = "form";
+  let resignReason: "amount" | "unbound" | null = null;
   if (card.agreement_required) {
     const status = await agreementStatus({ doc: "card", order: order.id });
-    if (!status.ok) {
-      console.error("[pay-card] agreement lookup failed:", status.reason);
+    if (!status.ok) console.error("[pay-card] agreement lookup failed:", status.reason);
+    const g = cardAgreementGate(status, card);
+    gate = g.gate;
+    if (g.gate === "resign") resignReason = g.reason;
+  }
+
+  // The signing link, signed for THIS customer and amount. No key, no link:
+  // the page then says "could not check" rather than handing out an unsigned one.
+  let signUrl: string | null = null;
+  if (gate === "sign" || gate === "resign") {
+    const ctx = card.customer_id ? cardAgreementContextToken({ orderId: order.id, customerId: card.customer_id, amountJpy: card.amount_jpy }) : null;
+    if (ctx) signUrl = cardSignUrl(order.id, order.web_reference ?? order.invoice_number, card.amount_jpy, lang === "ja" ? "ja" : "en", ctx);
+    else {
+      console.error("[pay-card] agreement link could not be signed (AGREEMENT_LOOKUP_TOKEN or customer id missing)");
       gate = "unverified";
-    } else if (!status.signed) {
-      gate = "sign";
     }
   }
 
   if (gate !== "form") {
-    const signUrl = cardSignUrl(order.id, order.web_reference ?? order.invoice_number, card.amount_jpy, lang === "ja" ? "ja" : "en");
+    const title = gate === "sign" ? t("card", "signTitle") : gate === "resign" ? t("card", "resignTitle") : t("card", "title");
+    const lede = gate === "sign" ? t("card", "signLede") : resignReason === "amount" ? t("card", "resignAmount") : t("card", "resignUnbound");
     return (
-      <AccountShell lang={lang} current="orders" eyebrow={eyebrow} title={gate === "sign" ? t("card", "signTitle") : t("card", "title")} back={back}>
-        <div className="max-w-[640px] border border-hairline bg-white p-5 sm:p-7">
-          {gate === "sign" ? (
+      <AccountShell lang={lang} current="orders" eyebrow={eyebrow} title={title} back={back}>
+        <div className="max-w-[640px] border border-hairline bg-white p-5 sm:p-7" data-testid="card-gate" data-gate={gate}>
+          {gate !== "unverified" && signUrl ? (
             <>
-              <p className="text-[15px] leading-relaxed text-charcoal/85">{t("card", "signLede")}</p>
+              <p className="text-[15px] leading-relaxed text-charcoal/85">{lede}</p>
               <dl className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-1">
                 <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold-dark [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "amount")}</dt>
                 <dd className="cj-fig font-display text-[26px] leading-tight text-charcoal-deep">{amountLabel}</dd>
@@ -117,35 +137,20 @@ export default async function PayCardPage({ params, searchParams }: {
     );
   }
 
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const ship = order.ship_to_address;
+  // The address half of "billing same as delivery" — no recipient name: the
+  // cardholder is named in her own field (owner 4A).
+  const delivery: CardDelivery | null = ship && ship.line1
+    ? { line1: ship.line1, line2: ship.line2 ?? null, city: ship.city ?? null, region: ship.region ?? null, postal_code: ship.postal_code ?? null, country: ship.country ?? null }
+    : null;
+
   return (
     <AccountShell lang={lang} current="orders" eyebrow={eyebrow} title={t("card", "title")} back={back}>
       <div className="max-w-[640px]">
-        <CardPay orderId={order.id} card={card} billing={billingContact(detail.order.ship_to_address, me)} amountLabel={amountLabel} lang={lang} />
+        {/* Keyed on the Hub's amount: if it changes, a refresh draws a fresh form for the new figure. */}
+        <CardPay key={card.amount_jpy} orderId={order.id} card={card} delivery={delivery} amountLabel={amountLabel} lang={lang} nonce={nonce} />
       </div>
     </AccountShell>
   );
-}
-
-/**
- * The buyer for Square's verification (3-D Secure), from what the Hub holds:
- * the order's own delivery address and the customer record. Only a shape is
- * built here; nothing is decided or computed. Fields the Hub does not hold
- * are left out, never invented.
- */
-function billingContact(address: { recipient_name?: string | null; line1: string; line2?: string | null; city?: string | null; region?: string | null; postal_code?: string | null; country?: string | null } | null | undefined, me: HubMe | null): BillingContact {
-  const name = (address?.recipient_name ?? me?.customer.full_name ?? "").trim();
-  const [givenName, ...rest] = name.split(/\s+/).filter(Boolean);
-  const familyName = rest.join(" ");
-  const country = (address?.country ?? "").trim().toUpperCase();
-  return {
-    ...(givenName ? { givenName } : {}),
-    ...(familyName ? { familyName } : {}),
-    ...(me?.customer.email ? { email: me.customer.email } : {}),
-    ...(me?.customer.mobile_number ? { phone: me.customer.mobile_number } : {}),
-    ...(address ? { addressLines: [address.line1, address.line2 ?? ""].filter(Boolean) } : {}),
-    ...(address?.city ? { city: address.city } : {}),
-    ...(address?.region ? { state: address.region } : {}),
-    ...(address?.postal_code ? { postalCode: address.postal_code } : {}),
-    ...(/^[A-Z]{2}$/.test(country) ? { countryCode: country } : {}),
-  };
 }

@@ -19,6 +19,7 @@ import { PaidyPay } from "@/components/commerce/paidy-pay";
 import { siteUrl } from "@/lib/site";
 import { paidyOffer, pendingSubmissions } from "@/lib/paidy";
 import { cardOffer } from "@/lib/card";
+import { CardPaymentStatus } from "@/components/commerce/card-payment-status";
 import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
@@ -85,7 +86,14 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // A submission the Hub is still checking replaces the payment card: she
   // has paid (or Paidy has authorised), and asking again would be wrong.
   const pending = pendingSubmissions(detail);
-  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0;
+  // An OPEN card payment (SQ22, owner 3A): in flight, authorised, being
+  // captured or being recorded. While it is open EVERY way to pay is hidden —
+  // the Hub already answers no card, no Paidy and no transfer methods, and
+  // this page does not offer the payment card at all — and its state is
+  // shown instead. Its own submission is then not listed twice.
+  const cardPayment = detail.card_payment ?? null;
+  const pendingShown = cardPayment ? pending.filter((p) => p.payment_method !== "square") : pending;
+  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0 && !cardPayment;
   const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
@@ -144,11 +152,17 @@ export default async function OrderDetailPage({ params, searchParams }: {
         </div>
       )}
 
-      {pending.length > 0 && (
+      {cardPayment && (
+        <div className="mb-6">
+          <CardPaymentStatus lang={lang} state={cardPayment.state} brand={cardPayment.brand} last4={cardPayment.last4} captureBy={cardPayment.capture_by} reference={cardPayment.reference} />
+        </div>
+      )}
+
+      {pendingShown.length > 0 && (
         <div className="mb-6 border border-gold-dark bg-white p-5">
           <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "pending")}</h2>
           <ul className="mt-3 space-y-1 text-sm text-charcoal/80">
-            {pending.map((sub) => (
+            {pendingShown.map((sub) => (
               <li key={sub.id}>
                 {t("orders", "pendingNote", { amount: formatMoney(Number(sub.submitted_amount), order.currency), date: fmtDate(sub.payment_date), method: methodName(sub.payment_method) })}
               </li>

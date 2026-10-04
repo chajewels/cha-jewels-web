@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { liveMirrorProducts } from "@/lib/fixtures-live";
@@ -32,6 +32,15 @@ const PREVIEW_RESERVATION = process.env.NEXT_PUBLIC_PREVIEW_RESERVATION === "1";
 export const PREVIEW_PAIDY = process.env.NEXT_PUBLIC_PREVIEW_PAIDY === "1";
 /** NEXT_PUBLIC_PREVIEW_CARD=1 offers a card payment (Square sandbox shape) on the preview's yen order; the Hub's `card` block as it answers in test mode. */
 export const PREVIEW_CARD = process.env.NEXT_PUBLIC_PREVIEW_CARD === "1";
+/**
+ * NEXT_PUBLIC_PREVIEW_CARD_STATE=processing|held|capturing|recording plays an
+ * UNRESOLVED card payment on the preview's yen order (SQ22): the Hub then
+ * answers `card_payment` with that state and hides every way to pay
+ * (`card: null`, `paidy: null`, no transfer methods), exactly as it does live.
+ */
+const PREVIEW_CARD_STATE = ((v): HubCardPayment["state"] | null => (v === "processing" || v === "held" || v === "capturing" || v === "recording" ? v : null))(process.env.NEXT_PUBLIC_PREVIEW_CARD_STATE);
+/** NEXT_PUBLIC_PREVIEW_CARD_RESULT=unknown makes the preview's POST /orders/:id/card answer 202 (Square's answer not known yet). */
+const PREVIEW_CARD_RESULT = process.env.NEXT_PUBLIC_PREVIEW_CARD_RESULT === "unknown" ? "unknown" : "ok";
 // Website orders (Hub PR 6 / storefront PR 7): NEXT_PUBLIC_PREVIEW_DRAFTS=1
 // makes the preview Hub answer checkout with a DRAFT and list drafts in the
 // account, as the live Hub does with web_checkout_mode = 'draft'.
@@ -677,6 +686,12 @@ function hubOrder(o: {
 export function orderFixture(id: string): HubOrderDetail | null {
   const order = ordersFixture.find((o) => o.id === id);
   if (!order) return null;
+  const payable = order.currency === "JPY" && order.payment_status === "pending_transfer" && order.ready_for_payment !== false;
+  // An unresolved card payment hides every way to pay (the Hub's own rule).
+  const cardPayment: HubCardPayment | null = PREVIEW_CARD_STATE && payable ? {
+    state: PREVIEW_CARD_STATE, reference: "CJW-SQ-PREVIEW1", since: new Date(Date.now() - 5 * 60e3).toISOString(),
+    ...(PREVIEW_CARD_STATE === "processing" ? {} : { capture_by: new Date(Date.now() + 6 * 864e5).toISOString(), brand: "VISA", last4: "1111" }),
+  } : null;
   return {
     order: { ...order, ship_to_address: meFixture.addresses[0] },
     items: [{
@@ -686,9 +701,10 @@ export function orderFixture(id: string): HubOrderDetail | null {
     // The Hub's own rule: methods only while the transfer is outstanding and
     // never before staff confirm the piece.
     transfer_region: order.currency === "PHP" ? "OVERSEAS" : "JP",
-    transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? fixtureMethods : [],
+    transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false && !cardPayment ? fixtureMethods : [],
     pending_submissions: [],
-    ...(PREVIEW_PAIDY && order.currency === "JPY" && order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? {
+    card_payment: cardPayment,
+    ...(PREVIEW_PAIDY && payable && !cardPayment ? {
       paidy: {
         offered: true,
         public_key: "pk_test_preview",
@@ -702,7 +718,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
         },
       },
     } : {}),
-    ...(PREVIEW_CARD && order.currency === "JPY" && order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? {
+    ...(PREVIEW_CARD && payable && !cardPayment ? {
       card: {
         offered: true,
         app_id: "sandbox-sq0idb-preview00000",
@@ -711,8 +727,20 @@ export function orderFixture(id: string): HubOrderDetail | null {
         amount_jpy: Math.round(Number(order.remaining_balance)),
         agreement_required: true,
         agreement_min_jpy: 0,
+        customer_id: meFixture.customer.id,
+        cardholder_name: meFixture.customer.full_name,
       },
     } : {}),
+  };
+}
+
+/** The preview Hub's answer to POST /orders/:id/card: a hold placed and filed (200), or 202 "not known yet". */
+export function orderCardFixture(): HubCardResult {
+  if (PREVIEW_CARD_RESULT === "unknown") return { ok: false, status: "unknown", attempt: { reference: "CJW-SQ-PREVIEW1" } };
+  return {
+    ok: true, submission: null,
+    card: { brand: "VISA", last4: "1111", receipt_url: null, status: "authorized", capture_by: new Date(Date.now() + 6 * 864e5).toISOString() },
+    attempt: { reference: "CJW-SQ-PREVIEW1" },
   };
 }
 

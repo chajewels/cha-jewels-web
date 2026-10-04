@@ -178,40 +178,102 @@ PD1) and notifies staff. Returns `{ ok: true }`. Errors: 404 `not_found`; 409
 502 `paidy_unavailable`. Capture happens on reviewer Confirm in the Hub;
 Reject closes the authorisation. The storefront never calls Paidy's API.
 
-### Card payment (Square) on a confirmed order (storefront S3, 2026-10-04; Hub S1/S2 live)
+### Card payment (Square) on a confirmed order (storefront S3, 2026-10-04; integrity pass SQ17–SQ23, owner 3A–6A)
 
 `GET /orders/:id` carries `card: { offered, app_id, location_id, test,
-amount_jpy, agreement_required, agreement_min_jpy } | null` — present with
-`offered: true` only when ALL hold (`_shared/card-rules.ts`): `square_mode`
-is `on` (or `test` for a test customer); the PUBLIC Application ID of that
-mode's family (`sandbox-sq0idb-…` / `sq0idp-…`) and the Location ID are saved;
-yen; `pending_transfer` and confirmed; money due; nothing pending. ANY
-delivery country (owner D4). `amount_jpy` is the Hub's remaining balance.
-`agreement_required` is owner D9 (`card_agreement_min_jpy`, 0 = every card
-payment). Site: `lib/card.ts cardOffer()` renders nothing unless the block is
-whole and the id family agrees with `test`; `/account/orders/:id/pay-card`
-(EN + JA) checks the e-signed Card Purchase Agreement server-side through the
-same Apps Script lookup as layaway (`?sig=1&doc=card&order=<cash_orders.id>`,
-`lib/agreement-lookup.ts`) BEFORE drawing Square's form, and `cardAuthorizeAction`
-checks it again and fails closed (`agreement_required` / `agreement_unverified`).
+amount_jpy, agreement_required, agreement_min_jpy, customer_id,
+cardholder_name } | null` — present with `offered: true` only when ALL hold
+(`_shared/card-rules.ts`): `square_mode` is `on` (or `test` for a test
+customer); the PUBLIC Application ID of that mode's family (`sandbox-sq0idb-…`
+/ `sq0idp-…`) and the Location ID are saved; yen; `pending_transfer` and
+confirmed; money due; nothing pending; no open card payment. ANY delivery
+country (owner D4). `amount_jpy` is the Hub's remaining balance (exact integer
+yen). `agreement_required` is owner D9 (`card_agreement_min_jpy`, 0 = every
+card payment). `customer_id` is the signed-in customer's id (the agreement is
+bound to it, owner 5A); `cardholder_name` is her own name, the default for the
+cardholder-name field (owner 4A; may be null; never a gift recipient's).
 
-`POST /orders/:id/card` — body `{ source_id, verification_token | null,
-terms: { accepted_at, version: "card-terms-v1", ip?, user_agent? },
-agreement: { version, signed_at } | null }` (customer JWT). The Hub places a
-HOLD with Square (CreatePayment autocomplete:false), re-checks the answer
-(APPROVED, JPY, amount = remaining balance; else cancels it) and files one
-`payment_submissions` row (`payment_method 'square'`, no proof — the Paidy PD1
-exception). Answer `{ ok, submission, card: { brand, last4, receipt_url,
-status: "authorized" } }`. Refusals: 402 `card_declined` (+ Square `code`);
-409 `card_not_offered`, `card_mismatch` (+ Square `detail`; nothing held),
-`verification_required`, `terms_required`, `agreement_missing`,
-`submission_pending`, `not_ready_for_payment`; 429 `too_many_submissions`
-(3 / 24 h) and `too_many_attempts` (5 card attempts / order / 24 h, declines
-included); 502 `card_unavailable`. Capture happens on reviewer Confirm in the
+`card_payment: null | { state: "processing" | "held" | "capturing" |
+"recording", reference, since, capture_by?, brand?, last4? }` (SQ22, owner
+3A) — an UNRESOLVED card payment: an attempt whose answer is not known yet
+(`processing`), an authorised hold awaiting a reviewer (`held`), a capture in
+progress (`capturing`), captured money not yet recorded (`recording`). While it
+is non-null the Hub answers `card: null`, `paidy: null`, `transfer_methods: []`
+and refuses every other payment server-side; the order page hides every way to
+pay and shows the state (`components/commerce/card-payment-status.tsx`), with
+`capture_by` in Japan time. Never "paid" before it is.
+
+Site: `lib/card.ts cardOffer()` renders nothing unless the block is whole and
+the id family agrees with `test`; `/account/orders/:id/pay-card` (EN + JA)
+checks the e-signed Card Purchase Agreement server-side through the same Apps
+Script lookup as layaway (`?sig=1&doc=card&order=<cash_orders.id>`,
+`lib/agreement-lookup.ts`) BEFORE drawing Square's form, and
+`cardAuthorizeAction` checks it again and fails closed.
+
+**Agreement binding (owner 5A, SQ20).** The signing link is
+`https://agreement.chajewelsjp.com/card.html?order=<id>&invoice=<reference>&amount=<amount_jpy>&lang=<en|ja>&ctx=<token>`,
+where `token = base64url(payload) + "." + base64url(HMAC-SHA256(key =
+AGREEMENT_LOOKUP_TOKEN, message = base64url(payload)))` and `payload` is the JSON
+`{ o: orderId, c: customerId, a: amountJpy, v: 1, e: <unix seconds, now + 7
+days> }` (`lib/card-agreement-link.ts`, server-only; no key → no link → "could
+not check"). Card.gs verifies it and its lookup answers `{ ok: true, signed:
+true, agreement_version, signed_at, customer_id, amount_jpy, bound: true }`
+for a signature made from such a link (a legacy signature has no `bound`). The
+gate (`lib/card.ts cardAgreementGate`) passes only when `signed && bound ===
+true && customer_id === card.customer_id && amount_jpy === card.amount_jpy`
+(strict equality, no arithmetic). Codes: `agreement_required` (not signed),
+`agreement_resign` (signed, but for another amount, another customer, or
+unbound — sign again), `agreement_unverified` (the lookup could not answer).
+
+`POST /orders/:id/card` (customer JWT) — body:
+```
+{ source_id: "cnon:…",
+  verification: "sdk_tokenize_with_verification",   // SQ18: what the site can truthfully report; never "verified"
+  verification_token?: string,                       // only from an older flow; the current flow has none
+  terms: { accepted_at, version: "card-terms-v1", ip?, user_agent? },
+  agreement: { version, signed_at, customer_id, amount_jpy, bound } | null,   // the lookup's answer, as gated
+  billing: { name, same_as_delivery, country?, address_line_1?, address_line_2?,
+             locality?, administrative_district_level_1?, postal_code? },     // SQ17: the CARDHOLDER
+  expected_amount_jpy }                              // the card block's amount_jpy the page was drawn with
+```
+`billing.name` is always the cardholder-name field (the whole name in one
+field, never split, never the delivery or gift recipient); with
+`same_as_delivery` the address is the order's delivery address, rebuilt on the
+server from the Hub's own order. The browser passes the same contact to
+Square's `card.tokenize({ amount, currencyCode: "JPY", intent: "CHARGE",
+customerInitiated: true, sellerKeyedIn: false, billingContact })`.
+
+Answers: **200** `{ ok: true, submission, card: { brand, last4, receipt_url,
+status: "authorized", capture_by }, attempt: { reference } }` — a HOLD, not a
+charge; **202** `{ ok: false, status: "unknown", attempt: { reference } }` —
+Square's answer is not known yet: the site says "being confirmed", NEVER "not
+charged" or "try again". Refusals: 402 `card_declined` (+ `code`;
+`order_cancelled: true` → the order was cancelled for safety after several
+declines, no retry); 409 `card_mismatch` (+ `detail`, `hold?`: `"voided"` →
+nothing held; `"void_pending"` → a hold is being cancelled, do not pay again),
+`card_attempt_pending { attempt }` (a previous attempt is still being
+confirmed — wait), `submission_pending`, `amount_changed { amount_jpy }`
+(reload; nothing charged), `agreement_missing { detail }`, `agreement_resign {
+detail }`, `terms_required`, `card_not_offered { reason }`,
+`not_ready_for_payment`, `card_hold_unfiled` (an authorisation could not be
+attached — the team will contact her; do not pay again); 429
+`too_many_attempts { scope }`, `too_many_submissions`; 502 `card_unavailable`
+(Square refused a configuration/auth request — no hold was made). The site
+says "nothing was charged" ONLY for a decline, a voided mismatch,
+`amount_changed`, the caps, terms/agreement refusals, `card_not_offered` and
+502; a 5xx, an unrecognised refusal or a request that did not come back is
+"we couldn't confirm the result — don't pay again yet, refresh in a minute"
+(`lib/card.ts cardRefusalCode`). Capture happens on reviewer Confirm in the
 Hub; Reject voids the hold. The storefront never calls Square's API — only
 Square's Web Payments SDK runs in the browser, and the card number never
-touches the site. `verification_token` is null under the SDK's current
-`card.tokenize(verificationDetails)` flow (3-D Secure inside the token).
+touches the site.
+
+**CSP (owner 6A, SQ19).** `/account/orders/:id/pay-card` is served with an
+ENFORCED `Content-Security-Policy` (per-request nonce + `'strict-dynamic'`,
+Square's documented hosts, `frame-src https:` for the issuer's 3-D Secure
+challenge, `frame-ancestors 'none'`); every other page with
+`Content-Security-Policy-Report-Only`. Both report to `POST /api/csp-report`
+(a storefront route, not a Hub endpoint). `middleware.ts`, `lib/csp.ts`.
 
 **Error codes** (`{ error, … }`; `request_id` on RPC refusals), and what the
 site shows (`toCode` in `lib/checkout-actions.ts`):
