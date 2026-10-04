@@ -107,9 +107,18 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
-  const payment = order.payment_method === "transfer"
+  // C1 (2026-10-05): the method she chose at checkout (or staff since). A
+  // website order shows ONLY that one; the Hub already sends no other.
+  const chosen = detail.chosen_method ?? null;
+  const showTransfer = chosen === null || chosen === "transfer";
+  const payment = chosen === "paidy" ? t("orders", "chosenPaidy")
+    : chosen === "card" ? t("orders", "chosenCard")
+    : order.payment_method === "transfer"
     ? t("orders", "payVia", { method: t("orders", "bankTransfer"), currency: order.currency === "PHP" ? t("orders", "currencyPHP") : t("orders", "currencyJPY") })
     : null;
+  const pointsApplied = Number(detail.points_applied ?? 0);
+  // Chose Paidy or card, but the Hub offers it on this order no longer: say so.
+  const chosenUnavailable = (chosen === "paidy" && !paidy) || (chosen === "card" && !card);
   const shipping = order.shipping_fee != null && Number(order.shipping_fee) > 0 ? formatMoney(Number(order.shipping_fee), order.currency) : null;
 
   return (
@@ -156,9 +165,16 @@ export default async function OrderDetailPage({ params, searchParams }: {
                 <a href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</a>
               </div>
             )}
-            <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
-            <TransferDetails methods={methods} lang={lang} />
-            {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
+            {chosenUnavailable && (
+              <p className="mb-5 border border-hairline bg-white p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", "methodUnavailableNote")}</p>
+            )}
+            {showTransfer && (
+              <>
+                <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
+                <TransferDetails methods={methods} lang={lang} />
+                {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
+              </>
+            )}
           </PaymentDueCard>
         </div>
       )}
@@ -269,6 +285,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
             )}
             {payment && <Kv k={t("orders", "payment")}>{payment}</Kv>}
             {shipping && <Kv k={t("checkout", "shipping")}><span className="cj-fig">{shipping}</span></Kv>}
+            {pointsApplied > 0 && <Kv k={t("orders", "pointsUsed")}><span className="cj-fig">−{formatMoney(pointsApplied, order.currency)}</span></Kv>}
             {order.tracking_number && <Kv k={t("orders", "tracking")}><span className="font-mono text-gold-dark">{order.tracking_number}</span></Kv>}
             <Kv k={t("orders", "total")} last>
               <span className={`cj-fig font-display text-[26px] leading-tight ${status.tone === "dead" ? "text-charcoal/70" : "text-charcoal-deep"}`}>{formatMoney(Number(order.total_amount), order.currency)}</span>

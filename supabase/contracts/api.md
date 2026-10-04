@@ -136,6 +136,39 @@ drafts" (`draft_id`, `web_reference`, `mode`, `currency`, `total`, `total_jpy`,
 null`, `transfer_region`, `transfer_methods: []`). The former direct
 `order_id` / `account_id` replies no longer exist.
 
+### Payment choice + points at checkout (Hub 2026-10-05, owner C1–C7)
+
+The customer chooses how to pay on Review and it is LOCKED for her (only staff
+change it, Hub `change-payment-method`). Every figure below is the Hub's.
+
+Quote response (POST and GET) gains (an older Hub omits all four):
+- `payment_options: { method: "transfer" | "paidy" | "card", offered, reason }[]`
+  — in display order; not offered = shown greyed with `reason`:
+  `layaway` (C2), `currency_not_yen` (Paidy and card are yen only, C6),
+  `address_not_jp` (Paidy), `off`, `no_account` (transfer).
+- `payment_method` — the method stored on the quote, or null.
+- `points: { usable, reason, balance, held, available, available_value,
+  max_points, max_value, chosen, chosen_value, applies_to }` — 1 pt = ¥1;
+  `*_value` in the settlement currency; at most the pieces subtotal (never
+  shipping), on a layaway at most the deposit (the whole deposit is allowed).
+  `reason`: `not_enrolled` | `no_points` | `loyalty_off`.
+- `totals: { total_after_points, due_now_after_points }`.
+
+`POST /checkout/quote/:id/choice` body `{ payment_method, points }` stores the
+choice on the customer's own unspent quote and answers the same four fields.
+409 `method_unavailable` (+ `reason`) or `points_*`.
+
+`POST /checkout/pay` also takes `method` (`transfer` | `paidy` | `card`) and
+`points`; the draft reply gains `payment_method`, `points`, `points_value`.
+The points are HELD (a pending redemption) until staff Confirm, which approves
+them; a declined or expired draft gives them back.
+
+`GET /drafts`, `GET /drafts/:id`: each draft gains `payment_method`, `points`,
+`points_value`. `GET /orders/:id` gains `chosen_method` and `points_applied`;
+after Confirm only the chosen method's block is sent (`paidy` / `card` /
+`transfer_methods`). `GET /layaway/:id` gains `points_applied` and
+`deposit_due` (what is left on the deposit after points; null once paid).
+
 **`GET /orders/:id`**: `currency` is the order's settlement currency;
 `total_amount`, `total_paid`, `remaining_balance`, `shipping_fee` are in it.
 Item `unit_price_jpy` / `line_total_jpy` are **always yen** — on a peso order
