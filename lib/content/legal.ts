@@ -525,8 +525,8 @@ export const tokusho = {
 };
 
 export const privacyUpdated: Record<Lang, string> = {
-  ja: "最終更新：2026年10月1日",
-  en: "Last updated: October 1, 2026",
+  ja: "最終更新：2026年10月4日",
+  en: "Last updated: October 4, 2026",
 };
 
 /**
@@ -695,7 +695,7 @@ export const privacyArticles: LegalArticle[] = [
         kind: "list",
         items: {
           ja: [
-            "決済代行事業者および金融サービス事業者。",
+            "決済代行事業者および金融サービス事業者（カード決済はSquare、あと払い（ペイディ）はPaidyが取り扱います）。",
             "配送会社、郵便事業者、通関業者および物流事業者。",
             "ウェブサイトのホスティング、クラウドストレージ、データベースおよび技術支援の提供事業者。",
             "メール、メッセージ、カスタマーサポートおよび通知の提供事業者。",
@@ -703,7 +703,7 @@ export const privacyArticles: LegalArticle[] = [
             "会計士、弁護士、保険会社その他の専門家。",
           ],
           en: [
-            "Payment processors and financial-service providers.",
+            "Payment processors and financial-service providers (card payments are processed by Square, and あと払い (ペイディ) payments by Paidy).",
             "Delivery companies, postal services, customs brokers, and fulfilment providers.",
             "Website hosting, cloud storage, database, and technical-support providers.",
             "Email, messaging, customer-support, and notification providers.",

@@ -99,6 +99,11 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // decides (payment_state) and refuses the same server-side.
   const paidyProcessing = paidyHoldsOrder(detail);
   const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0 && !cardPayment && !paidyProcessing;
+  // While a payment is being checked (a card hold, Paidy, or a slip) the
+  // heading says so instead of "Awaiting transfer" — she has already paid or
+  // authorised, and the page shows no way to pay (2026-10-04 test run).
+  const beingChecked = order.payment_status === "pending_transfer" && (!!cardPayment || paidyProcessing || pending.length > 0);
+  const headline = beingChecked ? t("orders", "pending") : status.text;
   const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
@@ -114,12 +119,12 @@ export default async function OrderDetailPage({ params, searchParams }: {
       className="print-invoice"
       back={{ href: "/account/orders", label: t("orders", "back") }}
       eyebrow={<>{t("draft", "reference")} <span className="cj-fig font-mono text-[13px] normal-case tracking-[0.04em] text-charcoal-deep">{reference}</span></>}
-      title={status.text}
+      title={headline}
       headAside={<PrintButton label={t("account", "print")} />}
     >
       <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
-      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={status.text} /></div>}
+      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
 
       {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how to
           pay is the first thing under the heading, on screen and on paper —
