@@ -147,6 +147,8 @@ test("'nothing was charged' only where it is established; anything uncertain is 
   assert.equal(c(409, "agreement_missing"), "agreement_required");
   assert.equal(c(409, "agreement_resign"), "agreement_resign");
   assert.equal(c(409, "card_hold_unfiled"), "card_hold_unfiled");
+  assert.equal(c(409, "paidy_in_progress", { hold: "voided" }), "submission_pending", "Paidy holds the order: no card payment");
+  assert.equal(c(409, "payment_in_progress"), "submission_pending");
   assert.equal(c(429, "too_many_attempts", { scope: "order" }), "too_many_attempts");
   assert.equal(c(502, "card_unavailable"), "card_unavailable");
   assert.equal(c(500, null), "unconfirmed", "a Hub 5xx may come after Square answered");

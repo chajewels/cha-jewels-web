@@ -214,7 +214,11 @@ export function cardRefusalCode(err: { status: number; code: string | null; body
     case "terms_required": return "terms_required";
     case "card_not_offered": return "card_not_offered";
     case "not_ready_for_payment": return "not_ready_for_payment";
-    case "submission_pending": return "submission_pending";
+    case "submission_pending":
+    // Paidy holds the order (owner rule 2026-10-04): no card payment until it
+    // is settled. A hold that raced it is voided by the Hub (body.hold).
+    case "paidy_in_progress":
+    case "payment_in_progress": return "submission_pending";
     case "too_many_attempts": return "too_many_attempts";
     case "too_many_submissions": return "too_many_submissions";
     case "verification_required": return "verification_required";
