@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { LANG_COOKIE, LANG_PARAM, PATH_HEADER, asLang, detectLang, type Lang } from "@/lib/i18n";
+import { isPayCardPath, newNonce, payCardCsp, reportOnlyCsp } from "@/lib/csp";
 
 /**
  * Language resolution + session refresh + the render-time gate on /account/*
@@ -27,6 +28,14 @@ import { LANG_COOKIE, LANG_PARAM, PATH_HEADER, asLang, detectLang, type Lang } f
  * 3. The language decision is READ from lib/i18n and never re-expressed here.
  *    `detectLang` is the one rule (`getLang` on the server side calls it
  *    through `resolveLang`); this file only persists what it returns.
+ *
+ * CONTENT SECURITY POLICY (owner 6A, SQ19, 2026-10-04; lib/csp.ts). ENFORCED
+ * on /account/orders/[id]/pay-card only, with a fresh nonce per request:
+ * the nonce goes on the REQUEST as `x-nonce` and inside the request's own
+ * `Content-Security-Policy` header (Next.js reads it there and nonces its
+ * scripts), and the same policy goes on the response. Every other page gets
+ * `Content-Security-Policy-Report-Only` on the response only — it can never
+ * break a page.
  */
 
 /** Paths that render customer data and therefore need a signed-in user. */
@@ -83,6 +92,17 @@ export async function middleware(req: NextRequest) {
   const fwd = new Headers(req.headers);
   fwd.set(PATH_HEADER, req.nextUrl.pathname);
 
+  // ---------------------------------------------------------------- CSP
+  //
+  // Computed before the pass-through response is built, so the request
+  // headers carry the nonce on every path below (including the rebuilt
+  // response in the Supabase cookie refresh).
+  const csp = cspFor(req.nextUrl.pathname);
+  if (csp.nonce) {
+    fwd.set("x-nonce", csp.nonce);
+    fwd.set("Content-Security-Policy", csp.value);
+  }
+
   const gated = isGated(req.nextUrl.pathname);
   let res = NextResponse.next({ request: { headers: fwd } });
 
@@ -98,6 +118,7 @@ export async function middleware(req: NextRequest) {
    * on the header at all.
    */
   const withLang = (response: NextResponse) => {
+    response.headers.set(csp.header, csp.value);
     if (decided) {
       response.cookies.set(LANG_COOKIE, decided, {
         path: "/",
@@ -174,6 +195,22 @@ export async function middleware(req: NextRequest) {
 
   if (!signedIn) return withLang(toLogin(req));
   return withLang(res);
+}
+
+/** The policy for this path: enforced with a nonce on pay-card, report-only everywhere else. Never throws. */
+function cspFor(pathname: string): { header: string; value: string; nonce: string | null } {
+  const opts = { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? null, dev: process.env.NODE_ENV === "development" };
+  if (isPayCardPath(pathname)) {
+    try {
+      const nonce = newNonce();
+      return { header: "Content-Security-Policy", value: payCardCsp(nonce, opts), nonce };
+    } catch (err) {
+      // Rule 1: never throw. Without a nonce the page still renders under the
+      // report-only policy; the failure is logged so it cannot pass unseen.
+      console.error("[middleware] pay-card CSP could not be built:", err);
+    }
+  }
+  return { header: "Content-Security-Policy-Report-Only", value: reportOnlyCsp(opts), nonce: null };
 }
 
 export const config = {

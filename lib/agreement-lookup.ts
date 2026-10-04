@@ -35,7 +35,17 @@ import "server-only";
  */
 
 export type AgreementStatus =
-  | { ok: true; signed: true; version: string; signedAt: string }
+  | {
+    ok: true; signed: true; version: string; signedAt: string;
+    /**
+     * CARD ONLY (owner 5A, SQ20): a signature made from a signed link
+     * (lib/card-agreement-link.ts) answers `bound: true` with the customer and
+     * the amount it was signed for. A legacy signature answers neither, and
+     * reads here as bound false / null / null — the gate asks her to sign
+     * again. Always false / null for the layaway agreement.
+     */
+    bound: boolean; customerId: string | null; amountJpy: number | null;
+  }
   | { ok: true; signed: false }
   | { ok: false; reason: string };
 
@@ -85,7 +95,14 @@ export async function agreementStatus(target: AgreementTarget): Promise<Agreemen
   // is never set in production — see hub-api.ts, which branches the same way on
   // the same constant.
   if (FIXTURES) {
-    return { ok: true, signed: true, version: card ? "card-2026-v1" : "2026-v3", signedAt: new Date().toISOString() };
+    // The card answer binds the preview order's own customer and amount — what
+    // a signature made from the signed link would record — so the preview gate
+    // passes exactly as the live one would after a real signature.
+    const fixtureCard = card ? (await import("@/lib/fixtures")).orderFixture(key)?.card ?? null : null;
+    return {
+      ok: true, signed: true, version: card ? "card-2026-v1" : "2026-v3", signedAt: new Date().toISOString(),
+      bound: !!fixtureCard, customerId: fixtureCard?.customer_id ?? null, amountJpy: fixtureCard?.amount_jpy ?? null,
+    };
   }
 
   if (!UUID.test(key)) return { ok: false, reason: card ? "bad_order_id" : "bad_quote_id" };
@@ -128,7 +145,7 @@ export async function agreementStatus(target: AgreementTarget): Promise<Agreemen
       if (!res.ok) return { ok: false, reason: `http_${res.status}` };
 
       const body = (await res.json().catch(() => null)) as
-        | { ok?: boolean; signed?: boolean; agreement_version?: unknown; signed_at?: unknown; error?: unknown }
+        | { ok?: boolean; signed?: boolean; agreement_version?: unknown; signed_at?: unknown; error?: unknown; bound?: unknown; customer_id?: unknown; amount_jpy?: unknown }
         | null;
 
       if (!body || typeof body !== "object") return { ok: false, reason: "malformed" };
@@ -147,7 +164,14 @@ export async function agreementStatus(target: AgreementTarget): Promise<Agreemen
       // is an error, not a pass — it must not become a NULL on the plan.
       if (!version || !signedAt) return { ok: false, reason: "incomplete_record" };
 
-      return { ok: true, signed: true, version, signedAt };
+      // The binding (card only). Read, never computed: an amount is accepted
+      // only as a whole number of yen (a JSON number, or the same written as
+      // digits); anything else is "not bound" and the gate asks for a new
+      // signature rather than guessing.
+      const bound = card && body.bound === true;
+      const customerId = bound && typeof body.customer_id === "string" && body.customer_id.trim() ? body.customer_id.trim() : null;
+      const amountJpy = bound ? wholeYen(body.amount_jpy) : null;
+      return { ok: true, signed: true, version, signedAt, bound: bound && customerId !== null && amountJpy !== null, customerId, amountJpy };
     } catch (err) {
       // Timeout, DNS, TLS, socket. Transient by nature, so this is the only
       // case worth a second attempt — and an ok:false body above never is.
@@ -156,4 +180,11 @@ export async function agreementStatus(target: AgreementTarget): Promise<Agreemen
   }
 
   return { ok: false, reason: lastReason };
+}
+
+/** A whole, positive number of yen as the lookup sent it, or null. */
+function wholeYen(v: unknown): number | null {
+  if (typeof v === "number") return Number.isSafeInteger(v) && v > 0 ? v : null;
+  if (typeof v === "string" && /^[1-9][0-9]{0,11}$/.test(v.trim())) return Number(v.trim());
+  return null;
 }

@@ -54,7 +54,7 @@ const HEIGHT_VAR = "--announcement-h";
 /** Runs during HTML parse. Kept to one expression so it cannot outgrow review. */
 const PREPAINT = `try{if(sessionStorage.getItem(${JSON.stringify(STORAGE_KEY)})===document.currentScript.dataset.t)document.body.setAttribute("data-cj-announcement","dismissed")}catch(e){}`;
 
-export function AnnouncementBar({ text, href, lang }: { text: string; href: string | null; lang: Lang }) {
+export function AnnouncementBar({ text, href, lang, nonce }: { text: string; href: string | null; lang: Lang; /** The page's CSP nonce, on the one page with an enforced policy (pay-card, lib/csp.ts). */ nonce?: string }) {
   const t = tr(lang);
   const [dismissed, setDismissed] = useState(false);
   const bar = useRef<HTMLElement>(null);
@@ -139,7 +139,10 @@ export function AnnouncementBar({ text, href, lang }: { text: string; href: stri
           </button>
         </div>
       </aside>
-      <script data-t={text} dangerouslySetInnerHTML={{ __html: PREPAINT }} />
+      {/* The nonce lets this inline script run under the pay-card page's
+          enforced CSP. Browsers hide a nonce attribute's value after parse,
+          so the client-side value never matches the DOM: suppressed here. */}
+      <script data-t={text} nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PREPAINT }} />
     </>
   );
 }

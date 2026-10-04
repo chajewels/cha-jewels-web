@@ -71,7 +71,13 @@ const KEY = process.env.HUB_API_KEY ?? "";
  * Hub log line that names its cause.
  */
 export class HubError extends Error {
-  constructor(public status: number, message: string, public code: string | null = null, public requestId: string | null = null, public detail: string | null = null) { super(message); }
+  /**
+   * `body` is the Hub's whole JSON error body, when it sent one — for the few
+   * refusals that carry more than a code: a card refusal's `order_cancelled`,
+   * `hold`, `attempt` or new `amount_jpy` (POST /orders/:id/card). Read, never
+   * trusted for money.
+   */
+  constructor(public status: number, message: string, public code: string | null = null, public requestId: string | null = null, public detail: string | null = null, public body: Record<string, unknown> | null = null) { super(message); }
 }
 
 /**
@@ -117,7 +123,7 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
     // no customer record yet) and `not_found` (no such order or plan, or not
     // hers) are different answers and callers must be able to tell them apart.
     if (res.status === 404) throw new HubError(404, "Not found", code, requestId);
-    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId, detail);
+    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId, detail, body as Record<string, unknown> | null);
   }
   return res.json() as Promise<T>;
 }
@@ -493,10 +499,14 @@ export const hub = {
    * Hub places a HOLD on the card with its own access token (nothing is
    * charged), re-checks the answer against the order, and files it for a
    * reviewer. Capture happens on Confirm; Reject voids the hold.
+   *
+   * A 202 (`{ ok: false, status: "unknown" }`) is a SUCCESSFUL HTTP answer
+   * and is returned, not thrown: Square's answer is not known yet, and the
+   * caller must say "being confirmed", never "not charged".
    */
   orderCard: (jwt: string, id: string, input: HubCardInput): Promise<HubCardResult> =>
     FIXTURES
-      ? Promise.resolve({ ok: true as const, submission: null, card: { brand: "VISA", last4: "1111", receipt_url: null, status: "authorized" as const } })
+      ? Promise.resolve(fx.orderCardFixture())
       : call(`/orders/${encodeURIComponent(id)}/card`, { method: "POST", body: JSON.stringify(input), jwt, revalidate: false }),
   /** The customer's own service requests, every order and plan, newest first. */
   serviceRequests: (jwt: string): Promise<ServiceRequest[]> =>

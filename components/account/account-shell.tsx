@@ -34,7 +34,8 @@ export function AccountShell({ lang, current, eyebrow, title, headAside, back, c
   /** Beside the heading on wide screens (e.g. Print); under it on phones. */
   headAside?: ReactNode;
   /** A quiet link above the eyebrow (e.g. "All orders"). */
-  back?: { href: string; label: string };
+  /** native: a full page load (leaving the CSP-enforced pay-card page). */
+  back?: { href: string; label: string; native?: boolean };
   children: ReactNode;
   className?: string;
 }) {
@@ -103,7 +104,9 @@ export function AccountShell({ lang, current, eyebrow, title, headAside, back, c
           </nav>
 
           {back && (
-            <Link href={back.href} className="print-hide mb-3 inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep">← {back.label}</Link>
+            back.native
+              ? <a href={back.href} className="print-hide mb-3 inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep">← {back.label}</a>
+              : <Link href={back.href} className="print-hide mb-3 inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep">← {back.label}</Link>
           )}
           <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 sm:mb-8">
             <div className="min-w-0">
