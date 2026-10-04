@@ -18,9 +18,11 @@ test("the widget tag carries Paidy's attributes (W4) and the yen amount", () => 
     "data-font-size": "13px",
     "data-logo-color": "magenta",
     "data-display-installment-months": "",
+    "data-6-pay-enabled": "",
+    "data-12-pay-enabled": "",
   });
-  // W5: 6/12-pay only after Paidy activates them — not yet. No pre_kyc (W4).
-  assert.ok(!("data-6-pay-enabled" in a) && !("data-12-pay-enabled" in a) && !("data-widget-version" in a));
+  // W5: 6/12-pay present (released after Paidy's activation). No pre_kyc (W4).
+  assert.ok(!("data-widget-version" in a));
   assert.equal(PAIDY_WIDGET_SRC, "https://cdn.paidy.com/promotional-messaging/general/paidy-upsell-widget.js");
 });
 
