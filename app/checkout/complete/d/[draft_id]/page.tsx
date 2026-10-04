@@ -94,6 +94,9 @@ export default async function DraftCompletePage({ params, searchParams }: {
     );
   }
 
+  // C1–C5 (2026-10-05): how she chose to pay, and the points held for it.
+  const chosen = draft.payment_method ?? "transfer";
+  const pointsValue = Number(draft.points_value ?? 0);
   const address = draft.ship_to_address;
   const ownRequests = requests.filter((r) => r.draft_id === draft.id);
   const layawayNext = isLayaway;
@@ -106,6 +109,8 @@ export default async function DraftCompletePage({ params, searchParams }: {
       lede={<>
         <p>{t("draft", isLayaway ? "layawayLede" : "lede")}</p>
         <p className="mt-2 text-[15px] font-semibold">{t("draft", "nothingYet")}</p>
+        <p className="mt-2" data-testid="draft-pay-with">{t("draft", chosen === "paidy" ? "payWithPaidy" : chosen === "card" ? "payWithCard" : "payWithTransfer")}</p>
+        {pointsValue > 0 && <p className="mt-2 text-[13px] text-charcoal/75">{t("draft", "pointsHeld")}</p>}
       </>}
       slab={{
         title: t("draft", "pieces"),
@@ -121,6 +126,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
           { k: t("draft", "shipping"), v: draft.shipping_pending || draft.shipping === null ? t("draft", "shippingLater") : money(draft.shipping) },
           ...(isLayaway && draft.deposit !== null ? [{ k: t("draft", "deposit"), v: money(draft.deposit) }] : []),
           ...(isLayaway && draft.term_months !== null ? [{ k: t("draft", "term"), v: t("draft", "months", { n: String(draft.term_months) }) }] : []),
+          ...(pointsValue > 0 ? [{ k: t("draft", "points"), v: `−${money(pointsValue)}` }] : []),
         ],
         total: { k: t("draft", "totalSoFar"), v: money(draft.total), sub: t("draft", "provisional") },
       }}

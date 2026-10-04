@@ -8,12 +8,11 @@ import { tr, type Lang } from "@/lib/i18n";
 import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { agreementStatusAction, payAction, payLayawayAction, pesoEstimateAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { agreementStatusAction, checkoutChoiceAction, payAction, payLayawayAction, pesoEstimateAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
 import { checkoutSummary, type PesoEstimateState } from "@/lib/checkout-summary";
 import { enrolInLoyaltyAction } from "@/lib/loyalty-actions";
-import { TransferDetails } from "@/components/commerce/transfer-details";
 import type { CartItem } from "@/lib/cart";
-import type { CheckoutMode, HubAddress, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
+import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubPaymentOption, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
 import { LAYAWAY_UNAVAILABLE, TERM_NOT_LAUNCHED, layawayOffered, termLaunched } from "@/lib/layaway-availability";
 import { AGREEMENT_LANG, AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 import { alertLight, inputLight } from "@/lib/form-classes";
@@ -149,6 +148,30 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
   const [term, setTerm] = useState(initial.quote?.layaway?.term_months ?? 6);
   const [quote, setQuote] = useState<HubQuote | null>(initial.quote);
   /**
+   * PAYMENT CHOICE + POINTS (owner C1–C7, 2026-10-05), chosen on Review. The
+   * options, the points figures and the totals after points are the Hub's
+   * (`choice`, re-read on every change through checkoutChoiceAction); this
+   * side only remembers which radio is on and what was typed.
+   */
+  const [method, setMethod] = useState<CheckoutMethod>(initial.quote?.payment_method ?? "transfer");
+  const [choice, setChoice] = useState<HubCheckoutChoice | null>(choiceOf(initial.quote));
+  const [usePoints, setUsePoints] = useState((initial.quote?.points?.chosen ?? 0) > 0);
+  const [pointsText, setPointsText] = useState(initial.quote?.points?.chosen ? String(initial.quote.points.chosen) : "");
+  const [choiceError, setChoiceError] = useState<string | null>(null);
+  // A new quote (Review, or a re-quote after it aged out) brings its own
+  // options and no points chosen: start the panel again from the Hub's answer.
+  const lastQuoteId = useRef<string | null>(initial.quote?.quote_id ?? null);
+  useEffect(() => {
+    if (!quote || quote.quote_id === lastQuoteId.current) return;
+    lastQuoteId.current = quote.quote_id;
+    const next = choiceOf(quote);
+    setChoice(next);
+    setUsePoints(false);
+    setPointsText("");
+    setChoiceError(null);
+    setMethod((m) => (next && !next.payment_options.some((o) => o.method === m && o.offered) ? "transfer" : m));
+  }, [quote]);
+  /**
    * What the signing record says, as the SERVER read it. Never set from a
    * customer's assertion — pressing "I have signed" re-asks the server, it does
    * not set this directly. And this is not the gate: payLayawayAction checks
@@ -177,6 +200,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     // never be told they have not.
     : code === AGREEMENT_REQUIRED ? t("checkout", "agreementRequired")
     : code === AGREEMENT_UNVERIFIED ? t("checkout", "agreementUnverified")
+    : code === "method_unavailable" ? t("checkout", "methodUnavailable")
+    : code === "points_unavailable" ? t("checkout", "pointsUnavailable")
     : t("checkout", "failed");
 
   function showError(code: string, requestId?: string | null) {
@@ -334,9 +359,11 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       // The Hub reads the mode off the quote, so the two answers differ: an
       // order id for a full payment, a plan id for layaway. Each lands on its
       // own confirmation.
+      // The Hub's confirmed figure, never the typed one: what the panel showed.
+      const points = usePoints ? choice?.points.chosen ?? 0 : 0;
       const res = mode === "layaway"
-        ? await payLayawayAction(quote.quote_id)
-        : await payAction(quote.quote_id);
+        ? await payLayawayAction(quote.quote_id, { points })
+        : await payAction(quote.quote_id, { method, points });
       if (res.ok) {
         // ENROLMENT HAPPENS HERE AND NOWHERE EARLIER. The order or plan exists,
         // the stock is committed, and nothing below can undo it — which is what
@@ -422,12 +449,61 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     });
   }
 
+  /** Store a choice on the quote; the Hub answers the figures (C1–C7). */
+  function applyChoice(nextMethod: CheckoutMethod, nextPoints: number) {
+    if (!quote) return;
+    setChoiceError(null);
+    start(async () => {
+      const res = await checkoutChoiceAction(quote.quote_id, { method: nextMethod, points: nextPoints });
+      if (res.ok) { setChoice(res.data); return; }
+      if (res.code === "expired") { showError("expired"); return; }
+      setChoiceError(res.code === "method_unavailable" ? t("checkout", "methodUnavailable")
+        : res.code === "points_unavailable" ? t("checkout", "pointsUnavailable")
+        : t("checkout", "choiceFailed"));
+    });
+  }
+  function pickMethod(m: CheckoutMethod) {
+    setMethod(m);
+    applyChoice(m, usePoints ? choice?.points.chosen ?? 0 : 0);
+  }
+  function togglePoints(on: boolean) {
+    setUsePoints(on);
+    if (!on) { setPointsText(""); applyChoice(method, 0); }
+  }
+  function applyPoints(raw: string) {
+    const max = choice?.points.max_points ?? 0;
+    const n = Number(raw.trim());
+    if (!Number.isInteger(n) || n < 0 || n > max) {
+      setChoiceError(t("checkout", "pointsInvalid", { points: max.toLocaleString("en-US") }));
+      return;
+    }
+    applyChoice(method, n);
+  }
+  const optionWhy = (o: HubPaymentOption) =>
+    o.reason === "layaway" ? t("checkout", "methodWhyLayaway")
+    : o.reason === "currency_not_yen" ? t("checkout", o.method === "card" ? "methodWhyCardYen" : "methodWhyPaidyYen")
+    : o.reason === "address_not_jp" ? t("checkout", "methodWhyPaidyJp")
+    : o.reason === "no_account" ? t("checkout", "methodWhyNoAccount")
+    : t("checkout", "methodWhyOff");
+  const methodName = (m: CheckoutMethod) => t("checkout", m === "paidy" ? "methodPaidy" : m === "card" ? "methodCard" : "methodTransfer");
+  const methodNote = (m: CheckoutMethod) => t("checkout", m === "paidy" ? "methodPaidyNote" : m === "card" ? "methodCardNote" : "methodTransferNote");
+  const pointsWhy = (reason: string | null) =>
+    reason === "not_enrolled" ? t("checkout", "pointsWhyNotEnrolled")
+    : reason === "no_points" ? t("checkout", "pointsWhyNoPoints")
+    : reason === "loyalty_off" ? t("checkout", "pointsWhyOff")
+    : t("checkout", "pointsWhyNone");
+  // An older Hub sends no options: transfer only, as before.
+  const methodOffered = choice
+    ? choice.payment_options.some((o) => o.method === method && o.offered)
+    : method === "transfer" && !!quote?.transfer_available;
+  const pointsChosen = usePoints ? choice?.points.chosen ?? 0 : 0;
+
   // ── Layout helpers ─────────────────────────────────────────────────────────
   const selectedAddress = addresses.find((a) => a.id === addressId) ?? null;
   const orderTypeLabel = (type: OrderType) => type === "SELF" ? t("checkout", "self") : type === "GIFT" ? t("checkout", "gift") : t("checkout", "proxy");
   const payLabel = mode === "layaway"
     ? `${t("checkout", "modeLayaway")} · ${t("checkout", "termMonths", { n: String(term) })} · ${settlement === "PHP" ? t("checkout", "settlementPhp") : t("checkout", "settlementJpy")}`
-    : settlement === "PHP" ? t("checkout", "payPhp") : t("checkout", "payJpy");
+    : `${t("checkout", "modeFull")} · ${settlement === "PHP" ? t("checkout", "settlementPhp") : t("checkout", "settlementJpy")}`;
   const steps = [t("checkout", "stepDetails"), t("checkout", "stepDelivery"), t("checkout", "stepPayment"), t("checkout", "stepReview")];
 
   // The step's ONE orange action. Rendered in the flow from `lg` up and in the
@@ -444,7 +520,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
           ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
           : (pending ? t("checkout", "placing") : t("checkout", "placeOrder")),
         onClick: placeOrder,
-        disabled: pending || !quote.transfer_available || quote.requires_manual_quote,
+        disabled: pending || !methodOffered || quote.requires_manual_quote,
       }
     : null;
   const back: { label: string; to: Step | "cart" } | null =
@@ -686,14 +762,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                   </p>
                 </fieldset>
 
+                {/* C1 (2026-10-05): the method is chosen on Review, where the
+                    Hub's list for THIS quote (mode, currency, address) is known. */}
                 <h2 className={`${SEC} mt-7`}>{t("checkout", "payHeading")}</h2>
-                <div className={`${OPT} ${OPT_ON}`}>
-                  <Radio on />
-                  <span>
-                    <b className="block text-[15px] font-semibold text-charcoal-deep">{settlement === "PHP" ? t("checkout", "payPhp") : t("checkout", "payJpy")}</b>
-                    <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{t("checkout", settlement === "JPY" && mode !== "layaway" ? "transferThenCard" : "transferOnly")}</span>
-                  </span>
-                </div>
+                <p className="text-[13px] leading-relaxed text-charcoal/75">{t("checkout", "payChooseOnReview")}</p>
               </section>
             )}
 
@@ -824,37 +896,101 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                   </div>
                 )}
 
-                {/* How they will pay. A region with no complete, active method
-                    in the Hub is not offered transfer at all — the Hub enforces
-                    the same rule; this is the courteous half of it. */}
-                {quote.transfer_available && reserving ? (
-                  /* RESERVE FIRST: no accounts, no deadline — the Hub sends no
-                     methods in this mode and this renders none (D3-8: no fixed
-                     "72 hours"; the deadline arrives with the payment email). */
+                {/* HOW SHE WILL PAY (owner C1–C2, C6). The Hub's list for this
+                    quote: one that cannot be used is shown greyed with its
+                    reason, never hidden. Chosen here, locked for her after she
+                    reserves (staff can change it). */}
+                {choice ? (
+                  <fieldset className="mt-6" data-testid="checkout-methods">
+                    <legend className={SEC}>{t("checkout", "methodH")}</legend>
+                    <div className="grid gap-2.5">
+                      {choice.payment_options.map((o) => {
+                        const on = method === o.method && o.offered;
+                        return (
+                          <button
+                            key={o.method} type="button" disabled={!o.offered || pending}
+                            onClick={() => pickMethod(o.method)} aria-pressed={on}
+                            data-testid={`checkout-method-${o.method}`}
+                            className={`${OPT} text-left disabled:cursor-not-allowed disabled:opacity-60 ${on ? OPT_ON : ""}`}
+                          >
+                            <Radio on={on} />
+                            <span>
+                              <b className="block text-[15px] font-semibold text-charcoal-deep">{methodName(o.method)}</b>
+                              <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{o.offered ? methodNote(o.method) : optionWhy(o)}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-2.5 text-[13px] text-charcoal/75">{t("checkout", "methodLocked")}</p>
+                  </fieldset>
+                ) : !quote.transfer_available ? (
+                  <p role="alert" className={`mt-6 ${alertLight} px-4 py-3 text-sm`}>{t("checkout", "transferUnavailable")}</p>
+                ) : null}
+
+                {/* POINTS (owner C3–C5, C7). Every figure from the Hub: her
+                    balance and its value, the most this order takes (pieces,
+                    never shipping; the deposit on a layaway), and the new
+                    total. Not usable → why. */}
+                {choice && (
+                  <div className="mt-6 border border-hairline p-4" data-testid="checkout-points">
+                    <label className="flex cursor-pointer items-start gap-3 text-sm text-charcoal-deep">
+                      <input
+                        type="checkbox" checked={usePoints} disabled={pending || !choice.points.usable}
+                        onChange={(e) => togglePoints(e.target.checked)}
+                        className="mt-0.5 h-5 w-5 shrink-0 accent-gold-dark"
+                      />
+                      <span className="font-semibold">{t("checkout", "usePoints")}</span>
+                    </label>
+                    {!choice.points.usable ? (
+                      <p className="mt-2 pl-8 text-[13px] text-charcoal/75">{pointsWhy(choice.points.reason)}</p>
+                    ) : usePoints && (
+                      <div className="mt-3 pl-8 text-sm text-charcoal-deep">
+                        <p>{t("checkout", "pointsBalance", { points: choice.points.available.toLocaleString("en-US"), value: money(choice.points.available_value) })}</p>
+                        <p className="mt-1 text-[13px] text-charcoal/75">
+                          {t("checkout", choice.points.applies_to === "deposit" ? "pointsMaxDeposit" : "pointsMax", { points: choice.points.max_points.toLocaleString("en-US"), value: money(choice.points.max_value) })}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-end gap-2">
+                          <label className="text-[13px] font-semibold text-charcoal/85">
+                            {t("checkout", "pointsInputLabel")}
+                            <input
+                              value={pointsText} inputMode="numeric" disabled={pending}
+                              onChange={(e) => setPointsText(e.target.value.replace(/[^0-9]/g, ""))}
+                              className={`mt-1.5 block h-11 w-36 px-3 text-[15px] ${inputLight}`}
+                              data-testid="checkout-points-input"
+                            />
+                          </label>
+                          <Button type="button" variant="outline" disabled={pending || pointsText === ""} onClick={() => applyPoints(pointsText)}>{t("checkout", "pointsApply")}</Button>
+                          <button type="button" disabled={pending} className="inline-flex min-h-11 items-center text-[13px] font-semibold text-gold-dark underline underline-offset-4"
+                            onClick={() => { const m = String(choice.points.max_points); setPointsText(m); applyPoints(m); }}>
+                            {t("checkout", "pointsUseAll")}
+                          </button>
+                        </div>
+                        {choice.points.chosen > 0 && (
+                          <dl className="mt-3 grid max-w-xs grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm" data-testid="checkout-points-figures">
+                            <dt className="text-charcoal/75">{t("checkout", "pointsRow")}</dt>
+                            <dd className="cj-fig m-0 text-right">−{money(choice.points.chosen_value)}</dd>
+                            <dt className="font-semibold">{t("checkout", mode === "layaway" ? "pointsDepositDue" : "pointsNewTotal")}</dt>
+                            <dd className="cj-fig m-0 text-right font-semibold">{money(mode === "layaway" ? choice.totals.due_now_after_points : choice.totals.total_after_points)}</dd>
+                          </dl>
+                        )}
+                        <p className="mt-2 text-[13px] text-charcoal/75">{t("checkout", "pointsHeldNote")}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {choiceError && <p role="alert" className={`mt-3 ${alertLight} px-4 py-3 text-sm`}>{choiceError}</p>}
+
+                {/* RESERVE FIRST: no accounts, no deadline — the Hub sends no
+                    methods in this mode and this renders none (D3-8). */}
+                {methodOffered && reserving && (
                   <Notice icon={<Lock className="h-5 w-5" strokeWidth={1.5} />} className="mt-6">
                     <b className="font-semibold">{t("checkout", "reserveFirstH")}</b>{" "}
-                    {mode === "layaway" ? t("checkout", "layawayReserveNote") : t("checkout", "reserveExplain")}
+                    {mode === "layaway" ? t("checkout", "layawayReserveNote")
+                      : method === "paidy" ? t("checkout", "reserveExplainPaidy")
+                      : method === "card" ? t("checkout", "reserveExplainCard")
+                      : t("checkout", "reserveExplain")}
                   </Notice>
-                ) : quote.transfer_available ? (
-                  <div className="mt-6">
-                    <div className="border border-hairline bg-chalk p-4 text-sm text-charcoal-deep">
-                      <p>{t("checkout", settlement === "JPY" && mode !== "layaway" ? "transferThenCard" : "transferOnly")}</p>
-                      <p className="mt-2">{t("checkout", "transferPreview")}</p>
-                      {/* The number the Hub will actually store, not a
-                          constant. Omitted rather than guessed. */}
-                      <p className="mt-2">
-                        {typeof quote.deposit_deadline_hours === "number"
-                          ? t("checkout", "deadlineWithin", { hours: String(quote.deposit_deadline_hours) }) + (lang === "ja" ? "" : " ")
-                          : ""}
-                        {t("checkout", "deadlineNote")}
-                      </p>
-                    </div>
-                    {/* Only this destination's region, so these are the
-                        accounts this customer will actually pay into. */}
-                    <div className="mt-4"><TransferDetails methods={quote.transfer_methods} lang={lang} /></div>
-                  </div>
-                ) : (
-                  <p role="alert" className={`mt-6 ${alertLight} px-4 py-3 text-sm`}>{t("checkout", "transferUnavailable")}</p>
                 )}
 
                 {/* Offered only to a signed-in non-member, and never
@@ -911,6 +1047,13 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 // Hub's estimate for this basket and term.
                 ...(!plan && summary.deposit !== null ? [{ k: t("checkout", "layawayDeposit"), v: summaryMoney(summary.deposit) }] : []),
                 ...(!plan && summary.monthly !== null ? [{ k: t("checkout", "layawayMonthly"), v: summaryMoney(summary.monthly) }] : []),
+                // Points chosen on Review (C7): the Hub's figures for this quote.
+                ...(choice && pointsChosen > 0 && quoteShown ? [
+                  { k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` },
+                  mode === "layaway"
+                    ? { k: t("checkout", "pointsDepositDue"), v: money(choice.totals.due_now_after_points) }
+                    : { k: t("checkout", "pointsNewTotal"), v: money(choice.totals.total_after_points) },
+                ] : []),
               ]}
               total={{
                 k: totalLabel,
@@ -987,4 +1130,10 @@ function PlanFigure({ k, v }: { k: string; v: string }) {
       <dd className="cj-fig mt-1 font-display text-2xl text-charcoal-deep">{v}</dd>
     </div>
   );
+}
+
+/** The Hub's payment-choice block off a quote, or null on an older Hub that sends none. */
+function choiceOf(q: HubQuote | null | undefined): HubCheckoutChoice | null {
+  if (!q?.payment_options || !q.points || !q.totals) return null;
+  return { payment_options: q.payment_options, payment_method: q.payment_method ?? null, points: q.points, totals: q.totals };
 }

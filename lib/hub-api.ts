@@ -1,5 +1,6 @@
 import "server-only";
-import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
@@ -70,6 +71,9 @@ const KEY = process.env.HUB_API_KEY ?? "";
  * to the shopper as "Ref: …" so a failure on screen can be matched to the one
  * Hub log line that names its cause.
  */
+/** The customer's payment choice at checkout (C1–C7). */
+export type CheckoutChoiceInput = { method: CheckoutMethod; points: number };
+
 export class HubError extends Error {
   /**
    * `body` is the Hub's whole JSON error body, when it sent one — for the few
@@ -397,10 +401,19 @@ export const hub = {
    * With the Hub's web_checkout_mode = 'draft' (Hub PR 6) the answer is a
    * DRAFT (`draft_id`, no order_id) — see lib/drafts.ts isDraftPayResult.
    */
-  pay: (jwt: string, quote_id: string, lang: "ja" | "en"): Promise<HubPayResult | HubDraftPayResult> =>
+  pay: (jwt: string, quote_id: string, lang: "ja" | "en", choice: CheckoutChoiceInput = { method: "transfer", points: 0 }): Promise<HubPayResult | HubDraftPayResult> =>
     FIXTURES
       ? Promise.resolve(fx.payFixture())
-      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: "transfer", lang }), jwt, revalidate: false }),
+      : call("/checkout/pay", { method: "POST", body: JSON.stringify({ quote_id, method: choice.method, points: choice.points, lang }), jwt, revalidate: false }),
+  /**
+   * C1–C7 (2026-10-05): store the customer's payment choice and points on HER
+   * unspent quote and get back the Hub's figures for the points panel. Refused
+   * (409) when the method is not offered or the points are more than she can use.
+   */
+  checkoutChoice: (jwt: string, quote_id: string, choice: CheckoutChoiceInput): Promise<HubCheckoutChoice> =>
+    FIXTURES
+      ? Promise.resolve(fx.checkoutChoiceFixture(choice))
+      : call(`/checkout/quote/${encodeURIComponent(quote_id)}/choice`, { method: "POST", body: JSON.stringify({ payment_method: choice.method, points: choice.points }), jwt, revalidate: false }),
   /**
    * The same endpoint, for a quote whose mode is layaway. The Hub decides from
    * the quote which it is; the two answers differ, so they are typed apart
@@ -418,6 +431,8 @@ export const hub = {
      * live agreement ever since, which is the defect not to repeat.
      */
     agreement: { version: string; signed_at: string },
+    /** A layaway is bank transfer only (C2); points pay the deposit. */
+    choice: CheckoutChoiceInput = { method: "transfer", points: 0 },
   ): Promise<HubLayawayPayResult | HubDraftPayResult> =>
     FIXTURES
       ? Promise.resolve(fx.layawayPayFixture())
@@ -425,7 +440,8 @@ export const hub = {
           method: "POST",
           body: JSON.stringify({
             quote_id,
-            method: "transfer",
+            method: choice.method,
+            points: choice.points,
             lang,
             agreement_version: agreement.version,
             agreement_signed_at: agreement.signed_at,

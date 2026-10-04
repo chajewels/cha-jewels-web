@@ -123,8 +123,10 @@ export default async function LayawayPlanPage({ params, searchParams }: {
   // What to send next: the deposit while it is outstanding, otherwise the
   // earliest row that still owes something. The Hub's own waterfall order.
   const nextRow = schedule.find((row) => row.actual_remaining > 0 && row.computed_status !== "cancelled");
+  // Points used at checkout paid part of the deposit (2026-10-05): the Hub's
+  // deposit_due is what is left; an older Hub sends none → the whole deposit.
   const suggested = awaitingDeposit
-    ? Number(plan.downpayment_amount)
+    ? Number(detail.deposit_due ?? plan.downpayment_amount)
     : Number(nextRow?.actual_remaining ?? plan.remaining_balance);
 
   // Bank details and a payment route only while the plan can still take

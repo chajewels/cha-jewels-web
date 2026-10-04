@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { liveMirrorProducts } from "@/lib/fixtures-live";
@@ -504,7 +504,36 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
     total_settlement: inSettlement(total),
     subtotal_settlement: inSettlement(total) - inSettlement(shipping),
     layaway: mode === "layaway" ? layawayPlanOf(inSettlement(total), body.term_months ?? 6) : null,
+    // C1–C7 (Hub 2026-10-05): the payment choice and the points panel.
+    ...choiceBlockOf(mode, settlement, inSettlement(subtotal), inSettlement(total),
+      mode === "layaway" ? layawayPlanOf(inSettlement(total), body.term_months ?? 6).deposit : null, { method: "transfer", points: 0 }),
   };
+}
+
+/** Preview only: the shape the Hub answers for the payment choice (FIXTURE_POINTS balance, yen 1:1). */
+const FIXTURE_POINTS = 1250;
+let fixtureChoiceContext: { mode: CheckoutMode; settlement: SettlementCurrency; subtotal: number; total: number; deposit: number | null } =
+  { mode: "full", settlement: "JPY", subtotal: 236000, total: 236000, deposit: null };
+function choiceBlockOf(mode: CheckoutMode, settlement: SettlementCurrency, subtotal: number, total: number, deposit: number | null, choice: { method: CheckoutMethod; points: number }): HubCheckoutChoice {
+  fixtureChoiceContext = { mode, settlement, subtotal, total, deposit };
+  const yen = settlement === "JPY";
+  const why = (m: CheckoutMethod) => m === "transfer" ? null : mode === "layaway" ? "layaway" : !yen ? "currency_not_yen" : null;
+  const limit = mode === "layaway" ? deposit ?? 0 : subtotal;
+  const max = yen ? Math.min(FIXTURE_POINTS, limit) : 0;
+  const chosen = Math.min(Math.max(0, Math.floor(choice.points)), max);
+  return {
+    payment_options: (["transfer", "paidy", "card"] as const).map((m) => ({ method: m, offered: why(m) === null, reason: why(m) })),
+    payment_method: choice.method,
+    points: {
+      usable: max > 0, reason: null, balance: FIXTURE_POINTS, held: 0, available: FIXTURE_POINTS,
+      available_value: yen ? FIXTURE_POINTS : 0, max_points: max, max_value: max, chosen, chosen_value: chosen, applies_to: mode === "layaway" ? "deposit" : "pieces",
+    },
+    totals: { total_after_points: total - chosen, due_now_after_points: (mode === "layaway" ? deposit ?? 0 : total) - chosen },
+  };
+}
+export function checkoutChoiceFixture(choice: { method: CheckoutMethod; points: number }): HubCheckoutChoice {
+  const c = fixtureChoiceContext;
+  return choiceBlockOf(c.mode, c.settlement, c.subtotal, c.total, c.deposit, choice);
 }
 
 /** The same floor-and-remainder rule the Hub uses, so preview figures add up. */
