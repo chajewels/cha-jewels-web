@@ -2,7 +2,7 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
-import { hub, HubError } from "@/lib/hub-api";
+import { hub, HubError, type CheckoutChoiceInput } from "@/lib/hub-api";
 import { TERM_NOT_LAUNCHED, termLaunched, LAYAWAY_UNAVAILABLE } from "@/lib/layaway-availability";
 import { layawayOfferedNow } from "@/lib/layaway-availability-server";
 import { AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
@@ -10,7 +10,7 @@ import { agreementStatus, type AgreementStatus } from "@/lib/agreement-lookup";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
 import { saveCartLater } from "@/lib/cart-sync";
-import type { CheckoutMode, HubAddress, HubDraftPayResult, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
+import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubDraftPayResult, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
 /**
  * Checkout runs entirely on the server.
@@ -41,6 +41,16 @@ async function jwtOrNull(): Promise<string | null> {
  */
 const EXPIRED = new Set(["quote_expired", "quote_already_used", "quote_not_found"]);
 const SOLD_OUT = new Set(["out_of_stock", "variant_missing"]);
+const METHOD_REFUSED = new Set(["bad_method", "method_unavailable", "method_full_payment_only", "method_requires_yen"]);
+const POINTS_REFUSED = new Set(["bad_points", "points_unavailable", "points_not_enrolled", "points_insufficient", "points_exceed_subtotal", "points_exceed_deposit", "points_exceed_max"]);
+
+/** Only the three methods, only whole points — never whatever the browser sent. */
+function cleanChoice(choice: { method?: unknown; points?: unknown } | undefined): CheckoutChoiceInput {
+  const m = String(choice?.method ?? "transfer");
+  const method: CheckoutMethod = m === "paidy" || m === "card" ? m : "transfer";
+  const n = Math.floor(Number(choice?.points ?? 0));
+  return { method, points: Number.isSafeInteger(n) && n > 0 ? n : 0 };
+}
 
 function toCode(err: unknown): string {
   if (err instanceof HubError) {
@@ -61,6 +71,11 @@ function toCode(err: unknown): string {
     // manual shipping quote, or a draft writer that saw the agreement missing.
     if (err.code === "shipping_quote_required") return "manual_quote";
     if (err.code === "agreement_missing") return AGREEMENT_REQUIRED;
+    // Payment choice + points (Hub 2026-10-05). The Hub re-checks what the
+    // review screen offered: a method no longer offered, or points she can no
+    // longer use (spent elsewhere, more than the order takes).
+    if (err.code && METHOD_REFUSED.has(err.code)) return "method_unavailable";
+    if (err.code && POINTS_REFUSED.has(err.code)) return "points_unavailable";
     if (err.status === 409) return "sold_out";
     if (err.status === 401 || err.status === 403) return "signed_out";
   }
@@ -155,7 +170,23 @@ export async function quoteAction(input: {
   }
 }
 
-export async function payAction(quoteId: string): Promise<ActionResult<HubPayResult | HubDraftPayResult>> {
+/**
+ * C1–C7 (2026-10-05): the customer picked a way to pay or a number of points
+ * on Review. Stored on her quote by the Hub, which answers every figure the
+ * panel shows. Nothing is computed here.
+ */
+export async function checkoutChoiceAction(quoteId: string, choice: { method: CheckoutMethod; points: number }): Promise<ActionResult<HubCheckoutChoice>> {
+  const jwt = await jwtOrNull();
+  if (!jwt) return { ok: false, code: "signed_out" };
+  if (!quoteId) return { ok: false, code: "failed" };
+  try {
+    return { ok: true, data: await hub.checkoutChoice(jwt, quoteId, cleanChoice(choice)) };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function payAction(quoteId: string, choice?: { method: CheckoutMethod; points: number }): Promise<ActionResult<HubPayResult | HubDraftPayResult>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!quoteId) return { ok: false, code: "failed" };
@@ -163,7 +194,7 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
   try {
     // The language cookie decides which language the Hub writes the order
     // emails in — read server-side, never trusted from the client component.
-    const result = await hub.pay(jwt, quoteId, await getLang());
+    const result = await hub.pay(jwt, quoteId, await getLang(), cleanChoice(choice));
     // The order exists and holds the stock; the cart has served its purpose.
     // Emptied only on success, so a failed payment leaves the basket intact.
     await writeCart([]);
@@ -186,7 +217,7 @@ export async function payAction(quoteId: string): Promise<ActionResult<HubPayRes
  * No money moves here. The plan is created, the piece comes off the shelf, and
  * the customer is told where to send the deposit and by when.
  */
-export async function payLayawayAction(quoteId: string): Promise<ActionResult<HubLayawayPayResult | HubDraftPayResult>> {
+export async function payLayawayAction(quoteId: string, choice?: { points: number }): Promise<ActionResult<HubLayawayPayResult | HubDraftPayResult>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!quoteId) return { ok: false, code: "failed" };
@@ -220,7 +251,7 @@ export async function payLayawayAction(quoteId: string): Promise<ActionResult<Hu
     const result = await hub.payLayaway(jwt, quoteId, await getLang(), {
       version: agreement.version,
       signed_at: agreement.signedAt,
-    });
+    }, cleanChoice({ method: "transfer", points: choice?.points })); // C2: a layaway is bank transfer
     // The plan holds the stock now, so the basket has served its purpose.
     // Cleared only on success — a refused plan leaves the cart intact.
     await writeCart([]);

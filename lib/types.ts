@@ -225,6 +225,38 @@ export type CartReminderSource = "account" | "complete_profile" | "checkout";
 
 /** Phase 2 step 2 — cart, checkout and orders. */
 export type OrderType = "SELF" | "GIFT" | "PROXY";
+/**
+ * CHECKOUT PAYMENT CHOICE + POINTS (Hub, owner C1–C7, 2026-10-05). The
+ * customer chooses how to pay at checkout and it is locked for her; points are
+ * used at checkout (1 pt = ¥1, never on shipping; on a layaway they pay the
+ * deposit). EVERY figure here is the Hub's — the storefront renders, never
+ * computes.
+ */
+export type CheckoutMethod = "transfer" | "paidy" | "card";
+/** One choice, and why it is greyed out when it is (layaway | currency_not_yen | address_not_jp | off | no_account). */
+export type HubPaymentOption = { method: CheckoutMethod; offered: boolean; reason: string | null };
+export type HubCheckoutPoints = {
+  /** False when points cannot be used here — `reason` says why (not_enrolled | no_points | loyalty_off), or max_points is 0. */
+  usable: boolean;
+  reason: string | null;
+  balance: number;
+  /** Points held by her other checkouts waiting for confirmation. */
+  held: number;
+  available: number;
+  /** `available` in this order's currency ("You have 1,250 points (= ¥1,250)"). */
+  available_value: number;
+  max_points: number;
+  max_value: number;
+  chosen: number;
+  chosen_value: number;
+  applies_to: "pieces" | "deposit";
+};
+export type HubCheckoutChoice = {
+  payment_options: HubPaymentOption[];
+  payment_method: CheckoutMethod | null;
+  points: HubCheckoutPoints;
+  totals: { total_after_points: number; due_now_after_points: number };
+};
 export type HubQuoteItem = { variant_id: string; product_id: string | null; sku: string | null; slug: string | null; name: string; name_en?: string | null; name_ja?: string | null; qty: number; unit_price_jpy: number; line_total_jpy: number };
 export type HubQuote = {
   quote_id: string;
@@ -303,7 +335,7 @@ export type HubQuote = {
    */
   shipping_at_confirmation?: boolean;
   provisional?: boolean;
-};
+} & Partial<HubCheckoutChoice>;
 /**
  * The two flags the Hub adds to every order and plan (reserve-first A2), both
  * derived there from `ready_confirmed_at`, which itself never crosses the API.
@@ -413,6 +445,11 @@ export type HubDraft = {
   /** Set once staff confirm: the real order / plan. */
   order_id: string | null;
   account_id: string | null;
+  /** C1: how she chose to pay (locked for her). Absent on an older Hub = transfer. */
+  payment_method?: CheckoutMethod;
+  /** Points used at checkout, held until staff confirm; value in `currency`. */
+  points?: number;
+  points_value?: number;
 };
 export type HubDraftLine = {
   id: string; variant_id: string | null; product_id: string | null;
@@ -499,6 +536,10 @@ export type HubOrderDetail = {
    * an older Hub.
    */
   payment_state?: "paidy_processing" | "payment_pending" | null;
+  /** C1 (2026-10-05): the method she chose at checkout (or staff since). Absent on an older Hub. */
+  chosen_method?: CheckoutMethod;
+  /** Points used at checkout, already taken off (order currency). */
+  points_applied?: number;
 };
 /**
  * Everything Paidy Checkout needs, assembled by the Hub. `checkout` is passed
@@ -742,6 +783,10 @@ export type HubLayawayDetail = {
   transfer_methods: TransferMethod[];
   /** This customer's portal link, from the Hub's own builder. */
   portal_url?: string | null;
+  /** Points used at checkout, taken off the deposit (plan currency). */
+  points_applied?: number;
+  /** What is still due on the deposit after points; null once it is paid. Absent on an older Hub. */
+  deposit_due?: number | null;
 };
 
 /**
