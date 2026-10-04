@@ -147,7 +147,8 @@ export default async function OrderDetailPage({ params, searchParams }: {
                   <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
                   <p className="mt-1 text-[13px] leading-relaxed text-charcoal/80">{t("card", "orderLede")}</p>
                 </div>
-                <Link href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</Link>
+                {/* A full page load, not a client navigation: the pay-card page's enforced CSP header only applies to a document load. */}
+                <a href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</a>
               </div>
             )}
             <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>

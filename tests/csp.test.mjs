@@ -78,4 +78,6 @@ test("violation reports: both formats, path only, never a query string", () => {
   assert.deepEqual(readCspViolations({ hello: 1 }), []);
   assert.deepEqual(readCspViolations(null), []);
   assert.equal(CSP_REPORT_MAX_BYTES, 16384);
+  const forged = readCspViolations({ "csp-report": { "blocked-uri": "eval\nFAKE LOG LINE", "violated-directive": "script-src\r\nFAKE", "document-uri": "/x" } });
+  assert.ok(!/[\r\n]/.test(forged[0].blocked + forged[0].directive), "no control characters reach a log line");
 });

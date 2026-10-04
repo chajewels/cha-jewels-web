@@ -1,5 +1,6 @@
 import { pageMeta } from "@/lib/page-meta";
 import Link from "next/link";
+import { FullReloadLinks } from "@/components/commerce/full-reload-links";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
@@ -79,7 +80,9 @@ export default async function PayCardPage({ params, searchParams }: {
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const amountLabel = formatMoney(card.amount_jpy, "JPY");
   const eyebrow = <>{t("card", "eyebrow")} · <span className="cj-fig font-mono text-[13px] normal-case tracking-[0.04em] text-charcoal-deep">{reference}</span></>;
-  const back = { href: orderPath, label: t("card", "backToOrder") };
+  // native: leave pay-card with a full page load so its enforced CSP does not
+  // carry over to the order page (Paidy, analytics).
+  const back = { href: orderPath, label: t("card", "backToOrder"), native: true };
 
   // The gate. `?signed=1` is only the return from the signing page — it
   // changes nothing here; the lookup is the only thing that decides.
@@ -110,6 +113,7 @@ export default async function PayCardPage({ params, searchParams }: {
     const lede = gate === "sign" ? t("card", "signLede") : resignReason === "amount" ? t("card", "resignAmount") : t("card", "resignUnbound");
     return (
       <AccountShell lang={lang} current="orders" eyebrow={eyebrow} title={title} back={back}>
+        <FullReloadLinks />
         <div className="max-w-[640px] border border-hairline bg-white p-5 sm:p-7" data-testid="card-gate" data-gate={gate}>
           {gate !== "unverified" && signUrl ? (
             <>
@@ -120,14 +124,14 @@ export default async function PayCardPage({ params, searchParams }: {
               </dl>
               <div className="mt-6 flex flex-wrap gap-3">
                 <a href={signUrl} className="inline-flex h-12 items-center justify-center bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]" data-testid="card-sign">{t("card", "signButton")}</a>
-                <Link href={`${orderPath}/pay-card?signed=1`} className="inline-flex h-12 items-center justify-center border border-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-charcoal-deep transition hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</Link>
+                <a href={`${orderPath}/pay-card?signed=1`} className="inline-flex h-12 items-center justify-center border border-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-charcoal-deep transition hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</a>
               </div>
             </>
           ) : (
             <>
               <p className="text-[15px] leading-relaxed text-charcoal/85" role="status">{t("card", "unverified")}</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href={`${orderPath}/pay-card`} className="inline-flex h-12 items-center justify-center bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</Link>
+                <a href={`${orderPath}/pay-card`} className="inline-flex h-12 items-center justify-center bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</a>
                 <Button asChild variant="outline"><Link href="/contact">{t("navMenu", "contact")}</Link></Button>
               </div>
             </>
@@ -147,6 +151,7 @@ export default async function PayCardPage({ params, searchParams }: {
 
   return (
     <AccountShell lang={lang} current="orders" eyebrow={eyebrow} title={t("card", "title")} back={back}>
+      <FullReloadLinks />
       <div className="max-w-[640px]">
         {/* Keyed on the Hub's amount: if it changes, a refresh draws a fresh form for the new figure. */}
         <CardPay key={card.amount_jpy} orderId={order.id} card={card} delivery={delivery} amountLabel={amountLabel} lang={lang} nonce={nonce} />

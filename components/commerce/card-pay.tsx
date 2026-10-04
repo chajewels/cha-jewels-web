@@ -219,7 +219,7 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
   if (state === "held" || state === "processing") {
     return (
       <CardPaymentStatus lang={lang} state={state === "held" ? "held" : "processing"} brand={held?.brand} last4={held?.last4} captureBy={held?.captureBy} reference={held?.reference}>
-        <Link href={`/account/orders/${orderId}`} className="mt-4 inline-flex h-11 items-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "backToOrder")}</Link>
+        <a href={`/account/orders/${orderId}`} className="mt-4 inline-flex h-11 items-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "backToOrder")}</a>
       </CardPaymentStatus>
     );
   }

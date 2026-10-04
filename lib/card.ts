@@ -204,8 +204,17 @@ export function cardBilling(form: CardBillingForm, delivery: Delivery):
 export function cardRefusalCode(err: { status: number; code: string | null; body?: Record<string, unknown> | null }): string {
   const body = err.body ?? null;
   switch (err.code) {
-    case "card_declined": return body?.order_cancelled === true ? "card_declined_cancelled" : "card_declined";
-    case "card_mismatch": return body?.hold === "void_pending" ? "card_mismatch_void_pending" : "card_mismatch";
+    case "card_declined":
+      if (body?.order_cancelled === true) return "card_declined_cancelled";
+      // Square approved but the Hub refused (risk HIGH) and the hold could
+      // not be cancelled yet: never "nothing was charged" (review 2026-10-04).
+      if (body?.hold === "held") return "card_hold_unfiled";
+      return "card_declined";
+    case "card_mismatch":
+      if (body?.hold === "void_pending") return "card_mismatch_void_pending";
+      // Square refused the request itself (used/expired token) or a replay
+      // found nothing held: nothing was charged, but nothing "did not match".
+      return body?.detail === "amount" ? "card_mismatch" : "failed";
     case "card_attempt_pending": return "card_attempt_pending";
     case "card_hold_unfiled": return "card_hold_unfiled";
     case "amount_changed": return "amount_changed";

@@ -140,7 +140,11 @@ test("'nothing was charged' only where it is established; anything uncertain is 
   const c = (status, code, body = null) => cardRefusalCode({ status, code, body });
   assert.equal(c(402, "card_declined", { code: "GENERIC_DECLINE" }), "card_declined");
   assert.equal(c(402, "card_declined", { order_cancelled: true }), "card_declined_cancelled");
-  assert.equal(c(409, "card_mismatch", { hold: "voided" }), "card_mismatch");
+  assert.equal(c(409, "card_mismatch", { detail: "amount", hold: "voided" }), "card_mismatch");
+  assert.equal(c(409, "card_mismatch", { detail: "INVALID_CARD_DATA" }), "failed", "a refused request is not a mismatch");
+  assert.equal(c(409, "card_mismatch", { detail: "cancelled", hold: "voided" }), "failed");
+  assert.equal(c(402, "card_declined", { code: "risk_high", hold: "held" }), "card_hold_unfiled", "an approved hold still on the card is never 'not charged'");
+  assert.equal(c(402, "card_declined", { code: "risk_high", hold: "voided", order_cancelled: true }), "card_declined_cancelled");
   assert.equal(c(409, "card_mismatch", { hold: "void_pending" }), "card_mismatch_void_pending");
   assert.equal(c(409, "card_attempt_pending"), "card_attempt_pending");
   assert.equal(c(409, "amount_changed", { amount_jpy: 230000 }), "amount_changed");

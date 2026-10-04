@@ -74,6 +74,14 @@ function cjB64UrlDecodeToString_(s) {
   return Utilities.newBlob(Utilities.base64DecodeWebSafe(t)).getDataAsString('UTF-8');
 }
 
+/** Constant-time string compare for the context signature (does not rely on Code.gs). */
+function cjCtxSafeEquals_(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  var diff = 0;
+  for (var i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 /** Verifies the signed context. Returns {ok:true, customerId, amountJpy} or {ok:false, reason}. */
 function cjVerifyCardContext_(ctx, orderId) {
   var key = PropertiesService.getScriptProperties().getProperty(CJ_SIG_LOOKUP.TOKEN_PROPERTY);
@@ -84,7 +92,7 @@ function cjVerifyCardContext_(ctx, orderId) {
   var payloadB64 = raw.slice(0, dot);
   var sigB64 = raw.slice(dot + 1);
   var expected = cjB64UrlNoPad_(Utilities.computeHmacSha256Signature(payloadB64, key));
-  if (!cjSafeEquals_(sigB64, expected)) return { ok: false, reason: 'bad_signature' };
+  if (!cjCtxSafeEquals_(sigB64, expected)) return { ok: false, reason: 'bad_signature' };
   var p;
   try { p = JSON.parse(cjB64UrlDecodeToString_(payloadB64)); } catch (err) { return { ok: false, reason: 'bad_payload' }; }
   if (!p || p.v !== 1) return { ok: false, reason: 'bad_version' };
