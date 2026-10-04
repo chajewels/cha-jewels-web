@@ -81,7 +81,7 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
       if (!started.ok) {
         setCode(started.code);
         setState("error");
-        if (started.code === "payment_in_progress") router.refresh();
+        if (started.code === "payment_in_progress" || started.code === "paidy_not_offered") router.refresh();
         return;
       }
       const { attemptId, checkout } = started.data;
