@@ -470,6 +470,14 @@ export type HubOrderDetail = {
    */
   paidy?: HubOrderPaidy | null;
   /**
+   * Card payment (Square) on this order (S2/S3, 2026-10-04). Present and
+   * `offered: true` only when the Hub says so: its `square_mode` switch is on
+   * (or test, for a test customer), the public Application ID and Location ID
+   * are saved, the order is a confirmed yen order with money due, and nothing
+   * is pending. ANY delivery country (owner D4). Absent from an older Hub.
+   */
+  card?: HubOrderCard | null;
+  /**
    * Submissions a reviewer has not decided yet (status submitted /
    * under_review), oldest first — the same shape the plan page gets. Absent
    * from an older Hub, which means "none known", not "none".
@@ -488,6 +496,45 @@ export type HubOrderPaidy = {
   public_key: string;
   test: boolean;
   checkout: PaidyCheckoutPayload;
+};
+/**
+ * Everything the Square Web Payments SDK needs, assembled by the Hub. The ids
+ * are PUBLIC (Application ID, Location ID); `test` says which Square
+ * environment they belong to, so the page loads the matching SDK. `amount_jpy`
+ * is the Hub's remaining balance — shown and passed to Square's buyer
+ * verification as-is, never computed here. `agreement_required` is owner D9:
+ * the e-signed Card Purchase Agreement, verified server-side BEFORE the card
+ * form is shown; the Hub refuses the payment without the record.
+ */
+export type HubOrderCard = {
+  offered: boolean;
+  app_id: string;
+  location_id: string;
+  test: boolean;
+  amount_jpy: number;
+  agreement_required: boolean;
+  agreement_min_jpy: number;
+};
+/**
+ * What the storefront sends with the card token (POST /orders/:id/card).
+ * `verification_token` is Square's separate 3-D Secure token when the SDK
+ * issues one; with the current `card.tokenize(verificationDetails)` flow the
+ * verification lives inside `source_id` and this is null. `terms` is the
+ * customer's tick on the page; `agreement` is the e-signed Card Purchase
+ * Agreement as the storefront verified it server-side (null only when the
+ * Hub said it is not required).
+ */
+export type HubCardInput = {
+  source_id: string;
+  verification_token: string | null;
+  terms: { accepted_at: string; version: string; ip?: string; user_agent?: string };
+  agreement: { version: string; signed_at: string } | null;
+};
+/** What the Hub answers once a card hold is placed (POST /orders/:id/card). The money is NOT taken yet. */
+export type HubCardResult = {
+  ok: true;
+  submission: HubLayawaySubmission | null;
+  card: { brand: string | null; last4: string | null; receipt_url: string | null; status: "authorized" };
 };
 /** The Paidy Checkout `launch()` payload (paidy.com/docs/en/paidycheckout.html), as the Hub builds it. */
 export type PaidyCheckoutPayload = {

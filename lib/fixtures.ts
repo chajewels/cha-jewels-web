@@ -30,6 +30,8 @@ function fixtureDownPayments(jpy: number) {
 const PREVIEW_RESERVATION = process.env.NEXT_PUBLIC_PREVIEW_RESERVATION === "1";
 /** NEXT_PUBLIC_PREVIEW_PAIDY=1 offers Paidy ato-barai on the preview's yen order (the Hub's test-key shape). */
 export const PREVIEW_PAIDY = process.env.NEXT_PUBLIC_PREVIEW_PAIDY === "1";
+/** NEXT_PUBLIC_PREVIEW_CARD=1 offers a card payment (Square sandbox shape) on the preview's yen order; the Hub's `card` block as it answers in test mode. */
+export const PREVIEW_CARD = process.env.NEXT_PUBLIC_PREVIEW_CARD === "1";
 // Website orders (Hub PR 6 / storefront PR 7): NEXT_PUBLIC_PREVIEW_DRAFTS=1
 // makes the preview Hub answer checkout with a DRAFT and list drafts in the
 // account, as the live Hub does with web_checkout_mode = 'draft'.
@@ -698,6 +700,17 @@ export function orderFixture(id: string): HubOrderDetail | null {
           order: { items: [{ id: "v3", quantity: 1, title: "Twist bangle", unit_price: 236000 }], order_ref: order.web_reference ?? undefined, shipping: Number(order.shipping_fee ?? 0), tax: 0 },
           shipping_address: { line1: meFixture.addresses[0].line1, line2: meFixture.addresses[0].line2 ?? undefined, city: meFixture.addresses[0].city ?? undefined, state: meFixture.addresses[0].region ?? undefined, zip: meFixture.addresses[0].postal_code ?? "" },
         },
+      },
+    } : {}),
+    ...(PREVIEW_CARD && order.currency === "JPY" && order.payment_status === "pending_transfer" && order.ready_for_payment !== false ? {
+      card: {
+        offered: true,
+        app_id: "sandbox-sq0idb-preview00000",
+        location_id: "LPREVIEW000000",
+        test: true,
+        amount_jpy: Math.round(Number(order.remaining_balance)),
+        agreement_required: true,
+        agreement_min_jpy: 0,
       },
     } : {}),
   };
