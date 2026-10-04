@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub, HubError } from "@/lib/hub-api";
 import type { ActionResult } from "@/lib/checkout-actions";
+import type { PaidyCheckoutPayload } from "@/lib/types";
 import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
 
 /**
@@ -20,6 +21,60 @@ import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
  * other Hub call. Nothing about money is decided here.
  */
 const PAIDY_ID = /^pay_[A-Za-z0-9_-]{6,80}$/;
+const ATTEMPT_ID = /^[0-9a-f-]{36}$/i;
+
+async function customerJwt(): Promise<string | null> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+}
+
+/**
+ * Owner rule 2026-10-04: the Hub records the customer's Paidy window BEFORE
+ * Paidy opens, so no other payment (a second tab, the card page, the bank
+ * details) can be started while it runs. Answers the Hub's fresh payload.
+ */
+export async function paidyStartAction(orderId: string): Promise<ActionResult<{ attemptId: string; checkout: PaidyCheckoutPayload }>> {
+  const jwt = await customerJwt();
+  if (!jwt) return { ok: false, code: "signed_out" };
+  if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId)) return { ok: false, code: "failed" };
+  try {
+    const r = await hub.paidyStart(jwt, orderId);
+    return { ok: true, data: { attemptId: r.attempt_id, checkout: r.checkout } };
+  } catch (err) {
+    if (err instanceof HubError && err.code === "order_cannot_take_payment") {
+      revalidatePath(`/account/orders/${orderId}`);
+      return { ok: false, code: "paidy_not_offered", requestId: err.requestId };
+    }
+    if (err instanceof HubError && err.code === "payment_in_progress") {
+      revalidatePath(`/account/orders/${orderId}`);
+      return { ok: false, code: "payment_in_progress", requestId: err.requestId };
+    }
+    return { ok: false, code: paidyCode(err), requestId: err instanceof HubError ? err.requestId : null };
+  }
+}
+
+/** Paidy reported the window closed / declined (no authorisation): end the window so the other options return. */
+export async function paidyAbandonAction(orderId: string, attemptId: string, reason: "closed" | "rejected" | "error"): Promise<ActionResult<null>> {
+  const jwt = await customerJwt();
+  if (!jwt) return { ok: false, code: "signed_out" };
+  if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId) || typeof attemptId !== "string" || !ATTEMPT_ID.test(attemptId)) return { ok: false, code: "failed" };
+  // Server-action arguments are untrusted: only the three reasons the Hub knows.
+  if (reason !== "closed" && reason !== "rejected" && reason !== "error") return { ok: false, code: "failed" };
+  try {
+    try {
+      await hub.paidyAbandon(jwt, orderId, attemptId, reason);
+    } catch {
+      // One retry: a lost abandon keeps the order on hold for up to 30 minutes.
+      await hub.paidyAbandon(jwt, orderId, attemptId, reason);
+    }
+    revalidatePath(`/account/orders/${orderId}`);
+    return { ok: true, data: null };
+  } catch (err) {
+    // Not fatal: the Hub times the window out after 30 minutes by itself.
+    return { ok: false, code: paidyCode(err), requestId: err instanceof HubError ? err.requestId : null };
+  }
+}
 
 export async function paidyAuthorizedAction(orderId: string, paidyPaymentId: string): Promise<ActionResult<null>> {
   const supabase = await supabaseServer();

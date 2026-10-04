@@ -175,8 +175,29 @@ PD1) and notifies staff. Returns `{ ok: true }`. Errors: 404 `not_found`; 409
 `paidy_not_offered` (the `offered` rule no longer holds), `paidy_mismatch`
 (the Hub CLOSED that Paidy payment; nothing filed), `submission_pending`,
 `not_ready_for_payment`; 429 `too_many_submissions` (3 per 24 h per order);
-502 `paidy_unavailable`. Capture happens on reviewer Confirm in the Hub;
-Reject closes the authorisation. The storefront never calls Paidy's API.
+502 `paidy_unavailable`. Capture happens in Paidy's merchant dashboard and the
+Hub records it automatically (owner 2026-10-04); Reject closes the
+authorisation. The storefront never calls Paidy's API.
+
+**Follow-up 2026-10-04 (owner: while Paidy processes, no other way to pay).**
+- `GET /orders/:id` adds `payment_state: "paidy_processing" | "payment_pending" | null`.
+  While `paidy_processing`, `paidy` and `card` are null and `transfer_methods`
+  is `[]`; the site shows "Paidy payment being processed" and no option.
+- `paidy` is offered only while NOTHING is paid on the order; the checkout
+  items + shipping (+ a negative "Discount" line, + an "Other charges" line)
+  equal `amount` exactly; `buyer.name1` is the customer (never the recipient);
+  `buyer.phone` only a Japanese mobile; `buyer_data` = completed yen orders not
+  paid with Paidy and not refunded (`ltv` = order values, `last_order_at` in
+  days, `billing_address` from her own default JP address only);
+  `shipping_address.line1` = building/room, `line2` = street.
+- `POST /orders/:id/paidy/start` (customer JWT) — records the Paidy window
+  BEFORE `Paidy.launch`. `{ ok, attempt_id, expires_at, checkout }`; 409
+  `payment_in_progress` (+ `lock`) when anything else holds the order (a second
+  tab included), `paidy_not_offered`, `not_ready_for_payment`.
+- `POST /orders/:id/paidy/abandon` — body `{ attempt_id, reason: "closed" |
+  "rejected" | "error" }`; ends the window so the options return. `{ ok, ended }`.
+  A window nobody ends times out after 30 minutes.
+- `POST /orders/:id/card` answers 409 `paidy_in_progress` while Paidy holds the order.
 
 ### Card payment (Square) on a confirmed order (storefront S3, 2026-10-04; Hub S1/S2 live)
 

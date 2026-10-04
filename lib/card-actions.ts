@@ -107,7 +107,10 @@ function cardCode(err: unknown): string {
       case "verification_required": return "verification_required";
       case "terms_required": return "terms_required";
       case "agreement_missing": return AGREEMENT_REQUIRED;
-      case "submission_pending": return "submission_pending";
+      case "submission_pending":
+      // Paidy holds the order (owner rule 2026-10-04): no card payment until it is settled.
+      case "paidy_in_progress":
+      case "payment_in_progress": return "submission_pending";
       case "too_many_submissions": return "too_many_submissions";
       case "too_many_attempts": return "too_many_attempts";
       case "card_unavailable": return "card_unavailable";

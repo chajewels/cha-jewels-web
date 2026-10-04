@@ -20,6 +20,15 @@ export function paidyOffer(detail: Pick<HubOrderDetail, "paidy" | "order">): Hub
   return p;
 }
 
+/**
+ * Owner rule 2026-10-04: true while the Hub says a Paidy payment holds this
+ * order (window open, authorisation waiting, capture not yet recorded). The
+ * page then shows NO way to pay — the Hub refuses every other payment too.
+ */
+export function paidyProcessing(detail: Pick<HubOrderDetail, "payment_state">): boolean {
+  return detail.payment_state === "paidy_processing";
+}
+
 /** Submissions a reviewer has not decided yet — the only ones that mean "being checked". */
 export function pendingSubmissions(detail: Pick<HubOrderDetail, "pending_submissions">): HubLayawaySubmission[] {
   return (detail.pending_submissions ?? []).filter((s) => s.status === "submitted" || s.status === "under_review");
