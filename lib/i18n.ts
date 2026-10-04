@@ -990,13 +990,56 @@ export const dict = {
     // read as usable by an overseas buyer shipping to a friend here).
     widgetNote: { ja: "ペイディは日本国内にお住まいのお客様向けです。日本の携帯電話番号と本人確認が必要で、お支払いは日本国内（コンビニ・銀行振込・口座振替）で行います。", en: "Paidy is for customers living in Japan: it requires a Japanese mobile number and Paidy's identity check, and you pay Paidy in Japan (convenience store, bank transfer or direct debit). Not available to customers outside Japan." },
   },
+  // Card payment (Square) on a confirmed order (S3, 2026-10-04). The card is
+  // HELD, never charged here: a reviewer's Confirm captures it, Reject releases
+  // it. Every amount shown is the Hub's. The Card Purchase Agreement (owner D9)
+  // is signed first on agreement.chajewelsjp.com; English governs, Japanese is
+  // a translation.
+  card: {
+    eyebrow: { ja: "カードでお支払い", en: "Pay by card" },
+    title: { ja: "カードでお支払い", en: "Pay by card" },
+    orderButton: { ja: "カードで支払う", en: "Pay by card" },
+    orderLede: { ja: "Visa・Mastercard・JCB・American Express。ご入力後はカードの与信枠を確保するのみで、Cha Jewelsがご注文を確認した時点で請求が確定します。", en: "Visa, Mastercard, JCB and American Express. Your card is only held when you pay; the charge is made once Cha Jewels confirms your order." },
+    amount: { ja: "お支払い金額", en: "Amount" },
+    forOrder: { ja: "ご注文", en: "Order" },
+    lede: { ja: "カード情報はSquareの安全なフォームに直接入力され、Cha Jewelsには届きません。本人認証（3Dセキュア）が求められる場合があります。", en: "Your card details go straight into Square's secure form — Cha Jewels never sees them. Your bank may ask you to confirm the payment (3-D Secure)." },
+    terms: { ja: "カード購入同意書の内容に同意し、与信枠の確保と、Cha Jewelsによる確認後の請求に同意します。", en: "I agree to the Card Purchase Agreement, to a hold on my card now, and to the charge once Cha Jewels confirms my order." },
+    button: { ja: "カードで支払う", en: "Pay by card" },
+    filing: { ja: "確認中…", en: "Confirming…" },
+    loading: { ja: "カードフォームを読み込んでいます…", en: "Loading the card form…" },
+    testMode: { ja: "テストモード：実際の請求は発生しません。", en: "Test mode — nothing is charged." },
+    note: { ja: "この時点ではカードの与信枠を確保するだけで、請求はまだ行われません。Cha Jewelsがご注文を確認した時点で請求が確定し、確認できない場合は与信枠を解放します（7日以内）。", en: "Nothing is charged yet: your card is held, and the charge is made when Cha Jewels confirms your order. If the order cannot be confirmed, the hold is released (within 7 days)." },
+    held: { ja: "お支払いを受け付けました。{card}の与信枠を確保しました。Cha Jewelsが確認後、メールでお知らせします。", en: "Payment received. Your card {card} is held. We will email you once Cha Jewels has confirmed." },
+    heldNoCard: { ja: "お支払いを受け付けました。カードの与信枠を確保しました。Cha Jewelsが確認後、メールでお知らせします。", en: "Payment received. Your card is held. We will email you once Cha Jewels has confirmed." },
+    backToOrder: { ja: "ご注文ページへ戻る", en: "Back to the order" },
+    // The agreement gate, before the form (owner D9).
+    signTitle: { ja: "まずカード購入同意書にご署名ください", en: "First, sign the Card Purchase Agreement" },
+    signLede: { ja: "カードでのお支払いには、電子署名によるカード購入同意書が必要です。署名ページでご注文内容をご確認のうえ署名すると、このページに戻ってカード情報をご入力いただけます。", en: "A card payment needs the e-signed Card Purchase Agreement. The signing page shows your order; once you sign, it brings you back here to enter your card." },
+    signButton: { ja: "同意書に署名する", en: "Sign the agreement" },
+    signedCheck: { ja: "署名済みの方はこちら", en: "Already signed? Check again" },
+    unverified: { ja: "署名の確認ができませんでした。しばらくしてからもう一度お試しください。問題が続く場合はご連絡ください。", en: "We could not check your signature right now. Please try again in a moment; if it keeps happening, message us." },
+    notOffered: { ja: "このご注文では現在カードでのお支払いをご利用いただけません。", en: "A card payment is not available for this order right now." },
+    // Refusals. The bank's "no" and "the hold did not match" both mean nothing was held.
+    errDeclined: { ja: "カード会社がこのお支払いを承認しませんでした。別のカードをお試しいただくか、銀行振込をご利用ください。", en: "Your bank did not approve this payment. Please try another card, or use bank transfer." },
+    errMismatch: { ja: "カードの承認内容がご注文と一致しなかったため、取り消しました。もう一度お試しください。", en: "The card hold did not match this order, so it was cancelled. Please try again." },
+    errVerification: { ja: "本人認証（3Dセキュア）が完了しませんでした。もう一度お試しください。", en: "The bank's confirmation (3-D Secure) did not complete. Please try again." },
+    errNotOffered: { ja: "このご注文では現在カードでのお支払いをご利用いただけません。ページを再読み込みしてご確認ください。", en: "A card payment is not available for this order right now. Please reload the page." },
+    errPending: { ja: "このご注文には確認中のお支払いがあります。", en: "A payment on this order is already being checked." },
+    errTooMany: { ja: "お支払いの試行回数が上限に達しました。しばらくしてからお試しください。", en: "Too many card attempts for now. Please try again later." },
+    errSignedOut: { ja: "セッションが切れました。もう一度サインインしてください。", en: "Your session ended. Please sign in again." },
+    errTerms: { ja: "お支払いを続けるには同意が必要です。", en: "Please tick the agreement line to continue." },
+    errUnavailable: { ja: "カード決済サービスに接続できませんでした。しばらくしてからお試しいただくか、銀行振込をご利用ください。", en: "The card service could not be reached. Please try again shortly, or use bank transfer." },
+    errFailed: { ja: "カードのお支払いを登録できませんでした。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We could not record the card payment. Please try again, or use bank transfer." },
+    errForm: { ja: "カード情報をご確認ください。", en: "Please check your card details." },
+  },
   orders: {
-    // A submission the Hub is still checking (a transfer slip or a Paidy
-    // authorisation): shown instead of the payment card until a reviewer
-    // confirms or rejects it. Same shape as plans.pending.
+    // A submission the Hub is still checking (a transfer slip, a Paidy
+    // authorisation or a card hold): shown instead of the payment card until
+    // a reviewer confirms or rejects it. Same shape as plans.pending.
     pending: { ja: "お支払いを確認中です", en: "Your payment is being checked" },
     pendingNote: { ja: "{amount}（{date}・{method}）を確認中です。確認後にメールでお知らせします。", en: "{amount} ({date}, {method}) is being checked. We will email you once it is confirmed." },
     methodPaidy: { ja: "あと払い（ペイディ）", en: "Paidy" },
+    methodCard: { ja: "カード", en: "card" },
     methodTransfer: { ja: "お振込", en: "bank transfer" },
     h1: { ja: "ご注文履歴", en: "Your orders" },
     empty: { ja: "まだご注文はありません。", en: "No orders yet." },

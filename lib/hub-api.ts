@@ -1,5 +1,5 @@
 import "server-only";
-import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
@@ -71,7 +71,7 @@ const KEY = process.env.HUB_API_KEY ?? "";
  * Hub log line that names its cause.
  */
 export class HubError extends Error {
-  constructor(public status: number, message: string, public code: string | null = null, public requestId: string | null = null) { super(message); }
+  constructor(public status: number, message: string, public code: string | null = null, public requestId: string | null = null, public detail: string | null = null) { super(message); }
 }
 
 /**
@@ -109,12 +109,15 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
     // A body that is missing or not JSON is normal for gateway-level failures.
     const body = await res.clone().json().then((b) => (b && typeof b === "object" ? b : null), () => null);
     const code = typeof body?.error === "string" ? body.error : null;
+    // A second word from the Hub, when it has one: Square's own code on a
+    // card refusal (`code` on 402 card_declined, `detail` on 409 card_mismatch).
+    const detail = typeof body?.detail === "string" ? body.detail : typeof body?.code === "string" ? body.code : null;
     const requestId = (typeof body?.request_id === "string" && body.request_id) || res.headers.get("x-request-id") || null;
     // A 404 carries its code too: on a customer route `not_linked` (signed in,
     // no customer record yet) and `not_found` (no such order or plan, or not
     // hers) are different answers and callers must be able to tell them apart.
     if (res.status === 404) throw new HubError(404, "Not found", code, requestId);
-    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId);
+    throw new HubError(res.status, `Hub API ${res.status} on ${path}${code ? ` (${code})` : ""}${requestId ? ` ref ${requestId}` : ""}`, code, requestId, detail);
   }
   return res.json() as Promise<T>;
 }
@@ -469,6 +472,17 @@ export const hub = {
     FIXTURES
       ? Promise.resolve({ ok: true as const })
       : call(`/orders/${encodeURIComponent(id)}/paidy`, { method: "POST", body: JSON.stringify({ paidy_payment_id: paidyPaymentId }), jwt, revalidate: false }),
+  /**
+   * Hands the Hub a Square card token for this order (card payments, S3
+   * 2026-10-04). Like Paidy, this creates a SUBMISSION, never a payment: the
+   * Hub places a HOLD on the card with its own access token (nothing is
+   * charged), re-checks the answer against the order, and files it for a
+   * reviewer. Capture happens on Confirm; Reject voids the hold.
+   */
+  orderCard: (jwt: string, id: string, input: HubCardInput): Promise<HubCardResult> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const, submission: null, card: { brand: "VISA", last4: "1111", receipt_url: null, status: "authorized" as const } })
+      : call(`/orders/${encodeURIComponent(id)}/card`, { method: "POST", body: JSON.stringify(input), jwt, revalidate: false }),
   /** The customer's own service requests, every order and plan, newest first. */
   serviceRequests: (jwt: string): Promise<ServiceRequest[]> =>
     FIXTURES ? Promise.resolve(fx.serviceRequestsFixture()) : call("/me/service-requests", { jwt, revalidate: false }),
