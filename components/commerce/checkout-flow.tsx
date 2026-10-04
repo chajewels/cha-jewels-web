@@ -691,7 +691,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                   <Radio on />
                   <span>
                     <b className="block text-[15px] font-semibold text-charcoal-deep">{settlement === "PHP" ? t("checkout", "payPhp") : t("checkout", "payJpy")}</b>
-                    <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{t("checkout", "transferOnly")}</span>
+                    <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{t("checkout", settlement === "JPY" && mode !== "layaway" ? "transferThenCard" : "transferOnly")}</span>
                   </span>
                 </div>
               </section>
@@ -838,7 +838,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 ) : quote.transfer_available ? (
                   <div className="mt-6">
                     <div className="border border-hairline bg-chalk p-4 text-sm text-charcoal-deep">
-                      <p>{t("checkout", "transferOnly")}</p>
+                      <p>{t("checkout", settlement === "JPY" && mode !== "layaway" ? "transferThenCard" : "transferOnly")}</p>
                       <p className="mt-2">{t("checkout", "transferPreview")}</p>
                       {/* The number the Hub will actually store, not a
                           constant. Omitted rather than guessed. */}

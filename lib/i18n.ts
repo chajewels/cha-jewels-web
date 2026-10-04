@@ -475,7 +475,7 @@ export const dict = {
     buyBar: { ja: "購入バー", en: "Buy bar" },
     trustRows: { ja: "安心のポイント", en: "Why buy from us" },
   },
-  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." } },
+  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." }, cards: { ja: "ご利用いただけるカード：Visa・Mastercard・JCB・American Express", en: "Cards accepted: Visa · Mastercard · JCB · American Express" } },
   loyalty: {
     level: { ja: "レベル {n}", en: "Level {n}" }, onJoining: { ja: "入会時", en: "On joining" }, times: { ja: "{n}倍", en: "{n}x" },
     regionJp: { ja: "日本", en: "Japan" }, regionPh: { ja: "フィリピン", en: "Philippines" }, regionOther: { ja: "その他", en: "Elsewhere" },
@@ -761,7 +761,10 @@ export const dict = {
     payHeading: { ja: "お支払い方法", en: "How you will pay" },
     // Region-neutral by design: a customer is shown the methods for their own
     // destination and must never learn what the other region pays into.
-    transferOnly: { ja: "現在はお振込のみご利用いただけます。カード決済は準備中です。", en: "Bank transfer only for now. Card payment is coming soon." },
+    // Card (Square) is offered only on a confirmed YEN order paid in full, from
+    // the order page (never layaway, never pesos) — so the line depends on both.
+    transferOnly: { ja: "お支払いは銀行振込です。", en: "Paid by bank transfer." },
+    transferThenCard: { ja: "銀行振込、またはご注文確定後にご注文ページからカードでもお支払いいただけます。", en: "Bank transfer, or by card once we confirm your order — the card option appears on your order page." },
     transferPreview: { ja: "お振込先は以下のとおりです。ご注文確定後、この画面とメールでも改めてご案内します。", en: "You will transfer to the account below. We show it again after you place the order, and send it by email." },
     placeOrder: { ja: "ご注文を確定する", en: "Place order" },
     // RESERVE FIRST (Hub A2). Shown only when the quote came back with
@@ -1070,7 +1073,8 @@ export const dict = {
     errTerms: { ja: "お支払いを続けるには同意が必要です。", en: "Please tick the agreement line to continue." },
     errUnavailable: { ja: "カード決済サービスに接続できませんでした。請求は発生していません。しばらくしてからお試しいただくか、銀行振込をご利用ください。", en: "We couldn't reach the card service. Nothing was charged. Please try again shortly, or use bank transfer." },
     errFailed: { ja: "カードのお支払いを開始できませんでした。請求は発生していません。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We couldn't start the card payment. Nothing was charged. Please try again, or use bank transfer." },
-    errForm: { ja: "カード情報をご確認ください。", en: "Please check your card details." },
+    // Square's card box marks the field it refused (number, expiry, CVV, ZIP).
+    errForm: { ja: "カード入力欄に表示された項目をご確認ください。", en: "Please check the card field marked in the card box above." },
   },
   orders: {
     // A submission the Hub is still checking (a transfer slip, a Paidy
