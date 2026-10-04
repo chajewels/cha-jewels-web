@@ -973,15 +973,18 @@ export const dict = {
     lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。3回あと払いもペイディアプリからお選びいただけます。", en: "Pay next month with just your email and Japanese mobile number, or split into 3 in the Paidy app. For customers living in Japan." },
     button: { ja: "ペイディで支払う", en: "Pay with Paidy" },
     filing: { ja: "確認中…", en: "Confirming…" },
-    note: { ja: "ペイディでのお申込み後、Cha Jewelsが内容を確認してからご請求が確定します。確定後、ご利用額は翌月にペイディからご請求されます（コンビニ払い・銀行振込・口座振替）。", en: "After Paidy approves, Cha Jewels confirms the order before the charge is final. Paidy then bills you next month (convenience store, bank transfer or direct debit)." },
+    note: { ja: "ペイディでのお申込み後、Cha Jewelsが内容を確認してからご請求が確定します。確定後、ご利用額は翌月にペイディからご請求されます（コンビニ払い・銀行振込・口座振替）。ペイディの処理中は、他のお支払い方法はご利用いただけません。", en: "After Paidy approves, Cha Jewels confirms the order before the charge is final. Paidy then bills you next month (convenience store, bank transfer or direct debit). While Paidy is processing, other ways to pay are not available." },
     testMode: { ja: "テストモード：実際の請求は発生しません。", en: "Test mode — nothing is charged." },
-    rejected: { ja: "ペイディでのお支払いはご利用いただけませんでした。下記の銀行振込をご利用ください。", en: "Paidy could not approve this payment. The bank details below are still available." },
+    rejected: { ja: "ペイディでのお支払いはご利用いただけませんでした。他のお支払い方法をご利用ください。", en: "Paidy could not approve this payment. Please use another way to pay." },
     errMismatch: { ja: "ペイディの承認内容がご注文と一致しなかったため、取り消しました。もう一度お試しいただくか、銀行振込をご利用ください。", en: "Paidy's approval did not match this order, so it was cancelled. Please try again, or use bank transfer." },
     errNotOffered: { ja: "このご注文では現在ペイディをご利用いただけません。ページを再読み込みしてご確認ください。", en: "Paidy is not available for this order right now. Please reload the page." },
     errPending: { ja: "このご注文には確認中のお支払いがあります。", en: "A payment on this order is already being checked." },
     errTooMany: { ja: "お支払いの登録が上限に達しました。しばらくしてからお試しください。", en: "Too many payment attempts for now. Please try again later." },
     errSignedOut: { ja: "セッションが切れました。もう一度サインインしてください。", en: "Your session ended. Please sign in again." },
     errFailed: { ja: "ペイディのお支払いを登録できませんでした。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We could not record the Paidy payment. Please try again, or use bank transfer." },
+    uncertain: { ja: "ペイディのお支払いを確認しています。二重のお支払いを防ぐため、確認が終わるまで他のお支払い方法は表示されません。", en: "We are checking your Paidy payment. To avoid paying twice, no other way to pay is shown until it is confirmed." },
+    processingTitle: { ja: "ペイディのお支払いを処理中です", en: "Your Paidy payment is being processed" },
+    processingBody: { ja: "現在、他のお支払いは必要ありません。ペイディがお支払いをお受けできなかった場合のみ、こちらで別のお支払い方法をご案内します。", en: "No other payment is needed now. Only if Paidy cannot accept it will another way to pay appear here." },
     // Under the N-Pay widget on every product page (owner decisions 2026-10-03
     // 22:01 / 22:04: the widget stays visible to every visitor; the condition
     // is stated right under it, never hidden by geography — and the condition

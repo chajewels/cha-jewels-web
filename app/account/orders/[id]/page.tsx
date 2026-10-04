@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { PaidyPay } from "@/components/commerce/paidy-pay";
 import { siteUrl } from "@/lib/site";
-import { paidyOffer, pendingSubmissions } from "@/lib/paidy";
+import { paidyOffer, paidyProcessing as paidyHoldsOrder, pendingSubmissions } from "@/lib/paidy";
 import { cardOffer } from "@/lib/card";
 import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
@@ -85,7 +85,12 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // A submission the Hub is still checking replaces the payment card: she
   // has paid (or Paidy has authorised), and asking again would be wrong.
   const pending = pendingSubmissions(detail);
-  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0;
+  // Owner rule 2026-10-04: while Paidy processes this order (its window, an
+  // authorisation waiting, or a capture not yet recorded) NO way to pay is
+  // shown — not Paidy again, not the card, not the bank details. The Hub
+  // decides (payment_state) and refuses the same server-side.
+  const paidyProcessing = paidyHoldsOrder(detail);
+  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0 && !paidyProcessing;
   const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
@@ -141,6 +146,13 @@ export default async function OrderDetailPage({ params, searchParams }: {
             <TransferDetails methods={methods} lang={lang} />
             {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
           </PaymentDueCard>
+        </div>
+      )}
+
+      {paidyProcessing && pending.length === 0 && (
+        <div className="mb-6 border border-gold-dark bg-white p-5" role="status" data-testid="paidy-processing">
+          <h2 className="font-display text-lg text-charcoal-deep">{t("paidy", "processingTitle")}</h2>
+          <p className="mt-2 text-sm text-charcoal/80">{t("paidy", "processingBody")}</p>
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import "server-only";
-import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
@@ -468,6 +468,21 @@ export const hub = {
    * key, checks it matches the order, and files it for a reviewer. The money
    * is captured only when the reviewer confirms; Reject releases it.
    */
+  /**
+   * Opens the customer's Paidy window on the Hub BEFORE Paidy.launch (owner
+   * rule 2026-10-04): while it is open, every other way to pay this order is
+   * closed. Refused (409) when anything else is in progress, a second tab
+   * included. Answers the Hub's fresh Checkout payload.
+   */
+  paidyStart: (jwt: string, id: string): Promise<PaidyAttempt> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const, attempt_id: "00000000-0000-0000-0000-000000000001", expires_at: new Date(Date.now() + 30 * 60_000).toISOString(), checkout: fx.paidyCheckoutFixture() })
+      : call(`/orders/${encodeURIComponent(id)}/paidy/start`, { method: "POST", body: "{}", jwt, revalidate: false }),
+  /** Paidy's window closed or was declined with no authorisation: the window ends on the Hub. */
+  paidyAbandon: (jwt: string, id: string, attemptId: string, reason: "closed" | "rejected" | "error"): Promise<{ ok: true; ended: boolean }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const, ended: true })
+      : call(`/orders/${encodeURIComponent(id)}/paidy/abandon`, { method: "POST", body: JSON.stringify({ attempt_id: attemptId, reason }), jwt, revalidate: false }),
   orderPaidy: (jwt: string, id: string, paidyPaymentId: string): Promise<{ ok: true }> =>
     FIXTURES
       ? Promise.resolve({ ok: true as const })

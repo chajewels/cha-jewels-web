@@ -4,7 +4,7 @@ import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { tr, type Lang } from "@/lib/i18n";
-import { paidyAuthorizedAction } from "@/lib/paidy-actions";
+import { paidyAbandonAction, paidyAuthorizedAction, paidyStartAction } from "@/lib/paidy-actions";
 import { paidyStatus } from "@/lib/paidy";
 import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
 
@@ -18,9 +18,9 @@ import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
  * files it for a reviewer. No figure is computed or edited here: `checkout`
  * is passed to `launch()` exactly as the Hub sent it.
  *
- * Shown only when the Hub says `offered` (JP delivery address, yen, money due,
- * nothing pending). The bank details stay underneath — this is one more way
- * to pay, never the only one.
+ * Shown only when the Hub says `offered` (JP delivery address, yen, nothing
+ * paid yet, nothing pending). While the Paidy window or its payment is being
+ * processed the Hub hides every other option (owner rule 2026-10-04).
  *
  * Reference: paidy.com/docs/en/paidycheckout.html — `Paidy.configure({api_key,
  * logo_url, closed})` returns a handler; `handler.launch(payload)`; `closed`
@@ -42,7 +42,7 @@ declare global {
   interface Window { Paidy?: PaidyGlobal }
 }
 
-type State = "idle" | "open" | "filing" | "rejected" | "error";
+type State = "idle" | "starting" | "open" | "filing" | "rejected" | "error" | "uncertain";
 
 export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; paidy: HubOrderPaidy; logoUrl: string; lang: Lang }) {
   const t = tr(lang);
@@ -61,40 +61,85 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
     if (typeof window !== "undefined" && window.Paidy) setReady(true);
   }, []);
 
+  // Follow-up 2026-10-04 (owner: while Paidy processes, no other way to pay):
+  //   1. the Hub records the window BEFORE Paidy opens (paidyStartAction) —
+  //      refused when another tab or payment is already in progress;
+  //   2. every SDK call is guarded, so an exception never leaves the button
+  //      stuck; a launch that throws ends the window on the Hub;
+  //   3. Paidy's "closed" / "rejected" end the window so the other options
+  //      come back; an AUTHORIZED result is filed;
+  //   4. a filing whose outcome is unknown (network, server error) is NOT
+  //      retried blindly: the page re-reads the order from the Hub, which
+  //      keeps every option hidden while the authorisation is being recovered.
   const open = () => {
     const Paidy = window.Paidy;
     if (!Paidy) return;
-    setState("open");
+    setState("starting");
     setCode(null);
-    const handler = Paidy.configure({
-      api_key: paidy.public_key,
-      logo_url: logoUrl,
-      closed: (result) => {
-        const status = paidyStatus(result.status);
-        if (status === "AUTHORIZED") {
-          setState("filing");
-          start(async () => {
-            const r = await paidyAuthorizedAction(orderId, result.id);
-            if (r.ok) {
-              // The page re-reads the order: the Hub now reports the pending
-              // submission, and this button is no longer offered.
-              router.refresh();
+    start(async () => {
+      const started = await paidyStartAction(orderId);
+      if (!started.ok) {
+        setCode(started.code);
+        setState("error");
+        if (started.code === "payment_in_progress") router.refresh();
+        return;
+      }
+      const { attemptId, checkout } = started.data;
+      const endWindow = (reason: "closed" | "rejected" | "error") => {
+        start(async () => {
+          await paidyAbandonAction(orderId, attemptId, reason);
+          router.refresh();
+        });
+      };
+      try {
+        const handler = Paidy.configure({
+          api_key: paidy.public_key,
+          logo_url: logoUrl,
+          closed: (result) => {
+            const status = paidyStatus(result?.status);
+            if (status === "AUTHORIZED" && result?.id) {
+              setState("filing");
+              start(async () => {
+                let r: Awaited<ReturnType<typeof paidyAuthorizedAction>>;
+                try {
+                  r = await paidyAuthorizedAction(orderId, result.id);
+                } catch {
+                  r = { ok: false, code: "failed" };
+                }
+                if (r.ok) {
+                  router.refresh();
+                } else if (r.code === "failed") {
+                  // Unknown outcome: the authorisation may be on file or be
+                  // recovered by the Hub. Show "being processed" and let the
+                  // Hub's answer decide what the page offers next.
+                  setState("uncertain");
+                  router.refresh();
+                } else {
+                  setCode(r.code);
+                  setState("error");
+                  router.refresh();
+                }
+              });
+            } else if (status === "REJECTED") {
+              setState("rejected");
+              endWindow("rejected");
             } else {
-              setCode(r.code);
-              setState("error");
+              setState("idle");
+              endWindow("closed");
             }
-          });
-        } else if (status === "REJECTED") {
-          setState("rejected");
-        } else {
-          setState("idle");
-        }
-      },
+          },
+        });
+        setState("open");
+        handler.launch(checkout ?? paidy.checkout);
+      } catch {
+        setCode("failed");
+        setState("error");
+        endWindow("error");
+      }
     });
-    handler.launch(paidy.checkout);
   };
 
-  const busy = state === "open" || state === "filing";
+  const busy = state === "starting" || state === "open" || state === "filing" || state === "uncertain";
 
   return (
     <div className="mb-5 border border-gold-dark/60 bg-gold-pale/40 p-4 sm:p-5" data-testid="paidy-pay">
@@ -116,6 +161,7 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
       {paidy.test && <p className="mt-2 text-[12px] text-charcoal/60">{t("paidy", "testMode")}</p>}
       {state === "rejected" && <p className="mt-3 text-sm text-red-700" role="status">{t("paidy", "rejected")}</p>}
       {state === "error" && <p className="mt-3 text-sm text-red-700" role="status">{errorText(code, t)}</p>}
+      {state === "uncertain" && <p className="mt-3 text-sm text-charcoal/80" role="status">{t("paidy", "uncertain")}</p>}
       <p className="mt-3 text-[12px] leading-relaxed text-charcoal/70">{t("paidy", "note")}</p>
     </div>
   );
@@ -126,7 +172,8 @@ function errorText(code: string | null, t: ReturnType<typeof tr>): string {
     case "paidy_mismatch": return t("paidy", "errMismatch");
     case "paidy_not_offered":
     case "not_ready_for_payment": return t("paidy", "errNotOffered");
-    case "submission_pending": return t("paidy", "errPending");
+    case "submission_pending":
+    case "payment_in_progress": return t("paidy", "errPending");
     case "too_many_submissions": return t("paidy", "errTooMany");
     case "signed_out": return t("paidy", "errSignedOut");
     default: return t("paidy", "errFailed");

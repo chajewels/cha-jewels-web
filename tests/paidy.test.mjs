@@ -52,3 +52,12 @@ test("the closed-callback status is read case-insensitively (Paidy sends lower c
   assert.equal(paidyStatus(undefined), "CLOSED");
   assert.equal(paidyStatus("anything-else"), "CLOSED");
 });
+
+// Follow-up 2026-10-04 (owner): while Paidy holds the order, no way to pay.
+test("paidyProcessing follows the Hub's payment_state only", async () => {
+  const { paidyProcessing } = await import(pathToFileURL(join(process.cwd(), "lib/paidy.ts")).href);
+  assert.equal(paidyProcessing({ payment_state: "paidy_processing" }), true);
+  assert.equal(paidyProcessing({ payment_state: "payment_pending" }), false);
+  assert.equal(paidyProcessing({ payment_state: null }), false);
+  assert.equal(paidyProcessing({}), false);
+});
