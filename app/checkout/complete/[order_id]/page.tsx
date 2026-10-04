@@ -10,6 +10,7 @@ import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { orderLineTitle } from "@/lib/catalog-i18n";
 import { isAwaitingConfirmation } from "@/lib/reservation";
+import { paidyProcessing } from "@/lib/paidy";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { NextSteps } from "@/components/commerce/commerce-ui";
@@ -120,11 +121,20 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
         <Cell k={t("complete", "deadline")} v={order.transfer_due_at ? formatDeadline(order.transfer_due_at, lang) : "—"} />
       </dl>
 
-      <div className="mt-10">
-        <h2 className="mb-4 font-display text-[22px] text-charcoal-deep">{t("complete", "instructions")}</h2>
-        <TransferDetails methods={methods} lang={lang} />
-        {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/80">{t("complete", "keepRef")}</p>}
-      </div>
+      {/* While Paidy holds the order the Hub sends no bank details; say why
+          instead of an empty instructions block (follow-up review #10). */}
+      {paidyProcessing(detail) ? (
+        <div className="mt-10 border border-gold-dark bg-white p-5" role="status" data-testid="paidy-processing">
+          <h2 className="font-display text-lg text-charcoal-deep">{t("paidy", "processingTitle")}</h2>
+          <p className="mt-2 text-sm text-charcoal/80">{t("paidy", "processingBody")}</p>
+        </div>
+      ) : (
+        <div className="mt-10">
+          <h2 className="mb-4 font-display text-[22px] text-charcoal-deep">{t("complete", "instructions")}</h2>
+          <TransferDetails methods={methods} lang={lang} />
+          {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/80">{t("complete", "keepRef")}</p>}
+        </div>
+      )}
 
       <p className="mb-8 mt-6 text-sm text-charcoal/80">{t("checkout", "deadlineNote")}</p>
       {actions}

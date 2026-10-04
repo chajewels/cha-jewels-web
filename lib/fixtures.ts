@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { faqSections } from "@/lib/content/faq";
 import { liveMirrorProducts } from "@/lib/fixtures-live";
@@ -713,6 +713,17 @@ export function orderFixture(id: string): HubOrderDetail | null {
         agreement_min_jpy: 0,
       },
     } : {}),
+  };
+}
+
+/** Preview stand-in for the Hub's POST /orders/:id/paidy/start answer (the Hub builds the real one). */
+export function paidyCheckoutFixture(): PaidyCheckoutPayload {
+  return {
+    amount: 236800, currency: "JPY", store_name: "Cha Jewels",
+    buyer: { email: meFixture.customer.email ?? undefined, name1: meFixture.customer.full_name ?? "Preview Customer", phone: "08000000001" },
+    buyer_data: { user_id: "CJ-2026-00008", ltv: 0, account_registration_date: "2026-09-01", order_count: 0 },
+    order: { items: [{ id: "v3", quantity: 1, title: "Twist bangle", unit_price: 236000 }], shipping: 800, tax: 0 },
+    shipping_address: { zip: meFixture.addresses[0].postal_code ?? "" },
   };
 }
 

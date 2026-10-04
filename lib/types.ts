@@ -483,6 +483,14 @@ export type HubOrderDetail = {
    * from an older Hub, which means "none known", not "none".
    */
   pending_submissions?: HubLayawaySubmission[];
+  /**
+   * Owner rule 2026-10-04: "paidy_processing" while a Paidy payment holds the
+   * order (window open, authorisation waiting, or taken but not yet recorded)
+   * — the page then shows that it is being processed and NO way to pay.
+   * "payment_pending" while any other payment waits for review. Absent from
+   * an older Hub.
+   */
+  payment_state?: "paidy_processing" | "payment_pending" | null;
 };
 /**
  * Everything Paidy Checkout needs, assembled by the Hub. `checkout` is passed
@@ -540,10 +548,17 @@ export type HubCardResult = {
 export type PaidyCheckoutPayload = {
   amount: number; currency: "JPY"; store_name?: string; description?: string;
   buyer: { email?: string; name1: string; name2?: string; phone?: string };
-  buyer_data: { user_id: string; ltv: number; account_registration_date: string; order_count?: number; last_order_amount?: number };
+  buyer_data: {
+    user_id: string; ltv: number; account_registration_date?: string; order_count?: number; last_order_amount?: number;
+    /** Whole days since the last qualifying order (Paidy Checkout). */
+    last_order_at?: number;
+    billing_address?: { line1?: string; line2?: string; city?: string; state?: string; zip: string };
+  };
   order: { items: { id?: string; quantity: number; title?: string; unit_price: number; description?: string }[]; order_ref?: string; shipping?: number; tax?: number };
   shipping_address: { line1?: string; line2?: string; city?: string; state?: string; zip: string };
 };
+/** POST /orders/:id/paidy/start — the customer's Paidy window, persisted before Paidy opens. */
+export type PaidyAttempt = { ok: true; attempt_id: string; expires_at: string; checkout: PaidyCheckoutPayload };
 /** The Hub answers checkout failures with a code, not an HTTP body we should guess at. */
 export type HubCheckoutError = { error: string; variant_id?: string; available?: number; request_id?: string };
 
