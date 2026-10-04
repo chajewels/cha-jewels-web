@@ -97,7 +97,14 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
           logo_url: logoUrl,
           closed: (result) => {
             const status = paidyStatus(result?.status);
-            if (status === "AUTHORIZED" && result?.id) {
+            if (status === "AUTHORIZED" && !result?.id) {
+              // Paidy says approved but sent no id: never end the window — the
+              // Hub recovers the authorisation from Paidy's own notification.
+              setState("uncertain");
+              router.refresh();
+              return;
+            }
+            if (status === "AUTHORIZED") {
               setState("filing");
               start(async () => {
                 let r: Awaited<ReturnType<typeof paidyAuthorizedAction>>;
@@ -108,7 +115,9 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
                 }
                 if (r.ok) {
                   router.refresh();
-                } else if (r.code === "failed") {
+                } else if (r.code === "failed" || r.code === "signed_out") {
+                  // Paidy approved it; whatever failed here, the Hub files it
+                  // from Paidy's own notification — never ask her to pay again.
                   // Unknown outcome: the authorisation may be on file or be
                   // recovered by the Hub. Show "being processed" and let the
                   // Hub's answer decide what the page offers next.
@@ -129,8 +138,9 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
             }
           },
         });
+        if (!checkout) throw new Error("no checkout payload");
         setState("open");
-        handler.launch(checkout ?? paidy.checkout);
+        handler.launch(checkout);
       } catch {
         setCode("failed");
         setState("error");
@@ -138,6 +148,15 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
       }
     });
   };
+
+  // "uncertain" lasts until the Hub's answer arrives: the page then shows the
+  // processing notice (this component unmounts) — or, if the Hub really holds
+  // nothing, the button comes back after a short wait.
+  useEffect(() => {
+    if (state !== "uncertain") return;
+    const t = setTimeout(() => setState("idle"), 30_000);
+    return () => clearTimeout(t);
+  }, [state]);
 
   const busy = state === "starting" || state === "open" || state === "filing" || state === "uncertain";
 

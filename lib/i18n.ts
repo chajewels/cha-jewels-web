@@ -984,7 +984,7 @@ export const dict = {
     errFailed: { ja: "ペイディのお支払いを登録できませんでした。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We could not record the Paidy payment. Please try again, or use bank transfer." },
     uncertain: { ja: "ペイディのお支払いを確認しています。二重のお支払いを防ぐため、確認が終わるまで他のお支払い方法は表示されません。", en: "We are checking your Paidy payment. To avoid paying twice, no other way to pay is shown until it is confirmed." },
     processingTitle: { ja: "ペイディのお支払いを処理中です", en: "Your Paidy payment is being processed" },
-    processingBody: { ja: "現在、他のお支払いは必要ありません。ペイディがお支払いをお受けできなかった場合のみ、こちらで別のお支払い方法をご案内します。", en: "No other payment is needed now. Only if Paidy cannot accept it will another way to pay appear here." },
+    processingBody: { ja: "ペイディでのお支払いを処理しています。二重のお支払いを防ぐため、この間は他のお支払い方法は表示されません。ペイディの画面をお支払いを完了せずに閉じた場合は、30分以内に他のお支払い方法が再び表示されます。", en: "Your Paidy payment is being processed. To avoid paying twice, no other way to pay is shown meanwhile. If you closed Paidy without completing it, the other options come back within 30 minutes." },
     // Under the N-Pay widget on every product page (owner decisions 2026-10-03
     // 22:01 / 22:04: the widget stays visible to every visitor; the condition
     // is stated right under it, never hidden by geography — and the condition

@@ -42,7 +42,11 @@ export async function paidyStartAction(orderId: string): Promise<ActionResult<{ 
     const r = await hub.paidyStart(jwt, orderId);
     return { ok: true, data: { attemptId: r.attempt_id, checkout: r.checkout } };
   } catch (err) {
-    if (err instanceof HubError && (err.code === "payment_in_progress" || err.code === "order_cannot_take_payment")) {
+    if (err instanceof HubError && err.code === "order_cannot_take_payment") {
+      revalidatePath(`/account/orders/${orderId}`);
+      return { ok: false, code: "paidy_not_offered", requestId: err.requestId };
+    }
+    if (err instanceof HubError && err.code === "payment_in_progress") {
       revalidatePath(`/account/orders/${orderId}`);
       return { ok: false, code: "payment_in_progress", requestId: err.requestId };
     }
@@ -55,8 +59,15 @@ export async function paidyAbandonAction(orderId: string, attemptId: string, rea
   const jwt = await customerJwt();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId) || typeof attemptId !== "string" || !ATTEMPT_ID.test(attemptId)) return { ok: false, code: "failed" };
+  // Server-action arguments are untrusted: only the three reasons the Hub knows.
+  if (reason !== "closed" && reason !== "rejected" && reason !== "error") return { ok: false, code: "failed" };
   try {
-    await hub.paidyAbandon(jwt, orderId, attemptId, reason);
+    try {
+      await hub.paidyAbandon(jwt, orderId, attemptId, reason);
+    } catch {
+      // One retry: a lost abandon keeps the order on hold for up to 30 minutes.
+      await hub.paidyAbandon(jwt, orderId, attemptId, reason);
+    }
     revalidatePath(`/account/orders/${orderId}`);
     return { ok: true, data: null };
   } catch (err) {
