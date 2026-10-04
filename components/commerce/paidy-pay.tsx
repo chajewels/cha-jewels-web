@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { paidyAuthorizedAction } from "@/lib/paidy-actions";
 import { paidyStatus } from "@/lib/paidy";
@@ -52,6 +52,15 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
   const [code, setCode] = useState<string | null>(null);
   const [, start] = useTransition();
 
+  // P06 (2026-10-04): next/script fires onLoad only the first time the script
+  // loads. After a client-side navigation back to this page the script is
+  // already there and onLoad never fires again, so the button stayed disabled.
+  // onReady (below) runs on every mount once loaded; this check covers the
+  // same case if the script was injected by an earlier render.
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.Paidy) setReady(true);
+  }, []);
+
   const open = () => {
     const Paidy = window.Paidy;
     if (!Paidy) return;
@@ -89,7 +98,7 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
 
   return (
     <div className="mb-5 border border-gold-dark/60 bg-gold-pale/40 p-4 sm:p-5" data-testid="paidy-pay">
-      <Script src={PAIDY_SRC} strategy="afterInteractive" charSet="utf-8" onLoad={() => setReady(true)} onError={() => setState("error")} />
+      <Script src={PAIDY_SRC} strategy="afterInteractive" charSet="utf-8" onLoad={() => setReady(true)} onReady={() => setReady(true)} onError={() => setState("error")} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="font-display text-[17px] text-charcoal-deep">{t("paidy", "label")}</p>
