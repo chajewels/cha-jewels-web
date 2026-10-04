@@ -19,6 +19,7 @@ import { PaidyPay } from "@/components/commerce/paidy-pay";
 import { siteUrl } from "@/lib/site";
 import { paidyOffer, paidyProcessing as paidyHoldsOrder, pendingSubmissions } from "@/lib/paidy";
 import { cardOffer } from "@/lib/card";
+import { CardPaymentStatus } from "@/components/commerce/card-payment-status";
 import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
@@ -85,12 +86,19 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // A submission the Hub is still checking replaces the payment card: she
   // has paid (or Paidy has authorised), and asking again would be wrong.
   const pending = pendingSubmissions(detail);
+  // An OPEN card payment (SQ22, owner 3A): in flight, authorised, being
+  // captured or being recorded. While it is open EVERY way to pay is hidden —
+  // the Hub already answers no card, no Paidy and no transfer methods, and
+  // this page does not offer the payment card at all — and its state is
+  // shown instead. Its own submission is then not listed twice.
+  const cardPayment = detail.card_payment ?? null;
+  const pendingShown = cardPayment ? pending.filter((p) => p.payment_method !== "square") : pending;
   // Owner rule 2026-10-04: while Paidy processes this order (its window, an
   // authorisation waiting, or a capture not yet recorded) NO way to pay is
   // shown — not Paidy again, not the card, not the bank details. The Hub
   // decides (payment_state) and refuses the same server-side.
   const paidyProcessing = paidyHoldsOrder(detail);
-  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0 && !paidyProcessing;
+  const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0 && !cardPayment && !paidyProcessing;
   const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
@@ -139,7 +147,8 @@ export default async function OrderDetailPage({ params, searchParams }: {
                   <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
                   <p className="mt-1 text-[13px] leading-relaxed text-charcoal/80">{t("card", "orderLede")}</p>
                 </div>
-                <Link href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</Link>
+                {/* A full page load, not a client navigation: the pay-card page's enforced CSP header only applies to a document load. */}
+                <a href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</a>
               </div>
             )}
             <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
@@ -149,18 +158,24 @@ export default async function OrderDetailPage({ params, searchParams }: {
         </div>
       )}
 
-      {paidyProcessing && pending.length === 0 && (
+      {cardPayment && (
+        <div className="mb-6">
+          <CardPaymentStatus lang={lang} state={cardPayment.state} brand={cardPayment.brand} last4={cardPayment.last4} captureBy={cardPayment.capture_by} reference={cardPayment.reference} />
+        </div>
+      )}
+
+      {paidyProcessing && !cardPayment && pending.length === 0 && (
         <div className="mb-6 border border-gold-dark bg-white p-5" role="status" data-testid="paidy-processing">
           <h2 className="font-display text-lg text-charcoal-deep">{t("paidy", "processingTitle")}</h2>
           <p className="mt-2 text-sm text-charcoal/80">{t("paidy", "processingBody")}</p>
         </div>
       )}
 
-      {pending.length > 0 && (
+      {pendingShown.length > 0 && (
         <div className="mb-6 border border-gold-dark bg-white p-5">
           <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "pending")}</h2>
           <ul className="mt-3 space-y-1 text-sm text-charcoal/80">
-            {pending.map((sub) => (
+            {pendingShown.map((sub) => (
               <li key={sub.id}>
                 {t("orders", "pendingNote", { amount: formatMoney(Number(sub.submitted_amount), order.currency), date: fmtDate(sub.payment_date), method: methodName(sub.payment_method) })}
               </li>

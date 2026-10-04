@@ -126,7 +126,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
-        {notice && <AnnouncementBar text={notice.text} href={notice.href} lang={lang} />}
+        {notice && <AnnouncementBar text={notice.text} href={notice.href} lang={lang} nonce={h.get("x-nonce") ?? undefined} />}
         {/* Tells an entrance whether this render is the first page load or a
             client navigation (components/fx/boot-marker.tsx). Renders nothing. */}
         <BootMarker />

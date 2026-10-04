@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cha Jewels Card Purchase Agreement</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --gold-primary: #D4AF37;
+      --gold-light: #F4E5C2;
+      --gold-dark: #B8941F;
+      --purple-accent: #800080;
+      --text-primary: #2C2C2C;
+      --text-secondary: #666;
+      --border-light: #E8E8E8;
+      --bg-cream: #FFFEF9;
+      --card-white: #FFFFFF;
+      --shadow-soft: rgba(212, 175, 55, 0.08);
+      --shadow-medium: rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg-cream) 0%, #FFF8E7 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px; height: 600px;
+      background-image: url('/logo/chajewelslogo.jpeg?v=11');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; position: relative; z-index: 1; }
+
+    .header-card {
+      background: linear-gradient(135deg, var(--card-white) 0%, #FFFBF5 100%);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px var(--shadow-soft), 0 0 0 1px var(--gold-light);
+      border: 3px solid var(--gold-primary);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--gold-primary), var(--gold-light), var(--gold-primary));
+    }
+
+    .header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 20px; flex: 1; min-width: 280px; }
+
+    .logo-wrap {
+      position: relative;
+      width: 110px; height: 110px;
+      background: linear-gradient(135deg, #FFFFFF 0%, var(--gold-light) 100%);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15), inset 0 0 0 2px var(--gold-primary);
+      flex-shrink: 0;
+    }
+
+    .logo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+    .brand-info h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem; font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px; letter-spacing: 0.5px;
+    }
+
+    .brand-info .subtitle {
+      font-size: 1rem; color: var(--gold-dark); font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .btn-link {
+      background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+      color: #FFFFFF; text-decoration: none;
+      padding: 12px 20px; border-radius: 10px;
+      font-weight: 600; font-size: 0.9rem; white-space: nowrap;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+      border: 1px solid var(--gold-dark);
+    }
+
+    .btn-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+      background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-primary) 100%);
+    }
+
+    .form-card {
+      background: var(--card-white);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 8px 32px var(--shadow-medium), 0 0 0 1px var(--border-light);
+      position: relative;
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold-primary) 0%, var(--gold-light) 25%, var(--gold-primary) 50%, var(--gold-light) 75%, var(--gold-primary) 100%);
+      border-radius: 20px 20px 0 0;
+    }
+
+    .notice-banner {
+      background: linear-gradient(135deg, #FFF9E6 0%, var(--gold-light) 100%);
+      border-left: 4px solid var(--gold-primary);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.1);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-bottom: 28px;
+    }
+
+    .form-grid .full-width { grid-column: 1 / -1; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+
+    .form-group label {
+      font-weight: 600; font-size: 0.95rem;
+      color: var(--text-primary);
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .form-group label .required { color: var(--gold-dark); }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border-light);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #FAFAFA;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--gold-primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+
+    .form-group input:focus-visible { outline: 2px solid var(--gold-dark); outline-offset: 2px; }
+    .form-group input::placeholder { color: #999; }
+
+    .form-group input[readonly] {
+      background: #F4EFE0;
+      border-color: var(--gold-light);
+      color: var(--text-primary);
+      font-weight: 600;
+      cursor: not-allowed;
+    }
+
+    .field-hint { font-size: 0.82rem; color: var(--text-secondary); }
+
+    .terms-section { margin: 32px 0; }
+
+    .terms-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 12px; margin-bottom: 16px; padding-bottom: 12px;
+      border-bottom: 2px solid var(--gold-light);
+      flex-wrap: wrap;
+    }
+
+    .terms-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; color: var(--text-primary); font-weight: 700;
+    }
+
+    .version-stamp { font-size: 0.82rem; color: var(--text-secondary); }
+
+    .terms-container {
+      max-height: 480px;
+      overflow-y: auto;
+      border: 2px solid var(--border-light);
+      border-radius: 12px;
+      padding: 28px 32px;
+      background: linear-gradient(to bottom, #FFFFFF 0%, #FAFAFA 100%);
+      line-height: 1.75;
+      position: relative;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    .terms-watermark {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px; height: 300px;
+      background-image: url('/logo/chajewelslogo.jpeg?v=11');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .terms-content { position: relative; z-index: 1; }
+    .terms-content > * { position: relative; }
+
+    .terms-container::-webkit-scrollbar { width: 8px; }
+    .terms-container::-webkit-scrollbar-track { background: var(--border-light); border-radius: 10px; }
+    .terms-container::-webkit-scrollbar-thumb { background: var(--gold-primary); border-radius: 10px; }
+    .terms-container::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
+
+    .terms-container p { margin-bottom: 10px; font-size: 0.93rem; color: var(--text-primary); }
+
+    .terms-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 700; text-align: center;
+      color: var(--text-primary); margin-bottom: 4px; letter-spacing: 0.5px;
+    }
+
+    .terms-parties { text-align: center; font-size: 0.93rem; color: var(--text-secondary); margin-bottom: 8px; font-style: italic; }
+
+    .terms-preamble {
+      text-align: justify; font-size: 0.93rem;
+      margin-bottom: 20px; padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700; color: var(--gold-dark);
+      font-size: 1.02rem;
+      margin-top: 24px; margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--gold-light);
+    }
+
+    .section-title:first-child { margin-top: 0; }
+    .section-intro { text-align: justify; margin-bottom: 12px; }
+
+    .terms-container ol { margin: 8px 0 16px 0; padding-left: 28px; }
+    .terms-container ol > li { margin: 8px 0; font-size: 0.93rem; line-height: 1.7; padding-left: 6px; text-align: justify; }
+    .terms-container ol ol { list-style-type: lower-alpha; margin: 6px 0; padding-left: 24px; }
+    .terms-container ul { margin: 6px 0 12px 0; padding-left: 24px; list-style-type: disc; }
+    .terms-container ul > li { margin: 5px 0; font-size: 0.93rem; line-height: 1.65; padding-left: 4px; }
+
+    .tier-table {
+      width: 100%; border-collapse: collapse;
+      margin: 14px 0 20px 0; font-size: 0.88rem;
+      border: 1px solid var(--gold-primary);
+      border-radius: 8px; overflow: hidden;
+    }
+
+    .tier-table th {
+      background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+      color: #FFFFFF; font-weight: 700;
+      padding: 10px 8px; text-align: center;
+      font-size: 0.85rem; letter-spacing: 0.3px;
+    }
+
+    .tier-table td { padding: 9px 8px; text-align: center; border-bottom: 1px solid var(--gold-light); color: var(--text-primary); }
+    .tier-table td:first-child { text-align: left; font-weight: 600; background: #FFFDF6; }
+    .tier-table tr:last-child td { border-bottom: none; }
+    .tier-table tr:nth-child(even) td { background: #FFFDF6; }
+    .tier-table tr:nth-child(even) td:first-child { background: #FDF6E3; }
+
+    .table-footnote { font-size: 0.86rem; font-style: italic; color: var(--text-secondary); margin-bottom: 8px; }
+
+    .terms-note {
+      background: linear-gradient(135deg, #FFF9E6 0%, #FFFEF5 100%);
+      border-left: 3px solid var(--gold-primary);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px; margin: 16px 0; font-size: 0.92rem;
+    }
+
+    .terms-note strong { color: var(--gold-dark); }
+    .section-divider { border: none; border-top: 1px dashed var(--gold-light); margin: 20px 0; }
+
+    .read-gate {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px; font-size: 0.88rem; color: var(--text-secondary);
+    }
+
+    .read-gate.done { color: var(--gold-dark); font-weight: 600; }
+
+    .agreement-checkbox {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 20px;
+      background: linear-gradient(135deg, #FFF9E6 0%, #FFFFFF 100%);
+      border: 2px solid var(--gold-light);
+      border-radius: 12px; margin: 24px 0;
+      cursor: pointer; transition: all 0.3s ease;
+    }
+
+    .agreement-checkbox.locked { opacity: 0.55; cursor: not-allowed; }
+    .agreement-checkbox:not(.locked):hover { border-color: var(--gold-primary); box-shadow: 0 2px 12px rgba(212, 175, 55, 0.15); }
+
+    .agreement-checkbox input[type="checkbox"] {
+      width: 20px; height: 20px; cursor: pointer;
+      accent-color: var(--gold-primary); flex-shrink: 0; margin-top: 2px;
+    }
+
+    .agreement-checkbox label { font-weight: 600; color: var(--text-primary); cursor: pointer; font-size: 0.95rem; line-height: 1.5; }
+
+    .signature-section {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px; margin: 28px 0;
+    }
+
+    .signature-box {
+      border: 2px dashed var(--gold-light);
+      border-radius: 12px; padding: 20px;
+      background: linear-gradient(to bottom, #FFFFFF 0%, #FFFEF9 100%);
+    }
+
+    .signature-box h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text-primary); margin-bottom: 12px;
+    }
+
+    #signaturePad {
+      width: 100%; max-width: 400px; height: 120px;
+      border: 2px solid var(--border-light);
+      border-radius: 10px; background: white;
+      cursor: crosshair; touch-action: none;
+      display: block; margin-bottom: 12px;
+    }
+
+    .signature-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+      color: var(--text-primary);
+      border: 2px solid var(--border-light);
+      padding: 10px 18px; border-radius: 8px;
+      font-weight: 600; font-size: 0.9rem; cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover { background: linear-gradient(135deg, #E8E8E8 0%, #D8D8D8 100%); border-color: #CCC; }
+
+    .seller-signature {
+      padding: 16px;
+      background: linear-gradient(135deg, var(--gold-light) 0%, #FFFFFF 100%);
+      border-radius: 10px; border: 1px solid var(--gold-primary);
+    }
+
+    .seller-signature strong { color: var(--gold-dark); font-size: 0.95rem; }
+
+    .submit-section { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+      color: white; border: none;
+      padding: 16px 32px; border-radius: 12px;
+      font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4); }
+    .btn-primary:disabled { background: #CCC; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
+
+    .status-message { padding: 12px; border-radius: 8px; font-size: 0.95rem; text-align: center; }
+    .error-message { background: #FFF0F0; color: #C62828; border: 1px solid #FFCDD2; }
+    .success-message { background: #F1F8F4; color: #2E7D32; border: 1px solid #C8E6C9; }
+    .warn-message { background: #FFF8E1; color: #8D6E00; border: 1px solid #FFE0A3; }
+
+    .footer { margin-top: 40px; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2); }
+
+    .footer-content {
+      background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+      padding: 40px 32px; text-align: center;
+    }
+
+    .footer-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700; color: white;
+      margin-bottom: 12px; line-height: 1.3;
+    }
+
+    .footer-subtitle { font-size: 1.05rem; color: rgba(255, 255, 255, 0.95); margin-bottom: 28px; line-height: 1.6; }
+    .footer-cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    .footer-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: white; color: var(--gold-dark); text-decoration: none;
+      padding: 16px 32px; border-radius: 50px;
+      font-weight: 700; font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .footer-cta:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); color: var(--gold-primary); }
+    .footer-cta.secondary { background: transparent; color: white; border: 2px solid white; }
+    .footer-cta.secondary:hover { background: white; color: var(--gold-dark); }
+
+    .footer-bottom { background: rgba(0, 0, 0, 0.1); padding: 16px; text-align: center; }
+    .footer-bottom p { color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; margin: 0; }
+
+    .lang-toggle { background: #fff; color: var(--gold-dark); border: 2px solid var(--gold-primary); padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+    .lang-toggle:hover { background: var(--gold-light); }
+    .translation-note { font-size: 0.85rem; color: var(--text-secondary); font-style: italic; margin: 8px 0 0; }
+    .order-box { background: #FFFDF6; border: 1px solid var(--gold-light); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; font-size: 0.95rem; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; }
+    .order-box dt { color: var(--text-secondary); font-weight: 600; }
+    .order-box dd { font-weight: 600; color: var(--text-primary); }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+      .btn-primary:hover:not(:disabled), .btn-link:hover, .footer-cta:hover { transform: none; }
+    }
+
+    @media (max-width: 768px) {
+      .container { margin: 20px auto; padding: 0 16px; }
+      .header-card { padding: 24px; }
+      .brand { flex-direction: column; align-items: flex-start; }
+      .logo-wrap { width: 90px; height: 90px; }
+      .brand-info h1 { font-size: 1.4rem; }
+      .form-card { padding: 24px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .signature-section { grid-template-columns: 1fr; }
+      #signaturePad { max-width: 100%; }
+      .terms-container { padding: 20px 18px; }
+      .tier-table { font-size: 0.78rem; }
+      .tier-table th, .tier-table td { padding: 7px 5px; }
+      .footer-content { padding: 32px 24px; }
+      .footer-title { font-size: 1.5rem; }
+      .footer-cta-group { flex-direction: column; align-items: stretch; }
+      .footer-cta { justify-content: center; }
+    }
+
+    @media print {
+      body { background: white; }
+      body::before { display: none; }
+      .header-actions, .btn-link, .btn-secondary, .btn-primary { display: none; }
+      .form-card { box-shadow: none; border: 1px solid #CCC; }
+      .terms-container { max-height: none; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header-card">
+      <div class="header">
+        <div class="brand">
+          <div class="logo-wrap">
+            <img src="/logo/chajewelslogo.jpeg?v=11" alt="Cha Jewels Logo" />
+          </div>
+          <div class="brand-info">
+            <h1>Cha Jewels Co., Ltd.</h1>
+            <div class="subtitle" id="subtitle">Card Purchase Agreement</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <a class="btn-link" id="backToOrder" href="https://www.chajewelsjp.com/account/orders" rel="noopener">Back to my order</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="notice-banner" id="noticeBanner">Loading agreement…</div>
+
+      <dl class="order-box" id="orderBox" style="display:none;">
+        <dt id="lblOrderRef">Order</dt><dd id="orderRefText"></dd>
+        <dt id="lblOrderAmount">Amount</dt><dd id="orderAmountText"></dd>
+      </dl>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="fullName"><span id="lblFullName">Full Name</span> <span class="required">*</span></label>
+          <input type="text" id="fullName" placeholder="TARO YAMADA" autocomplete="cc-name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email"><span id="lblEmail">Email Address</span> <span class="required">*</span></label>
+          <input type="email" id="email" placeholder="taro@example.com" autocomplete="email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="country"><span id="lblCountry">Country</span> <span class="required">*</span></label>
+          <input type="text" id="country" placeholder="Japan" autocomplete="country-name" required />
+        </div>
+
+        <div class="form-group full-width">
+          <label for="invoiceNumber">
+            <span id="lblInvoice">Order reference</span>
+            <span class="required" id="invoiceRequiredMark" style="display:none;">*</span>
+            <span id="invoiceOptionalMark" style="color:#999;font-weight:400;">(optional)</span>
+          </label>
+          <input type="text" id="invoiceNumber" placeholder="CJ-W-000123" readonly />
+          <div class="field-hint" id="invoiceHint" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <div class="terms-header">
+          <h2 id="termsHeading">Terms and Conditions</h2>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button type="button" class="lang-toggle" id="langToggle">日本語で表示</button>
+            <div class="version-stamp" id="versionStamp"></div>
+          </div>
+        </div>
+
+        <div class="terms-container" id="termsContainer" tabindex="0">
+          <div class="terms-watermark"></div>
+          <div class="terms-content" id="termsContent"></div>
+        </div>
+
+        <p class="translation-note" id="translationNote" style="display:none;"></p>
+        <div class="read-gate" id="readGate">
+          <span id="readGateText">Read the full agreement before signing.</span>
+        </div>
+      </div>
+
+      <div class="agreement-checkbox locked" id="agreementCheckboxWrap">
+        <input type="checkbox" id="agreeCheckbox" disabled />
+        <label for="agreeCheckbox" id="agreeLabel">I have read and accept this Card Purchase Agreement, and I confirm that I am the cardholder.</label>
+      </div>
+
+      <div class="signature-section">
+        <div class="signature-box">
+          <h3 id="custSigHeading">Customer signature</h3>
+          <canvas id="signaturePad" aria-label="Signature pad"></canvas>
+          <div class="signature-actions">
+            <button type="button" id="clearBtn" class="btn-secondary">Clear</button>
+            <span class="field-hint" id="sigHint">Use your mouse or finger</span>
+          </div>
+        </div>
+
+        <div class="signature-box">
+          <h3 id="sellerSigHeading">Seller signature</h3>
+          <div class="seller-signature">
+            <strong>Digitally signed by<br>Cha Jewels Co., Ltd.</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="submit-section">
+        <button id="proceedBtn" class="btn-primary" disabled>Submit signed agreement</button>
+        <div id="status" class="status-message" style="display:none;"></div>
+        <div id="err" class="error-message" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-content">
+        <h2 class="footer-title" id="footerTitle">Questions about your order?</h2>
+        <p class="footer-subtitle" id="footerSub">Contact us before you sign — we answer the same day.</p>
+        <div class="footer-cta-group">
+          <a href="mailto:sales@chajewelsjp.com" class="footer-cta">sales@chajewelsjp.com</a>
+          <a href="https://m.me/chajewelsjapan" target="_blank" rel="noopener" class="footer-cta secondary">Messenger</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Cha Jewels Co., Ltd.</p>
+      </div>
+    </div>
+  </div>
+
+  <iframe name="gas_sink" id="gas_sink" style="display:none;" title="submit sink"></iframe>
+  <form id="fallbackForm" method="POST" target="gas_sink" style="display:none;">
+    <input type="hidden" name="payload" id="payloadField" />
+  </form>
+
+  <script>
+    /* ===================== CONFIG ===================== */
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx-YcauDBPXtOPJMSpwpWjFyQZQQQNkblvXZNeoeo0y_Udm0C4SaAkPaqY1ArTbkfxrqg/exec";
+    const AGREEMENT_URL = "/card-agreement-2026-v1.json";   // single source of truth, also read by Card.gs
+    const ORDER_BASE = "https://www.chajewelsjp.com/account/orders/";
+
+    /* CARD PURCHASE AGREEMENT (Square card payments, owner D9 2026-10-03).
+       URL parameters written by the storefront's pay-card page:
+       ?order=<uuid>          the Hub order id — REQUIRED, the key the storefront looks up
+       ?invoice=CJ-W-900123   the customer's order reference — prefilled and LOCKED
+       ?amount=236800         yen figure for DISPLAY only (the Hub's own figure; never trusted here)
+       ?lang=en|ja            which language is shown first (toggle on the page); English is the agreement */
+    const params = new URLSearchParams(location.search);
+    const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    const URL_ORDER = (params.get('order') || '').trim();
+    const URL_INVOICE = (params.get('invoice') || '').trim();
+    const URL_AMOUNT = (params.get('amount') || '').replace(/[^0-9]/g, '');
+    const URL_LANG = (params.get('lang') || '').trim().toLowerCase();
+    /* ?ctx=<signed context> (v3 2026-10-04): written by the storefront, verified by Card.gs; passed through untouched. */
+    const URL_CTX = (params.get('ctx') || '').trim();
+
+    /* ===================== ELEMENTS ===================== */
+    const el = id => document.getElementById(id);
+    const checkbox = el('agreeCheckbox');
+    const checkboxWrap = el('agreementCheckboxWrap');
+    const proceedBtn = el('proceedBtn');
+    const clearBtn = el('clearBtn');
+    const canvas = el('signaturePad');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const statusEl = el('status');
+    const errEl = el('err');
+    const termsContainer = el('termsContainer');
+    const termsContent = el('termsContent');
+    const readGate = el('readGate');
+    const readGateText = el('readGateText');
+
+    const fullNameEl = el('fullName');
+    const emailEl = el('email');
+    const countryEl = el('country');
+    const invoiceNumEl = el('invoiceNumber');
+
+    let AGREEMENT = null;      // the loaded content file
+    let LOCALE = 'en';         // the language on screen; English is the agreement, Japanese a translation
+    let hasRead = false;       // terms scrolled to the end
+    let signed = false;        // canvas has ink
+
+    /* ===================== RENDER THE AGREEMENT ===================== */
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function renderItems(items) {
+      if (!items || !items.length) return '';
+      let html = '<ol>';
+      items.forEach(it => {
+        if (typeof it === 'string') {
+          html += '<li>' + esc(it) + '</li>';
+        } else {
+          html += '<li>' + esc(it.text || '');
+          if (it.bullets && it.bullets.length) {
+            html += '<ul>' + it.bullets.map(b => '<li>' + esc(b) + '</li>').join('') + '</ul>';
+          }
+          html += '</li>';
+        }
+      });
+      return html + '</ol>';
+    }
+
+    function renderTable(t) {
+      if (!t || !t.head) return '';
+      let html = '<table class="tier-table"><thead><tr>';
+      t.head.forEach(h => { html += '<th>' + esc(h) + '</th>'; });
+      html += '</tr></thead><tbody>';
+      (t.rows || []).forEach(r => {
+        html += '<tr>' + r.map(c => '<td>' + esc(c) + '</td>').join('') + '</tr>';
+      });
+      return html + '</tbody></table>';
+    }
+
+    function renderAgreement(loc) {
+      let html = '';
+      html += '<p class="terms-title">' + esc(loc.title) + '</p>';
+      html += '<p class="terms-parties">' + esc(loc.parties) + '</p>';
+      html += '<p class="terms-preamble">' + esc(loc.preamble) + '</p>';
+
+      (loc.sections || []).forEach(sec => {
+        html += '<p class="section-title">' + esc(sec.heading) + '</p>';
+        if (sec.intro) html += '<p class="section-intro">' + esc(sec.intro) + '</p>';
+        (sec.body || []).forEach(p => { html += '<p>' + esc(p) + '</p>'; });
+        if (sec.table) html += renderTable(sec.table);
+        if (sec.footnote) html += '<p class="table-footnote">' + esc(sec.footnote) + '</p>';
+        html += renderItems(sec.items);
+      });
+
+      if (loc.notes && loc.notes.items && loc.notes.items.length) {
+        html += '<hr class="section-divider" />';
+        html += '<div class="terms-note"><p><strong>' + esc(loc.notes.heading) + '</strong></p>' + renderItems(loc.notes.items) + '</div>';
+      }
+      termsContent.innerHTML = html;
+    }
+
+    function applyUiStrings(ui) {
+      if (UUID_RE.test(URL_ORDER)) el('noticeBanner').textContent = ui.notice || '';
+      el('termsHeading').textContent = ui.terms_heading || 'Terms and Conditions';
+      el('agreeLabel').textContent = ui.checkbox || '';
+      el('custSigHeading').textContent = ui.customer_signature || '';
+      el('sellerSigHeading').textContent = ui.seller_signature || '';
+      el('sigHint').textContent = ui.signature_hint || '';
+      clearBtn.textContent = ui.clear || 'Clear';
+      proceedBtn.textContent = ui.submit || 'Submit signed agreement';
+      el('lblFullName').textContent = ui.field_full_name || 'Full Name';
+      el('lblEmail').textContent = ui.field_email || 'Email Address';
+      el('lblCountry').textContent = ui.field_country || 'Country';
+      el('lblInvoice').textContent = ui.field_invoice || 'Order reference';
+      el('lblOrderRef').textContent = ui.field_invoice || 'Order reference';
+      el('subtitle').textContent = ui.terms_heading || 'Card Purchase Agreement';
+      el('langToggle').textContent = ui.toggle_other || (LOCALE === 'ja' ? 'Show in English' : '日本語で表示');
+      const tn = el('translationNote');
+      tn.textContent = ui.translation_note || '';
+      tn.style.display = ui.translation_note ? '' : 'none';
+      readGateText.textContent = ui.scroll_to_continue || 'Read the full agreement before signing.';
+      if (URL_INVOICE) el('invoiceHint').textContent = ui.invoice_locked_hint || '';
+      const ja = LOCALE === 'ja';
+      el('backToOrder').textContent = ja ? '注文ページへ戻る' : 'Back to my order';
+      el('lblOrderAmount').textContent = ja ? '金額' : 'Amount';
+      el('footerTitle').textContent = ja ? 'ご注文についてのご質問は' : 'Questions about your order?';
+      el('footerSub').textContent = ja ? 'ご署名の前にお気軽にご連絡ください。当日中にお答えします。' : 'Contact us before you sign \u2014 we answer the same day.';
+      if (URL_INVOICE) el('invoiceHint').textContent = ui.invoice_locked_hint || '';
+    }
+
+    /* The toggle swaps the text on screen (English is the agreement, Japanese
+       the translation). The read-gate stays as it was: a customer who has
+       scrolled the full text once is not asked to scroll it again. */
+    function showLocale(code) {
+      LOCALE = code === 'ja' ? 'ja' : 'en';
+      const loc = AGREEMENT.locales[LOCALE];
+      document.documentElement.lang = loc.html_lang || LOCALE;
+      applyUiStrings(loc.ui || {});
+      renderAgreement(loc);
+      termsContainer.scrollTop = 0;
+      checkReadGate();
+      updateProceedState();
+    }
+    el('langToggle').addEventListener('click', () => showLocale(LOCALE === 'ja' ? 'en' : 'ja'));
+
+    async function loadAgreement() {
+      const res = await fetch(AGREEMENT_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error('agreement ' + res.status);
+      AGREEMENT = await res.json();
+
+      el('versionStamp').textContent = 'Version ' + AGREEMENT.version + ' \u00b7 ' + AGREEMENT.effective_date;
+      // English is the default; ?lang=ja opens with the translation on screen.
+      showLocale(URL_LANG === 'ja' ? 'ja' : 'en');
+    }
+
+    /* ===================== READ GATE =====================
+       The checkbox unlocks only after the terms have actually been scrolled
+       to the end. A customer who never scrolled cannot claim to have read it. */
+    function checkReadGate() {
+      const c = termsContainer;
+      const atEnd = c.scrollTop + c.clientHeight >= c.scrollHeight - 24;
+      const noScrollNeeded = c.scrollHeight <= c.clientHeight + 4;
+      if ((atEnd || noScrollNeeded) && !hasRead) {
+        hasRead = true;
+        checkbox.disabled = false;
+        checkboxWrap.classList.remove('locked');
+        readGate.classList.add('done');
+        readGateText.textContent = '\u2713';
+        updateProceedState();
+      }
+    }
+
+    termsContainer.addEventListener('scroll', checkReadGate);
+    window.addEventListener('resize', checkReadGate);
+
+    /* ===================== INVOICE ===================== */
+    function initInvoice() {
+      // The order id is the key the storefront verifies. Without a valid one
+      // this page cannot produce a usable signature, so it refuses up front.
+      if (!UUID_RE.test(URL_ORDER)) {
+        el('noticeBanner').textContent = 'This link is missing the order. Open the Card Purchase Agreement from your order page.';
+        showMessage(errEl, 'Open this agreement from the "Pay by card" button on your order page.', 'error');
+        proceedBtn.disabled = true;
+        return;
+      }
+      el('backToOrder').href = ORDER_BASE + URL_ORDER;
+      if (URL_INVOICE || URL_AMOUNT) {
+        el('orderBox').style.display = '';
+        el('orderRefText').textContent = URL_INVOICE || '\u2014';
+        el('orderAmountText').textContent = URL_AMOUNT ? '\u00a5' + Number(URL_AMOUNT).toLocaleString('en-US') : '\u2014';
+      }
+      if (!URL_INVOICE) return;
+      invoiceNumEl.value = URL_INVOICE;
+      invoiceNumEl.readOnly = true;
+      invoiceNumEl.setAttribute('aria-readonly', 'true');
+      el('invoiceRequiredMark').style.display = '';
+      el('invoiceOptionalMark').style.display = 'none';
+      el('invoiceHint').style.display = '';
+    }
+
+    /* ===================== SIGNATURE PAD ===================== */
+    function setStyle() {
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#000';
+    }
+
+    function resizeCanvas() {
+      const cssW = parseFloat(getComputedStyle(canvas).width);
+      const cssH = parseFloat(getComputedStyle(canvas).height);
+      const dpr = Math.max(window.devicePixelRatio || 1, 1);
+      const snapshot = signed ? canvas.toDataURL('image/png') : null;
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssW, cssH);
+      setStyle();
+      if (snapshot) {  // keep ink across a rotate/resize instead of wiping it
+        const img = new Image();
+        img.onload = () => ctx.drawImage(img, 0, 0, cssW, cssH);
+        img.src = snapshot;
+      }
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let drawing = false, lastX = 0, lastY = 0;
+
+    function getPoint(e) {
+      const r = canvas.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      const p = getPoint(e);
+      drawing = true; signed = true; lastX = p.x; lastY = p.y;
+      updateProceedState();
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if (!drawing) return;
+      e.preventDefault();
+      const p = getPoint(e);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      lastX = p.x; lastY = p.y;
+    });
+
+    function endStroke(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      drawing = false;
+      try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+
+    canvas.addEventListener('pointerup', endStroke);
+    canvas.addEventListener('pointercancel', endStroke);
+    canvas.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
+    canvas.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+    clearBtn.addEventListener('click', () => {
+      const cssW = parseFloat(getComputedStyle(canvas).width);
+      const cssH = parseFloat(getComputedStyle(canvas).height);
+      ctx.clearRect(0, 0, cssW, cssH);
+      signed = false;
+      updateProceedState();
+      hideMessage(statusEl);
+      hideMessage(errEl);
+    });
+
+    /* ===================== MESSAGES ===================== */
+    function showMessage(node, text, type) {
+      node.textContent = text;
+      node.style.display = 'block';
+      node.className = 'status-message ' +
+        (type === 'success' ? 'success-message' : type === 'warn' ? 'warn-message' : 'error-message');
+    }
+
+    function hideMessage(node) { node.style.display = 'none'; node.textContent = ''; }
+
+    /* ===================== VALIDATION ===================== */
+    function updateProceedState() {
+      const fullName = fullNameEl.value.trim();
+      const email = emailEl.value.trim();
+      const country = countryEl.value.trim();
+      const invoice = invoiceNumEl.value.trim();
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const invoiceOk = URL_INVOICE ? invoice === URL_INVOICE : !!invoice;
+
+      proceedBtn.disabled = !(AGREEMENT && UUID_RE.test(URL_ORDER) && hasRead && checkbox.checked && signed &&
+        fullName && emailValid && country && invoiceOk);
+    }
+
+    [fullNameEl, emailEl, countryEl, invoiceNumEl].forEach(n => n.addEventListener('input', updateProceedState));
+    checkbox.addEventListener('change', updateProceedState);
+
+    /* ===================== SUBMIT ===================== */
+    function buildPayload() {
+      return {
+        doc: 'card',                       // routes to Card.gs in the Apps Script
+        fullName: fullNameEl.value.trim(),
+        email: emailEl.value.trim(),
+        country: countryEl.value.trim(),
+        orderNumber: invoiceNumEl.value.trim(),
+        orderId: URL_ORDER,
+        ctx: URL_CTX,                      // v3: binds the signature to the customer and amount (Card.gs verifies)
+        locale: LOCALE,
+        agreementVersion: AGREEMENT.version,
+        agreementEffectiveDate: AGREEMENT.effective_date,
+        signatureDataURL: canvas.toDataURL('image/png'),
+        signedAt: new Date().toISOString(),
+        cjDigitalSig: 'Digitally signed by Cha Jewels Co., Ltd.'
+      };
+    }
+
+    function goToResult(state, p, data) {
+      const q = new URLSearchParams({
+        name: p.fullName,
+        state: state,                                    // 'saved' or 'pending'
+        invoice: p.orderNumber || '',
+        version: p.agreementVersion,
+        order: p.orderId || '',
+        lang: p.locale,
+        pdf: (data && data.pdfUrl) ? data.pdfUrl : ''
+      });
+      setTimeout(() => { location.href = '/card-success.html?' + q.toString(); }, 600);
+    }
+
+    proceedBtn.addEventListener('click', async () => {
+      hideMessage(errEl); hideMessage(statusEl);
+
+      if (proceedBtn.disabled) return;
+      const p = buildPayload();
+      const payloadStr = JSON.stringify(p);
+
+      proceedBtn.disabled = true;
+      const originalLabel = proceedBtn.textContent;
+      proceedBtn.textContent = 'Saving…';
+      showMessage(statusEl, 'Saving your signed agreement…', 'success');
+
+      // Sheet + PDF + customer email.
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payloadStr,
+          redirect: 'follow',
+          mode: 'cors'
+        });
+        const txt = await res.text();
+        let data = {};
+        try { data = JSON.parse(txt); } catch (_) {}
+
+        if (res.ok && data.ok === true) {
+          showMessage(statusEl, 'Saved. Sending you a copy by email…', 'success');
+          goToResult('saved', p, data);
+          return;
+        }
+
+        if (data.ok === false && data.message) {
+          showMessage(errEl, data.message, 'error');
+          proceedBtn.disabled = false;
+          proceedBtn.textContent = originalLabel;
+          updateProceedState();
+          return;
+        }
+
+        throw new Error(data.message || ('server ' + res.status));
+      } catch (e) {
+        console.error('GAS save unreadable:', e);
+        // The response could not be read, so we do NOT claim the agreement was
+        // saved. The form fallback still delivers it; the result page says pending.
+        showMessage(statusEl, 'Submitting…', 'warn');
+        const form = el('fallbackForm');
+        el('payloadField').value = payloadStr;
+        form.action = GAS_URL;
+        const sink = el('gas_sink');
+        const onLoad = () => {
+          sink.removeEventListener('load', onLoad);
+          goToResult('pending', p, null);
+        };
+        sink.addEventListener('load', onLoad);
+        form.submit();
+      }
+    });
+
+    /* ===================== BOOT ===================== */
+    initInvoice();
+    loadAgreement().catch(e => {
+      console.error(e);
+      el('noticeBanner').textContent = 'The agreement could not be loaded.';
+      showMessage(errEl, 'The agreement could not be loaded. Please refresh, or contact us on Messenger.', 'error');
+      proceedBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>

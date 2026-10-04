@@ -478,6 +478,14 @@ export type HubOrderDetail = {
    */
   card?: HubOrderCard | null;
   /**
+   * The state of an UNRESOLVED card payment on this order (SQ22, owner 3A),
+   * or null. While it is non-null the Hub answers `card: null`, `paidy: null`
+   * and `transfer_methods: []` — every other way to pay is hidden (and refused
+   * server-side), and the order page shows this state instead. Never "paid"
+   * before it is. Absent from an older Hub.
+   */
+  card_payment?: HubCardPayment | null;
+  /**
    * Submissions a reviewer has not decided yet (status submitted /
    * under_review), oldest first — the same shape the plan page gets. Absent
    * from an older Hub, which means "none known", not "none".
@@ -522,28 +530,75 @@ export type HubOrderCard = {
   amount_jpy: number;
   agreement_required: boolean;
   agreement_min_jpy: number;
+  /**
+   * The signed-in customer's id (owner 5A): the agreement link is signed with
+   * it and the lookup's answer must name it. Absent from an older Hub.
+   */
+  customer_id?: string;
+  /** Her own name, the default for the cardholder-name field (owner 4A) — never a gift recipient's. May be null. */
+  cardholder_name?: string | null;
+};
+/**
+ * processing — the bank's answer is not known yet (an attempt in flight, or a
+ *              lost answer being resolved): she must not pay again.
+ * held       — authorised, NOT charged; a reviewer's Confirm captures it.
+ * capturing  — the reviewer confirmed; the charge is being taken.
+ * recording  — the charge went through; the payment is being recorded.
+ */
+export type HubCardPayment = {
+  state: "processing" | "held" | "capturing" | "recording";
+  reference: string | null;
+  since: string | null;
+  capture_by?: string | null;
+  brand?: string | null;
+  last4?: string | null;
 };
 /**
  * What the storefront sends with the card token (POST /orders/:id/card).
- * `verification_token` is Square's separate 3-D Secure token when the SDK
- * issues one; with the current `card.tokenize(verificationDetails)` flow the
- * verification lives inside `source_id` and this is null. `terms` is the
- * customer's tick on the page; `agreement` is the e-signed Card Purchase
- * Agreement as the storefront verified it server-side (null only when the
- * Hub said it is not required).
+ * `verification` is what the storefront can truthfully report about 3-D
+ * Secure (SQ18): Square's SDK ran `card.tokenize(verificationDetails)` — never
+ * "verified", which only the issuer knows. `verification_token` only when an
+ * older flow issued a separate one (the current flow has none). `billing` is
+ * the CARDHOLDER (owner 4A, SQ17): the name from the cardholder-name field,
+ * the address either the delivery address or what she typed — never the gift
+ * recipient. `agreement` is the Card Purchase Agreement as the lookup
+ * answered it, bound to this customer and amount (owner 5A); null only when
+ * the Hub said it is not required. `expected_amount_jpy` is the card block's
+ * `amount_jpy` the page was rendered with, passed through untouched (SQ23).
  */
 export type HubCardInput = {
   source_id: string;
-  verification_token: string | null;
+  verification: "sdk_tokenize_with_verification";
+  verification_token?: string;
   terms: { accepted_at: string; version: string; ip?: string; user_agent?: string };
-  agreement: { version: string; signed_at: string } | null;
+  agreement: { version: string; signed_at: string; customer_id: string | null; amount_jpy: number | null; bound: boolean } | null;
+  billing: HubCardBilling;
+  expected_amount_jpy: number;
 };
-/** What the Hub answers once a card hold is placed (POST /orders/:id/card). The money is NOT taken yet. */
-export type HubCardResult = {
-  ok: true;
-  submission: HubLayawaySubmission | null;
-  card: { brand: string | null; last4: string | null; receipt_url: string | null; status: "authorized" };
+export type HubCardBilling = {
+  name: string;
+  same_as_delivery: boolean;
+  country?: string;
+  address_line_1?: string;
+  address_line_2?: string;
+  locality?: string;
+  administrative_district_level_1?: string;
+  postal_code?: string;
 };
+/**
+ * What the Hub answers (POST /orders/:id/card). 200: the hold is placed and
+ * filed — the money is NOT taken yet. 202: Square's answer is not known yet
+ * (`status: "unknown"`) — the customer is told it is being confirmed, never
+ * "not charged" and never "try again".
+ */
+export type HubCardResult =
+  | {
+    ok: true;
+    submission: HubLayawaySubmission | null;
+    card: { brand?: string | null; last4?: string | null; receipt_url?: string | null; status: "authorized"; capture_by?: string | null };
+    attempt?: { reference: string | null };
+  }
+  | { ok: false; status: "unknown"; attempt?: { reference: string | null } };
 /** The Paidy Checkout `launch()` payload (paidy.com/docs/en/paidycheckout.html), as the Hub builds it. */
 export type PaidyCheckoutPayload = {
   amount: number; currency: "JPY"; store_name?: string; description?: string;
