@@ -67,17 +67,28 @@ const ATTEMPTS = 2;
 /** A uuid, checked here so a malformed id never costs a round trip. */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function agreementStatus(quoteId: string): Promise<AgreementStatus> {
+/**
+ * WHICH DOCUMENT. A bare string is the layaway agreement keyed by the checkout
+ * session (quote id) — the original call and every existing caller. The
+ * object form asks the SAME endpoint about the Card Purchase Agreement (owner
+ * D9, 2026-10-04), keyed by the cash_orders id: `?sig=1&doc=card&order=…`.
+ * Same token, same three outcomes, same fail-closed reading.
+ */
+export type AgreementTarget = string | { doc: "card"; order: string };
+
+export async function agreementStatus(target: AgreementTarget): Promise<AgreementStatus> {
+  const card = typeof target === "object";
+  const key = card ? target.order : target;
   // Consistent with every other Hub call in this repo: the fixtures preview
   // fakes the backend wholesale, and a gate that refused everything there would
   // make the mode useless for reviewing layaway. NEXT_PUBLIC_PREVIEW_FIXTURES
   // is never set in production — see hub-api.ts, which branches the same way on
   // the same constant.
   if (FIXTURES) {
-    return { ok: true, signed: true, version: "2026-v3", signedAt: new Date().toISOString() };
+    return { ok: true, signed: true, version: card ? "card-2026-v1" : "2026-v3", signedAt: new Date().toISOString() };
   }
 
-  if (!UUID.test(quoteId)) return { ok: false, reason: "bad_quote_id" };
+  if (!UUID.test(key)) return { ok: false, reason: card ? "bad_order_id" : "bad_quote_id" };
 
   const base = (process.env.AGREEMENT_LOOKUP_URL ?? "").trim();
   const token = (process.env.AGREEMENT_LOOKUP_TOKEN ?? "").trim();
@@ -87,7 +98,12 @@ export async function agreementStatus(quoteId: string): Promise<AgreementStatus>
 
   const url = new URL(base);
   url.searchParams.set("sig", "1");
-  url.searchParams.set("session", quoteId);
+  if (card) {
+    url.searchParams.set("doc", "card");
+    url.searchParams.set("order", key);
+  } else {
+    url.searchParams.set("session", key);
+  }
   // Apps Script's doGet cannot read custom request headers, so the secret has
   // to be a query parameter. It travels server-to-server over HTTPS and is
   // never sent to a browser; it does appear in the Apps Script execution log,

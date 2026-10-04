@@ -18,6 +18,7 @@ import { TransferDetails } from "@/components/commerce/transfer-details";
 import { PaidyPay } from "@/components/commerce/paidy-pay";
 import { siteUrl } from "@/lib/site";
 import { paidyOffer, pendingSubmissions } from "@/lib/paidy";
+import { cardOffer } from "@/lib/card";
 import { StatusBadge } from "@/components/account/status-badge";
 import { PrintButton } from "@/components/account/print-button";
 import { PrintHeader } from "@/components/account/print-header";
@@ -73,6 +74,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
 
   const { order, items, transfer_methods: methods } = detail;
   const paidy = paidyOffer(detail);
+  const card = cardOffer(detail);
   const status = orderStatusLabel(order, lang);
   const stage = orderStage(order);
   const address = order.ship_to_address;
@@ -84,7 +86,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // has paid (or Paidy has authorised), and asking again would be wrong.
   const pending = pendingSubmissions(detail);
   const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0;
-  const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
+  const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
   const payment = order.payment_method === "transfer"
@@ -123,6 +125,18 @@ export default async function OrderDetailPage({ params, searchParams }: {
                 Japanese delivery address, a yen order, nothing pending. The
                 bank details stay underneath — one more way to pay. */}
             {paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
+            {/* Card (Square, S3 2026-10-04) when the Hub offers it: any
+                country, yen, nothing pending. The form lives on its own page
+                behind the Card Purchase Agreement gate (owner D9). */}
+            {card && (
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border border-hairline bg-white p-4 sm:p-5" data-testid="card-offer">
+                <div className="min-w-0">
+                  <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-charcoal/80">{t("card", "orderLede")}</p>
+                </div>
+                <Link href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</Link>
+              </div>
+            )}
             <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
             <TransferDetails methods={methods} lang={lang} />
             {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/70">{t("complete", "keepRef")}</p>}
