@@ -8,6 +8,7 @@ import { COMPANY_NAME_DISPLAY } from "@/lib/content/legal";
 import { SocialIcons } from "@/components/site/social-icons";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import { LangSwitcher } from "@/components/site/lang-switcher";
+import { CardMarks } from "@/components/commerce/card-marks";
 
 /**
  * THE SITE FRAME'S FOOTER (build step 1, 2026-09-27; comps in
@@ -170,10 +171,11 @@ export async function Footer({ lang }: { lang: Lang }) {
         {/* The REGISTERED name, from the one constant that holds it; English
             adds "Cha Jewels Co., Ltd." in front (owner decision 2026-09-25). */}
         <span>© {new Date().getFullYear()} {COMPANY_NAME_DISPLAY[lang]}</span>
-        {/* Card brands accepted on a confirmed order (Square, D12). Text, not
-            logos: the official brand marks go in when the owner supplies
-            Square's merchant logo kit files. Same list as the order page. */}
-        <span>{t("footer", "cards")}</span>
+        {/* Card brands accepted on a confirmed order (Square, D12): the
+            official marks the owner supplied 2026-10-05 — Visa, Mastercard,
+            American Express, JCB, Diners Club, Discover. No UnionPay (Square
+            takes it in person only). The row's label is the brand sentence. */}
+        <CardMarks label={t("footer", "cards")} />
         <LangSwitcher lang={lang} tone="dark" />
       </div>
     </footer>

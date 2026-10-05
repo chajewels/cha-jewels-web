@@ -20,6 +20,7 @@ import { siteDay } from "@/lib/site-time";
 import { CommerceStyle, Notice, OrderSlab, PieceWell, Stepper, StickyAct } from "@/components/commerce/commerce-ui";
 import { draftCompletePath, isDraftPayResult } from "@/lib/drafts";
 import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-step";
+import { CardMarks } from "@/components/commerce/card-marks";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -922,6 +923,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                             <span>
                               <b className="block text-[15px] font-semibold text-charcoal-deep">{methodName(o.method)}</b>
                               <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{o.offered ? methodNote(o.method) : optionWhy(o)}</span>
+                              {o.method === "card" && <CardMarks inline label={t("footer", "cards")} className="mt-2" />}
                             </span>
                           </button>
                         );
