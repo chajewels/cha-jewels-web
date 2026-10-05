@@ -122,3 +122,21 @@ export function payBoxes(input: { chosen: DisplayMethod | null; paidyOffered: bo
     transfer: chosen === null || chosen === "transfer",
   };
 }
+
+/**
+ * The draft page's "Amount to pay" (final review I-1): the Hub's
+ * total_after_points, on a FULL-payment draft that used points only. On a
+ * layaway draft the Hub sends the total there (points go to the deposit), so
+ * the page keeps its single "Total so far" row. Never computed here.
+ */
+export function draftAmountToPay(d: { mode: CheckoutMode; points_value?: number | null; total_after_points?: number | null }): number | null {
+  if (d.mode !== "full") return null;
+  if (!(Number(d.points_value ?? 0) > 0)) return null;
+  if (d.total_after_points == null) return null;
+  return Number(d.total_after_points);
+}
+
+/** Staff asked her a question (needs clarification): no way to pay, on any page (final review M-2). */
+export function needsInfo(decision: Pick<HubLatestDecision, "status"> | null | undefined): boolean {
+  return decision?.status === "needs_clarification";
+}

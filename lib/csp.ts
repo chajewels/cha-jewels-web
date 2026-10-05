@@ -144,6 +144,8 @@ export function reportOnlyCsp(opts: CspOptions = {}): string {
  * X-Frame-Options for browsers that ignore frame-ancestors.
  */
 export const FRAME_OPTIONS = "DENY";
+/** Request header the middleware sets when pay-card got the fail-closed policy: the page then shows a plain line, no form. */
+export const CSP_FAILSAFE_HEADER = "x-cj-csp-failsafe";
 const FRAME_GUARD_CSP = "frame-ancestors 'none'";
 
 /**
@@ -172,15 +174,15 @@ export const PAY_CARD_FAILSAFE_CSP = serialize([
  * - pay-card: the enforced nonce policy; on any failure the fail-closed one.
  * - everything else: enforced frame-ancestors + the report-only policy.
  */
-export function cspForPath(pathname: string, opts: CspOptions = {}, makeNonce: () => string = newNonce): { enforced: string; reportOnly: string | null; nonce: string | null } {
+export function cspForPath(pathname: string, opts: CspOptions = {}, makeNonce: () => string = newNonce): { enforced: string; reportOnly: string | null; nonce: string | null; failsafe: boolean } {
   if (isPayCardPath(pathname)) {
     try {
       const nonce = makeNonce();
-      return { enforced: payCardCsp(nonce, opts), reportOnly: null, nonce };
+      return { enforced: payCardCsp(nonce, opts), reportOnly: null, nonce, failsafe: false };
     } catch (err) {
       console.error("[csp] pay-card policy could not be built; serving the fail-closed policy:", err);
-      return { enforced: PAY_CARD_FAILSAFE_CSP, reportOnly: null, nonce: null };
+      return { enforced: PAY_CARD_FAILSAFE_CSP, reportOnly: null, nonce: null, failsafe: true };
     }
   }
-  return { enforced: FRAME_GUARD_CSP, reportOnly: reportOnlyCsp(opts), nonce: null };
+  return { enforced: FRAME_GUARD_CSP, reportOnly: reportOnlyCsp(opts), nonce: null, failsafe: false };
 }

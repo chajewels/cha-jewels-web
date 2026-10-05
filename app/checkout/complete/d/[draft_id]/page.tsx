@@ -9,7 +9,7 @@ import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { orderLineTitle } from "@/lib/catalog-i18n";
 import { confirmedDestination } from "@/lib/drafts";
-import { draftStep3Key } from "@/lib/order-display";
+import { draftAmountToPay, draftStep3Key } from "@/lib/order-display";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { Button } from "@/components/ui/button";
 import { ServiceRequestForm } from "@/components/account/service-request-form";
@@ -101,9 +101,9 @@ export default async function DraftCompletePage({ params, searchParams }: {
   const address = draft.ship_to_address;
   const ownRequests = requests.filter((r) => r.draft_id === draft.id);
   const layawayNext = isLayaway;
-  // Points used: the Hub's after-points figure is what she will pay; the
-  // order total stays on its own row. Nothing computed here (H6).
-  const afterPoints = pointsValue > 0 && draft.total_after_points != null ? Number(draft.total_after_points) : null;
+  // Full payment with points: the Hub's after-points figure is what she will
+  // pay; the order total stays on its own row. Never on a layaway draft (I-1).
+  const afterPoints = draftAmountToPay(draft);
 
   return (
     <ConfirmationLayout

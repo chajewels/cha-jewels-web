@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { switchMethodAction } from "@/lib/payment-method-actions";
 import { switchErrorKey, type SwitchErrorKey } from "@/lib/switch-method-copy";
@@ -22,6 +22,7 @@ export function SwitchMethod({ orderId, methods, lang }: { orderId: string; meth
   const [picked, setPicked] = useState<CheckoutMethod | null>(null);
   const [error, setError] = useState<SwitchErrorKey | null>(null);
   const [busy, startTransition] = useTransition();
+  const panelId = useId();
   if (methods.length === 0) return null;
 
   const name = (m: CheckoutMethod) => (m === "paidy" ? t("checkout", "methodPaidy") : m === "card" ? t("checkout", "methodCard") : t("checkout", "methodTransfer"));
@@ -40,13 +41,18 @@ export function SwitchMethod({ orderId, methods, lang }: { orderId: string; meth
 
   return (
     <div className="mb-5" data-testid="switch-method">
-      {!open ? (
-        <button type="button" onClick={() => setOpen(true)} aria-expanded={false} className="text-sm text-gold-dark underline underline-offset-4 hover:text-charcoal-deep">
-          {t("orders", "switchLink")}
-        </button>
-      ) : (
-        <div className="border border-hairline bg-white p-4 sm:p-5">
-          <p className="font-display text-[17px] text-charcoal-deep">{t("orders", "switchLink")}</p>
+      {/* One toggle: aria-expanded tells a screen reader whether the panel is open (final review M-3). */}
+      <button
+        type="button"
+        onClick={() => { setOpen((v) => !v); setPicked(null); setError(null); }}
+        aria-expanded={open}
+        aria-controls={panelId}
+        className="text-sm text-gold-dark underline underline-offset-4 hover:text-charcoal-deep"
+      >
+        {t("orders", "switchLink")}
+      </button>
+      {open && (
+        <div id={panelId} className="mt-3 border border-hairline bg-white p-4 sm:p-5">
           {!picked ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {methods.map((m) => (

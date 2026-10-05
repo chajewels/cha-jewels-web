@@ -118,3 +118,10 @@ test("pay-card: a policy that cannot be built fails CLOSED (strict, no scripts),
   const thrower = () => { throw new Error("no crypto"); };
   assert.equal(cspForPath("/account/orders/o1/pay-card", {}, thrower).enforced, PAY_CARD_FAILSAFE_CSP);
 });
+
+test("the fail-closed pay-card answer is flagged so the page can say so (M-5)", async () => {
+  const { cspForPath } = await import(pathToFileURL(join(process.cwd(), "lib/csp.ts")).href);
+  assert.equal(cspForPath("/account/orders/o1/pay-card", {}, () => "bad!").failsafe, true);
+  assert.equal(cspForPath("/account/orders/o1/pay-card", {}).failsafe, false);
+  assert.equal(cspForPath("/", {}).failsafe, false);
+});

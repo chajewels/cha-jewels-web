@@ -12,6 +12,8 @@ import { formatMoney } from "@/lib/utils";
 import { cardAgreementGate, cardOffer, cardSignUrl, type CardAgreementGate } from "@/lib/card";
 import { cardAgreementContextToken } from "@/lib/card-agreement-link";
 import { pendingSubmissions } from "@/lib/paidy";
+import { needsInfo } from "@/lib/order-display";
+import { CSP_FAILSAFE_HEADER } from "@/lib/csp";
 import { agreementStatus } from "@/lib/agreement-lookup";
 import { Button } from "@/components/ui/button";
 import { AccountShell } from "@/components/account/account-shell";
@@ -76,7 +78,19 @@ export default async function PayCardPage({ params, searchParams }: {
   // Not offered any more (paid, pending, an open card payment, switch off, not
   // yet confirmed): the order page says what is happening; this page has
   // nothing to show.
-  if (!card || detail.card_payment || pendingSubmissions(detail).length > 0) redirect(orderPath);
+  // Staff asked her a question (needs clarification): no way to pay until it
+  // is answered — the order page says so (final review M-2).
+  if (!card || detail.card_payment || pendingSubmissions(detail).length > 0 || needsInfo(detail.latest_decision)) redirect(orderPath);
+
+  // The page's security policy could not be set, so it was served fail-closed
+  // (no scripts): a plain line instead of a card form that cannot load (M-5).
+  if ((await headers()).get(CSP_FAILSAFE_HEADER) === "1") {
+    return (
+      <AccountShell lang={lang} current="orders" eyebrow={t("card", "eyebrow")} title={t("card", "title")} back={{ href: orderPath, label: t("card", "backToOrder"), native: true }}>
+        <p className="max-w-[640px] border border-hairline bg-white p-5 text-[15px] leading-relaxed text-charcoal-deep" role="status" data-testid="card-failsafe">{t("card", "failsafe")}</p>
+      </AccountShell>
+    );
+  }
 
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const amountLabel = formatMoney(card.amount_jpy, "JPY");

@@ -154,3 +154,11 @@ test("fixture: the rejected-Paidy preview order carries no card block (C1)", asy
     if (d?.chosen_method === "card") assert.equal(d.paidy ?? null, null, o.id);
   }
 });
+
+test("switch button reports its open state (final review M-3)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync("components/commerce/switch-method.tsx", "utf8");
+  assert.ok(src.includes("aria-expanded={open}"));
+  assert.ok(!src.includes("aria-expanded={false}"));
+  assert.ok(src.includes("aria-controls={panelId}"));
+});

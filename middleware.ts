@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { LANG_COOKIE, LANG_PARAM, PATH_HEADER, asLang, detectLang, type Lang } from "@/lib/i18n";
-import { cspForPath, FRAME_OPTIONS } from "@/lib/csp";
+import { cspForPath, CSP_FAILSAFE_HEADER, FRAME_OPTIONS } from "@/lib/csp";
 
 /**
  * Language resolution + session refresh + the render-time gate on /account/*
@@ -103,6 +103,9 @@ export async function middleware(req: NextRequest) {
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? null,
     dev: process.env.NODE_ENV === "development",
   });
+  // Fail-closed pay-card: tell the page, so she reads a plain line, not a dead form (M-5).
+  if (csp.failsafe) fwd.set(CSP_FAILSAFE_HEADER, "1");
+  else fwd.delete(CSP_FAILSAFE_HEADER);
   if (csp.nonce) {
     fwd.set("x-nonce", csp.nonce);
     fwd.set("Content-Security-Policy", csp.enforced);

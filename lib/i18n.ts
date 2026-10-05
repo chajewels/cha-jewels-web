@@ -1115,6 +1115,7 @@ export const dict = {
     errSignedOut: { ja: "セッションが切れました。もう一度サインインしてください。", en: "Your session ended. Please sign in again." },
     errTerms: { ja: "お支払いを続けるには同意が必要です。", en: "Please tick the agreement line to continue." },
     errUnavailable: { ja: "カード決済サービスに接続できませんでした。請求は発生していません。しばらくしてからお試しください。ほかの方法をご希望の場合はご連絡ください。", en: "We couldn't reach the card service. Nothing was charged. Please try again shortly, or contact us if you'd like to pay another way." },
+    failsafe: { ja: "ただいまカードでのお支払いをご利用いただけません。ページを再読み込みするか、ご連絡ください。請求は発生していません。", en: "Card payment isn't available right now. Please reload the page, or contact us. Nothing was charged." },
     errFailed: { ja: "カードのお支払いを開始できませんでした。請求は発生していません。もう一度お試しください。ほかの方法をご希望の場合はご連絡ください。", en: "We couldn't start the card payment. Nothing was charged. Please try again, or contact us if you'd like to pay another way." },
     // Square's card box marks the field it refused (number, expiry, CVV, ZIP).
     errForm: { ja: "カード入力欄に表示された項目をご確認ください。", en: "Please check the card field marked in the card box above." },
