@@ -1,6 +1,6 @@
 import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/i18n";
-import type { HubOrder } from "@/lib/types";
+import type { CheckoutMethod, HubOrder } from "@/lib/types";
 
 /**
  * The three states a status badge can be in, and the only place this union is
@@ -20,8 +20,20 @@ export type Tone = "pending" | "good" | "dead";
  * plain sentence, so shipped beats paid, and a cancelled order says cancelled
  * whichever column recorded it.
  */
-export function orderStatusLabel(order: HubOrder, lang: Lang): { text: string; tone: Tone } {
-  const k = (key: keyof typeof dict.orders) => dict.orders[key][lang];
+export function orderStatusLabel(order: HubOrder, lang: Lang, chosenMethod?: CheckoutMethod | null): { text: string; tone: Tone } {
+  const { key, tone } = orderStatusKey(order, chosenMethod);
+  return { text: dict.orders[key][lang], tone };
+}
+
+/**
+ * The dictionary key behind orderStatusLabel. `chosenMethod` (payment
+ * lifecycle S1): an order she chose to pay with Paidy or a card is waiting for
+ * a PAYMENT, not a transfer, so it reads "Awaiting payment" where a transfer
+ * order reads "Awaiting transfer". Absent or transfer (an older Hub) reads as
+ * before.
+ */
+export function orderStatusKey(order: HubOrder, chosenMethod?: CheckoutMethod | null): { key: keyof typeof dict.orders; tone: Tone } {
+  const awaiting = chosenMethod === "paidy" || chosenMethod === "card" ? "statusPendingPayment" : "statusPendingTransfer";
 
   // EVERY ENDED STATE IS TESTED BEFORE `shipped_at`, fixed 2026-09-15 alongside
   // the closed-plan caption. `shipped_at` used to be checked first, so an order
@@ -33,11 +45,11 @@ export function orderStatusLabel(order: HubOrder, lang: Lang): { text: string; t
   // cancelled-payment status), so this is closing the path, not repairing
   // damage. A cancelled order is cancelled whether or not it shipped first.
   if (order.status === "cancelled" || order.payment_status === "cancelled") {
-    return { text: k("statusCancelled"), tone: "dead" };
+    return { key: "statusCancelled", tone: "dead" };
   }
-  if (order.status === "expired") return { text: k("statusExpired"), tone: "dead" };
-  if (order.payment_status === "refunded") return { text: k("statusRefunded"), tone: "dead" };
-  if (order.payment_status === "failed") return { text: k("statusFailed"), tone: "dead" };
+  if (order.status === "expired") return { key: "statusExpired", tone: "dead" };
+  if (order.payment_status === "refunded") return { key: "statusRefunded", tone: "dead" };
+  if (order.payment_status === "failed") return { key: "statusFailed", tone: "dead" };
 
   // RESERVE FIRST (Hub A2): held, not yet confirmed, nothing to pay yet. After
   // every ended state, because a cancelled reservation keeps payment_status
@@ -45,18 +57,18 @@ export function orderStatusLabel(order: HubOrder, lang: Lang): { text: string; t
   // The Hub's live-only flag is the primary signal; the raw payment_status is
   // the fallback for a row that carries no flag.
   if (order.awaiting_confirmation === true || order.payment_status === "awaiting_confirmation") {
-    return { text: k("statusReserved"), tone: "pending" };
+    return { key: "statusReserved", tone: "pending" };
   }
 
-  if (order.shipped_at) return { text: k("statusShipped"), tone: "good" };
+  if (order.shipped_at) return { key: "statusShipped", tone: "good" };
 
   switch (order.payment_status) {
-    case "paid": return { text: k("statusPaid"), tone: "good" };
-    case "pending_transfer": return { text: k("statusPendingTransfer"), tone: "pending" };
+    case "paid": return { key: "statusPaid", tone: "good" };
+    case "pending_transfer": return { key: awaiting, tone: "pending" };
     default:
       return order.status === "completed"
-        ? { text: k("statusPaid"), tone: "good" }
-        : { text: k("statusPendingTransfer"), tone: "pending" };
+        ? { key: "statusPaid", tone: "good" }
+        : { key: awaiting, tone: "pending" };
   }
 }
 

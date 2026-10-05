@@ -39,3 +39,15 @@ test("an order from an older Hub carries none of the new fields and still loads"
   assert.equal(detail.order.being_checked, undefined);
   assert.equal(detail.order.amount_due, undefined);
 });
+
+test("both fixtures read through orderDisplay (S1): the old-Hub one as before, the rejected one with its notice", async () => {
+  const { orderDisplay } = await import("@/lib/order-display");
+  const old = fx.orderFixture(fx.FIXTURE_ORDER_ID);
+  const d = orderDisplay({ order: old.order, chosenMethod: old.chosen_method ?? old.order.chosen_method, beingChecked: old.order.being_checked ?? false, latestDecision: old.latest_decision });
+  assert.deepEqual(d, { headlineKey: null, stage: 3, stage3Key: "stagePayment", notice: null, payBlocked: false });
+  const rej = fx.orderFixture(fx.REJECTED_ORDER_ID);
+  const r = orderDisplay({ order: rej.order, chosenMethod: rej.chosen_method, beingChecked: false, latestDecision: rej.latest_decision });
+  assert.equal(r.notice, "rejected");
+  assert.equal(r.stage3Key, "stagePaymentPaidy");
+  assert.equal(r.payBlocked, false);
+});

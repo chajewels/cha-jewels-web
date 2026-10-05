@@ -1146,6 +1146,9 @@ export const dict = {
     stageReserved: { ja: "ご予約受付", en: "Reserved" },
     stageConfirmed: { ja: "商品の確認", en: "Piece confirmed" },
     stagePayment: { ja: "お支払い案内・お振込", en: "Payment details, transfer" },
+    // Payment lifecycle S1: step 3 follows the method she chose.
+    stagePaymentPaidy: { ja: "お支払い（ペイディ）", en: "Payment (Paidy)" },
+    stagePaymentCard: { ja: "お支払い（カード）", en: "Payment (card)" },
     stagePaid: { ja: "入金確認", en: "Payment received" },
     stageShipped: { ja: "発送", en: "Shipped" },
     stageDone: { ja: "{stage}（完了）", en: "{stage} (done)" },
@@ -1163,6 +1166,8 @@ export const dict = {
     currencyPHP: { ja: "ペソ", en: "pesos" },
     notFound: { ja: "ご注文が見つかりませんでした。", en: "We could not find that order." },
     statusPendingTransfer: { ja: "お振込待ち", en: "Awaiting transfer" },
+    // Payment lifecycle S1: a Paidy or card order waits for a payment, not a transfer.
+    statusPendingPayment: { ja: "お支払い待ち", en: "Awaiting payment" },
     statusReserved: { ja: "ご予約受付 — 確認中", en: "Reserved — confirming your piece" },
     reservedNote: { ja: "商品を確認しております。1営業日以内にお支払い方法をメールでお送りします。確認後は、お振込先と期限もこちらに表示されます。", en: "We're confirming your piece and will email you within one business day with how to pay. Once it's confirmed, the payment details and deadline appear here too." },
     statusPaid: { ja: "お支払い済み", en: "Paid" },
