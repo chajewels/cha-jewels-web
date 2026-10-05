@@ -9,7 +9,7 @@ import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { agreementStatusAction, checkoutChoiceAction, payAction, payLayawayAction, pesoEstimateAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
-import { checkoutSummary, type PesoEstimateState } from "@/lib/checkout-summary";
+import { checkoutSummary, type PesoEstimateState, amountToPayAfterPoints } from "@/lib/checkout-summary";
 import { enrolInLoyaltyAction } from "@/lib/loyalty-actions";
 import type { CartItem } from "@/lib/cart";
 import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubPaymentOption, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
@@ -475,6 +475,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     const n = Number(raw.trim());
     if (!Number.isInteger(n) || n < 0 || n > max) {
       setChoiceError(t("checkout", "pointsInvalid", { points: max.toLocaleString("en-US") }));
+      // The box shows what is APPLIED, never a refused number beside it.
+      setPointsText(choice?.points.chosen ? String(choice.points.chosen) : "");
       return;
     }
     applyChoice(method, n);
@@ -549,6 +551,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     : !quoteShown || summary.shipping === null ? t("cart", "shippingCalc")
     : summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping);
   const totalLabel = !quoteShown ? t("checkout", "cartTotal") : t("checkout", shippingLater ? "totalBeforeShipping" : "total");
+  // Points chosen on a full payment: the headline is what she PAYS (F1).
+  const toPay = amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints: choice?.totals.total_after_points ?? null });
+  const headline = toPay !== null ? money(toPay) : summaryMoney(summary.total);
   const count = items.reduce((n, i) => n + i.qty, 0);
   const countLabel = count === 1 ? t("cart", "pieceOne") : t("cart", "pieces", { n: String(count) });
 
@@ -560,7 +565,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       <a href="#order-summary" className="band-dark flex min-h-14 items-center justify-between gap-4 bg-charcoal-deep px-4 text-sm text-chalk lg:hidden">
         <span>{t("cart", "summaryH")} · {countLabel}<span className="sr-only"> — {t("checkout", "seeSummary")}</span></span>
         <b className="cj-fig flex items-center gap-1.5 font-display text-[20px] font-normal text-gold-pale">
-          {summaryMoney(summary.total)}<ChevronDown aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
+          {headline}<ChevronDown aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
         </b>
       </a>
       <div ref={topRef} className="wrap scroll-mt-24 pt-6 sm:pt-12">
@@ -1048,21 +1053,24 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 ...(!plan && summary.deposit !== null ? [{ k: t("checkout", "layawayDeposit"), v: summaryMoney(summary.deposit) }] : []),
                 ...(!plan && summary.monthly !== null ? [{ k: t("checkout", "layawayMonthly"), v: summaryMoney(summary.monthly) }] : []),
                 // Points chosen on Review (C7): the Hub's figures for this quote.
-                ...(choice && pointsChosen > 0 && quoteShown ? [
+                ...(choice && toPay !== null ? [
+                  // Full payment: the order total as a row, points off it; the
+                  // big figure below is the amount to pay (F1, like the emails).
+                  { k: totalLabel, v: summaryMoney(summary.total) },
                   { k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` },
-                  mode === "layaway"
-                    ? { k: t("checkout", "pointsDepositDue"), v: money(choice.totals.due_now_after_points) }
-                    : { k: t("checkout", "pointsNewTotal"), v: money(choice.totals.total_after_points) },
+                ] : choice && pointsChosen > 0 && quoteShown && mode === "layaway" ? [
+                  { k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` },
+                  { k: t("checkout", "pointsDepositDue"), v: money(choice.totals.due_now_after_points) },
                 ] : []),
               ]}
               total={{
-                k: totalLabel,
-                v: summaryMoney(summary.total),
+                k: toPay !== null ? t("checkout", "amountToPay") : totalLabel,
+                v: headline,
                 // Pesos chosen: the yen beside the peso total, and what the
                 // estimate is — or, with no peso figure, when it will be shown.
-                sub: (summary.yenTotal !== null || summary.estimate || summary.pesoPending) ? (
+                sub: ((summary.yenTotal !== null && toPay === null) || summary.estimate || summary.pesoPending) ? (
                   <>
-                    {summary.yenTotal !== null && <span className="block">{formatMoney(summary.yenTotal, "JPY")}</span>}
+                    {summary.yenTotal !== null && toPay === null && <span className="block">{formatMoney(summary.yenTotal, "JPY")}</span>}
                     {summary.estimate && <span className="block">{t("checkout", "pesoEstimateNote")}</span>}
                     {summary.pesoPending && <span className="block">{t("checkout", "pesoNextStep")}</span>}
                   </>
@@ -1077,7 +1085,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       </div>
 
       {primary && (
-        <StickyAct label={t("cart", "summaryH")} figure={summaryMoney(summary.total)} note={quoteShown && !shippingLater ? undefined : t("cart", "plusShipping")}>
+        <StickyAct label={toPay !== null ? t("checkout", "amountToPay") : t("cart", "summaryH")} figure={headline} note={quoteShown && !shippingLater ? undefined : t("cart", "plusShipping")}>
           <Button onClick={primary.onClick} disabled={primary.disabled}>{primary.label}</Button>
         </StickyAct>
       )}

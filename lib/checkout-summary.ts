@@ -91,3 +91,25 @@ export function checkoutSummary({ quote, intended, subtotal, mode, peso }: {
   // Loading or refused: the yen figures, never a dash for the total.
   return { ...none, currency: "JPY", subtotal, shipping: null, total: subtotal, pesoPending: peso.status === "unavailable" };
 }
+
+/**
+ * WHAT THE CUSTOMER PAYS once checkout points are chosen (owner live check
+ * 2026-10-05, F1). On a full payment the headline figure — the summary's big
+ * total, the phone's top bar and sticky bar — is the Hub's
+ * `totals.total_after_points`, labelled "Amount to pay"; the order total stays
+ * as an ordinary row above it, like the emails. Null = no points in play (or a
+ * layaway, whose headline stays the plan total: points pay the deposit, shown
+ * as its own row). Nothing is computed here, only chosen.
+ */
+export function amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints }: {
+  mode: "full" | "layaway";
+  /** The quote on screen is in the summary's currency. */
+  quoteShown: boolean;
+  pointsChosen: number;
+  /** The Hub's `totals.total_after_points`, or null when the Hub sent no choice block. */
+  totalAfterPoints: number | null;
+}): number | null {
+  if (mode !== "full" || !quoteShown || !(pointsChosen > 0)) return null;
+  if (typeof totalAfterPoints !== "number" || !Number.isFinite(totalAfterPoints)) return null;
+  return totalAfterPoints;
+}
