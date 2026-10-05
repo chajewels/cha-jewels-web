@@ -236,7 +236,7 @@ authorisation. The storefront never calls Paidy's API.
 
 `GET /orders/:id` carries `card: { offered, app_id, location_id, test,
 amount_jpy, agreement_required, agreement_min_jpy, customer_id,
-cardholder_name } | null` — present with `offered: true` only when ALL hold
+cardholder_name, buyer_email } | null` — present with `offered: true` only when ALL hold
 (`_shared/card-rules.ts`): `square_mode` is `on` (or `test` for a test
 customer); the PUBLIC Application ID of that mode's family (`sandbox-sq0idb-…`
 / `sq0idp-…`) and the Location ID are saved; yen; `pending_transfer` and
@@ -245,7 +245,9 @@ country (owner D4). `amount_jpy` is the Hub's remaining balance (exact integer
 yen). `agreement_required` is owner D9 (`card_agreement_min_jpy`, 0 = every
 card payment). `customer_id` is the signed-in customer's id (the agreement is
 bound to it, owner 5A); `cardholder_name` is her own name, the default for the
-cardholder-name field (owner 4A; may be null; never a gift recipient's).
+cardholder-name field (owner 4A; may be null; never a gift recipient's). `buyer_email` (WEB-4,
+2026-10-05) is her own email on the Hub record, passed to Square's buyer
+verification only; null when absent or not an address; absent from an older Hub.
 
 `card_payment: null | { state: "processing" | "held" | "capturing" |
 "recording", reference, since, capture_by?, brand?, last4? }` (SQ22, owner
