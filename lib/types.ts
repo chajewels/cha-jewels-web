@@ -578,6 +578,8 @@ export type HubOrderCard = {
   customer_id?: string;
   /** Her own name, the default for the cardholder-name field (owner 4A) — never a gift recipient's. May be null. */
   cardholder_name?: string | null;
+  /** Her own email on the Hub record, for Square's buyer verification (WEB-4). Null or absent from an older Hub. */
+  buyer_email?: string | null;
 };
 /**
  * processing — the bank's answer is not known yet (an attempt in flight, or a

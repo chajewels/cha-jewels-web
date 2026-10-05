@@ -104,7 +104,7 @@ export default async function PayCardPage({ params, searchParams }: {
     const ctx = card.customer_id ? cardAgreementContextToken({ orderId: order.id, customerId: card.customer_id, amountJpy: card.amount_jpy }) : null;
     if (ctx) signUrl = cardSignUrl(order.id, order.web_reference ?? order.invoice_number, card.amount_jpy, lang === "ja" ? "ja" : "en", ctx);
     else {
-      console.error("[pay-card] agreement link could not be signed (AGREEMENT_LOOKUP_TOKEN or customer id missing)");
+      console.error("[pay-card] agreement link could not be signed (CARD_AGREEMENT_CTX_KEY / AGREEMENT_LOOKUP_TOKEN or customer id missing)");
       gate = "unverified";
     }
   }

@@ -1,5 +1,6 @@
 import type { HubAddress, HubCardBilling, HubOrderCard, HubOrderDetail } from "@/lib/types";
 import { billingCountryCode } from "@/lib/billing-countries";
+import { jpPostal } from "@/lib/address-format";
 
 /**
  * Card payment (Square) on a confirmed order (S3, 2026-10-04): which Hub
@@ -138,6 +139,8 @@ export type SquareBillingContact = {
   state?: string;
   postalCode?: string;
   countryCode?: string;
+  /** WEB-4: her own email from the Hub's card block (Square: "as much buyer information as possible" for 3DS). */
+  email?: string;
 };
 
 type Delivery = Pick<HubAddress, "line1" | "line2" | "city" | "region" | "postal_code" | "country"> | null | undefined;
@@ -153,7 +156,7 @@ const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(
  * `hub` to the Hub (rebuilding the delivery half from the Hub's own address,
  * never the browser's copy). Nothing is computed; empty fields are left out.
  */
-export function cardBilling(form: CardBillingForm, delivery: Delivery):
+export function cardBilling(form: CardBillingForm, delivery: Delivery, buyerEmail?: string | null):
   | { ok: true; hub: HubCardBilling; square: SquareBillingContact }
   | { ok: false; code: "billing_name_required" | "billing_address_required" } {
   const name = clip(form.name, 120);
@@ -166,8 +169,13 @@ export function cardBilling(form: CardBillingForm, delivery: Delivery):
     : { line1: clip(form.line1, 200), line2: clip(form.line2, 200), city: clip(form.city, 100), state: clip(form.state, 100), postal: clip(form.postalCode, 20), country: billingCountryCode(form.country) };
   if (!addr) return { ok: false, code: "billing_address_required" };
   // A typed address needs its country, first line and city; the delivery
-  // address is whatever the Hub holds (an older one may lack a part).
-  if (!same && (!addr.country || !addr.line1 || !addr.city)) return { ok: false, code: "billing_address_required" };
+  // address is whatever the Hub holds (an older one may lack a part) — but
+  // never without a country Square and the Hub can read (WEB-3): she is then
+  // asked to pick it (card-pay opens the fields, pre-filled).
+  if (!addr.country || (!same && (!addr.line1 || !addr.city))) return { ok: false, code: "billing_address_required" };
+  // WEB-2: a Japanese postal code of seven digits gets its hyphen (Square's
+  // Japan address format, "160-0023"); anything else is sent as typed.
+  if (addr.country === "JP" && addr.postal) addr.postal = jpPostal(addr.postal);
   const hub: HubCardBilling = {
     name,
     same_as_delivery: same,
@@ -186,6 +194,7 @@ export function cardBilling(form: CardBillingForm, delivery: Delivery):
     ...(addr.state ? { state: addr.state } : {}),
     ...(addr.postal ? { postalCode: addr.postal } : {}),
     ...(addr.country ? { countryCode: addr.country } : {}),
+    ...(buyerEmailOf(buyerEmail) ? { email: buyerEmailOf(buyerEmail)! } : {}),
   };
   return { ok: true, hub, square };
 }
@@ -247,4 +256,23 @@ export function cardRefusalCode(err: { status: number; code: string | null; body
  */
 export function isSquareSourceId(v: unknown): v is string {
   return typeof v === "string" && /^cnon:[A-Za-z0-9_-]{8,200}$/.test(v);
+}
+
+/** A plain address check only (Square validates the rest); never a guess. Mirrors the Hub's _shared/square.ts buyerEmailOf. */
+export function buyerEmailOf(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const e = v.trim();
+  return e.length > 0 && e.length <= 255 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
+}
+
+/**
+ * WEB-6: Square's TokenStatus (Unknown | OK | Error | Invalid | Abort | Cancel —
+ * github.com/square/web-sdk issue #238; the reference page lists none) → the
+ * pay-card code. Only Invalid is a field to fix; Cancel is the bank's check
+ * closed; anything else is the check failing. No token = nothing charged.
+ * Square's TokenStatus (Unknown | OK | Error | Invalid | Abort | Cancel) → the page's code. Only Invalid is a field to fix. */
+export function tokenizeCode(status: string): "form" | "verification_required" | "verification_failed" {
+  if (status === "Invalid") return "form";
+  if (status === "Cancel") return "verification_required";
+  return "verification_failed";
 }

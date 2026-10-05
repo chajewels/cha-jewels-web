@@ -30,6 +30,7 @@ import { OrderProgress, orderStage } from "@/components/account/order-progress";
 import { Notice, PieceWell } from "@/components/commerce/commerce-ui";
 import { linePicture } from "@/components/commerce/confirmation";
 import { CardMarks } from "@/components/commerce/card-marks";
+import { addressLines } from "@/lib/address-format";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -280,9 +281,10 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {address && (
               <Kv k={t("orders", "shipTo")}>
                 <span className="block">{address.recipient_name ?? "—"}</span>
-                <span className="block">{address.line1}{address.line2 ? `, ${address.line2}` : ""}</span>
-                <span className="block">{[address.city, address.region, address.postal_code].filter(Boolean).join(" ")}</span>
-                <span className="block text-charcoal/75">{address.country}</span>
+                {/* WEB-2: one formatter (Japan top-down with 〒NNN-NNNN). */}
+                {addressLines(address).map((l, i, all) => (
+                  <span key={i} className={i === all.length - 1 && address.country ? "block text-charcoal/75" : "block"}>{l}</span>
+                ))}
               </Kv>
             )}
             {payment && <Kv k={t("orders", "payment")}>{payment}</Kv>}
