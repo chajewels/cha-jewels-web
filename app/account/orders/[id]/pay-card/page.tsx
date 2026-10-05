@@ -16,6 +16,7 @@ import { agreementStatus } from "@/lib/agreement-lookup";
 import { Button } from "@/components/ui/button";
 import { AccountShell } from "@/components/account/account-shell";
 import { CardPay, type CardDelivery } from "@/components/commerce/card-pay";
+import { CardMarks } from "@/components/commerce/card-marks";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -154,6 +155,8 @@ export default async function PayCardPage({ params, searchParams }: {
       <FullReloadLinks />
       <div className="max-w-[640px]">
         {/* Keyed on the Hub's amount: if it changes, a refresh draws a fresh form for the new figure. */}
+        {/* The cards Square takes online in Japan (owner 2026-10-05; no UnionPay). */}
+        <CardMarks label={t("footer", "cards")} className="mb-4" />
         <CardPay key={card.amount_jpy} orderId={order.id} card={card} delivery={delivery} amountLabel={amountLabel} lang={lang} nonce={nonce} />
       </div>
     </AccountShell>

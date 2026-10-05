@@ -29,6 +29,7 @@ import { AccountShell } from "@/components/account/account-shell";
 import { OrderProgress, orderStage } from "@/components/account/order-progress";
 import { Notice, PieceWell } from "@/components/commerce/commerce-ui";
 import { linePicture } from "@/components/commerce/confirmation";
+import { CardMarks } from "@/components/commerce/card-marks";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -160,6 +161,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
                 <div className="min-w-0">
                   <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
                   <p className="mt-1 text-[13px] leading-relaxed text-charcoal/80">{t("card", "orderLede")}</p>
+                  <CardMarks label={t("footer", "cards")} className="mt-2" />
                 </div>
                 {/* A full page load, not a client navigation: the pay-card page's enforced CSP header only applies to a document load. */}
                 <a href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</a>
