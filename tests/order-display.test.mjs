@@ -94,3 +94,33 @@ test("the other states keep today's stages and labels whatever the method", () =
   const shipped = { ...paid, shipped_at: "2026-10-06T00:00:00Z" };
   assert.equal(orderStage(shipped, true), 5);
 });
+
+// R17 (controller ruling, task S3): the decision notice is about the LAST
+// payment, so it goes while a new one is being checked, and on an order that
+// is no longer open.
+test("the decision notice is hidden while a new payment is being checked", () => {
+  const d = orderDisplay({ order: pending, chosenMethod: "transfer", beingChecked: true, latestDecision: decision("rejected") });
+  assert.equal(d.notice, null);
+  const q = orderDisplay({ order: pending, chosenMethod: "transfer", beingChecked: true, latestDecision: decision("needs_clarification") });
+  assert.equal(q.notice, null);
+});
+
+test("the decision notice is hidden on an order that is not open", () => {
+  for (const o of [
+    { ...pending, status: "cancelled", payment_status: "cancelled" },
+    { ...pending, status: "expired" },
+    { ...pending, status: "completed", payment_status: "paid", total_paid: 236800, remaining_balance: 0 },
+  ]) {
+    const d = orderDisplay({ order: o, chosenMethod: "paidy", beingChecked: false, latestDecision: decision("rejected") });
+    assert.equal(d.notice, null, o.status);
+  }
+});
+
+test("a list row reads 'being checked' while a payment is checked, else the method's label", async () => {
+  const { orderRowStatus } = await import("@/lib/order-display");
+  assert.deepEqual(orderRowStatus({ ...pending, chosen_method: "paidy", being_checked: true }, "ja"), { tone: "pending", text: "お支払いを確認中です" });
+  assert.equal(orderRowStatus({ ...pending, chosen_method: "paidy", being_checked: false }, "ja").text, "お支払い待ち");
+  assert.equal(orderRowStatus({ ...pending, chosen_method: "card" }, "en").text, "Awaiting payment");
+  // An older Hub (no fields): exactly today's label.
+  assert.deepEqual(orderRowStatus(pending, "en"), orderStatusLabel(pending, "en"));
+});

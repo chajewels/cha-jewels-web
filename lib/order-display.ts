@@ -1,5 +1,6 @@
 import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
-import { isClosedOrder, orderStatusKey } from "@/lib/order-status";
+import { isClosedOrder, orderStatusKey, orderStatusLabel } from "@/lib/order-status";
+import { tr, type Lang } from "@/lib/i18n";
 import type { HubLatestDecision, HubOrder } from "@/lib/types";
 
 /**
@@ -69,9 +70,26 @@ export function orderDisplay(input: {
     : orderStatusKey(order, chosenMethod).key === "statusPendingPayment" ? "statusPendingPayment"
     : null;
 
-  const notice = latestDecision?.status === "rejected" ? "rejected"
+  // R17 (task S3): the notice is about her LAST payment. It goes while a new
+  // one is being checked, and on an order that is no longer open.
+  const noticeShown = !beingChecked && order.status === "pending";
+  const notice = !noticeShown ? null
+    : latestDecision?.status === "rejected" ? "rejected"
     : latestDecision?.status === "needs_clarification" ? "needs_info"
     : null;
 
   return { headlineKey, stage, stage3Key, notice, payBlocked: latestDecision?.status === "needs_clarification" };
+}
+
+/**
+ * The status of one order in the order list and on the account home (task
+ * S3): "being checked" while the Hub says a payment is (`being_checked`) and
+ * the order is waiting for its money, otherwise the label for the method she
+ * chose (`chosen_method`). An older Hub sends neither, and the row reads as
+ * before.
+ */
+export function orderRowStatus(o: HubOrder, lang: Lang): ReturnType<typeof orderStatusLabel> {
+  const d = orderDisplay({ order: o, chosenMethod: o.chosen_method ?? null, beingChecked: o.being_checked === true });
+  if (d.headlineKey === "pending") return { tone: "pending", text: tr(lang)("orders", "pending") };
+  return orderStatusLabel(o, lang, o.chosen_method ?? null);
 }

@@ -8,7 +8,8 @@ import { tr, type Lang } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
-import { isClosedOrder, orderStatusLabel, refundLabel, type Tone } from "@/lib/order-status";
+import { isClosedOrder, refundLabel, type Tone } from "@/lib/order-status";
+import { orderRowStatus } from "@/lib/order-display";
 import { StatusBadge } from "@/components/account/status-badge";
 import type { HubDraft, HubOrder } from "@/lib/types";
 import { draftCompletePath, listableDraft } from "@/lib/drafts";
@@ -76,7 +77,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       };
     }),
     ...orders.map((o): Row => {
-      const status = orderStatusLabel(o, lang);
+      // S3: the method she chose, and "being checked" while a payment is (the Hub's list fields).
+      const status = orderRowStatus(o, lang);
       return {
         key: o.id, href: `/account/orders/${o.id}`, reference: o.web_reference ?? o.invoice_number ?? "—",
         date: siteDay(o.order_date ?? o.created_at), status,
