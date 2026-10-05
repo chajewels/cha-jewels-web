@@ -21,17 +21,19 @@ export const CARD_BRANDS = [
   { id: "discover", file: "discover.png", name: "Discover", w: 139, h: 89 },
 ] as const;
 
-const HEIGHT = { sm: "h-6", md: "h-8" } as const;
+// Every mark in the SAME box, scaled to fit (object-contain) — the owner's
+// preview, 2026-10-05: 96 × 66 (ratio ≈ 1.45), here at chip sizes.
+const BOX = { sm: "h-8 w-[46px]", md: "h-10 w-[58px]" } as const;
 
-export function CardMarks({ label, size = "sm", className = "", inline = false }: { label: string; size?: keyof typeof HEIGHT; className?: string; inline?: boolean }) {
+export function CardMarks({ label, size = "sm", className = "", inline = false }: { label: string; size?: keyof typeof BOX; className?: string; inline?: boolean }) {
   // `inline` renders spans (phrasing content) for use inside a <button>, where a list is not allowed.
   const List = inline ? "span" : "ul";
   const Item = inline ? "span" : "li";
   return (
     <List role={inline ? "list" : undefined} aria-label={label} className={`flex flex-wrap items-center gap-1.5 ${className}`} data-testid="card-marks">
       {CARD_BRANDS.map((b) => (
-        <Item key={b.id} role={inline ? "listitem" : undefined} className={`${HEIGHT[size]} flex items-center rounded-[3px] bg-white px-1 py-0.5 ring-1 ring-black/10`}>
-          <Image src={`/images/payment/${b.file}`} alt={b.name} width={b.w} height={b.h} unoptimized={b.file.endsWith(".svg")} className="h-full w-auto" />
+        <Item key={b.id} role={inline ? "listitem" : undefined} className={`${BOX[size]} flex items-center justify-center rounded-[3px] bg-white p-1 ring-1 ring-black/10`}>
+          <Image src={`/images/payment/${b.file}`} alt={b.name} width={b.w} height={b.h} unoptimized={b.file.endsWith(".svg")} className="h-full w-full object-contain" />
         </Item>
       ))}
     </List>
