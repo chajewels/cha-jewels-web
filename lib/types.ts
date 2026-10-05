@@ -233,6 +233,34 @@ export type OrderType = "SELF" | "GIFT" | "PROXY";
  * computes.
  */
 export type CheckoutMethod = "transfer" | "paidy" | "card";
+/**
+ * WEBSITE PAYMENT LIFECYCLE (Hub H6, 2026-10-05). The reviewer's newest
+ * decision on this order's (or plan's) submissions, when it was NOT a
+ * confirmation: `rejected`, or `needs_clarification` (staff asked her a
+ * question). null when nothing was decided or the newest decision was a
+ * confirmation. `amount` is the submitted amount in the order's currency;
+ * `decided_at` is the decision time (Hub `updated_at`, else `created_at`);
+ * `message` is the customer-facing note staff wrote, or null. Every value is
+ * the Hub's.
+ */
+export type HubLatestDecision = {
+  status: "rejected" | "needs_clarification";
+  method: CheckoutMethod;
+  amount: number;
+  decided_at: string;
+  message: string | null;
+};
+/**
+ * The error codes of POST /orders/:id/payment-method (Hub H6). The body is
+ * always just `{ error: code }`. 404: not_found, not_linked. 409:
+ * not_web_order, not_payable, payment_in_progress, not_rejected,
+ * already_switched (one customer switch per rejection), unchanged,
+ * method_not_offered. 400: bad_method, method_requires_yen.
+ */
+export type HubMethodSwitchError =
+  | "not_found" | "not_linked"
+  | "not_web_order" | "not_payable" | "payment_in_progress" | "not_rejected" | "already_switched" | "unchanged" | "method_not_offered"
+  | "bad_method" | "method_requires_yen";
 /** One choice, and why it is greyed out when it is (layaway | currency_not_yen | address_not_jp | off | no_account). */
 export type HubPaymentOption = { method: CheckoutMethod; offered: boolean; reason: string | null };
 export type HubCheckoutPoints = {
@@ -450,6 +478,12 @@ export type HubDraft = {
   /** Points used at checkout, held until staff confirm; value in `currency`. */
   points?: number;
   points_value?: number;
+  /**
+   * Hub H6: what she will pay, after the points (full payment: total less the
+   * points' value, never below 0; layaway: the total). Settlement currency.
+   * Absent on an older Hub — never computed here.
+   */
+  total_after_points?: number;
 };
 export type HubDraftLine = {
   id: string; variant_id: string | null; product_id: string | null;
@@ -494,6 +528,16 @@ export type HubOrder = ReservationFlags & {
   /** When a transfer order ran past its 72-hour hold and the Hub released the stock. */
   expired_at: string | null;
   ship_to_address?: HubAddress | null;
+  /**
+   * List rows (GET /orders), Hub H6; all three absent on an older Hub.
+   * `chosen_method`: how she chose to pay; null on an order not made on the
+   * website. `being_checked`: a submission is open or a payment holds the
+   * order (paid, waiting for review). `amount_due`: the Hub's remaining
+   * balance, in `currency`.
+   */
+  chosen_method?: CheckoutMethod | null;
+  being_checked?: boolean;
+  amount_due?: number;
 };
 /** `title` is the English line title frozen at order time; `title_ja` is derived by the Hub from the product's current Japanese name and may be null. */
 export type HubOrderItem = { id: string; variant_id: string | null; product_id: string | null; title: string; title_ja?: string | null; sku: string | null; quantity: number; unit_price_jpy: number; line_total_jpy: number; image_url: string | null };
@@ -540,6 +584,17 @@ export type HubOrderDetail = {
   chosen_method?: CheckoutMethod;
   /** Points used at checkout, already taken off (order currency). */
   points_applied?: number;
+  /** Hub H6: the reviewer's newest non-confirming decision, or null. Absent on an older Hub. */
+  latest_decision?: HubLatestDecision | null;
+  /**
+   * Hub H6 (C1): she may pick another way to pay — only after a rejected
+   * submission, once per rejection, with nothing holding the order.
+   * `switch_methods` are the targets the Hub allows AND offers now (never the
+   * current one); `can_switch_method` is `switch_methods.length > 0`. Absent
+   * on an older Hub = no switch.
+   */
+  can_switch_method?: boolean;
+  switch_methods?: CheckoutMethod[];
 };
 /**
  * Everything Paidy Checkout needs, assembled by the Hub. `checkout` is passed
@@ -789,6 +844,8 @@ export type HubLayawayDetail = {
   points_applied?: number;
   /** What is still due on the deposit after points; null once it is paid. Absent on an older Hub. */
   deposit_due?: number | null;
+  /** Hub H6: the reviewer's newest non-confirming decision on this plan, or null. No switch: a plan is paid by transfer only. */
+  latest_decision?: HubLatestDecision | null;
 };
 
 /**

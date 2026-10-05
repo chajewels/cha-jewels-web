@@ -45,6 +45,15 @@ const PREVIEW_CARD_RESULT = process.env.NEXT_PUBLIC_PREVIEW_CARD_RESULT === "unk
 // makes the preview Hub answer checkout with a DRAFT and list drafts in the
 // account, as the live Hub does with web_checkout_mode = 'draft'.
 const PREVIEW_DRAFTS = process.env.NEXT_PUBLIC_PREVIEW_DRAFTS === "1";
+/**
+ * WEBSITE PAYMENT LIFECYCLE (Hub H6). NEXT_PUBLIC_PREVIEW_REJECTED=1 adds a
+ * confirmed yen web order she chose to pay with Paidy, whose Paidy submission a
+ * reviewer REJECTED: the Hub's `latest_decision`, the switch she may make
+ * (`can_switch_method`, `switch_methods`) and the list-row fields. Every
+ * other fixture order carries none of the new fields — an older Hub.
+ */
+const PREVIEW_REJECTED = process.env.NEXT_PUBLIC_PREVIEW_REJECTED === "1";
+export const REJECTED_ORDER_ID = "order-paidy-rejected";
 export const FIXTURE_DRAFT_ID = "00000000-0000-4000-8000-00000000d001";
 export const FIXTURE_DRAFT_REFERENCE = "CJ-W-900070";
 const RESERVED_ORDER_ID = "order-reserved";
@@ -423,7 +432,7 @@ export const meBlankFixture: HubMe = {
  * Hub behind it. Prices are made up; the deadline is a real 72 hours out so the
  * countdown copy renders the way it will in production.
  */
-const FIXTURE_ORDER_ID = "order-fixture";
+export const FIXTURE_ORDER_ID = "order-fixture";
 const FIXTURE_REFERENCE = "CJ-W-000001";
 // Obviously fake account values — this fixture only ever renders in preview
 // mode, and a realistic-looking account number is exactly what must never
@@ -671,6 +680,21 @@ export const ordersFixture: HubOrder[] = [{
     currency: "JPY", total: 98400, shipped: true,
     cancelled: true, reason: "Returned to us and cancelled after dispatch.", refund: "store_credit_issued",
   }),
+  // Hub H6: a Paidy payment the reviewer rejected; the list row carries the
+  // Hub's chosen_method / being_checked / amount_due.
+  ...(PREVIEW_REJECTED ? [{
+    id: REJECTED_ORDER_ID, web_reference: "CJ-W-000007", invoice_number: "900007",
+    status: "pending" as const, payment_status: "pending_transfer" as const, payment_method: "paidy",
+    order_type: "SELF" as const, currency: "JPY" as const, total_amount: 236800, total_paid: 0,
+    remaining_balance: 236800, shipping_fee: 800,
+    transfer_due_at: new Date(Date.now() + 48 * 36e5).toISOString(),
+    recipient_name: null, gift_note: null, order_date: new Date().toISOString().slice(0, 10),
+    created_at: new Date(Date.now() - 864e5).toISOString(), completed_at: null, cancelled_at: null,
+    tracking_number: null, shipped_at: null, source_channel: "web",
+    cancellation_reason: null, refund_status: null, refund_note: null, expired_at: null,
+    awaiting_confirmation: false, ready_for_payment: true,
+    chosen_method: "paidy" as const, being_checked: false, amount_due: 236800,
+  }] : []),
   // A reservation staff have not confirmed: held, no deadline, no methods.
   ...(PREVIEW_RESERVATION ? [{
     id: RESERVED_ORDER_ID, web_reference: RESERVED_ORDER_REFERENCE, invoice_number: "900003",
@@ -721,7 +745,21 @@ export function orderFixture(id: string): HubOrderDetail | null {
     state: PREVIEW_CARD_STATE, reference: "CJW-SQ-PREVIEW1", since: new Date(Date.now() - 5 * 60e3).toISOString(),
     ...(PREVIEW_CARD_STATE === "processing" ? {} : { capture_by: new Date(Date.now() + 6 * 864e5).toISOString(), brand: "VISA", last4: "1111" }),
   } : null;
+  // Hub H6: only the rejected-Paidy order carries the decision and the switch.
+  const rejected = order.id === REJECTED_ORDER_ID;
+  const lifecycle: Partial<HubOrderDetail> = rejected ? {
+    chosen_method: "paidy",
+    latest_decision: {
+      status: "rejected", method: "paidy", amount: Number(order.remaining_balance),
+      decided_at: new Date(Date.now() - 3 * 36e5).toISOString(),
+      message: "Paidy could not approve this payment. Please choose another way to pay.",
+    },
+    // Transfer is always offered; card only while the Hub offers it (preview: the card flag).
+    switch_methods: PREVIEW_CARD ? ["transfer", "card"] : ["transfer"],
+    can_switch_method: true,
+  } : {};
   return {
+    ...lifecycle,
     order: { ...order, ship_to_address: meFixture.addresses[0] },
     items: [{
       id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle", title_ja: "ツイストバングル",
@@ -730,7 +768,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
     // The Hub's own rule: methods only while the transfer is outstanding and
     // never before staff confirm the piece.
     transfer_region: order.currency === "PHP" ? "OVERSEAS" : "JP",
-    transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false && !cardPayment ? fixtureMethods : [],
+    transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false && !cardPayment && !rejected ? fixtureMethods : [],
     pending_submissions: [],
     card_payment: cardPayment,
     ...(PREVIEW_PAIDY && payable && !cardPayment ? {
