@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { cardAuthorizeAction } from "@/lib/card-actions";
-import { CARD_AGREEMENT_RESIGN, cardBilling, squareSdkSrc, type CardBillingForm, type SquareBillingContact } from "@/lib/card";
-import { BILLING_COUNTRIES } from "@/lib/billing-countries";
+import { CARD_AGREEMENT_RESIGN, cardBilling, squareSdkSrc, tokenizeCode, type CardBillingForm, type SquareBillingContact } from "@/lib/card";
+import { BILLING_COUNTRIES, billingCountryCode } from "@/lib/billing-countries";
+import { addressLines, jpPostal } from "@/lib/address-format";
 import { AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 import { inputLight, labelLight } from "@/lib/form-classes";
 import type { HubAddress, HubOrderCard } from "@/lib/types";
@@ -44,7 +45,7 @@ import { CardPaymentStatus } from "@/components/commerce/card-payment-status";
  */
 type TokenResult = { status: string; token?: string; errors?: { message?: string }[] };
 type SquareCard = { attach: (el: string | HTMLElement) => Promise<void>; tokenize: (v: VerificationDetails) => Promise<TokenResult>; destroy?: () => Promise<unknown> };
-type SquarePayments = { card: () => Promise<SquareCard> };
+type SquarePayments = { card: () => Promise<SquareCard>; setLocale?: (locale: string) => unknown };
 type SquareGlobal = { payments: (appId: string, locationId: string) => SquarePayments };
 type VerificationDetails = {
   amount: string; currencyCode: "JPY"; intent: "CHARGE"; customerInitiated: true; sellerKeyedIn: false;
@@ -119,6 +120,11 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
         const Square = window.Square;
         if (!Square) throw new Error("no_sdk");
         const payments = Square.payments(card.app_id, card.location_id);
+        // WEB-7: the card box in the site's language, not the browser's.
+        // Square documents setLocale but not its locale list; an unsupported
+        // one must never stop the form (Square falls back to en-US).
+        try { await payments.setLocale?.(lang === "ja" ? "ja-JP" : "en-US"); }
+        catch (err) { console.warn("[card-pay] setLocale refused:", err); }
         mine = await payments.card();
         // Checked BEFORE attach: React's dev double-effect would otherwise
         // attach two forms to one container.
@@ -140,7 +146,7 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
       cardRef.current = null;
       void destroyCard(c);
     };
-  }, [scriptReady, card.app_id, card.location_id]);
+  }, [scriptReady, card.app_id, card.location_id, lang]);
 
   const set = (patch: Partial<CardBillingForm>) => {
     setForm((f) => ({ ...f, ...patch }));
@@ -151,8 +157,24 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
     const c = cardRef.current;
     if (!c || inFlight.current) return;
     if (!agreed) { setCode("terms_required"); setState("error"); return; }
-    const billing = cardBilling(form, delivery);
-    if (!billing.ok) { setCode(billing.code); setState("ready"); return; }
+    const billing = cardBilling(form, delivery, card.buyer_email);
+    if (!billing.ok) {
+      // WEB-3: the delivery address has no country Square can read — open the
+      // fields, pre-filled from it, so she only picks the country.
+      if (billing.code === "billing_address_required" && form.sameAsDelivery && delivery) {
+        const jp = billingCountryCode(delivery.country) === "JP";
+        setForm((f) => ({
+          ...f, sameAsDelivery: false,
+          country: billingCountryCode(delivery.country) ?? "",
+          postalCode: jp ? jpPostal(delivery.postal_code) : (delivery.postal_code ?? ""),
+          state: delivery.region ?? "", city: delivery.city ?? "",
+          line1: delivery.line1 ?? "", line2: delivery.line2 ?? "",
+        }));
+      }
+      setCode(billing.code); setState("ready");
+      if (billing.code === "billing_address_required") focusFirstMissing();
+      return;
+    }
     inFlight.current = true;
     setCode(null);
     setState("tokenizing");
@@ -169,16 +191,19 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
           billingContact: billing.square,
         });
         if (result.status !== "OK" || !result.token) {
-          // The form itself refused (bad number, expiry, CVV) or the bank's
-          // check did not complete. Nothing left the page.
-          setCode(result.status === "Cancel" ? "verification_required" : "form");
+          // No token: nothing left the page and nothing was charged. WEB-6:
+          // only "Invalid" is a field she can fix; "Cancel" is the bank's
+          // check closed; anything else (Error, Abort, Unknown — Square's
+          // TokenStatus) is the check failing, never "fix the field".
+          console.warn("[card-pay] tokenize answered", result.status, result.errors ?? []);
+          setCode(tokenizeCode(result.status));
           setState("ready");
           return;
         }
         token = result.token;
       } catch (err) {
         console.error("[card-pay] tokenize failed:", err);
-        setCode("form");
+        setCode("verification_failed");
         setState("ready");
         return;
       }
@@ -229,11 +254,10 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
   const locked = busy || fatal;
   const field = `mt-1 block w-full px-3 py-2 text-[15px] ${inputLight}`;
   const label = `block text-[12px] font-medium ${labelLight}`;
-  const deliveryLines = delivery ? [
-    [delivery.line1, delivery.line2].filter(Boolean).join(", "),
-    [delivery.city, delivery.region, delivery.postal_code].filter(Boolean).join(" "),
-    delivery.country ?? "",
-  ].filter(Boolean) : [];
+  const deliveryLines = addressLines(delivery);
+  // WEB-8: a missing billing part is marked on its own field.
+  const addrErr = code === "billing_address_required" && !form.sameAsDelivery;
+  const missing = (v: string) => addrErr && !v.trim();
 
   return (
     <div className="border border-hairline bg-white p-5 sm:p-7" data-testid="card-pay">
@@ -278,7 +302,7 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
             <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-gold-dark sm:col-span-2 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "billingTitle")}</p>
             <div className="sm:col-span-2">
               <label className={label} htmlFor="cj-bill-country">{t("card", "billingCountry")}</label>
-              <select id="cj-bill-country" autoComplete="billing country" value={form.country} onChange={(e) => set({ country: e.target.value })} className={field} required>
+              <select id="cj-bill-country" autoComplete="billing country" value={form.country} onChange={(e) => set({ country: e.target.value })} className={field} required aria-invalid={missing(form.country)} aria-describedby={missing(form.country) ? "cj-card-error" : undefined}>
                 <option value="" disabled>{t("card", "billingCountryPlaceholder")}</option>
                 {BILLING_COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
               </select>
@@ -293,11 +317,11 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
             </div>
             <div className="sm:col-span-2">
               <label className={label} htmlFor="cj-bill-city">{t("card", "billingCity")}</label>
-              <input id="cj-bill-city" type="text" autoComplete="billing address-level2" maxLength={100} value={form.city} onChange={(e) => set({ city: e.target.value })} className={field} required />
+              <input id="cj-bill-city" type="text" autoComplete="billing address-level2" maxLength={100} value={form.city} onChange={(e) => set({ city: e.target.value })} className={field} required aria-invalid={missing(form.city)} aria-describedby={missing(form.city) ? "cj-card-error" : undefined} />
             </div>
             <div className="sm:col-span-2">
               <label className={label} htmlFor="cj-bill-line1">{t("card", "billingLine1")}</label>
-              <input id="cj-bill-line1" type="text" autoComplete="billing address-line1" maxLength={200} value={form.line1} onChange={(e) => set({ line1: e.target.value })} className={field} required />
+              <input id="cj-bill-line1" type="text" autoComplete="billing address-line1" maxLength={200} value={form.line1} onChange={(e) => set({ line1: e.target.value })} className={field} required aria-invalid={missing(form.line1)} aria-describedby={missing(form.line1) ? "cj-card-error" : undefined} />
             </div>
             <div className="sm:col-span-2">
               <label className={label} htmlFor="cj-bill-line2">{t("card", "billingLine2")}</label>
@@ -323,7 +347,7 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
       {card.test && <p className="mt-2 text-[12px] text-charcoal/70">{t("card", "testMode")}</p>}
       {code && (
         <div className="mt-3" role="alert">
-          <p className="text-sm text-garnet">{errorText(code, t)}</p>
+          <p id="cj-card-error" className="text-sm text-garnet">{errorText(code, t)}</p>
           {REFRESH.has(code) && (
             <button type="button" onClick={() => router.refresh()} className="mt-3 inline-flex h-10 items-center border border-charcoal-deep px-4 text-[12px] font-medium uppercase tracking-[0.12em] text-charcoal-deep hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "refresh")}</button>
           )}
@@ -360,6 +384,7 @@ function errorText(code: string, t: ReturnType<typeof tr>): string {
     case "billing_name_required": return t("card", "errBillingName");
     case "billing_address_required": return t("card", "errBillingAddress");
     case "form": return t("card", "errForm");
+    case "verification_failed": return t("card", "errVerificationFailed");
     case AGREEMENT_REQUIRED: return t("card", "signLede");
     case CARD_AGREEMENT_RESIGN: return t("card", "resignAmount");
     case AGREEMENT_UNVERIFIED: return t("card", "unverified");
@@ -368,4 +393,14 @@ function errorText(code: string, t: ReturnType<typeof tr>): string {
     // Anything unrecognised is treated as "we do not know" — never "not charged".
     default: return t("card", "errUnconfirmed");
   }
+}
+
+/** Move focus to the first empty required billing field (after the fields render). */
+function focusFirstMissing() {
+  setTimeout(() => {
+    for (const id of ["cj-bill-country", "cj-bill-line1", "cj-bill-city"]) {
+      const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
+      if (el && !el.value.trim()) { el.focus(); return; }
+    }
+  }, 0);
 }

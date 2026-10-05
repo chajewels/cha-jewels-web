@@ -84,7 +84,12 @@ function cjCtxSafeEquals_(a, b) {
 
 /** Verifies the signed context. Returns {ok:true, customerId, amountJpy} or {ok:false, reason}. */
 function cjVerifyCardContext_(ctx, orderId) {
-  var key = PropertiesService.getScriptProperties().getProperty(CJ_SIG_LOOKUP.TOKEN_PROPERTY);
+  // WEB-5 (2026-10-05): the context has its OWN key (Script Property
+  // CJ_CARD_CTX_KEY = the storefront's CARD_AGREEMENT_CTX_KEY), never the
+  // lookup token — that one arrives as ?token= and is in this script's
+  // execution log. Until CJ_CARD_CTX_KEY is set, the lookup token is used.
+  var props = PropertiesService.getScriptProperties();
+  var key = props.getProperty('CJ_CARD_CTX_KEY') || props.getProperty(CJ_SIG_LOOKUP.TOKEN_PROPERTY);
   if (!key) return { ok: false, reason: 'not_configured' };
   var raw = String(ctx || '').trim();
   var dot = raw.indexOf('.');

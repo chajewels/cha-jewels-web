@@ -7,8 +7,9 @@ import assert from "node:assert/strict";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const { cardOffer, squareAppFamily, squareSdkSrc, cardSignUrl, isSquareSourceId, CARD_TERMS_VERSION, CARD_VERIFICATION, CARD_AGREEMENT_RESIGN, cardAgreementGate, cardBilling, cardRefusalCode } = await import(pathToFileURL(join(process.cwd(), "lib/card.ts")).href);
+const { cardOffer, squareAppFamily, squareSdkSrc, cardSignUrl, isSquareSourceId, CARD_TERMS_VERSION, CARD_VERIFICATION, CARD_AGREEMENT_RESIGN, cardAgreementGate, cardBilling, cardRefusalCode, tokenizeCode, buyerEmailOf } = await import(pathToFileURL(join(process.cwd(), "lib/card.ts")).href);
 const { BILLING_COUNTRIES, UNMAPPED_COUNTRIES, billingCountryCode } = await import(pathToFileURL(join(process.cwd(), "lib/billing-countries.ts")).href);
+const { addressLines, jpPostal } = await import(pathToFileURL(join(process.cwd(), "lib/address-format.ts")).href);
 
 const offer = (over = {}) => ({
   offered: true, app_id: "sandbox-sq0idb-Mk9qGP8muuv3drWnl66GuQ", location_id: "L1TQG8H202QYA",
@@ -131,7 +132,7 @@ test("every country in the Hub's list has an ISO code; Japan and the Philippines
   assert.equal(new Set(codes).size, codes.length, "no code twice");
   assert.ok(codes.every((c) => /^[A-Z]{2}$/.test(c)));
   assert.equal(billingCountryCode("jp"), "JP");
-  assert.equal(billingCountryCode("Japan"), null);
+  assert.equal(billingCountryCode("Japan"), "JP", "WEB-3: a full name from the list maps to its code");
   assert.equal(billingCountryCode("VN"), "VN");
 });
 
@@ -169,4 +170,64 @@ test("a Square token shape is checked before any round trip", () => {
   assert.equal(isSquareSourceId("has space in it"), false);
   assert.equal(isSquareSourceId(123), false);
   assert.equal(CARD_TERMS_VERSION, "card-terms-v1");
+});
+
+// ---- docs-gap fixes (2026-10-05) ----
+test("WEB-3: a country typed as a name (any case) or a home name maps to its code; anything else is null", () => {
+  assert.equal(billingCountryCode("JAPAN"), "JP");
+  assert.equal(billingCountryCode(" philippines "), "PH");
+  assert.equal(billingCountryCode("日本"), "JP");
+  assert.equal(billingCountryCode("ＪＰ"), "JP", "full-width letters");
+  assert.equal(billingCountryCode("United Kingdom"), "GB");
+  assert.equal(billingCountryCode("Narnia"), null);
+  assert.equal(billingCountryCode(""), null);
+});
+
+test("WEB-3: same as delivery with a country stored as a name still sends the ISO code", () => {
+  const b = cardBilling(form(), { ...delivery, country: "JAPAN" });
+  assert.equal(b.ok, true);
+  assert.equal(b.square.countryCode, "JP");
+  assert.equal(b.hub.country, "JP");
+});
+
+test("WEB-3: same as delivery with no readable country is refused (the form then asks for it)", () => {
+  assert.deepEqual(cardBilling(form(), { ...delivery, country: "Narnia" }), { ok: false, code: "billing_address_required" });
+  assert.deepEqual(cardBilling(form(), { ...delivery, country: null }), { ok: false, code: "billing_address_required" });
+});
+
+test("WEB-2: a Japanese seven-digit postal code gets its hyphen for Square and the Hub; others are untouched", () => {
+  const b = cardBilling(form(), { ...delivery, postal_code: "1240012" });
+  assert.equal(b.square.postalCode, "124-0012");
+  assert.equal(b.hub.postal_code, "124-0012");
+  const ph = cardBilling(form({ sameAsDelivery: false, country: "PH", city: "Makati", line1: "88 Ayala Ave", postalCode: "1226" }), delivery);
+  assert.equal(ph.square.postalCode, "1226");
+  assert.equal(jpPostal("〒１２４００１２"), "124-0012");
+  assert.equal(jpPostal("124-0012"), "124-0012");
+  assert.equal(jpPostal("12345"), "12345");
+});
+
+test("WEB-2: a Japanese address reads top-down with 〒; other countries keep their order", () => {
+  assert.deepEqual(
+    addressLines({ line1: "1-2-3 Tateishi", line2: "Room 4", city: "Katsushika-ku", region: "東京都", postal_code: "1240012", country: "JP" }),
+    ["〒124-0012", "東京都 Katsushika-ku", "1-2-3 Tateishi, Room 4", "JP"],
+  );
+  assert.deepEqual(
+    addressLines({ line1: "88 Ayala Ave", city: "Makati", region: "Metro Manila", postal_code: "1226", country: "PH" }),
+    ["88 Ayala Ave", "Makati Metro Manila 1226", "PH"],
+  );
+  assert.deepEqual(addressLines(null), []);
+});
+
+test("WEB-4: the Hub's buyer email reaches Square's billing contact only when it is an address", () => {
+  assert.equal(cardBilling(form(), delivery, "maria@example.jp").square.email, "maria@example.jp");
+  assert.equal("email" in cardBilling(form(), delivery, "not-an-email").square, false);
+  assert.equal("email" in cardBilling(form(), delivery, null).square, false);
+  assert.equal("email" in cardBilling(form(), delivery, "maria@example.jp").hub, false, "the Hub gets no email from the browser");
+  assert.equal(buyerEmailOf(" a@b.co "), "a@b.co");
+});
+
+test("WEB-6: only Invalid asks her to fix a field; Cancel is the bank check closed; anything else is the check failing", () => {
+  assert.equal(tokenizeCode("Invalid"), "form");
+  assert.equal(tokenizeCode("Cancel"), "verification_required");
+  for (const st of ["Error", "Abort", "Unknown", "Something new"]) assert.equal(tokenizeCode(st), "verification_failed");
 });

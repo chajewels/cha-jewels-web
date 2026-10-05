@@ -21,6 +21,7 @@ import { CommerceStyle, Notice, OrderSlab, PieceWell, Stepper, StickyAct } from 
 import { draftCompletePath, isDraftPayResult } from "@/lib/drafts";
 import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-step";
 import { CardMarks } from "@/components/commerce/card-marks";
+import { addressLines } from "@/lib/address-format";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -1103,7 +1104,8 @@ const FIELD_LABEL = "mb-4 block text-[13px] font-semibold text-charcoal/85";
 const INPUT = `mt-1.5 h-12 w-full px-3.5 text-[15px] ${inputLight}`;
 
 function addressText(a: HubAddress): string {
-  return [a.recipient_name, [a.line1, a.line2].filter(Boolean).join(", "), [a.city, a.region, a.postal_code].filter(Boolean).join(" "), a.country].filter(Boolean).join(" · ");
+  // WEB-2: the same formatter as the order and pay-card pages.
+  return [a.recipient_name, ...addressLines(a)].filter(Boolean).join(" · ");
 }
 
 function Radio({ on }: { on: boolean }) {

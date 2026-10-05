@@ -62,8 +62,22 @@ export const BILLING_COUNTRIES: readonly BillingCountry[] = [
 /** The COUNTRIES names this file has no code for — always empty; the unit test holds it there. */
 export const UNMAPPED_COUNTRIES: readonly string[] = COUNTRIES.filter((n) => !CODES[n]);
 
-/** An ISO alpha-2 code from the list, or null. Used to read the delivery address's country (stored as the code). */
+/** Names a customer types for the two home countries that are not on the Hub's list (WEB-3). */
+const LOCAL_NAMES: Record<string, string> = { "日本": "JP", "にほん": "JP", "NIHON": "JP", "NIPPON": "JP", "フィリピン": "PH" };
+
+/**
+ * An ISO alpha-2 code, or null. Reads the delivery address's country, which the
+ * checkout form stores as typed and upper-cased ("JP", but also "JAPAN") —
+ * WEB-3 (2026-10-05): a full country name from the list (any case) or a home
+ * name maps to its code, so "same as delivery" never silently drops the
+ * country Square's buyer verification and the Hub's evidence need. Nothing
+ * else is guessed: an unknown name is null.
+ */
 export function billingCountryCode(v: string | null | undefined): string | null {
-  const c = (v ?? "").trim().toUpperCase();
-  return /^[A-Z]{2}$/.test(c) && BILLING_COUNTRIES.some((b) => b.code === c) ? c : null;
+  const raw = (v ?? "").normalize("NFKC").trim().replace(/\s+/g, " ");
+  const c = raw.toUpperCase();
+  if (/^[A-Z]{2}$/.test(c)) return BILLING_COUNTRIES.some((b) => b.code === c) ? c : null;
+  const byName = BILLING_COUNTRIES.find((b) => b.name.toUpperCase() === c);
+  if (byName) return byName.code;
+  return LOCAL_NAMES[c] ?? LOCAL_NAMES[raw] ?? null;
 }
