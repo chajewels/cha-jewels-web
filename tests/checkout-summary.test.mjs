@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
 
-const { checkoutSummary } = await import(
+const { checkoutSummary, amountToPayAfterPoints } = await import(
   pathToFileURL(join(process.cwd(), "lib/checkout-summary.ts")).href
 );
 
@@ -97,4 +97,17 @@ test("yen is unchanged: cart figures before a quote, the quote's after, no peso 
   );
   const post = checkoutSummary({ quote: yenQuote, intended: "JPY", subtotal: SUBTOTAL, mode: "full", peso: idle });
   assert.deepEqual({ tot: post.total, ship: post.shipping, yen: post.yenTotal }, { tot: 161980, ship: 3000, yen: null });
+});
+
+// F1 (owner live check 2026-10-05): with points chosen, the headline is the
+// Hub's total after points — on a full payment only.
+test("points on a full payment: the headline is the Hub's total after points", () => {
+  assert.equal(amountToPayAfterPoints({ mode: "full", quoteShown: true, pointsChosen: 3000, totalAfterPoints: 9980 }), 9980);
+  assert.equal(amountToPayAfterPoints({ mode: "full", quoteShown: true, pointsChosen: 12980, totalAfterPoints: 0 }), 0);
+});
+test("no points, a layaway, a stale quote or no Hub figure: no headline override", () => {
+  assert.equal(amountToPayAfterPoints({ mode: "full", quoteShown: true, pointsChosen: 0, totalAfterPoints: 12980 }), null);
+  assert.equal(amountToPayAfterPoints({ mode: "layaway", quoteShown: true, pointsChosen: 3000, totalAfterPoints: 9980 }), null);
+  assert.equal(amountToPayAfterPoints({ mode: "full", quoteShown: false, pointsChosen: 3000, totalAfterPoints: 9980 }), null);
+  assert.equal(amountToPayAfterPoints({ mode: "full", quoteShown: true, pointsChosen: 3000, totalAfterPoints: null }), null);
 });
