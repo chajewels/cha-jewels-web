@@ -758,6 +758,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
         agreement_min_jpy: 0,
         customer_id: meFixture.customer.id,
         cardholder_name: meFixture.customer.full_name,
+        buyer_email: meFixture.customer.email ?? null,
       },
     } : {}),
   };

@@ -50,3 +50,21 @@ test("no key, or an input that is not whole, means no token (fail closed)", () =
     if (prev === undefined) delete process.env.AGREEMENT_LOOKUP_TOKEN; else process.env.AGREEMENT_LOOKUP_TOKEN = prev;
   }
 });
+
+test("WEB-5: the context is signed with its own key when set, never the lookup token", () => {
+  const prev = { look: process.env.AGREEMENT_LOOKUP_TOKEN, own: process.env.CARD_AGREEMENT_CTX_KEY };
+  process.env.AGREEMENT_LOOKUP_TOKEN = "lookup-token-in-the-log";
+  process.env.CARD_AGREEMENT_CTX_KEY = "own-ctx-key";
+  try {
+    const [payload, mac] = cardAgreementContextToken(input, new Date("2026-10-05T00:00:00Z")).split(".");
+    const sig = (k) => createHmac("sha256", k).update(payload).digest("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    assert.equal(mac, sig("own-ctx-key"));
+    assert.notEqual(mac, sig("lookup-token-in-the-log"));
+    delete process.env.CARD_AGREEMENT_CTX_KEY;
+    const [p2, m2] = cardAgreementContextToken(input, new Date("2026-10-05T00:00:00Z")).split(".");
+    assert.equal(m2, createHmac("sha256", "lookup-token-in-the-log").update(p2).digest("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""), "fallback until both sides have the new key");
+  } finally {
+    if (prev.look === undefined) delete process.env.AGREEMENT_LOOKUP_TOKEN; else process.env.AGREEMENT_LOOKUP_TOKEN = prev.look;
+    if (prev.own === undefined) delete process.env.CARD_AGREEMENT_CTX_KEY; else process.env.CARD_AGREEMENT_CTX_KEY = prev.own;
+  }
+});

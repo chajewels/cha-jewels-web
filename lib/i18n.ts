@@ -1116,6 +1116,7 @@ export const dict = {
     errFailed: { ja: "カードのお支払いを開始できませんでした。請求は発生していません。もう一度お試しいただくか、銀行振込をご利用ください。", en: "We couldn't start the card payment. Nothing was charged. Please try again, or use bank transfer." },
     // Square's card box marks the field it refused (number, expiry, CVV, ZIP).
     errForm: { ja: "カード入力欄に表示された項目をご確認ください。", en: "Please check the card field marked in the card box above." },
+    errVerificationFailed: { ja: "カード会社での確認ができませんでした。請求は発生していません。もう一度お試しいただくか、別のカードをご利用ください。", en: "Your card couldn't be checked with your bank. Nothing was charged. Please try again, or use another card." },
   },
   orders: {
     // A submission the Hub is still checking (a transfer slip, a Paidy
