@@ -27,7 +27,7 @@ import { ServiceRequestForm } from "@/components/account/service-request-form";
 import { PaymentDueCard } from "@/components/account/payment-due-card";
 import { AccountShell } from "@/components/account/account-shell";
 import { OrderProgress } from "@/components/account/order-progress";
-import { orderDisplay } from "@/lib/order-display";
+import { orderDisplay, payBoxes } from "@/lib/order-display";
 import { PaymentDecisionNotice } from "@/components/account/payment-decision-notice";
 import { SwitchMethod } from "@/components/commerce/switch-method";
 import { Notice, PieceWell } from "@/components/commerce/commerce-ui";
@@ -123,7 +123,9 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
-  const showTransfer = chosen === null || chosen === "transfer";
+  // C1: only her method's box. The Hub decides what is offered; this only narrows it.
+  const boxes = payBoxes({ chosen, paidyOffered: !!paidy, cardOffered: !!card });
+  const showTransfer = boxes.transfer;
   const payment = chosen === "paidy" ? t("orders", "chosenPaidy")
     : chosen === "card" ? t("orders", "chosenCard")
     : order.payment_method === "transfer"
@@ -168,16 +170,16 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {/* Paidy (ato-barai) first when the Hub offers it (PD2): a
                 Japanese delivery address, a yen order, nothing pending. The
                 bank details stay underneath — one more way to pay. */}
-            {paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
+            {paidy && boxes.paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
             {/* Paidy can refuse her inside its own window and leave no record
                 here, so no switch: she is told to contact us instead (§4C). */}
-            {paidy && chosen === "paidy" && switchMethods.length === 0 && (
+            {paidy && boxes.paidy && chosen === "paidy" && switchMethods.length === 0 && (
               <p className="-mt-2 mb-5 text-sm text-charcoal/80" data-testid="paidy-contact-to-switch">{t("orders", "paidyContactToSwitch")}</p>
             )}
             {/* Card (Square, S3 2026-10-04) when the Hub offers it: any
                 country, yen, nothing pending. The form lives on its own page
                 behind the Card Purchase Agreement gate (owner D9). */}
-            {card && (
+            {card && boxes.card && (
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border border-hairline bg-white p-4 sm:p-5" data-testid="card-offer">
                 <div className="min-w-0">
                   <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
@@ -312,11 +314,11 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {shipping && <Kv k={t("checkout", "shipping")}><span className="cj-fig">{shipping}</span></Kv>}
             {pointsApplied > 0 && <Kv k={t("orders", "pointsUsed")}><span className="cj-fig">−{formatMoney(pointsApplied, order.currency)}</span></Kv>}
             {order.tracking_number && <Kv k={t("orders", "tracking")}><span className="font-mono text-gold-dark">{order.tracking_number}</span></Kv>}
-            <Kv k={t("orders", "total")} last={pointsApplied <= 0}>
+            <Kv k={t("orders", "total")} last={!(pointsApplied > 0 && Number(order.remaining_balance) > 0)}>
               <span className={`cj-fig font-display text-[26px] leading-tight ${status.tone === "dead" ? "text-charcoal/70" : "text-charcoal-deep"}`}>{formatMoney(Number(order.total_amount), order.currency)}</span>
             </Kv>
             {/* Points used (S3, spec §4E): what is left to pay, the Hub's remaining_balance — never computed here. */}
-            {pointsApplied > 0 && (
+            {pointsApplied > 0 && Number(order.remaining_balance) > 0 && (
               <Kv k={t("orders", "amountToPay")} last>
                 <span className="cj-fig font-display text-[20px] leading-tight text-charcoal-deep">{formatMoney(Number(order.remaining_balance), order.currency)}</span>
               </Kv>

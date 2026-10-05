@@ -124,3 +124,33 @@ test("a list row reads 'being checked' while a payment is checked, else the meth
   // An older Hub (no fields): exactly today's label.
   assert.deepEqual(orderRowStatus(pending, "en"), orderStatusLabel(pending, "en"));
 });
+
+// TASK S4 (C1): the order page shows ONLY the pay box for her chosen method.
+// The Hub is the authority (it sends no other block); the page never widens it.
+test("payBoxes: a Paidy order never shows the card box, and the reverse", async () => {
+  const { payBoxes } = await import("@/lib/order-display");
+  assert.deepEqual(payBoxes({ chosen: "paidy", paidyOffered: true, cardOffered: true }), { paidy: true, card: false, transfer: false });
+  assert.deepEqual(payBoxes({ chosen: "card", paidyOffered: true, cardOffered: true }), { paidy: false, card: true, transfer: false });
+  assert.deepEqual(payBoxes({ chosen: "transfer", paidyOffered: true, cardOffered: true }), { paidy: false, card: false, transfer: true });
+});
+
+test("payBoxes: an order with no chosen method shows what the Hub offers", async () => {
+  const { payBoxes } = await import("@/lib/order-display");
+  assert.deepEqual(payBoxes({ chosen: null, paidyOffered: true, cardOffered: true }), { paidy: true, card: true, transfer: true });
+  assert.deepEqual(payBoxes({ chosen: null, paidyOffered: false, cardOffered: false }), { paidy: false, card: false, transfer: true });
+});
+
+test("payBoxes: never shows a box the Hub did not offer", async () => {
+  const { payBoxes } = await import("@/lib/order-display");
+  assert.deepEqual(payBoxes({ chosen: "paidy", paidyOffered: false, cardOffered: true }), { paidy: false, card: false, transfer: false });
+});
+
+test("fixture: the rejected-Paidy preview order carries no card block (C1)", async () => {
+  const { orderFixture } = await import("@/lib/fixtures");
+  const { ordersFixture } = await import("@/lib/fixtures");
+  for (const o of ordersFixture) {
+    const d = orderFixture(o.id);
+    if (d?.chosen_method === "paidy") assert.equal(d.card ?? null, null, o.id);
+    if (d?.chosen_method === "card") assert.equal(d.paidy ?? null, null, o.id);
+  }
+});

@@ -1,7 +1,7 @@
 import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
 import { isClosedOrder, orderStatusKey, orderStatusLabel } from "@/lib/order-status";
 import { tr, type Lang } from "@/lib/i18n";
-import type { HubLatestDecision, HubOrder } from "@/lib/types";
+import type { CheckoutMethod, CheckoutMode, HubLatestDecision, HubOrder } from "@/lib/types";
 
 /**
  * WEBSITE PAYMENT LIFECYCLE (task S1, 2026-10-05). How an order reads to her —
@@ -92,4 +92,33 @@ export function orderRowStatus(o: HubOrder, lang: Lang): ReturnType<typeof order
   const d = orderDisplay({ order: o, chosenMethod: o.chosen_method ?? null, beingChecked: o.being_checked === true });
   if (d.headlineKey === "pending") return { tone: "pending", text: tr(lang)("orders", "pending") };
   return orderStatusLabel(o, lang, o.chosen_method ?? null);
+}
+
+/**
+ * The draft page's step 3 (task S4): a layaway draft's deposit step, or the
+ * full payment step for the method she chose at checkout. An older Hub sends no
+ * method, and the step reads as the transfer one, as before.
+ */
+export function draftStep3Key(mode: CheckoutMode, method: CheckoutMethod | undefined): "next3" | "next3Layaway" | "next3Paidy" | "next3Card" {
+  if (mode === "layaway") return "next3Layaway";
+  if (method === "paidy") return "next3Paidy";
+  if (method === "card") return "next3Card";
+  return "next3";
+}
+
+/**
+ * C1 (task S4): the order page shows ONLY the pay box for the method she
+ * chose. The Hub is the authority — it already sends no Paidy block on a card
+ * order and no card block on a Paidy order (`method_not_chosen`) — and this
+ * only ever NARROWS what it sent, never widens it. An order with no chosen
+ * method (not made on the website, or an older Hub) shows what the Hub offers,
+ * with the bank details underneath, as before.
+ */
+export function payBoxes(input: { chosen: DisplayMethod | null; paidyOffered: boolean; cardOffered: boolean }): { paidy: boolean; card: boolean; transfer: boolean } {
+  const { chosen, paidyOffered, cardOffered } = input;
+  return {
+    paidy: paidyOffered && (chosen === null || chosen === "paidy"),
+    card: cardOffered && (chosen === null || chosen === "card"),
+    transfer: chosen === null || chosen === "transfer",
+  };
 }

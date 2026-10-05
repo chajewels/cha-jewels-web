@@ -1,5 +1,4 @@
 import { pageMeta } from "@/lib/page-meta";
-import { formatDeadline } from "@/lib/site-time";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
@@ -10,9 +9,8 @@ import { hub } from "@/lib/hub-api";
 import { formatMoney } from "@/lib/utils";
 import { orderLineTitle } from "@/lib/catalog-i18n";
 import { isAwaitingConfirmation } from "@/lib/reservation";
-import { paidyProcessing } from "@/lib/paidy";
+import { draftStep3Key } from "@/lib/order-display";
 import { Button } from "@/components/ui/button";
-import { TransferDetails } from "@/components/commerce/transfer-details";
 import { NextSteps } from "@/components/commerce/commerce-ui";
 import { ConfirmationActions, ConfirmationLayout, linePicture } from "@/components/commerce/confirmation";
 import { MemberGroups } from "@/components/loyalty/member-groups";
@@ -59,7 +57,11 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
     );
   }
 
-  const { order, items, transfer_methods: methods } = detail;
+  const { order, items } = detail;
+  // TASK S4: this page is the reservation's thank-you only. A confirmed order
+  // has its own page — the way to pay, the deadline and every payment state
+  // live there — so an old link to this one lands on it.
+  if (!isAwaitingConfirmation(order)) redirect(`/account/orders/${order.id}`);
   const money = formatMoney(Number(order.total_amount), order.currency);
   const slabLines = items.map((line) => ({
     key: line.id,
@@ -81,73 +83,28 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
   // flips with the switch and never on a flag of its own. No bank details, no
   // deadline and no number of hours (D3-8): the deadline arrives with the
   // payment email.
-  if (isAwaitingConfirmation(order)) {
-    return (
-      <ConfirmationLayout
-        lang={lang}
-        reference={order.web_reference ?? "—"}
-        heading={t("complete", "reservedH1")}
-        lede={<>
-          <p>{t("complete", "reservedLede")}</p>
-          <p className="mt-2 text-[15px] font-semibold">{t("complete", "reservedNoPayment")}</p>
-        </>}
-        slab={{ title: t("complete", "reservedPieces"), lines: slabLines, rows: [], total: { k: t("complete", "reservedTotal"), v: money } }}
-      >
-        <NextSteps
-          heading={t("complete", "nextH")}
-          items={[
-            { title: t("complete", "next1"), body: t("complete", "next1p"), now: true },
-            { title: t("complete", "next2"), body: t("complete", "next2p") },
-            { title: t("complete", "next3"), body: t("checkout", "deadlineNote") },
-            { title: t("complete", "next4") },
-          ]}
-        />
-        {actions}
-        {members}
-      </ConfirmationLayout>
-    );
-  }
-
   return (
     <ConfirmationLayout
       lang={lang}
       reference={order.web_reference ?? "—"}
-      heading={t("complete", "h1")}
-      lede={<p>{t("complete", "lede")}</p>}
-      slab={{ title: t("complete", "reservedPieces"), lines: slabLines, rows: [], total: { k: t("complete", "amount"), v: money } }}
+      heading={t("complete", "reservedH1")}
+      lede={<>
+        <p>{t("complete", "reservedLede")}</p>
+        <p className="mt-2 text-[15px] font-semibold">{t("complete", "reservedNoPayment")}</p>
+      </>}
+      slab={{ title: t("complete", "reservedPieces"), lines: slabLines, rows: [], total: { k: t("complete", "reservedTotal"), v: money } }}
     >
-      <dl className="mt-8 grid gap-px border border-hairline bg-hairline sm:grid-cols-2">
-        <Cell k={t("complete", "amount")} v={money} />
-        <Cell k={t("complete", "deadline")} v={order.transfer_due_at ? formatDeadline(order.transfer_due_at, lang) : "—"} />
-      </dl>
-
-      {/* While Paidy holds the order the Hub sends no bank details; say why
-          instead of an empty instructions block (follow-up review #10). */}
-      {paidyProcessing(detail) ? (
-        <div className="mt-10 border border-gold-dark bg-white p-5" role="status" data-testid="paidy-processing">
-          <h2 className="font-display text-lg text-charcoal-deep">{t("paidy", "processingTitle")}</h2>
-          <p className="mt-2 text-sm text-charcoal/80">{t("paidy", "processingBody")}</p>
-        </div>
-      ) : (
-        <div className="mt-10">
-          <h2 className="mb-4 font-display text-[22px] text-charcoal-deep">{t("complete", "instructions")}</h2>
-          <TransferDetails methods={methods} lang={lang} />
-          {methods.length > 0 && <p className="mt-4 text-sm text-charcoal/80">{t("complete", "keepRef")}</p>}
-        </div>
-      )}
-
-      <p className="mb-8 mt-6 text-sm text-charcoal/80">{t("checkout", "deadlineNote")}</p>
+      <NextSteps
+        heading={t("complete", "nextH")}
+        items={[
+          { title: t("complete", "next1"), body: t("complete", "next1p"), now: true },
+          { title: t("complete", "next2"), body: t("complete", "next2p") },
+          { title: t("complete", draftStep3Key("full", order.chosen_method ?? undefined)), body: t("checkout", "deadlineNote") },
+          { title: t("complete", "next4") },
+        ]}
+      />
       {actions}
       {members}
     </ConfirmationLayout>
-  );
-}
-
-function Cell({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="bg-white p-5">
-      <dt className="text-xs text-charcoal/75">{k}</dt>
-      <dd className="cj-fig mt-1 font-display text-xl text-charcoal-deep">{v}</dd>
-    </div>
   );
 }

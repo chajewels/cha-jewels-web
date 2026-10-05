@@ -758,6 +758,10 @@ export function orderFixture(id: string): HubOrderDetail | null {
     switch_methods: PREVIEW_CARD ? ["transfer", "card"] : ["transfer"],
     can_switch_method: true,
   } : {};
+  // C1: the Hub offers Paidy / card only on the method she chose (method_not_chosen).
+  const chosenInPreview = lifecycle.chosen_method;
+  const paidyAllowed = !chosenInPreview || chosenInPreview === "paidy";
+  const cardAllowed = !chosenInPreview || chosenInPreview === "card";
   return {
     ...lifecycle,
     order: { ...order, ship_to_address: meFixture.addresses[0] },
@@ -771,7 +775,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
     transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false && !cardPayment && !rejected ? fixtureMethods : [],
     pending_submissions: [],
     card_payment: cardPayment,
-    ...(PREVIEW_PAIDY && payable && !cardPayment ? {
+    ...(PREVIEW_PAIDY && paidyAllowed && payable && !cardPayment ? {
       paidy: {
         offered: true,
         public_key: "pk_test_preview",
@@ -785,7 +789,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
         },
       },
     } : {}),
-    ...(PREVIEW_CARD && payable && !cardPayment ? {
+    ...(PREVIEW_CARD && cardAllowed && payable && !cardPayment ? {
       card: {
         offered: true,
         app_id: "sandbox-sq0idb-preview00000",

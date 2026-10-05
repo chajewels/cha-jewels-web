@@ -72,7 +72,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       return {
         key: `d-${d.id}`, href: draftCompletePath(d.id), reference: d.web_reference,
         date: siteDay(d.created_at), status, note: null,
-        total: formatMoney(Number(d.total), d.currency), piece: draftLines.get(d.id) ?? null,
+        total: formatMoney(Number(d.total_after_points ?? d.total), d.currency), piece: draftLines.get(d.id) ?? null,
         fallback: t("orders", "orderRef", { ref: d.web_reference }),
       };
     }),
