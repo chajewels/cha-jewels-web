@@ -788,6 +788,7 @@ export const dict = {
     pointsUseAll: { ja: "最大まで使う", en: "Use the most" },
     pointsRow: { ja: "ポイント利用", en: "Points" },
     pointsNewTotal: { ja: "ポイント利用後の合計", en: "Total after points" },
+    amountToPay: { ja: "お支払い金額", en: "Amount to pay" },
     pointsDepositDue: { ja: "ポイント利用後のお申込金", en: "Deposit after points" },
     pointsHeldNote: { ja: "ポイントはスタッフがご注文を確認した時点で使われます。確認できなかった場合、ポイントはお戻しします。", en: "Points are taken when we confirm your piece. If we can't confirm it, they come back to you." },
     pointsWhyNotEnrolled: { ja: "ポイントは会員の方のみご利用いただけます。", en: "Points are for loyalty members." },
