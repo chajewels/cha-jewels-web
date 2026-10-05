@@ -10,6 +10,7 @@ import { agreementStatus, type AgreementStatus } from "@/lib/agreement-lookup";
 import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
 import { saveCartLater } from "@/lib/cart-sync";
+import { checkoutErrorCode } from "@/lib/checkout-error-code";
 import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubDraftPayResult, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
 /**
@@ -32,18 +33,7 @@ async function jwtOrNull(): Promise<string | null> {
   return data.session?.access_token ?? null;
 }
 
-/**
- * Maps a Hub failure to a code the UI has copy for. The Hub's own error string
- * decides — not the HTTP status alone, because 409 covers "the quote aged out",
- * "someone bought it first" and "we cannot be paid for that destination", and
- * each needs different words and a different next step. Anything unknown is
- * "failed", and carries the Hub's request id so the screen can show it.
- */
-const EXPIRED = new Set(["quote_expired", "quote_already_used", "quote_not_found"]);
-const SOLD_OUT = new Set(["out_of_stock", "variant_missing"]);
-const METHOD_REFUSED = new Set(["bad_method", "method_unavailable", "method_full_payment_only", "method_requires_yen"]);
-const POINTS_REFUSED = new Set(["bad_points", "points_unavailable", "points_not_enrolled", "points_insufficient", "points_exceed_subtotal", "points_exceed_deposit", "points_exceed_max"]);
-
+/** Hub failure → UI code: lib/checkout-error-code.ts (pure, unit-tested). */
 /** Only the three methods, only whole points — never whatever the browser sent. */
 function cleanChoice(choice: { method?: unknown; points?: unknown } | undefined): CheckoutChoiceInput {
   const m = String(choice?.method ?? "transfer");
@@ -53,33 +43,7 @@ function cleanChoice(choice: { method?: unknown; points?: unknown } | undefined)
 }
 
 function toCode(err: unknown): string {
-  if (err instanceof HubError) {
-    if (err.code && EXPIRED.has(err.code)) return "expired";
-    if (err.code && SOLD_OUT.has(err.code)) return "sold_out";
-    if (err.code === "transfer_unavailable") return "transfer_unavailable";
-    // Layaway refusals. below_plan_minimum covers both "no term is sellable at
-    // this amount" and "the term chosen is out of reach" — the customer picks
-    // again from the terms the Hub sent, so one message serves both.
-    if (err.code === "below_plan_minimum") return "below_plan_minimum";
-    // Retired by the Hub on 2026-09-25 (pesos are offered for a full payment
-    // too); kept so a Hub rollback shows a neutral message, not "failed".
-    if (err.code === "currency_not_supported_for_full") return "currency_unsupported";
-    // No peso figure without a rate: fx_unavailable is the quote's refusal,
-    // fx_rate_missing the order writer's. Both are "try again or choose yen".
-    if (err.code === "fx_unavailable" || err.code === "fx_rate_missing") return "rate_unavailable";
-    // Website orders (Hub PR 6). A quote taken before the destination needed a
-    // manual shipping quote, or a draft writer that saw the agreement missing.
-    if (err.code === "shipping_quote_required") return "manual_quote";
-    if (err.code === "agreement_missing") return AGREEMENT_REQUIRED;
-    // Payment choice + points (Hub 2026-10-05). The Hub re-checks what the
-    // review screen offered: a method no longer offered, or points she can no
-    // longer use (spent elsewhere, more than the order takes).
-    if (err.code && METHOD_REFUSED.has(err.code)) return "method_unavailable";
-    if (err.code && POINTS_REFUSED.has(err.code)) return "points_unavailable";
-    if (err.status === 409) return "sold_out";
-    if (err.status === 401 || err.status === 403) return "signed_out";
-  }
-  return "failed";
+  return err instanceof HubError ? checkoutErrorCode({ status: err.status, code: err.code }) : "failed";
 }
 
 function fail<T>(err: unknown): ActionResult<T> {

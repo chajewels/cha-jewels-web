@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub, HubError, uploadProof } from "@/lib/hub-api";
 import type { ActionResult } from "@/lib/checkout-actions";
 import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
+import { proofTypeOk } from "@/lib/proof-file";
 
 /**
  * Reporting a transfer against a layaway plan.
@@ -51,6 +52,8 @@ export async function submitLayawayPaymentAction(
   const file = form.get("proof");
   if (!(file instanceof File) || file.size === 0) return { ok: false, code: "proof_required" };
   if (file.size > MAX_PROOF_BYTES) return { ok: false, code: "proof_too_large" };
+  // A photo or a PDF only, refused here so a wrong file is never uploaded.
+  if (!proofTypeOk(file)) return { ok: false, code: "proof_bad_type" };
 
   try {
     const proofUrl = await uploadProof(jwt, accountId, file);

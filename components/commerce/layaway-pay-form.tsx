@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import type { SettlementCurrency, TransferMethod } from "@/lib/types";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
+import { PROOF_ACCEPT } from "@/lib/proof-file";
 
 /**
  * Reporting a transfer against a plan.
@@ -42,6 +43,7 @@ export function LayawayPayForm({ accountId, lang, currency, suggestedAmount, met
     : code === "payment_method_required" ? t("plans", "errMethod")
     : code === "proof_required" ? t("plans", "errProof")
     : code === "proof_too_large" ? t("plans", "errProofLarge")
+    : code === "proof_bad_type" ? t("plans", "errProofType")
     : code === "proof_upload_failed" ? t("plans", "errProofUpload")
     : code === "too_many_submissions" ? t("plans", "errTooMany")
     : code === "exceeds_balance" ? t("plans", "errExceeds")
@@ -115,7 +117,7 @@ export function LayawayPayForm({ accountId, lang, currency, suggestedAmount, met
 
         <label className="text-sm text-charcoal/70 sm:col-span-2">
           {t("plans", "payProof")} <span className="text-gold-dark">*</span>
-          <input name="proof" type="file" accept="image/*,application/pdf" required className={field} />
+          <input name="proof" type="file" accept={PROOF_ACCEPT} required className={field} />
           <span className="mt-1 block text-[11px] text-charcoal/70">{t("plans", "payProofNote")}</span>
         </label>
 
