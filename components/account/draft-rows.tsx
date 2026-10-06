@@ -49,7 +49,7 @@ function DraftGroup({ drafts, lang, heading }: { drafts: HubDraft[]; lang: Lang;
               <StatusBadge tone={badge.tone} text={badge.text} />
               {/* Provisional, and never gold once closed (the list's own rule). */}
               <p className={`font-display text-xl ${badge.tone === "dead" ? "text-charcoal/70" : "text-gold-dark"}`}>
-                {formatMoney(Number(d.total), d.currency)}
+                {formatMoney(Number(d.total_after_points ?? d.total), d.currency)}
               </p>
               <Link href={draftCompletePath(d.id)} className="text-sm text-gold-dark underline underline-offset-4">
                 {t("draft", "view")}

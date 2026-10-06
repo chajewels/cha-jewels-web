@@ -169,6 +169,57 @@ after Confirm only the chosen method's block is sent (`paidy` / `card` /
 `transfer_methods`). `GET /layaway/:id` gains `points_applied` and
 `deposit_due` (what is left on the deposit after points; null once paid).
 
+### Payment lifecycle — latest decision, list state, after-points, customer switch (Hub H6, 2026-10-05)
+
+Every field below is OPTIONAL on the storefront: an older Hub omits it, and the
+site then behaves exactly as before (no notice, no switch, no list state).
+
+`LatestDecision` — the reviewer's newest decided submission when it is NOT a
+confirmation (null when nothing is decided or the newest decision is
+`confirmed`). Ordered as the Hub's writer orders it (`updated_at DESC NULLS
+LAST, created_at DESC, id DESC`):
+```json
+{ "status": "rejected" | "needs_clarification",
+  "method": "transfer" | "paidy" | "card",
+  "amount": 12000,
+  "decided_at": "<updated_at, or created_at if null>",
+  "message": "<customer-facing note>" | null }
+```
+A blank message reads as null. `needs_clarification` does not freeze the
+Hub's automation (INVARIANT 12 unchanged).
+
+- **`GET /orders/:id`** gains `latest_decision: LatestDecision | null`,
+  `can_switch_method: boolean` and `switch_methods: ("transfer" | "paidy" |
+  "card")[]`. `switch_methods` is what the Hub's switch rules allow (C1: only
+  after a rejected submission, once per rejection, no payment lock, a pending
+  web order; never the current method) AND what is offered right now
+  (transfer always; Paidy and card by the same offer rules as their blocks).
+  `can_switch_method` = `switch_methods.length > 0`.
+- **`GET /orders`** — each row gains `chosen_method` (`transfer` | `paidy` |
+  `card`, null when the order was not made on the website), `being_checked`
+  (an open submission or a payment lock holds the order) and `amount_due`
+  (`remaining_balance`, order currency).
+- **`GET /drafts`, `GET /drafts/:id`** — each draft gains `total_after_points`:
+  full payment `max(0, total − points_value)`; layaway = `total`. Settlement
+  currency, the Hub's figure (the site never subtracts).
+- **`GET /layaway/:id`** gains `latest_decision: LatestDecision | null`. No
+  switch fields: a plan is paid by transfer only.
+- **`POST /orders/:id/payment-method`** (customer JWT, `hub.orderPaymentMethod`)
+  — body `{ "method": "transfer" | "paidy" | "card" }`; answers
+  `{ "ok": true, "payment_method": "transfer" | "paidy" | "card" }` and the Hub
+  sends the order-ready email (method changed). Errors are `{ "error": code }`
+  only (no lock name):
+
+  | HTTP | code |
+  |---|---|
+  | 404 | `not_found` (not a uuid, or not her order), `not_linked` |
+  | 409 | `not_web_order`, `not_payable`, `payment_in_progress`, `not_rejected`, `already_switched` (she already switched since this rejection), `unchanged`, `method_not_offered` |
+  | 400 | `bad_method` (anything else, `"square"` included), `method_requires_yen` |
+
+  Preview: `NEXT_PUBLIC_PREVIEW_REJECTED=1` adds a yen web order whose Paidy
+  payment was rejected (`latest_decision`, `switch_methods: ["transfer"]`, plus
+  `"card"` with `NEXT_PUBLIC_PREVIEW_CARD=1`); the fixture POST answers ok.
+
 **`GET /orders/:id`**: `currency` is the order's settlement currency;
 `total_amount`, `total_paid`, `remaining_balance`, `shipping_fee` are in it.
 Item `unit_price_jpy` / `line_total_jpy` are **always yen** — on a peso order

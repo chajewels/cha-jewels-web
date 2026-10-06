@@ -81,3 +81,47 @@ test("violation reports: both formats, path only, never a query string", () => {
   const forged = readCspViolations({ "csp-report": { "blocked-uri": "eval\nFAKE LOG LINE", "violated-directive": "script-src\r\nFAKE", "document-uri": "/x" } });
   assert.ok(!/[\r\n]/.test(forged[0].blocked + forged[0].directive), "no control characters reach a log line");
 });
+
+// QC P3-5 (task S5): framing is refused site-wide (enforced frame-ancestors +
+// X-Frame-Options), and pay-card FAILS CLOSED when its policy cannot be built.
+test("every page but pay-card: enforced frame-ancestors only, plus the report-only policy", async () => {
+  const { cspForPath, FRAME_OPTIONS } = await import(pathToFileURL(join(process.cwd(), "lib/csp.ts")).href);
+  assert.equal(FRAME_OPTIONS, "DENY");
+  for (const p of ["/", "/account/orders/o1", "/checkout", "/products/x"]) {
+    const c = cspForPath(p, {});
+    assert.equal(c.enforced, "frame-ancestors 'none'", p);
+    assert.ok(c.reportOnly && c.reportOnly.includes("report-uri"), p);
+    assert.equal(c.nonce, null, p);
+  }
+});
+
+test("pay-card: the enforced nonce policy, no report-only fallback", async () => {
+  const { cspForPath } = await import(pathToFileURL(join(process.cwd(), "lib/csp.ts")).href);
+  const c = cspForPath("/account/orders/o1/pay-card", {});
+  assert.ok(c.nonce);
+  assert.ok(c.enforced.includes(`'nonce-${c.nonce}'`));
+  assert.ok(c.enforced.includes("frame-ancestors 'none'"));
+  assert.equal(c.reportOnly, null);
+});
+
+test("pay-card: a policy that cannot be built fails CLOSED (strict, no scripts), never report-only", async () => {
+  const { cspForPath, PAY_CARD_FAILSAFE_CSP } = await import(pathToFileURL(join(process.cwd(), "lib/csp.ts")).href);
+  const c = cspForPath("/account/orders/o1/pay-card", {}, () => "bad nonce!");
+  assert.equal(c.enforced, PAY_CARD_FAILSAFE_CSP);
+  assert.equal(c.reportOnly, null);
+  assert.equal(c.nonce, null);
+  const d = directives(PAY_CARD_FAILSAFE_CSP);
+  assert.deepEqual(d["script-src"], ["'none'"]);
+  assert.deepEqual(d["connect-src"], ["'none'"]);
+  assert.deepEqual(d["frame-src"], ["'none'"]);
+  assert.deepEqual(d["frame-ancestors"], ["'none'"]);
+  const thrower = () => { throw new Error("no crypto"); };
+  assert.equal(cspForPath("/account/orders/o1/pay-card", {}, thrower).enforced, PAY_CARD_FAILSAFE_CSP);
+});
+
+test("the fail-closed pay-card answer is flagged so the page can say so (M-5)", async () => {
+  const { cspForPath } = await import(pathToFileURL(join(process.cwd(), "lib/csp.ts")).href);
+  assert.equal(cspForPath("/account/orders/o1/pay-card", {}, () => "bad!").failsafe, true);
+  assert.equal(cspForPath("/account/orders/o1/pay-card", {}).failsafe, false);
+  assert.equal(cspForPath("/", {}).failsafe, false);
+});

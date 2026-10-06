@@ -26,7 +26,10 @@ import { PrintHeader } from "@/components/account/print-header";
 import { ServiceRequestForm } from "@/components/account/service-request-form";
 import { PaymentDueCard } from "@/components/account/payment-due-card";
 import { AccountShell } from "@/components/account/account-shell";
-import { OrderProgress, orderStage } from "@/components/account/order-progress";
+import { OrderProgress } from "@/components/account/order-progress";
+import { orderDisplay, payBoxes } from "@/lib/order-display";
+import { PaymentDecisionNotice } from "@/components/account/payment-decision-notice";
+import { SwitchMethod } from "@/components/commerce/switch-method";
 import { Notice, PieceWell } from "@/components/commerce/commerce-ui";
 import { linePicture } from "@/components/commerce/confirmation";
 import { CardMarks } from "@/components/commerce/card-marks";
@@ -78,8 +81,10 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const { order, items, transfer_methods: methods } = detail;
   const paidy = paidyOffer(detail);
   const card = cardOffer(detail);
-  const status = orderStatusLabel(order, lang);
-  const stage = orderStage(order);
+  // C1 (2026-10-05): the method she chose at checkout (or staff since). A
+  // website order shows ONLY that one; the Hub already sends no other.
+  const chosen = detail.chosen_method ?? null;
+  const status = orderStatusLabel(order, lang, chosen);
   const address = order.ship_to_address;
   const fmtDate = (iso: string) => formatSiteDate(iso, lang);
   const cancelled = order.status === "cancelled" || order.payment_status === "cancelled";
@@ -104,15 +109,23 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // While a payment is being checked (a card hold, Paidy, or a slip) the
   // heading says so instead of "Awaiting transfer" — she has already paid or
   // authorised, and the page shows no way to pay (2026-10-04 test run).
-  const beingChecked = order.payment_status === "pending_transfer" && (!!cardPayment || paidyProcessing || pending.length > 0);
-  const headline = beingChecked ? t("orders", "pending") : status.text;
+  const beingChecked = order.payment_status === "pending_transfer" && (!!cardPayment || paidyProcessing || pending.length > 0 || order.being_checked === true);
+  // Payment lifecycle (S1/S3): headline, step line, step-3 label and the
+  // reviewer's notice, from one pure helper over the Hub's own fields.
+  const display = orderDisplay({ order, chosenMethod: chosen, beingChecked, latestDecision: detail.latest_decision ?? null });
+  const headline = display.headlineKey ? t("orders", display.headlineKey) : beingChecked ? t("orders", "pending") : status.text;
+  const stage = display.stage;
+  const decision = display.notice ? detail.latest_decision ?? null : null;
+  // Staff asked her a question (needs clarification): no way to pay until it is answered — her money may already be with us.
+  const payOpen = payDue && !beingChecked && !display.payBlocked;
+  // "Pay another way" (D1): only the Hub's own list, only while the Hub says so.
+  const switchMethods = detail.can_switch_method ? (detail.switch_methods ?? []) : [];
   const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
-  // C1 (2026-10-05): the method she chose at checkout (or staff since). A
-  // website order shows ONLY that one; the Hub already sends no other.
-  const chosen = detail.chosen_method ?? null;
-  const showTransfer = chosen === null || chosen === "transfer";
+  // C1: only her method's box. The Hub decides what is offered; this only narrows it.
+  const boxes = payBoxes({ chosen, paidyOffered: !!paidy, cardOffered: !!card });
+  const showTransfer = boxes.transfer;
   const payment = chosen === "paidy" ? t("orders", "chosenPaidy")
     : chosen === "card" ? t("orders", "chosenCard")
     : order.payment_method === "transfer"
@@ -135,7 +148,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
     >
       <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
-      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
+      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} stage3Key={display.stage3Key} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
 
       {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how to
           pay is the first thing under the heading, on screen and on paper —
@@ -143,7 +156,11 @@ export default async function OrderDetailPage({ params, searchParams }: {
           paid. A reservation reads payment_status "awaiting_confirmation", so
           the first test already excludes it; the second is belt and braces,
           the same pair the Hub checks before it sends any methods. */}
-      {payDue && (
+      {/* The reviewer's last decision (S3, spec §4B): above the payment box.
+          Hidden while a new payment is being checked or the order is closed (R17). */}
+      {decision && display.notice && <PaymentDecisionNotice lang={lang} kind={display.notice} decision={decision} currency={order.currency} />}
+
+      {payOpen && (
         <div className="mb-6 [&>section]:mt-0">
           <PaymentDueCard
             lang={lang}
@@ -153,11 +170,16 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {/* Paidy (ato-barai) first when the Hub offers it (PD2): a
                 Japanese delivery address, a yen order, nothing pending. The
                 bank details stay underneath — one more way to pay. */}
-            {paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
+            {paidy && boxes.paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
+            {/* Paidy can refuse her inside its own window and leave no record
+                here, so no switch: she is told to contact us instead (§4C). */}
+            {paidy && boxes.paidy && chosen === "paidy" && switchMethods.length === 0 && (
+              <p className="-mt-2 mb-5 text-sm text-charcoal/80" data-testid="paidy-contact-to-switch">{t("orders", "paidyContactToSwitch")}</p>
+            )}
             {/* Card (Square, S3 2026-10-04) when the Hub offers it: any
                 country, yen, nothing pending. The form lives on its own page
                 behind the Card Purchase Agreement gate (owner D9). */}
-            {card && (
+            {card && boxes.card && (
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border border-hairline bg-white p-4 sm:p-5" data-testid="card-offer">
                 <div className="min-w-0">
                   <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
@@ -171,6 +193,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {chosenUnavailable && (
               <p className="mb-5 border border-hairline bg-white p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", "methodUnavailableNote")}</p>
             )}
+            {switchMethods.length > 0 && <SwitchMethod orderId={order.id} methods={switchMethods} lang={lang} />}
             {showTransfer && (
               <>
                 <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
@@ -291,9 +314,15 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {shipping && <Kv k={t("checkout", "shipping")}><span className="cj-fig">{shipping}</span></Kv>}
             {pointsApplied > 0 && <Kv k={t("orders", "pointsUsed")}><span className="cj-fig">−{formatMoney(pointsApplied, order.currency)}</span></Kv>}
             {order.tracking_number && <Kv k={t("orders", "tracking")}><span className="font-mono text-gold-dark">{order.tracking_number}</span></Kv>}
-            <Kv k={t("orders", "total")} last>
+            <Kv k={t("orders", "total")} last={!(pointsApplied > 0 && Number(order.remaining_balance) > 0)}>
               <span className={`cj-fig font-display text-[26px] leading-tight ${status.tone === "dead" ? "text-charcoal/70" : "text-charcoal-deep"}`}>{formatMoney(Number(order.total_amount), order.currency)}</span>
             </Kv>
+            {/* Points used (S3, spec §4E): what is left to pay, the Hub's remaining_balance — never computed here. */}
+            {pointsApplied > 0 && Number(order.remaining_balance) > 0 && (
+              <Kv k={t("orders", "amountToPay")} last>
+                <span className="cj-fig font-display text-[20px] leading-tight text-charcoal-deep">{formatMoney(Number(order.remaining_balance), order.currency)}</span>
+              </Kv>
+            )}
           </dl>
         </aside>
       </div>
