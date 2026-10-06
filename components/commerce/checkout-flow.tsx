@@ -983,6 +983,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                           </dl>
                         )}
                         <p className="mt-2 text-[13px] text-charcoal/75">{t("checkout", "pointsHeldNote")}</p>
+                        <p className="mt-1 text-[13px] text-charcoal/75">{t("checkout", "pointsNotReturned")}</p>
                       </div>
                     )}
                   </div>
