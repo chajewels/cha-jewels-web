@@ -524,6 +524,17 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(fx.orderCardFixture())
       : call(`/orders/${encodeURIComponent(id)}/card`, { method: "POST", body: JSON.stringify(input), jwt, revalidate: false }),
+  /**
+   * Her own switch to another way to pay (Hub H6, owner C1): allowed only
+   * after a rejected submission, once per rejection, while nothing holds the
+   * order — the Hub decides all of it and answers `{ error }` (409 / 400 / 404,
+   * HubMethodSwitchError) otherwise. Offer it only from the order's
+   * `switch_methods`.
+   */
+  orderPaymentMethod: (jwt: string, id: string, method: CheckoutMethod): Promise<{ ok: true; payment_method: CheckoutMethod }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const, payment_method: method })
+      : call(`/orders/${encodeURIComponent(id)}/payment-method`, { method: "POST", body: JSON.stringify({ method }), jwt, revalidate: false }),
   /** The customer's own service requests, every order and plan, newest first. */
   serviceRequests: (jwt: string): Promise<ServiceRequest[]> =>
     FIXTURES ? Promise.resolve(fx.serviceRequestsFixture()) : call("/me/service-requests", { jwt, revalidate: false }),

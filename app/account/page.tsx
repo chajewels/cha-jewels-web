@@ -11,7 +11,8 @@ import type { HubDraft, HubMe, HubOrder, HubTier } from "@/lib/types";
 import { hub } from "@/lib/hub-api";
 import { draftCompletePath } from "@/lib/drafts";
 import { draftPieces, orderPieces, type PieceSummary } from "@/lib/account-pieces";
-import { isClosedOrder, orderStatusLabel } from "@/lib/order-status";
+import { isClosedOrder } from "@/lib/order-status";
+import { orderRowStatus } from "@/lib/order-display";
 import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
 import { formatDeadline } from "@/lib/site-time";
 import { formatMoney } from "@/lib/utils";
@@ -111,7 +112,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       key: o.id,
       href: `/account/orders/${o.id}`,
       reference: o.web_reference ?? o.invoice_number ?? "—",
-      status: orderStatusLabel(o, lang),
+      // S3: the method she chose, and "being checked" while a payment is.
+      status: orderRowStatus(o, lang),
       note: isAwaitingConfirmation(o)
         ? t("orders", "reservedNote")
         : o.transfer_due_at ? `${t("account", "payBy")}: ${formatDeadline(o.transfer_due_at, lang)}` : null,

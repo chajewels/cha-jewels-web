@@ -1,33 +1,21 @@
 import { Check } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
-import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
-import { isClosedOrder } from "@/lib/order-status";
-import type { HubOrder } from "@/lib/types";
+import type { OrderDisplay } from "@/lib/order-display";
 import { cn } from "@/lib/utils";
 
 /**
  * THE ORDER'S STATUS LINE (build step 4; comp page-comps/account-signin
- * "Order detail"): reserved → piece confirmed → payment details / transfer →
- * payment received → shipped. Every stage up to where the order is now is
- * ticked; the current one is lit.
- *
- * Where the order is comes from the Hub's own fields, read the same way the
- * status badge reads them (lib/order-status.ts). An order that ended —
- * cancelled, expired, refunded, failed — gets no line: its page says what
- * happened instead.
+ * "Order detail"): reserved → piece confirmed → payment → payment received →
+ * shipped. Every stage up to where the order is now is ticked; the current one
+ * is lit. Where the order is, and what step 3 is called (transfer, Paidy or
+ * card), is decided in lib/order-display.ts; `orderStage` moved there with the
+ * payment lifecycle (S1) and is re-exported here for older imports.
  */
-export function orderStage(o: HubOrder): 1 | 2 | 3 | 4 | 5 | null {
-  if (isClosedOrder(o) || o.payment_status === "refunded" || o.payment_status === "failed") return null;
-  if (isAwaitingConfirmation(o)) return 1;
-  if (o.shipped_at) return 5;
-  if (o.payment_status === "paid" || o.status === "completed") return 4;
-  if (o.payment_status === "pending_transfer") return isReadyForPayment(o) ? 3 : 2;
-  return null;
-}
+export { orderStage } from "@/lib/order-display";
 
-export function OrderProgress({ lang, stage }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5 }) {
+export function OrderProgress({ lang, stage, stage3Key = "stagePayment" }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5; stage3Key?: OrderDisplay["stage3Key"] }) {
   const t = tr(lang);
-  const stages = [t("orders", "stageReserved"), t("orders", "stageConfirmed"), t("orders", "stagePayment"), t("orders", "stagePaid"), t("orders", "stageShipped")];
+  const stages = [t("orders", "stageReserved"), t("orders", "stageConfirmed"), t("orders", stage3Key), t("orders", "stagePaid"), t("orders", "stageShipped")];
   return (
     <ol aria-label={t("orders", "progress")} className="mb-6 grid grid-cols-5 border-t border-hairline">
       {stages.map((s, i) => {

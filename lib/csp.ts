@@ -20,7 +20,9 @@
  * inherits the trust. The host entries stay for CSP2 browsers that ignore
  * 'strict-dynamic'. frame-src allows https: because a 3-D Secure challenge is
  * framed from the CARD ISSUER's own domain, which Square says cannot be
- * listed in advance.
+ * listed in advance. (Square's CSP page lists only web.squarecdn.com /
+ * sandbox.web.squarecdn.com for frame-src and says nothing about 3-D Secure;
+ * kept at https: until a live 3DS run proves the narrow list, QC P3-5.)
  */
 
 /** Where violation reports go (app/api/csp-report/route.ts). */
@@ -132,4 +134,55 @@ export function reportOnlyCsp(opts: CspOptions = {}): string {
     ["report-uri", CSP_REPORT_PATH],
   ];
   return serialize(d);
+}
+
+/**
+ * FRAMING (QC P3-5, 2026-10-05). No page of this site may be framed by another
+ * site: the order page carries the Paidy button and checkout the Place order
+ * button. The full policy elsewhere is report-only (it may never break a
+ * page), so `frame-ancestors 'none'` is ENFORCED on its own, beside it, plus
+ * X-Frame-Options for browsers that ignore frame-ancestors.
+ */
+export const FRAME_OPTIONS = "DENY";
+/** Request header the middleware sets when pay-card got the fail-closed policy: the page then shows a plain line, no form. */
+export const CSP_FAILSAFE_HEADER = "x-cj-csp-failsafe";
+const FRAME_GUARD_CSP = "frame-ancestors 'none'";
+
+/**
+ * PAY-CARD FAILS CLOSED. If the nonce policy cannot be built, the page gets
+ * this fixed strict policy instead of the report-only one: no script runs, so
+ * no card form can load, and nothing can frame it. Her card is never taken on
+ * a page whose policy we could not set.
+ */
+export const PAY_CARD_FAILSAFE_CSP = serialize([
+  ["default-src", "'self'"],
+  ["script-src", "'none'"],
+  ["style-src", "'self'", "'unsafe-inline'"],
+  ["img-src", "'self'", "data:"],
+  ["font-src", "'self'", "data:"],
+  ["connect-src", "'none'"],
+  ["frame-src", "'none'"],
+  ["frame-ancestors", "'none'"],
+  ["form-action", "'none'"],
+  ["base-uri", "'none'"],
+  ["object-src", "'none'"],
+  ["report-uri", CSP_REPORT_PATH],
+]);
+
+/**
+ * The headers for one path (middleware.ts). Never throws.
+ * - pay-card: the enforced nonce policy; on any failure the fail-closed one.
+ * - everything else: enforced frame-ancestors + the report-only policy.
+ */
+export function cspForPath(pathname: string, opts: CspOptions = {}, makeNonce: () => string = newNonce): { enforced: string; reportOnly: string | null; nonce: string | null; failsafe: boolean } {
+  if (isPayCardPath(pathname)) {
+    try {
+      const nonce = makeNonce();
+      return { enforced: payCardCsp(nonce, opts), reportOnly: null, nonce, failsafe: false };
+    } catch (err) {
+      console.error("[csp] pay-card policy could not be built; serving the fail-closed policy:", err);
+      return { enforced: PAY_CARD_FAILSAFE_CSP, reportOnly: null, nonce: null, failsafe: true };
+    }
+  }
+  return { enforced: FRAME_GUARD_CSP, reportOnly: reportOnlyCsp(opts), nonce: null, failsafe: false };
 }

@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { LANG_COOKIE, LANG_PARAM, PATH_HEADER, asLang, detectLang, type Lang } from "@/lib/i18n";
-import { isPayCardPath, newNonce, payCardCsp, reportOnlyCsp } from "@/lib/csp";
+import { cspForPath, CSP_FAILSAFE_HEADER, FRAME_OPTIONS } from "@/lib/csp";
 
 /**
  * Language resolution + session refresh + the render-time gate on /account/*
@@ -34,8 +34,10 @@ import { isPayCardPath, newNonce, payCardCsp, reportOnlyCsp } from "@/lib/csp";
  * the nonce goes on the REQUEST as `x-nonce` and inside the request's own
  * `Content-Security-Policy` header (Next.js reads it there and nonces its
  * scripts), and the same policy goes on the response. Every other page gets
- * `Content-Security-Policy-Report-Only` on the response only — it can never
- * break a page.
+ * `Content-Security-Policy-Report-Only` on the response — it can never break
+ * a page — plus an ENFORCED `frame-ancestors 'none'` and `X-Frame-Options:
+ * DENY` (QC P3-5: no page may be framed). If the pay-card policy cannot be
+ * built, that page fails CLOSED (lib/csp.ts PAY_CARD_FAILSAFE_CSP).
  */
 
 /** Paths that render customer data and therefore need a signed-in user. */
@@ -97,10 +99,16 @@ export async function middleware(req: NextRequest) {
   // Computed before the pass-through response is built, so the request
   // headers carry the nonce on every path below (including the rebuilt
   // response in the Supabase cookie refresh).
-  const csp = cspFor(req.nextUrl.pathname);
+  const csp = cspForPath(req.nextUrl.pathname, {
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? null,
+    dev: process.env.NODE_ENV === "development",
+  });
+  // Fail-closed pay-card: tell the page, so she reads a plain line, not a dead form (M-5).
+  if (csp.failsafe) fwd.set(CSP_FAILSAFE_HEADER, "1");
+  else fwd.delete(CSP_FAILSAFE_HEADER);
   if (csp.nonce) {
     fwd.set("x-nonce", csp.nonce);
-    fwd.set("Content-Security-Policy", csp.value);
+    fwd.set("Content-Security-Policy", csp.enforced);
   }
 
   const gated = isGated(req.nextUrl.pathname);
@@ -118,7 +126,11 @@ export async function middleware(req: NextRequest) {
    * on the header at all.
    */
   const withLang = (response: NextResponse) => {
-    response.headers.set(csp.header, csp.value);
+    // Enforced everywhere: the pay-card policy (or its fail-closed twin) on
+    // pay-card, frame-ancestors 'none' alone elsewhere (QC P3-5).
+    response.headers.set("Content-Security-Policy", csp.enforced);
+    if (csp.reportOnly) response.headers.set("Content-Security-Policy-Report-Only", csp.reportOnly);
+    response.headers.set("X-Frame-Options", FRAME_OPTIONS);
     if (decided) {
       response.cookies.set(LANG_COOKIE, decided, {
         path: "/",
@@ -195,22 +207,6 @@ export async function middleware(req: NextRequest) {
 
   if (!signedIn) return withLang(toLogin(req));
   return withLang(res);
-}
-
-/** The policy for this path: enforced with a nonce on pay-card, report-only everywhere else. Never throws. */
-function cspFor(pathname: string): { header: string; value: string; nonce: string | null } {
-  const opts = { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? null, dev: process.env.NODE_ENV === "development" };
-  if (isPayCardPath(pathname)) {
-    try {
-      const nonce = newNonce();
-      return { header: "Content-Security-Policy", value: payCardCsp(nonce, opts), nonce };
-    } catch (err) {
-      // Rule 1: never throw. Without a nonce the page still renders under the
-      // report-only policy; the failure is logged so it cannot pass unseen.
-      console.error("[middleware] pay-card CSP could not be built:", err);
-    }
-  }
-  return { header: "Content-Security-Policy-Report-Only", value: reportOnlyCsp(opts), nonce: null };
 }
 
 export const config = {
