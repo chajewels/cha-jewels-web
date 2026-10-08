@@ -1032,7 +1032,9 @@ export const dict = {
     errFailed: { ja: "ペイディのお支払いを登録できませんでした。もう一度お試しください。ほかの方法をご希望の場合はご連絡ください。", en: "We could not record the Paidy payment. Please try again, or contact us if you'd like to pay another way." },
     uncertain: { ja: "ペイディのお支払いを確認しています。二重のお支払いを防ぐため、確認が終わるまで他のお支払い方法は表示されません。", en: "We are checking your Paidy payment. To avoid paying twice, no other way to pay is shown until it is confirmed." },
     processingTitle: { ja: "ペイディのお支払いを処理中です", en: "Your Paidy payment is being processed" },
-    processingBody: { ja: "ペイディでのお支払いを処理しています。二重のお支払いを防ぐため、この間は他のお支払い方法は表示されません。ペイディの画面をお支払いを完了せずに閉じた場合は、ペイディと確認のうえ、約90分以内に他のお支払い方法が再び表示されます。ペイディでのお支払いはすぐにやり直せます。", en: "Your Paidy payment is being processed. To avoid paying twice, no other way to pay is shown meanwhile. If you closed Paidy without completing it, we confirm with Paidy and the other options come back within about 90 minutes. You can try Paidy again right away." },
+    processingBody: { ja: "ペイディでのお支払いを処理しています。二重のお支払いを防ぐため、この間は他のお支払い方法は表示されません。ペイディとCha Jewelsの確認が済み次第、このページが更新されます。", en: "Your Paidy payment is being processed. To avoid paying twice, no other way to pay is shown meanwhile. This page updates once Paidy and Cha Jewels have confirmed it." },
+    windowOpenTitle: { ja: "ペイディの画面が開いたままです", en: "Your Paidy window was left open" },
+    windowOpenBody: { ja: "ペイディの画面をお支払いを完了せずに閉じた（または開いたままにした）ようです。ペイディでのお支払いは今すぐやり直せます。二重のお支払いを防ぐため、銀行振込やカードなど他のお支払い方法は、ペイディと確認のうえ約90分以内に再び表示されます。", en: "It looks like you closed Paidy without completing it, or left it open. You can open Paidy again now. To avoid paying twice, the other ways to pay (bank transfer, card) come back within about 90 minutes, once we have confirmed with Paidy that nothing was paid." },
     // P05 (owner 2026-10-08): what Paidy needs from the buyer herself.
     needsTitle: { ja: "ペイディのご利用に必要な情報", en: "What Paidy needs from you" },
     needsBody: { ja: "ペイディでお支払いいただくには、次の情報が必要です。入力後、このページにペイディのお支払いボタンが表示されます。", en: "To pay with Paidy we need the details below. Once they are complete, the Paidy button appears on this page." },

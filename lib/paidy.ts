@@ -29,6 +29,16 @@ export function paidyProcessing(detail: Pick<HubOrderDetail, "payment_state">): 
   return detail.payment_state === "paidy_processing";
 }
 
+/**
+ * P04 QA (2026-10-08): her OWN Paidy window is open (or was left open) and
+ * nothing else holds the order. Not a payment: the page keeps "Awaiting
+ * payment", offers Paidy again, and says the other methods return after the
+ * hourly check with Paidy.
+ */
+export function paidyWindowOpen(detail: Pick<HubOrderDetail, "payment_state">): boolean {
+  return detail.payment_state === "paidy_window_open";
+}
+
 /** Submissions a reviewer has not decided yet — the only ones that mean "being checked". */
 export function pendingSubmissions(detail: Pick<HubOrderDetail, "pending_submissions">): HubLayawaySubmission[] {
   return (detail.pending_submissions ?? []).filter((s) => s.status === "submitted" || s.status === "under_review");
