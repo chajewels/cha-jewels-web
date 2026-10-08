@@ -324,6 +324,10 @@ export default async function OrderDetailPage({ params, searchParams }: {
               </Kv>
             )}
           </dl>
+          {/* Owner 2026-10-06: points used are not returned if the order lapses unpaid. */}
+          {pointsApplied > 0 && Number(order.remaining_balance) > 0 && order.status === "pending" && (
+            <p className="mt-3 text-[13px] text-charcoal/75">{t("orders", "pointsNotReturned")}</p>
+          )}
         </aside>
       </div>
     </AccountShell>
