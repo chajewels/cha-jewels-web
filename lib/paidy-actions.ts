@@ -22,6 +22,7 @@ import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
  */
 const PAIDY_ID = /^pay_[A-Za-z0-9_-]{6,80}$/;
 const ATTEMPT_ID = /^[0-9a-f-]{36}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function customerJwt(): Promise<string | null> {
   const supabase = await supabaseServer();
@@ -34,12 +35,16 @@ async function customerJwt(): Promise<string | null> {
  * Paidy opens, so no other payment (a second tab, the card page, the bank
  * details) can be started while it runs. Answers the Hub's fresh payload.
  */
-export async function paidyStartAction(orderId: string): Promise<ActionResult<{ attemptId: string; checkout: PaidyCheckoutPayload }>> {
+export async function paidyStartAction(orderId: string, billingAddressId?: string | null): Promise<ActionResult<{ attemptId: string; checkout: PaidyCheckoutPayload }>> {
   const jwt = await customerJwt();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId)) return { ok: false, code: "failed" };
+  // PA15B: server-action arguments are untrusted — a uuid or nothing; the Hub
+  // then checks it is one of HER complete Japanese entries.
+  const billing = typeof billingAddressId === "string" && UUID.test(billingAddressId) ? billingAddressId : null;
+  if (billingAddressId != null && !billing) return { ok: false, code: "billing_address_invalid" };
   try {
-    const r = await hub.paidyStart(jwt, orderId);
+    const r = await hub.paidyStart(jwt, orderId, billing);
     return { ok: true, data: { attemptId: r.attempt_id, checkout: r.checkout } };
   } catch (err) {
     if (err instanceof HubError && err.code === "order_cannot_take_payment") {
@@ -104,6 +109,8 @@ function paidyCode(err: unknown): string {
     // the Hub has closed it and nothing was filed.
     if (err.code === "paidy_mismatch") return "paidy_mismatch";
     if (err.code === "paidy_not_offered") return "paidy_not_offered";
+    // PA15B: the billing address she picked is not one of her complete Japanese entries (any more).
+    if (err.code === "billing_address_invalid") return "billing_address_invalid";
     if (err.code === "submission_pending") return "submission_pending";
     if (err.code === "too_many_submissions" || err.status === 429) return "too_many_submissions";
     if (err.code === NOT_READY_FOR_PAYMENT) return NOT_READY_FOR_PAYMENT;

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -18,9 +19,16 @@ import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
  * files it for a reviewer. No figure is computed or edited here: `checkout`
  * is passed to `launch()` exactly as the Hub sent it.
  *
- * Shown only when the Hub says `offered` (JP delivery address, yen, nothing
- * paid yet, nothing pending). While the Paidy window or its payment is being
- * processed the Hub hides every other option (owner rule 2026-10-04).
+ * Shown only when the Hub says `offered` — the Hub's paidy-rules decide (she
+ * chose Paidy, a confirmed yen order with money due and nothing paid or
+ * pending, a complete Japanese delivery address, her names, a Japanese mobile
+ * and a Japanese billing address). While the Paidy window or its payment is
+ * being processed the Hub hides every other option (owner rule 2026-10-04).
+ *
+ * PA15B (owner 2026-10-08 17:17 JST): she chooses where Paidy BILLS her from
+ * her own Japanese address-book entries (the Hub lists them, default first,
+ * and checks the choice again); the piece still goes to the order's delivery
+ * address. Nothing is chosen for her silently.
  *
  * Reference: paidy.com/docs/en/paidycheckout.html — `Paidy.configure({api_key,
  * logo_url, closed})` returns a handler; `handler.launch(payload)`; `closed`
@@ -51,6 +59,8 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
   const [state, setState] = useState<State>("idle");
   const [code, setCode] = useState<string | null>(null);
   const [, start] = useTransition();
+  const choices = paidy.billing_choices ?? [];
+  const [billingId, setBillingId] = useState<string | null>(paidy.billing_address_id ?? choices[0]?.id ?? null);
 
   // P06 (2026-10-04): next/script fires onLoad only the first time the script
   // loads. After a client-side navigation back to this page the script is
@@ -77,11 +87,11 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
     setState("starting");
     setCode(null);
     start(async () => {
-      const started = await paidyStartAction(orderId);
+      const started = await paidyStartAction(orderId, choices.length > 0 ? billingId : null);
       if (!started.ok) {
         setCode(started.code);
         setState("error");
-        if (started.code === "payment_in_progress" || started.code === "paidy_not_offered") router.refresh();
+        if (started.code === "payment_in_progress" || started.code === "paidy_not_offered" || started.code === "billing_address_invalid") router.refresh();
         return;
       }
       const { attemptId, checkout } = started.data;
@@ -135,9 +145,15 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
             } else if (status === "REJECTED") {
               setState("rejected");
               endWindow("rejected", result?.id);
-            } else {
+            } else if (status === "CLOSED") {
               setState("idle");
               endWindow("closed", result?.id);
+            } else {
+              // PA15A (2026-10-09): an answer we cannot read is never "closed"
+              // — the window is NOT ended (Paidy may still hold an
+              // authorisation); the Hub's hourly check decides.
+              setState("uncertain");
+              router.refresh();
             }
           },
         });
@@ -180,6 +196,29 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
           {state === "filing" ? t("paidy", "filing") : t("paidy", "button")}
         </button>
       </div>
+      {choices.length > 0 && (
+        <fieldset className="mt-4" data-testid="paidy-billing">
+          <legend className="text-xs uppercase tracking-[0.14em] text-charcoal/70 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("paidy", "billingTitle")}</legend>
+          <p className="mt-1 text-[12px] leading-relaxed text-charcoal/70">{t("paidy", "billingHelp")}</p>
+          <div className="mt-2 space-y-2">
+            {choices.map((c) => (
+              <label key={c.id} className="flex cursor-pointer items-start gap-3 border border-hairline bg-white p-3 text-[13px] text-charcoal-deep has-[:checked]:border-gold-dark">
+                <input
+                  type="radio" name="paidy-billing" value={c.id} className="mt-1 accent-charcoal-deep"
+                  checked={billingId === c.id} onChange={() => setBillingId(c.id)} disabled={busy}
+                />
+                <span className="min-w-0 break-words">
+                  {c.postal_code ? `〒${c.postal_code} ` : ""}{[c.region, c.city, c.line1, c.line2].filter(Boolean).join(" ")}
+                  {c.is_default && <span className="ml-2 text-[11px] text-charcoal/60">({t("paidy", "billingDefault")})</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-[12px]">
+            <Link href="/account/addresses" className="text-gold-dark underline underline-offset-4 hover:text-charcoal-deep">{t("paidy", "billingAdd")}</Link>
+          </p>
+        </fieldset>
+      )}
       {paidy.test && <p className="mt-2 text-[12px] text-charcoal/60">{t("paidy", "testMode")}</p>}
       {state === "rejected" && <p className="mt-3 text-sm text-red-700" role="status">{t("paidy", "rejected")}</p>}
       {state === "error" && <p className="mt-3 text-sm text-red-700" role="status">{errorText(code, t)}</p>}
@@ -198,6 +237,7 @@ function errorText(code: string | null, t: ReturnType<typeof tr>): string {
     case "payment_in_progress": return t("paidy", "errPending");
     case "too_many_submissions": return t("paidy", "errTooMany");
     case "signed_out": return t("paidy", "errSignedOut");
+    case "billing_address_invalid": return t("paidy", "errBillingInvalid");
     default: return t("paidy", "errFailed");
   }
 }

@@ -12,8 +12,9 @@ import type { PaidyRequirements } from "@/lib/types";
  * shown on her order page when she chose Paidy and the Hub reports a
  * requirement missing. Names and the Japanese mobile are saved through the
  * Hub (`PUT /me/paidy-profile`, which validates and 400-names the field); a
- * Japanese billing address is set in her address book (default entry). The
- * Hub decides whether Paidy is then offered — this form only collects.
+ * Japanese billing address is added to her address book — she then chooses
+ * which entry Paidy bills on the Paidy card (PA15B). The Hub decides whether
+ * Paidy is then offered — this form only collects.
  */
 export function PaidyProfileForm({ orderId, requirements, lang }: { orderId: string; requirements: PaidyRequirements; lang: Lang }) {
   const t = tr(lang);
@@ -21,8 +22,10 @@ export function PaidyProfileForm({ orderId, requirements, lang }: { orderId: str
   const [error, setError] = useState<string | null>(null);
   // QA 2026-10-08: her input survives a refusal (the form used to reset), and
   // the mobile she already has is pre-filled when it is the Japanese one.
-  const [familyName, setFamilyName] = useState("");
-  const [givenName, setGivenName] = useState("");
+  // PA15A (2026-10-09): a name part already on file is pre-filled too, exactly
+  // as she (or staff) entered it — Latin or Japanese, never converted.
+  const [familyName, setFamilyName] = useState(requirements.family_name_on_file ?? "");
+  const [givenName, setGivenName] = useState(requirements.given_name_on_file ?? "");
   const [mobile, setMobile] = useState(requirements.jp_mobile ? (requirements.mobile_number ?? "") : "");
   const [busy, startTransition] = useTransition();
   const needsFields = !requirements.family_name || !requirements.given_name || !requirements.jp_mobile;

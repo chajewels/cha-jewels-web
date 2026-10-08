@@ -309,6 +309,22 @@ authorisation. The storefront never calls Paidy's API.
   A Japanese billing address is set in her address book (default entry).
 - `POST /orders/:id/card` answers 409 `paidy_in_progress` while Paidy holds the order.
 
+**PR 5 (PA15, owner 2026-10-09).**
+- `paidy` (offered) adds `billing_choices: { id, is_default, line1, line2,
+  city, region, postal_code }[]` — her COMPLETE Japanese address-book entries,
+  default first — and `billing_address_id` (the entry the `checkout` payload was
+  built from; her default unless she chose another). The site shows a picker when
+  there is more than one; the figures are still the Hub's.
+- `POST /orders/:id/paidy/start` takes an optional body `{ billing_address_id }`
+  (uuid). The Hub rebuilds the `checkout` with that entry as `buyer_data.billing_address`
+  and records it on the window. 400 `billing_address_invalid` when the id is not
+  one of her complete Japanese entries (a malformed id too).
+- `paidy_requirements` adds `family_name_on_file` / `given_name_on_file` (her
+  stored name parts, or null) so the profile form pre-fills them.
+- The site treats any Paidy callback status other than `authorized` /
+  `rejected` / `closed` as UNKNOWN: it keeps the window and re-reads the order
+  instead of reporting a close (PA15A).
+
 ### Card payment (Square) on a confirmed order (storefront S3, 2026-10-04; integrity pass SQ17–SQ23, owner 3A–6A)
 
 `GET /orders/:id` carries `card: { offered, app_id, location_id, test,

@@ -774,7 +774,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
   return {
     ...lifecycle,
     ...(paidyNeeds || paidyWindow ? { chosen_method: "paidy" as const } : {}),
-    ...(paidyNeeds ? { paidy_requirements: { family_name: false, given_name: false, jp_mobile: true, jp_billing_address: true, mobile_number: "08000000001" } } : {}),
+    ...(paidyNeeds ? { paidy_requirements: { family_name: true, given_name: false, jp_mobile: true, jp_billing_address: true, mobile_number: "08000000001", family_name_on_file: "Largo", given_name_on_file: null } } : {}),
     ...(paidyWindow ? { payment_state: "paidy_window_open" as const } : {}),
     order: { ...order, ship_to_address: meFixture.addresses[0] },
     items: [{
@@ -792,6 +792,12 @@ export function orderFixture(id: string): HubOrderDetail | null {
         offered: true,
         public_key: "pk_test_preview",
         test: true,
+        // PA15B: her complete Japanese entries (default first) — two, so the picker shows a real choice.
+        billing_choices: [
+          { id: "00000000-0000-4000-8000-0000000000b1", is_default: true, line1: "1-2-3 Tateishi", line2: null, city: "Katsushika-ku", region: "Tokyo", postal_code: "124-0012" },
+          { id: "00000000-0000-4000-8000-0000000000b2", is_default: false, line1: "4-5-6 Shibuya", line2: "Room 201", city: "Shibuya-ku", region: "Tokyo", postal_code: "150-0002" },
+        ],
+        billing_address_id: "00000000-0000-4000-8000-0000000000b1",
         checkout: {
           amount: Number(order.remaining_balance), currency: "JPY", store_name: "Cha Jewels",
           buyer: { email: meFixture.customer.email ?? undefined, name1: meFixture.customer.full_name ?? "Preview Customer", phone: "08000000001" },
