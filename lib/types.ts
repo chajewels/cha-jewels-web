@@ -582,6 +582,13 @@ export type HubOrderDetail = {
   payment_state?: "paidy_processing" | "payment_pending" | null;
   /** C1 (2026-10-05): the method she chose at checkout (or staff since). Absent on an older Hub. */
   chosen_method?: CheckoutMethod;
+  /**
+   * P05 (owner 2026-10-08): what Paidy needs from the buyer herself, true =
+   * satisfied. Present whenever the Hub evaluated Paidy for this order (also
+   * when it is not offered), so the page can ask for what is missing. Absent
+   * on an older Hub.
+   */
+  paidy_requirements?: PaidyRequirements | null;
   /** Points used at checkout, already taken off (order currency). */
   points_applied?: number;
   /** Hub H6: the reviewer's newest non-confirming decision, or null. Absent on an older Hub. */
@@ -697,6 +704,11 @@ export type HubCardResult =
     attempt?: { reference: string | null };
   }
   | { ok: false; status: "unknown"; attempt?: { reference: string | null } };
+/** P05: the buyer details Paidy needs, as the Hub reports them (true = satisfied). */
+export type PaidyRequirements = { family_name: boolean; given_name: boolean; jp_mobile: boolean; jp_billing_address: boolean };
+/** PUT /me/paidy-profile — the buyer's own names and Japanese mobile, for Paidy. */
+export type PaidyProfileInput = { family_name: string; given_name: string; mobile_number: string };
+
 /** The Paidy Checkout `launch()` payload (paidy.com/docs/en/paidycheckout.html), as the Hub builds it. */
 export type PaidyCheckoutPayload = {
   amount: number; currency: "JPY"; store_name?: string; description?: string;

@@ -924,6 +924,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                             <span>
                               <b className="block text-[15px] font-semibold text-charcoal-deep">{methodName(o.method)}</b>
                               <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{o.offered ? methodNote(o.method) : optionWhy(o)}</span>
+                              {/* P05 (owner 2026-10-08): what Paidy needs from the buyer, stated where she chooses it. */}
+                              {o.method === "paidy" && o.offered && <span className="mt-1 block text-[12px] leading-relaxed text-charcoal/65" data-testid="checkout-paidy-needs">{t("checkout", "methodPaidyNeeds")}</span>}
                               {o.method === "card" && <CardMarks inline label={t("footer", "cards")} className="mt-2" />}
                             </span>
                           </button>

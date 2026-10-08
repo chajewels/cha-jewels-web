@@ -108,3 +108,28 @@ function paidyCode(err: unknown): string {
   }
   return "failed";
 }
+
+/**
+ * P05 (owner 2026-10-08): the buyer's own family name, given name and
+ * Japanese mobile number — what Paidy needs and the Hub checks. Validation
+ * is the Hub's (`PUT /me/paidy-profile`, 400 names the field); here only the
+ * obvious blanks are refused so the form can mark them before a round trip.
+ */
+export async function paidyProfileAction(form: FormData): Promise<ActionResult<null>> {
+  const jwt = await customerJwt();
+  if (!jwt) return { ok: false, code: "signed_out" };
+  const str = (k: string) => String(form.get(k) ?? "").trim();
+  const input = { family_name: str("family_name"), given_name: str("given_name"), mobile_number: str("mobile_number") };
+  if (!input.family_name) return { ok: false, code: "family_name_required" };
+  if (!input.given_name) return { ok: false, code: "given_name_required" };
+  if (!input.mobile_number) return { ok: false, code: "jp_mobile_required" };
+  const orderId = str("order_id");
+  try {
+    await hub.paidyProfile(jwt, input);
+    if (ATTEMPT_ID.test(orderId) || /^[0-9a-f-]{36}$/i.test(orderId)) revalidatePath(`/account/orders/${orderId}`);
+    return { ok: true, data: null };
+  } catch (err) {
+    if (err instanceof HubError) return { ok: false, code: err.code ?? `http_${err.status}`, requestId: err.requestId };
+    return { ok: false, code: "failed" };
+  }
+}
