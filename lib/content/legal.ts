@@ -166,8 +166,8 @@ export const returnsTitle: Record<Lang, string> = {
 };
 
 export const returnsUpdated: Record<Lang, string> = {
-  ja: "最終更新日：2026年9月15日",
-  en: "Last updated: September 15, 2026",
+  ja: "最終更新日：2026年10月8日",
+  en: "Last updated: October 8, 2026",
 };
 
 /** Blocks before article 1 — the company line and the two scope paragraphs. */
@@ -231,17 +231,25 @@ export const returnsArticles: LegalArticle[] = [
   {
     n: 5,
     h: { ja: "全額お支払い済みのご注文のキャンセル", en: "Paid-in-Full Order Cancellations" },
+    // OWNER TEXT 2026-10-08 (V10a, approved in chat): the rule the Hub applies,
+    // stated once. Same order date (Japan time) → the full amount paid as store
+    // credit, valid one year; a later day → 30% cancellation charge on the
+    // amount paid, 70% store credit; card payments are refunded to the card
+    // only, never combined with store credit (Hub R05 / B01). It REPLACES the
+    // 2026-09-15 paragraphs ("order and full payment on the same calendar day",
+    // "up to 30% of the total order price", "not guaranteed"); the list of
+    // cases where a same-day cancellation can be declined and the legal-limit
+    // sentence stay. The checkout "Cancellation policy" link and the order page
+    // land here (lib/cancellation-policy.ts).
     blocks: [
-      { kind: "h", text: { ja: "同日中のキャンセル", en: "Same-day cancellations" } },
-      { kind: "p", text: { ja: "ご注文と全額のお支払いが同一の暦日に完了した場合、当日の日本標準時23時59分までにキャンセルをお申し出いただけます。", en: "If the order and full payment are completed on the same calendar day, a cancellation request may be made before 11:59 p.m. Japan Standard Time on that day." } },
-      { kind: "p", text: { ja: "お受けした場合、お支払いいただいた全額をストアクレジットとして付与します。", en: "If approved, the full amount paid will be issued as store credit." } },
-      { kind: "p", text: { ja: "次の場合、同日中のキャンセルをお受けできないことがあります。", en: "Same-day cancellation is not guaranteed if:" } },
+      { kind: "h", text: { ja: "キャンセルとストアクレジット", en: "Cancellations and store credit" } },
+      { kind: "p", text: { ja: "ご注文日（日本時間）の当日にキャンセルされた場合、お支払いいただいた金額の全額を1年間有効なストアクレジットとしてお客様のアカウントに追加します。", en: "If you cancel on the day of your order (Japan time), the full amount you paid is added to your account as store credit, valid for one year." } },
+      { kind: "p", text: { ja: "翌日以降のキャンセルは、お支払い金額の30%をキャンセル料として申し受け、残りの70%をストアクレジットとして追加します。", en: "If you cancel on a later day, a 30% cancellation charge applies and the remaining 70% is added as store credit." } },
+      { kind: "p", text: { ja: "ストアクレジットの現金への払い戻しはできません。クレジットカードでお支払いの場合、返金はカードへの返金のみとなり、ストアクレジットとの重複はありません。", en: "Store credit cannot be exchanged for cash. For card payments, a refund is made to the card only and is never combined with store credit." } },
+      { kind: "h", text: { ja: "当日キャンセルをお受けできない場合", en: "When a same-day cancellation can be declined" } },
+      { kind: "p", text: { ja: "次の場合、当日のキャンセルをお受けできないことがあります。", en: "Same-day cancellation is not guaranteed if:" } },
       { kind: "list", items: { ja: ["商品を既に発送している場合。", "サイズ直し、刻印、研磨、鑑定、修理その他ご依頼いただいた作業を既に開始している場合。", "当社が既に仕入先に対して支払を確定している場合。", "仕入先のライブ販売、オークション、特別仕入れその他ご購入前に最終販売と明示した方法により調達した商品である場合。"], en: ["The order has already been shipped.", "Resizing, engraving, polishing, certification, repair, or another requested service has started.", "Cha Jewels has already committed funds to a supplier.", "The item was obtained through supplier live-selling, auction, special procurement, or another sale identified as final before purchase."] } },
-      { kind: "h", text: { ja: "翌日以降のキャンセル", en: "Cancellations requested after the same day" } },
-      { kind: "p", text: { ja: "ご注文日の翌日以降にお申し出いただくキャンセルは、お受けできることを保証しておりません。", en: "Cancellations requested after the order date are not guaranteed." } },
-      { kind: "p", text: { ja: "Cha Jewelsがキャンセルをお受けする場合、ご注文金額の合計の30%を上限とするキャンセル料を差し引いたうえで、ストアクレジットを付与することがあります。この差引きは、仕入先に対する確定支払、決済手数料、事務費用、既に実施した作業、再入庫の費用または商品価値の減少など、合理的な費用に充てられます。", en: "If Cha Jewels accepts the cancellation, we may issue store credit after deducting a cancellation charge of up to 30% of the total order price. The deduction may cover reasonable costs such as supplier commitments, payment fees, administrative costs, services already performed, restocking, or reduction in the item’s value." } },
       { kind: "p", text: { ja: "キャンセル料は、法令上認められる合理的な範囲に限られます。法令上認められる金額が30%を下回る場合は、その低い金額を適用します。算定の根拠は、ご請求に応じてご説明します。", en: "Any cancellation charge will be limited to the reasonable amount permitted by applicable law. If the legally permitted amount is lower than 30%, the lower amount will apply. We will explain the basis of the charge upon request." } },
-      { kind: "p", text: { ja: "全額をストアクレジットとして付与する同日キャンセルの取扱いは、ご注文と全額のお支払いが同一の暦日に完了した場合に限り適用されます。", en: "The full store-credit option for same-day cancellations applies only when the order and full payment were completed on the same calendar day." } },
     ],
   },
   {
