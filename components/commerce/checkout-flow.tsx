@@ -22,6 +22,7 @@ import { draftCompletePath, isDraftPayResult } from "@/lib/drafts";
 import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-step";
 import { CardMarks } from "@/components/commerce/card-marks";
 import { addressLines } from "@/lib/address-format";
+import { cancellationPolicyHref } from "@/lib/cancellation-policy";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -1026,6 +1027,17 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     </p>
                   </div>
                 )}
+
+                {/* CANCELLATION POLICY (V10d, owner 2026-10-08): the rule the
+                    customer is agreeing to sits one line above the action, as a
+                    link to the policy article — never a figure computed here. */}
+                <p className="mt-6 text-[13px] leading-relaxed text-charcoal/80" data-testid="checkout-policy-note">
+                  {t("checkout", "policyPrefix")}
+                  <Link href="/legal/terms" target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4">{t("checkout", "policyTerms")}</Link>
+                  {t("checkout", "policyJoin")}
+                  <Link href={cancellationPolicyHref(lang)} target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-cancellation-policy">{t("checkout", "policyCancel")}</Link>
+                  {t("checkout", "policySuffix")}
+                </p>
               </section>
             )}
 

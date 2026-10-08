@@ -810,6 +810,15 @@ export const dict = {
     transferThenCard: { ja: "銀行振込、またはご注文確定後にご注文ページからカードでもお支払いいただけます。", en: "Bank transfer, or by card once we confirm your order — the card option appears on your order page." },
     transferPreview: { ja: "お振込先は以下のとおりです。ご注文確定後、この画面とメールでも改めてご案内します。", en: "You will transfer to the account below. We show it again after you place the order, and send it by email." },
     placeOrder: { ja: "ご注文を確定する", en: "Place order" },
+    // CANCELLATION POLICY LINK (V10d, owner 2026-10-08): one sentence above the
+    // Place order / Reserve button, naming the Terms of Service and the
+    // cancellation article of the returns policy (lib/cancellation-policy.ts).
+    // Five pieces because the links sit in different places in each sentence.
+    policyPrefix: { ja: "ご注文を確定すると、", en: "By placing your order you agree to our " },
+    policyTerms: { ja: "利用規約", en: "Terms of Service" },
+    policyJoin: { ja: "および", en: " and the " },
+    policyCancel: { ja: "キャンセルポリシー", en: "Cancellation policy" },
+    policySuffix: { ja: "に同意したものとみなされます。", en: "." },
     // RESERVE FIRST (Hub A2). Shown only when the quote came back with
     // `reservation_mode`: no bank details and no deadline until staff confirm
     // the piece (owner rule).
@@ -1228,6 +1237,8 @@ export const dict = {
     storeCredit: { ja: "ストアクレジット発行", en: "Store credit issued" },
     noRefund: { ja: "返金なし", en: "No refund" },
     cancelledOn: { ja: "キャンセル日", en: "Cancelled on" },
+    // V10d (owner 2026-10-08): the order page links to the cancellation article.
+    cancellationPolicy: { ja: "キャンセルポリシー", en: "Cancellation policy" },
     /**
      * 153 of the 154 orders arranged with us directly carry no line items and
      * no saved address — those are recorded on the invoice, not in this table.
