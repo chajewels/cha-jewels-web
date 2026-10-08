@@ -27,6 +27,7 @@ import { PrintHeader } from "@/components/account/print-header";
 import { ServiceRequestForm } from "@/components/account/service-request-form";
 import { PaymentDueCard } from "@/components/account/payment-due-card";
 import { AccountShell } from "@/components/account/account-shell";
+import { cancellationPolicyHref } from "@/lib/cancellation-policy";
 import { OrderProgress } from "@/components/account/order-progress";
 import { orderDisplay, payBoxes } from "@/lib/order-display";
 import { PaymentDecisionNotice } from "@/components/account/payment-decision-notice";
@@ -344,6 +345,14 @@ export default async function OrderDetailPage({ params, searchParams }: {
           {pointsApplied > 0 && Number(order.remaining_balance) > 0 && order.status === "pending" && (
             <p className="mt-3 text-[13px] text-charcoal/75">{t("orders", "pointsNotReturned")}</p>
           )}
+          {/* CANCELLATION POLICY (V10d, owner 2026-10-08): the same article the
+              checkout linked to, so the rule is one click away after the order
+              too. The Hub decides every cancellation; this is a link only. */}
+          <p className="mt-4 border-t border-hairline pt-3 text-[13px] print:hidden">
+            <Link href={cancellationPolicyHref(lang)} className="inline-flex min-h-11 items-center font-medium text-gold-dark underline underline-offset-4" data-testid="order-cancellation-policy">
+              {t("orders", "cancellationPolicy")} →
+            </Link>
+          </p>
         </aside>
       </div>
     </AccountShell>
