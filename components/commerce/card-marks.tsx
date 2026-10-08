@@ -25,6 +25,23 @@ export const CARD_BRANDS = [
 // preview, 2026-10-05: 96 × 66 (ratio ≈ 1.45), here at chip sizes.
 const BOX = { sm: "h-8 w-[46px]", md: "h-10 w-[58px]" } as const;
 
+/**
+ * PAIDY MARK (owner 2026-10-08): the official Paidy logo the owner supplied
+ * (paidy_logo_color_RGB_2021.svg, used unmodified) on the SAME white chip, at
+ * the SAME box size, as the card marks, so the footer row reads as one set.
+ * Rendered by the footer only while the Hub says Paidy is on
+ * (hub.paidyWidget().enabled — the same gate as the product-page widget);
+ * nothing here decides it. Paidy is not a card, so it is never part of
+ * CARD_BRANDS or the "Cards accepted" sentence.
+ */
+export function PaidyMark({ label, size = "sm", className = "" }: { label: string; size?: keyof typeof BOX; className?: string }) {
+  return (
+    <span role="img" aria-label={label} className={`${BOX[size]} flex items-center justify-center rounded-[3px] bg-white p-1 ring-1 ring-black/10 ${className}`} data-testid="paidy-mark">
+      <Image src="/images/payment/paidy.svg" alt="" width={1100} height={400} unoptimized className="h-full w-full object-contain" />
+    </span>
+  );
+}
+
 export function CardMarks({ label, size = "sm", className = "", inline = false }: { label: string; size?: keyof typeof BOX; className?: string; inline?: boolean }) {
   // `inline` renders spans (phrasing content) for use inside a <button>, where a list is not allowed.
   const List = inline ? "span" : "ul";
