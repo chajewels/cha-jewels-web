@@ -19,6 +19,11 @@ export function PaidyProfileForm({ orderId, requirements, lang }: { orderId: str
   const t = tr(lang);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  // QA 2026-10-08: her input survives a refusal (the form used to reset), and
+  // the mobile she already has is pre-filled when it is the Japanese one.
+  const [familyName, setFamilyName] = useState("");
+  const [givenName, setGivenName] = useState("");
+  const [mobile, setMobile] = useState(requirements.jp_mobile ? (requirements.mobile_number ?? "") : "");
   const [busy, startTransition] = useTransition();
   const needsFields = !requirements.family_name || !requirements.given_name || !requirements.jp_mobile;
   const needsAddress = !requirements.jp_billing_address;
@@ -57,13 +62,13 @@ export function PaidyProfileForm({ orderId, requirements, lang }: { orderId: str
         <form action={submit} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <input type="hidden" name="order_id" value={orderId} />
           <label className={label}>{t("paidy", "familyName")}
-            <input name="family_name" required maxLength={60} autoComplete="family-name" className={field} />
+            <input name="family_name" required maxLength={60} autoComplete="family-name" className={field} value={familyName} onChange={(e) => setFamilyName(e.target.value)} />
           </label>
           <label className={label}>{t("paidy", "givenName")}
-            <input name="given_name" required maxLength={60} autoComplete="given-name" className={field} />
+            <input name="given_name" required maxLength={60} autoComplete="given-name" className={field} value={givenName} onChange={(e) => setGivenName(e.target.value)} />
           </label>
           <label className={`${label} sm:col-span-2`}>{t("paidy", "jpMobile")}
-            <input name="mobile_number" type="tel" required inputMode="tel" placeholder="090-1234-5678" autoComplete="tel" className={field} />
+            <input name="mobile_number" type="tel" required inputMode="tel" placeholder="090-1234-5678" autoComplete="tel" className={field} value={mobile} onChange={(e) => setMobile(e.target.value)} />
           </label>
           {error && <p role="alert" className="text-sm text-[#9b2c2c] sm:col-span-2">{error}</p>}
           <div className="sm:col-span-2">

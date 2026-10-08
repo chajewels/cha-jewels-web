@@ -31,7 +31,14 @@ export function SwitchMethod({ orderId, methods, lang }: { orderId: string; meth
     setError(null);
     startTransition(async () => {
       const r = await switchMethodAction(orderId, picked);
-      if (r.ok) { setPicked(null); setOpen(false); router.refresh(); return; }
+      if (r.ok) {
+        // QA 2026-10-08: router.refresh() alone left the old method on screen
+        // until a manual reload (the Hub had switched; the email went out). A
+        // full document load reads the order as it now stands, every time.
+        setPicked(null); setOpen(false);
+        if (typeof window !== "undefined") window.location.reload(); else router.refresh();
+        return;
+      }
       const key = switchErrorKey(r.code);
       setError(key);
       if (key !== "switchFailed") router.refresh();

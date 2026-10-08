@@ -285,11 +285,19 @@ authorisation. The storefront never calls Paidy's API.
   most). `{ ok, ended }` (`ended` is always false now). She may open Paidy
   again right away; the new window replaces the one she closed. A window
   nobody ends times out through the same sweep.
+- `payment_state: "paidy_window_open"` (QA 2026-10-08) = her OWN Paidy window
+  is open or was left open and nothing else holds the order: not a payment —
+  Paidy is offered again (`paidy` present), transfer and card stay hidden until
+  the hourly check. `start` then replaces any open window of hers.
+  `"paidy_processing"` keeps meaning real Paidy money in progress (nothing offered).
 - `GET /orders/:id` also carries `paidy_requirements: { jp_billing_address,
-  jp_mobile, family_name, given_name } | null` (P05) — what Paidy still needs
+  jp_mobile, family_name, given_name, mobile_number } | null` (P05; `mobile_number`
+  = her current number, for the form's pre-fill) — what Paidy still needs
   from the buyer herself; `paidy.reason` is then `no_jp_billing_address`,
   `no_jp_mobile` or `no_buyer_name`. `history_unavailable` = the Hub could not
   read her order history and withholds Paidy rather than send incomplete figures.
+- `switch_methods` lists `paidy` also while only her own details are missing
+  (the order page then collects them); any other Paidy refusal keeps it off.
 - `PUT /me/paidy-profile` (customer JWT) — body `{ family_name, given_name,
   mobile_number }`; saves the buyer's two name fields and Japanese mobile.
   400 `family_name_required` | `given_name_required` | `jp_mobile_required`.

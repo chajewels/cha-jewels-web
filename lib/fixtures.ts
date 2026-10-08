@@ -30,6 +30,13 @@ function fixtureDownPayments(jpy: number) {
 const PREVIEW_RESERVATION = process.env.NEXT_PUBLIC_PREVIEW_RESERVATION === "1";
 /** NEXT_PUBLIC_PREVIEW_PAIDY=1 offers Paidy ato-barai on the preview's yen order (the Hub's test-key shape). */
 export const PREVIEW_PAIDY = process.env.NEXT_PUBLIC_PREVIEW_PAIDY === "1";
+/**
+ * NEXT_PUBLIC_PREVIEW_PAIDY_STATE (QA 2026-10-08), with PREVIEW_PAIDY, on the
+ * preview's yen orders: "needs" = she chose Paidy but her names are missing
+ * (the requirements form shows); "window" = her Paidy window was left open
+ * (payment_state paidy_window_open: notice + Paidy offered again).
+ */
+const PREVIEW_PAIDY_STATE = process.env.NEXT_PUBLIC_PREVIEW_PAIDY_STATE;
 /** NEXT_PUBLIC_PREVIEW_CARD=1 offers a card payment (Square sandbox shape) on the preview's yen order; the Hub's `card` block as it answers in test mode. */
 export const PREVIEW_CARD = process.env.NEXT_PUBLIC_PREVIEW_CARD === "1";
 /**
@@ -762,8 +769,13 @@ export function orderFixture(id: string): HubOrderDetail | null {
   const chosenInPreview = lifecycle.chosen_method;
   const paidyAllowed = !chosenInPreview || chosenInPreview === "paidy";
   const cardAllowed = !chosenInPreview || chosenInPreview === "card";
+  const paidyNeeds = PREVIEW_PAIDY && PREVIEW_PAIDY_STATE === "needs" && payable && !cardPayment;
+  const paidyWindow = PREVIEW_PAIDY && PREVIEW_PAIDY_STATE === "window" && payable && !cardPayment;
   return {
     ...lifecycle,
+    ...(paidyNeeds || paidyWindow ? { chosen_method: "paidy" as const } : {}),
+    ...(paidyNeeds ? { paidy_requirements: { family_name: false, given_name: false, jp_mobile: true, jp_billing_address: true, mobile_number: "08000000001" } } : {}),
+    ...(paidyWindow ? { payment_state: "paidy_window_open" as const } : {}),
     order: { ...order, ship_to_address: meFixture.addresses[0] },
     items: [{
       id: "item-1", variant_id: "v3", product_id: "3", title: "Twist bangle", title_ja: "ツイストバングル",
@@ -775,7 +787,7 @@ export function orderFixture(id: string): HubOrderDetail | null {
     transfer_methods: order.payment_status === "pending_transfer" && order.ready_for_payment !== false && !cardPayment && !rejected ? fixtureMethods : [],
     pending_submissions: [],
     card_payment: cardPayment,
-    ...(PREVIEW_PAIDY && paidyAllowed && payable && !cardPayment ? {
+    ...(PREVIEW_PAIDY && paidyAllowed && payable && !cardPayment && !paidyNeeds ? {
       paidy: {
         offered: true,
         public_key: "pk_test_preview",
