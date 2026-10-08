@@ -496,10 +496,11 @@ export const hub = {
    * closed. Refused (409) when anything else is in progress, a second tab
    * included. Answers the Hub's fresh Checkout payload.
    */
-  paidyStart: (jwt: string, id: string): Promise<PaidyAttempt> =>
+  /** PA15B: billingAddressId = the address-book entry she chose for Paidy's billing (the Hub verifies it is hers). */
+  paidyStart: (jwt: string, id: string, billingAddressId?: string | null): Promise<PaidyAttempt> =>
     FIXTURES
       ? Promise.resolve({ ok: true as const, attempt_id: "00000000-0000-0000-0000-000000000001", expires_at: new Date(Date.now() + 30 * 60_000).toISOString(), checkout: fx.paidyCheckoutFixture() })
-      : call(`/orders/${encodeURIComponent(id)}/paidy/start`, { method: "POST", body: "{}", jwt, revalidate: false }),
+      : call(`/orders/${encodeURIComponent(id)}/paidy/start`, { method: "POST", body: JSON.stringify(billingAddressId ? { billing_address_id: billingAddressId } : {}), jwt, revalidate: false }),
   /** P05 (2026-10-08): her own family name, given name and Japanese mobile, for Paidy. 400 names the field. */
   paidyProfile: (jwt: string, input: PaidyProfileInput): Promise<{ ok: true }> =>
     FIXTURES

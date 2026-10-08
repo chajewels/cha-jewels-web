@@ -1050,10 +1050,11 @@ export const dict = {
     // P05 (owner 2026-10-08): what Paidy needs from the buyer herself.
     needsTitle: { ja: "ペイディのご利用に必要な情報", en: "What Paidy needs from you" },
     needsBody: { ja: "ペイディでお支払いいただくには、次の情報が必要です。入力後、このページにペイディのお支払いボタンが表示されます。", en: "To pay with Paidy we need the details below. Once they are complete, the Paidy button appears on this page." },
-    reqAddress: { ja: "日本国内のご住所（都道府県を含む）をアドレス帳の「既定の住所」に登録", en: "A Japanese home address, including the prefecture, set as your default address" },
+    // PA15B (2026-10-09): any complete Japanese entry in her address book can be the billing address — she chooses it on the Paidy card.
+    reqAddress: { ja: "日本国内のご住所（都道府県を含む）をアドレス帳に登録", en: "A Japanese home address, including the prefecture, in your address book" },
     reqMobile: { ja: "ご本人の日本の携帯電話番号（070 / 080 / 090）", en: "Your own Japanese mobile number (070 / 080 / 090)" },
     reqNames: { ja: "姓と名（それぞれ入力）", en: "Your family name and given name, entered separately" },
-    setAddress: { ja: "アドレス帳で既定の住所を設定する", en: "Set your default address in your address book" },
+    setAddress: { ja: "アドレス帳に日本国内のご住所を追加する", en: "Add a Japanese address to your address book" },
     familyName: { ja: "姓", en: "Family name" },
     givenName: { ja: "名", en: "Given name" },
     jpMobile: { ja: "日本の携帯電話番号", en: "Japanese mobile number" },
@@ -1063,6 +1064,13 @@ export const dict = {
     errGivenName: { ja: "名を入力してください。", en: "Please enter your given name." },
     errJpMobile: { ja: "070・080・090で始まる日本の携帯電話番号を入力してください。", en: "Please enter a Japanese mobile number starting with 070, 080 or 090." },
     errSaveFailed: { ja: "保存できませんでした。もう一度お試しください。", en: "That didn't save. Please try again." },
+    // PA15B (owner 2026-10-08 17:17 JST): she chooses where Paidy bills her,
+    // separately from where the piece goes (the order's delivery address).
+    billingTitle: { ja: "ペイディのご請求先住所", en: "Billing address for Paidy" },
+    billingHelp: { ja: "ペイディからのご請求はこの住所あてになります。商品はご注文のお届け先に発送します。", en: "Paidy bills you at this address. Your piece is still sent to the delivery address on your order." },
+    billingDefault: { ja: "既定", en: "Default" },
+    billingAdd: { ja: "別の住所を追加する", en: "Add another address" },
+    errBillingInvalid: { ja: "そのご請求先住所はご利用いただけません。別の住所をお選びください。", en: "That billing address can no longer be used. Please choose another one." },
     // Under the N-Pay widget on every product page (owner decisions 2026-10-03
     // 22:01 / 22:04: the widget stays visible to every visitor; the condition
     // is stated right under it, never hidden by geography — and the condition

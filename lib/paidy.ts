@@ -48,10 +48,15 @@ export function pendingSubmissions(detail: Pick<HubOrderDetail, "pending_submiss
  * Paidy Checkout's closed-callback status, compared case-insensitively. The
  * reference documents AUTHORIZED | REJECTED | CLOSED; the live Checkout sent
  * "authorized" in lower case (test run 2026-10-03, pay_asDHekoAAEkAmsmA) and an
- * exact compare dropped a real authorisation as "window closed". Anything that
- * is not AUTHORIZED / REJECTED is CLOSED (the customer left).
+ * exact compare dropped a real authorisation as "window closed".
+ *
+ * PA15A (2026-10-09): anything else — missing, empty, a status Paidy may add
+ * later — is UNKNOWN, never CLOSED. A CLOSED ends the window on the Hub and
+ * brings the other ways to pay back; an answer we cannot read must not do
+ * that (Paidy may still hold an authorisation). UNKNOWN keeps the window and
+ * lets the Hub's hourly check decide.
  */
-export function paidyStatus(raw: unknown): "AUTHORIZED" | "REJECTED" | "CLOSED" {
+export function paidyStatus(raw: unknown): "AUTHORIZED" | "REJECTED" | "CLOSED" | "UNKNOWN" {
   const s = String(raw ?? "").trim().toUpperCase();
-  return s === "AUTHORIZED" || s === "REJECTED" ? s : "CLOSED";
+  return s === "AUTHORIZED" || s === "REJECTED" || s === "CLOSED" ? s : "UNKNOWN";
 }
