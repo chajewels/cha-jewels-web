@@ -769,6 +769,7 @@ export const dict = {
     methodTransferNote: { ja: "商品の確認後、お振込先と期限をメールでお送りします。", en: "Once we confirm your piece, we email you where to transfer and by when." },
     methodPaidy: { ja: "あと払い（ペイディ）", en: "Paidy (pay later)" },
     methodPaidyNote: { ja: "商品の確認後、ご注文ページからペイディでお支払いいただけます。翌月まとめて、または3回あと払い。", en: "Once we confirm your piece, pay with Paidy from your order page — next month, or in 3 instalments." },
+    methodPaidyNeeds: { ja: "ペイディには、日本国内のご住所（都道府県を含む）、ご本人の日本の携帯電話番号、姓と名が必要です。", en: "Paidy needs a Japanese home address with prefecture, your own Japanese mobile number, and your family and given names." },
     methodCard: { ja: "クレジットカード・デビットカード", en: "Credit or debit card" },
     methodCardNote: { ja: "日本円でのお支払いです。商品の確認後、ご注文ページでカード購入同意書に署名し、カード情報を入力します（3Dセキュア）。お支払いの確認までは与信のみで、確認時に請求されます。", en: "Charged in yen. Once we confirm your piece: sign the card purchase agreement, then enter your card on your order page (3-D Secure). The card is only authorised until we confirm the payment." },
     methodWhyLayaway: { ja: "一括払いのみご利用いただけます", en: "For full payment only" },
@@ -1031,7 +1032,23 @@ export const dict = {
     errFailed: { ja: "ペイディのお支払いを登録できませんでした。もう一度お試しください。ほかの方法をご希望の場合はご連絡ください。", en: "We could not record the Paidy payment. Please try again, or contact us if you'd like to pay another way." },
     uncertain: { ja: "ペイディのお支払いを確認しています。二重のお支払いを防ぐため、確認が終わるまで他のお支払い方法は表示されません。", en: "We are checking your Paidy payment. To avoid paying twice, no other way to pay is shown until it is confirmed." },
     processingTitle: { ja: "ペイディのお支払いを処理中です", en: "Your Paidy payment is being processed" },
-    processingBody: { ja: "ペイディでのお支払いを処理しています。二重のお支払いを防ぐため、この間は他のお支払い方法は表示されません。ペイディの画面をお支払いを完了せずに閉じた場合は、30分以内に他のお支払い方法が再び表示されます。", en: "Your Paidy payment is being processed. To avoid paying twice, no other way to pay is shown meanwhile. If you closed Paidy without completing it, the other options come back within 30 minutes." },
+    processingBody: { ja: "ペイディでのお支払いを処理しています。二重のお支払いを防ぐため、この間は他のお支払い方法は表示されません。ペイディの画面をお支払いを完了せずに閉じた場合は、ペイディと確認のうえ、約90分以内に他のお支払い方法が再び表示されます。ペイディでのお支払いはすぐにやり直せます。", en: "Your Paidy payment is being processed. To avoid paying twice, no other way to pay is shown meanwhile. If you closed Paidy without completing it, we confirm with Paidy and the other options come back within about 90 minutes. You can try Paidy again right away." },
+    // P05 (owner 2026-10-08): what Paidy needs from the buyer herself.
+    needsTitle: { ja: "ペイディのご利用に必要な情報", en: "What Paidy needs from you" },
+    needsBody: { ja: "ペイディでお支払いいただくには、次の情報が必要です。入力後、このページにペイディのお支払いボタンが表示されます。", en: "To pay with Paidy we need the details below. Once they are complete, the Paidy button appears on this page." },
+    reqAddress: { ja: "日本国内のご住所（都道府県を含む）をアドレス帳の「既定の住所」に登録", en: "A Japanese home address, including the prefecture, set as your default address" },
+    reqMobile: { ja: "ご本人の日本の携帯電話番号（070 / 080 / 090）", en: "Your own Japanese mobile number (070 / 080 / 090)" },
+    reqNames: { ja: "姓と名（それぞれ入力）", en: "Your family name and given name, entered separately" },
+    setAddress: { ja: "アドレス帳で既定の住所を設定する", en: "Set your default address in your address book" },
+    familyName: { ja: "姓", en: "Family name" },
+    givenName: { ja: "名", en: "Given name" },
+    jpMobile: { ja: "日本の携帯電話番号", en: "Japanese mobile number" },
+    save: { ja: "保存する", en: "Save" },
+    saving: { ja: "保存中…", en: "Saving…" },
+    errFamilyName: { ja: "姓を入力してください。", en: "Please enter your family name." },
+    errGivenName: { ja: "名を入力してください。", en: "Please enter your given name." },
+    errJpMobile: { ja: "070・080・090で始まる日本の携帯電話番号を入力してください。", en: "Please enter a Japanese mobile number starting with 070, 080 or 090." },
+    errSaveFailed: { ja: "保存できませんでした。もう一度お試しください。", en: "That didn't save. Please try again." },
     // Under the N-Pay widget on every product page (owner decisions 2026-10-03
     // 22:01 / 22:04: the widget stays visible to every visitor; the condition
     // is stated right under it, never hidden by geography — and the condition
