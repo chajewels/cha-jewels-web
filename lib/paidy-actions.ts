@@ -55,18 +55,21 @@ export async function paidyStartAction(orderId: string): Promise<ActionResult<{ 
 }
 
 /** Paidy reported the window closed / declined (no authorisation): end the window so the other options return. */
-export async function paidyAbandonAction(orderId: string, attemptId: string, reason: "closed" | "rejected" | "error"): Promise<ActionResult<null>> {
+export async function paidyAbandonAction(orderId: string, attemptId: string, reason: "closed" | "rejected" | "error", paidyPaymentId?: unknown): Promise<ActionResult<null>> {
   const jwt = await customerJwt();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId) || typeof attemptId !== "string" || !ATTEMPT_ID.test(attemptId)) return { ok: false, code: "failed" };
   // Server-action arguments are untrusted: only the three reasons the Hub knows.
   if (reason !== "closed" && reason !== "rejected" && reason !== "error") return { ok: false, code: "failed" };
+  // PA04 (2026-10-08): the id Paidy's callback named for a rejected / closed
+  // window, if it looks like one — the Hub verifies it with Paidy itself.
+  const noted = typeof paidyPaymentId === "string" && PAIDY_ID.test(paidyPaymentId) ? paidyPaymentId : null;
   try {
     try {
-      await hub.paidyAbandon(jwt, orderId, attemptId, reason);
+      await hub.paidyAbandon(jwt, orderId, attemptId, reason, noted);
     } catch {
       // One retry: a lost abandon keeps the order on hold for up to 30 minutes.
-      await hub.paidyAbandon(jwt, orderId, attemptId, reason);
+      await hub.paidyAbandon(jwt, orderId, attemptId, reason, noted);
     }
     revalidatePath(`/account/orders/${orderId}`);
     return { ok: true, data: null };

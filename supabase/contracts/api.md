@@ -279,10 +279,15 @@ authorisation. The storefront never calls Paidy's API.
   `payment_in_progress` (+ `lock`) when anything else holds the order (a second
   tab included), `paidy_not_offered`, `not_ready_for_payment`.
 - `POST /orders/:id/paidy/abandon` — body `{ attempt_id, reason: "closed" |
-  "rejected" | "error" }`; NOTES her close (P04, owner 2026-10-08) — the window
-  stays open and the order stays locked until the Hub's hourly sweep has
-  confirmed with Paidy that nothing holds money for it (about 90 minutes at
-  most). `{ ok, ended }` (`ended` is always false now). She may open Paidy
+  "rejected" | "error", paidy_payment_id? }`; NOTES her close (P04, owner
+  2026-10-08) — the window stays open and the order stays locked until the
+  Hub's hourly sweep ends it (about 90 minutes at most). PA04 (Hub PR 3): when
+  Paidy's callback named a payment (`result.id` on a rejected / closed
+  window) the site sends it as `paidy_payment_id`; the sweep then READS that
+  payment back from Paidy and ends the window only once Paidy reports it
+  closed / rejected / expired (`verified_empty`); a window with no id ends on
+  time alone (`unverified_no_id`). `{ ok, ended, payment_noted }` (`ended` is
+  always false now). She may open Paidy
   again right away; the new window replaces the one she closed. A window
   nobody ends times out through the same sweep.
 - `payment_state: "paidy_window_open"` (QA 2026-10-08) = her OWN Paidy window

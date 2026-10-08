@@ -85,9 +85,12 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
         return;
       }
       const { attemptId, checkout } = started.data;
-      const endWindow = (reason: "closed" | "rejected" | "error") => {
+      // PA04 (2026-10-08): a rejected / closed window still names the payment
+      // Paidy created for it — handed to the Hub so its hourly check can
+      // verify with Paidy that nothing is held before the window ends.
+      const endWindow = (reason: "closed" | "rejected" | "error", paidyPaymentId?: unknown) => {
         start(async () => {
-          await paidyAbandonAction(orderId, attemptId, reason);
+          await paidyAbandonAction(orderId, attemptId, reason, paidyPaymentId);
           router.refresh();
         });
       };
@@ -131,10 +134,10 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
               });
             } else if (status === "REJECTED") {
               setState("rejected");
-              endWindow("rejected");
+              endWindow("rejected", result?.id);
             } else {
               setState("idle");
-              endWindow("closed");
+              endWindow("closed", result?.id);
             }
           },
         });
