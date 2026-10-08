@@ -1,5 +1,5 @@
 import "server-only";
-import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult, PaidyProfileInput } from "@/lib/types";
 
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
@@ -500,7 +500,12 @@ export const hub = {
     FIXTURES
       ? Promise.resolve({ ok: true as const, attempt_id: "00000000-0000-0000-0000-000000000001", expires_at: new Date(Date.now() + 30 * 60_000).toISOString(), checkout: fx.paidyCheckoutFixture() })
       : call(`/orders/${encodeURIComponent(id)}/paidy/start`, { method: "POST", body: "{}", jwt, revalidate: false }),
-  /** Paidy's window closed or was declined with no authorisation: the window ends on the Hub. */
+  /** P05 (2026-10-08): her own family name, given name and Japanese mobile, for Paidy. 400 names the field. */
+  paidyProfile: (jwt: string, input: PaidyProfileInput): Promise<{ ok: true }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const })
+      : call(`/me/paidy-profile`, { method: "PUT", body: JSON.stringify(input), jwt, revalidate: false }),
+  /** Paidy's window closed or was declined with no authorisation: the window is NOTED on the Hub (P04); the sweep ends it. */
   paidyAbandon: (jwt: string, id: string, attemptId: string, reason: "closed" | "rejected" | "error"): Promise<{ ok: true; ended: boolean }> =>
     FIXTURES
       ? Promise.resolve({ ok: true as const, ended: true })

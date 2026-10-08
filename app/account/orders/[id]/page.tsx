@@ -16,6 +16,7 @@ import type { ServiceRequest } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { TransferDetails } from "@/components/commerce/transfer-details";
 import { PaidyPay } from "@/components/commerce/paidy-pay";
+import { PaidyProfileForm } from "@/components/commerce/paidy-profile-form";
 import { siteUrl } from "@/lib/site";
 import { paidyOffer, paidyProcessing as paidyHoldsOrder, pendingSubmissions } from "@/lib/paidy";
 import { cardOffer } from "@/lib/card";
@@ -132,8 +133,13 @@ export default async function OrderDetailPage({ params, searchParams }: {
     ? t("orders", "payVia", { method: t("orders", "bankTransfer"), currency: order.currency === "PHP" ? t("orders", "currencyPHP") : t("orders", "currencyJPY") })
     : null;
   const pointsApplied = Number(detail.points_applied ?? 0);
+  // P05 (owner 2026-10-08): she chose Paidy and the Hub reports a buyer
+  // requirement missing (names, Japanese mobile, Japanese billing address):
+  // ask for it here instead of "contact us". The Hub re-decides after she saves.
+  const paidyReq = detail.paidy_requirements ?? null;
+  const paidyNeedsProfile = chosen === "paidy" && !paidy && !!paidyReq && !(paidyReq.family_name && paidyReq.given_name && paidyReq.jp_mobile && paidyReq.jp_billing_address);
   // Chose Paidy or card, but the Hub offers it on this order no longer: say so.
-  const chosenUnavailable = (chosen === "paidy" && !paidy) || (chosen === "card" && !card);
+  const chosenUnavailable = ((chosen === "paidy" && !paidy) || (chosen === "card" && !card)) && !paidyNeedsProfile;
   const shipping = order.shipping_fee != null && Number(order.shipping_fee) > 0 ? formatMoney(Number(order.shipping_fee), order.currency) : null;
 
   return (
@@ -190,6 +196,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
                 <a href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</a>
               </div>
             )}
+            {paidyNeedsProfile && paidyReq && <PaidyProfileForm orderId={order.id} requirements={paidyReq} lang={lang} />}
             {chosenUnavailable && (
               <p className="mb-5 border border-hairline bg-white p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", "methodUnavailableNote")}</p>
             )}

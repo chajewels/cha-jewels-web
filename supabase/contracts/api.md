@@ -279,8 +279,21 @@ authorisation. The storefront never calls Paidy's API.
   `payment_in_progress` (+ `lock`) when anything else holds the order (a second
   tab included), `paidy_not_offered`, `not_ready_for_payment`.
 - `POST /orders/:id/paidy/abandon` — body `{ attempt_id, reason: "closed" |
-  "rejected" | "error" }`; ends the window so the options return. `{ ok, ended }`.
-  A window nobody ends times out after 30 minutes.
+  "rejected" | "error" }`; NOTES her close (P04, owner 2026-10-08) — the window
+  stays open and the order stays locked until the Hub's hourly sweep has
+  confirmed with Paidy that nothing holds money for it (about 90 minutes at
+  most). `{ ok, ended }` (`ended` is always false now). She may open Paidy
+  again right away; the new window replaces the one she closed. A window
+  nobody ends times out through the same sweep.
+- `GET /orders/:id` also carries `paidy_requirements: { jp_billing_address,
+  jp_mobile, family_name, given_name } | null` (P05) — what Paidy still needs
+  from the buyer herself; `paidy.reason` is then `no_jp_billing_address`,
+  `no_jp_mobile` or `no_buyer_name`. `history_unavailable` = the Hub could not
+  read her order history and withholds Paidy rather than send incomplete figures.
+- `PUT /me/paidy-profile` (customer JWT) — body `{ family_name, given_name,
+  mobile_number }`; saves the buyer's two name fields and Japanese mobile.
+  400 `family_name_required` | `given_name_required` | `jp_mobile_required`.
+  A Japanese billing address is set in her address book (default entry).
 - `POST /orders/:id/card` answers 409 `paidy_in_progress` while Paidy holds the order.
 
 ### Card payment (Square) on a confirmed order (storefront S3, 2026-10-04; integrity pass SQ17–SQ23, owner 3A–6A)
