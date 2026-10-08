@@ -506,10 +506,13 @@ export const hub = {
       ? Promise.resolve({ ok: true as const })
       : call(`/me/paidy-profile`, { method: "PUT", body: JSON.stringify(input), jwt, revalidate: false }),
   /** Paidy's window closed or was declined with no authorisation: the window is NOTED on the Hub (P04); the sweep ends it. */
-  paidyAbandon: (jwt: string, id: string, attemptId: string, reason: "closed" | "rejected" | "error"): Promise<{ ok: true; ended: boolean }> =>
+  paidyAbandon: (jwt: string, id: string, attemptId: string, reason: "closed" | "rejected" | "error", paidyPaymentId?: string | null): Promise<{ ok: true; ended: boolean; payment_noted?: boolean }> =>
     FIXTURES
       ? Promise.resolve({ ok: true as const, ended: true })
-      : call(`/orders/${encodeURIComponent(id)}/paidy/abandon`, { method: "POST", body: JSON.stringify({ attempt_id: attemptId, reason }), jwt, revalidate: false }),
+      // PA04 (Hub PR 3, 2026-10-08): the payment id Paidy's rejected/closed
+      // callback named goes with the close, so the Hub's sweep can verify
+      // with Paidy that the window holds nothing before it ends it.
+      : call(`/orders/${encodeURIComponent(id)}/paidy/abandon`, { method: "POST", body: JSON.stringify({ attempt_id: attemptId, reason, ...(paidyPaymentId ? { paidy_payment_id: paidyPaymentId } : {}) }), jwt, revalidate: false }),
   orderPaidy: (jwt: string, id: string, paidyPaymentId: string): Promise<{ ok: true }> =>
     FIXTURES
       ? Promise.resolve({ ok: true as const })

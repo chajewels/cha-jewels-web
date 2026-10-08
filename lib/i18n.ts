@@ -1034,7 +1034,10 @@ export const dict = {
     processingTitle: { ja: "ペイディのお支払いを処理中です", en: "Your Paidy payment is being processed" },
     processingBody: { ja: "ペイディでのお支払いを処理しています。二重のお支払いを防ぐため、この間は他のお支払い方法は表示されません。ペイディとCha Jewelsの確認が済み次第、このページが更新されます。", en: "Your Paidy payment is being processed. To avoid paying twice, no other way to pay is shown meanwhile. This page updates once Paidy and Cha Jewels have confirmed it." },
     windowOpenTitle: { ja: "ペイディの画面が開いたままです", en: "Your Paidy window was left open" },
-    windowOpenBody: { ja: "ペイディの画面をお支払いを完了せずに閉じた（または開いたままにした）ようです。ペイディでのお支払いは今すぐやり直せます。二重のお支払いを防ぐため、銀行振込やカードなど他のお支払い方法は、ペイディと確認のうえ約90分以内に再び表示されます。", en: "It looks like you closed Paidy without completing it, or left it open. You can open Paidy again now. To avoid paying twice, the other ways to pay (bank transfer, card) come back within about 90 minutes, once we have confirmed with Paidy that nothing was paid." },
+    // PA04 wording (owner 2026-10-08): says what the Hub does — its next
+    // hourly check finds no Paidy payment on this order — never that Paidy
+    // "confirmed" anything. 30-minute window + the check at :51 = ~90 min.
+    windowOpenBody: { ja: "ペイディの画面をお支払いを完了せずに閉じた（または開いたままにした）ようです。ペイディでのお支払いは今すぐやり直せます。二重のお支払いを防ぐため、銀行振込とカードは、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認できるまで表示されません。", en: "It looks like you closed Paidy without completing it, or left it open. You can open Paidy again right now. To protect you from paying twice, bank transfer and card stay hidden until our next hourly check finds no Paidy payment on this order — usually within 90 minutes." },
     // P05 (owner 2026-10-08): what Paidy needs from the buyer herself.
     needsTitle: { ja: "ペイディのご利用に必要な情報", en: "What Paidy needs from you" },
     needsBody: { ja: "ペイディでお支払いいただくには、次の情報が必要です。入力後、このページにペイディのお支払いボタンが表示されます。", en: "To pay with Paidy we need the details below. Once they are complete, the Paidy button appears on this page." },
