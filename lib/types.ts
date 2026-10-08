@@ -579,7 +579,7 @@ export type HubOrderDetail = {
    * "payment_pending" while any other payment waits for review. Absent from
    * an older Hub.
    */
-  payment_state?: "paidy_processing" | "payment_pending" | null;
+  payment_state?: "paidy_processing" | "paidy_window_open" | "payment_pending" | null;
   /** C1 (2026-10-05): the method she chose at checkout (or staff since). Absent on an older Hub. */
   chosen_method?: CheckoutMethod;
   /**
@@ -705,7 +705,7 @@ export type HubCardResult =
   }
   | { ok: false; status: "unknown"; attempt?: { reference: string | null } };
 /** P05: the buyer details Paidy needs, as the Hub reports them (true = satisfied). */
-export type PaidyRequirements = { family_name: boolean; given_name: boolean; jp_mobile: boolean; jp_billing_address: boolean };
+export type PaidyRequirements = { family_name: boolean; given_name: boolean; jp_mobile: boolean; jp_billing_address: boolean; /** Her current mobile, so the form can pre-fill it (Hub QA fix 2026-10-08). */ mobile_number?: string | null };
 /** PUT /me/paidy-profile — the buyer's own names and Japanese mobile, for Paidy. */
 export type PaidyProfileInput = { family_name: string; given_name: string; mobile_number: string };
 

@@ -18,7 +18,7 @@ import { TransferDetails } from "@/components/commerce/transfer-details";
 import { PaidyPay } from "@/components/commerce/paidy-pay";
 import { PaidyProfileForm } from "@/components/commerce/paidy-profile-form";
 import { siteUrl } from "@/lib/site";
-import { paidyOffer, paidyProcessing as paidyHoldsOrder, pendingSubmissions } from "@/lib/paidy";
+import { paidyOffer, paidyProcessing as paidyHoldsOrder, paidyWindowOpen, pendingSubmissions } from "@/lib/paidy";
 import { cardOffer } from "@/lib/card";
 import { CardPaymentStatus } from "@/components/commerce/card-payment-status";
 import { StatusBadge } from "@/components/account/status-badge";
@@ -106,6 +106,9 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // shown — not Paidy again, not the card, not the bank details. The Hub
   // decides (payment_state) and refuses the same server-side.
   const paidyProcessing = paidyHoldsOrder(detail);
+  // P04 QA (2026-10-08): her own open window is NOT a payment — Paidy is
+  // offered again at once; transfer and card wait for the hourly check.
+  const windowOpen = paidyWindowOpen(detail);
   const payDue = order.payment_status === "pending_transfer" && isReadyForPayment(order) && pending.length === 0 && !cardPayment && !paidyProcessing;
   // While a payment is being checked (a card hold, Paidy, or a slip) the
   // heading says so instead of "Awaiting transfer" — she has already paid or
@@ -176,10 +179,16 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {/* Paidy (ato-barai) first when the Hub offers it (PD2): a
                 Japanese delivery address, a yen order, nothing pending. The
                 bank details stay underneath — one more way to pay. */}
+            {windowOpen && (
+              <div className="mb-5 border border-gold-dark bg-white p-4 sm:p-5" role="status" data-testid="paidy-window-open">
+                <h3 className="font-display text-[17px] text-charcoal-deep">{t("paidy", "windowOpenTitle")}</h3>
+                <p className="mt-1 text-sm text-charcoal/80">{t("paidy", "windowOpenBody")}</p>
+              </div>
+            )}
             {paidy && boxes.paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
             {/* Paidy can refuse her inside its own window and leave no record
                 here, so no switch: she is told to contact us instead (§4C). */}
-            {paidy && boxes.paidy && chosen === "paidy" && switchMethods.length === 0 && (
+            {paidy && boxes.paidy && chosen === "paidy" && switchMethods.length === 0 && !windowOpen && (
               <p className="-mt-2 mb-5 text-sm text-charcoal/80" data-testid="paidy-contact-to-switch">{t("orders", "paidyContactToSwitch")}</p>
             )}
             {/* Card (Square, S3 2026-10-04) when the Hub offers it: any
@@ -201,7 +210,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
               <p className="mb-5 border border-hairline bg-white p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", "methodUnavailableNote")}</p>
             )}
             {switchMethods.length > 0 && <SwitchMethod orderId={order.id} methods={switchMethods} lang={lang} />}
-            {showTransfer && (
+            {showTransfer && !windowOpen && (
               <>
                 <h3 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("complete", "instructions")}</h3>
                 <TransferDetails methods={methods} lang={lang} />
