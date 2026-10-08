@@ -1206,6 +1206,7 @@ export const dict = {
     pointsUsed: { ja: "ポイント利用", en: "Points used" },
     pointsNotReturned: { ja: "期限までにお支払いがない場合、ご利用のポイントは戻りません。", en: "If payment isn't completed by the deadline, the points used are not returned." },
     methodUnavailableNote: { ja: "お選びいただいたお支払い方法が現在ご利用いただけません。お手数ですが、お問い合わせください。", en: "The payment method you chose can't be used on this order right now. Please contact us and we'll sort it out." },
+    cardFallbackNote: { ja: "現在このご注文ではカード払いをご利用いただけません。下記の銀行振込でお支払いいただけます。", en: "Card payment isn't available on this order right now. You can pay by bank transfer below." },
     currencyJPY: { ja: "円", en: "yen" },
     currencyPHP: { ja: "ペソ", en: "pesos" },
     notFound: { ja: "ご注文が見つかりませんでした。", en: "We could not find that order." },

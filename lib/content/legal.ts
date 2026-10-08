@@ -490,9 +490,13 @@ export const tokusho = {
     },
     {
       k: { ja: "支払時期", en: "When payment is due" },
+      // H1 (Square QC 2026-10-09, owner D-QC2): payment is asked for only
+      // after we confirm the order (every checkout is a draft); a card is
+      // authorised (held) when she pays and charged when we confirm it.
+      // Wording is the owner's to approve before release.
       v: {
-        ja: "注文時。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。",
-        en: "At the time of order. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。",
+        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {

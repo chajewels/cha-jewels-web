@@ -125,3 +125,13 @@ test("the fail-closed pay-card answer is flagged so the page can say so (M-5)", 
   assert.equal(cspForPath("/account/orders/o1/pay-card", {}).failsafe, false);
   assert.equal(cspForPath("/", {}).failsafe, false);
 });
+
+test("M3: Metricool's be.js never loads on a customer's own pages (the pay-card page included)", async () => {
+  const { metricoolLoadsOn } = await import("@/lib/metricool");
+  assert.equal(metricoolLoadsOn("/account/orders/abc/pay-card"), false);
+  assert.equal(metricoolLoadsOn("/account"), false);
+  assert.equal(metricoolLoadsOn("/account/orders/abc"), false);
+  assert.equal(metricoolLoadsOn("/"), true);
+  assert.equal(metricoolLoadsOn("/products/ring"), true);
+  assert.equal(metricoolLoadsOn("/accounting"), true);
+});
