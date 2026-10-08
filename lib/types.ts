@@ -615,6 +615,19 @@ export type HubOrderPaidy = {
   public_key: string;
   test: boolean;
   checkout: PaidyCheckoutPayload;
+  /**
+   * PA15B (Hub 2026-10-09): where Paidy may bill her — HER address-book entries
+   * that are complete Japanese addresses, default first — and the one the
+   * Hub preselected. She chooses; the delivery address stays the order's own.
+   * Absent on an older Hub (the Hub then picks, as before).
+   */
+  billing_choices?: PaidyBillingChoice[];
+  billing_address_id?: string | null;
+};
+/** PA15B: one address-book entry Paidy may bill to, as the Hub lists it. */
+export type PaidyBillingChoice = {
+  id: string; is_default: boolean;
+  line1: string | null; line2: string | null; city: string | null; region: string | null; postal_code: string | null;
 };
 /**
  * Everything the Square Web Payments SDK needs, assembled by the Hub. The ids
@@ -705,7 +718,12 @@ export type HubCardResult =
   }
   | { ok: false; status: "unknown"; attempt?: { reference: string | null } };
 /** P05: the buyer details Paidy needs, as the Hub reports them (true = satisfied). */
-export type PaidyRequirements = { family_name: boolean; given_name: boolean; jp_mobile: boolean; jp_billing_address: boolean; /** Her current mobile, so the form can pre-fill it (Hub QA fix 2026-10-08). */ mobile_number?: string | null };
+export type PaidyRequirements = {
+  family_name: boolean; given_name: boolean; jp_mobile: boolean; jp_billing_address: boolean;
+  /** Her current mobile, so the form can pre-fill it (Hub QA fix 2026-10-08). */ mobile_number?: string | null;
+  /** PA15A (Hub 2026-10-09): the name parts already on file, so the form pre-fills them. */
+  family_name_on_file?: string | null; given_name_on_file?: string | null;
+};
 /** PUT /me/paidy-profile — the buyer's own names and Japanese mobile, for Paidy. */
 export type PaidyProfileInput = { family_name: string; given_name: string; mobile_number: string };
 

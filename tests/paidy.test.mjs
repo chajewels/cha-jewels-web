@@ -49,8 +49,10 @@ test("the closed-callback status is read case-insensitively (Paidy sends lower c
   assert.equal(paidyStatus("AUTHORIZED"), "AUTHORIZED");
   assert.equal(paidyStatus("rejected"), "REJECTED");
   assert.equal(paidyStatus("closed"), "CLOSED");
-  assert.equal(paidyStatus(undefined), "CLOSED");
-  assert.equal(paidyStatus("anything-else"), "CLOSED");
+  // PA15A (2026-10-09): an answer we cannot read is UNKNOWN — it keeps the window.
+  assert.equal(paidyStatus(undefined), "UNKNOWN");
+  assert.equal(paidyStatus(""), "UNKNOWN");
+  assert.equal(paidyStatus("anything-else"), "UNKNOWN");
 });
 
 // Follow-up 2026-10-04 (owner): while Paidy holds the order, no way to pay.
