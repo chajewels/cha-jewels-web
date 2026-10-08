@@ -36,8 +36,13 @@ const BOX = { sm: "h-8 w-[46px]", md: "h-10 w-[58px]" } as const;
  */
 export function PaidyMark({ label, size = "sm", className = "" }: { label: string; size?: keyof typeof BOX; className?: string }) {
   return (
-    <span role="img" aria-label={label} className={`${BOX[size]} flex items-center justify-center rounded-[3px] bg-white p-1 ring-1 ring-black/10 ${className}`} data-testid="paidy-mark">
-      <Image src="/images/payment/paidy.svg" alt="" width={1100} height={400} unoptimized className="h-full w-full object-contain" />
+    // The file's 1100×400 viewBox carries wide clear-space margins (the drawn
+    // mark is 780×219 of it), so at chip size the mark read small (owner,
+    // 2026-10-08). The file stays untouched; the image is scaled 1.4× inside
+    // the chip (clipped by it) so the mark itself spans the chip like the
+    // card marks do.
+    <span role="img" aria-label={label} className={`${BOX[size]} flex items-center justify-center overflow-hidden rounded-[3px] bg-white p-0.5 ring-1 ring-black/10 ${className}`} data-testid="paidy-mark">
+      <Image src="/images/payment/paidy.svg" alt="" width={1100} height={400} unoptimized className="h-full w-full scale-[1.4] object-contain" />
     </span>
   );
 }
