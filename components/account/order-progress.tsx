@@ -13,14 +13,16 @@ import { cn } from "@/lib/utils";
  */
 export { orderStage } from "@/lib/order-display";
 
-export function OrderProgress({ lang, stage, stage3Key = "stagePayment" }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5; stage3Key?: OrderDisplay["stage3Key"] }) {
+export function OrderProgress({ lang, stage, stage3Key = "stagePayment", inProgress = false }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5; stage3Key?: OrderDisplay["stage3Key"]; inProgress?: boolean }) {
   const t = tr(lang);
   const stages = [t("orders", "stageReserved"), t("orders", "stageConfirmed"), t("orders", stage3Key), t("orders", "stagePaid"), t("orders", "stageShipped")];
   return (
     <ol aria-label={t("orders", "progress")} className="mb-6 grid grid-cols-5 border-t border-hairline">
       {stages.map((s, i) => {
         const n = i + 1;
-        const done = n <= stage;
+        // The current step is ticked once it is reached — except a step still in progress
+        // (a payment being checked): "Payment received" is never ticked before the money is.
+        const done = n < stage || (n === stage && !inProgress);
         const now = n === stage;
         return (
           <li

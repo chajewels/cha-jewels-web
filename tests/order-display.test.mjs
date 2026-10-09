@@ -51,6 +51,8 @@ test("a payment being checked moves the line to step 4 and the headline to 'bein
   const d = orderDisplay({ order: pending, chosenMethod: "paidy", beingChecked: true });
   assert.equal(d.stage, 4);
   assert.equal(d.headlineKey, "pending");
+  assert.equal(d.stageInProgress, true, "step 4 is lit but not ticked while the payment is checked");
+  assert.equal(orderDisplay({ order: pending, chosenMethod: "card", beingChecked: false }).stageInProgress, false);
   assert.equal(orderStage(pending, true), 4);
   assert.equal(orderStage(pending), 3);
 });
@@ -77,7 +79,7 @@ test("staff asked a question: the needs-info notice and no way to pay until it i
 
 test("an older Hub (no chosen method, no decision) reads exactly as today", () => {
   const d = orderDisplay({ order: pending, beingChecked: false });
-  assert.deepEqual(d, { headlineKey: null, stage: 3, stage3Key: "stagePayment", notice: null, payBlocked: false });
+  assert.deepEqual(d, { headlineKey: null, stage: 3, stage3Key: "stagePayment", stageInProgress: false, notice: null, payBlocked: false });
   const n = orderDisplay({ order: pending, chosenMethod: null, beingChecked: false, latestDecision: null });
   assert.deepEqual(n, d);
   assert.equal(orderStatusLabel(pending, "ja").text, "お振込待ち");

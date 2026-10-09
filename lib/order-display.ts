@@ -44,6 +44,13 @@ export type OrderDisplay = {
   headlineKey: "pending" | "statusPendingTransfer" | "statusPendingPayment" | null;
   stage: 1 | 2 | 3 | 4 | 5 | null;
   stage3Key: "stagePayment" | "stagePaymentPaidy" | "stagePaymentCard";
+  /**
+   * The current step is still in progress, not done: a payment she made is being checked
+   * (a card held, not yet charged; a transfer or Paidy payment awaiting review). The line
+   * lights step 4 but does not tick "Payment received" until the Hub records the money
+   * (go-live rehearsal 2026-10-09).
+   */
+  stageInProgress: boolean;
   notice: "rejected" | "needs_info" | null;
   /** Staff asked her a question: no way to pay is offered until it is answered. */
   payBlocked: boolean;
@@ -78,7 +85,7 @@ export function orderDisplay(input: {
     : latestDecision?.status === "needs_clarification" ? "needs_info"
     : null;
 
-  return { headlineKey, stage, stage3Key, notice, payBlocked: latestDecision?.status === "needs_clarification" };
+  return { headlineKey, stage, stage3Key, stageInProgress: checking, notice, payBlocked: latestDecision?.status === "needs_clarification" };
 }
 
 /**
