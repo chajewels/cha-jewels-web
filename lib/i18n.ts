@@ -1202,6 +1202,7 @@ export const dict = {
     stageShipped: { ja: "発送", en: "Shipped" },
     stageDone: { ja: "{stage}（完了）", en: "{stage} (done)" },
     stageNow: { ja: "{stage}（現在）", en: "{stage} (now)" },
+    stageChecking: { ja: "{stage}（確認中）", en: "{stage} (being checked)" },
     payment: { ja: "お支払い", en: "Payment" },
     bankTransfer: { ja: "銀行振込", en: "Bank transfer" },
     plusShipping: { ja: "＋送料", en: "+ shipping" },
