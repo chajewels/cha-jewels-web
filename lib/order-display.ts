@@ -114,13 +114,20 @@ export function draftStep3Key(mode: CheckoutMode, method: CheckoutMethod | undef
  * method (not made on the website, or an older Hub) shows what the Hub offers,
  * with the bank details underneath, as before.
  */
-export function payBoxes(input: { chosen: DisplayMethod | null; paidyOffered: boolean; cardOffered: boolean }): { paidy: boolean; card: boolean; transfer: boolean } {
-  const { chosen, paidyOffered, cardOffered } = input;
+export function payBoxes(input: { chosen: DisplayMethod | null; paidyOffered: boolean; cardOffered: boolean; transferSent?: boolean }): { paidy: boolean; card: boolean; transfer: boolean } {
+  const { chosen, paidyOffered, cardOffered, transferSent = false } = input;
   return {
     paidy: paidyOffered && (chosen === null || chosen === "paidy"),
     card: cardOffered && (chosen === null || chosen === "card"),
-    transfer: chosen === null || chosen === "transfer",
+    // F-11 / D-QC4 (owner 2026-10-09): she chose card, the Hub no longer offers
+    // it and sends bank details instead — show them, so she always has a way to pay.
+    transfer: chosen === null || chosen === "transfer" || (chosen === "card" && !cardOffered && transferSent),
   };
+}
+
+/** F-11 / D-QC4: she chose card, card is not offered, and the Hub sent bank details in its place. */
+export function cardFallsBackToTransfer(input: { chosen: DisplayMethod | null; cardOffered: boolean; transferSent: boolean }): boolean {
+  return input.chosen === "card" && !input.cardOffered && input.transferSent;
 }
 
 /**

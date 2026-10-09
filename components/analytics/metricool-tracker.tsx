@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { analyticsEnabled } from "@/lib/analytics";
 import { redactUrl } from "@/components/analytics/analytics-provider";
 import { useHydrated } from "@/components/analytics/use-hydrated";
+import { metricoolLoadsOn } from "@/lib/metricool";
 
 /**
  * Metricool web analytics: anonymous traffic statistics (pages visited,
@@ -92,6 +93,7 @@ export function MetricoolTracker() {
   // The layout already gates on a production build; this adds the browser-side
   // half of the same gate (localhost, `next start`, fixture mode).
   if (!analyticsEnabled()) return null;
+  if (!metricoolLoadsOn(pathname)) return null;
   // onReady, not onLoad: next/script calls onLoad once per document, but this
   // component can mount again after that (a React remount, or an error
   // boundary rebuilding the tree), and a remounted copy waiting for onLoad

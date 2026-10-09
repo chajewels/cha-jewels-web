@@ -29,7 +29,7 @@ import { PaymentDueCard } from "@/components/account/payment-due-card";
 import { AccountShell } from "@/components/account/account-shell";
 import { cancellationPolicyHref } from "@/lib/cancellation-policy";
 import { OrderProgress } from "@/components/account/order-progress";
-import { orderDisplay, payBoxes } from "@/lib/order-display";
+import { cardFallsBackToTransfer, orderDisplay, payBoxes } from "@/lib/order-display";
 import { PaymentDecisionNotice } from "@/components/account/payment-decision-notice";
 import { SwitchMethod } from "@/components/commerce/switch-method";
 import { Notice, PieceWell } from "@/components/commerce/commerce-ui";
@@ -129,7 +129,9 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
   // C1: only her method's box. The Hub decides what is offered; this only narrows it.
-  const boxes = payBoxes({ chosen, paidyOffered: !!paidy, cardOffered: !!card });
+  const transferSent = (methods ?? []).length > 0;
+  const boxes = payBoxes({ chosen, paidyOffered: !!paidy, cardOffered: !!card, transferSent });
+  const cardFallback = cardFallsBackToTransfer({ chosen, cardOffered: !!card, transferSent });
   const showTransfer = boxes.transfer;
   const payment = chosen === "paidy" ? t("orders", "chosenPaidy")
     : chosen === "card" ? t("orders", "chosenCard")
@@ -208,7 +210,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
             )}
             {paidyNeedsProfile && paidyReq && <PaidyProfileForm orderId={order.id} requirements={paidyReq} lang={lang} />}
             {chosenUnavailable && (
-              <p className="mb-5 border border-hairline bg-white p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", "methodUnavailableNote")}</p>
+              <p className="mb-5 border border-hairline bg-white p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", cardFallback ? "cardFallbackNote" : "methodUnavailableNote")}</p>
             )}
             {switchMethods.length > 0 && <SwitchMethod orderId={order.id} methods={switchMethods} lang={lang} />}
             {showTransfer && !windowOpen && (
