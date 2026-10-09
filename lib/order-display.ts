@@ -96,16 +96,17 @@ export function orderDisplay(input: {
  * before.
  */
 /**
- * One step of the status line (components/account/order-progress.tsx). A step is
- * ticked once the order has passed it, and the current step is ticked once it is
- * reached, EXCEPT a step still in progress (a payment being checked): "Payment
- * received" is never ticked before the money is recorded (go-live UI-1).
- * `label` picks the screen-reader wording so a reader hears the same thing a
- * sighted customer sees.
+ * One step of the status line (components/account/order-progress.tsx). A tick
+ * means DONE: only the steps before the current one are ticked. The current
+ * step is lit and shows its number — never a tick (owner 2026-10-09: step 3
+ * "Payment" was ticked before she had paid; go-live UI-1: "Payment received"
+ * was ticked while the payment was still being checked). `label` picks the
+ * screen-reader wording so a reader hears what a sighted customer sees:
+ * "(now)", or "(being checked)" while a payment is under review.
  */
 export function progressStep(n: number, stage: number, inProgress: boolean): { done: boolean; now: boolean; label: "stageNow" | "stageChecking" | "stageDone" | null } {
   const now = n === stage;
-  const done = n < stage || (now && !inProgress);
+  const done = n < stage;
   return { done, now, label: now ? (inProgress ? "stageChecking" : "stageNow") : done ? "stageDone" : null };
 }
 

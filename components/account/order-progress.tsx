@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * THE ORDER'S STATUS LINE (build step 4; comp page-comps/account-signin
  * "Order detail"): reserved → piece confirmed → payment → payment received →
  * shipped. Every stage before the current one is ticked; the current one is
- * lit, and ticked too unless it is still in progress (progressStep). Where the order is, and what step 3 is called (transfer, Paidy or
+ * lit and shows its number, never a tick (progressStep). Where the order is, and what step 3 is called (transfer, Paidy or
  * card), is decided in lib/order-display.ts; `orderStage` moved there with the
  * payment lifecycle (S1) and is re-exported here for older imports.
  */
