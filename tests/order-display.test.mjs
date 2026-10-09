@@ -179,8 +179,8 @@ test("UI-1: the status line never ticks 'Payment received' while the payment is 
   assert.deepEqual(progressStep(4, 4, true), { done: false, now: true, label: "stageChecking" });
   // Earlier steps stay ticked.
   assert.deepEqual(progressStep(3, 4, true), { done: true, now: false, label: "stageDone" });
-  // Once recorded, the same step is ticked and read as "now".
-  assert.deepEqual(progressStep(4, 4, false), { done: true, now: true, label: "stageNow" });
+  // The current step is never ticked, even when nothing is being checked.
+  assert.deepEqual(progressStep(4, 4, false), { done: false, now: true, label: "stageNow" });
   // A later step is neither.
   assert.deepEqual(progressStep(5, 4, true), { done: false, now: false, label: null });
 });
@@ -190,4 +190,14 @@ test("UI-1: a paid order is never 'in progress', even if a check flag is still s
   const d = orderDisplay({ order: paid, chosenMethod: "card", beingChecked: true });
   assert.equal(d.stage, 4);
   assert.equal(d.stageInProgress, false);
+});
+
+test("owner 2026-10-09: the step she is on is never ticked — a tick means done", () => {
+  // Waiting for her payment (stage 3): step 3 shows its number, steps 1-2 are ticked.
+  assert.deepEqual(progressStep(3, 3, false), { done: false, now: true, label: "stageNow" });
+  assert.equal(progressStep(1, 3, false).done, true);
+  assert.equal(progressStep(2, 3, false).done, true);
+  // Shipped (stage 5, the last): steps 1-4 ticked, step 5 lit.
+  for (const n of [1, 2, 3, 4]) assert.equal(progressStep(n, 5, false).done, true);
+  assert.equal(progressStep(5, 5, false).done, false);
 });
