@@ -1,27 +1,26 @@
 import { Check } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
-import type { OrderDisplay } from "@/lib/order-display";
+import { progressStep, type OrderDisplay } from "@/lib/order-display";
 import { cn } from "@/lib/utils";
 
 /**
  * THE ORDER'S STATUS LINE (build step 4; comp page-comps/account-signin
  * "Order detail"): reserved → piece confirmed → payment → payment received →
- * shipped. Every stage up to where the order is now is ticked; the current one
- * is lit. Where the order is, and what step 3 is called (transfer, Paidy or
+ * shipped. Every stage before the current one is ticked; the current one is
+ * lit, and ticked too unless it is still in progress (progressStep). Where the order is, and what step 3 is called (transfer, Paidy or
  * card), is decided in lib/order-display.ts; `orderStage` moved there with the
  * payment lifecycle (S1) and is re-exported here for older imports.
  */
 export { orderStage } from "@/lib/order-display";
 
-export function OrderProgress({ lang, stage, stage3Key = "stagePayment" }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5; stage3Key?: OrderDisplay["stage3Key"] }) {
+export function OrderProgress({ lang, stage, stage3Key = "stagePayment", inProgress = false }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5; stage3Key?: OrderDisplay["stage3Key"]; inProgress?: boolean }) {
   const t = tr(lang);
   const stages = [t("orders", "stageReserved"), t("orders", "stageConfirmed"), t("orders", stage3Key), t("orders", "stagePaid"), t("orders", "stageShipped")];
   return (
     <ol aria-label={t("orders", "progress")} className="mb-6 grid grid-cols-5 border-t border-hairline">
       {stages.map((s, i) => {
         const n = i + 1;
-        const done = n <= stage;
-        const now = n === stage;
+        const { done, now, label } = progressStep(n, stage, inProgress);
         return (
           <li
             key={s}
@@ -32,7 +31,7 @@ export function OrderProgress({ lang, stage, stage3Key = "stagePayment" }: { lan
             )}
           >
             <span aria-hidden="true" className={cn("absolute -top-px left-0 right-0 h-0.5", done ? "bg-gold-dark" : "bg-transparent")} />
-            <span className="sr-only">{now ? t("orders", "stageNow", { stage: s }) : done ? t("orders", "stageDone", { stage: s }) : s}</span>
+            <span className="sr-only">{label ? t("orders", label, { stage: s }) : s}</span>
             <span aria-hidden="true" className={cn("cj-fig font-display text-[17px] leading-none sm:text-[20px]", done ? "text-gold-dark" : "text-charcoal/70")}>
               {done ? <Check className="inline h-4 w-4" strokeWidth={2} /> : n}
             </span>

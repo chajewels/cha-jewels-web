@@ -160,7 +160,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
     >
       <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
-      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} stage3Key={display.stage3Key} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
+      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} stage3Key={display.stage3Key} inProgress={display.stageInProgress} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
 
       {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how to
           pay is the first thing under the heading, on screen and on paper —
