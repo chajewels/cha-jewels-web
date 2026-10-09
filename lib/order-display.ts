@@ -95,6 +95,20 @@ export function orderDisplay(input: {
  * chose (`chosen_method`). An older Hub sends neither, and the row reads as
  * before.
  */
+/**
+ * One step of the status line (components/account/order-progress.tsx). A step is
+ * ticked once the order has passed it, and the current step is ticked once it is
+ * reached, EXCEPT a step still in progress (a payment being checked): "Payment
+ * received" is never ticked before the money is recorded (go-live UI-1).
+ * `label` picks the screen-reader wording so a reader hears the same thing a
+ * sighted customer sees.
+ */
+export function progressStep(n: number, stage: number, inProgress: boolean): { done: boolean; now: boolean; label: "stageNow" | "stageChecking" | "stageDone" | null } {
+  const now = n === stage;
+  const done = n < stage || (now && !inProgress);
+  return { done, now, label: now ? (inProgress ? "stageChecking" : "stageNow") : done ? "stageDone" : null };
+}
+
 export function orderRowStatus(o: HubOrder, lang: Lang): ReturnType<typeof orderStatusLabel> {
   const d = orderDisplay({ order: o, chosenMethod: o.chosen_method ?? null, beingChecked: o.being_checked === true });
   if (d.headlineKey === "pending") return { tone: "pending", text: tr(lang)("orders", "pending") };

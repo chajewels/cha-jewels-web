@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { orderDisplay, orderStage } = await import("@/lib/order-display");
+const { orderDisplay, orderStage, progressStep } = await import("@/lib/order-display");
 const { orderStatusLabel } = await import("@/lib/order-status");
 
 /** A confirmed, payable yen web order waiting for its money. */
@@ -172,4 +172,22 @@ test("payBoxes: card chosen but no longer offered — the Hub's bank details are
   assert.deepEqual(payBoxes({ chosen: "card", paidyOffered: false, cardOffered: true, transferSent: true }), { paidy: false, card: true, transfer: false });
   assert.equal(cardFallsBackToTransfer({ chosen: "card", cardOffered: false, transferSent: true }), true);
   assert.equal(cardFallsBackToTransfer({ chosen: "paidy", cardOffered: false, transferSent: true }), false);
+});
+
+test("UI-1: the status line never ticks 'Payment received' while the payment is being checked", () => {
+  // Stage 4 reached but still being checked: lit, not ticked, read as "being checked".
+  assert.deepEqual(progressStep(4, 4, true), { done: false, now: true, label: "stageChecking" });
+  // Earlier steps stay ticked.
+  assert.deepEqual(progressStep(3, 4, true), { done: true, now: false, label: "stageDone" });
+  // Once recorded, the same step is ticked and read as "now".
+  assert.deepEqual(progressStep(4, 4, false), { done: true, now: true, label: "stageNow" });
+  // A later step is neither.
+  assert.deepEqual(progressStep(5, 4, true), { done: false, now: false, label: null });
+});
+
+test("UI-1: a paid order is never 'in progress', even if a check flag is still set", () => {
+  const paid = { ...pending, payment_status: "paid", total_paid: 236800, remaining_balance: 0 };
+  const d = orderDisplay({ order: paid, chosenMethod: "card", beingChecked: true });
+  assert.equal(d.stage, 4);
+  assert.equal(d.stageInProgress, false);
 });
