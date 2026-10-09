@@ -44,6 +44,13 @@ export type OrderDisplay = {
   headlineKey: "pending" | "statusPendingTransfer" | "statusPendingPayment" | null;
   stage: 1 | 2 | 3 | 4 | 5 | null;
   stage3Key: "stagePayment" | "stagePaymentPaidy" | "stagePaymentCard";
+  /**
+   * The current step is still in progress, not done: a payment she made is being checked
+   * (a card held, not yet charged; a transfer or Paidy payment awaiting review). The line
+   * lights step 4 but does not tick "Payment received" until the Hub records the money
+   * (go-live rehearsal 2026-10-09).
+   */
+  stageInProgress: boolean;
   notice: "rejected" | "needs_info" | null;
   /** Staff asked her a question: no way to pay is offered until it is answered. */
   payBlocked: boolean;
@@ -78,7 +85,7 @@ export function orderDisplay(input: {
     : latestDecision?.status === "needs_clarification" ? "needs_info"
     : null;
 
-  return { headlineKey, stage, stage3Key, notice, payBlocked: latestDecision?.status === "needs_clarification" };
+  return { headlineKey, stage, stage3Key, stageInProgress: checking, notice, payBlocked: latestDecision?.status === "needs_clarification" };
 }
 
 /**
@@ -88,6 +95,20 @@ export function orderDisplay(input: {
  * chose (`chosen_method`). An older Hub sends neither, and the row reads as
  * before.
  */
+/**
+ * One step of the status line (components/account/order-progress.tsx). A step is
+ * ticked once the order has passed it, and the current step is ticked once it is
+ * reached, EXCEPT a step still in progress (a payment being checked): "Payment
+ * received" is never ticked before the money is recorded (go-live UI-1).
+ * `label` picks the screen-reader wording so a reader hears the same thing a
+ * sighted customer sees.
+ */
+export function progressStep(n: number, stage: number, inProgress: boolean): { done: boolean; now: boolean; label: "stageNow" | "stageChecking" | "stageDone" | null } {
+  const now = n === stage;
+  const done = n < stage || (now && !inProgress);
+  return { done, now, label: now ? (inProgress ? "stageChecking" : "stageNow") : done ? "stageDone" : null };
+}
+
 export function orderRowStatus(o: HubOrder, lang: Lang): ReturnType<typeof orderStatusLabel> {
   const d = orderDisplay({ order: o, chosenMethod: o.chosen_method ?? null, beingChecked: o.being_checked === true });
   if (d.headlineKey === "pending") return { tone: "pending", text: tr(lang)("orders", "pending") };
