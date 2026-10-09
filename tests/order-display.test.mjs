@@ -162,3 +162,12 @@ test("switch button reports its open state (final review M-3)", async () => {
   assert.ok(!src.includes("aria-expanded={false}"));
   assert.ok(src.includes("aria-controls={panelId}"));
 });
+
+test("payBoxes: card chosen but no longer offered — the Hub's bank details are shown (F-11 / D-QC4)", async () => {
+  const { payBoxes, cardFallsBackToTransfer } = await import("@/lib/order-display");
+  assert.deepEqual(payBoxes({ chosen: "card", paidyOffered: false, cardOffered: false, transferSent: true }), { paidy: false, card: false, transfer: true });
+  assert.deepEqual(payBoxes({ chosen: "card", paidyOffered: false, cardOffered: false, transferSent: false }), { paidy: false, card: false, transfer: false });
+  assert.deepEqual(payBoxes({ chosen: "card", paidyOffered: false, cardOffered: true, transferSent: true }), { paidy: false, card: true, transfer: false });
+  assert.equal(cardFallsBackToTransfer({ chosen: "card", cardOffered: false, transferSent: true }), true);
+  assert.equal(cardFallsBackToTransfer({ chosen: "paidy", cardOffered: false, transferSent: true }), false);
+});
