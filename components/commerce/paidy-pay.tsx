@@ -8,6 +8,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { paidyAbandonAction, paidyAuthorizedAction, paidyStartAction } from "@/lib/paidy-actions";
 import { paidyStatus } from "@/lib/paidy";
 import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
+import { paidy612Active } from "@/lib/paidy-widget";
 
 /**
  * Paidy "ato-barai" on a confirmed order (Paidy Checkout, 2026-10-03).
@@ -185,7 +186,7 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang }: { orderId: string; p
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="font-display text-[17px] text-charcoal-deep">{t("paidy", "label")}</p>
-          <p className="mt-1 text-[13px] leading-relaxed text-charcoal/80">{t("paidy", "lede")}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-charcoal/80">{t("paidy", paidy612Active() ? "lede612" : "lede")}</p>
         </div>
         <button
           type="button"

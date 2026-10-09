@@ -769,6 +769,8 @@ export const dict = {
     methodTransferNote: { ja: "商品の確認後、お振込先と期限をメールでお送りします。", en: "Once we confirm your piece, we email you where to transfer and by when." },
     methodPaidy: { ja: "あと払い（ペイディ）", en: "Paidy (pay later)" },
     methodPaidyNote: { ja: "商品の確認後、ご注文ページからペイディでお支払いいただけます。翌月まとめて、または3回あと払い。", en: "Once we confirm your piece, pay with Paidy from your order page — next month, or in 3 instalments." },
+    // From 1 Nov 2026 (paidy612Active): 6回・12回 too.
+    methodPaidyNote612: { ja: "商品の確認後、ご注文ページからペイディでお支払いいただけます。翌月まとめて、または3回・6回・12回あと払い。", en: "Once we confirm your piece, pay with Paidy from your order page — next month, or in 3, 6 or 12 instalments." },
     methodPaidyNeeds: { ja: "ペイディには、日本国内のご住所（都道府県を含む）、ご本人の日本の携帯電話番号、姓と名が必要です。", en: "Paidy needs a Japanese home address with prefecture, your own Japanese mobile number, and your family and given names." },
     methodCard: { ja: "クレジットカード・デビットカード", en: "Credit or debit card" },
     methodCardNote: { ja: "日本円でのお支払いです。商品の確認後、ご注文ページでカード購入同意書に署名し、カード情報を入力します（3Dセキュア）。お支払いの確認までは与信のみで、確認時に請求されます。", en: "Charged in yen. Once we confirm your piece: sign the card purchase agreement, then enter your card on your order page (3-D Secure). The card is only authorised until we confirm the payment." },
@@ -1027,7 +1029,11 @@ export const dict = {
   // Paidy app). Every amount shown is the Hub's; nothing here states a fee.
   paidy: {
     label: { ja: "あと払い（ペイディ）", en: "Paidy — あと払い（ペイディ）" },
-    lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。3回あと払いもペイディアプリからお選びいただけます。", en: "Pay next month with just your email and Japanese mobile number, or split into 3 in the Paidy app. For customers living in Japan." },
+    // Paidy branding page: instalments carry the footnotes 「*口座振替・銀行振込のみ無料」
+    // and the per-plan minimum; fee-free instalments need Paidy's identity check.
+    lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。ペイディアプリで本人確認をすると、3回あと払い（分割手数料無料*）もお選びいただけます。*口座振替・銀行振込のみ無料。1回のご利用金額が3,000円以上の場合のみ利用可能。", en: "Pay next month with just your email and Japanese mobile number. After Paidy's identity check in the Paidy app you can also split it into 3 with no instalment fee* (*bank transfer or direct debit only; purchases of ¥3,000 or more). For customers living in Japan." },
+    // From 1 Nov 2026 (paidy612Active): 3, 6 or 12.
+    lede612: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。ペイディアプリで本人確認をすると、3回・6回・12回あと払い（分割手数料無料*）もお選びいただけます。*口座振替・銀行振込のみ無料。3回は3,000円以上、6回は6,000円以上、12回は12,000円以上のご利用で選べます。", en: "Pay next month with just your email and Japanese mobile number. After Paidy's identity check in the Paidy app you can also split it into 3, 6 or 12 with no instalment fee* (*bank transfer or direct debit only; 3 from ¥3,000, 6 from ¥6,000, 12 from ¥12,000). For customers living in Japan." },
     button: { ja: "ペイディで支払う", en: "Pay with Paidy" },
     filing: { ja: "確認中…", en: "Confirming…" },
     note: { ja: "ペイディでのお申込み後、Cha Jewelsが内容を確認してからご請求が確定します。確定後、ご利用額は翌月にペイディからご請求されます（コンビニ払い・銀行振込・口座振替）。ペイディの処理中は、他のお支払い方法はご利用いただけません。", en: "After Paidy approves, Cha Jewels confirms the order before the charge is final. Paidy then bills you next month (convenience store, bank transfer or direct debit). While Paidy is processing, other ways to pay are not available." },
