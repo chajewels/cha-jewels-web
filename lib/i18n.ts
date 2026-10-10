@@ -706,6 +706,10 @@ export const dict = {
     stepsLabel: { ja: "手続きの段階", en: "Checkout steps" },
     stepOf: { ja: "ステップ {n} / 4：{label}", en: "Step {n} of 4: {label}" },
     eyebrow: { ja: "ご予約手続き", en: "Reserve" },
+    // PAY IN FULL says "order", never "reserve" (owner 2026-10-10: "reserve"
+    // reads as layaway). The *Order keys are the full-payment wording; the
+    // keys above stay for a layaway (English only).
+    eyebrowOrder: { ja: "ご注文手続き", en: "Order" },
     continueDelivery: { ja: "次へ：配送", en: "Continue: delivery" },
     continuePayment: { ja: "次へ：お支払い", en: "Continue: payment" },
     continueReview: { ja: "次へ：ご確認", en: "Continue: review" },
@@ -725,6 +729,7 @@ export const dict = {
     payJpy: { ja: "銀行振込（円）", en: "Bank transfer in yen" },
     payPhp: { ja: "振込（ペソ）", en: "Transfer in pesos" },
     reserveFirstH: { ja: "ご予約が先、お支払いは後です。", en: "Reserve first, pay after." },
+    orderFirstH: { ja: "ご注文が先、お支払いは後です。", en: "Order first, pay after." },
     seeSummary: { ja: "ご注文内容を見る", en: "See your order" },
     chooseAddress: { ja: "お届け先を選択", en: "Choose a delivery address" },
     newAddress: { ja: "新しいお届け先を追加", en: "Add a new address" },
@@ -795,6 +800,7 @@ export const dict = {
     methodWhyOff: { ja: "現在ご利用いただけません。", en: "Not available right now." },
     methodWhyNoAccount: { ja: "この通貨のお振込先が現在ありません。", en: "No transfer account for this currency right now." },
     methodLocked: { ja: "ご予約後はお支払い方法を変更できません。変更が必要な場合はご連絡ください。", en: "Once you reserve, your payment method is set. Contact us if it needs to change." },
+    methodLockedOrder: { ja: "ご注文後はお支払い方法を変更できません。変更が必要な場合はご連絡ください。", en: "Once you place your order, your payment method is set. Contact us if it needs to change." },
     methodUnavailable: { ja: "選択したお支払い方法は現在ご利用いただけません。別の方法をお選びください。", en: "That payment method can't be used for this order now. Please choose another." },
     usePoints: { ja: "ポイントを使う", en: "Use points" },
     pointsBalance: { ja: "保有ポイント：{points} ポイント（= {value}）", en: "You have {points} points (= {value})." },
@@ -827,18 +833,27 @@ export const dict = {
     transferThenCard: { ja: "銀行振込、またはご注文確定後にご注文ページからカードでもお支払いいただけます。", en: "Bank transfer, or by card once we confirm your order — the card option appears on your order page." },
     transferPreview: { ja: "お振込先は以下のとおりです。ご注文確定後、この画面とメールでも改めてご案内します。", en: "You will transfer to the account below. We show it again after you place the order, and send it by email." },
     placeOrder: { ja: "ご注文を確定する", en: "Place order" },
-    // CANCELLATION POLICY LINK (V10d, owner 2026-10-08): one sentence above the
-    // Place order / Reserve button, naming the Terms of Service and the
+    // CONSENT TICK BOX (owner 2026-10-10, replacing the V10d "by placing your
+    // order you agree" line): one required box above the Place order / Reserve
+    // button, linking the Privacy Policy, the Terms of Service and the
     // cancellation article of the returns policy (lib/cancellation-policy.ts).
-    // Five pieces because the links sit in different places in each sentence.
-    policyPrefix: { ja: "ご注文を確定すると、", en: "By placing your order you agree to our " },
+    // The order cannot be placed until it is ticked. Seven pieces because the
+    // links sit in different places in each sentence:
+    //   EN "I have read and agree to the Privacy Policy, the Terms of Service and the Cancellation policy."
+    //   JA 「プライバシーポリシー、利用規約およびキャンセルポリシーを読み、同意します。」
+    consentPrefix: { ja: "", en: "I have read and agree to the " },
+    policyPrivacy: { ja: "プライバシーポリシー", en: "Privacy Policy" },
+    consentComma: { ja: "、", en: ", the " },
     policyTerms: { ja: "利用規約", en: "Terms of Service" },
     policyJoin: { ja: "および", en: " and the " },
     policyCancel: { ja: "キャンセルポリシー", en: "Cancellation policy" },
-    policySuffix: { ja: "に同意したものとみなされます。", en: "." },
-    // RESERVE FIRST (Hub A2). Shown only when the quote came back with
-    // `reservation_mode`: no bank details and no deadline until staff confirm
-    // the piece (owner rule).
+    consentSuffix: { ja: "を読み、同意します。", en: "." },
+    consentRequired: { ja: "ご注文の前に、上の同意欄にチェックを入れてください。", en: "Please tick the box above to agree before you place your order." },
+    // RESERVE FIRST (Hub A2): no bank details and no deadline until staff
+    // confirm the piece (owner rule). The button says "Reserve this piece" on a
+    // LAYAWAY only (English only); a full payment says "Place order" /
+    // 「ご注文を確定する」 (owner 2026-10-10 — "Reserve" read as layaway, and
+    // nothing is charged at this click, so not "Pay now").
     reserveNow: { ja: "予約する", en: "Reserve this piece" },
     reserveExplain: { ja: "商品を確認後、お支払い方法をメールでお送りします。", en: "We'll confirm your piece and email you payment details." },
     placing: { ja: "処理中…", en: "Placing your order…" },
