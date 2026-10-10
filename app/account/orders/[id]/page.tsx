@@ -122,10 +122,15 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const stage = display.stage;
   const decision = display.notice ? detail.latest_decision ?? null : null;
   // Staff asked her a question (needs clarification): no way to pay until it is answered — her money may already be with us.
-  const payOpen = payDue && !beingChecked && !display.payBlocked;
+  // Cash on delivery (Hub 2026-10-10): no pay box, no deadline — the courier
+  // collects the Hub's `cod.collect_on_delivery` when the parcel arrives.
+  const cod = chosen === "cod" ? detail.cod ?? null : null;
+  const codFee = Number(order.cod_fee ?? cod?.fee ?? 0);
+  const payOpen = payDue && !beingChecked && !display.payBlocked && chosen !== "cod";
+  const codOpen = chosen === "cod" && order.status === "pending" && !cancelled && isReadyForPayment(order);
   // "Pay another way" (D1): only the Hub's own list, only while the Hub says so.
   const switchMethods = detail.can_switch_method ? (detail.switch_methods ?? []) : [];
-  const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
+  const methodName = (m: string | null) => (m === "paidy" ? t("orders", "methodPaidy") : m === "square" ? t("orders", "methodCard") : m === "cod" ? t("orders", "methodCod") : m === "transfer" || m === "bank_transfer" || !m ? t("orders", "methodTransfer") : m);
   const reference = order.web_reference ?? order.invoice_number ?? "—";
   const placed = siteDay(order.order_date ?? order.created_at);
   // C1: only her method's box. The Hub decides what is offered; this only narrows it.
@@ -135,6 +140,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const showTransfer = boxes.transfer;
   const payment = chosen === "paidy" ? t("orders", "chosenPaidy")
     : chosen === "card" ? t("orders", "chosenCard")
+    : chosen === "cod" ? t("orders", "chosenCod")
     : order.payment_method === "transfer"
     ? t("orders", "payVia", { method: t("orders", "bankTransfer"), currency: order.currency === "PHP" ? t("orders", "currencyPHP") : t("orders", "currencyJPY") })
     : null;
@@ -160,7 +166,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
     >
       <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
-      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} stage3Key={display.stage3Key} inProgress={display.stageInProgress} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
+      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} stage3Key={display.stage3Key} stage4Key={display.stage4Key} stage5Key={display.stage5Key} inProgress={display.stageInProgress} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
 
       {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how to
           pay is the first thing under the heading, on screen and on paper —
@@ -225,6 +231,21 @@ export default async function OrderDetailPage({ params, searchParams }: {
               </>
             )}
           </PaymentDueCard>
+        </div>
+      )}
+
+      {/* CASH ON DELIVERY: no way to pay here — the courier collects the
+          Hub's figure (fee included) when the parcel arrives. */}
+      {codOpen && (
+        <div className="mb-6 border border-gold-dark bg-white p-5" role="status" data-testid="cod-notice">
+          <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "codH")}</h2>
+          {cod && (
+            <p className="mt-2 text-sm text-charcoal/80">
+              {t("orders", "codCollect", { amount: formatMoney(Number(cod.collect_on_delivery), "JPY") })}
+            </p>
+          )}
+          <p className="mt-2 text-sm text-charcoal/80">{t("orders", order.shipped_at ? "codShippedNote" : "codShipNote")}</p>
+          {switchMethods.length > 0 && <div className="mt-4"><SwitchMethod orderId={order.id} methods={switchMethods} lang={lang} /></div>}
         </div>
       )}
 
@@ -335,6 +356,8 @@ export default async function OrderDetailPage({ params, searchParams }: {
             )}
             {payment && <Kv k={t("orders", "payment")}>{payment}</Kv>}
             {shipping && <Kv k={t("checkout", "shipping")}><span className="cj-fig">{shipping}</span></Kv>}
+            {/* Cash on delivery: the COD fee, its own line — the Hub's figure, already in the total. */}
+            {codFee > 0 && <Kv k={t("checkout", "codFeeRow")}><span className="cj-fig" data-testid="order-cod-fee">{formatMoney(codFee, "JPY")}</span></Kv>}
             {pointsApplied > 0 && <Kv k={t("orders", "pointsUsed")}><span className="cj-fig">−{formatMoney(pointsApplied, order.currency)}</span></Kv>}
             {order.tracking_number && <Kv k={t("orders", "tracking")}><span className="font-mono text-gold-dark">{order.tracking_number}</span></Kv>}
             <Kv k={t("orders", "total")} last={!(pointsApplied > 0 && Number(order.remaining_balance) > 0)}>
@@ -348,7 +371,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
             )}
           </dl>
           {/* Owner 2026-10-06: points used are not returned if the order lapses unpaid. */}
-          {pointsApplied > 0 && Number(order.remaining_balance) > 0 && order.status === "pending" && (
+          {pointsApplied > 0 && Number(order.remaining_balance) > 0 && order.status === "pending" && chosen !== "cod" && (
             <p className="mt-3 text-[13px] text-charcoal/75">{t("orders", "pointsNotReturned")}</p>
           )}
           {/* CANCELLATION POLICY (V10d, owner 2026-10-08): the same article the

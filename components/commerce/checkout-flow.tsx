@@ -24,6 +24,7 @@ import { CardMarks } from "@/components/commerce/card-marks";
 import { addressLines } from "@/lib/address-format";
 import { cancellationPolicyHref } from "@/lib/cancellation-policy";
 import { paidy612Active } from "@/lib/paidy-widget";
+import { methodWhyKey } from "@/lib/checkout-method-why";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -485,14 +486,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     }
     applyChoice(method, n);
   }
-  const optionWhy = (o: HubPaymentOption) =>
-    o.reason === "layaway" ? t("checkout", "methodWhyLayaway")
-    : o.reason === "currency_not_yen" ? t("checkout", o.method === "card" ? "methodWhyCardYen" : "methodWhyPaidyYen")
-    : o.reason === "address_not_jp" ? t("checkout", "methodWhyPaidyJp")
-    : o.reason === "no_account" ? t("checkout", "methodWhyNoAccount")
-    : t("checkout", "methodWhyOff");
-  const methodName = (m: CheckoutMethod) => t("checkout", m === "paidy" ? "methodPaidy" : m === "card" ? "methodCard" : "methodTransfer");
-  const methodNote = (m: CheckoutMethod) => t("checkout", m === "paidy" ? (paidy612Active() ? "methodPaidyNote612" : "methodPaidyNote") : m === "card" ? "methodCardNote" : "methodTransferNote");
+  const optionWhy = (o: HubPaymentOption) => t("checkout", methodWhyKey(o));
+  const methodName = (m: CheckoutMethod) => t("checkout", m === "paidy" ? "methodPaidy" : m === "card" ? "methodCard" : m === "cod" ? "methodCod" : "methodTransfer");
+  const methodNote = (m: CheckoutMethod) => t("checkout", m === "paidy" ? (paidy612Active() ? "methodPaidyNote612" : "methodPaidyNote") : m === "card" ? "methodCardNote" : m === "cod" ? "methodCodNote" : "methodTransferNote");
   const pointsWhy = (reason: string | null) =>
     reason === "not_enrolled" ? t("checkout", "pointsWhyNotEnrolled")
     : reason === "no_points" ? t("checkout", "pointsWhyNoPoints")
@@ -556,7 +552,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     : summary.shipping === 0 ? t("checkout", "free") : summaryMoney(summary.shipping);
   const totalLabel = !quoteShown ? t("checkout", "cartTotal") : t("checkout", shippingLater ? "totalBeforeShipping" : "total");
   // Points chosen on a full payment: the headline is what she PAYS (F1).
-  const toPay = amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints: choice?.totals.total_after_points ?? null });
+  // Cash on delivery chosen: the Hub's COD fee (already in total_after_points).
+  const codFee = method === "cod" && choice?.payment_method === "cod" ? choice.totals.cod_fee ?? 0 : 0;
+  const toPay = amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints: choice?.totals.total_after_points ?? null, codFee });
   const headline = toPay !== null ? money(toPay) : summaryMoney(summary.total);
   const count = items.reduce((n, i) => n + i.qty, 0);
   const countLabel = count === 1 ? t("cart", "pieceOne") : t("cart", "pieces", { n: String(count) });
@@ -929,6 +927,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                               {/* P05 (owner 2026-10-08): what Paidy needs from the buyer, stated where she chooses it. */}
                               {o.method === "paidy" && o.offered && <span className="mt-1 block text-[12px] leading-relaxed text-charcoal/65" data-testid="checkout-paidy-needs">{t("checkout", "methodPaidyNeeds")}</span>}
                               {o.method === "card" && <CardMarks inline label={t("footer", "cards")} className="mt-2" />}
+                              {/* Cash on delivery: the Hub's COD fee for this order, never bracketed here. */}
+                              {o.method === "cod" && o.offered && typeof o.fee_jpy === "number" && (
+                                <span className="cj-fig mt-1 block text-[13px] font-semibold text-charcoal-deep" data-testid="checkout-cod-fee">
+                                  {t("checkout", "methodCodFee", { fee: formatMoney(o.fee_jpy, "JPY") })}
+                                </span>
+                              )}
                             </span>
                           </button>
                         );
@@ -1002,6 +1006,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     {mode === "layaway" ? t("checkout", "layawayReserveNote")
                       : method === "paidy" ? t("checkout", "reserveExplainPaidy")
                       : method === "card" ? t("checkout", "reserveExplainCard")
+                      : method === "cod" ? t("checkout", "reserveExplainCod")
                       : t("checkout", "reserveExplain")}
                   </Notice>
                 )}
@@ -1076,7 +1081,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                   // Full payment: the order total as a row, points off it; the
                   // big figure below is the amount to pay (F1, like the emails).
                   { k: totalLabel, v: summaryMoney(summary.total) },
-                  { k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` },
+                  ...(pointsChosen > 0 ? [{ k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` }] : []),
+                  // Cash on delivery: the COD fee as its own line (Hub figure).
+                  ...(codFee > 0 ? [{ k: t("checkout", "codFeeRow"), v: formatMoney(codFee, "JPY") }] : []),
                 ] : choice && pointsChosen > 0 && quoteShown && mode === "layaway" ? [
                   { k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` },
                   { k: t("checkout", "pointsDepositDue"), v: money(choice.totals.due_now_after_points) },
