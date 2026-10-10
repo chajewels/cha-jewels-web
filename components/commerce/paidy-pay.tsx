@@ -9,7 +9,10 @@ import { paidyAbandonAction, paidyAuthorizedAction, paidyStartAction } from "@/l
 import { paidyStatus } from "@/lib/paidy";
 import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
 import { paidy612Active } from "@/lib/paidy-widget";
-import { afterAuthorized, holdEnded, PAIDY_POLL_MS, safeAction, type HoldReason } from "@/lib/paidy-flow";
+import {
+  afterAuthorized, closedOutcome, holdAfterFiling, holdAfterResend, holdBeforeResend, holdOnLoad, holdTick, parseHold, resendDue,
+  PAIDY_POLL_MS, safeAction, startRefusal, type HoldReason, type PaidyHold,
+} from "@/lib/paidy-flow";
 
 /**
  * Paidy "ato-barai" on a confirmed order (Paidy Checkout, 2026-10-03).
@@ -55,17 +58,15 @@ declare global {
 type State = "idle" | "starting" | "open" | "filing" | "rejected" | "error" | "uncertain" | "releasing";
 
 // H3 (Paidy QC PR-B): a hold survives a reload of the page in the same tab.
-type Hold = { reason: HoldReason; since: number; saw: boolean };
+// Its rules (reload, per tick, the one re-send of an approved id — L3/L6) are
+// pure helpers in lib/paidy-flow.ts; this file only stores and acts on them.
 const holdKey = (orderId: string) => `cj-paidy-hold:${orderId}`;
-function readHold(orderId: string): Hold | null {
+function readHold(orderId: string): PaidyHold | null {
   try {
-    const raw = window.sessionStorage.getItem(holdKey(orderId));
-    if (!raw) return null;
-    const h = JSON.parse(raw) as Hold;
-    return (h.reason === "uncertain" || h.reason === "releasing") && Number.isFinite(h.since) ? h : null;
+    return parseHold(window.sessionStorage.getItem(holdKey(orderId)));
   } catch { return null; }
 }
-function writeHold(orderId: string, h: Hold | null) {
+function writeHold(orderId: string, h: PaidyHold | null) {
   try {
     if (h) window.sessionStorage.setItem(holdKey(orderId), JSON.stringify(h));
     else window.sessionStorage.removeItem(holdKey(orderId));
@@ -87,46 +88,79 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
   const choices = paidy.billing_choices ?? [];
   const [billingId, setBillingId] = useState<string | null>(paidy.billing_address_id ?? choices[0]?.id ?? null);
   const [scriptFailed, setScriptFailed] = useState(false);
-  const hold = useRef<Hold | null>(null);
+  const hold = useRef<PaidyHold | null>(null);
+  // M-1: this page load's own id. A re-send that failed on THIS page load is
+  // tried once more only from another one (a reload carries fresh
+  // server-action ids); lib/paidy-flow.ts resendDue.
+  const pageId = useRef<string>(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`).current;
 
   // H3: enter a hold — the button stays disabled until the Hub's answer.
-  const beginHold = (reason: HoldReason) => {
-    hold.current = { reason, since: Date.now(), saw: false };
-    writeHold(orderId, hold.current);
-    setState(reason);
+  const enterHold = (h: PaidyHold) => {
+    hold.current = h;
+    writeHold(orderId, h);
+    setState(h.reason);
     router.refresh();
   };
+  const beginHold = (reason: HoldReason) => enterHold({ reason, since: Date.now(), saw: false });
 
-  // A hold from before a reload of this page carries on.
+  // L3 / M-1: hand an approved Paidy id the Hub never received to the Hub
+  // again (idempotent there for a known id) — only when resendDue says so: one
+  // poll interval after the failure, at most twice per approval, the second
+  // only after a reload. Counted BEFORE the call, so a reload during it never
+  // repeats it.
+  const resend = (h: PaidyHold) => {
+    if (!resendDue(h, Date.now(), pageId) || !h.paidyId) return;
+    const sent = holdBeforeResend(h, Date.now(), pageId);
+    hold.current = sent;
+    writeHold(orderId, sent);
+    const id = h.paidyId;
+    start(async () => {
+      const r = await safeAction(() => paidyAuthorizedAction(orderId, id), FILE_MS, (code) => ({ ok: false as const, code }));
+      const next = holdAfterResend(sent, r.ok ? null : r.code, Date.now());
+      if (hold.current === sent) {
+        hold.current = next;
+        writeHold(orderId, next);
+        if (next.reason !== sent.reason) setState(next.reason);
+      }
+      router.refresh();
+    });
+  };
+
+  // A hold from before a reload of this page carries on (L6: holdOnLoad).
   useEffect(() => {
     const h = readHold(orderId);
-    // An "uncertain" hold with no open window on the Hub is stale (the Hub
-    // filed it and the order later came back, or nothing is held any more).
-    const stale = h?.reason === "uncertain" && !windowOpen;
-    if (h && !stale && !holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) {
+    const d = holdOnLoad(h, windowOpen, Date.now());
+    if (d === "keep" && h) {
       hold.current = h;
       setState(h.reason);
-    } else if (h) writeHold(orderId, null);
+    } else if (d === "drop") writeHold(orderId, null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   // While held: ask the Hub again every few seconds, and end the hold only
   // when the Hub has shown the window open and then ended it (nothing was
-  // filed), or after the Hub's own window length. When the Hub files the
-  // payment the page shows "being processed" and this component is gone.
+  // filed), or after the Hub's own window length (L6: holdTick). When the Hub
+  // files the payment the page shows "being processed" and this component is
+  // gone.
   useEffect(() => {
     const h = hold.current;
     if (!h || (state !== "uncertain" && state !== "releasing")) return;
     if (windowOpen && !h.saw) { h.saw = true; writeHold(orderId, h); }
     const release = () => { hold.current = null; writeHold(orderId, null); setState("idle"); };
-    if (holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) { release(); return; }
-    // The time limit is checked on every tick too: a page left open must end
-    // the hold at the same moment as a reloaded one.
-    const timer = setInterval(() => {
-      if (holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) release();
+    const act = () => {
+      const cur = hold.current;
+      if (!cur) return;
+      const d = holdTick(cur, windowOpen, Date.now(), pageId);
+      if (d === "resend") resend(cur);
+      else if (d === "release") release();
       else router.refresh();
-    }, PAIDY_POLL_MS);
+    };
+    const first = holdTick(h, windowOpen, Date.now(), pageId);
+    if (first === "release") { release(); return; }
+    if (first === "resend") resend(h);
+    const timer = setInterval(act, PAIDY_POLL_MS);
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, windowOpen, orderId, router]);
 
   // P06 (2026-10-04): next/script fires onLoad only the first time the script
@@ -156,9 +190,15 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
     start(async () => {
       const started = await safeAction(() => paidyStartAction(orderId, choices.length > 0 ? billingId : null), START_MS, (code) => ({ ok: false as const, code }));
       if (!started.ok) {
-        setCode(started.code);
+        // M1 (2026-10-10): 409 payment_in_progress — something already holds
+        // the order, possibly an approval Paidy reported that the Hub has not
+        // filed yet — is the "being checked" hold, never an error under a
+        // live button. L4: other start failures get the start's own words.
+        const r = startRefusal(started.code);
+        if (r.hold) { beginHold("uncertain"); return; }
+        setCode(r.code);
         setState("error");
-        if (started.code === "payment_in_progress" || started.code === "paidy_not_offered" || started.code === "billing_address_invalid") router.refresh();
+        if (r.code === "paidy_not_offered" || r.code === "billing_address_invalid") router.refresh();
         return;
       }
       const { attemptId, checkout } = started.data;
@@ -177,35 +217,33 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
           api_key: paidy.public_key,
           logo_url: logoUrl,
           closed: (result) => {
-            const status = paidyStatus(result?.status);
-            if (status === "AUTHORIZED" && !result?.id) {
-              // Paidy says approved but sent no id: never end the window — the
-              // Hub recovers the authorisation from Paidy's own notification.
-              beginHold("uncertain");
-              return;
-            }
-            if (status === "AUTHORIZED") {
+            // L6: the branch decision is closedOutcome (lib/paidy-flow.ts).
+            //  - AUTHORIZED without an id: never end the window — the Hub
+            //    recovers the authorisation from Paidy's own notification.
+            //  - UNKNOWN (PA15A): never "closed" — the window is NOT ended
+            //    (Paidy may still hold an authorisation); the Hub decides.
+            const outcome = closedOutcome(paidyStatus(result?.status), !!result?.id);
+            if (outcome === "hold") { beginHold("uncertain"); return; }
+            if (outcome === "file") {
               setState("filing");
               start(async () => {
                 const r = await safeAction(() => paidyAuthorizedAction(orderId, result.id), FILE_MS, (code) => ({ ok: false as const, code }));
                 // Paidy holds money for her in every case but "filed": the
                 // button never simply comes back (H3) — the Hub's answer decides.
-                const next = afterAuthorized(r.ok ? null : r.code);
-                if (next === "uncertain" || next === "releasing") beginHold(next);
-                else if (next === "refresh") { setCode(r.ok ? null : r.code); setState("error"); router.refresh(); }
+                const failCode = r.ok ? null : r.code;
+                const next = afterAuthorized(failCode);
+                // L3: a filing the Hub never saw (network, timeout, failed,
+                // signed_out) keeps the Paidy id for a later re-send.
+                if (next === "uncertain" || next === "releasing") enterHold(holdAfterFiling(next, failCode, result.id, Date.now(), pageId));
+                else if (next === "refresh") { setCode(failCode); setState("error"); router.refresh(); }
                 else router.refresh();
               });
-            } else if (status === "REJECTED") {
+            } else if (outcome === "end_rejected") {
               setState("rejected");
               endWindow("rejected", result?.id);
-            } else if (status === "CLOSED") {
+            } else {
               setState("idle");
               endWindow("closed", result?.id);
-            } else {
-              // PA15A (2026-10-09): an answer we cannot read is never "closed"
-              // — the window is NOT ended (Paidy may still hold an
-              // authorisation); the Hub's hourly check decides.
-              beginHold("uncertain");
             }
           },
         });
@@ -213,7 +251,8 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
         setState("open");
         handler.launch(checkout);
       } catch {
-        setCode("failed");
+        // Paidy could not be opened: nothing was approved, nothing recorded (L4).
+        setCode("start_failed");
         setState("error");
         endWindow("error");
       }
@@ -223,6 +262,8 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
   const busy = state === "starting" || state === "open" || state === "filing" || state === "uncertain" || state === "releasing";
 
   const held = state === "uncertain" || state === "releasing";
+  // L5: the disabled button names the message that says why.
+  const holdMsgId = `paidy-hold-${orderId}`;
 
   return (
     <>
@@ -245,6 +286,8 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
           type="button"
           onClick={open}
           disabled={!ready || busy || scriptFailed}
+          aria-busy={state === "starting" || state === "filing" ? true : undefined}
+          aria-describedby={held ? holdMsgId : undefined}
           className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal disabled:cursor-not-allowed disabled:opacity-50 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]"
         >
           {state === "filing" ? t("paidy", "filing") : t("paidy", "button")}
@@ -285,18 +328,18 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
         </fieldset>
       )}
       {paidy.test && <p className="mt-2 text-[12px] text-charcoal/60">{t("paidy", "testMode")}</p>}
-      {scriptFailed && <p className="mt-3 text-sm text-red-700" role="status">{t("paidy", "errScript")}</p>}
-      {state === "rejected" && <p className="mt-3 text-sm text-red-700" role="status">{t("paidy", "rejected")}</p>}
+      {scriptFailed && <p className="mt-3 text-sm text-red-700" role="alert">{t("paidy", "errScript")}</p>}
+      {state === "rejected" && <p className="mt-3 text-sm text-red-700" role="alert">{t("paidy", "rejected")}</p>}
       {state === "error" && (
-        <p className="mt-3 text-sm text-red-700" role="status">
+        <p className="mt-3 text-sm text-red-700" role="alert">
           {errorText(code, t)}
           {code === "signed_out" && (
             <>{" "}<Link href={`/login?next=${encodeURIComponent(`/account/orders/${orderId}`)}`} className="text-gold-dark underline underline-offset-4 hover:text-charcoal-deep">{t("paidy", "signInAgain")}</Link></>
           )}
         </p>
       )}
-      {state === "uncertain" && <p className="mt-3 text-sm text-charcoal/80" role="status">{t("paidy", "uncertain")}</p>}
-      {state === "releasing" && <p className="mt-3 text-sm text-charcoal/80" role="status">{t("paidy", "releasing")}</p>}
+      {state === "uncertain" && <p id={holdMsgId} className="mt-3 text-sm text-charcoal/80" role="status">{t("paidy", "uncertain")}</p>}
+      {state === "releasing" && <p id={holdMsgId} className="mt-3 text-sm text-charcoal/80" role="status">{t("paidy", "releasing")}</p>}
       <p className="mt-3 text-[12px] leading-relaxed text-charcoal/70">{t("paidy", "note")}</p>
     </div>
     </>
@@ -309,7 +352,8 @@ function addressLine(c: { postal_code?: string | null; region?: string | null; c
 
 function errorText(code: string | null, t: ReturnType<typeof tr>): string {
   switch (code) {
-    case "paidy_mismatch": return t("paidy", "errMismatch");
+    // L4: a start that failed — Paidy never opened, so nothing to "record".
+    case "start_failed": return t("paidy", "errStartFailed");
     case "paidy_not_offered":
     case "not_ready_for_payment": return t("paidy", "errNotOffered");
     case "submission_pending":

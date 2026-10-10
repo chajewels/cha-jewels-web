@@ -54,3 +54,14 @@ test("the 6/12 copy exists in both languages and names the minimums and the fee 
   assert.match(c.methodPaidyNote612.ja, /3回・6回・12回/);
   assert.match(c.methodPaidyNote612.en, /3, 6 or 12/);
 });
+
+test("M2: the widget is refreshed only when Paidy's script is there, and a throw never escapes", async () => {
+  const { refreshPaidyWidget } = await import(pathToFileURL(join(process.cwd(), "lib/paidy-widget.ts")).href);
+  const calls = [];
+  assert.equal(refreshPaidyWidget({ _paidy: (c) => calls.push(c) }), true);
+  assert.deepEqual(calls, ["pm:refresh"]);
+  assert.equal(refreshPaidyWidget({}), false);
+  assert.equal(refreshPaidyWidget(undefined), false);
+  assert.equal(refreshPaidyWidget({ _paidy: "nope" }), false);
+  assert.equal(refreshPaidyWidget({ _paidy: () => { throw new Error("x"); } }), false);
+});

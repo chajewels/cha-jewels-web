@@ -1,6 +1,6 @@
 // 特定商取引法 PAYMENT ROWS FOLLOW THE SWITCHES (Stripe review 2026-10-09).
 // The page names bank transfer always, card only while the Hub offers it,
-// Paidy only while paidy_mode is on, and konbini ALWAYS (owner 2026-10-10:
+// Paidy (method, timing sentence and fee) only while paidy_mode is on, and konbini ALWAYS (owner 2026-10-10:
 // its application is in progress; the owner says when to remove it). The Japanese page
 // (layaway off) names no layaway. Cash on delivery is ALWAYS named, with its
 // timing sentence (owner approved 2026-10-10). Run: npm run test:unit.
@@ -37,16 +37,18 @@ test("支払方法 names exactly the offered methods, in order", () => {
   }
 });
 
-test("支払時期: the card sentence follows the card switch; the Paidy sentence never changes", () => {
+test("支払時期: the card sentence follows the card switch; the Paidy sentence follows the Paidy switch (L2, owner 2026-10-10)", () => {
   const CARD_JA = "クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。";
   const CARD_EN = " By card, the amount is authorised (held) when you pay and charged when we confirm the payment.";
   const PAIDY_JA_S = "あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。";
   const PAIDY_EN_S = " With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th.";
   for (const o of COMBOS) {
     const v = row(tokushoRowsFor(true, o), "支払時期").v;
-    assert.equal(v.ja, "ご注文確認のご連絡後、表示の期限までにお支払いください。" + (o.card ? CARD_JA : "") + PAIDY_JA_S + COD_TIME_JA);
+    assert.equal(v.ja, "ご注文確認のご連絡後、表示の期限までにお支払いください。" + (o.card ? CARD_JA : "") + (o.paidy ? PAIDY_JA_S : "") + COD_TIME_JA);
     assert.equal(v.en.includes(CARD_EN), o.card);
-    assert.ok(v.en.startsWith("After we confirm your order, by the deadline shown." + (o.card ? CARD_EN : "") + PAIDY_EN_S + COD_TIME_EN));
+    assert.equal(v.en.includes(PAIDY_EN_S), o.paidy);
+    assert.equal(/ペイディ/.test(v.ja), o.paidy);
+    assert.ok(v.en.startsWith("After we confirm your order, by the deadline shown." + (o.card ? CARD_EN : "") + (o.paidy ? PAIDY_EN_S : "") + COD_TIME_EN));
     assert.ok(v.en.endsWith("For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)"));
   }
 });
@@ -65,6 +67,25 @@ test("konbini stays listed in every combination, with its fee (owner 2026-10-10)
     assert.ok(row(rows, "商品代金以外の必要料金").v.ja.startsWith("送料、銀行振込手数料、コンビニ決済手数料。"));
     assert.ok(row(rows, "商品代金以外の必要料金").v.en.startsWith("Shipping, bank transfer fees, and convenience-store payment fees"));
   }
+});
+
+test("商品代金以外の必要料金: the Paidy fee follows the Paidy switch; konbini and COD fees always (L2, owner 2026-10-10)", () => {
+  const PAIDY_FEE_JA = "あと払い（ペイディ）の場合は、コンビニ払いの手数料（最大390円（税込））、銀行振込の場合の振込手数料。";
+  const PAIDY_FEE_EN = "; with Paidy (あと払い（ペイディ）), Paidy's convenience-store payment fee (up to ¥390, tax included) or, when you pay Paidy by bank transfer, the transfer fee";
+  for (const o of COMBOS) for (const layaway of [true, false]) {
+    const v = row(tokushoRowsFor(layaway, o), "商品代金以外の必要料金").v;
+    assert.equal(v.ja.includes(PAIDY_FEE_JA), o.paidy);
+    assert.equal(/ペイディ|390円/.test(v.ja), o.paidy);
+    assert.equal(v.en.includes(PAIDY_FEE_EN), o.paidy);
+    assert.equal(/Paidy|¥390/.test(v.en), o.paidy);
+    assert.ok(v.ja.includes("代金引換手数料"));
+    assert.ok(v.en.includes("cash on delivery fee"));
+  }
+  const on = row(tokushoRowsFor(true, COMBOS[0]), "商品代金以外の必要料金").v;
+  assert.equal(on.ja, "送料、銀行振込手数料、コンビニ決済手数料。あと払い（ペイディ）の場合は、コンビニ払いの手数料（最大390円（税込））、銀行振込の場合の振込手数料。代金引換の場合は、代金引換手数料（お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円。いずれも税込）");
+  assert.equal(on.en, "Shipping, bank transfer fees, and convenience-store payment fees; with Paidy (あと払い（ペイディ）), Paidy's convenience-store payment fee (up to ¥390, tax included) or, when you pay Paidy by bank transfer, the transfer fee; with cash on delivery, a cash on delivery fee by the amount collected on delivery, pieces and shipping together (up to ¥10,000 — ¥1,040; up to ¥30,000 — ¥1,150; up to ¥100,000 — ¥1,370; up to ¥300,000 — ¥1,810; all tax included)");
+  const off = row(tokushoRowsFor(false, COMBOS[3]), "商品代金以外の必要料金").v;
+  assert.equal(off.ja, "送料、銀行振込手数料、コンビニ決済手数料。代金引換の場合は、代金引換手数料（お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円。いずれも税込）");
 });
 
 test("support hours sit right after the email row", () => {

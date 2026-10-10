@@ -6,7 +6,7 @@ import { hub, HubError } from "@/lib/hub-api";
 import type { ActionResult } from "@/lib/checkout-actions";
 import type { PaidyCheckoutPayload } from "@/lib/types";
 import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
-import { isAttemptId, startAnswerUsable } from "@/lib/paidy-flow";
+import { isAttemptId, startAnswerUsable, startFailureCode } from "@/lib/paidy-flow";
 
 /**
  * Paidy ato-barai on a confirmed order (2026-10-03).
@@ -65,8 +65,22 @@ export async function paidyStartAction(orderId: string, billingAddressId?: strin
       revalidatePath(`/account/orders/${orderId}`);
       return { ok: false, code: "payment_in_progress", requestId: err.requestId };
     }
-    return { ok: false, code: paidyCode(err), requestId: err instanceof HubError ? err.requestId : null };
+    const code = startCode(err);
+    if (code === "paidy_not_offered") revalidatePath(`/account/orders/${orderId}`);
+    return { ok: false, code, requestId: err instanceof HubError ? err.requestId : null };
   }
+}
+
+/**
+ * Review L-2 (2026-10-10): a START refusal the page cannot cure by trying
+ * again — 409 method_not_chosen (staff changed her method in the Hub),
+ * order_not_found, any other Hub 4xx the codes above do not name — is
+ * "Paidy is not available for this order — reload" (paidy_not_offered), never
+ * "try again in a moment". Only a transient failure (no Hub answer, a Hub 5xx)
+ * stays "failed", which the page shows as the start's try-again line.
+ */
+function startCode(err: unknown): string {
+  return startFailureCode(paidyCode(err), err instanceof HubError ? err.status : null);
 }
 
 /** Paidy reported the window closed / declined (no authorisation): end the window so the other options return. */

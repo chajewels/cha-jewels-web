@@ -301,13 +301,15 @@ export const hub = {
   /**
    * Whether the product page shows Paidy's N-Pay widget (owner W1–W5,
    * 2026-10-03): the Hub says yes only while paidy_mode is 'on', so in test
-   * the banner never reaches a customer. Re-read hourly — flipping the switch
-   * needs no deploy. Secondary: a failure is "no widget", never a broken page.
+   * the banner never reaches a customer. Re-read every 5 minutes (L1,
+   * 2026-10-10: a switch-off shows within 5 minutes even without a
+   * revalidation call; the Hub may also bust tag "paidy") — flipping the
+   * switch needs no deploy. Secondary: a failure is "no widget", never a broken page.
    */
   paidyWidget: (): Promise<PaidyWidgetFlag> =>
     FIXTURES
       ? Promise.resolve({ enabled: fx.PREVIEW_PAIDY })
-      : call<PaidyWidgetFlag>("/paidy/widget", { revalidate: 3600, tags: ["paidy"], timeout: SECONDARY_TIMEOUT_MS }).catch(() => ({ enabled: false })),
+      : call<PaidyWidgetFlag>("/paidy/widget", { revalidate: 300, tags: ["paidy"], timeout: SECONDARY_TIMEOUT_MS }).catch(() => ({ enabled: false })),
   /**
    * Which switched methods the 特定商取引法 page and the footer may name
    * (Stripe review 2026-10-09): Paidy from /paidy/widget (paidy_mode 'on'),
@@ -320,7 +322,7 @@ export const hub = {
       hub.paidyWidget(),
       FIXTURES
         ? Promise.resolve({ card: fx.PREVIEW_CARD })
-        : call<PaymentsOfferedFlag>("/payments/offered", { revalidate: 3600, tags: ["square"], timeout: SECONDARY_TIMEOUT_MS }).catch(() => ({ card: false })),
+        : call<PaymentsOfferedFlag>("/payments/offered", { revalidate: 300, tags: ["square"], timeout: SECONDARY_TIMEOUT_MS }).catch(() => ({ card: false })),
     ]);
     return { card: card?.card === true, paidy: paidy?.enabled === true };
   },

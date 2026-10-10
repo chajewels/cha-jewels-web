@@ -23,9 +23,9 @@ test("full payment from an older Hub (no method): the transfer step", () => {
   assert.equal(draftStep3Key("full", undefined), "next3");
 });
 
-test("the five reworded errors never send her to bank transfer", () => {
+test("the reworded errors never send her to bank transfer (paidy.errMismatch removed as unreachable, L4 2026-10-10)", () => {
   const keys = [
-    ["paidy", "errMismatch"], ["paidy", "errFailed"],
+    ["paidy", "errFailed"],
     ["card", "errDeclined"], ["card", "errUnavailable"], ["card", "errFailed"],
   ];
   for (const [group, key] of keys) {
