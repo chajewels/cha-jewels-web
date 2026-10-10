@@ -23,6 +23,7 @@ import { initialCheckoutState, type CheckoutStep } from "@/lib/checkout-initial-
 import { CardMarks } from "@/components/commerce/card-marks";
 import { addressLines } from "@/lib/address-format";
 import { cancellationPolicyHref } from "@/lib/cancellation-policy";
+import { paidy612Active } from "@/lib/paidy-widget";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -491,7 +492,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     : o.reason === "no_account" ? t("checkout", "methodWhyNoAccount")
     : t("checkout", "methodWhyOff");
   const methodName = (m: CheckoutMethod) => t("checkout", m === "paidy" ? "methodPaidy" : m === "card" ? "methodCard" : "methodTransfer");
-  const methodNote = (m: CheckoutMethod) => t("checkout", m === "paidy" ? "methodPaidyNote" : m === "card" ? "methodCardNote" : "methodTransferNote");
+  const methodNote = (m: CheckoutMethod) => t("checkout", m === "paidy" ? (paidy612Active() ? "methodPaidyNote612" : "methodPaidyNote") : m === "card" ? "methodCardNote" : "methodTransferNote");
   const pointsWhy = (reason: string | null) =>
     reason === "not_enrolled" ? t("checkout", "pointsWhyNotEnrolled")
     : reason === "no_points" ? t("checkout", "pointsWhyNoPoints")

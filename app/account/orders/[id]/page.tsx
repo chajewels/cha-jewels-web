@@ -160,7 +160,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
     >
       <PrintHeader lang={lang} invoiceNumber={order.invoice_number} reference={order.web_reference} date={placed} />
 
-      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} stage3Key={display.stage3Key} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
+      {stage ? <div className="print-hide"><OrderProgress lang={lang} stage={stage} stage3Key={display.stage3Key} inProgress={display.stageInProgress} /></div> : <div className="mb-6"><StatusBadge tone={status.tone} text={headline} /></div>}
 
       {/* PAYMENT FIRST (owner request 2026-09-24). While money is due, how to
           pay is the first thing under the heading, on screen and on paper —
@@ -182,13 +182,16 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {/* Paidy (ato-barai) first when the Hub offers it (PD2): a
                 Japanese delivery address, a yen order, nothing pending. The
                 bank details stay underneath — one more way to pay. */}
-            {windowOpen && (
+            {/* Without the Paidy button here, the notice says nothing about
+                opening Paidy again (S-L6); with it, PaidyPay shows the notice
+                itself and hides it while it waits for the Hub (review fix 4). */}
+            {windowOpen && !(paidy && boxes.paidy) && (
               <div className="mb-5 border border-gold-dark bg-white p-4 sm:p-5" role="status" data-testid="paidy-window-open">
                 <h3 className="font-display text-[17px] text-charcoal-deep">{t("paidy", "windowOpenTitle")}</h3>
-                <p className="mt-1 text-sm text-charcoal/80">{t("paidy", "windowOpenBody")}</p>
+                <p className="mt-1 text-sm text-charcoal/80">{t("paidy", "windowOpenBodyNoReopen")}</p>
               </div>
             )}
-            {paidy && boxes.paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} />}
+            {paidy && boxes.paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} windowOpen={windowOpen} />}
             {/* Paidy can refuse her inside its own window and leave no record
                 here, so no switch: she is told to contact us instead (§4C). */}
             {paidy && boxes.paidy && chosen === "paidy" && switchMethods.length === 0 && !windowOpen && (
@@ -197,7 +200,8 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {/* Card (Square, S3 2026-10-04) when the Hub offers it: any
                 country, yen, nothing pending. The form lives on its own page
                 behind the Card Purchase Agreement gate (owner D9). */}
-            {card && boxes.card && (
+            {/* M9: never beside her open Paidy window (the Hub sends no card then either). */}
+            {card && boxes.card && !windowOpen && (
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border border-hairline bg-white p-4 sm:p-5" data-testid="card-offer">
                 <div className="min-w-0">
                   <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
