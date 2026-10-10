@@ -252,7 +252,7 @@ test("S-C2: the legal notice carries Paidy's own 特商法 wording", () => {
   // Owner 2026-10-10: コンビニ決済 stays listed until the owner says otherwise.
   assert.match(src, /コンビニ決済、あと払い（ペイディ）/);
   assert.match(src, /コンビニ払い（コンビニ設置端末）、銀行振込及び口座振替/);
-  assert.match(src, /口座振替の場合は27日に引き落しとなります/);
+  assert.match(src, /口座振替の場合は翌月27日（金融機関休業日の場合は翌営業日）に引き落しとなります/);
   assert.match(src, /最大390円（税込）/);
 });
 
