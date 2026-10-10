@@ -70,7 +70,8 @@ scan("legal.returnsIntro", legal.returnsIntro);
 scan("legal.returnsArticles", legal.legalArticlesFor(legal.returnsArticles, false));
 scan("legal.privacyArticles", legal.legalArticlesFor(legal.privacyArticles, false));
 scan("legal.tosArticles", legal.legalArticlesFor(legal.tosArticles, false));
-scan("legal.tokusho.rows", legal.tokushoRowsFor(false));
+// Every switch on: the longest text the Japanese page can render.
+scan("legal.tokusho.rows", legal.tokushoRowsFor(false, { card: true, paidy: true }));
 scan("legal.tokusho.title", legal.tokusho.title);
 scan("legal.legalTitles", legal.legalTitles);
 

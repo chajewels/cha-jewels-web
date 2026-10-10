@@ -2,6 +2,7 @@ import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tokusho, tokushoRowsFor, tokushoUpdated } from "@/lib/content/legal";
 import { layawayOffered } from "@/lib/layaway-availability";
+import { hub } from "@/lib/hub-api";
 import { LegalFrame } from "@/components/site/legal-frame";
 
 export const generateMetadata = () => pageMeta("tokusho");
@@ -26,13 +27,16 @@ export default async function Tokusho() {
   const lang = await getLang();
 
   const layaway = layawayOffered(lang);
+  // The payment rows name only what the checkout can take right now (Stripe
+  // review 2026-10-09): the same switches as the footer marks.
+  const offered = await hub.paymentsOffered();
   return (
     <LegalFrame lang={lang} page="tokusho" title={tokusho.title[lang]} updated={tokushoUpdated[lang]} toc={[]}>
       {/* Build step 7: a hairline ledger, the item in gold-dark beside its
           detail. On EN the ※ layaway row is tinted so it reads as a footnote;
           on JA it is not there at all (owner decision 2026-09-25). */}
       <dl className="border-t border-hairline text-[16px] leading-[1.8] [:lang(ja)_&]:text-[15.5px] [:lang(ja)_&]:leading-[1.95]">
-        {tokushoRowsFor(layaway).map(({ k, v, layaway: note }) => (
+        {tokushoRowsFor(layaway, offered).map(({ k, v, layaway: note }) => (
           // Keyed on the Japanese label because it is stable — the key must
           // not change when the toggle does.
           <div key={k.ja} className={`grid gap-1 border-b border-hairline py-[18px] sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-6 lg:grid-cols-[300px_minmax(0,1fr)] ${note ? "-mx-4 bg-white px-4" : ""}`}>

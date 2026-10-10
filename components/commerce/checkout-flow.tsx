@@ -926,7 +926,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                               <span className="mt-1 block text-[13px] leading-relaxed text-charcoal/75">{o.offered ? methodNote(o.method) : optionWhy(o)}</span>
                               {/* P05 (owner 2026-10-08): what Paidy needs from the buyer, stated where she chooses it. */}
                               {o.method === "paidy" && o.offered && <span className="mt-1 block text-[12px] leading-relaxed text-charcoal/65" data-testid="checkout-paidy-needs">{t("checkout", "methodPaidyNeeds")}</span>}
-                              {o.method === "card" && <CardMarks inline label={t("footer", "cards")} className="mt-2" />}
+                              {o.method === "card" && o.offered && <CardMarks inline label={t("footer", "cards")} className="mt-2" />}
                               {/* Cash on delivery: the Hub's COD fee for this order, never bracketed here. */}
                               {o.method === "cod" && o.offered && typeof o.fee_jpy === "number" && (
                                 <span className="cj-fig mt-1 block text-[13px] font-semibold text-charcoal-deep" data-testid="checkout-cod-fee">
