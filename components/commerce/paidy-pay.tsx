@@ -10,7 +10,7 @@ import { paidyStatus } from "@/lib/paidy";
 import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
 import { paidy612Active } from "@/lib/paidy-widget";
 import {
-  afterAuthorized, closedOutcome, holdAfterFiling, holdAfterResend, holdOnLoad, holdTick, needsResend, parseHold,
+  afterAuthorized, closedOutcome, holdAfterFiling, holdAfterResend, holdBeforeResend, holdOnLoad, holdTick, parseHold, resendDue,
   PAIDY_POLL_MS, safeAction, startRefusal, type HoldReason, type PaidyHold,
 } from "@/lib/paidy-flow";
 
@@ -89,6 +89,10 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
   const [billingId, setBillingId] = useState<string | null>(paidy.billing_address_id ?? choices[0]?.id ?? null);
   const [scriptFailed, setScriptFailed] = useState(false);
   const hold = useRef<PaidyHold | null>(null);
+  // M-1: this page load's own id. A re-send that failed on THIS page load is
+  // tried once more only from another one (a reload carries fresh
+  // server-action ids); lib/paidy-flow.ts resendDue.
+  const pageId = useRef<string>(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`).current;
 
   // H3: enter a hold — the button stays disabled until the Hub's answer.
   const enterHold = (h: PaidyHold) => {
@@ -99,18 +103,20 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
   };
   const beginHold = (reason: HoldReason) => enterHold({ reason, since: Date.now(), saw: false });
 
-  // L3: hand an approved Paidy id the Hub never received to the Hub ONCE more
-  // (idempotent there for a known id). Marked as sent BEFORE the call, so a
-  // reload during it never sends it a third time.
+  // L3 / M-1: hand an approved Paidy id the Hub never received to the Hub
+  // again (idempotent there for a known id) — only when resendDue says so: one
+  // poll interval after the failure, at most twice per approval, the second
+  // only after a reload. Counted BEFORE the call, so a reload during it never
+  // repeats it.
   const resend = (h: PaidyHold) => {
-    if (!needsResend(h) || !h.paidyId) return;
-    const sent: PaidyHold = { ...h, resent: true };
+    if (!resendDue(h, Date.now(), pageId) || !h.paidyId) return;
+    const sent = holdBeforeResend(h, Date.now(), pageId);
     hold.current = sent;
     writeHold(orderId, sent);
     const id = h.paidyId;
     start(async () => {
       const r = await safeAction(() => paidyAuthorizedAction(orderId, id), FILE_MS, (code) => ({ ok: false as const, code }));
-      const next = holdAfterResend(sent, r.ok ? null : r.code);
+      const next = holdAfterResend(sent, r.ok ? null : r.code, Date.now());
       if (hold.current === sent) {
         hold.current = next;
         writeHold(orderId, next);
@@ -144,12 +150,12 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
     const act = () => {
       const cur = hold.current;
       if (!cur) return;
-      const d = holdTick(cur, windowOpen, Date.now());
+      const d = holdTick(cur, windowOpen, Date.now(), pageId);
       if (d === "resend") resend(cur);
       else if (d === "release") release();
       else router.refresh();
     };
-    const first = holdTick(h, windowOpen, Date.now());
+    const first = holdTick(h, windowOpen, Date.now(), pageId);
     if (first === "release") { release(); return; }
     if (first === "resend") resend(h);
     const timer = setInterval(act, PAIDY_POLL_MS);
@@ -226,9 +232,9 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
                 // button never simply comes back (H3) — the Hub's answer decides.
                 const failCode = r.ok ? null : r.code;
                 const next = afterAuthorized(failCode);
-                // L3: a filing that never reached the Hub keeps the Paidy id
-                // for one re-send on the next poll or after a reload.
-                if (next === "uncertain" || next === "releasing") enterHold(holdAfterFiling(next, failCode, result.id, Date.now()));
+                // L3: a filing the Hub never saw (network, timeout, failed,
+                // signed_out) keeps the Paidy id for a later re-send.
+                if (next === "uncertain" || next === "releasing") enterHold(holdAfterFiling(next, failCode, result.id, Date.now(), pageId));
                 else if (next === "refresh") { setCode(failCode); setState("error"); router.refresh(); }
                 else router.refresh();
               });

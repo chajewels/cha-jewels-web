@@ -100,15 +100,47 @@ export function isAttemptId(v: unknown): v is string {
 
 /**
  * A hold survives a reload of the page in the same tab (H3). L3: when the
- * filing of an approved payment never reached the Hub (network / timeout), the
- * Paidy payment id is kept so it can be handed to the Hub ONCE more on the next
- * poll or after a reload — POST /orders/:id/paidy is idempotent for a known id,
- * and an id the Hub never received is what lets her window end with nothing
- * noted (and a second hold on her Paidy limit follow).
+ * filing of an approved payment did not reach the Hub, the Paidy payment id
+ * is kept so it can be handed to the Hub again — POST /orders/:id/paidy is
+ * idempotent for a known id, and an id the Hub never received is what lets her
+ * window end with nothing noted (and a second hold on her Paidy limit follow).
+ *
+ * Review fix M-1 (2026-10-10): at most PAIDY_MAX_RESENDS re-sends per
+ * approval, never a loop, and never at the moment of the failure:
+ *   - the first no earlier than one poll interval after the failure (a
+ *     dropped connection gets time to come back; a timed-out POST that may
+ *     still be running is not duplicated at once);
+ *   - the second only after a RELOAD of the page (a fresh page carries fresh
+ *     server-action ids — the deploy-skew case, where the old page's action
+ *     throws every time), again one poll interval after the last failure.
+ *
+ *   pending   the Hub has not seen the id yet (a re-send may still be due)
+ *   resends   re-sends already made for this approval
+ *   failedAt  when the last attempt (filing or re-send) failed
+ *   page      the page load that made that attempt (pageId of the mount)
  */
-export type PaidyHold = { reason: HoldReason; since: number; saw: boolean; paidyId?: string; resent?: boolean };
+export type PaidyHold = {
+  reason: HoldReason; since: number; saw: boolean;
+  paidyId?: string; pending?: boolean; resends?: number; failedAt?: number; page?: string;
+};
+
+export const PAIDY_MAX_RESENDS = 2;
 
 const PAIDY_PAYMENT_ID = /^pay_[A-Za-z0-9_-]{6,80}$/;
+
+/**
+ * Filing answers that mean the Hub never received the id (L3 + review L-1):
+ *   network / timeout — the call never answered;
+ *   failed            — any non-Hub error between the site's server and the
+ *                       Hub, or a Hub 5xx before it read the id;
+ *   signed_out        — refused before any Hub call (no session token) or by
+ *                       the Hub's sign-in check before the body is read.
+ * Any other answer is the Hub's own refusal of an id it has read.
+ */
+const HUB_NEVER_SAW = new Set(["network", "timeout", "failed", "signed_out"]);
+export function hubNeverSawId(code: string | null): boolean {
+  return code !== null && HUB_NEVER_SAW.has(code);
+}
 
 /** A stored hold, or null when it is missing or not one this code wrote. */
 export function parseHold(raw: string | null | undefined): PaidyHold | null {
@@ -121,64 +153,95 @@ export function parseHold(raw: string | null | undefined): PaidyHold | null {
   const out: PaidyHold = { reason: h.reason, since: h.since, saw: h.saw === true };
   if (typeof h.paidyId === "string" && PAIDY_PAYMENT_ID.test(h.paidyId)) {
     out.paidyId = h.paidyId;
-    out.resent = h.resent === true;
+    out.pending = h.pending === true;
+    const n = Number(h.resends);
+    out.resends = Number.isInteger(n) && n >= 0 ? Math.min(n, PAIDY_MAX_RESENDS) : PAIDY_MAX_RESENDS;
+    out.failedAt = typeof h.failedAt === "number" && Number.isFinite(h.failedAt) ? h.failedAt : out.since;
+    if (typeof h.page === "string") out.page = h.page;
   }
   return out;
 }
 
-/** L3: an approved Paidy id the Hub never received, not yet sent again. */
-export function needsResend(h: PaidyHold | null): boolean {
-  return !!h && !!h.paidyId && h.resent !== true;
+/**
+ * L3 / M-1: whether the id may be sent again NOW from the page load `pageId`.
+ * One poll interval after the last failure; the first re-send from any page,
+ * the second only from a page other than the one whose attempt failed last
+ * (i.e. after a reload); never more than PAIDY_MAX_RESENDS.
+ */
+export function resendDue(h: PaidyHold | null, now: number, pageId: string): boolean {
+  if (!h || !h.paidyId || h.pending !== true) return false;
+  const n = h.resends ?? PAIDY_MAX_RESENDS;
+  if (n >= PAIDY_MAX_RESENDS) return false;
+  if (now - (h.failedAt ?? h.since) < PAIDY_POLL_MS) return false;
+  return n === 0 || h.page !== pageId;
+}
+
+/** A re-send may still come (now or later, possibly only after a reload). */
+export function resendPossible(h: PaidyHold | null): boolean {
+  return !!h && !!h.paidyId && h.pending === true && (h.resends ?? PAIDY_MAX_RESENDS) < PAIDY_MAX_RESENDS;
 }
 
 /**
  * The hold to enter after Paidy said AUTHORIZED and the filing answered
- * `code`. `next` is afterAuthorized(code). The Paidy id is kept only when the
- * filing never reached the Hub (network / timeout) — any answer from the Hub
- * means it has seen the id already.
+ * `code`. `next` is afterAuthorized(code). The Paidy id is kept for a later
+ * re-send only when the Hub never saw it (hubNeverSawId).
  */
-export function holdAfterFiling(next: HoldReason, code: string | null, paidyId: string | undefined, now: number): PaidyHold {
+export function holdAfterFiling(next: HoldReason, code: string | null, paidyId: string | undefined, now: number, pageId: string): PaidyHold {
   const h: PaidyHold = { reason: next, since: now, saw: false };
-  if ((code === "network" || code === "timeout") && typeof paidyId === "string" && PAIDY_PAYMENT_ID.test(paidyId)) {
-    h.paidyId = paidyId;
-    h.resent = false;
+  if (hubNeverSawId(code) && typeof paidyId === "string" && PAIDY_PAYMENT_ID.test(paidyId)) {
+    Object.assign(h, { paidyId, pending: true, resends: 0, failedAt: now, page: pageId });
   }
   return h;
 }
 
+/** Marks a re-send as made BEFORE the call, so a reload during it never repeats it. */
+export function holdBeforeResend(h: PaidyHold, now: number, pageId: string): PaidyHold {
+  return { ...h, resends: (h.resends ?? 0) + 1, failedAt: now, page: pageId };
+}
+
 /**
- * After the one re-send (L3): filed → the hold stays (the refreshed page shows
- * "being processed"); a Hub refusal follows afterAuthorized — "releasing" only
- * where the Hub itself releases the hold at Paidy; anything else keeps waiting.
- * Never sent a second time.
+ * After a re-send (L3): when the Hub still never saw the id the hold stays
+ * pending (another re-send only if resendDue allows it — after a reload, at
+ * most PAIDY_MAX_RESENDS in all); any Hub answer ends the re-sending. Filed →
+ * the hold stays (the refreshed page shows "being processed"); a refusal
+ * follows afterAuthorized — "releasing" only where the Hub itself releases
+ * the hold at Paidy; anything else keeps waiting.
  */
-export function holdAfterResend(h: PaidyHold, code: string | null): PaidyHold {
+export function holdAfterResend(h: PaidyHold, code: string | null, now: number): PaidyHold {
   const next = afterAuthorized(code);
-  return { ...h, resent: true, reason: next === "releasing" ? "releasing" : h.reason };
+  return {
+    ...h,
+    pending: hubNeverSawId(code),
+    failedAt: now,
+    reason: next === "releasing" ? "releasing" : h.reason,
+  };
 }
 
 /**
  * L6: a hold found in the tab when the page loads. Dropped when it is over
  * (holdEnded), and an "uncertain" hold is stale when the Hub shows no open
  * window (the Hub filed it and the order later came back, or nothing is held
- * any more) — EXCEPT while an approved id still has to be handed to the Hub
- * (L3): that is sent first.
+ * any more) — EXCEPT while an approved id may still have to be handed to the
+ * Hub (L3): that is sent first.
  */
 export function holdOnLoad(h: PaidyHold | null, windowOpen: boolean, now: number): "keep" | "drop" | "none" {
   if (!h) return "none";
-  if (needsResend(h)) return "keep";
+  if (resendPossible(h)) return "keep";
   if (h.reason === "uncertain" && !windowOpen) return "drop";
   return holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now }) ? "drop" : "keep";
 }
 
 /**
- * L6: every poll tick (and each new Hub answer) while held. A pending re-send
- * goes first; then the hold ends when holdEnded says so (the time limit is
- * checked on every tick, so a page left open ends at the same moment as a
- * reloaded one); otherwise ask the Hub again.
+ * L6: every poll tick (and each new Hub answer) while held, on page load
+ * `pageId`. A due re-send goes first; a re-send that is not due yet keeps the
+ * hold (it must not be released under an id the Hub has never seen while one
+ * is still possible from this page); then the hold ends when holdEnded says so
+ * (the time limit is checked on every tick, so a page left open ends at the
+ * same moment as a reloaded one); otherwise ask the Hub again.
  */
-export function holdTick(h: PaidyHold, windowOpen: boolean, now: number): "resend" | "release" | "poll" {
-  if (needsResend(h)) return "resend";
+export function holdTick(h: PaidyHold, windowOpen: boolean, now: number, pageId: string): "resend" | "release" | "poll" {
+  if (resendDue(h, now, pageId)) return "resend";
+  if (resendPossible(h) && ((h.resends ?? 0) === 0 || h.page !== pageId)) return "poll";
   return holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now }) ? "release" : "poll";
 }
 
@@ -201,12 +264,28 @@ export function closedOutcome(status: "AUTHORIZED" | "REJECTED" | "CLOSED" | "UN
  * means something already holds the order — since the Hub's second-hold fix,
  * possibly an approval Paidy reported that the Hub has not filed yet — so the
  * page shows its "being checked" hold, never a live button over an error.
- * Any other refusal is an error line; a start that failed for no named reason
- * (or never answered) gets the start's own words — nothing was opened, so
- * nothing can have been "recorded".
+ * Any other refusal is an error line; a TRANSIENT start failure (no answer,
+ * a timeout, a Hub 5xx — code "failed") gets the start's own "try again in a
+ * moment" words — nothing was opened, so nothing can have been "recorded".
+ * A permanent refusal (method_not_chosen, order_cannot_take_payment, any
+ * other Hub 4xx) arrives as paidy_not_offered (review L-2; paidy-actions.ts)
+ * and keeps its "not available — reload" line.
  */
 export function startRefusal(code: string): { hold: true } | { hold: false; code: string } {
   if (code === "payment_in_progress") return { hold: true };
   if (code === "failed" || code === "network" || code === "timeout") return { hold: false, code: "start_failed" };
   return { hold: false, code };
+}
+
+/**
+ * Review L-2 (2026-10-10): the code a refused START reports. `code` is the
+ * filing-style mapping (paidyCode); `hubStatus` the Hub's HTTP status, or null
+ * when the Hub never answered. An unnamed Hub 4xx (method_not_chosen,
+ * order_not_found, …) is permanent for this page → paidy_not_offered; only a
+ * transient failure (no answer, Hub 5xx) stays "failed" (→ start_failed).
+ */
+export function startFailureCode(code: string, hubStatus: number | null): string {
+  if (code !== "failed") return code;
+  if (hubStatus !== null && hubStatus >= 400 && hubStatus < 500) return "paidy_not_offered";
+  return "failed";
 }
