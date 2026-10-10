@@ -474,9 +474,13 @@ export const tokusho = {
     },
     {
       k: { ja: "商品代金以外の必要料金", en: "Charges besides the price" },
+      // Cash on delivery fee added 2026-10-10 (owner plan). DRAFT wording — the
+      // owner approves it before release. The figures are the Hub's seed table
+      // (Website → Settings → Cash on delivery); change them here only when the
+      // owner changes that table.
       v: {
-        ja: "送料、銀行振込手数料、コンビニ決済手数料",
-        en: "Shipping, bank transfer fees, and convenience-store payment fees",
+        ja: "送料、銀行振込手数料、コンビニ決済手数料、代金引換手数料（代金引換をお選びの場合。お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円）",
+        en: "Shipping, bank transfer fees, convenience-store payment fees, and a cash on delivery fee if you choose cash on delivery (by the amount collected on delivery, pieces and shipping together: up to ¥10,000 — ¥1,040; up to ¥30,000 — ¥1,150; up to ¥100,000 — ¥1,370; up to ¥300,000 — ¥1,810)",
       },
     },
     {
@@ -484,8 +488,9 @@ export const tokusho = {
       v: {
         // Paidy ato-barai added 2026-10-03 (Paidy's prescribed label; the
         // row wording is the owner's to compare with Paidy's 記載例 before release).
-        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）",
-        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen), and layaway※",
+        // Cash on delivery added 2026-10-10 (DRAFT, owner to approve).
+        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）、代金引換（日本国内へのお届け・日本円・一括払いのご注文で、お受け取り時のお支払い額が30万円以下の場合に限ります）",
+        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen), cash on delivery (代金引換; delivery in Japan, orders in yen paid in full, where the amount collected on delivery is ¥300,000 or less), and layaway※",
       },
     },
     {
@@ -495,15 +500,15 @@ export const tokusho = {
       // authorised (held) when she pays and charged when we confirm it.
       // Wording is the owner's to approve before release.
       v: {
-        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。",
-        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。代金引換の場合は、商品お受け取り時に配達員へお支払いください（お支払い期限はありません）。",
+        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). With cash on delivery, you pay the courier when you receive the piece (there is no deadline). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {
       k: { ja: "引渡時期", en: "When we deliver" },
       v: {
-        ja: "入金確認後5営業日以内に発送。",
-        en: "Dispatched within five business days of payment clearing. Layaway※ ships after the final payment",
+        ja: "入金確認後5営業日以内に発送。代金引換の場合は、ご注文確認後に発送します。",
+        en: "Dispatched within five business days of payment clearing. Cash on delivery orders are dispatched after we confirm the order. Layaway※ ships after the final payment",
       },
     },
     {
@@ -1062,6 +1067,8 @@ export const tosArticles: LegalArticle[] = [
     h: { ja: "お支払い", en: "Payment" },
     blocks: [
       { kind: "p", text: { ja: "ご利用いただけるお支払方法は、ご注文手続きの画面に表示し、または請求書に記載します。", en: "Available payment methods are displayed during checkout or stated on the invoice." } },
+      // Cash on delivery (2026-10-10) — DRAFT wording, owner to approve.
+      { kind: "p", text: { ja: "代金引換をお選びの場合は、商品お受け取りの際に配達員へお支払いいただきます。代金引換手数料はお客様のご負担となり、ご注文の合計に含めて表示します。", en: "If you choose cash on delivery, you pay the courier when you receive the piece. The cash on delivery fee is paid by the customer and is shown in the order total." } },
       { kind: "p", text: { ja: "お客様は、次の事項を表明していただくものとします。", en: "You confirm that:" } },
       { kind: "list", items: { ja: ["お選びのお支払方法をご利用になる権限を有していること。", "ご提供いただいたお支払いに関する情報が正確であること。", "資金が違法な行為に由来するものでないこと。", "所定の期限までにすべての金額をお支払いいただくこと。"], en: ["You are authorized to use the selected payment method.", "The payment information provided is accurate.", "The funds do not come from unlawful activity.", "You will pay all amounts by the stated deadlines."] } },
       { kind: "p", text: { ja: "ご注文は、当社がお支払いを受領し、その内容を確認するまで、お支払い済みとは扱いません。", en: "An order is not considered paid until the payment has been received and validated by Cha Jewels." } },

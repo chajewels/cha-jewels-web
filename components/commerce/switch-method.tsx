@@ -25,7 +25,7 @@ export function SwitchMethod({ orderId, methods, lang }: { orderId: string; meth
   const panelId = useId();
   if (methods.length === 0) return null;
 
-  const name = (m: CheckoutMethod) => (m === "paidy" ? t("checkout", "methodPaidy") : m === "card" ? t("checkout", "methodCard") : t("checkout", "methodTransfer"));
+  const name = (m: CheckoutMethod) => (m === "paidy" ? t("checkout", "methodPaidy") : m === "card" ? t("checkout", "methodCard") : m === "cod" ? t("checkout", "methodCod") : t("checkout", "methodTransfer"));
   const confirm = () => {
     if (!picked) return;
     setError(null);
@@ -72,6 +72,8 @@ export function SwitchMethod({ orderId, methods, lang }: { orderId: string; meth
           ) : (
             <div className="mt-3">
               <p className="text-sm text-charcoal-deep">{t("orders", "switchConfirm", { method: name(picked) })}</p>
+              {/* Cash on delivery: the Hub adds its COD fee to the total (and re-reads the page after). */}
+              {picked === "cod" && <p className="mt-2 text-[13px] text-charcoal/80" data-testid="switch-cod-note">{t("orders", "switchCodNote")}</p>}
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" onClick={confirm} disabled={busy} className={`${btn} bg-charcoal-deep text-white hover:bg-charcoal`}>{t("orders", "switchConfirmButton")}</button>
                 <button type="button" onClick={() => setPicked(null)} disabled={busy} className={`${btn} text-charcoal/80 hover:text-charcoal-deep`}>{t("orders", "switchCancel")}</button>

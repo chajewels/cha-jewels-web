@@ -79,7 +79,7 @@ test("staff asked a question: the needs-info notice and no way to pay until it i
 
 test("an older Hub (no chosen method, no decision) reads exactly as today", () => {
   const d = orderDisplay({ order: pending, beingChecked: false });
-  assert.deepEqual(d, { headlineKey: null, stage: 3, stage3Key: "stagePayment", stageInProgress: false, notice: null, payBlocked: false });
+  assert.deepEqual(d, { headlineKey: null, stage: 3, stage3Key: "stagePayment", stage4Key: "stagePaid", stage5Key: "stageShipped", stageInProgress: false, notice: null, payBlocked: false });
   const n = orderDisplay({ order: pending, chosenMethod: null, beingChecked: false, latestDecision: null });
   assert.deepEqual(n, d);
   assert.equal(orderStatusLabel(pending, "ja").text, "お振込待ち");

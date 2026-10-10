@@ -9,7 +9,9 @@ import type { CheckoutMethod } from "@/lib/types";
  */
 export type SwitchErrorKey = "switchInProgress" | "switchNotAllowed" | "switchFailed";
 
-const NOT_ALLOWED = new Set(["not_rejected", "not_payable", "method_not_offered", "method_requires_yen", "unchanged", "already_switched"]);
+// Cash on delivery (Hub 2026-10-10): method_unavailable / over_cod_limit /
+// cod_nothing_to_collect — the Hub no longer offers COD on this order.
+const NOT_ALLOWED = new Set(["not_rejected", "not_payable", "method_not_offered", "method_requires_yen", "unchanged", "already_switched", "method_unavailable", "over_cod_limit", "cod_nothing_to_collect"]);
 
 export function switchErrorKey(code: string): SwitchErrorKey {
   if (code === "payment_in_progress") return "switchInProgress";
@@ -17,9 +19,9 @@ export function switchErrorKey(code: string): SwitchErrorKey {
   return "switchFailed";
 }
 
-const METHODS: readonly CheckoutMethod[] = ["transfer", "paidy", "card"];
+const METHODS: readonly CheckoutMethod[] = ["transfer", "paidy", "card", "cod"];
 
-/** Server-action arguments are untrusted: only the three checkout methods. */
+/** Server-action arguments are untrusted: only the four checkout methods. */
 export function isSwitchMethod(m: unknown): m is CheckoutMethod {
   return typeof m === "string" && (METHODS as readonly string[]).includes(m);
 }

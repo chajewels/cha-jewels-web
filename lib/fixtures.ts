@@ -526,6 +526,13 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
   };
 }
 
+/** Preview only: the Hub's seed COD fee table (owner 2026-10-10), inclusive brackets. */
+const FIXTURE_COD_TABLE: readonly { max_jpy: number; fee_jpy: number }[] = [
+  { max_jpy: 10000, fee_jpy: 1040 }, { max_jpy: 30000, fee_jpy: 1150 },
+  { max_jpy: 100000, fee_jpy: 1370 }, { max_jpy: 300000, fee_jpy: 1810 },
+];
+/** Preview: NEXT_PUBLIC_PREVIEW_COD=off draws COD greyed with reason "off" (the Hub's switch). */
+const PREVIEW_COD_OFF = process.env.NEXT_PUBLIC_PREVIEW_COD === "off";
 /** Preview only: the shape the Hub answers for the payment choice (FIXTURE_POINTS balance, yen 1:1). */
 const FIXTURE_POINTS = 1250;
 let fixtureChoiceContext: { mode: CheckoutMode; settlement: SettlementCurrency; subtotal: number; total: number; deposit: number | null } =
@@ -537,14 +544,29 @@ function choiceBlockOf(mode: CheckoutMode, settlement: SettlementCurrency, subto
   const limit = mode === "layaway" ? deposit ?? 0 : subtotal;
   const max = yen ? Math.min(FIXTURE_POINTS, limit) : 0;
   const chosen = Math.min(Math.max(0, Math.floor(choice.points)), max);
+  // Cash on delivery (Hub 2026-10-10): the Hub's rule and seed table, mirrored
+  // here ONLY so preview mode draws the option — the live storefront never
+  // brackets a fee (check:money). Preview addresses are in Japan.
+  const collected = total - chosen;
+  const codReason = mode === "layaway" ? "layaway" : !yen ? "currency_not_yen" : PREVIEW_COD_OFF ? "off"
+    : collected <= 0 ? "nothing_to_collect" : collected > FIXTURE_COD_TABLE[FIXTURE_COD_TABLE.length - 1].max_jpy ? "over_cod_limit" : null;
+  const codFee = codReason === null ? FIXTURE_COD_TABLE.find((b) => collected <= b.max_jpy)!.fee_jpy : null;
+  const codChosen = choice.method === "cod" && codFee !== null ? codFee : 0;
   return {
-    payment_options: (["transfer", "paidy", "card"] as const).map((m) => ({ method: m, offered: why(m) === null, reason: why(m) })),
+    payment_options: [
+      ...(["transfer", "paidy", "card"] as const).map((m) => ({ method: m, offered: why(m) === null, reason: why(m) })),
+      { method: "cod" as const, offered: codReason === null, reason: codReason, fee_jpy: codFee },
+    ],
     payment_method: choice.method,
     points: {
       usable: max > 0, reason: null, balance: FIXTURE_POINTS, held: 0, available: FIXTURE_POINTS,
       available_value: yen ? FIXTURE_POINTS : 0, max_points: max, max_value: max, chosen, chosen_value: chosen, applies_to: mode === "layaway" ? "deposit" : "pieces",
     },
-    totals: { total_after_points: total - chosen, due_now_after_points: (mode === "layaway" ? deposit ?? 0 : total) - chosen },
+    totals: {
+      cod_fee: codChosen,
+      total_after_points: total - chosen + codChosen,
+      due_now_after_points: mode === "layaway" ? (deposit ?? 0) - chosen : total - chosen + codChosen,
+    },
   };
 }
 export function checkoutChoiceFixture(choice: { method: CheckoutMethod; points: number }): HubCheckoutChoice {
