@@ -41,3 +41,24 @@ export function paidyWidgetAttrs(amountJpy: number, now: number = Date.now()): R
     ...plans612,
   };
 }
+
+/**
+ * M2 (Paidy QC, 2026-10-10): Paidy's script renders every
+ * `._paidy-promotional-messaging` div once, when it first loads. next/script
+ * loads a given src once per document, so a product page reached by a
+ * client-side navigation (a related piece, a sold alternative) would keep an
+ * empty div. Paidy's manual: call `_paidy("pm:refresh")` after the markup or
+ * data-amount changes. Guarded: before the script has loaded there is nothing
+ * to refresh (the script renders the div itself when it arrives), and a
+ * throwing third-party call never breaks the page. Answers whether it called.
+ */
+export function refreshPaidyWidget(w: { _paidy?: unknown } | undefined): boolean {
+  const fn = w?._paidy;
+  if (typeof fn !== "function") return false;
+  try {
+    (fn as (cmd: string) => unknown)("pm:refresh");
+    return true;
+  } catch {
+    return false;
+  }
+}

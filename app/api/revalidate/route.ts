@@ -8,16 +8,20 @@ import { NextResponse } from "next/server";
  * server does with its cache, and the only thing standing between it and the
  * internet is one shared secret. A `tag` taken at face value would let anyone
  * who ever sees that secret evict anything the site caches by name — including
- * "fx" and the per-customer reads — as fast as they can POST. Two names are
- * what the Hub actually needs, so two names are what it gets.
+ * "fx" and the per-customer reads — as fast as they can POST. The names below
+ * are what the Hub actually needs, so they are all it gets.
  *
  *   catalog  products, variants, stock, collections, categories
  *   content  the owner-editable site settings (GET /content/settings)
+ *   paidy    the Paidy switch (GET /paidy/widget: product widget, footer chip,
+ *            特定商取引法 Paidy entries) — L1, 2026-10-10
+ *   square   the card switch (GET /payments/offered: footer card marks,
+ *            特定商取引法 card entries) — L1, 2026-10-10
  *
  * They are separate on purpose: a price change and a footer edit are different
  * events, and neither should throw away the other's cache.
  */
-const TAGS = ["catalog", "content"] as const;
+const TAGS = ["catalog", "content", "paidy", "square"] as const;
 
 /**
  * Paths the Hub may name outright, for a page whose content has no slug of its
