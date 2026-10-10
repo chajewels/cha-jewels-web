@@ -1060,7 +1060,7 @@ export const dict = {
     // H3: the Hub refused an approval Paidy gave; it releases the hold at Paidy.
     releasing: { ja: "ペイディで承認されたお支払いをこのご注文に使えなかったため、ペイディの与信を解除しています。二重のお支払いを防ぐため、解除が確認できるまでペイディのボタンは使えません。ご不明な点はお問い合わせください。", en: "Paidy approved this payment, but it could not be used for this order, so we are releasing the hold at Paidy. To protect you from paying twice, the Paidy button stays off until that is confirmed. Contact us if you have any questions." },
     // M8 / S-L1 / S-L5
-    errNetwork: { ja: "通信が途切れたため、確認できませんでした。接続をご確認のうえ、ページを再読み込みしてください。", en: "The connection dropped before we could confirm. Please check your connection and reload the page." },
+    errNetwork: { ja: "サーバーに接続できず、確認できませんでした。接続をご確認のうえ、ページを再読み込みしてください。", en: "We could not reach our server to confirm. Please check your connection and reload the page." },
     errScript: { ja: "ペイディを読み込めませんでした。接続をご確認のうえ、ページを再読み込みしてください。", en: "Paidy could not be loaded. Please check your connection and reload the page." },
     signInAgain: { ja: "サインインする", en: "Sign in" },
     // P05 (owner 2026-10-08): what Paidy needs from the buyer herself.

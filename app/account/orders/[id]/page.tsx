@@ -182,11 +182,13 @@ export default async function OrderDetailPage({ params, searchParams }: {
             {/* Paidy (ato-barai) first when the Hub offers it (PD2): a
                 Japanese delivery address, a yen order, nothing pending. The
                 bank details stay underneath — one more way to pay. */}
-            {windowOpen && (
+            {/* Without the Paidy button here, the notice says nothing about
+                opening Paidy again (S-L6); with it, PaidyPay shows the notice
+                itself and hides it while it waits for the Hub (review fix 4). */}
+            {windowOpen && !(paidy && boxes.paidy) && (
               <div className="mb-5 border border-gold-dark bg-white p-4 sm:p-5" role="status" data-testid="paidy-window-open">
                 <h3 className="font-display text-[17px] text-charcoal-deep">{t("paidy", "windowOpenTitle")}</h3>
-                {/* S-L6: "open Paidy again" only when the Paidy button is on this page. */}
-                <p className="mt-1 text-sm text-charcoal/80">{t("paidy", paidy && boxes.paidy ? "windowOpenBody" : "windowOpenBodyNoReopen")}</p>
+                <p className="mt-1 text-sm text-charcoal/80">{t("paidy", "windowOpenBodyNoReopen")}</p>
               </div>
             )}
             {paidy && boxes.paidy && <PaidyPay orderId={order.id} paidy={paidy} logoUrl={`${siteUrl()}/apple-icon.png`} lang={lang} windowOpen={windowOpen} />}

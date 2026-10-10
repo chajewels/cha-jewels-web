@@ -22,7 +22,6 @@ import { isAttemptId, startAnswerUsable } from "@/lib/paidy-flow";
  * other Hub call. Nothing about money is decided here.
  */
 const PAIDY_ID = /^pay_[A-Za-z0-9_-]{6,80}$/;
-const ATTEMPT_ID = /^[0-9a-f-]{36}$/i;
 // S-L4: one pattern for an order id, used by every action here.
 const ORDER_ID = /^[\w-]{1,64}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -74,7 +73,7 @@ export async function paidyStartAction(orderId: string, billingAddressId?: strin
 export async function paidyAbandonAction(orderId: string, attemptId: string, reason: "closed" | "rejected" | "error", paidyPaymentId?: unknown): Promise<ActionResult<null>> {
   const jwt = await customerJwt();
   if (!jwt) return { ok: false, code: "signed_out" };
-  if (typeof orderId !== "string" || !ORDER_ID.test(orderId) || typeof attemptId !== "string" || !ATTEMPT_ID.test(attemptId)) return { ok: false, code: "failed" };
+  if (typeof orderId !== "string" || !ORDER_ID.test(orderId) || !isAttemptId(attemptId)) return { ok: false, code: "failed" };
   // Server-action arguments are untrusted: only the three reasons the Hub knows.
   if (reason !== "closed" && reason !== "rejected" && reason !== "error") return { ok: false, code: "failed" };
   // PA04 (2026-10-08): the id Paidy's callback named for a rejected / closed
@@ -101,7 +100,8 @@ export async function paidyAuthorizedAction(orderId: string, paidyPaymentId: str
   const jwt = data.session?.access_token;
   if (!jwt) return { ok: false, code: "signed_out" };
   if (typeof orderId !== "string" || !ORDER_ID.test(orderId)) return { ok: false, code: "failed" };
-  if (typeof paidyPaymentId !== "string" || !PAIDY_ID.test(paidyPaymentId)) return { ok: false, code: "paidy_mismatch" };
+  // Not sent to the Hub at all, so nothing was released: its own code (review fix 3).
+  if (typeof paidyPaymentId !== "string" || !PAIDY_ID.test(paidyPaymentId)) return { ok: false, code: "paidy_bad_id" };
 
   try {
     await hub.orderPaidy(jwt, orderId, paidyPaymentId);

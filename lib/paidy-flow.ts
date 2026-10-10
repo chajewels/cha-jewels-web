@@ -44,10 +44,12 @@ export function afterAuthorized(code: string | null): "filed" | "uncertain" | "r
   if (code === "failed" || code === "signed_out" || code === "timeout" || code === "network") return "uncertain";
   // Another payment is already being checked: the refreshed page shows it.
   if (code === "submission_pending" || code === "payment_in_progress") return "refresh";
-  // The Hub refused this authorisation for this order (amount, reference,
-  // no longer offered…): it releases the hold at Paidy. Paidy stays off here
-  // until the Hub reports the window ended.
-  return "releasing";
+  // The Hub read the authorisation back and it did not match this order: the
+  // Hub releases it at Paidy (its own words for this refusal). Only then.
+  if (code === "paidy_mismatch") return "releasing";
+  // Any other refusal (rate limit, not offered, an id we could not even send,
+  // a code added later): we do not know what Paidy holds — wait for the Hub.
+  return "uncertain";
 }
 
 /** M8: a server action that never answers is ended here with a calm code. */

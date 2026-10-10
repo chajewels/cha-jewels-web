@@ -100,7 +100,10 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
   // A hold from before a reload of this page carries on.
   useEffect(() => {
     const h = readHold(orderId);
-    if (h && !holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) {
+    // An "uncertain" hold with no open window on the Hub is stale (the Hub
+    // filed it and the order later came back, or nothing is held any more).
+    const stale = h?.reason === "uncertain" && !windowOpen;
+    if (h && !stale && !holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) {
       hold.current = h;
       setState(h.reason);
     } else if (h) writeHold(orderId, null);
@@ -115,13 +118,14 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
     const h = hold.current;
     if (!h || (state !== "uncertain" && state !== "releasing")) return;
     if (windowOpen && !h.saw) { h.saw = true; writeHold(orderId, h); }
-    if (holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) {
-      hold.current = null;
-      writeHold(orderId, null);
-      setState("idle");
-      return;
-    }
-    const timer = setInterval(() => router.refresh(), PAIDY_POLL_MS);
+    const release = () => { hold.current = null; writeHold(orderId, null); setState("idle"); };
+    if (holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) { release(); return; }
+    // The time limit is checked on every tick too: a page left open must end
+    // the hold at the same moment as a reloaded one.
+    const timer = setInterval(() => {
+      if (holdEnded({ since: h.since, sawWindowOpen: h.saw, windowOpen, now: Date.now() })) release();
+      else router.refresh();
+    }, PAIDY_POLL_MS);
     return () => clearInterval(timer);
   }, [state, windowOpen, orderId, router]);
 
@@ -187,8 +191,8 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
                 // Paidy holds money for her in every case but "filed": the
                 // button never simply comes back (H3) — the Hub's answer decides.
                 const next = afterAuthorized(r.ok ? null : r.code);
-                if (!r.ok) setCode(r.code);
                 if (next === "uncertain" || next === "releasing") beginHold(next);
+                else if (next === "refresh") { setCode(r.ok ? null : r.code); setState("error"); router.refresh(); }
                 else router.refresh();
               });
             } else if (status === "REJECTED") {
@@ -218,7 +222,18 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
 
   const busy = state === "starting" || state === "open" || state === "filing" || state === "uncertain" || state === "releasing";
 
+  const held = state === "uncertain" || state === "releasing";
+
   return (
+    <>
+    {/* Review fix 4: the "not completed — open Paidy again" notice lives here,
+        so it never shows above a button that is held for the Hub's answer. */}
+    {windowOpen && !held && (
+      <div className="mb-5 border border-gold-dark bg-white p-4 sm:p-5" role="status" data-testid="paidy-window-open">
+        <h3 className="font-display text-[17px] text-charcoal-deep">{t("paidy", "windowOpenTitle")}</h3>
+        <p className="mt-1 text-sm text-charcoal/80">{t("paidy", "windowOpenBody")}</p>
+      </div>
+    )}
     <div className="mb-5 border border-gold-dark/60 bg-gold-pale/40 p-4 sm:p-5" data-testid="paidy-pay">
       <Script src={PAIDY_SRC} strategy="afterInteractive" charSet="utf-8" onLoad={() => setReady(true)} onReady={() => setReady(true)} onError={() => setScriptFailed(true)} />
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -284,6 +299,7 @@ export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: 
       {state === "releasing" && <p className="mt-3 text-sm text-charcoal/80" role="status">{t("paidy", "releasing")}</p>}
       <p className="mt-3 text-[12px] leading-relaxed text-charcoal/70">{t("paidy", "note")}</p>
     </div>
+    </>
   );
 }
 

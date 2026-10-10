@@ -29,8 +29,10 @@ test("H3: after Paidy approved, the button never simply comes back", () => {
   assert.equal(flow.afterAuthorized(null), "filed");
   for (const c of ["failed", "signed_out", "timeout", "network"]) assert.equal(flow.afterAuthorized(c), "uncertain", c);
   for (const c of ["submission_pending", "payment_in_progress"]) assert.equal(flow.afterAuthorized(c), "refresh", c);
-  for (const c of ["paidy_mismatch", "paidy_not_offered", "not_ready_for_payment", "too_many_submissions", "something_new"]) {
-    assert.equal(flow.afterAuthorized(c), "releasing", c);
+  // "releasing" only where the Hub itself releases the hold (review fix 3).
+  assert.equal(flow.afterAuthorized("paidy_mismatch"), "releasing");
+  for (const c of ["paidy_bad_id", "paidy_not_offered", "not_ready_for_payment", "too_many_submissions", "something_new"]) {
+    assert.equal(flow.afterAuthorized(c), "uncertain", c);
   }
 });
 
@@ -80,7 +82,7 @@ test("S-C4 / widget rule: Paidy's condition is about the customer, never a deliv
 test("M9: the declined and not-completed notices never say she closed Paidy herself", () => {
   for (const lang of ["en", "ja"]) {
     for (const k of ["rejected", "windowOpenTitle", "windowOpenBody", "windowOpenBodyNoReopen"]) {
-      assert.doesNotMatch(t(lang)("paidy", k), /It looks like you closed|閉じたようです|another way to pay\.$/, `${lang}.${k}`);
+      assert.doesNotMatch(t(lang)("paidy", k), /It looks like you closed|ようです|another way to pay\.$/, `${lang}.${k}`);
     }
   }
   assert.doesNotMatch(t("en")("paidy", "windowOpenBodyNoReopen"), /open Paidy again/);
@@ -91,5 +93,7 @@ test("S-C2: the legal notice never lists convenience-store payment as a Cha Jewe
   const src = JSON.stringify(legal);
   assert.doesNotMatch(src, /コンビニ決済/);
   assert.match(src, /コンビニ払い（コンビニ設置端末）、銀行振込及び口座振替/);
+  assert.match(src, /口座振替の場合は27日に引き落しとなります/);
+  assert.match(src, /最大390円（税込）/);
 });
 
