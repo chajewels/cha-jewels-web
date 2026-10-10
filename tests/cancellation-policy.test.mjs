@@ -85,3 +85,23 @@ test("checkout: required consent box gates the button; full payment says Place o
   assert.equal(dict.checkout.placeOrder.en, "Place order");
   assert.equal(dict.checkout.placeOrder.ja, "ご注文を確定する");
 });
+
+// PAY IN FULL says "order", a layaway says "reserve" (owner 2026-10-10).
+test("checkout: pay-in-full wording says order; layaway keeps reserve", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync(new URL("../components/commerce/checkout-flow.tsx", import.meta.url), "utf8");
+  const c = dict.checkout;
+  assert.equal(c.eyebrowOrder.en, "Order");
+  assert.equal(c.eyebrowOrder.ja, "ご注文手続き");
+  assert.equal(c.orderFirstH.en, "Order first, pay after.");
+  assert.equal(c.orderFirstH.ja, "ご注文が先、お支払いは後です。");
+  assert.equal(c.methodLockedOrder.en, "Once you place your order, your payment method is set. Contact us if it needs to change.");
+  assert.equal(c.methodLockedOrder.ja, "ご注文後はお支払い方法を変更できません。変更が必要な場合はご連絡ください。");
+  for (const k of ["eyebrowOrder", "orderFirstH", "methodLockedOrder"]) {
+    assert.doesNotMatch(c[k].en, /reserve/i, `${k}.en`);
+    assert.doesNotMatch(c[k].ja, /予約/, `${k}.ja`);
+  }
+  assert.match(src, /t\("checkout", mode === "layaway" \? "eyebrow" : "eyebrowOrder"\)/);
+  assert.match(src, /t\("checkout", mode === "layaway" \? "methodLocked" : "methodLockedOrder"\)/);
+  assert.match(src, /t\("checkout", mode === "layaway" \? "reserveFirstH" : "orderFirstH"\)/);
+});

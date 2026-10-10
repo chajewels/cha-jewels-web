@@ -706,6 +706,10 @@ export const dict = {
     stepsLabel: { ja: "手続きの段階", en: "Checkout steps" },
     stepOf: { ja: "ステップ {n} / 4：{label}", en: "Step {n} of 4: {label}" },
     eyebrow: { ja: "ご予約手続き", en: "Reserve" },
+    // PAY IN FULL says "order", never "reserve" (owner 2026-10-10: "reserve"
+    // reads as layaway). The *Order keys are the full-payment wording; the
+    // keys above stay for a layaway (English only).
+    eyebrowOrder: { ja: "ご注文手続き", en: "Order" },
     continueDelivery: { ja: "次へ：配送", en: "Continue: delivery" },
     continuePayment: { ja: "次へ：お支払い", en: "Continue: payment" },
     continueReview: { ja: "次へ：ご確認", en: "Continue: review" },
@@ -725,6 +729,7 @@ export const dict = {
     payJpy: { ja: "銀行振込（円）", en: "Bank transfer in yen" },
     payPhp: { ja: "振込（ペソ）", en: "Transfer in pesos" },
     reserveFirstH: { ja: "ご予約が先、お支払いは後です。", en: "Reserve first, pay after." },
+    orderFirstH: { ja: "ご注文が先、お支払いは後です。", en: "Order first, pay after." },
     seeSummary: { ja: "ご注文内容を見る", en: "See your order" },
     chooseAddress: { ja: "お届け先を選択", en: "Choose a delivery address" },
     newAddress: { ja: "新しいお届け先を追加", en: "Add a new address" },
@@ -795,6 +800,7 @@ export const dict = {
     methodWhyOff: { ja: "現在ご利用いただけません。", en: "Not available right now." },
     methodWhyNoAccount: { ja: "この通貨のお振込先が現在ありません。", en: "No transfer account for this currency right now." },
     methodLocked: { ja: "ご予約後はお支払い方法を変更できません。変更が必要な場合はご連絡ください。", en: "Once you reserve, your payment method is set. Contact us if it needs to change." },
+    methodLockedOrder: { ja: "ご注文後はお支払い方法を変更できません。変更が必要な場合はご連絡ください。", en: "Once you place your order, your payment method is set. Contact us if it needs to change." },
     methodUnavailable: { ja: "選択したお支払い方法は現在ご利用いただけません。別の方法をお選びください。", en: "That payment method can't be used for this order now. Please choose another." },
     usePoints: { ja: "ポイントを使う", en: "Use points" },
     pointsBalance: { ja: "保有ポイント：{points} ポイント（= {value}）", en: "You have {points} points (= {value})." },

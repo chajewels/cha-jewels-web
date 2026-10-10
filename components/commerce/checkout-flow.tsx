@@ -576,7 +576,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       </a>
       <div ref={topRef} className="wrap scroll-mt-24 pt-6 sm:pt-12">
         <div className="mb-6 sm:mb-8">
-          <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{t("checkout", "eyebrow")}</p>
+          <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{t("checkout", mode === "layaway" ? "eyebrow" : "eyebrowOrder")}</p>
           <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
         </div>
         <Stepper steps={steps} current={stepperAt} label={t("checkout", "stepsLabel")} stepOf={(n, label) => t("checkout", "stepOf", { n: String(n), label })} />
@@ -944,7 +944,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                         );
                       })}
                     </div>
-                    <p className="mt-2.5 text-[13px] text-charcoal/75">{t("checkout", "methodLocked")}</p>
+                    <p className="mt-2.5 text-[13px] text-charcoal/75">{t("checkout", mode === "layaway" ? "methodLocked" : "methodLockedOrder")}</p>
                   </fieldset>
                 ) : !quote.transfer_available ? (
                   <p role="alert" className={`mt-6 ${alertLight} px-4 py-3 text-sm`}>{t("checkout", "transferUnavailable")}</p>
@@ -1008,7 +1008,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     methods in this mode and this renders none (D3-8). */}
                 {methodOffered && reserving && (
                   <Notice icon={<Lock className="h-5 w-5" strokeWidth={1.5} />} className="mt-6">
-                    <b className="font-semibold">{t("checkout", "reserveFirstH")}</b>{" "}
+                    <b className="font-semibold">{t("checkout", mode === "layaway" ? "reserveFirstH" : "orderFirstH")}</b>{" "}
                     {mode === "layaway" ? t("checkout", "layawayReserveNote")
                       : method === "paidy" ? t("checkout", "reserveExplainPaidy")
                       : method === "card" ? t("checkout", "reserveExplainCard")
