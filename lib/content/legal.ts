@@ -449,11 +449,11 @@ function paymentTimingText({ card, paidy }: OfferedMethods): Record<Lang, string
   return {
     ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。"
       + (card ? "クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。" : "")
-      + (paidy ? "あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。" : "")
+      + (paidy ? "あと払い（ペイディ）の場合は、当社でご利用が確定した日の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は翌月27日（金融機関休業日の場合は翌営業日）に引き落しとなります。" : "")
       + "代金引換の場合は、商品お受け取り時に配達員へお支払いください（お支払い期限はありません）。",
     en: "After we confirm your order, by the deadline shown."
       + (card ? " By card, the amount is authorised (held) when you pay and charged when we confirm the payment." : "")
-      + (paidy ? " With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th." : "")
+      + (paidy ? " With Paidy, you pay Paidy in the month after we confirm the payment, as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th, or the next banking business day if the bank is closed." : "")
       + " With cash on delivery, you pay the courier when you receive the piece (there is no deadline). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
   };
 }
