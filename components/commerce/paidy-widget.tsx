@@ -1,7 +1,8 @@
 "use client";
 
 import Script from "next/script";
-import { PAIDY_WIDGET_SRC, paidyWidgetAttrs } from "@/lib/paidy-widget";
+import { useEffect } from "react";
+import { PAIDY_WIDGET_SRC, paidyWidgetAttrs, refreshPaidyWidget } from "@/lib/paidy-widget";
 import { tr, type Lang } from "@/lib/i18n";
 
 /**
@@ -21,13 +22,19 @@ import { tr, type Lang } from "@/lib/i18n";
  *       complete Japanese address (paidy-rules.ts); the note is information,
  *       the Hub is the guard.
  *
- * The price is the page's — one variant per piece, rendered on the server —
- * so there is no pm:refresh here; a page with a changing price must call
- * `_paidy('pm:refresh')` after updating data-amount. The script comes from
- * cdn.paidy.com, loaded lazily so it never blocks the page.
+ * The price is the page's — one variant per piece, rendered on the server.
+ * M2 (Paidy QC 2026-10-10): next/script loads the src once per document, so
+ * after a client-side navigation to another product page the script does not
+ * run again; the effect below calls `_paidy("pm:refresh")` after mount and
+ * whenever the amount changes (lib/paidy-widget.ts refreshPaidyWidget). The
+ * script comes from cdn.paidy.com, loaded lazily so it never blocks the page.
  */
 export function PaidyWidget({ amountJpy, lang, className = "" }: { amountJpy: number; lang: Lang; className?: string }) {
   const attrs = paidyWidgetAttrs(amountJpy);
+  const shown = attrs !== null;
+  useEffect(() => {
+    if (shown) refreshPaidyWidget(window as unknown as { _paidy?: unknown });
+  }, [amountJpy, shown]);
   if (!attrs) return null;
   const t = tr(lang);
   return (

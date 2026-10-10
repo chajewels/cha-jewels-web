@@ -437,15 +437,40 @@ function paymentMethodsText({ card, paidy }: OfferedMethods): Record<Lang, strin
   return { ja, en: list.charAt(0).toUpperCase() + list.slice(1) };
 }
 
-/** 支払時期: the card sentence follows the card switch; every other sentence is unchanged. */
-function paymentTimingText({ card }: OfferedMethods): Record<Lang, string> {
+/**
+ * 支払時期: the card sentence follows the card switch and the Paidy sentence
+ * follows the Paidy switch (L2, owner 2026-10-10 "follow the switch"); every
+ * other sentence is unchanged.
+ */
+function paymentTimingText({ card, paidy }: OfferedMethods): Record<Lang, string> {
   return {
     ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。"
       + (card ? "クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。" : "")
-      + "あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。代金引換の場合は、商品お受け取り時に配達員へお支払いください（お支払い期限はありません）。",
+      + (paidy ? "あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。" : "")
+      + "代金引換の場合は、商品お受け取り時に配達員へお支払いください（お支払い期限はありません）。",
     en: "After we confirm your order, by the deadline shown."
       + (card ? " By card, the amount is authorised (held) when you pay and charged when we confirm the payment." : "")
-      + " With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th. With cash on delivery, you pay the courier when you receive the piece (there is no deadline). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+      + (paidy ? " With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th." : "")
+      + " With cash on delivery, you pay the courier when you receive the piece (there is no deadline). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+  };
+}
+
+/**
+ * 商品代金以外の必要料金: the Paidy fee sentence follows the Paidy switch (L2,
+ * owner 2026-10-10 "follow the switch"). Konbini (コンビニ決済手数料) stays in
+ * every combination (owner rule 2026-10-10). Cash on delivery fee (owner
+ * approved 2026-10-10, tax included); the figures are the Hub's table
+ * (Website → Settings → Cash on delivery) — change them here only when the
+ * owner changes that table.
+ */
+function chargesText({ paidy }: OfferedMethods): Record<Lang, string> {
+  return {
+    ja: "送料、銀行振込手数料、コンビニ決済手数料。"
+      + (paidy ? "あと払い（ペイディ）の場合は、コンビニ払いの手数料（最大390円（税込））、銀行振込の場合の振込手数料。" : "")
+      + "代金引換の場合は、代金引換手数料（お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円。いずれも税込）",
+    en: "Shipping, bank transfer fees, and convenience-store payment fees"
+      + (paidy ? "; with Paidy (あと払い（ペイディ）), Paidy's convenience-store payment fee (up to ¥390, tax included) or, when you pay Paidy by bank transfer, the transfer fee" : "")
+      + "; with cash on delivery, a cash on delivery fee by the amount collected on delivery, pieces and shipping together (up to ¥10,000 — ¥1,040; up to ¥30,000 — ¥1,150; up to ¥100,000 — ¥1,370; up to ¥300,000 — ¥1,810; all tax included)",
   };
 }
 
@@ -523,16 +548,11 @@ export const tokusho = {
     },
     {
       k: { ja: "商品代金以外の必要料金", en: "Charges besides the price" },
-      v: {
-        // Owner 2026-10-10: コンビニ決済 stays (its own application is in
-        // progress; the owner says when to remove it). Paidy's fees added
-        // in Paidy's 特商法 wording. Cash on delivery fee (owner approved
-        // 2026-10-10, tax included); the figures are the Hub's table
-        // (Website → Settings → Cash on delivery) — change them here only
-        // when the owner changes that table.
-        ja: "送料、銀行振込手数料、コンビニ決済手数料。あと払い（ペイディ）の場合は、コンビニ払いの手数料（最大390円（税込））、銀行振込の場合の振込手数料。代金引換の場合は、代金引換手数料（お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円。いずれも税込）",
-        en: "Shipping, bank transfer fees, and convenience-store payment fees; with Paidy (あと払い（ペイディ）), Paidy's convenience-store payment fee (up to ¥390, tax included) or, when you pay Paidy by bank transfer, the transfer fee; with cash on delivery, a cash on delivery fee by the amount collected on delivery, pieces and shipping together (up to ¥10,000 — ¥1,040; up to ¥30,000 — ¥1,150; up to ¥100,000 — ¥1,370; up to ¥300,000 — ¥1,810; all tax included)",
-      },
+      // Owner 2026-10-10: コンビニ決済 stays (its own application is in
+      // progress; the owner says when to remove it). Paidy's fees in Paidy's
+      // 特商法 wording, only while Paidy is offered (L2): see chargesText.
+      v: chargesText(ALL_ON),
+      by: chargesText,
     },
     {
       k: { ja: "支払方法", en: "Payment methods" },
@@ -547,7 +567,8 @@ export const tokusho = {
       // after we confirm the order (every checkout is a draft); a card is
       // authorised (held) when she pays and charged when we confirm it.
       // Wording is the owner's to approve before release. The card sentence
-      // follows the card switch (2026-10-09): see paymentTimingText.
+      // follows the card switch (2026-10-09) and the Paidy sentence the Paidy
+      // switch (L2, 2026-10-10): see paymentTimingText.
       v: paymentTimingText(ALL_ON),
       by: paymentTimingText,
     },

@@ -54,6 +54,106 @@ test("S-L2: Paidy opens only with a whole start answer", () => {
   assert.equal(flow.startAnswerUsable(null), false);
 });
 
+// --- L3 / L6 (Paidy QC 2026-10-10): the hold rules, out of the component ---
+
+const PAY = "pay_asDHekoAAEkAmsmA";
+
+test("L6: a stored hold is read only when it is one this code wrote", () => {
+  assert.equal(flow.parseHold(null), null);
+  assert.equal(flow.parseHold("not json"), null);
+  assert.equal(flow.parseHold(JSON.stringify({ reason: "filed", since: T0, saw: false })), null);
+  assert.equal(flow.parseHold(JSON.stringify({ reason: "uncertain", since: "x", saw: false })), null);
+  assert.deepEqual(flow.parseHold(JSON.stringify({ reason: "uncertain", since: T0, saw: true })), { reason: "uncertain", since: T0, saw: true });
+  assert.deepEqual(flow.parseHold(JSON.stringify({ reason: "releasing", since: T0 })), { reason: "releasing", since: T0, saw: false });
+  // L3: a Paidy id survives only when it looks like one.
+  assert.deepEqual(flow.parseHold(JSON.stringify({ reason: "uncertain", since: T0, saw: false, paidyId: PAY })), { reason: "uncertain", since: T0, saw: false, paidyId: PAY, resent: false });
+  assert.deepEqual(flow.parseHold(JSON.stringify({ reason: "uncertain", since: T0, saw: false, paidyId: PAY, resent: true })), { reason: "uncertain", since: T0, saw: false, paidyId: PAY, resent: true });
+  assert.deepEqual(flow.parseHold(JSON.stringify({ reason: "uncertain", since: T0, saw: false, paidyId: "<script>" })), { reason: "uncertain", since: T0, saw: false });
+});
+
+test("L3: only a filing that never reached the Hub keeps the Paidy id", () => {
+  for (const c of ["network", "timeout"]) {
+    assert.deepEqual(flow.holdAfterFiling("uncertain", c, PAY, T0), { reason: "uncertain", since: T0, saw: false, paidyId: PAY, resent: false }, c);
+  }
+  // The Hub answered (it has seen the id), or the id is not one: nothing kept.
+  for (const c of ["failed", "signed_out", "too_many_submissions", "paidy_not_offered"]) {
+    assert.deepEqual(flow.holdAfterFiling("uncertain", c, PAY, T0), { reason: "uncertain", since: T0, saw: false }, c);
+  }
+  assert.deepEqual(flow.holdAfterFiling("releasing", "paidy_mismatch", PAY, T0), { reason: "releasing", since: T0, saw: false });
+  assert.deepEqual(flow.holdAfterFiling("uncertain", "network", "nope", T0), { reason: "uncertain", since: T0, saw: false });
+  assert.deepEqual(flow.holdAfterFiling("uncertain", "network", undefined, T0), { reason: "uncertain", since: T0, saw: false });
+});
+
+test("L3: the id is sent again exactly once", () => {
+  const h = flow.holdAfterFiling("uncertain", "network", PAY, T0);
+  assert.equal(flow.needsResend(h), true);
+  assert.equal(flow.needsResend(null), false);
+  assert.equal(flow.needsResend({ reason: "uncertain", since: T0, saw: false }), false);
+  const after = flow.holdAfterResend(h, null);
+  assert.equal(after.resent, true);
+  assert.equal(flow.needsResend(after), false);
+  assert.equal(after.reason, "uncertain");
+  // A failed re-send is never sent a third time; the Hub's own release still applies.
+  assert.equal(flow.needsResend(flow.holdAfterResend(h, "network")), false);
+  assert.equal(flow.holdAfterResend(h, "network").reason, "uncertain");
+  assert.equal(flow.holdAfterResend(h, "paidy_mismatch").reason, "releasing");
+  assert.equal(flow.holdAfterResend(h, "submission_pending").reason, "uncertain");
+});
+
+test("L6: on reload — stale uncertain dropped, ended dropped, a pending re-send kept", () => {
+  const u = { reason: "uncertain", since: T0, saw: false };
+  const r = { reason: "releasing", since: T0, saw: false };
+  assert.equal(flow.holdOnLoad(null, false, T0), "none");
+  // An "uncertain" hold with no open window on the Hub is stale.
+  assert.equal(flow.holdOnLoad(u, false, T0 + 1000), "drop");
+  assert.equal(flow.holdOnLoad(u, true, T0 + 1000), "keep");
+  assert.equal(flow.holdOnLoad({ ...u, saw: true }, true, T0 + 1000), "keep");
+  // Past the Hub's window length: over.
+  assert.equal(flow.holdOnLoad(u, true, T0 + flow.PAIDY_HOLD_MAX_MS), "drop");
+  // A releasing hold waits for the Hub even with no open window, until it saw one end.
+  assert.equal(flow.holdOnLoad(r, false, T0 + 1000), "keep");
+  assert.equal(flow.holdOnLoad({ ...r, saw: true }, false, T0 + 1000), "drop");
+  // L3: an approved id the Hub never received is sent first — even over the stale rule.
+  const p = flow.holdAfterFiling("uncertain", "timeout", PAY, T0);
+  assert.equal(flow.holdOnLoad(p, false, T0 + 1000), "keep");
+  assert.equal(flow.holdOnLoad(p, false, T0 + flow.PAIDY_HOLD_MAX_MS + 1), "keep");
+  assert.equal(flow.holdOnLoad({ ...p, resent: true }, false, T0 + 1000), "drop");
+});
+
+test("L6: every tick — re-send first, then the hold's end, else ask the Hub again", () => {
+  const u = { reason: "uncertain", since: T0, saw: false };
+  assert.equal(flow.holdTick(u, false, T0 + 15_000), "poll");
+  assert.equal(flow.holdTick(u, true, T0 + 15_000), "poll");
+  assert.equal(flow.holdTick({ ...u, saw: true }, false, T0 + 15_000), "release");
+  // The time limit is checked on every tick (a page left open ends with a reloaded one).
+  assert.equal(flow.holdTick(u, true, T0 + flow.PAIDY_HOLD_MAX_MS), "release");
+  const p = flow.holdAfterFiling("uncertain", "network", PAY, T0);
+  assert.equal(flow.holdTick(p, false, T0 + 15_000), "resend");
+  assert.equal(flow.holdTick({ ...p, saw: true }, false, T0 + 15_000), "resend");
+  assert.equal(flow.holdTick({ ...p, resent: true }, false, T0 + 15_000), "poll");
+});
+
+test("L6: Paidy's closed-callback answer — file, hold or end the window", () => {
+  assert.equal(flow.closedOutcome("AUTHORIZED", true), "file");
+  // Approved but no id: never end the window.
+  assert.equal(flow.closedOutcome("AUTHORIZED", false), "hold");
+  assert.equal(flow.closedOutcome("REJECTED", true), "end_rejected");
+  assert.equal(flow.closedOutcome("REJECTED", false), "end_rejected");
+  assert.equal(flow.closedOutcome("CLOSED", true), "end_closed");
+  assert.equal(flow.closedOutcome("CLOSED", false), "end_closed");
+  // PA15A: an answer we cannot read is never a close.
+  assert.equal(flow.closedOutcome("UNKNOWN", true), "hold");
+  assert.equal(flow.closedOutcome("UNKNOWN", false), "hold");
+});
+
+test("M1 / L4: a refused start — payment_in_progress is the hold; failures get the start's words", () => {
+  assert.deepEqual(flow.startRefusal("payment_in_progress"), { hold: true });
+  for (const c of ["failed", "network", "timeout"]) assert.deepEqual(flow.startRefusal(c), { hold: false, code: "start_failed" }, c);
+  for (const c of ["paidy_not_offered", "billing_address_invalid", "signed_out", "too_many_submissions", "not_ready_for_payment", "submission_pending"]) {
+    assert.deepEqual(flow.startRefusal(c), { hold: false, code: c }, c);
+  }
+});
+
 // --- Wording guards -------------------------------------------------------
 
 const i18n = await import(pathToFileURL(join(process.cwd(), "lib/i18n.ts")).href);
@@ -99,6 +199,15 @@ test("S-C2: the legal notice carries Paidy's own 特商法 wording", () => {
   assert.match(src, /最大390円（税込）/);
 });
 
+
+test("L4: the start failure never speaks of recording; ja contact line ends with 。; errMismatch is gone", () => {
+  assert.equal(t("en")("paidy", "errStartFailed"), "We could not open Paidy just now. Nothing was charged. Please try again in a moment.");
+  assert.equal(t("ja")("paidy", "errStartFailed"), "ただいまペイディを開けませんでした。お支払いは発生していません。少し時間をおいて再度お試しください。");
+  for (const lang of ["en", "ja"]) assert.doesNotMatch(t(lang)("paidy", "errStartFailed"), /record|登録/);
+  assert.match(t("ja")("orders", "paidyContactToSwitch"), /。$/);
+  assert.match(t("en")("orders", "paidyContactToSwitch"), /\.$/);
+  assert.ok(!("errMismatch" in i18n.dict.paidy));
+});
 
 test("COD (owner 2026-10-10): the Paidy notices never list only transfer and card", () => {
   for (const lang of ["en", "ja"]) {
