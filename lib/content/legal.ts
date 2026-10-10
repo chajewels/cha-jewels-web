@@ -475,8 +475,11 @@ export const tokusho = {
     {
       k: { ja: "商品代金以外の必要料金", en: "Charges besides the price" },
       v: {
-        ja: "送料、銀行振込手数料、コンビニ決済手数料",
-        en: "Shipping, bank transfer fees, and convenience-store payment fees",
+        // Owner 2026-10-10: コンビニ決済 stays (its own application is in
+        // progress; the owner says when to remove it). Paidy's fees added
+        // in Paidy's 特商法 wording.
+        ja: "送料、銀行振込手数料、コンビニ決済手数料。あと払い（ペイディ）の場合は、コンビニ払いの手数料（最大390円（税込））、銀行振込の場合の振込手数料",
+        en: "Shipping, bank transfer fees, and convenience-store payment fees; with Paidy (あと払い（ペイディ）), Paidy's convenience-store payment fee (up to ¥390, tax included) or, when you pay Paidy by bank transfer, the transfer fee",
       },
     },
     {
@@ -484,8 +487,10 @@ export const tokusho = {
       v: {
         // Paidy ato-barai added 2026-10-03 (Paidy's prescribed label; the
         // row wording is the owner's to compare with Paidy's 記載例 before release).
-        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）",
-        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen), and layaway※",
+        // S-C3 (Paidy QC PR-B): Paidy's 特商法 wording (paidy.com/docs/jp/tokushoho.html).
+        // Owner 2026-10-10: コンビニ決済 stays listed (application in progress).
+        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）（日本国内にお住まいのお客様のみ。円でのご注文。ペイディへの支払方法は、コンビニ払い（コンビニ設置端末）、銀行振込及び口座振替となります。）",
+        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen; you pay Paidy at a convenience store (in-store terminal), by bank transfer or by direct debit), and layaway※",
       },
     },
     {
@@ -495,8 +500,8 @@ export const tokusho = {
       // authorised (held) when she pays and charged when we confirm it.
       // Wording is the owner's to approve before release.
       v: {
-        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。",
-        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。",
+        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th. For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {
