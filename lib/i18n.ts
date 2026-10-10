@@ -475,7 +475,7 @@ export const dict = {
     buyBar: { ja: "購入バー", en: "Buy bar" },
     trustRows: { ja: "安心のポイント", en: "Why buy from us" },
   },
-  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." }, cards: { ja: "ご利用いただけるカード：Visa・Mastercard・American Express・JCB・Diners Club・Discover", en: "Cards accepted: Visa, Mastercard, American Express, JCB, Diners Club and Discover" }, paidy: { ja: "Paidyあと払いがご利用いただけます", en: "Paidy (pay later) accepted" } },
+  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." }, cards: { ja: "ご利用いただけるカード：Visa・Mastercard・American Express・JCB・Diners Club・Discover", en: "Cards accepted: Visa, Mastercard, American Express, JCB, Diners Club and Discover" }, paidy: { ja: "あと払い（ペイディ）がご利用いただけます", en: "Paidy (あと払い（ペイディ）) accepted" } },
   loyalty: {
     level: { ja: "レベル {n}", en: "Level {n}" }, onJoining: { ja: "入会時", en: "On joining" }, times: { ja: "{n}倍", en: "{n}x" },
     regionJp: { ja: "日本", en: "Japan" }, regionPh: { ja: "フィリピン", en: "Philippines" }, regionOther: { ja: "その他", en: "Elsewhere" },
@@ -777,7 +777,7 @@ export const dict = {
     methodWhyLayaway: { ja: "一括払いのみご利用いただけます", en: "For full payment only" },
     methodWhyCardYen: { ja: "カードは日本円でのお支払いのみです — ¥ を選ぶとご利用いただけます。", en: "Card payments are charged in yen — choose ¥ to pay by card." },
     methodWhyPaidyYen: { ja: "ペイディは日本円でのお支払いのみです — ¥ を選ぶとご利用いただけます。", en: "Paidy is in yen only — choose ¥ to use Paidy." },
-    methodWhyPaidyJp: { ja: "日本国内のお届け先のみご利用いただけます。", en: "Paidy needs a delivery address in Japan." },
+    methodWhyPaidyJp: { ja: "ペイディは日本国内にお住まいのお客様向けです（日本の携帯電話番号とペイディの本人確認が必要です）。", en: "Paidy is for customers living in Japan (it needs a Japanese mobile number and Paidy's identity check)." },
     methodWhyOff: { ja: "現在ご利用いただけません。", en: "Not available right now." },
     methodWhyNoAccount: { ja: "この通貨のお振込先が現在ありません。", en: "No transfer account for this currency right now." },
     methodLocked: { ja: "ご予約後はお支払い方法を変更できません。変更が必要な場合はご連絡ください。", en: "Once you reserve, your payment method is set. Contact us if it needs to change." },
@@ -1031,14 +1031,14 @@ export const dict = {
     label: { ja: "あと払い（ペイディ）", en: "Paidy — あと払い（ペイディ）" },
     // Paidy branding page: instalments carry the footnotes 「*口座振替・銀行振込のみ無料」
     // and the per-plan minimum; fee-free instalments need Paidy's identity check.
-    lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。ペイディアプリで本人確認をすると、3回あと払い（分割手数料無料*）もお選びいただけます。*口座振替・銀行振込のみ無料。1回のご利用金額が3,000円以上の場合のみ利用可能。", en: "Pay next month with just your email and Japanese mobile number. After Paidy's identity check in the Paidy app you can also split it into 3 with no instalment fee* (*bank transfer or direct debit only; purchases of ¥3,000 or more). For customers living in Japan." },
+    lede: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。ペイディアプリで本人確認をすると、3回あと払い（分割手数料無料*）もお選びいただけます。*口座振替・銀行振込のみ無料。1回のご利用金額が3,000円以上の場合のみ利用可能。日本国内にお住まいのお客様向けです。", en: "Pay next month with just your email and Japanese mobile number. After Paidy's identity check in the Paidy app you can also split it into 3 with no instalment fee* (*bank transfer or direct debit only; purchases of ¥3,000 or more). For customers living in Japan." },
     // From 1 Nov 2026 (paidy612Active): 3, 6 or 12.
-    lede612: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。ペイディアプリで本人確認をすると、3回・6回・12回あと払い（分割手数料無料*）もお選びいただけます。*口座振替・銀行振込のみ無料。3回は3,000円以上、6回は6,000円以上、12回は12,000円以上のご利用で選べます。", en: "Pay next month with just your email and Japanese mobile number. After Paidy's identity check in the Paidy app you can also split it into 3, 6 or 12 with no instalment fee* (*bank transfer or direct debit only; 3 from ¥3,000, 6 from ¥6,000, 12 from ¥12,000). For customers living in Japan." },
+    lede612: { ja: "メールアドレスと携帯電話番号だけで、お支払いは翌月でOK。ペイディアプリで本人確認をすると、3回・6回・12回あと払い（分割手数料無料*）もお選びいただけます。*口座振替・銀行振込のみ無料。3回は3,000円以上、6回は6,000円以上、12回は12,000円以上のご利用で選べます。日本国内にお住まいのお客様向けです。", en: "Pay next month with just your email and Japanese mobile number. After Paidy's identity check in the Paidy app you can also split it into 3, 6 or 12 with no instalment fee* (*bank transfer or direct debit only; 3 from ¥3,000, 6 from ¥6,000, 12 from ¥12,000). For customers living in Japan." },
     button: { ja: "ペイディで支払う", en: "Pay with Paidy" },
     filing: { ja: "確認中…", en: "Confirming…" },
     note: { ja: "ペイディでのお申込み後、Cha Jewelsが内容を確認してからご請求が確定します。確定後、ご利用額は翌月にペイディからご請求されます（コンビニ払い・銀行振込・口座振替）。ペイディの処理中は、他のお支払い方法はご利用いただけません。", en: "After Paidy approves, Cha Jewels confirms the order before the charge is final. Paidy then bills you next month (convenience store, bank transfer or direct debit). While Paidy is processing, other ways to pay are not available." },
     testMode: { ja: "テストモード：実際の請求は発生しません。", en: "Test mode — nothing is charged." },
-    rejected: { ja: "ペイディでのお支払いはご利用いただけませんでした。他のお支払い方法をご利用ください。", en: "Paidy could not approve this payment. Please use another way to pay." },
+    rejected: { ja: "ペイディでのお支払いは承認されませんでした。二重のお支払いを防ぐため、銀行振込とカードは、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認でき次第、このページに表示されます。", en: "Paidy did not approve this payment. To protect you from paying twice, bank transfer and card appear on this page once our next check finds no Paidy payment on this order — usually within 90 minutes." },
     errMismatch: { ja: "ペイディの承認内容がご注文と一致しなかったため、取り消しました。もう一度お試しください。ほかの方法をご希望の場合はご連絡ください。", en: "Paidy's approval did not match this order, so it was cancelled. Please try again, or contact us if you'd like to pay another way." },
     errNotOffered: { ja: "このご注文では現在ペイディをご利用いただけません。ページを再読み込みしてご確認ください。", en: "Paidy is not available for this order right now. Please reload the page." },
     errPending: { ja: "このご注文には確認中のお支払いがあります。", en: "A payment on this order is already being checked." },
@@ -1048,11 +1048,21 @@ export const dict = {
     uncertain: { ja: "ペイディのお支払いを確認しています。二重のお支払いを防ぐため、確認が終わるまで他のお支払い方法は表示されません。", en: "We are checking your Paidy payment. To avoid paying twice, no other way to pay is shown until it is confirmed." },
     processingTitle: { ja: "ペイディのお支払いを処理中です", en: "Your Paidy payment is being processed" },
     processingBody: { ja: "ペイディでのお支払いを処理しています。二重のお支払いを防ぐため、この間は他のお支払い方法は表示されません。ペイディとCha Jewelsの確認が済み次第、このページが更新されます。", en: "Your Paidy payment is being processed. To avoid paying twice, no other way to pay is shown meanwhile. This page updates once Paidy and Cha Jewels have confirmed it." },
-    windowOpenTitle: { ja: "ペイディの画面が開いたままです", en: "Your Paidy window was left open" },
+    // M9 (Paidy QC PR-B): neutral — she may have closed it, left it open, or
+    // been declined inside Paidy; the page cannot tell which.
+    windowOpenTitle: { ja: "ペイディでのお支払いは完了していません", en: "Your Paidy payment was not completed" },
     // PA04 wording (owner 2026-10-08): says what the Hub does — its next
     // hourly check finds no Paidy payment on this order — never that Paidy
     // "confirmed" anything. 30-minute window + the check at :51 = ~90 min.
-    windowOpenBody: { ja: "ペイディの画面をお支払いを完了せずに閉じた（または開いたままにした）ようです。ペイディでのお支払いは今すぐやり直せます。二重のお支払いを防ぐため、銀行振込とカードは、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認できるまで表示されません。", en: "It looks like you closed Paidy without completing it, or left it open. You can open Paidy again right now. To protect you from paying twice, bank transfer and card stay hidden until our next hourly check finds no Paidy payment on this order — usually within 90 minutes." },
+    windowOpenBody: { ja: "ペイディでのお支払いが完了しませんでした（画面を閉じた・開いたままにした、またはペイディで承認されなかった場合など）。ペイディでのお支払いは今すぐやり直せます。二重のお支払いを防ぐため、銀行振込とカードは、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認できるまで表示されません。", en: "Paidy did not complete this payment — the window was closed or left open, or Paidy did not approve it. You can open Paidy again right now. To protect you from paying twice, bank transfer and card stay hidden until our next hourly check finds no Paidy payment on this order — usually within 90 minutes." },
+    // S-L6: the same, when the Paidy button is not on the page.
+    windowOpenBodyNoReopen: { ja: "ペイディでのお支払いが完了しませんでした。二重のお支払いを防ぐため、他のお支払い方法は、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認できるまで表示されません。", en: "Paidy did not complete this payment. To protect you from paying twice, other ways to pay stay hidden until our next hourly check finds no Paidy payment on this order — usually within 90 minutes." },
+    // H3: the Hub refused an approval Paidy gave; it releases the hold at Paidy.
+    releasing: { ja: "ペイディで承認されたお支払いをこのご注文に使えなかったため、ペイディの与信を解除しています。二重のお支払いを防ぐため、解除が確認できるまでペイディのボタンは使えません。ご不明な点はお問い合わせください。", en: "Paidy approved this payment, but it could not be used for this order, so we are releasing the hold at Paidy. To protect you from paying twice, the Paidy button stays off until that is confirmed. Contact us if you have any questions." },
+    // M8 / S-L1 / S-L5
+    errNetwork: { ja: "通信が途切れたため、確認できませんでした。接続をご確認のうえ、ページを再読み込みしてください。", en: "The connection dropped before we could confirm. Please check your connection and reload the page." },
+    errScript: { ja: "ペイディを読み込めませんでした。接続をご確認のうえ、ページを再読み込みしてください。", en: "Paidy could not be loaded. Please check your connection and reload the page." },
+    signInAgain: { ja: "サインインする", en: "Sign in" },
     // P05 (owner 2026-10-08): what Paidy needs from the buyer herself.
     needsTitle: { ja: "ペイディのご利用に必要な情報", en: "What Paidy needs from you" },
     needsBody: { ja: "ペイディでお支払いいただくには、次の情報が必要です。入力後、このページにペイディのお支払いボタンが表示されます。", en: "To pay with Paidy we need the details below. Once they are complete, the Paidy button appears on this page." },
