@@ -767,7 +767,7 @@ export const dict = {
     methodH: { ja: "お支払い方法を選択", en: "How would you like to pay?" },
     methodTransfer: { ja: "銀行振込", en: "Bank transfer" },
     methodTransferNote: { ja: "商品の確認後、お振込先と期限をメールでお送りします。", en: "Once we confirm your piece, we email you where to transfer and by when." },
-    methodPaidy: { ja: "あと払い（ペイディ）", en: "Paidy (pay later)" },
+    methodPaidy: { ja: "あと払い（ペイディ）", en: "Paidy (Buy Now Pay Later)" },
     methodPaidyNote: { ja: "商品の確認後、ご注文ページからペイディでお支払いいただけます。翌月まとめて、または3回あと払い。", en: "Once we confirm your piece, pay with Paidy from your order page — next month, or in 3 instalments." },
     // From 1 Nov 2026 (paidy612Active): 6回・12回 too.
     methodPaidyNote612: { ja: "商品の確認後、ご注文ページからペイディでお支払いいただけます。翌月まとめて、または3回・6回・12回あと払い。", en: "Once we confirm your piece, pay with Paidy from your order page — next month, or in 3, 6 or 12 instalments." },
@@ -1241,7 +1241,7 @@ export const dict = {
     plusShipping: { ja: "＋送料", en: "+ shipping" },
     payVia: { ja: "{method}（{currency}）", en: "{method} in {currency}" },
     // C1 (2026-10-05): a website order shows only the method she chose.
-    chosenPaidy: { ja: "あと払い（ペイディ）", en: "Paidy (pay later)" },
+    chosenPaidy: { ja: "あと払い（ペイディ）", en: "Paidy (Buy Now Pay Later)" },
     chosenCard: { ja: "クレジットカード・デビットカード（日本円）", en: "Credit or debit card (in yen)" },
     chosenCod: { ja: "代金引換（日本円）", en: "Cash on delivery (in yen)" },
     codH: { ja: "代金引換 — お受け取り時にお支払いください", en: "Cash on delivery — pay when your parcel arrives" },
