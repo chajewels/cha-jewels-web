@@ -422,7 +422,10 @@ export const tokushoUpdated: Record<Lang, string> = {
  * own application is in progress and the owner says when to remove it. The
  * English layaway※ item is unchanged; the Japanese page names no layaway.
  */
-const ALL_ON: OfferedMethods = { card: true, paidy: true };
+// Owner 2026-10-10: the site is not launched and is for the owner's review —
+// nothing is hidden. The page and footer name every method (ALL_ON) until the
+// owner says otherwise; the switch-driven builders stay for later.
+export const ALL_ON: OfferedMethods = { card: true, paidy: true };
 const PAIDY_JA = "あと払い（ペイディ）（日本国内にお住まいのお客様のみ。円でのご注文。ペイディへの支払方法は、コンビニ払い（コンビニ設置端末）、銀行振込及び口座振替となります。）";
 const PAIDY_EN = "Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen; you pay Paidy at a convenience store (in-store terminal), by bank transfer or by direct debit)";
 
