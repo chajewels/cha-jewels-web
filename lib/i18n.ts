@@ -763,7 +763,7 @@ export const dict = {
     // chosen on Review, from the Hub's own list; one that cannot be used is
     // shown greyed with its reason, never hidden. Japanese strings never name
     // layaway: on the Japanese site the layaway reason cannot render.
-    payChooseOnReview: { ja: "銀行振込・あと払い（ペイディ）・カードの中から、確認画面でお選びいただけます。", en: "You choose bank transfer, Paidy or card on the review screen." },
+    payChooseOnReview: { ja: "銀行振込・あと払い（ペイディ）・カード・代金引換の中から、確認画面でお選びいただけます。", en: "You choose bank transfer, Paidy, card or cash on delivery on the review screen." },
     methodH: { ja: "お支払い方法を選択", en: "How would you like to pay?" },
     methodTransfer: { ja: "銀行振込", en: "Bank transfer" },
     methodTransferNote: { ja: "商品の確認後、お振込先と期限をメールでお送りします。", en: "Once we confirm your piece, we email you where to transfer and by when." },
@@ -774,6 +774,20 @@ export const dict = {
     methodPaidyNeeds: { ja: "ペイディには、日本国内のご住所（都道府県を含む）、ご本人の日本の携帯電話番号、姓と名が必要です。", en: "Paidy needs a Japanese home address with prefecture, your own Japanese mobile number, and your family and given names." },
     methodCard: { ja: "クレジットカード・デビットカード", en: "Credit or debit card" },
     methodCardNote: { ja: "日本円でのお支払いです。商品の確認後、ご注文ページでカード購入同意書に署名し、カード情報を入力します（3Dセキュア）。お支払いの確認までは与信のみで、確認時に請求されます。", en: "Charged in yen. Once we confirm your piece: sign the card purchase agreement, then enter your card on your order page (3-D Secure). The card is only authorised until we confirm the payment." },
+    // CASH ON DELIVERY (代金引換, Hub 2026-10-10). Shown on BOTH sites (it is
+    // not layaway). The fee is always the Hub's figure ({fee}); the reason a
+    // COD option is greyed is the Hub's (lib/checkout-method-why.ts). Japanese
+    // strings never name layaway.
+    methodCod: { ja: "代金引換", en: "Cash on delivery" },
+    methodCodNote: { ja: "商品の確認後すぐに発送し、お届けの際に配達員へお支払いいただきます（現金）。お支払い期限はありません。", en: "Once we confirm your piece we ship it, and you pay the courier in cash when it arrives. There is no payment deadline." },
+    methodCodFee: { ja: "代引手数料 {fee}（税込・合計に加算されます）", en: "Cash on delivery fee {fee}, tax included (added to your total)" },
+    codFeeRow: { ja: "代引手数料（税込）", en: "Cash on delivery fee (tax incl.)" },
+    methodWhyCodLayaway: { ja: "一括払いのみご利用いただけます", en: "Cash on delivery is for full payment only." },
+    methodWhyCodYen: { ja: "代金引換は日本円でのお支払いのみです — ¥ を選ぶとご利用いただけます。", en: "Cash on delivery is in yen only — choose ¥ to use it." },
+    methodWhyCodJp: { ja: "代金引換は日本国内のお届け先のみご利用いただけます。", en: "Cash on delivery needs a delivery address in Japan." },
+    methodWhyCodOff: { ja: "代金引換は現在ご利用いただけません。", en: "Cash on delivery isn't available right now." },
+    methodWhyCodLimit: { ja: "お受け取り時のお支払い額（商品代金＋送料）が代金引換の上限を超えるため、ご利用いただけません。", en: "The amount to collect on delivery (pieces and shipping) is over our cash on delivery limit." },
+    methodWhyCodNothing: { ja: "お受け取り時にお支払いいただく金額がないため、代金引換はご利用いただけません。", en: "There is nothing left to collect on delivery, so cash on delivery isn't needed." },
     methodWhyLayaway: { ja: "一括払いのみご利用いただけます", en: "For full payment only" },
     methodWhyCardYen: { ja: "カードは日本円でのお支払いのみです — ¥ を選ぶとご利用いただけます。", en: "Card payments are charged in yen — choose ¥ to pay by card." },
     methodWhyPaidyYen: { ja: "ペイディは日本円でのお支払いのみです — ¥ を選ぶとご利用いただけます。", en: "Paidy is in yen only — choose ¥ to use Paidy." },
@@ -803,6 +817,7 @@ export const dict = {
     pointsUnavailable: { ja: "ポイントを適用できませんでした。残高をご確認のうえ、もう一度お試しください。", en: "We couldn't apply those points. Check your balance and try again." },
     choiceFailed: { ja: "お支払い方法を更新できませんでした。もう一度お試しください。", en: "We couldn't update your payment choice. Please try again." },
     reserveExplainPaidy: { ja: "商品を確認後、ご注文ページのリンクをメールでお送りします。そこからペイディでお支払いください。", en: "You'll pay with Paidy after we confirm your piece — we'll email you the link." },
+    reserveExplainCod: { ja: "商品を確認後に発送します。お受け取りの際に配達員へお支払いください（代引手数料を含む）。", en: "We'll ship once we confirm your piece, and you pay the courier when it arrives (cash on delivery fee included)." },
     reserveExplainCard: { ja: "商品を確認後、ご注文ページのリンクをメールでお送りします。そこからカードでお支払いください。", en: "You'll pay by card after we confirm your piece — we'll email you the link." },
     // Region-neutral by design: a customer is shown the methods for their own
     // destination and must never learn what the other region pays into.
@@ -1019,6 +1034,10 @@ export const dict = {
     // English site only (layaway drafts are not found on ja).
     next3Paidy: { ja: "ペイディでお支払い — 確定メールのあとで", en: "You pay with Paidy — after the confirmation email" },
     next3Card: { ja: "カードでお支払い — 確定メールのあとで", en: "You pay by card — after the confirmation email" },
+    // Cash on delivery: we ship first, she pays the courier; no deadline.
+    next3Cod: { ja: "発送 — 商品の確認後", en: "We ship — once your piece is confirmed" },
+    next3CodP: { ja: "お支払い期限はありません。発送のご案内をメールでお送りします。", en: "There is no payment deadline. We email you when it ships." },
+    next4Cod: { ja: "お受け取り時に配達員へお支払い（代金引換）", en: "You pay the courier when it arrives (cash on delivery)" },
     next3Layaway: { ja: "お申込金のお振込 — メールに記載の期限まで", en: "Send the deposit — by the deadline in that email" },
     next4Layaway: { ja: "月々のお支払いのあと発送", en: "Monthly payments, then we ship" },
     next4LayawayP: { ja: "全額のお支払い完了後に発送します。", en: "The piece ships once the plan is paid in full." },
@@ -1186,6 +1205,7 @@ export const dict = {
     methodPaidy: { ja: "あと払い（ペイディ）", en: "Paidy" },
     methodCard: { ja: "カード", en: "card" },
     methodTransfer: { ja: "お振込", en: "bank transfer" },
+    methodCod: { ja: "代金引換", en: "cash on delivery" },
     h1: { ja: "ご注文履歴", en: "Your orders" },
     empty: { ja: "まだご注文はありません。", en: "No orders yet." },
     reference: { ja: "ご注文番号", en: "Reference" },
@@ -1208,6 +1228,9 @@ export const dict = {
     // Payment lifecycle S1: step 3 follows the method she chose.
     stagePaymentPaidy: { ja: "お支払い（ペイディ）", en: "Payment (Paidy)" },
     stagePaymentCard: { ja: "お支払い（カード）", en: "Payment (card)" },
+    // Cash on delivery: the parcel ships BEFORE she pays (orderDisplay swaps steps 3–5).
+    stageShipCod: { ja: "発送", en: "Shipped" },
+    stagePaymentCod: { ja: "代金引換", en: "Pay on delivery" },
     stagePaid: { ja: "入金確認", en: "Payment received" },
     stageShipped: { ja: "発送", en: "Shipped" },
     stageDone: { ja: "{stage}（完了）", en: "{stage} (done)" },
@@ -1220,6 +1243,11 @@ export const dict = {
     // C1 (2026-10-05): a website order shows only the method she chose.
     chosenPaidy: { ja: "あと払い（ペイディ）", en: "Paidy (pay later)" },
     chosenCard: { ja: "クレジットカード・デビットカード（日本円）", en: "Credit or debit card (in yen)" },
+    chosenCod: { ja: "代金引換（日本円）", en: "Cash on delivery (in yen)" },
+    codH: { ja: "代金引換 — お受け取り時にお支払いください", en: "Cash on delivery — pay when your parcel arrives" },
+    codCollect: { ja: "お届けの際、配達員に {amount}（代引手数料を含む）をお支払いください。", en: "Please pay the courier {amount} (cash on delivery fee included) when your parcel arrives." },
+    codShipNote: { ja: "まもなく発送します。お支払い期限はなく、事前のお支払いは不要です。", en: "We are getting it ready to ship. There is no payment deadline and nothing to pay before it arrives." },
+    codShippedNote: { ja: "発送しました。お受け取りの際にお支払いください。", en: "It is on its way. Please pay when you receive it." },
     pointsUsed: { ja: "ポイント利用", en: "Points used" },
     pointsNotReturned: { ja: "期限までにお支払いがない場合、ご利用のポイントは戻りません。", en: "If payment isn't completed by the deadline, the points used are not returned." },
     methodUnavailableNote: { ja: "お選びいただいたお支払い方法が現在ご利用いただけません。お手数ですが、お問い合わせください。", en: "The payment method you chose can't be used on this order right now. Please contact us and we'll sort it out." },
@@ -1230,11 +1258,14 @@ export const dict = {
     statusPendingTransfer: { ja: "お振込待ち", en: "Awaiting transfer" },
     // Payment lifecycle S1: a Paidy or card order waits for a payment, not a transfer.
     statusPendingPayment: { ja: "お支払い待ち", en: "Awaiting payment" },
+    // Cash on delivery: nothing to pay before delivery.
+    statusPendingCod: { ja: "発送準備中（代金引換）", en: "Ships soon — pay on delivery" },
     // Payment lifecycle S3: the reviewer's last decision, and "Pay another way" after a rejection.
     decisionRejected: { ja: "前回のお支払い（{method} {amount}・{date}）はお受けできませんでした。", en: "Your last payment ({method} {amount}, {date}) was not accepted." },
     decisionMethodPaidy: { ja: "ペイディ", en: "Paidy" },
     decisionMethodCard: { ja: "カード", en: "card" },
     decisionMethodTransfer: { ja: "お振込", en: "bank transfer" },
+    decisionMethodCod: { ja: "代金引換", en: "cash on delivery" },
     decisionNothingCharged: { ja: "ご請求は発生していません。", en: "Nothing was charged." },
     decisionNeedsInfo: { ja: "お支払いの確認のため、ご連絡が必要です。", en: "We need to hear from you to confirm your payment." },
     decisionReplyHint: { ja: "お送りしたメールにご返信いただくか、お問い合わせください。", en: "Please reply to the email we sent you, or contact us." },
@@ -1242,6 +1273,7 @@ export const dict = {
     switchLink: { ja: "ほかのお支払い方法に変更する", en: "Pay another way" },
     switchConfirm: { ja: "お支払い方法を「{method}」に変更します。よろしいですか？", en: "Change how you pay to {method}?" },
     switchConfirmButton: { ja: "変更する", en: "Change" },
+    switchCodNote: { ja: "代金引換に変更すると、代引手数料が合計に加算されます。お支払い期限はなく、お受け取り時に配達員へお支払いいただきます。", en: "Changing to cash on delivery adds the cash on delivery fee to your total. There is no deadline: you pay the courier when the parcel arrives." },
     switchCancel: { ja: "やめる", en: "Keep as is" },
     switchInProgress: { ja: "お支払いの手続き中のため、いまは変更できません。少し時間をおいて、ページを再読み込みしてください。", en: "A payment is being processed on this order, so it can't be changed right now. Please reload the page in a moment." },
     switchNotAllowed: { ja: "このご注文では、お支払い方法を変更できなくなりました。ページを再読み込みしてご確認ください。ご不明な点はご連絡ください。", en: "The payment method on this order can no longer be changed. Please reload the page, and contact us if you need help." },
@@ -1288,6 +1320,7 @@ export const dict = {
     payWith: { ja: "お支払い方法", en: "Paying by" },
     payWithTransfer: { ja: "銀行振込 — 商品の確認後、お振込先と期限をメールでお送りします。", en: "Bank transfer — we'll email you where to transfer and by when once we confirm your piece." },
     payWithPaidy: { ja: "あと払い（ペイディ） — 商品の確認後、ご注文ページのリンクをメールでお送りします。", en: "Paidy — you'll pay with Paidy after we confirm your piece; we'll email you the link." },
+    payWithCod: { ja: "代金引換 — 商品の確認後に発送し、お受け取りの際に配達員へお支払いいただきます。代引手数料は合計に含まれています。", en: "Cash on delivery — we ship once we confirm your piece, and you pay the courier when it arrives. The cash on delivery fee is included in the total." },
     payWithCard: { ja: "クレジットカード・デビットカード（日本円） — 商品の確認後、ご注文ページのリンクをメールでお送りします。カード購入同意書への署名、カード情報の入力（3Dセキュア）、確認までは与信のみです。", en: "Card, charged in yen — after we confirm your piece we'll email you the link. Then: sign the card purchase agreement, enter your card (3-D Secure); it is only authorised until we confirm the payment." },
     points: { ja: "ポイント利用", en: "Points" },
     pointsHeld: { ja: "ポイントはスタッフの確認時に使われます。確認できなかった場合はお戻しします。", en: "Your points are taken when we confirm your piece, and come back to you if we can't." },

@@ -13,9 +13,10 @@ import { cn } from "@/lib/utils";
  */
 export { orderStage } from "@/lib/order-display";
 
-export function OrderProgress({ lang, stage, stage3Key = "stagePayment", inProgress = false }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5; stage3Key?: OrderDisplay["stage3Key"]; inProgress?: boolean }) {
+export function OrderProgress({ lang, stage, stage3Key = "stagePayment", stage4Key = "stagePaid", stage5Key = "stageShipped", inProgress = false }: { lang: Lang; stage: 1 | 2 | 3 | 4 | 5; stage3Key?: OrderDisplay["stage3Key"]; stage4Key?: OrderDisplay["stage4Key"]; stage5Key?: OrderDisplay["stage5Key"]; inProgress?: boolean }) {
   const t = tr(lang);
-  const stages = [t("orders", "stageReserved"), t("orders", "stageConfirmed"), t("orders", stage3Key), t("orders", "stagePaid"), t("orders", "stageShipped")];
+  // Cash on delivery swaps steps 3–5 (shipped → pay on delivery → payment received): orderDisplay decides.
+  const stages = [t("orders", "stageReserved"), t("orders", "stageConfirmed"), t("orders", stage3Key), t("orders", stage4Key), t("orders", stage5Key)];
   return (
     <ol aria-label={t("orders", "progress")} className="mb-6 grid grid-cols-5 border-t border-hairline">
       {stages.map((s, i) => {

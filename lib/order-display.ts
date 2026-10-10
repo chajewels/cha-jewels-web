@@ -15,7 +15,7 @@ import type { CheckoutMethod, CheckoutMode, HubLatestDecision, HubOrder } from "
  * decision, and the order then reads exactly as it did before (transfer
  * wording, no notice).
  */
-export type DisplayMethod = "transfer" | "paidy" | "card";
+export type DisplayMethod = "transfer" | "paidy" | "card" | "cod";
 
 /**
  * THE ORDER'S STATUS LINE (build step 4; comp page-comps/account-signin
@@ -27,9 +27,19 @@ export type DisplayMethod = "transfer" | "paidy" | "card";
  * is done from her side and the line moves to step 4. It never revives a
  * closed order and never moves a reservation or a shipped order.
  */
-export function orderStage(o: HubOrder, beingChecked?: boolean): 1 | 2 | 3 | 4 | 5 | null {
+export function orderStage(o: HubOrder, beingChecked?: boolean, cod?: boolean): 1 | 2 | 3 | 4 | 5 | null {
   if (isClosedOrder(o) || o.payment_status === "refunded" || o.payment_status === "failed") return null;
   if (isAwaitingConfirmation(o)) return 1;
+  // CASH ON DELIVERY (Hub 2026-10-10): the parcel ships BEFORE she pays, so
+  // the line is reserved → confirmed → shipped → pay on delivery → payment
+  // received (codStageKeys). A tick is never put on a step that has not
+  // happened: shipped-but-unpaid lights "Pay on delivery", not "Payment received".
+  if (cod) {
+    if (o.payment_status === "paid" || o.status === "completed") return 5;
+    if (o.shipped_at) return 4;
+    if (o.payment_status === "pending_transfer") return isReadyForPayment(o) ? 3 : 2;
+    return null;
+  }
   if (o.shipped_at) return 5;
   if (o.payment_status === "paid" || o.status === "completed") return 4;
   if (o.payment_status === "pending_transfer") {
@@ -43,7 +53,10 @@ export type OrderDisplay = {
   /** null: use orderStatusLabel(order, lang, chosenMethod). */
   headlineKey: "pending" | "statusPendingTransfer" | "statusPendingPayment" | null;
   stage: 1 | 2 | 3 | 4 | 5 | null;
-  stage3Key: "stagePayment" | "stagePaymentPaidy" | "stagePaymentCard";
+  stage3Key: "stagePayment" | "stagePaymentPaidy" | "stagePaymentCard" | "stageShipCod";
+  /** Steps 4 and 5: "Payment received", "Shipped" — swapped round for cash on delivery. */
+  stage4Key: "stagePaid" | "stagePaymentCod";
+  stage5Key: "stageShipped" | "stagePaid";
   /**
    * The current step is still in progress, not done: a payment she made is being checked
    * (a card held, not yet charged; a transfer or Paidy payment awaiting review). The line
@@ -63,13 +76,18 @@ export function orderDisplay(input: {
   latestDecision?: HubLatestDecision | null;
 }): OrderDisplay {
   const { order, chosenMethod, beingChecked, latestDecision } = input;
-  const base = orderStage(order);
-  const checking = beingChecked && base === 3;
-  const stage = orderStage(order, beingChecked);
+  const cod = chosenMethod === "cod";
+  const base = orderStage(order, false, cod);
+  // A COD payment is never "being checked" on her side: the courier collects.
+  const checking = !cod && beingChecked && base === 3;
+  const stage = cod ? base : orderStage(order, beingChecked);
 
   const stage3Key = chosenMethod === "paidy" ? "stagePaymentPaidy"
     : chosenMethod === "card" ? "stagePaymentCard"
+    : cod ? "stageShipCod"
     : "stagePayment";
+  const stage4Key = cod ? "stagePaymentCod" : "stagePaid";
+  const stage5Key = cod ? "stagePaid" : "stageShipped";
 
   // A payment being checked is the headline; otherwise Paidy / card name the
   // wait as a payment, and transfer (or an older Hub) keeps orderStatusLabel.
@@ -85,7 +103,7 @@ export function orderDisplay(input: {
     : latestDecision?.status === "needs_clarification" ? "needs_info"
     : null;
 
-  return { headlineKey, stage, stage3Key, stageInProgress: checking, notice, payBlocked: latestDecision?.status === "needs_clarification" };
+  return { headlineKey, stage, stage3Key, stage4Key, stage5Key, stageInProgress: checking, notice, payBlocked: latestDecision?.status === "needs_clarification" };
 }
 
 /**
@@ -121,10 +139,11 @@ export function orderRowStatus(o: HubOrder, lang: Lang): ReturnType<typeof order
  * full payment step for the method she chose at checkout. An older Hub sends no
  * method, and the step reads as the transfer one, as before.
  */
-export function draftStep3Key(mode: CheckoutMode, method: CheckoutMethod | undefined): "next3" | "next3Layaway" | "next3Paidy" | "next3Card" {
+export function draftStep3Key(mode: CheckoutMode, method: CheckoutMethod | undefined): "next3" | "next3Layaway" | "next3Paidy" | "next3Card" | "next3Cod" {
   if (mode === "layaway") return "next3Layaway";
   if (method === "paidy") return "next3Paidy";
   if (method === "card") return "next3Card";
+  if (method === "cod") return "next3Cod";
   return "next3";
 }
 
@@ -135,9 +154,13 @@ export function draftStep3Key(mode: CheckoutMode, method: CheckoutMethod | undef
  * only ever NARROWS what it sent, never widens it. An order with no chosen
  * method (not made on the website, or an older Hub) shows what the Hub offers,
  * with the bank details underneath, as before.
+ *
+ * Cash on delivery (Hub 2026-10-10): NO pay box at all — the courier collects
+ * when the parcel arrives (the Hub also sends no bank details, no Paidy, no card).
  */
 export function payBoxes(input: { chosen: DisplayMethod | null; paidyOffered: boolean; cardOffered: boolean; transferSent?: boolean }): { paidy: boolean; card: boolean; transfer: boolean } {
   const { chosen, paidyOffered, cardOffered, transferSent = false } = input;
+  if (chosen === "cod") return { paidy: false, card: false, transfer: false };
   return {
     paidy: paidyOffered && (chosen === null || chosen === "paidy"),
     card: cardOffered && (chosen === null || chosen === "card"),

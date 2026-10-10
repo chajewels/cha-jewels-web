@@ -99,8 +99,8 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
         items={[
           { title: t("complete", "next1"), body: t("complete", "next1p"), now: true },
           { title: t("complete", "next2"), body: t("complete", "next2p") },
-          { title: t("complete", draftStep3Key("full", detail.chosen_method ?? undefined)), body: t("checkout", "deadlineNote") },
-          { title: t("complete", "next4") },
+          { title: t("complete", draftStep3Key("full", detail.chosen_method ?? undefined)), body: detail.chosen_method === "cod" ? t("complete", "next3CodP") : t("checkout", "deadlineNote") },
+          { title: t("complete", detail.chosen_method === "cod" ? "next4Cod" : "next4") },
         ]}
       />
       {actions}

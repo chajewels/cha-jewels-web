@@ -113,7 +113,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
       lede={<>
         <p>{t("draft", isLayaway ? "layawayLede" : "lede")}</p>
         <p className="mt-2 text-[15px] font-semibold">{t("draft", "nothingYet")}</p>
-        <p className="mt-2" data-testid="draft-pay-with">{t("draft", chosen === "paidy" ? "payWithPaidy" : chosen === "card" ? "payWithCard" : "payWithTransfer")}</p>
+        <p className="mt-2" data-testid="draft-pay-with">{t("draft", chosen === "paidy" ? "payWithPaidy" : chosen === "card" ? "payWithCard" : chosen === "cod" ? "payWithCod" : "payWithTransfer")}</p>
         {pointsValue > 0 && <p className="mt-2 text-[13px] text-charcoal/75">{t("draft", "pointsHeld")}</p>}
       </>}
       slab={{
@@ -130,6 +130,8 @@ export default async function DraftCompletePage({ params, searchParams }: {
           { k: t("draft", "shipping"), v: draft.shipping_pending || draft.shipping === null ? t("draft", "shippingLater") : money(draft.shipping) },
           ...(isLayaway && draft.deposit !== null ? [{ k: t("draft", "deposit"), v: money(draft.deposit) }] : []),
           ...(isLayaway && draft.term_months !== null ? [{ k: t("draft", "term"), v: t("draft", "months", { n: String(draft.term_months) }) }] : []),
+          // Cash on delivery: the Hub's COD fee, its own line (already in the total).
+          ...(Number(draft.cod_fee ?? 0) > 0 ? [{ k: t("checkout", "codFeeRow"), v: money(Number(draft.cod_fee)) }] : []),
           ...(afterPoints !== null ? [{ k: t("draft", "totalSoFar"), v: money(draft.total) }] : []),
           ...(pointsValue > 0 ? [{ k: t("draft", "points"), v: `−${money(pointsValue)}` }] : []),
         ],
@@ -152,8 +154,9 @@ export default async function DraftCompletePage({ params, searchParams }: {
         ] : [
           { title: t("complete", "next1"), body: t("complete", "next1p"), now: true },
           { title: t("complete", "next2Plain"), body: t("complete", "next2p") },
-          { title: t("complete", draftStep3Key(draft.mode, draft.payment_method)), body: t("checkout", "deadlineNote") },
-          { title: t("complete", "next4") },
+          // Cash on delivery: we ship, then she pays the courier — no deadline.
+          { title: t("complete", draftStep3Key(draft.mode, draft.payment_method)), body: chosen === "cod" ? t("complete", "next3CodP") : t("checkout", "deadlineNote") },
+          { title: t("complete", chosen === "cod" ? "next4Cod" : "next4") },
         ]}
       />
 

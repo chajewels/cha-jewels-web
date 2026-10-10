@@ -100,16 +100,22 @@ export function checkoutSummary({ quote, intended, subtotal, mode, peso }: {
  * as an ordinary row above it, like the emails. Null = no points in play (or a
  * layaway, whose headline stays the plan total: points pay the deposit, shown
  * as its own row). Nothing is computed here, only chosen.
+ *
+ * Cash on delivery (Hub 2026-10-10): with COD chosen the Hub's
+ * `totals.cod_fee` (the 代引手数料) is already inside `total_after_points`, so a
+ * fee > 0 makes that figure the headline too, with or without points.
  */
-export function amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints }: {
+export function amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints, codFee = 0 }: {
   mode: "full" | "layaway";
   /** The quote on screen is in the summary's currency. */
   quoteShown: boolean;
   pointsChosen: number;
   /** The Hub's `totals.total_after_points`, or null when the Hub sent no choice block. */
   totalAfterPoints: number | null;
+  /** The Hub's `totals.cod_fee` while COD is the chosen method; 0 otherwise. */
+  codFee?: number;
 }): number | null {
-  if (mode !== "full" || !quoteShown || !(pointsChosen > 0)) return null;
+  if (mode !== "full" || !quoteShown || !(pointsChosen > 0 || codFee > 0)) return null;
   if (typeof totalAfterPoints !== "number" || !Number.isFinite(totalAfterPoints)) return null;
   return totalAfterPoints;
 }

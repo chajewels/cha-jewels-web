@@ -143,7 +143,7 @@ The customer chooses how to pay on Review and it is LOCKED for her (only staff
 change it, Hub `change-payment-method`). Every figure below is the Hub's.
 
 Quote response (POST and GET) gains (an older Hub omits all four):
-- `payment_options: { method: "transfer" | "paidy" | "card", offered, reason }[]`
+- `payment_options: { method: "transfer" | "paidy" | "card" | "cod", offered, reason, fee_jpy? }[]`
   — in display order; not offered = shown greyed with `reason`:
   `layaway` (C2), `currency_not_yen` (Paidy and card are yen only, C6),
   `address_not_jp` (Paidy), `off`, `no_account` (transfer).
@@ -153,13 +153,14 @@ Quote response (POST and GET) gains (an older Hub omits all four):
   `*_value` in the settlement currency; at most the pieces subtotal (never
   shipping), on a layaway at most the deposit (the whole deposit is allowed).
   `reason`: `not_enrolled` | `no_points` | `loyalty_off`.
-- `totals: { total_after_points, due_now_after_points }`.
+- `totals: { cod_fee, total_after_points, due_now_after_points }` (`cod_fee`
+  since 2026-10-10, see "Cash on delivery").
 
 `POST /checkout/quote/:id/choice` body `{ payment_method, points }` stores the
 choice on the customer's own unspent quote and answers the same four fields.
 409 `method_unavailable` (+ `reason`) or `points_*`.
 
-`POST /checkout/pay` also takes `method` (`transfer` | `paidy` | `card`) and
+`POST /checkout/pay` also takes `method` (`transfer` | `paidy` | `card` | `cod`) and
 `points`; the draft reply gains `payment_method`, `points`, `points_value`.
 The points are HELD (a pending redemption) until staff Confirm, which approves
 them; a declined or expired draft gives them back.
@@ -169,6 +170,46 @@ them; a declined or expired draft gives them back.
 after Confirm only the chosen method's block is sent (`paidy` / `card` /
 `transfer_methods`). `GET /layaway/:id` gains `points_applied` and
 `deposit_due` (what is left on the deposit after points; null once paid).
+
+### Cash on delivery — 代金引換 (Hub 2026-10-10, owner plan `claude/cod-plan-2026-10-10.md`)
+
+Method `cod`: a yen, full-payment website order delivered in Japan. Never
+layaway, never pesos, never abroad. Shown on BOTH the English and Japanese
+sites (it is not layaway). Hub doc: `docs/COD.md`. EVERY figure is the Hub's:
+the storefront never brackets a fee or judges the limit (`check:money` fails
+on a bracket lookup or a `300000` comparison outside `lib/fixtures.ts`).
+
+- **Quote / choice** (`POST /checkout/quote`, `GET /checkout/quote/:id`,
+  `POST /checkout/quote/:id/choice`): `payment_options[]` gains
+  `{ method: "cod", offered, reason, fee_jpy }`. `reason` (first that fails):
+  `layaway` | `currency_not_yen` | `off` | `address_not_jp` |
+  `nothing_to_collect` | `over_cod_limit`. `fee_jpy` = the 代引手数料 choosing
+  COD adds (null when not offered); the site shows it under the option.
+  `totals` gains `cod_fee` (the fee when COD is the chosen method, else 0),
+  ALREADY included in `total_after_points` and `due_now_after_points`; with a
+  fee > 0 the summary shows a 代引手数料 / "Cash on delivery fee" row and the
+  headline "Amount to pay" is `total_after_points`. The COD limit is judged
+  with the points she asked for.
+- **Choice and pay** accept `payment_method` / `method` `"cod"`. New 409
+  refusals: `over_cod_limit`, `cod_nothing_to_collect` (and
+  `method_unavailable` + `reason`) — the site says the method is no longer
+  available and she picks again.
+- **Pay answer and `GET /drafts[/:id]`**: `payment_method: "cod"`, `cod_fee`
+  (already in `total`). The draft page shows the fee row; its next steps are
+  "we ship once confirmed" then "you pay the courier" — no deadline.
+- **`GET /orders`**: `chosen_method: "cod"` — the row reads "Ships soon — pay
+  on delivery" / 「発送準備中（代金引換）」 while pending.
+- **`GET /orders/:id`**: `order.cod_fee`, `chosen_method: "cod"`,
+  `cod: { fee, collect_on_delivery }` (null on any other method),
+  `transfer_methods: []`, `paidy` / `card` null. The page shows NO pay box and
+  no deadline; it says the courier collects `collect_on_delivery` (fee
+  included), and lists the fee as its own row. The status line is reserved →
+  confirmed → shipped → pay on delivery → payment received.
+- **`POST /orders/:id/payment-method`** accepts `"cod"` (offered by the same
+  rule); refusals `method_unavailable`, `over_cod_limit`,
+  `cod_nothing_to_collect` (409). The Hub adds / removes and re-brackets the
+  fee. The customer never files a COD payment herself (staff record the
+  courier's remittance).
 
 ### Payment lifecycle — latest decision, list state, after-points, customer switch (Hub H6, 2026-10-05)
 
