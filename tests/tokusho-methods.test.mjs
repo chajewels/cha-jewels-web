@@ -40,8 +40,8 @@ test("支払方法 names exactly the offered methods, in order", () => {
 test("支払時期: the card sentence follows the card switch; the Paidy sentence follows the Paidy switch (L2, owner 2026-10-10)", () => {
   const CARD_JA = "クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。";
   const CARD_EN = " By card, the amount is authorised (held) when you pay and charged when we confirm the payment.";
-  const PAIDY_JA_S = "あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。";
-  const PAIDY_EN_S = " With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th.";
+  const PAIDY_JA_S = "あと払い（ペイディ）の場合は、当社でご利用が確定した日の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は翌月27日（金融機関休業日の場合は翌営業日）に引き落しとなります。";
+  const PAIDY_EN_S = " With Paidy, you pay Paidy in the month after we confirm the payment, as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th, or the next banking business day if the bank is closed.";
   for (const o of COMBOS) {
     const v = row(tokushoRowsFor(true, o), "支払時期").v;
     assert.equal(v.ja, "ご注文確認のご連絡後、表示の期限までにお支払いください。" + (o.card ? CARD_JA : "") + (o.paidy ? PAIDY_JA_S : "") + COD_TIME_JA);
@@ -55,8 +55,8 @@ test("支払時期: the card sentence follows the card switch; the Paidy sentenc
 
 test("with every switch on, the switched rows read exactly as approved (COD added 2026-10-10)", () => {
   const rows = tokushoRowsFor(true, COMBOS[0]);
-  assert.equal(row(rows, "支払時期").v.ja, "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。代金引換の場合は、商品お受け取り時に配達員へお支払いください（お支払い期限はありません）。");
-  assert.equal(row(rows, "支払時期").v.en, "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th. With cash on delivery, you pay the courier when you receive the piece (there is no deadline). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)");
+  assert.equal(row(rows, "支払時期").v.ja, "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、当社でご利用が確定した日の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は翌月27日（金融機関休業日の場合は翌営業日）に引き落しとなります。代金引換の場合は、商品お受け取り時に配達員へお支払いください（お支払い期限はありません）。");
+  assert.equal(row(rows, "支払時期").v.en, "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy in the month after we confirm the payment, as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th, or the next banking business day if the bank is closed. With cash on delivery, you pay the courier when you receive the piece (there is no deadline). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)");
 });
 
 test("konbini stays listed in every combination, with its fee (owner 2026-10-10)", () => {
