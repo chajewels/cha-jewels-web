@@ -89,9 +89,10 @@ test("M9: the declined and not-completed notices never say she closed Paidy hers
   assert.match(t("en")("paidy", "windowOpenBody"), /open Paidy again/);
 });
 
-test("S-C2: the legal notice never lists convenience-store payment as a Cha Jewels method", () => {
+test("S-C2: the legal notice carries Paidy's own 特商法 wording", () => {
   const src = JSON.stringify(legal);
-  assert.doesNotMatch(src, /コンビニ決済/);
+  // Owner 2026-10-10: コンビニ決済 stays listed until the owner says otherwise.
+  assert.match(src, /コンビニ決済、あと払い（ペイディ）/);
   assert.match(src, /コンビニ払い（コンビニ設置端末）、銀行振込及び口座振替/);
   assert.match(src, /口座振替の場合は27日に引き落しとなります/);
   assert.match(src, /最大390円（税込）/);
