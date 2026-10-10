@@ -430,8 +430,8 @@ const PAIDY_JA = "あと払い（ペイディ）（日本国内にお住まい�
 const PAIDY_EN = "Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen; you pay Paidy at a convenience store (in-store terminal), by bank transfer or by direct debit)";
 
 // Cash on delivery (owner approved 2026-10-10): always named, like bank transfer.
-const COD_JA = "代金引換（日本国内へのお届け・日本円・一括払いのご注文で、お受け取り時のお支払い額が30万円以下の場合に限ります）";
-const COD_EN = "cash on delivery (代金引換; delivery in Japan, orders in yen paid in full, where the amount collected on delivery is ¥300,000 or less)";
+const COD_JA = "代金引換（日本国内へのお届け・日本円・一括払いのご注文で、代金引換手数料を除くお受け取り時のお支払い額が30万円以下の場合に限ります）";
+const COD_EN = "cash on delivery (代金引換; delivery in Japan, orders in yen paid in full, where the amount collected on delivery, excluding the cash on delivery fee, is ¥300,000 or less)";
 
 function paymentMethodsText({ card, paidy }: OfferedMethods): Record<Lang, string> {
   const ja = [card && "クレジットカード", "銀行振込", "コンビニ決済", paidy && PAIDY_JA, COD_JA].filter((x): x is string => !!x).join("、");
