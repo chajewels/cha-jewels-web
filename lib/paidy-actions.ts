@@ -6,6 +6,7 @@ import { hub, HubError } from "@/lib/hub-api";
 import type { ActionResult } from "@/lib/checkout-actions";
 import type { PaidyCheckoutPayload } from "@/lib/types";
 import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
+import { isAttemptId, startAnswerUsable } from "@/lib/paidy-flow";
 
 /**
  * Paidy ato-barai on a confirmed order (2026-10-03).
@@ -21,7 +22,8 @@ import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
  * other Hub call. Nothing about money is decided here.
  */
 const PAIDY_ID = /^pay_[A-Za-z0-9_-]{6,80}$/;
-const ATTEMPT_ID = /^[0-9a-f-]{36}$/i;
+// S-L4: one pattern for an order id, used by every action here.
+const ORDER_ID = /^[\w-]{1,64}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function customerJwt(): Promise<string | null> {
@@ -38,13 +40,21 @@ async function customerJwt(): Promise<string | null> {
 export async function paidyStartAction(orderId: string, billingAddressId?: string | null): Promise<ActionResult<{ attemptId: string; checkout: PaidyCheckoutPayload }>> {
   const jwt = await customerJwt();
   if (!jwt) return { ok: false, code: "signed_out" };
-  if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId)) return { ok: false, code: "failed" };
+  if (typeof orderId !== "string" || !ORDER_ID.test(orderId)) return { ok: false, code: "failed" };
   // PA15B: server-action arguments are untrusted — a uuid or nothing; the Hub
   // then checks it is one of HER complete Japanese entries.
   const billing = typeof billingAddressId === "string" && UUID.test(billingAddressId) ? billingAddressId : null;
   if (billingAddressId != null && !billing) return { ok: false, code: "billing_address_invalid" };
   try {
     const r = await hub.paidyStart(jwt, orderId, billing);
+    // S-L2: Paidy opens only with a whole answer. A window the Hub did open
+    // is ended again, so the order is not held for nothing.
+    if (!startAnswerUsable(r)) {
+      if (isAttemptId((r as { attempt_id?: unknown } | null)?.attempt_id)) {
+        await hub.paidyAbandon(jwt, orderId, r.attempt_id, "error", null).catch(() => undefined);
+      }
+      return { ok: false, code: "failed" };
+    }
     return { ok: true, data: { attemptId: r.attempt_id, checkout: r.checkout } };
   } catch (err) {
     if (err instanceof HubError && err.code === "order_cannot_take_payment") {
@@ -63,7 +73,7 @@ export async function paidyStartAction(orderId: string, billingAddressId?: strin
 export async function paidyAbandonAction(orderId: string, attemptId: string, reason: "closed" | "rejected" | "error", paidyPaymentId?: unknown): Promise<ActionResult<null>> {
   const jwt = await customerJwt();
   if (!jwt) return { ok: false, code: "signed_out" };
-  if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId) || typeof attemptId !== "string" || !ATTEMPT_ID.test(attemptId)) return { ok: false, code: "failed" };
+  if (typeof orderId !== "string" || !ORDER_ID.test(orderId) || !isAttemptId(attemptId)) return { ok: false, code: "failed" };
   // Server-action arguments are untrusted: only the three reasons the Hub knows.
   if (reason !== "closed" && reason !== "rejected" && reason !== "error") return { ok: false, code: "failed" };
   // PA04 (2026-10-08): the id Paidy's callback named for a rejected / closed
@@ -89,8 +99,9 @@ export async function paidyAuthorizedAction(orderId: string, paidyPaymentId: str
   const { data } = await supabase.auth.getSession();
   const jwt = data.session?.access_token;
   if (!jwt) return { ok: false, code: "signed_out" };
-  if (typeof orderId !== "string" || !/^[\w-]{1,64}$/.test(orderId)) return { ok: false, code: "failed" };
-  if (typeof paidyPaymentId !== "string" || !PAIDY_ID.test(paidyPaymentId)) return { ok: false, code: "paidy_mismatch" };
+  if (typeof orderId !== "string" || !ORDER_ID.test(orderId)) return { ok: false, code: "failed" };
+  // Not sent to the Hub at all, so nothing was released: its own code (review fix 3).
+  if (typeof paidyPaymentId !== "string" || !PAIDY_ID.test(paidyPaymentId)) return { ok: false, code: "paidy_bad_id" };
 
   try {
     await hub.orderPaidy(jwt, orderId, paidyPaymentId);
@@ -136,7 +147,7 @@ export async function paidyProfileAction(form: FormData): Promise<ActionResult<n
   const orderId = str("order_id");
   try {
     await hub.paidyProfile(jwt, input);
-    if (ATTEMPT_ID.test(orderId) || /^[0-9a-f-]{36}$/i.test(orderId)) revalidatePath(`/account/orders/${orderId}`);
+    if (ORDER_ID.test(orderId)) revalidatePath(`/account/orders/${orderId}`);
     return { ok: true, data: null };
   } catch (err) {
     if (err instanceof HubError) return { ok: false, code: err.code ?? `http_${err.status}`, requestId: err.requestId };
