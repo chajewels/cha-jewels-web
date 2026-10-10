@@ -51,11 +51,37 @@ test("the article states the approved rule (owner 2026-10-08) in both languages"
 
 test("checkout and order-page copy name the policy in both languages", () => {
   for (const lang of ["en", "ja"]) {
-    for (const k of ["policyPrefix", "policyTerms", "policyJoin", "policyCancel", "policySuffix"]) {
+    for (const k of ["consentPrefix", "policyPrivacy", "consentComma", "policyTerms", "policyJoin", "policyCancel", "consentSuffix", "consentRequired"]) {
       assert.equal(typeof dict.checkout[k][lang], "string", `checkout.${k}.${lang}`);
     }
     assert.equal(typeof dict.orders.cancellationPolicy[lang], "string");
   }
   assert.equal(dict.checkout.policyCancel.en, "Cancellation policy");
   assert.equal(dict.checkout.policyCancel.ja, "キャンセルポリシー");
+});
+
+// CONSENT TICK BOX (owner 2026-10-10): the whole sentence, as the customer
+// reads it, in each language — the three documents in one box.
+test("the consent sentence names the three documents, EN and JA", () => {
+  const c = dict.checkout;
+  const sentence = (lang) =>
+    ["consentPrefix", "policyPrivacy", "consentComma", "policyTerms", "policyJoin", "policyCancel", "consentSuffix"]
+      .map((k) => c[k][lang]).join("");
+  assert.equal(sentence("en"), "I have read and agree to the Privacy Policy, the Terms of Service and the Cancellation policy.");
+  assert.equal(sentence("ja"), "プライバシーポリシー、利用規約およびキャンセルポリシーを読み、同意します。");
+});
+
+// The tick box is wired into the one action: unticked by default, required,
+// and the button is disabled until it is ticked. A full payment's button says
+// "Place order"; only a layaway says "Reserve this piece" (owner 2026-10-10).
+test("checkout: required consent box gates the button; full payment says Place order", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync(new URL("../components/commerce/checkout-flow.tsx", import.meta.url), "utf8");
+  assert.match(src, /const \[consented, setConsented\] = useState\(false\)/);
+  assert.match(src, /disabled: pending \|\| !consented \|\|/);
+  assert.match(src, /data-testid="checkout-consent"/);
+  assert.match(src, /href="\/legal\/privacy"/);
+  assert.match(src, /label: mode === "layaway"\s*\n\s*\? \(pending \? t\("checkout", "reserving"\) : t\("checkout", reserving \? "reserveNow" : "reservePiece"\)\)\s*\n\s*: \(pending \? t\("checkout", "placing"\) : t\("checkout", "placeOrder"\)\)/);
+  assert.equal(dict.checkout.placeOrder.en, "Place order");
+  assert.equal(dict.checkout.placeOrder.ja, "ご注文を確定する");
 });

@@ -130,6 +130,10 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
   const [showNew, setShowNew] = useState(initialAddresses.length === 0);
   // Consent. Starts false and is never defaulted true anywhere.
   const [joinLoyalty, setJoinLoyalty] = useState(false);
+  // Consent tick box (owner 2026-10-10): Privacy Policy + Terms of Service +
+  // Cancellation policy. Unticked by default; the order cannot be placed
+  // until she ticks it.
+  const [consented, setConsented] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>("SELF");
   const [recipientName, setRecipientName] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
@@ -516,13 +520,13 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     : step === 3 ? { label: t("checkout", "continueReview"), onClick: toReview, disabled: pending || !addressId }
     : step === "sign" && quote ? { label: pending ? t("checkout", "agreementChecking") : t("checkout", "agreementDone"), onClick: recheckAgreement, disabled: pending }
     : step === 4 && quote ? {
-        label: reserving
-          ? (pending ? t("checkout", "reserving") : t("checkout", "reserveNow"))
-          : mode === "layaway"
-          ? (pending ? t("checkout", "reserving") : t("checkout", "reservePiece"))
+        // A full payment says "Place order" (checkout.placeOrder, EN + JA);
+        // only a layaway (English only) says "Reserve this piece" (owner 2026-10-10).
+        label: mode === "layaway"
+          ? (pending ? t("checkout", "reserving") : t("checkout", reserving ? "reserveNow" : "reservePiece"))
           : (pending ? t("checkout", "placing") : t("checkout", "placeOrder")),
         onClick: placeOrder,
-        disabled: pending || !methodOffered || quote.requires_manual_quote,
+        disabled: pending || !consented || !methodOffered || quote.requires_manual_quote,
       }
     : null;
   const back: { label: string; to: Step | "cart" } | null =
@@ -1036,16 +1040,38 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                   </div>
                 )}
 
-                {/* CANCELLATION POLICY (V10d, owner 2026-10-08): the rule the
-                    customer is agreeing to sits one line above the action, as a
-                    link to the policy article — never a figure computed here. */}
-                <p className="mt-6 text-[13px] leading-relaxed text-charcoal/80" data-testid="checkout-policy-note">
-                  {t("checkout", "policyPrefix")}
-                  <Link href="/legal/terms" target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4">{t("checkout", "policyTerms")}</Link>
-                  {t("checkout", "policyJoin")}
-                  <Link href={cancellationPolicyHref(lang)} target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-cancellation-policy">{t("checkout", "policyCancel")}</Link>
-                  {t("checkout", "policySuffix")}
-                </p>
+                {/* CONSENT (owner 2026-10-10; was the V10d "by placing your
+                    order you agree" line): one required tick box one line above
+                    the action. The links open in a new tab so the basket is
+                    never lost; the button stays disabled until it is ticked. */}
+                <div className="mt-6" data-testid="checkout-policy-note">
+                  <label className="flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-charcoal-deep">
+                    <input
+                      type="checkbox"
+                      checked={consented}
+                      onChange={(e) => setConsented(e.target.checked)}
+                      disabled={pending}
+                      required
+                      aria-describedby={consented ? undefined : "checkout-consent-required"}
+                      className="mt-0.5 h-5 w-5 shrink-0 accent-gold-dark"
+                      data-testid="checkout-consent"
+                    />
+                    <span>
+                      {t("checkout", "consentPrefix")}
+                      <Link href="/legal/privacy" target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-privacy-policy">{t("checkout", "policyPrivacy")}</Link>
+                      {t("checkout", "consentComma")}
+                      <Link href="/legal/terms" target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-terms">{t("checkout", "policyTerms")}</Link>
+                      {t("checkout", "policyJoin")}
+                      <Link href={cancellationPolicyHref(lang)} target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-cancellation-policy">{t("checkout", "policyCancel")}</Link>
+                      {t("checkout", "consentSuffix")}
+                    </span>
+                  </label>
+                  {!consented && (
+                    <p id="checkout-consent-required" className="mt-2 pl-8 text-[13px] text-charcoal/75" data-testid="checkout-consent-required">
+                      {t("checkout", "consentRequired")}
+                    </p>
+                  )}
+                </div>
               </section>
             )}
 

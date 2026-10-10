@@ -827,18 +827,27 @@ export const dict = {
     transferThenCard: { ja: "銀行振込、またはご注文確定後にご注文ページからカードでもお支払いいただけます。", en: "Bank transfer, or by card once we confirm your order — the card option appears on your order page." },
     transferPreview: { ja: "お振込先は以下のとおりです。ご注文確定後、この画面とメールでも改めてご案内します。", en: "You will transfer to the account below. We show it again after you place the order, and send it by email." },
     placeOrder: { ja: "ご注文を確定する", en: "Place order" },
-    // CANCELLATION POLICY LINK (V10d, owner 2026-10-08): one sentence above the
-    // Place order / Reserve button, naming the Terms of Service and the
+    // CONSENT TICK BOX (owner 2026-10-10, replacing the V10d "by placing your
+    // order you agree" line): one required box above the Place order / Reserve
+    // button, linking the Privacy Policy, the Terms of Service and the
     // cancellation article of the returns policy (lib/cancellation-policy.ts).
-    // Five pieces because the links sit in different places in each sentence.
-    policyPrefix: { ja: "ご注文を確定すると、", en: "By placing your order you agree to our " },
+    // The order cannot be placed until it is ticked. Seven pieces because the
+    // links sit in different places in each sentence:
+    //   EN "I have read and agree to the Privacy Policy, the Terms of Service and the Cancellation policy."
+    //   JA 「プライバシーポリシー、利用規約およびキャンセルポリシーを読み、同意します。」
+    consentPrefix: { ja: "", en: "I have read and agree to the " },
+    policyPrivacy: { ja: "プライバシーポリシー", en: "Privacy Policy" },
+    consentComma: { ja: "、", en: ", the " },
     policyTerms: { ja: "利用規約", en: "Terms of Service" },
     policyJoin: { ja: "および", en: " and the " },
     policyCancel: { ja: "キャンセルポリシー", en: "Cancellation policy" },
-    policySuffix: { ja: "に同意したものとみなされます。", en: "." },
-    // RESERVE FIRST (Hub A2). Shown only when the quote came back with
-    // `reservation_mode`: no bank details and no deadline until staff confirm
-    // the piece (owner rule).
+    consentSuffix: { ja: "を読み、同意します。", en: "." },
+    consentRequired: { ja: "ご注文の前に、上の同意欄にチェックを入れてください。", en: "Please tick the box above to agree before you place your order." },
+    // RESERVE FIRST (Hub A2): no bank details and no deadline until staff
+    // confirm the piece (owner rule). The button says "Reserve this piece" on a
+    // LAYAWAY only (English only); a full payment says "Place order" /
+    // 「ご注文を確定する」 (owner 2026-10-10 — "Reserve" read as layaway, and
+    // nothing is charged at this click, so not "Pay now").
     reserveNow: { ja: "予約する", en: "Reserve this piece" },
     reserveExplain: { ja: "商品を確認後、お支払い方法をメールでお送りします。", en: "We'll confirm your piece and email you payment details." },
     placing: { ja: "処理中…", en: "Placing your order…" },
