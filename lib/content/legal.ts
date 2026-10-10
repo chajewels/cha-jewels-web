@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import type { OfferedMethods } from "@/lib/types";
 
 /**
  * A numbered legal article with mixed content — paragraphs, sub-lists and blocks
@@ -59,10 +60,18 @@ export function legalArticlesFor(articles: LegalArticle[], layaway: boolean): Le
     .map((a) => (a.n === undefined ? a : { ...a, n: ++n }));
 }
 
-export type TokushoRow = { k: Record<Lang, string>; v: Record<Lang, string>; layaway?: true };
+/**
+ * `by`: a row whose text depends on which payment methods the checkout can
+ * take right now (Stripe review 2026-10-09). `v` is the text with every switch
+ * on; tokushoRowsFor replaces it with `by(offered)`, so the page never names a
+ * method the checkout cannot take at that moment.
+ */
+export type TokushoRow = { k: Record<Lang, string>; v: Record<Lang, string>; by?: (offered: OfferedMethods) => Record<Lang, string>; layaway?: true };
 
-export function tokushoRowsFor(layaway: boolean): TokushoRow[] {
-  return layaway ? tokusho.rows : tokusho.rows.filter((r) => !r.layaway);
+export function tokushoRowsFor(layaway: boolean, offered: OfferedMethods): TokushoRow[] {
+  return tokusho.rows
+    .filter((r) => layaway || !r.layaway)
+    .map(({ by, ...r }) => (by ? { ...r, v: by(offered) } : r));
 }
 
 /**
@@ -401,9 +410,38 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  * and same wording as returnsUpdated / privacyUpdated / tosUpdated.
  */
 export const tokushoUpdated: Record<Lang, string> = {
-  ja: "最終更新日：2026年9月26日",
-  en: "Last updated: September 26, 2026",
+  ja: "最終更新日：2026年10月9日",
+  en: "Last updated: October 9, 2026",
 };
+
+/**
+ * PAYMENT METHODS FOLLOW THE SWITCHES (Stripe review 2026-10-09). Bank transfer
+ * is always offered; card only while the Hub offers it (square_mode on for
+ * everyone, GET /payments/offered); Paidy only while paidy_mode is on (GET
+ * /paidy/widget). Konbini is never named: no konbini provider exists. The
+ * English layaway※ item is unchanged; the Japanese page names no layaway.
+ */
+const ALL_ON: OfferedMethods = { card: true, paidy: true };
+const PAIDY_EN = "Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen)";
+
+function paymentMethodsText({ card, paidy }: OfferedMethods): Record<Lang, string> {
+  const ja = [card && "クレジットカード", "銀行振込", paidy && "あと払い（ペイディ）"].filter((x): x is string => !!x).join("、");
+  const en = [card && "credit card", "bank transfer", paidy && PAIDY_EN, "layaway※"].filter((x): x is string => !!x);
+  const list = en.length === 2 ? en.join(" and ") : `${en.slice(0, -1).join(", ")}, and ${en[en.length - 1]}`;
+  return { ja, en: list.charAt(0).toUpperCase() + list.slice(1) };
+}
+
+/** 支払時期: the card sentence follows the card switch; every other sentence is unchanged. */
+function paymentTimingText({ card }: OfferedMethods): Record<Lang, string> {
+  return {
+    ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。"
+      + (card ? "クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。" : "")
+      + "あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。",
+    en: "After we confirm your order, by the deadline shown."
+      + (card ? " By card, the amount is authorised (held) when you pay and charged when we confirm the payment." : "")
+      + " With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+  };
+}
 
 export const tokusho = {
   title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" },
@@ -458,6 +496,11 @@ export const tokusho = {
       v: { ja: "sales@chajewelsjp.com", en: "sales@chajewelsjp.com" },
     },
     {
+      // Owner decision 2026-10-09: weekdays, closed weekends and Japanese public holidays.
+      k: { ja: "受付時間", en: "Support hours" },
+      v: { ja: "平日 10:00–18:00（土日祝日を除く）", en: "Weekdays 10:00–18:00 (JST), closed weekends and Japanese public holidays" },
+    },
+    {
       k: { ja: "登録番号", en: "Invoice registration number" },
       v: { ja: INVOICE_REG_NO, en: INVOICE_REG_NO },
     },
@@ -475,29 +518,26 @@ export const tokusho = {
     {
       k: { ja: "商品代金以外の必要料金", en: "Charges besides the price" },
       v: {
-        ja: "送料、銀行振込手数料、コンビニ決済手数料",
-        en: "Shipping, bank transfer fees, and convenience-store payment fees",
+        ja: "送料、銀行振込手数料",
+        en: "Shipping and bank transfer fees",
       },
     },
     {
       k: { ja: "支払方法", en: "Payment methods" },
-      v: {
-        // Paidy ato-barai added 2026-10-03 (Paidy's prescribed label; the
-        // row wording is the owner's to compare with Paidy's 記載例 before release).
-        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）",
-        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen), and layaway※",
-      },
+      // Paidy ato-barai added 2026-10-03 (Paidy's prescribed label). Built from
+      // the switches since 2026-10-09: see paymentMethodsText.
+      v: paymentMethodsText(ALL_ON),
+      by: paymentMethodsText,
     },
     {
       k: { ja: "支払時期", en: "When payment is due" },
       // H1 (Square QC 2026-10-09, owner D-QC2): payment is asked for only
       // after we confirm the order (every checkout is a draft); a card is
       // authorised (held) when she pays and charged when we confirm it.
-      // Wording is the owner's to approve before release.
-      v: {
-        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。",
-        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
-      },
+      // Wording is the owner's to approve before release. The card sentence
+      // follows the card switch (2026-10-09): see paymentTimingText.
+      v: paymentTimingText(ALL_ON),
+      by: paymentTimingText,
     },
     {
       k: { ja: "引渡時期", en: "When we deliver" },

@@ -130,6 +130,10 @@ export type HubTier = { slug: string; name: string; threshold_jpy: number; requa
 export type FxRate = { jpy_php: number; as_of: string };
 /** GET /paidy/widget — true only while the Hub's paidy_mode is 'on' (owner W3, 2026-10-03). */
 export type PaidyWidgetFlag = { enabled: boolean };
+/** GET /payments/offered (Hub route ships with the Square go-live) — `card` true only while square_mode is 'on' for every customer. */
+export type PaymentsOfferedFlag = { card: boolean };
+/** Which switched methods the site may NAME (特定商取引法 page, footer marks). Bank transfer is always offered; konbini never. */
+export type OfferedMethods = { card: boolean; paidy: boolean };
 
 /** Phase 2 step 1 — customer account. */
 export type HubCustomer = { id: string; customer_code: string | null; full_name: string | null; email: string | null; mobile_number: string | null };

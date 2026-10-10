@@ -41,13 +41,14 @@ import { hub } from "@/lib/hub-api";
  */
 export async function Footer({ lang }: { lang: Lang }) {
   const t = tr(lang);
-  const [collections, followLinks, tagline, paidy] = await Promise.all([
+  const [collections, followLinks, tagline, offered] = await Promise.all([
     getCollections().catch(() => []),
     follow().catch(() => []),
     footerTagline(lang).catch(() => null),
-    // The Paidy chip beside the card marks follows the Hub's switch exactly as
-    // the product-page widget does (owner 2026-10-08); a failed read is "off".
-    hub.paidyWidget().catch(() => ({ enabled: false })),
+    // The card marks and the Paidy chip follow the Hub's switches, the same
+    // ones the tokusho payment row reads (owner 2026-10-08, Stripe review
+    // 2026-10-09); a failed read is "off".
+    hub.paymentsOffered().catch(() => ({ card: false, paidy: false })),
   ]);
   const layaway = layawayOffered(lang);
 
@@ -180,8 +181,8 @@ export async function Footer({ lang }: { lang: Lang }) {
             American Express, JCB, Diners Club, Discover. No UnionPay (Square
             takes it in person only). The row's label is the brand sentence. */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <CardMarks label={t("footer", "cards")} />
-          {paidy.enabled && <PaidyMark label={t("footer", "paidy")} />}
+          {offered.card && <CardMarks label={t("footer", "cards")} />}
+          {offered.paidy && <PaidyMark label={t("footer", "paidy")} />}
         </div>
         <LangSwitcher lang={lang} tone="dark" />
       </div>

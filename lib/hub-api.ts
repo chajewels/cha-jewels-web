@@ -1,5 +1,5 @@
 import "server-only";
-import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, PaidyWidgetFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult, PaidyProfileInput } from "@/lib/types";
+import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, OfferedMethods, PaidyWidgetFlag, PaymentsOfferedFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult, PaidyProfileInput } from "@/lib/types";
 
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
@@ -308,6 +308,22 @@ export const hub = {
     FIXTURES
       ? Promise.resolve({ enabled: fx.PREVIEW_PAIDY })
       : call<PaidyWidgetFlag>("/paidy/widget", { revalidate: 3600, tags: ["paidy"], timeout: SECONDARY_TIMEOUT_MS }).catch(() => ({ enabled: false })),
+  /**
+   * Which switched methods the 特定商取引法 page and the footer may name
+   * (Stripe review 2026-10-09): Paidy from /paidy/widget (paidy_mode 'on'),
+   * card from GET /payments/offered (square_mode 'on' for everyone). That
+   * route ships with the Square go-live; until then, and on any failure, card
+   * is off — the page never names a method the checkout cannot take.
+   */
+  paymentsOffered: async (): Promise<OfferedMethods> => {
+    const [paidy, card] = await Promise.all([
+      hub.paidyWidget(),
+      FIXTURES
+        ? Promise.resolve({ card: fx.PREVIEW_CARD })
+        : call<PaymentsOfferedFlag>("/payments/offered", { revalidate: 3600, tags: ["square"], timeout: SECONDARY_TIMEOUT_MS }).catch(() => ({ card: false })),
+    ]);
+    return { card: card?.card === true, paidy: paidy?.enabled === true };
+  },
   loyaltyTiers: (): Promise<HubTier[]> =>
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
   loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
