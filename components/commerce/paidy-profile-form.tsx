@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { paidyProfileAction } from "@/lib/paidy-actions";
+import { safeAction } from "@/lib/paidy-flow";
 import type { PaidyRequirements } from "@/lib/types";
 
 /**
@@ -36,12 +37,14 @@ export function PaidyProfileForm({ orderId, requirements, lang }: { orderId: str
     code === "family_name_required" ? t("paidy", "errFamilyName")
     : code === "given_name_required" ? t("paidy", "errGivenName")
     : code === "jp_mobile_required" ? t("paidy", "errJpMobile")
+    : code === "network" || code === "timeout" ? t("paidy", "errNetwork")
     : t("paidy", "errSaveFailed");
 
   const submit = (form: FormData) => {
     setError(null);
     startTransition(async () => {
-      const r = await paidyProfileAction(form);
+      // M8: a dropped connection or an expired page gives a calm message, never the error page.
+      const r = await safeAction(() => paidyProfileAction(form), 20_000, (code) => ({ ok: false as const, code }));
       if (r.ok) { router.refresh(); return; }
       setError(errorText(r.code));
     });

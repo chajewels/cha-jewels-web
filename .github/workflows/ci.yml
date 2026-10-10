@@ -47,6 +47,11 @@ jobs:
       # Photoroom / normal photos only (owner rule 2026-09-28).
       - run: npm run check:cutouts
 
+      # H2 (Paidy QC 2026-10-09): the unit tests — Paidy flow, card, CSP,
+      # order display, site time — were never run on a push; a regression
+      # passed every other check unseen.
+      - run: npm run test:unit
+
       - run: npm run typecheck
 
       - run: npm run lint
