@@ -1,8 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
-import { tokusho, tokushoRowsFor, tokushoUpdated } from "@/lib/content/legal";
+import { ALL_ON, tokusho, tokushoRowsFor, tokushoUpdated } from "@/lib/content/legal";
 import { layawayOffered } from "@/lib/layaway-availability";
-import { hub } from "@/lib/hub-api";
 import { LegalFrame } from "@/components/site/legal-frame";
 
 export const generateMetadata = () => pageMeta("tokusho");
@@ -27,9 +26,9 @@ export default async function Tokusho() {
   const lang = await getLang();
 
   const layaway = layawayOffered(lang);
-  // The payment rows name only what the checkout can take right now (Stripe
-  // review 2026-10-09): the same switches as the footer marks.
-  const offered = await hub.paymentsOffered();
+  // Owner 2026-10-10: not launched, nothing hidden — every payment method is
+  // named (card, Paidy, bank transfer, konbini, cash on delivery).
+  const offered = ALL_ON;
   return (
     <LegalFrame lang={lang} page="tokusho" title={tokusho.title[lang]} updated={tokushoUpdated[lang]} toc={[]}>
       {/* Build step 7: a hairline ledger, the item in gold-dark beside its

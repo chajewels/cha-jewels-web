@@ -45,10 +45,9 @@ export async function Footer({ lang }: { lang: Lang }) {
     getCollections().catch(() => []),
     follow().catch(() => []),
     footerTagline(lang).catch(() => null),
-    // The card marks and the Paidy chip follow the Hub's switches, the same
-    // ones the tokusho payment row reads (owner 2026-10-08, Stripe review
-    // 2026-10-09); a failed read is "off".
-    hub.paymentsOffered().catch(() => ({ card: false, paidy: false })),
+    // Owner 2026-10-10: not launched, nothing hidden — the card marks and the
+    // Paidy chip always show.
+    Promise.resolve({ card: true, paidy: true }),
   ]);
   const layaway = layawayOffered(lang);
 
