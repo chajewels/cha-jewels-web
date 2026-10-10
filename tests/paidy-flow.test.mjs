@@ -98,3 +98,13 @@ test("S-C2: the legal notice carries Paidy's own 特商法 wording", () => {
   assert.match(src, /最大390円（税込）/);
 });
 
+
+test("COD (owner 2026-10-10): the Paidy notices never list only transfer and card", () => {
+  for (const lang of ["en", "ja"]) {
+    for (const k of ["rejected", "windowOpenBody", "windowOpenBodyNoReopen"]) {
+      const v = t(lang)("paidy", k);
+      assert.doesNotMatch(v, /銀行振込とカード|bank transfer and card/, `${lang}.${k}`);
+      assert.match(v, /他のお支払い方法|other ways to pay/, `${lang}.${k}`);
+    }
+  }
+});
