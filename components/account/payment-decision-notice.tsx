@@ -27,6 +27,7 @@ export function PaymentDecisionNotice({ lang, kind, decision, currency }: {
   const t = tr(lang);
   const method = decision.method === "paidy" ? t("orders", "decisionMethodPaidy")
     : decision.method === "card" ? t("orders", "decisionMethodCard")
+    : decision.method === "cod" ? t("orders", "decisionMethodCod")
     : t("orders", "decisionMethodTransfer");
   const message = decision.message?.trim() ? decision.message : null;
   return (

@@ -232,7 +232,12 @@ export type OrderType = "SELF" | "GIFT" | "PROXY";
  * deposit). EVERY figure here is the Hub's — the storefront renders, never
  * computes.
  */
-export type CheckoutMethod = "transfer" | "paidy" | "card";
+/**
+ * "cod" is cash on delivery (代金引換, owner plan 2026-10-10): yen, full
+ * payment, delivered in Japan. The courier collects; there is no pay box and
+ * no deadline. The fee (代引手数料) is the Hub's figure, its own line.
+ */
+export type CheckoutMethod = "transfer" | "paidy" | "card" | "cod";
 /**
  * WEBSITE PAYMENT LIFECYCLE (Hub H6, 2026-10-05). The reviewer's newest
  * decision on this order's (or plan's) submissions, when it was NOT a
@@ -255,14 +260,21 @@ export type HubLatestDecision = {
  * always just `{ error: code }`. 404: not_found, not_linked. 409:
  * not_web_order, not_payable, payment_in_progress, not_rejected,
  * already_switched (one customer switch per rejection), unchanged,
- * method_not_offered. 400: bad_method, method_requires_yen.
+ * method_not_offered. 400: bad_method, method_requires_yen. Cash on delivery
+ * (2026-10-10), 409: method_unavailable, over_cod_limit, cod_nothing_to_collect.
  */
 export type HubMethodSwitchError =
   | "not_found" | "not_linked"
   | "not_web_order" | "not_payable" | "payment_in_progress" | "not_rejected" | "already_switched" | "unchanged" | "method_not_offered"
-  | "bad_method" | "method_requires_yen";
-/** One choice, and why it is greyed out when it is (layaway | currency_not_yen | address_not_jp | off | no_account). */
-export type HubPaymentOption = { method: CheckoutMethod; offered: boolean; reason: string | null };
+  | "bad_method" | "method_requires_yen"
+  | "method_unavailable" | "over_cod_limit" | "cod_nothing_to_collect";
+/**
+ * One choice, and why it is greyed out when it is (layaway | currency_not_yen |
+ * address_not_jp | off | no_account; COD also nothing_to_collect |
+ * over_cod_limit). `fee_jpy` is COD only: the 代引手数料 choosing it adds — the
+ * Hub's figure, null when not offered. The storefront never brackets a fee.
+ */
+export type HubPaymentOption = { method: CheckoutMethod; offered: boolean; reason: string | null; fee_jpy?: number | null };
 export type HubCheckoutPoints = {
   /** False when points cannot be used here — `reason` says why (not_enrolled | no_points | loyalty_off), or max_points is 0. */
   usable: boolean;
@@ -283,7 +295,11 @@ export type HubCheckoutChoice = {
   payment_options: HubPaymentOption[];
   payment_method: CheckoutMethod | null;
   points: HubCheckoutPoints;
-  totals: { total_after_points: number; due_now_after_points: number };
+  /**
+   * `cod_fee` (2026-10-10): the 代引手数料 when COD is the chosen method, else
+   * 0 — already included in the two figures after it. Absent on an older Hub.
+   */
+  totals: { cod_fee?: number; total_after_points: number; due_now_after_points: number };
 };
 export type HubQuoteItem = { variant_id: string; product_id: string | null; sku: string | null; slug: string | null; name: string; name_en?: string | null; name_ja?: string | null; qty: number; unit_price_jpy: number; line_total_jpy: number };
 export type HubQuote = {
@@ -441,6 +457,10 @@ export type HubDraftPayResult = {
   transfer_due_at: null;
   transfer_region: TransferRegion;
   transfer_methods: TransferMethod[];
+  /** C1: the method chosen at checkout; absent on an older Hub. */
+  payment_method?: CheckoutMethod;
+  /** Cash on delivery: the 代引手数料, already in `total` (0 otherwise). Absent on an older Hub. */
+  cod_fee?: number;
 };
 
 export type DraftStatus = "to_confirm" | "confirmed" | "declined" | "expired";
@@ -484,6 +504,8 @@ export type HubDraft = {
    * Absent on an older Hub — never computed here.
    */
   total_after_points?: number;
+  /** Cash on delivery: the 代引手数料, already in `total` (0 otherwise). Absent on an older Hub. */
+  cod_fee?: number;
 };
 export type HubDraftLine = {
   id: string; variant_id: string | null; product_id: string | null;
@@ -513,6 +535,8 @@ export type HubOrder = ReservationFlags & {
    */
   currency: SettlementCurrency;
   total_amount: number; total_paid: number; remaining_balance: number; shipping_fee: number | null;
+  /** Cash on delivery: the 代引手数料, already in total_amount. null/0 on other methods; absent on an older Hub. */
+  cod_fee?: number | null;
   transfer_due_at: string | null; recipient_name: string | null; gift_note: string | null;
   order_date: string | null; created_at: string; completed_at: string | null; cancelled_at: string | null;
   tracking_number: string | null; shipped_at: string | null;
@@ -602,7 +626,16 @@ export type HubOrderDetail = {
    */
   can_switch_method?: boolean;
   switch_methods?: CheckoutMethod[];
+  /**
+   * Cash on delivery (2026-10-10): present when the order is paid on
+   * delivery. `fee` is the 代引手数料 (already in the total);
+   * `collect_on_delivery` is what the courier collects (the Hub's remaining
+   * balance, fee included). The order page shows NO pay box and no deadline.
+   * null on any other method; absent on an older Hub.
+   */
+  cod?: HubOrderCod | null;
 };
+export type HubOrderCod = { fee: number; collect_on_delivery: number };
 /**
  * Everything Paidy Checkout needs, assembled by the Hub. `checkout` is passed
  * to `Paidy.launch()` exactly as received — every figure in it (amount, item

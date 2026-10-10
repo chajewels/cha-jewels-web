@@ -14,7 +14,9 @@ import { AGREEMENT_REQUIRED } from "@/lib/layaway-agreement";
 const EXPIRED = new Set(["quote_expired", "quote_already_used", "quote_not_found"]);
 /** The Hub's stock refusals at /checkout/*: bought by someone else, or taken off sale. */
 const SOLD_OUT = new Set(["out_of_stock", "variant_missing", "product_unavailable"]);
-const METHOD_REFUSED = new Set(["bad_method", "method_unavailable", "method_full_payment_only", "method_requires_yen"]);
+// Cash on delivery (Hub 2026-10-10): over_cod_limit / cod_nothing_to_collect are the
+// Hub re-judging COD with the figures it now holds — she picks again.
+const METHOD_REFUSED = new Set(["bad_method", "method_unavailable", "method_full_payment_only", "method_requires_yen", "over_cod_limit", "cod_nothing_to_collect"]);
 const POINTS_REFUSED = new Set(["bad_points", "points_unavailable", "points_not_enrolled", "points_insufficient", "points_exceed_subtotal", "points_exceed_deposit", "points_exceed_max"]);
 
 export function checkoutErrorCode(err: { status?: number | null; code?: string | null } | null | undefined): string {

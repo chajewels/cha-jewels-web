@@ -34,10 +34,10 @@ async function jwtOrNull(): Promise<string | null> {
 }
 
 /** Hub failure → UI code: lib/checkout-error-code.ts (pure, unit-tested). */
-/** Only the three methods, only whole points — never whatever the browser sent. */
+/** Only the four methods, only whole points — never whatever the browser sent. */
 function cleanChoice(choice: { method?: unknown; points?: unknown } | undefined): CheckoutChoiceInput {
   const m = String(choice?.method ?? "transfer");
-  const method: CheckoutMethod = m === "paidy" || m === "card" ? m : "transfer";
+  const method: CheckoutMethod = m === "paidy" || m === "card" || m === "cod" ? m : "transfer";
   const n = Math.floor(Number(choice?.points ?? 0));
   return { method, points: Number.isSafeInteger(n) && n > 0 ? n : 0 };
 }

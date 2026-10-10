@@ -29,11 +29,15 @@ export function orderStatusLabel(order: HubOrder, lang: Lang, chosenMethod?: Che
  * The dictionary key behind orderStatusLabel. `chosenMethod` (payment
  * lifecycle S1): an order she chose to pay with Paidy or a card is waiting for
  * a PAYMENT, not a transfer, so it reads "Awaiting payment" where a transfer
- * order reads "Awaiting transfer". Absent or transfer (an older Hub) reads as
+ * order reads "Awaiting transfer". Cash on delivery reads "Ships soon — pay on
+ * delivery" (statusPendingCod). Absent or transfer (an older Hub) reads as
  * before.
  */
 export function orderStatusKey(order: HubOrder, chosenMethod?: CheckoutMethod | null): { key: keyof typeof dict.orders; tone: Tone } {
-  const awaiting = chosenMethod === "paidy" || chosenMethod === "card" ? "statusPendingPayment" : "statusPendingTransfer";
+  // Cash on delivery (Hub 2026-10-10): nothing to pay before the parcel
+  // arrives — the order is getting ready to ship, never "awaiting transfer".
+  const awaiting = chosenMethod === "cod" ? "statusPendingCod"
+    : chosenMethod === "paidy" || chosenMethod === "card" ? "statusPendingPayment" : "statusPendingTransfer";
 
   // EVERY ENDED STATE IS TESTED BEFORE `shipped_at`, fixed 2026-09-15 alongside
   // the closed-plan caption. `shipped_at` used to be checked first, so an order

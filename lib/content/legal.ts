@@ -401,8 +401,8 @@ export const legalTitles: Record<"privacy", Record<Lang, string>> = {
  * and same wording as returnsUpdated / privacyUpdated / tosUpdated.
  */
 export const tokushoUpdated: Record<Lang, string> = {
-  ja: "最終更新日：2026年9月26日",
-  en: "Last updated: September 26, 2026",
+  ja: "最終更新日：2026年10月10日",
+  en: "Last updated: October 10, 2026",
 };
 
 export const tokusho = {
@@ -477,9 +477,12 @@ export const tokusho = {
       v: {
         // Owner 2026-10-10: コンビニ決済 stays (its own application is in
         // progress; the owner says when to remove it). Paidy's fees added
-        // in Paidy's 特商法 wording.
-        ja: "送料、銀行振込手数料、コンビニ決済手数料。あと払い（ペイディ）の場合は、コンビニ払いの手数料（最大390円（税込））、銀行振込の場合の振込手数料",
-        en: "Shipping, bank transfer fees, and convenience-store payment fees; with Paidy (あと払い（ペイディ）), Paidy's convenience-store payment fee (up to ¥390, tax included) or, when you pay Paidy by bank transfer, the transfer fee",
+        // in Paidy's 特商法 wording. Cash on delivery fee (owner approved
+        // 2026-10-10, tax included); the figures are the Hub's table
+        // (Website → Settings → Cash on delivery) — change them here only
+        // when the owner changes that table.
+        ja: "送料、銀行振込手数料、コンビニ決済手数料。あと払い（ペイディ）の場合は、コンビニ払いの手数料（最大390円（税込））、銀行振込の場合の振込手数料。代金引換の場合は、代金引換手数料（お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円。いずれも税込）",
+        en: "Shipping, bank transfer fees, and convenience-store payment fees; with Paidy (あと払い（ペイディ）), Paidy's convenience-store payment fee (up to ¥390, tax included) or, when you pay Paidy by bank transfer, the transfer fee; with cash on delivery, a cash on delivery fee by the amount collected on delivery, pieces and shipping together (up to ¥10,000 — ¥1,040; up to ¥30,000 — ¥1,150; up to ¥100,000 — ¥1,370; up to ¥300,000 — ¥1,810; all tax included)",
       },
     },
     {
@@ -489,8 +492,9 @@ export const tokusho = {
         // row wording is the owner's to compare with Paidy's 記載例 before release).
         // S-C3 (Paidy QC PR-B): Paidy's 特商法 wording (paidy.com/docs/jp/tokushoho.html).
         // Owner 2026-10-10: コンビニ決済 stays listed (application in progress).
-        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）（日本国内にお住まいのお客様のみ。円でのご注文。ペイディへの支払方法は、コンビニ払い（コンビニ設置端末）、銀行振込及び口座振替となります。）",
-        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen; you pay Paidy at a convenience store (in-store terminal), by bank transfer or by direct debit), and layaway※",
+        // Cash on delivery added 2026-10-10 (owner approved).
+        ja: "クレジットカード、銀行振込、コンビニ決済、あと払い（ペイディ）（日本国内にお住まいのお客様のみ。円でのご注文。ペイディへの支払方法は、コンビニ払い（コンビニ設置端末）、銀行振込及び口座振替となります。）、代金引換（日本国内へのお届け・日本円・一括払いのご注文で、お受け取り時のお支払い額が30万円以下の場合に限ります）",
+        en: "Credit card, bank transfer, convenience-store payment, Paidy (あと払い（ペイディ）; for customers living in Japan only — Japanese mobile number, identity check and payment in Japan; orders in yen; you pay Paidy at a convenience store (in-store terminal), by bank transfer or by direct debit), cash on delivery (代金引換; delivery in Japan, orders in yen paid in full, where the amount collected on delivery is ¥300,000 or less), and layaway※",
       },
     },
     {
@@ -500,15 +504,15 @@ export const tokusho = {
       // authorised (held) when she pays and charged when we confirm it.
       // Wording is the owner's to approve before release.
       v: {
-        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。",
-        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th. For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
+        ja: "ご注文確認のご連絡後、表示の期限までにお支払いください。クレジットカードの場合は、お支払い手続き時に与信（仮売上）を行い、当社での確認時に売上が確定します。あと払い（ペイディ）の場合は、ご利用の翌月にペイディからのご請求に沿ってお支払いください（コンビニ払い・銀行振込・口座振替）。支払期日は、コンビニ払い及び銀行振込の場合は翌月27日までとなります。口座振替の場合は27日に引き落しとなります。代金引換の場合は、商品お受け取り時に配達員へお支払いください（お支払い期限はありません）。",
+        en: "After we confirm your order, by the deadline shown. By card, the amount is authorised (held) when you pay and charged when we confirm the payment. With Paidy, you pay Paidy the following month as billed by Paidy (convenience store, bank transfer or direct debit); by convenience store or bank transfer, by the 27th of that month; by direct debit, it is taken on the 27th. With cash on delivery, you pay the courier when you receive the piece (there is no deadline). For layaway※, on the dates shown in your account, over a three-, six- or eight-month plan (eight months for orders of ¥300,000 or more)",
       },
     },
     {
       k: { ja: "引渡時期", en: "When we deliver" },
       v: {
-        ja: "入金確認後5営業日以内に発送。",
-        en: "Dispatched within five business days of payment clearing. Layaway※ ships after the final payment",
+        ja: "入金確認後5営業日以内に発送。代金引換の場合は、ご注文確認後に発送します。",
+        en: "Dispatched within five business days of payment clearing. Cash on delivery orders are dispatched after we confirm the order. Layaway※ ships after the final payment",
       },
     },
     {
@@ -953,8 +957,8 @@ export const tosTitle: Record<Lang, string> = {
 };
 
 export const tosUpdated: Record<Lang, string> = {
-  ja: "最終更新日：2026年9月21日",
-  en: "Last updated: September 21, 2026",
+  ja: "最終更新日：2026年10月10日",
+  en: "Last updated: October 10, 2026",
 };
 
 export const tosArticles: LegalArticle[] = [
@@ -1067,6 +1071,8 @@ export const tosArticles: LegalArticle[] = [
     h: { ja: "お支払い", en: "Payment" },
     blocks: [
       { kind: "p", text: { ja: "ご利用いただけるお支払方法は、ご注文手続きの画面に表示し、または請求書に記載します。", en: "Available payment methods are displayed during checkout or stated on the invoice." } },
+      // Cash on delivery (2026-10-10, owner approved).
+      { kind: "p", text: { ja: "代金引換をお選びの場合は、商品お受け取りの際に配達員へお支払いいただきます。代金引換手数料（税込）はお客様のご負担となり、ご注文の合計に含めて表示します。", en: "If you choose cash on delivery, you pay the courier when you receive the piece. The cash on delivery fee (tax included) is paid by the customer and is shown in the order total." } },
       { kind: "p", text: { ja: "お客様は、次の事項を表明していただくものとします。", en: "You confirm that:" } },
       { kind: "list", items: { ja: ["お選びのお支払方法をご利用になる権限を有していること。", "ご提供いただいたお支払いに関する情報が正確であること。", "資金が違法な行為に由来するものでないこと。", "所定の期限までにすべての金額をお支払いいただくこと。"], en: ["You are authorized to use the selected payment method.", "The payment information provided is accurate.", "The funds do not come from unlawful activity.", "You will pay all amounts by the stated deadlines."] } },
       { kind: "p", text: { ja: "ご注文は、当社がお支払いを受領し、その内容を確認するまで、お支払い済みとは扱いません。", en: "An order is not considered paid until the payment has been received and validated by Cha Jewels." } },
