@@ -1057,7 +1057,7 @@ export const dict = {
     filing: { ja: "確認中…", en: "Confirming…" },
     note: { ja: "ペイディでのお申込み後、Cha Jewelsが内容を確認してからご請求が確定します。確定後、ご利用額は翌月にペイディからご請求されます（コンビニ払い・銀行振込・口座振替）。ペイディの処理中は、他のお支払い方法はご利用いただけません。", en: "After Paidy approves, Cha Jewels confirms the order before the charge is final. Paidy then bills you next month (convenience store, bank transfer or direct debit). While Paidy is processing, other ways to pay are not available." },
     testMode: { ja: "テストモード：実際の請求は発生しません。", en: "Test mode — nothing is charged." },
-    rejected: { ja: "ペイディでのお支払いは承認されませんでした。二重のお支払いを防ぐため、銀行振込とカードは、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認でき次第、このページに表示されます。", en: "Paidy did not approve this payment. To protect you from paying twice, bank transfer and card appear on this page once our next check finds no Paidy payment on this order — usually within 90 minutes." },
+    rejected: { ja: "ペイディでのお支払いは承認されませんでした。二重のお支払いを防ぐため、他のお支払い方法は、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認でき次第、このページに表示されます。", en: "Paidy did not approve this payment. To protect you from paying twice, other ways to pay appear on this page once our next check finds no Paidy payment on this order — usually within 90 minutes." },
     errMismatch: { ja: "ペイディの承認内容がご注文と一致しなかったため、取り消しました。もう一度お試しください。ほかの方法をご希望の場合はご連絡ください。", en: "Paidy's approval did not match this order, so it was cancelled. Please try again, or contact us if you'd like to pay another way." },
     errNotOffered: { ja: "このご注文では現在ペイディをご利用いただけません。ページを再読み込みしてご確認ください。", en: "Paidy is not available for this order right now. Please reload the page." },
     errPending: { ja: "このご注文には確認中のお支払いがあります。", en: "A payment on this order is already being checked." },
@@ -1073,7 +1073,7 @@ export const dict = {
     // PA04 wording (owner 2026-10-08): says what the Hub does — its next
     // hourly check finds no Paidy payment on this order — never that Paidy
     // "confirmed" anything. 30-minute window + the check at :51 = ~90 min.
-    windowOpenBody: { ja: "ペイディでのお支払いが完了しませんでした（画面を閉じた・開いたままにした、またはペイディで承認されなかった場合など）。ペイディでのお支払いは今すぐやり直せます。二重のお支払いを防ぐため、銀行振込とカードは、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認できるまで表示されません。", en: "Paidy did not complete this payment — the window was closed or left open, or Paidy did not approve it. You can open Paidy again right now. To protect you from paying twice, bank transfer and card stay hidden until our next hourly check finds no Paidy payment on this order — usually within 90 minutes." },
+    windowOpenBody: { ja: "ペイディでのお支払いが完了しませんでした（画面を閉じた・開いたままにした、またはペイディで承認されなかった場合など）。ペイディでのお支払いは今すぐやり直せます。二重のお支払いを防ぐため、他のお支払い方法は、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認できるまで表示されません。", en: "Paidy did not complete this payment — the window was closed or left open, or Paidy did not approve it. You can open Paidy again right now. To protect you from paying twice, other ways to pay stay hidden until our next hourly check finds no Paidy payment on this order — usually within 90 minutes." },
     // S-L6: the same, when the Paidy button is not on the page.
     windowOpenBodyNoReopen: { ja: "ペイディでのお支払いが完了しませんでした。二重のお支払いを防ぐため、他のお支払い方法は、次回の定期確認（通常90分以内）でこのご注文にペイディのお支払いがないことを確認できるまで表示されません。", en: "Paidy did not complete this payment. To protect you from paying twice, other ways to pay stay hidden until our next hourly check finds no Paidy payment on this order — usually within 90 minutes." },
     // H3: the Hub refused an approval Paidy gave; it releases the hold at Paidy.

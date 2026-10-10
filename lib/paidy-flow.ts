@@ -9,13 +9,16 @@
  * H3: after an "uncertain" answer (Paidy approved but the Hub's filing did not
  * answer, or Paidy's own answer could not be read) or a Hub refusal of an
  * approved payment, the button stays disabled until the HUB reports a final
- * state — never on a timer alone. The longest it waits is the Hub's own
- * checkout window (30 minutes): by then the Hub has either filed the payment
- * (the page shows "being processed" and this component is gone) or ended the
- * window. Opening Paidy again before that could place a second hold on her
- * Paidy limit.
+ * state — never on a timer alone. The longest it waits is 90 minutes: the
+ * Hub's 30-minute window plus its hourly check (Paidy second-hold fix,
+ * 2026-10-10). By then the Hub has either filed the payment (the page shows
+ * "being processed" and this component is gone) or ended the window. Opening
+ * Paidy again before that could place a second hold on her Paidy limit — and
+ * since the second-hold fix the Hub itself refuses a new window while an
+ * approved payment is unverified, so this wait is the browser's courtesy, not
+ * the only guard.
  */
-export const PAIDY_HOLD_MAX_MS = 30 * 60 * 1000;
+export const PAIDY_HOLD_MAX_MS = 90 * 60 * 1000;
 /** How often the page asks the Hub again while it waits. */
 export const PAIDY_POLL_MS = 15 * 1000;
 
