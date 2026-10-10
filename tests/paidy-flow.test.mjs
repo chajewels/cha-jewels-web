@@ -13,6 +13,7 @@ const T0 = 1_000_000;
 test("H3: a hold never ends on a timer alone before the Hub's window length", () => {
   assert.equal(flow.holdEnded({ since: T0, sawWindowOpen: false, windowOpen: false, now: T0 + 30_000 }), false);
   assert.equal(flow.holdEnded({ since: T0, sawWindowOpen: false, windowOpen: false, now: T0 + 29 * 60_000 }), false);
+  assert.equal(flow.holdEnded({ since: T0, sawWindowOpen: false, windowOpen: true, now: T0 + 89 * 60_000 }), false);
   assert.equal(flow.holdEnded({ since: T0, sawWindowOpen: true, windowOpen: true, now: T0 + 10 * 60_000 }), false);
 });
 
@@ -20,9 +21,9 @@ test("H3: the hold ends once the Hub showed the window open and then ended it", 
   assert.equal(flow.holdEnded({ since: T0, sawWindowOpen: true, windowOpen: false, now: T0 + 60_000 }), true);
 });
 
-test("H3: the hold ends after the Hub's own 30-minute window at the latest", () => {
-  assert.equal(flow.PAIDY_HOLD_MAX_MS, 30 * 60_000);
-  assert.equal(flow.holdEnded({ since: T0, sawWindowOpen: false, windowOpen: true, now: T0 + 30 * 60_000 }), true);
+test("H3 / second-hold fix: the hold ends after 90 minutes at the latest (window + hourly check)", () => {
+  assert.equal(flow.PAIDY_HOLD_MAX_MS, 90 * 60_000);
+  assert.equal(flow.holdEnded({ since: T0, sawWindowOpen: false, windowOpen: true, now: T0 + 90 * 60_000 }), true);
 });
 
 test("H3: after Paidy approved, the button never simply comes back", () => {
