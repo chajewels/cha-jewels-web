@@ -479,8 +479,8 @@ export const tokusho = {
       // (Website → Settings → Cash on delivery); change them here only when the
       // owner changes that table.
       v: {
-        ja: "送料、銀行振込手数料、コンビニ決済手数料、代金引換手数料（代金引換をお選びの場合。お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円）",
-        en: "Shipping, bank transfer fees, convenience-store payment fees, and a cash on delivery fee if you choose cash on delivery (by the amount collected on delivery, pieces and shipping together: up to ¥10,000 — ¥1,040; up to ¥30,000 — ¥1,150; up to ¥100,000 — ¥1,370; up to ¥300,000 — ¥1,810)",
+        ja: "送料、銀行振込手数料、コンビニ決済手数料、代金引換手数料（代金引換をお選びの場合。お受け取り時のお支払い額〈商品代金と送料の合計〉に応じて、1万円以下：1,040円／3万円以下：1,150円／10万円以下：1,370円／30万円以下：1,810円。いずれも税込）",
+        en: "Shipping, bank transfer fees, convenience-store payment fees, and a cash on delivery fee if you choose cash on delivery (by the amount collected on delivery, pieces and shipping together: up to ¥10,000 — ¥1,040; up to ¥30,000 — ¥1,150; up to ¥100,000 — ¥1,370; up to ¥300,000 — ¥1,810; all tax included)",
       },
     },
     {
@@ -1068,7 +1068,7 @@ export const tosArticles: LegalArticle[] = [
     blocks: [
       { kind: "p", text: { ja: "ご利用いただけるお支払方法は、ご注文手続きの画面に表示し、または請求書に記載します。", en: "Available payment methods are displayed during checkout or stated on the invoice." } },
       // Cash on delivery (2026-10-10) — DRAFT wording, owner to approve.
-      { kind: "p", text: { ja: "代金引換をお選びの場合は、商品お受け取りの際に配達員へお支払いいただきます。代金引換手数料はお客様のご負担となり、ご注文の合計に含めて表示します。", en: "If you choose cash on delivery, you pay the courier when you receive the piece. The cash on delivery fee is paid by the customer and is shown in the order total." } },
+      { kind: "p", text: { ja: "代金引換をお選びの場合は、商品お受け取りの際に配達員へお支払いいただきます。代金引換手数料（税込）はお客様のご負担となり、ご注文の合計に含めて表示します。", en: "If you choose cash on delivery, you pay the courier when you receive the piece. The cash on delivery fee (tax included) is paid by the customer and is shown in the order total." } },
       { kind: "p", text: { ja: "お客様は、次の事項を表明していただくものとします。", en: "You confirm that:" } },
       { kind: "list", items: { ja: ["お選びのお支払方法をご利用になる権限を有していること。", "ご提供いただいたお支払いに関する情報が正確であること。", "資金が違法な行為に由来するものでないこと。", "所定の期限までにすべての金額をお支払いいただくこと。"], en: ["You are authorized to use the selected payment method.", "The payment information provided is accurate.", "The funds do not come from unlawful activity.", "You will pay all amounts by the stated deadlines."] } },
       { kind: "p", text: { ja: "ご注文は、当社がお支払いを受領し、その内容を確認するまで、お支払い済みとは扱いません。", en: "An order is not considered paid until the payment has been received and validated by Cha Jewels." } },

@@ -780,8 +780,8 @@ export const dict = {
     // strings never name layaway.
     methodCod: { ja: "代金引換", en: "Cash on delivery" },
     methodCodNote: { ja: "商品の確認後すぐに発送し、お届けの際に配達員へお支払いいただきます（現金）。お支払い期限はありません。", en: "Once we confirm your piece we ship it, and you pay the courier in cash when it arrives. There is no payment deadline." },
-    methodCodFee: { ja: "代引手数料 {fee}（合計に加算されます）", en: "Cash on delivery fee {fee} (added to your total)" },
-    codFeeRow: { ja: "代引手数料", en: "Cash on delivery fee" },
+    methodCodFee: { ja: "代引手数料 {fee}（税込・合計に加算されます）", en: "Cash on delivery fee {fee}, tax included (added to your total)" },
+    codFeeRow: { ja: "代引手数料（税込）", en: "Cash on delivery fee (tax incl.)" },
     methodWhyCodLayaway: { ja: "一括払いのみご利用いただけます", en: "Cash on delivery is for full payment only." },
     methodWhyCodYen: { ja: "代金引換は日本円でのお支払いのみです — ¥ を選ぶとご利用いただけます。", en: "Cash on delivery is in yen only — choose ¥ to use it." },
     methodWhyCodJp: { ja: "代金引換は日本国内のお届け先のみご利用いただけます。", en: "Cash on delivery needs a delivery address in Japan." },
