@@ -23,13 +23,20 @@
  * listed in advance. (Square's CSP page lists only web.squarecdn.com /
  * sandbox.web.squarecdn.com for frame-src and says nothing about 3-D Secure;
  * kept at https: until a live 3DS run proves the narrow list, QC P3-5.)
+ * form-action allows https: for the same reason (first live 3DS run,
+ * 2026-10-11): the issuer's challenge POSTs a form to the issuer's own
+ * domain (American Express SafeKey posted to safekey-1.americanexpress.com)
+ * and 'self' blocked it, leaving the challenge blank until it timed out.
+ * The card data itself never travels through that form: it stays in
+ * Square's iframe. Square's own fonts also load from cash-f.squarecdn.com
+ * (seen on the same run), so that host is listed too.
  */
 
 /** Where violation reports go (app/api/csp-report/route.ts). */
 export const CSP_REPORT_PATH = "/api/csp-report";
 
 const SQUARE_SCRIPT = ["https://sandbox.web.squarecdn.com", "https://web.squarecdn.com"];
-const SQUARE_FONTS = ["https://square-fonts-production-f.squarecdn.com", "https://d1g145x70srn7h.cloudfront.net"];
+const SQUARE_FONTS = ["https://square-fonts-production-f.squarecdn.com", "https://cash-f.squarecdn.com", "https://d1g145x70srn7h.cloudfront.net"];
 const SQUARE_CONNECT = [
   "https://pci-connect.squareup.com",
   "https://pci-connect.squareupsandbox.com",
@@ -100,7 +107,9 @@ export function payCardCsp(nonce: string, opts: CspOptions = {}): string {
     ["connect-src", "'self'", ...SQUARE_CONNECT, METRICOOL, ...(supabase ? [supabase] : []), ...(opts.dev ? ["ws:"] : [])],
     ["frame-src", "https:"],
     ["frame-ancestors", "'none'"],
-    ["form-action", "'self'"],
+    // The 3-D Secure challenge posts to the card issuer's own domain (see the
+    // header comment); https: keeps it on TLS without naming every issuer.
+    ["form-action", "'self'", "https:"],
     ["base-uri", "'self'"],
     ["object-src", "'none'"],
     ...(opts.dev ? [] : [["upgrade-insecure-requests"] as [string]]),
