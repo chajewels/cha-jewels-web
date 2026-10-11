@@ -37,10 +37,13 @@ test("the enforced policy: nonce + strict-dynamic, Square's hosts, no framing, r
   assert.ok(!d["script-src"].includes("'unsafe-eval'"));
   for (const h of ["https://sandbox.web.squarecdn.com", "https://web.squarecdn.com"]) assert.ok(d["script-src"].includes(h));
   for (const h of ["https://pci-connect.squareup.com", "https://pci-connect.squareupsandbox.com", "https://web.squareup.com", "https://o160250.ingest.sentry.io", "https://abc.supabase.co"]) assert.ok(d["connect-src"].includes(h), h);
-  for (const h of ["https://square-fonts-production-f.squarecdn.com", "https://d1g145x70srn7h.cloudfront.net"]) assert.ok(d["font-src"].includes(h));
+  for (const h of ["https://square-fonts-production-f.squarecdn.com", "https://cash-f.squarecdn.com", "https://d1g145x70srn7h.cloudfront.net"]) assert.ok(d["font-src"].includes(h), h);
   assert.deepEqual(d["frame-src"], ["https:"], "3-D Secure challenges come from the issuer's own domain");
   assert.deepEqual(d["frame-ancestors"], ["'none'"]);
-  assert.deepEqual(d["form-action"], ["'self'"]);
+  // First live 3DS run (2026-10-11): the issuer's challenge POSTs to its own
+  // domain; 'self' alone blocked Amex SafeKey and the challenge stayed blank.
+  assert.deepEqual(d["form-action"], ["'self'", "https:"], "the 3-D Secure challenge form posts to the issuer's own domain");
+  assert.ok(!d["form-action"].includes("http:"), "never plain http");
   assert.deepEqual(d["base-uri"], ["'self'"]);
   assert.deepEqual(d["object-src"], ["'none'"]);
   assert.ok("upgrade-insecure-requests" in d);
