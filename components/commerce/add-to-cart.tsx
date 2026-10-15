@@ -30,11 +30,16 @@ const CSS = `
 .fx-added { background-color: var(--c-charcoal-deep) !important; border-color: var(--c-charcoal-deep) !important; color: var(--c-gold-pale) !important; }
 .fx-check path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: fx-draw-check var(--dur-draw) var(--ease-lux) var(--dur-micro) forwards; }
 @keyframes fx-draw-check { to { stroke-dashoffset: 0; } }
-@media (prefers-reduced-motion: reduce) { .fx-check path { stroke-dashoffset: 0; } }`;
+.fx-view-cart { animation: fx-view-cart-in var(--dur-micro) var(--ease-lux) both; }
+@keyframes fx-view-cart-in { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .fx-check path { stroke-dashoffset: 0; } .fx-view-cart { animation: none; } }`;
 
 /**
  * `block`: full width at every size, 56px tall (the product page's buy
- * column). `compact`: the phone buy bar's button (components/commerce/
+ * column) — once added, a full-width "View cart" button appears directly
+ * under it, the same height, so checking the cart is one obvious tap (owner
+ * request 2026-10-15; it was a small underlined link that wrapped below the
+ * button and read as a footnote). `compact`: the phone buy bar's button (components/commerce/
  * buy-bar.tsx) — once added it becomes the "View cart" link itself, since the
  * bar has no room for a second line. `id` is on the button, so the bar can
  * watch it leave the screen.
@@ -79,7 +84,7 @@ export function AddToCart({ variantId, slug, sku, availability, lang, className,
   return (
     <div className={className}>
       <ComponentStyle id="fx-add-to-cart" css={CSS} />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className={block ? "grid gap-2.5" : "flex flex-wrap items-center gap-3"}>
         <Button
           id={id}
           disabled={pending}
@@ -99,11 +104,18 @@ export function AddToCart({ variantId, slug, sku, availability, lang, className,
           {!added && !compact && <ShoppingBag aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={1.6} />}
           {added ? t("cart", "added") : t("cart", "add")}
         </Button>
-        {added && (
+        {added && (block ? (
+          <Button asChild variant="outline" className="fx-view-cart min-h-14 w-full text-base">
+            <Link href="/cart">
+              <ShoppingBag aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={1.6} />
+              {t("cart", "viewCart")}
+            </Link>
+          </Button>
+        ) : (
           <Link href="/cart" className="text-sm text-gold-dark underline underline-offset-4">
             {t("cart", "viewCart")}
           </Link>
-        )}
+        ))}
       </div>
     </div>
   );
