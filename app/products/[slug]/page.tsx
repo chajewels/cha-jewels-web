@@ -191,7 +191,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </p>
             )}
             {price != null && (
-              <PriceBlock price={price} downPayment={{ jpy: variant?.down_payment_jpy, php: variant?.down_payment_php }} lang={lang} showReserve={layaway && buyable} sold={!buyable} />
+              <PriceBlock price={price} full={variant?.full_price_jpy} onSale={variant?.on_sale} downPayment={{ jpy: variant?.down_payment_jpy, php: variant?.down_payment_php }} lang={lang} showReserve={layaway && buyable} sold={!buyable} />
             )}
             {/* Paidy's N-Pay widget right under the price band, EN and JA, on
                 a buyable piece, only while the Hub's Paidy switch is on (owner

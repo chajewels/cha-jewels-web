@@ -4,11 +4,11 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { tr, type Lang } from "@/lib/i18n";
-import { formatMoney } from "@/lib/utils";
+import { SalePrice } from "@/components/commerce/sale-price";
 import { markSearchFromBox } from "@/lib/search-origin";
 import { HubImage } from "@/components/media/hub-image";
 
-type Suggestion = { slug: string; sku: string; name: string; price: number | null; image: string | null; cutout: string | null; sold: boolean };
+type Suggestion = { slug: string; sku: string; name: string; price: number | null; full?: number | null; on_sale?: boolean; image: string | null; cutout: string | null; sold: boolean };
 type CollectionHit = { slug: string; name: string };
 
 const DEBOUNCE_MS = 200;
@@ -259,7 +259,8 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
                   {highlight(s.name, q)}
                   {s.sold && <span className="ml-2 inline-block whitespace-nowrap border border-hairline bg-chalk px-1.5 text-[11px] font-semibold text-charcoal/75">{t("product", "sold")}</span>}
                 </span>
-                {s.price != null && <span className={`shrink-0 text-sm [font-variant-numeric:lining-nums_tabular-nums] ${s.sold ? "text-charcoal/75" : "text-charcoal-deep"}`}>{formatMoney(s.price)}</span>}
+                {/* On a sale the strike, price and tag stack within 7.5rem, so the name keeps its width. */}
+                {s.price != null && <span className={`max-w-[7.5rem] shrink-0 text-right text-sm [font-variant-numeric:lining-nums_tabular-nums] ${s.sold ? "text-charcoal/75" : "text-charcoal-deep"}`}><SalePrice price={s.price} full={s.full} onSale={s.on_sale} sold={s.sold} lang={lang} tone="light" size="sm" /></span>}
               </li>
             ))}
             {total > items.length && (

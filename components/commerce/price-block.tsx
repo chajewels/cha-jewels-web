@@ -1,4 +1,5 @@
-import { formatMoney, formatYenPeso, isFigure, cn } from "@/lib/utils";
+import { formatYenPeso, isFigure, cn } from "@/lib/utils";
+import { SalePrice } from "@/components/commerce/sale-price";
 import { tr, type Lang } from "@/lib/i18n";
 /**
  * Full price + the reservation line. Presentational: the reserve figures are
@@ -29,15 +30,20 @@ import { tr, type Lang } from "@/lib/i18n";
  * Both tokens here are measured on charcoal-deep, not on the page: gold-pale
  * 10.62:1 and chalk/75 8.73:1, from the Phase 3 table.
  */
-export function PriceBlock({ price, downPayment, lang, showReserve, sold = false, className }: {
+export function PriceBlock({ price, full, onSale, downPayment, lang, showReserve, sold = false, className }: {
   price: number;
+  /** The variant's `full_price_jpy` / `on_sale`, as the Hub sent them (lib/sale.ts). */
+  full?: number | null;
+  onSale?: boolean;
   /** The variant's Hub figures; either may be absent (no rate, lookup failed). */
   downPayment: { jpy?: number | null; php?: number | null };
   lang: Lang;
   showReserve: boolean;
   /**
-   * A sold piece keeps its price, muted (chalk/60, 5.9:1 — a fact customers
-   * compare), and never struck through: a strike reads as a discount (D2-5).
+   * D2-5 (revised 2026-10-15): a strike means a sale and only a sale — the
+   * Hub's full_price_jpy struck beside the sale price. A sold piece is muted
+   * (opacity/colour), never struck. Here: chalk/60, 5.9:1 — a fact customers
+   * compare — and the struck regular price above a sale price is chalk/60 too.
    */
   sold?: boolean;
   className?: string;
@@ -51,7 +57,7 @@ export function PriceBlock({ price, downPayment, lang, showReserve, sold = false
     <div className={cn("band-dark relative bg-charcoal-deep px-5 py-5 sm:px-6 sm:py-[22px]", className)}>
       {/* The gold rule on top (comp): the price card is a gilded band. */}
       <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgb(201_162_39/0),#C9A227_30%,#E8D28A_50%,#C9A227_70%,rgb(201_162_39/0))]" />
-      <p className={cn("font-display text-[30px] leading-[1.1] [font-feature-settings:'lnum'_1,'tnum'_1] [font-variant-numeric:lining-nums_tabular-nums] sm:text-[38px]", sold ? "text-chalk/60" : "text-gold-pale")}>{formatMoney(price)}</p>
+      <p className={cn("font-display text-[30px] leading-[1.1] [font-feature-settings:'lnum'_1,'tnum'_1] [font-variant-numeric:lining-nums_tabular-nums] sm:text-[38px]", sold ? "text-chalk/60" : "text-gold-pale")}><SalePrice price={price} full={full} onSale={onSale} sold={sold} lang={lang} tone="dark" size="lg" /></p>
       {showReserve && !sold && isFigure(jpy) && isFigure(php) && (
         <p className="mt-2 text-sm leading-relaxed text-chalk/80 [font-variant-numeric:lining-nums_tabular-nums]">
           {pre}<b className="font-medium text-gold-pale">{formatYenPeso(jpy, php)}</b>{post}

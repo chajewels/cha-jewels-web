@@ -3,7 +3,8 @@ import { fromPrice, fromVariant, type Product } from "@/lib/queries/products";
 import { CardFx } from "@/components/fx/card-fx";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { HubImage } from "@/components/media/hub-image";
-import { formatMoney, formatWeight, formatYenPeso, isFigure } from "@/lib/utils";
+import { formatWeight, formatYenPeso, isFigure } from "@/lib/utils";
+import { SalePrice } from "@/components/commerce/sale-price";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { tr, type Lang } from "@/lib/i18n";
 import { productName } from "@/lib/catalog-i18n";
@@ -30,9 +31,11 @@ import { OriginBadge } from "@/components/catalog/origin-badge";
  * draws in. No tilt, glint or photo swap; CardFx is kept for the entrance
  * only (`quiet`).
  *
- * A SOLD CARD is shown, quietly: the photo and price muted — the price is not
- * struck through, a strike reads as a discount (D2-5) — and no reserve line.
- * It still opens the piece.
+ * A SOLD CARD is shown, quietly: the photo and price muted, and no reserve
+ * line. It still opens the piece.
+ * D2-5 (revised 2026-10-15): a strike means a sale and only a sale — the Hub's
+ * full_price_jpy struck beside the sale price. A sold piece is muted
+ * (opacity/colour), never struck.
  *
  * `index` is the card's place in its grid (the entrance runs row by row);
  * `priority` marks the first row's photos, a grid page's largest paint.
@@ -90,7 +93,7 @@ export function ProductCard({ product, lang, index = 0, priority = false }: { pr
           <h2 className="pcard-name font-display text-charcoal-deep">{name}</h2>
           {spec && <p className="pcard-fig text-[12px] font-medium tracking-[0.04em] text-gold-dark">{spec}</p>}
           {price != null && (
-            <p className={`pcard-fig mt-auto pt-2 font-display text-[18px] leading-tight sm:text-[22px] ${sold ? "text-charcoal/70" : "text-charcoal-deep"}`}>{formatMoney(price)}</p>
+            <p className={`pcard-fig mt-auto pt-2 font-display text-[18px] leading-tight sm:text-[22px] ${sold ? "text-charcoal/70" : "text-charcoal-deep"}`}><SalePrice price={price} full={dpVariant?.full_price_jpy} onSale={dpVariant?.on_sale} sold={sold} lang={lang} tone="light" /></p>
           )}
           {/* No reserve line on a sold piece, on the Japanese site
               (layawayOffered), or when the Hub sent either figure short. */}

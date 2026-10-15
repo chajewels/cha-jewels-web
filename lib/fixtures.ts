@@ -172,6 +172,18 @@ Object.assign(products[12], {
   name: "R3110 Ring Tiffany & Co. 750 3.10g Open Heart Elsa Perreti Sz# 10.5 [Used]", name_en: "R3110 Ring Tiffany & Co. 750 3.10g Open Heart Elsa Perreti Sz# 10.5 [Used]", name_ja: null,
   category_slugs: ["preloved-branded-jewelry"], condition: "Preloved", origin: "BRAND", brand: "Tiffany & Co.",
 });
+/**
+ * SALE (owner decisions 2026-10-15): the Hub sends the sale price AS
+ * `price_jpy`, plus `full_price_jpy` and `on_sale`. R7828 (the hero's preloved
+ * medallion, so the hero caption shows it too) and the AL3 pendant are on
+ * sale; the sold Solitaire ring (p5, zero stock) carries a sale as well, to
+ * prove a sold piece is muted and never struck. Every other piece sends
+ * `full_price_jpy: null, on_sale: false`, as the Hub does off sale.
+ */
+for (const p of products) Object.assign(p.product_variants[0], { full_price_jpy: null, on_sale: false });
+Object.assign(products[8].product_variants[0], { full_price_jpy: 799800, on_sale: true });
+Object.assign(products[1].product_variants[0], { full_price_jpy: 458000, on_sale: true });
+Object.assign(products[4].product_variants[0], { full_price_jpy: 368000, on_sale: true });
 /** The live Hub watches (names as the Hub sends them), a landscape, a square and a portrait photo. */
 const WATCHES: [string, string, string, string][] = [
   ["C0983 Watch Van Cleef & Arpels La Collection Quartz SS White 17cm [Used]", "C0983 ウォッチ Van Cleef & Arpels La Collection クォーツ SS ホワイト 17cm", "Van Cleef & Arpels", "watch-wide"],

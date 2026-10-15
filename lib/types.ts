@@ -42,8 +42,13 @@ export type ProductMedia = { url: string; alt: string | null; sort: number; cuto
  * cannot produce (no rate → no `down_payment_php`), so each is optional and a
  * caller renders the reserve line only when every figure it needs is present.
  * Nothing here is ever derived from `price_jpy`: see scripts/check-money.mjs.
+ *
+ * `full_price_jpy` / `on_sale` (owner decisions 2026-10-15): on a sale the Hub
+ * sends the sale price AS `price_jpy`, the regular price as `full_price_jpy`
+ * (null when not on sale) and `on_sale: true`. Both come from the Hub; never
+ * derived here. Rendered only through components/commerce/sale-price.tsx.
  */
-export type ProductVariant = { id: string; size: string | null; stone: string | null; price_jpy: number; price_php?: number | null; stock_qty: number; down_payment_jpy?: number | null; down_payment_php?: number | null; down_payment_pct?: number | null; product_media: ProductMedia[] };
+export type ProductVariant = { id: string; size: string | null; stone: string | null; price_jpy: number; price_php?: number | null; full_price_jpy?: number | null; on_sale?: boolean; stock_qty: number; down_payment_jpy?: number | null; down_payment_php?: number | null; down_payment_pct?: number | null; product_media: ProductMedia[] };
 export type Condition = "New" | "Preloved";
 /** `condition` is optional so fixtures and any pre-condition Hub response still typecheck; absent is treated as New. */
 /**
