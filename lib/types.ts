@@ -279,7 +279,7 @@ export type HubMethodSwitchError =
   | "method_unavailable" | "over_cod_limit" | "cod_nothing_to_collect";
 /**
  * One choice, and why it is greyed out when it is (layaway | currency_not_yen |
- * address_not_jp | off | no_account; COD also nothing_to_collect |
+ * address_not_jp | customer_not_jp | off | no_account; COD also nothing_to_collect |
  * over_cod_limit). `fee_jpy` is COD only: the 代引手数料 choosing it adds — the
  * Hub's figure, null when not offered. The storefront never brackets a fee.
  */
@@ -957,7 +957,7 @@ export type HubLayawayDetail = {
  * `status` and `customer_note`. The Hub's `staff_note` is internal and never
  * crosses this API. Exactly one of `cash_order_id` / `layaway_plan_id` is set.
  */
-export type ServiceRequestKind = "resize" | "cleaning" | "repair" | "appraisal" | "other";
+export type ServiceRequestKind = "resize" | "cleaning" | "repair" | "appraisal" | "certificate" | "other";
 export type ServiceRequestStatus = "requested" | "received" | "in_progress" | "completed" | "declined";
 export type ServiceRequest = {
   id: string;
