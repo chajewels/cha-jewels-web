@@ -4,7 +4,7 @@ import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { analyticsEnabled } from "@/lib/analytics";
-import { redactUrl } from "@/components/analytics/analytics-provider";
+import { reportableUrl } from "@/lib/redact-url";
 import { useHydrated } from "@/components/analytics/use-hydrated";
 import { metricoolLoadsOn } from "@/lib/metricool";
 
@@ -24,36 +24,11 @@ const METRICOOL_HASH = "70bf26fd4e382804263bf49a03697654";
 type BeTracker = { t: (opts: { hash: string }) => void };
 
 /**
- * WHAT be.js SENDS, AND WHY SOME PAGES ARE NOT REPORTED
- * ----------------------------------------------------
- * The whole tracker (read 2026-09-27) is one function: `t()` sets
- * `u = document.location.href`, adds the window size and `document.referrer`,
- * and requests a 1×1 image from tracker.metricool.com with those as the query.
- * It sets `u` AFTER reading our options, so the URL cannot be redacted the way
- * <AnalyticsProvider/> redacts Vercel's — we can only decide whether to call it.
- *
- * So a page is reported only when its full URL is already clean: redactUrl()
- * (the same rules Vercel's events go through) must hand it back unchanged,
- * except that `utm_*` campaign tags are allowed through, because campaign
- * attribution is what Metricool is for and a utm tag names a campaign, not a
- * person. A sign-in link, an account page, an order confirmation, or a URL
- * carrying any other parameter is simply not counted.
+ * WHAT be.js SENDS: `t()` reads document.location.href itself, after our
+ * options, so the URL cannot be redacted — we can only decide whether to call
+ * it. A page is reported only when reportableUrl() (lib/redact-url.ts, shared
+ * with the advertising tags) says its full URL is already clean.
  */
-function reportableUrl(href: string): boolean {
-  let u: URL;
-  try {
-    u = new URL(href);
-  } catch {
-    return false;
-  }
-  // Keys collected first: deleting inside forEach skips the entry after each one.
-  [...u.searchParams.keys()].filter((k) => k.startsWith("utm_")).forEach((k) => u.searchParams.delete(k));
-  // redactUrl() drops the fragment; an anchor like #main is harmless, a token is not.
-  if (u.hash.includes("=")) return false;
-  u.hash = "";
-  const clean = u.toString();
-  return redactUrl(clean) === clean;
-}
 
 /**
  * The path last reported, at module scope so it survives a remount (and Strict

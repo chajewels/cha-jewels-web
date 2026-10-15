@@ -18,6 +18,8 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
 import { MetricoolTracker } from "@/components/analytics/metricool-tracker";
+import { AdsTags } from "@/components/analytics/ads-tags";
+import { ConsentBanner } from "@/components/site/consent-banner";
 import { BootMarker } from "@/components/fx/boot-marker";
 import { PageEnter } from "@/components/fx/page-enter";
 
@@ -116,6 +118,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             strips the query from any "/" URL — lib/page-meta.tsx explains. */}
         <SeoLinks />
         <AnalyticsProvider />
+        {/* Meta Pixel + Google Ads tag: NOTHING loads until the visitor presses
+            Accept on <ConsentBanner /> below, and never on a preview, in
+            fixture mode, on localhost or on /account/* (the component's gates). */}
+        <AdsTags />
         {/* Web Vitals, behind the same gate and URL redaction as Analytics. */}
         <SpeedInsightsProvider />
         {/* Metricool traffic statistics, production deployments only: local
@@ -139,6 +145,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Footer lang={lang} />
         <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
         {/* Last in the document, so no page chrome paints over it. */}
+        {/* The cookie banner: asks once, and again from "Cookie settings" in the footer. */}
+        <ConsentBanner copy={{ region: t("consent", "region"), title: t("consent", "title"), body: t("consent", "body"), accept: t("consent", "accept"), necessary: t("consent", "necessary"), privacy: t("consent", "privacy") }} />
         {messenger && <MessengerButton href={messenger} label={t("social", "messengerButton")} />}
       </body>
     </html>

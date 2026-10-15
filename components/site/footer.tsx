@@ -10,6 +10,7 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
 import { LangSwitcher } from "@/components/site/lang-switcher";
 import { CardMarks, PaidyMark } from "@/components/commerce/card-marks";
 import { hub } from "@/lib/hub-api";
+import { CookieSettingsLink } from "@/components/site/consent-banner";
 
 /**
  * THE SITE FRAME'S FOOTER (build step 1, 2026-09-27; comps in
@@ -118,6 +119,8 @@ export async function Footer({ lang }: { lang: Lang }) {
             <h2 className={`${heading} hidden lg:block lg:mb-3`}>{g.heading}</h2>
             <ul className={`hidden lg:block ${g.key === "collections" ? "lg:columns-2 lg:gap-x-6" : ""}`}>
               {g.links.map((l) => <li key={l.href} className="break-inside-avoid"><Link href={l.href} className={link}>{l.label}</Link></li>)}
+              {/* Reopens the cookie banner (components/site/consent-banner.tsx). */}
+              {g.key === "care" && <li className="break-inside-avoid"><CookieSettingsLink label={t("footer", "cookieSettings")} className={`${link} text-left`} /></li>}
             </ul>
             <details className="group lg:hidden">
               <summary className={`flex min-h-14 cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden ${heading}`}>
@@ -126,6 +129,7 @@ export async function Footer({ lang }: { lang: Lang }) {
               </summary>
               <ul className="pb-4">
                 {g.links.map((l) => <li key={l.href}><Link href={l.href} className={`${link} text-[15px]`}>{l.label}</Link></li>)}
+                {g.key === "care" && <li><CookieSettingsLink label={t("footer", "cookieSettings")} className={`${link} text-left text-[15px]`} /></li>}
               </ul>
             </details>
           </div>

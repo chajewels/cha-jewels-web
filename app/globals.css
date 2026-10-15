@@ -211,6 +211,34 @@
   body:has(.messenger-fab) > footer {
     padding-bottom: calc(56px + 48px + 16px + env(safe-area-inset-bottom));
   }
+  /* THE COOKIE BANNER (components/site/consent-banner.tsx). On a phone it
+     spans the screen just above whichever bottom bar the page has (tab bar,
+     product buy bar, cart/checkout sticky bar: 64px plus a 1px top rule), above the Messenger
+     button until answered. From lg it is a card at the bottom LEFT, so it
+     never covers the Messenger button, which is bottom right. */
+  .consent-banner {
+    position: fixed;
+    z-index: 50;
+    left: 0;
+    right: 0;
+    bottom: env(safe-area-inset-bottom);
+  }
+  @media (max-width: 1023.98px) {
+    body:has([data-mobile-tab-bar]) .consent-banner,
+    body:has([data-buy-bar]) .consent-banner,
+    body:has([data-sticky-act]) .consent-banner {
+      bottom: calc(65px + env(safe-area-inset-bottom));
+    }
+  }
+  @media (min-width: 1024px) {
+    .consent-banner {
+      left: max(24px, env(safe-area-inset-left));
+      right: auto;
+      bottom: 24px;
+      width: min(30rem, calc(100vw - 48px));
+    }
+  }
+  @media print { .consent-banner { display: none !important; } }
   @media (max-width: 1023.98px) {
     body:has([data-mobile-tab-bar]) .messenger-fab {
       bottom: calc(64px + 12px + env(safe-area-inset-bottom));
