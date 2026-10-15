@@ -84,9 +84,11 @@ const cachedIndex = unstable_cache(
 export async function loadIndex(): Promise<Entry[]> {
   try {
     return await cachedIndex();
-  } catch {
+  } catch (e) {
     // A Hub outage, a missing key, a timeout — all the same answer. See the
     // header comment: search degrades, it does not fail.
+    // It is logged, though: a week of silent "Nothing matches" (2026-10) hid a broken catalogue read.
+    console.error("[search] catalog index unavailable; search returns nothing", { message: (e as Error)?.message ?? String(e) });
     return [];
   }
 }
