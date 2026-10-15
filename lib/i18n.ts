@@ -1520,9 +1520,9 @@ export const dict = {
   /** Service requests — raised from an order or plan, answered by staff in the Hub. */
   service: {
     h1: { ja: "サービス依頼", en: "Service requests" },
-    lede: { ja: "ご購入いただいたお品物のリサイズ、クリーニング、修理、鑑定のご依頼です。担当者が確認し、こちらでお返事します。", en: "Resizing, cleaning, repairs and appraisals for pieces you bought from us. We review each request and reply here." },
+    lede: { ja: "ご購入いただいたお品物のリサイズ、クリーニング、修理、鑑定、鑑定書のご依頼です。担当者が確認し、こちらでお返事します。", en: "Resizing, cleaning, repairs, appraisals and certificates for pieces you bought from us. We review each request and reply here." },
     formH: { ja: "サービスを依頼する", en: "Request a service" },
-    formP: { ja: "リサイズ、クリーニング、修理、鑑定など、ご希望をお書きください。担当者が確認後、こちらにお返事します。", en: "A resize, a cleaning, a repair or an appraisal. Tell us what you need; we will review it and reply here." },
+    formP: { ja: "リサイズ、クリーニング、修理、鑑定、鑑定書など、ご希望をお書きください。担当者が確認後、こちらにお返事します。", en: "A resize, a cleaning, a repair, an appraisal or a certificate. Tell us what you need; we will review it and reply here." },
     kind: { ja: "ご依頼内容", en: "Service" },
     kindResize: { ja: "リサイズ", en: "Resize" },
     kindCleaning: { ja: "クリーニング", en: "Cleaning" },
