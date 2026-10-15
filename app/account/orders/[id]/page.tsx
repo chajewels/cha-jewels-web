@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { appliedCoupon } from "@/lib/coupon";
 import { formatDeadline, formatSiteDate, siteDay } from "@/lib/site-time";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -145,6 +146,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
     ? t("orders", "payVia", { method: t("orders", "bankTransfer"), currency: order.currency === "PHP" ? t("orders", "currencyPHP") : t("orders", "currencyJPY") })
     : null;
   const pointsApplied = Number(detail.points_applied ?? 0);
+  const coupon = appliedCoupon(order);
   // P05 (owner 2026-10-08): she chose Paidy and the Hub reports a buyer
   // requirement missing (names, Japanese mobile, Japanese billing address):
   // ask for it here instead of "contact us". The Hub re-decides after she saves.
@@ -355,6 +357,8 @@ export default async function OrderDetailPage({ params, searchParams }: {
               </Kv>
             )}
             {payment && <Kv k={t("orders", "payment")}>{payment}</Kv>}
+            {/* Coupon (Hub #527): only when the Hub sends it on the order — already in the total. */}
+            {coupon && <Kv k={t("checkout", "couponRow", { code: coupon.code })}><span className="cj-fig" data-testid="order-coupon">−{formatMoney(coupon.discount, order.currency)}</span></Kv>}
             {shipping && <Kv k={t("checkout", "shipping")}><span className="cj-fig">{shipping}</span></Kv>}
             {/* Cash on delivery: the COD fee, its own line — the Hub's figure, already in the total. */}
             {codFee > 0 && <Kv k={t("checkout", "codFeeRow")}><span className="cj-fig" data-testid="order-cod-fee">{formatMoney(codFee, "JPY")}</span></Kv>}

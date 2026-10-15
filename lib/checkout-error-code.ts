@@ -1,4 +1,5 @@
 import { AGREEMENT_REQUIRED } from "@/lib/layaway-agreement";
+import { isCouponError } from "@/lib/coupon";
 
 /**
  * Maps a Hub checkout failure to a code the UI has copy for (pure; the server
@@ -44,6 +45,9 @@ export function checkoutErrorCode(err: { status?: number | null; code?: string |
   // longer use (spent elsewhere, more than the order takes).
   if (code && METHOD_REFUSED.has(code)) return "method_unavailable";
   if (code && POINTS_REFUSED.has(code)) return "points_unavailable";
+  // Coupon codes (Hub #527): each refusal passes through untouched — the
+  // customer is told the Hub's own reason, one message per code.
+  if (isCouponError(code)) return code;
   if (err.status === 401 || err.status === 403) return "signed_out";
   return "failed";
 }

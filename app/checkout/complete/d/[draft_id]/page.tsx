@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { appliedCoupon } from "@/lib/coupon";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { notLinkedProbe, profileUrl, withQuery } from "@/lib/profile";
@@ -104,6 +105,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
   // Full payment with points: the Hub's after-points figure is what she will
   // pay; the order total stays on its own row. Never on a layaway draft (I-1).
   const afterPoints = draftAmountToPay(draft);
+  const coupon = appliedCoupon(draft);
 
   return (
     <ConfirmationLayout
@@ -127,6 +129,9 @@ export default async function DraftCompletePage({ params, searchParams }: {
           price: draft.currency === "JPY" ? formatMoney(Number(line.line_total_jpy), "JPY") : null,
         })),
         rows: [
+          // Coupon (Hub #527): read only when the Hub sends it on the draft —
+          // the draft's figures are already after it, this row explains them.
+          ...(coupon ? [{ k: t("checkout", "couponRow", { code: coupon.code }), v: `−${money(coupon.discount)}` }] : []),
           { k: t("draft", "shipping"), v: draft.shipping_pending || draft.shipping === null ? t("draft", "shippingLater") : money(draft.shipping) },
           ...(isLayaway && draft.deposit !== null ? [{ k: t("draft", "deposit"), v: money(draft.deposit) }] : []),
           ...(isLayaway && draft.term_months !== null ? [{ k: t("draft", "term"), v: t("draft", "months", { n: String(draft.term_months) }) }] : []),
