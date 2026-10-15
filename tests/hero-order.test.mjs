@@ -149,3 +149,21 @@ test("deck (ticks): with the empty switch on, a slide with no ticked piece in st
   assert.equal((await buildHeroDeck("en", CATS)).length, 3);
   delete process.env.HERO_HIDE_EMPTY_CATEGORIES;
 });
+
+test("deck: a category slide carries total = every available piece in its pool (sold not counted); the film slide has none", async () => {
+  const reads = {
+    "fine-jewelry": [piece({ slug: "u1", place: null }), piece({ slug: "t1", place: 1, media: [tick(1, "2026-09-01T00:00:00Z")] }), piece({ slug: "s", stock: 0 })],
+    "preloved-designer-accessories": [],
+  };
+  const [film, fine, acc] = await deck(reads, false);
+  assert.equal("total" in film, false);
+  assert.equal(fine.total, 2, "the whole pool, not only the ticked stage");
+  assert.equal(acc.total, 0);
+});
+
+test("deck: total is null when the category read failed (no pool)", async () => {
+  hub.category = async () => { throw new Error("down"); };
+  const [, fine, acc] = await buildHeroDeck("en", CATS);
+  assert.equal(fine.total, null);
+  assert.equal(acc.total, null);
+});

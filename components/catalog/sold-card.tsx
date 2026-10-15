@@ -2,10 +2,10 @@ import Link from "next/link";
 import { HubImage } from "@/components/media/hub-image";
 import { SocialGlyph } from "@/components/site/social-icons";
 import { Button } from "@/components/ui/button";
-import { formatMoney } from "@/lib/utils";
+import { SalePrice } from "@/components/commerce/sale-price";
 import { tr, type Lang } from "@/lib/i18n";
 import { productName } from "@/lib/catalog-i18n";
-import { fromPrice, type Product } from "@/lib/queries/products";
+import { fromPrice, fromVariant, type Product } from "@/lib/queries/products";
 import { cardImage } from "@/lib/product-media";
 
 /**
@@ -30,6 +30,7 @@ export function SoldCard({ alternatives, messenger, lang }: { alternatives: Prod
           {alternatives.map((x) => {
             const img = cardImage(x);
             const price = fromPrice(x);
+            const shown = fromVariant(x);
             return (
               <li key={x.slug}>
                 <Link href={`/products/${x.slug}`} className="grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 border-b border-gold/30 py-2.5 text-[13px] leading-snug hover:text-gold-pale">
@@ -37,7 +38,7 @@ export function SoldCard({ alternatives, messenger, lang }: { alternatives: Prod
                     {img && <span className={img.kind === "cut" ? "absolute inset-[7%]" : "absolute inset-0"}><HubImage src={img.src} alt="" fill sizes="56px" className="object-contain" /></span>}
                   </span>
                   <span className="line-clamp-3">{productName(x, lang)}</span>
-                  {price != null && <span className="whitespace-nowrap font-display text-[17px] text-gold-pale [font-variant-numeric:lining-nums_tabular-nums]">{formatMoney(price)}</span>}
+                  {price != null && <span className="whitespace-nowrap font-display text-[17px] text-gold-pale [font-variant-numeric:lining-nums_tabular-nums]"><SalePrice price={price} full={shown?.full_price_jpy} onSale={shown?.on_sale} lang={lang} tone="dark" size="sm" /></span>}
                 </Link>
               </li>
             );

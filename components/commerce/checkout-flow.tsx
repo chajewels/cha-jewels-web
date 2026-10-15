@@ -4,12 +4,13 @@ import { useEffect, useRef, useState, useTransition, type ReactNode } from "reac
 import { ChevronDown, ExternalLink, Info, Lock, Plus, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr, type Lang, type dict } from "@/lib/i18n";
 import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { agreementStatusAction, checkoutChoiceAction, payAction, payLayawayAction, pesoEstimateAction, quoteAction, saveAddressAction } from "@/lib/checkout-actions";
-import { checkoutSummary, type PesoEstimateState, amountToPayAfterPoints } from "@/lib/checkout-summary";
+import { agreementStatusAction, checkoutChoiceAction, payAction, payLayawayAction, pesoEstimateAction, quoteAction, refreshQuoteAction, saveAddressAction } from "@/lib/checkout-actions";
+import { COUPON_MAX_LENGTH, choiceCoupon, couponErrorKey, couponTyped, isCouponError } from "@/lib/coupon";
+import { checkoutSummary, type PesoEstimateState, amountToPayAfterPoints, layawayTotalAfterCoupon } from "@/lib/checkout-summary";
 import { enrolInLoyaltyAction } from "@/lib/loyalty-actions";
 import type { CartItem } from "@/lib/cart";
 import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubPaymentOption, HubQuote, LayawayTerm, OrderType, SettlementCurrency } from "@/lib/types";
@@ -167,6 +168,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
   const [usePoints, setUsePoints] = useState((initial.quote?.points?.chosen ?? 0) > 0);
   const [pointsText, setPointsText] = useState(initial.quote?.points?.chosen ? String(initial.quote.points.chosen) : "");
   const [choiceError, setChoiceError] = useState<string | null>(null);
+  /**
+   * COUPON (Hub #527): what she typed, and the Hub's reason when it refused
+   * the code. Applied or not, and how much it takes off, is `choice.coupon`.
+   */
+  const [couponText, setCouponText] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
   // A new quote (Review, or a re-quote after it aged out) brings its own
   // options and no points chosen: start the panel again from the Hub's answer.
   const lastQuoteId = useRef<string | null>(initial.quote?.quote_id ?? null);
@@ -178,6 +185,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     setUsePoints(false);
     setPointsText("");
     setChoiceError(null);
+    setCouponText("");
+    setCouponError(null);
     setMethod((m) => (next && !next.payment_options.some((o) => o.method === m && o.offered) ? "transfer" : m));
   }, [quote]);
   /**
@@ -458,18 +467,53 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     });
   }
 
-  /** Store a choice on the quote; the Hub answers the figures (C1–C7). */
-  function applyChoice(nextMethod: CheckoutMethod, nextPoints: number) {
+  /**
+   * Store a choice on the quote; the Hub answers the figures (C1–C7).
+   * `coupon` (Hub #527): a code applies it, "" removes it, undefined keeps
+   * whatever the quote holds. A refused code changes no figure: the Hub's
+   * reason shows under the coupon box.
+   */
+  function applyChoice(nextMethod: CheckoutMethod, nextPoints: number, coupon?: string) {
     if (!quote) return;
     setChoiceError(null);
+    if (coupon !== undefined) setCouponError(null);
+    const quoteId = quote.quote_id;
     start(async () => {
-      const res = await checkoutChoiceAction(quote.quote_id, { method: nextMethod, points: nextPoints });
-      if (res.ok) { setChoice(res.data); return; }
+      const res = await checkoutChoiceAction(quoteId, { method: nextMethod, points: nextPoints, ...(coupon !== undefined ? { coupon_code: coupon } : {}) });
+      if (res.ok) {
+        setChoice(res.data);
+        if (coupon === undefined) return;
+        setCouponText("");
+        // A layaway is priced on pieces − coupon, and the choice answer has no
+        // new plan: re-read the quote (same id) and take the Hub's plan from it.
+        if (mode === "layaway") {
+          const fresh = await refreshQuoteAction(quoteId);
+          if (fresh.ok) setQuote((q) => (q && q.quote_id === quoteId ? { ...q, layaway: fresh.data.layaway ?? null } : q));
+          else if (fresh.code === "expired") showError("expired");
+          else setChoiceError(t("checkout", "choiceFailed"));
+        }
+        return;
+      }
       if (res.code === "expired") { showError("expired"); return; }
+      if (isCouponError(res.code)) { setCouponError(couponCopy(res.code, res.payload)); return; }
       setChoiceError(res.code === "method_unavailable" ? t("checkout", "methodUnavailable")
         : res.code === "points_unavailable" ? t("checkout", "pointsUnavailable")
         : t("checkout", "choiceFailed"));
     });
+  }
+  /** The Hub's reason for a refused code; the minimum is the Hub's yen figure. */
+  function couponCopy(code: string, payload?: Record<string, unknown> | null) {
+    if (!isCouponError(code)) return t("checkout", "choiceFailed");
+    const min = Number(payload?.min_subtotal_jpy);
+    return t("checkout", couponErrorKey(code) as CheckoutKey, Number.isFinite(min) && min > 0 ? { min: formatMoney(min, "JPY") } : undefined);
+  }
+  function applyCoupon() {
+    const code = couponTyped(couponText);
+    if (code === "") return;
+    applyChoice(method, usePoints ? choice?.points.chosen ?? 0 : 0, code);
+  }
+  function removeCoupon() {
+    applyChoice(method, usePoints ? choice?.points.chosen ?? 0 : 0, "");
   }
   function pickMethod(m: CheckoutMethod) {
     setMethod(m);
@@ -558,8 +602,23 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
   // Points chosen on a full payment: the headline is what she PAYS (F1).
   // Cash on delivery chosen: the Hub's COD fee (already in total_after_points).
   const codFee = method === "cod" && choice?.payment_method === "cod" ? choice.totals.cod_fee ?? 0 : 0;
-  const toPay = amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints: choice?.totals.total_after_points ?? null, codFee });
-  const headline = toPay !== null ? money(toPay) : summaryMoney(summary.total);
+  // Coupon applied (Hub #527): already off the Hub's totals; on screen only
+  // beside a quote in the summary's currency.
+  const coupon = quoteShown ? choiceCoupon(choice?.coupon) : null;
+  const couponDiscount = coupon ? choice?.totals.coupon_discount ?? 0 : 0;
+  const toPay = amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints: choice?.totals.total_after_points ?? null, codFee, couponDiscount });
+  // A layaway with a coupon: the Hub's total after it; with points as well the
+  // Hub sends no such total, so the headline is the deposit after points.
+  const layawayAfterCoupon = mode === "layaway"
+    ? layawayTotalAfterCoupon({ quoteShown, pointsChosen, totalAfterPoints: choice?.totals.total_after_points ?? null, couponDiscount })
+    : undefined;
+  const depositHeadline = layawayAfterCoupon === null && choice ? choice.totals.due_now_after_points : null;
+  const headline = toPay !== null ? money(toPay)
+    : typeof layawayAfterCoupon === "number" ? money(layawayAfterCoupon)
+    : depositHeadline !== null ? money(depositHeadline)
+    : summaryMoney(summary.total);
+  // A figure the Hub computed after the coupon: the yen total beside a peso one would be the old one.
+  const hubHeadline = toPay !== null || layawayAfterCoupon !== undefined;
   const count = items.reduce((n, i) => n + i.qty, 0);
   const countLabel = count === 1 ? t("cart", "pieceOne") : t("cart", "pieces", { n: String(count) });
 
@@ -950,6 +1009,50 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                   <p role="alert" className={`mt-6 ${alertLight} px-4 py-3 text-sm`}>{t("checkout", "transferUnavailable")}</p>
                 ) : null}
 
+                {/* COUPON (Hub #527, owner 2026-10-15). One code per order, off
+                    the pieces only — never shipping, services or the COD fee —
+                    and before points. The Hub validates and prices it; a
+                    refused code shows the Hub's reason and changes nothing. */}
+                {choice && (
+                  <div className="mt-6 border border-hairline p-4" data-testid="checkout-coupon">
+                    {coupon ? (
+                      <>
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-charcoal-deep">
+                          <span className="font-semibold" data-testid="checkout-coupon-applied">
+                            {t("checkout", "couponRow", { code: coupon.code })} <span className="cj-fig">−{money(coupon.discount)}</span>
+                          </span>
+                          <button type="button" disabled={pending} onClick={removeCoupon}
+                            className="inline-flex min-h-11 items-center text-[13px] font-semibold text-gold-dark underline underline-offset-4"
+                            data-testid="checkout-coupon-remove">
+                            {t("checkout", "couponRemove")}
+                          </button>
+                        </div>
+                        <p className="mt-1 text-[13px] text-charcoal/75">{t("checkout", "couponApplied")}</p>
+                      </>
+                    ) : (
+                      <form className="flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); applyCoupon(); }}>
+                        <label className="text-[13px] font-semibold text-charcoal/85">
+                          {t("checkout", "couponLabel")}
+                          <input
+                            value={couponText} disabled={pending} maxLength={COUPON_MAX_LENGTH}
+                            autoCapitalize="characters" autoComplete="off" spellCheck={false}
+                            placeholder={t("checkout", "couponPlaceholder")}
+                            onChange={(e) => setCouponText(couponTyped(e.target.value))}
+                            className={`mt-1.5 block h-11 w-48 max-w-full px-3 text-[15px] uppercase placeholder:normal-case ${inputLight}`}
+                            data-testid="checkout-coupon-input"
+                          />
+                        </label>
+                        <Button type="submit" variant="outline" disabled={pending || couponText === ""}>{t("checkout", "couponApply")}</Button>
+                      </form>
+                    )}
+                    {(couponError ?? (choice.coupon && choice.coupon.error ? couponCopy(choice.coupon.error) : null)) && (
+                      <p role="alert" className={`mt-3 ${alertLight} px-4 py-3 text-sm`} data-testid="checkout-coupon-error">
+                        {couponError ?? (choice.coupon && choice.coupon.error ? couponCopy(choice.coupon.error) : null)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* POINTS (owner C3–C5, C7). Every figure from the Hub: her
                     balance and its value, the most this order takes (pieces,
                     never shipping; the deposit on a layaway), and the new
@@ -1098,6 +1201,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
               }))}
               rows={[
                 { k: t("checkout", "subtotal"), v: summaryMoney(summary.subtotal) },
+                // The coupon, off the pieces (Hub figure, already in the totals below).
+                ...(coupon ? [{ k: t("checkout", "couponRow", { code: coupon.code }), v: `−${money(coupon.discount)}` }] : []),
                 { k: t("checkout", "shipping"), v: shippingValue },
                 ...(plan ? [{ k: t("checkout", "layawayDeposit"), v: money(plan.deposit) }, { k: t("checkout", "layawayMonthly"), v: money(plan.monthly) }] : []),
                 // Before the quote, a peso plan's deposit and monthly are the
@@ -1108,23 +1213,26 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 ...(choice && toPay !== null ? [
                   // Full payment: the order total as a row, points off it; the
                   // big figure below is the amount to pay (F1, like the emails).
-                  { k: totalLabel, v: summaryMoney(summary.total) },
+                  // Not with a coupon: that total is before it, and the Hub
+                  // sends no total after the coupon alone.
+                  ...(coupon ? [] : [{ k: totalLabel, v: summaryMoney(summary.total) }]),
                   ...(pointsChosen > 0 ? [{ k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` }] : []),
                   // Cash on delivery: the COD fee as its own line (Hub figure).
                   ...(codFee > 0 ? [{ k: t("checkout", "codFeeRow"), v: formatMoney(codFee, "JPY") }] : []),
                 ] : choice && pointsChosen > 0 && quoteShown && mode === "layaway" ? [
                   { k: t("checkout", "pointsRow"), v: `−${money(choice.points.chosen_value)}` },
-                  { k: t("checkout", "pointsDepositDue"), v: money(choice.totals.due_now_after_points) },
+                  // With a coupon this figure is the headline below instead.
+                  ...(depositHeadline === null ? [{ k: t("checkout", "pointsDepositDue"), v: money(choice.totals.due_now_after_points) }] : []),
                 ] : []),
               ]}
               total={{
-                k: toPay !== null ? t("checkout", "amountToPay") : totalLabel,
+                k: toPay !== null ? t("checkout", "amountToPay") : depositHeadline !== null ? t("checkout", "pointsDepositDue") : totalLabel,
                 v: headline,
                 // Pesos chosen: the yen beside the peso total, and what the
                 // estimate is — or, with no peso figure, when it will be shown.
-                sub: ((summary.yenTotal !== null && toPay === null) || summary.estimate || summary.pesoPending) ? (
+                sub: ((summary.yenTotal !== null && !hubHeadline) || summary.estimate || summary.pesoPending) ? (
                   <>
-                    {summary.yenTotal !== null && toPay === null && <span className="block">{formatMoney(summary.yenTotal, "JPY")}</span>}
+                    {summary.yenTotal !== null && !hubHeadline && <span className="block">{formatMoney(summary.yenTotal, "JPY")}</span>}
                     {summary.estimate && <span className="block">{t("checkout", "pesoEstimateNote")}</span>}
                     {summary.pesoPending && <span className="block">{t("checkout", "pesoNextStep")}</span>}
                   </>
@@ -1196,7 +1304,9 @@ function PlanFigure({ k, v }: { k: string; v: string }) {
 }
 
 /** The Hub's payment-choice block off a quote, or null on an older Hub that sends none. */
+type CheckoutKey = keyof (typeof dict)["checkout"];
+
 function choiceOf(q: HubQuote | null | undefined): HubCheckoutChoice | null {
   if (!q?.payment_options || !q.points || !q.totals) return null;
-  return { payment_options: q.payment_options, payment_method: q.payment_method ?? null, points: q.points, totals: q.totals };
+  return { payment_options: q.payment_options, payment_method: q.payment_method ?? null, points: q.points, coupon: q.coupon ?? null, totals: q.totals };
 }

@@ -15,7 +15,12 @@ import type { Category, Collection, Product } from "@/lib/types";
  * "Available" is the hero's rule: active, with a variant in stock
  * (`inStockVariant`). Nothing here reads or compares a price.
  */
-const soft = <T,>(p: Promise<T>, fallback: T) => within(p, SECONDARY_TIMEOUT_MS).catch(() => fallback);
+const soft = <T,>(p: Promise<T>, fallback: T) =>
+  within(p, SECONDARY_TIMEOUT_MS).catch((e) => {
+    // Still a fallback, never a broken page — but logged, so a failing Hub read is seen.
+    console.error("[catalog] Hub read failed; using the fallback", { message: (e as Error)?.message ?? String(e) });
+    return fallback;
+  });
 
 export const isAvailable = (p: Product) => inStockVariant(p) !== null;
 

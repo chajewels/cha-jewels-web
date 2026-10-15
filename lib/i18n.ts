@@ -361,6 +361,7 @@ export const dict = {
     // Hero v3 slide 6 (owner approval 2026-09-26): each Index row's stock, or
     // 「入荷待ち」 / "Coming soon" when that type has none.
     heroAccCount: { ja: "{n}点", en: "{n} in stock" }, heroComingSoon: { ja: "入荷待ち", en: "Coming soon" },
+    heroStockTotal: { ja: "在庫{n}点", en: "{n} in stock" },
     // Preview deployments only (lib/hero-demo.ts): the label on the hero while
     // demo mode shows the comps' cut-outs. Never rendered in production.
     heroDemoTag: { ja: "プレビュー専用デモ：承認カンプの切り抜き画像を表示中", en: "Preview-only demo: showing the approved comps' cut-outs" },
@@ -370,7 +371,7 @@ export const dict = {
     // tabLayaway is rendered only behind layawayOffered (English only).
     tabHome: { ja: "ホーム", en: "Home" }, tabPieces: { ja: "コレクション", en: "Collections" }, tabLayaway: { ja: "分割購入", en: "Layaway" }, tabLoyalty: { ja: "ロイヤルティ", en: "Loyalty" }, tabAccount: { ja: "マイアカウント", en: "Account" },
   },
-  product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, openPhoto: { ja: "写真 {n} を全画面で見る", en: "View photo {n} full screen" }, viewer: { ja: "全画面の商品写真", en: "Full-screen photos" }, closeViewer: { ja: "全画面表示を閉じる", en: "Close full screen" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, sold: { ja: "売約済み", en: "Sold" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout."  },
+  product: { gallery: { ja: "商品写真", en: "Product photos" }, photoOf: { ja: "写真 {n} / {total}", en: "Photo {n} of {total}" }, prevPhoto: { ja: "前の写真", en: "Previous photo" }, nextPhoto: { ja: "次の写真", en: "Next photo" }, openPhoto: { ja: "写真 {n} を全画面で見る", en: "View photo {n} full screen" }, viewer: { ja: "全画面の商品写真", en: "Full-screen photos" }, closeViewer: { ja: "全画面表示を閉じる", en: "Close full screen" }, originJapan: { ja: "日本製", en: "Made in Japan" }, preloved: { ja: "プレラブド · 日本で真贋確認済み", en: "Preloved · authenticated in Japan" }, metal: { ja: "素材", en: "Metal" }, weight: { ja: "重量", en: "Weight" }, stone: { ja: "石", en: "Stone" }, reserveFrom: { ja: "予約金", en: "reserve from" }, sold: { ja: "売約済み", en: "Sold" }, sale: { ja: "セール", en: "Sale" }, wasPrice: { ja: "通常価格", en: "Regular price" }, orReserve: { ja: "または {dp} で予約し、残額を無利息で月々お支払い", en: "or reserve with {dp} and pay the rest monthly at 0% interest" }, reserveCta: { ja: "分割予約で申し込む", en: "Reserve with layaway" }, reserveNote: { ja: "カートに入れて、お支払い手続きで分割予約をお選びください。", en: "Adds the piece to your cart; choose layaway at checkout."  },
     // Loyalty points line under the price (2026-10-03). Figures are the Hub's
     // (GET /me/points-preview); {mult} is the level's multiplier.
     pointsEarn: { ja: "このアイテムで{points}ポイント獲得（{tier}・{mult}倍）", en: "Earn {points} points with this piece at {tier} ({mult}×)." },
@@ -790,6 +791,7 @@ export const dict = {
     methodWhyCodLayaway: { ja: "一括払いのみご利用いただけます", en: "Cash on delivery is for full payment only." },
     methodWhyCodYen: { ja: "代金引換は日本円でのお支払いのみです — ¥ を選ぶとご利用いただけます。", en: "Cash on delivery is in yen only — choose ¥ to use it." },
     methodWhyCodJp: { ja: "代金引換は日本国内のお届け先のみご利用いただけます。", en: "Cash on delivery needs a delivery address in Japan." },
+    methodWhyCodCustomerJp: { ja: "代金引換は日本国内にお住まいのお客様向けです。", en: "Cash on delivery is for customers living in Japan." },
     methodWhyCodOff: { ja: "代金引換は現在ご利用いただけません。", en: "Cash on delivery isn't available right now." },
     methodWhyCodLimit: { ja: "お受け取り時のお支払い額（商品代金＋送料）が代金引換の上限を超えるため、ご利用いただけません。", en: "The amount to collect on delivery (pieces and shipping) is over our cash on delivery limit." },
     methodWhyCodNothing: { ja: "お受け取り時にお支払いいただく金額がないため、代金引換はご利用いただけません。", en: "There is nothing left to collect on delivery, so cash on delivery isn't needed." },
@@ -822,6 +824,27 @@ export const dict = {
     pointsInvalid: { ja: "0〜{points} の間で入力してください。", en: "Enter a number from 0 to {points}." },
     pointsUnavailable: { ja: "ポイントを適用できませんでした。残高をご確認のうえ、もう一度お試しください。", en: "We couldn't apply those points. Check your balance and try again." },
     choiceFailed: { ja: "お支払い方法を更新できませんでした。もう一度お試しください。", en: "We couldn't update your payment choice. Please try again." },
+    // Coupon codes (Hub #527, owner 2026-10-15): one per order, off the pieces
+    // only. The Hub decides and prices; these name its answer. The ja text for
+    // coupon_layaway_not_allowed names no layaway (the ja site has none).
+    couponLabel: { ja: "クーポンコード", en: "Coupon code" },
+    couponPlaceholder: { ja: "コードを入力", en: "Enter your code" },
+    couponApply: { ja: "適用", en: "Apply" },
+    couponRemove: { ja: "削除", en: "Remove" },
+    couponRow: { ja: "クーポン {code}", en: "Coupon {code}" },
+    couponUsed: { ja: "適用済み", en: "Applied" },
+    couponApplied: { ja: "クーポンを適用しました。商品代金から割引されます（送料・手数料は対象外）。", en: "Coupon applied. It comes off the pieces, never shipping or fees." },
+    couponNotFound: { ja: "このコードは見つかりませんでした。", en: "We don't recognise that code." },
+    couponInactive: { ja: "このコードは現在ご利用いただけません。", en: "This code is no longer available." },
+    couponNotStarted: { ja: "このコードは現在ご利用いただけません。", en: "This code is no longer available." },
+    couponExpired: { ja: "このコードは現在ご利用いただけません。", en: "This code is no longer available." },
+    couponExhausted: { ja: "このコードは現在ご利用いただけません。", en: "This code is no longer available." },
+    couponCustomerLimit: { ja: "このコードはすでにご利用済みです。", en: "You've already used this code." },
+    couponMinSubtotal: { ja: "このコードは商品合計{min}以上でご利用いただけます。", en: "This code needs pieces worth at least {min}." },
+    couponLayawayNotAllowed: { ja: "このコードはこのご注文ではご利用いただけません。", en: "This code can't be used on a layaway." },
+    couponFullPriceOnly: { ja: "このコードは定価の商品のみにご利用いただけます。", en: "This code is for full-price pieces only." },
+    couponChanged: { ja: "コードをもう一度適用してください。", en: "Please re-apply your code." },
+    couponTotalZero: { ja: "このコードはご注文全体には適用できません。", en: "This code can't cover the whole order." },
     reserveExplainPaidy: { ja: "商品を確認後、ご注文ページのリンクをメールでお送りします。そこからペイディでお支払いください。", en: "You'll pay with Paidy after we confirm your piece — we'll email you the link." },
     reserveExplainCod: { ja: "商品を確認後に発送します。お受け取りの際に配達員へお支払いください（代引手数料を含む）。", en: "We'll ship once we confirm your piece, and you pay the courier when it arrives (cash on delivery fee included)." },
     reserveExplainCard: { ja: "商品を確認後、ご注文ページのリンクをメールでお送りします。そこからカードでお支払いください。", en: "You'll pay by card after we confirm your piece — we'll email you the link." },
@@ -1505,6 +1528,7 @@ export const dict = {
     kindCleaning: { ja: "クリーニング", en: "Cleaning" },
     kindRepair: { ja: "修理", en: "Repair" },
     kindAppraisal: { ja: "鑑定・査定", en: "Appraisal" },
+    kindCertificate: { ja: "鑑定書・証明書", en: "Certificate" },
     kindOther: { ja: "その他", en: "Other" },
     item: { ja: "対象のお品物", en: "Item" },
     itemAny: { ja: "指定なし（ご注文全体）", en: "Not a specific item" },

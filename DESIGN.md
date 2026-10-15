@@ -327,6 +327,7 @@ Buttons are tactile and certain, like a stamped gold bar.
 ### Price Card (Ferrari-style name / spec line / price)
 The price card is the most "value-driven luxe" object on the site.
 - (live) A charcoal-deep slab (`.band-dark`, 20px padding). The yen price is set in Playfair 36px in Pale Gilt. Below it, a chalk/75 line gives the layaway reserve and 0% note (EN only).
+- (live, 2026-10-15) On a sale the Hub's `full_price_jpy` sits struck in chalk/60 above the sale price, with a "Sale" / 「セール」 tag (chalk on gold-dark). One component draws it everywhere: `components/commerce/sale-price.tsx`. No "% off". D2-5 (revised 2026-10-15): a strike means a sale and only a sale — the Hub's full_price_jpy struck beside the sale price. A sold piece is muted (opacity/colour), never struck.
 - (planned) Above it, the three-tier grammar:
   1. the short name (Title),
   2. the spec line (Spec, gold-dark on light),
@@ -355,6 +356,7 @@ The price card is the most "value-driven luxe" object on the site.
 
 ### Badges
 - **Status** (Sold, Preloved): chalk fill, hairline edge, charcoal/70, Label size.
+- **Sale** (2026-10-15): gold-dark fill, chalk label, beside the price (not on the photo), only when the Hub sends `on_sale` with a `full_price_jpy`. D2-5 (revised 2026-10-15): a strike means a sale and only a sale — the Hub's full_price_jpy struck beside the sale price. A sold piece is muted (opacity/colour), never struck.
 - **Origin** (`origin-badge.tsx`, the only origin renderer): gold-dark 1px edge and gold-dark text. It shows either the Japanese-origin label (only when the Hub says JAPAN) or the brand name. It is never restyled into a site-wide claim.
 - **Karat:** purity as data, e.g. "K18".
 

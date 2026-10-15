@@ -1,5 +1,6 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCheckoutCoupon, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload } from "@/lib/types";
 import { tiers as localTiers } from "@/lib/loyalty";
+import { normalizeCouponCode } from "@/lib/coupon";
 import { faqSections } from "@/lib/content/faq";
 import { liveMirrorProducts } from "@/lib/fixtures-live";
 import { blocksToMarkdown, sectionSlug } from "@/lib/content/faq-markdown";
@@ -172,6 +173,18 @@ Object.assign(products[12], {
   name: "R3110 Ring Tiffany & Co. 750 3.10g Open Heart Elsa Perreti Sz# 10.5 [Used]", name_en: "R3110 Ring Tiffany & Co. 750 3.10g Open Heart Elsa Perreti Sz# 10.5 [Used]", name_ja: null,
   category_slugs: ["preloved-branded-jewelry"], condition: "Preloved", origin: "BRAND", brand: "Tiffany & Co.",
 });
+/**
+ * SALE (owner decisions 2026-10-15): the Hub sends the sale price AS
+ * `price_jpy`, plus `full_price_jpy` and `on_sale`. R7828 (the hero's preloved
+ * medallion, so the hero caption shows it too) and the AL3 pendant are on
+ * sale; the sold Solitaire ring (p5, zero stock) carries a sale as well, to
+ * prove a sold piece is muted and never struck. Every other piece sends
+ * `full_price_jpy: null, on_sale: false`, as the Hub does off sale.
+ */
+for (const p of products) Object.assign(p.product_variants[0], { full_price_jpy: null, on_sale: false });
+Object.assign(products[8].product_variants[0], { full_price_jpy: 799800, on_sale: true });
+Object.assign(products[1].product_variants[0], { full_price_jpy: 458000, on_sale: true });
+Object.assign(products[4].product_variants[0], { full_price_jpy: 368000, on_sale: true });
 /** The live Hub watches (names as the Hub sends them), a landscape, a square and a portrait photo. */
 const WATCHES: [string, string, string, string][] = [
   ["C0983 Watch Van Cleef & Arpels La Collection Quartz SS White 17cm [Used]", "C0983 ウォッチ Van Cleef & Arpels La Collection クォーツ SS ホワイト 17cm", "Van Cleef & Arpels", "watch-wide"],
@@ -478,7 +491,35 @@ const fixtureMethods: TransferMethod[] = [
   },
 ];
 
-export function quoteFixture(body: { items: { variant_id: string; qty: number }[]; order_type: OrderType; mode?: CheckoutMode; term_months?: number; settlement_currency?: SettlementCurrency }): HubQuote {
+type QuoteFixtureBody = { items: { variant_id: string; qty: number }[]; order_type: OrderType; mode?: CheckoutMode; term_months?: number; settlement_currency?: SettlementCurrency };
+/**
+ * Preview only: the coupon held on the preview quote, as the Hub stores it on
+ * checkout_quotes.coupon_code. One code is known: TEST10, 10 % off the pieces.
+ * A new quote starts with none.
+ */
+export const FIXTURE_COUPON = "TEST10";
+let fixtureCoupon: string | null = null;
+let lastQuoteBody: QuoteFixtureBody | null = null;
+
+export function quoteFixture(body: QuoteFixtureBody): HubQuote {
+  fixtureCoupon = null;
+  lastQuoteBody = body;
+  return buildQuoteFixture(body);
+}
+
+/** GET /checkout/quote/:id in preview: the last preview quote, re-priced with its stored coupon (as the Hub does). */
+export function quoteByIdFixture(quoteId: string): HubQuote | null {
+  return quoteId === "quote-fixture" && lastQuoteBody ? buildQuoteFixture(lastQuoteBody) : null;
+}
+
+/** Preview: what TEST10 takes off — 10 % of the pieces in yen, then in the order's currency (the Hub converts half-up). */
+function fixtureCouponBlock(subtotalJpy: number, rate: number | null): Extract<HubCheckoutCoupon, { error: null }> | null {
+  if (fixtureCoupon === null) return null;
+  const discountJpy = Math.round(subtotalJpy * 0.1);
+  return { code: fixtureCoupon, kind: "percent", value: 10, discount_jpy: discountJpy, discount: rate === null ? discountJpy : Math.round(discountJpy * rate), error: null };
+}
+
+function buildQuoteFixture(body: QuoteFixtureBody): HubQuote {
   const items: HubQuoteItem[] = body.items.map((line) => {
     const product = products.find((p) => p.product_variants.some((v) => v.id === line.variant_id)) ?? products[0];
     const unit = product.product_variants[0].price_jpy;
@@ -495,6 +536,8 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
   const settlement: SettlementCurrency = body.settlement_currency ?? "JPY";
   const rate = settlement === "PHP" ? FIXTURE_RATE : null;
   const inSettlement = (jpy: number) => (rate === null ? jpy : Math.round(jpy * rate));
+  const coupon = fixtureCouponBlock(subtotal, rate);
+  const couponOff = coupon && coupon.error === null ? coupon.discount : 0;
   return {
     quote_id: "quote-fixture",
     // Reserved on the Hub at quote time for a layaway; nothing for full payment.
@@ -519,10 +562,12 @@ export function quoteFixture(body: { items: { variant_id: string; qty: number }[
     shipping_settlement: inSettlement(shipping),
     total_settlement: inSettlement(total),
     subtotal_settlement: inSettlement(total) - inSettlement(shipping),
-    layaway: mode === "layaway" ? layawayPlanOf(inSettlement(total), body.term_months ?? 6) : null,
+    // The plan is priced on pieces − coupon (Hub #527).
+    layaway: mode === "layaway" ? layawayPlanOf(inSettlement(total) - couponOff, body.term_months ?? 6) : null,
     // C1–C7 (Hub 2026-10-05): the payment choice and the points panel.
     ...choiceBlockOf(mode, settlement, inSettlement(subtotal), inSettlement(total),
-      mode === "layaway" ? layawayPlanOf(inSettlement(total), body.term_months ?? 6).deposit : null, { method: "transfer", points: 0 }),
+      mode === "layaway" ? layawayPlanOf(inSettlement(total) - couponOff, body.term_months ?? 6).deposit : null, { method: "transfer", points: 0 },
+      { subtotalJpy: subtotal, rate, termMonths: body.term_months ?? 6 }),
   };
 }
 
@@ -535,19 +580,23 @@ const FIXTURE_COD_TABLE: readonly { max_jpy: number; fee_jpy: number }[] = [
 const PREVIEW_COD_OFF = process.env.NEXT_PUBLIC_PREVIEW_COD === "off";
 /** Preview only: the shape the Hub answers for the payment choice (FIXTURE_POINTS balance, yen 1:1). */
 const FIXTURE_POINTS = 1250;
-let fixtureChoiceContext: { mode: CheckoutMode; settlement: SettlementCurrency; subtotal: number; total: number; deposit: number | null } =
-  { mode: "full", settlement: "JPY", subtotal: 236000, total: 236000, deposit: null };
-function choiceBlockOf(mode: CheckoutMode, settlement: SettlementCurrency, subtotal: number, total: number, deposit: number | null, choice: { method: CheckoutMethod; points: number }): HubCheckoutChoice {
-  fixtureChoiceContext = { mode, settlement, subtotal, total, deposit };
+type FixtureCouponBasis = { subtotalJpy: number; rate: number | null; termMonths: number };
+let fixtureChoiceContext: { mode: CheckoutMode; settlement: SettlementCurrency; subtotal: number; total: number; deposit: number | null } & FixtureCouponBasis =
+  { mode: "full", settlement: "JPY", subtotal: 236000, total: 236000, deposit: null, subtotalJpy: 236000, rate: null, termMonths: 6 };
+function choiceBlockOf(mode: CheckoutMode, settlement: SettlementCurrency, subtotal: number, total: number, deposit: number | null, choice: { method: CheckoutMethod; points: number }, basis: FixtureCouponBasis): HubCheckoutChoice {
+  fixtureChoiceContext = { mode, settlement, subtotal, total, deposit, ...basis };
   const yen = settlement === "JPY";
   const why = (m: CheckoutMethod) => m === "transfer" ? null : mode === "layaway" ? "layaway" : !yen ? "currency_not_yen" : null;
-  const limit = mode === "layaway" ? deposit ?? 0 : subtotal;
+  // Coupon first, then points (Hub #527): the points cap is pieces − coupon.
+  const coupon = fixtureCouponBlock(basis.subtotalJpy, basis.rate);
+  const couponOff = coupon && coupon.error === null ? coupon.discount : 0;
+  const limit = mode === "layaway" ? deposit ?? 0 : subtotal - couponOff;
   const max = yen ? Math.min(FIXTURE_POINTS, limit) : 0;
   const chosen = Math.min(Math.max(0, Math.floor(choice.points)), max);
   // Cash on delivery (Hub 2026-10-10): the Hub's rule and seed table, mirrored
   // here ONLY so preview mode draws the option — the live storefront never
   // brackets a fee (check:money). Preview addresses are in Japan.
-  const collected = total - chosen;
+  const collected = total - couponOff - chosen;
   const codReason = mode === "layaway" ? "layaway" : !yen ? "currency_not_yen" : PREVIEW_COD_OFF ? "off"
     : collected <= 0 ? "nothing_to_collect" : collected > FIXTURE_COD_TABLE[FIXTURE_COD_TABLE.length - 1].max_jpy ? "over_cod_limit" : null;
   const codFee = codReason === null ? FIXTURE_COD_TABLE.find((b) => collected <= b.max_jpy)!.fee_jpy : null;
@@ -562,16 +611,35 @@ function choiceBlockOf(mode: CheckoutMode, settlement: SettlementCurrency, subto
       usable: max > 0, reason: null, balance: FIXTURE_POINTS, held: 0, available: FIXTURE_POINTS,
       available_value: yen ? FIXTURE_POINTS : 0, max_points: max, max_value: max, chosen, chosen_value: chosen, applies_to: mode === "layaway" ? "deposit" : "pieces",
     },
+    coupon,
     totals: {
+      coupon_discount: couponOff,
       cod_fee: codChosen,
-      total_after_points: total - chosen + codChosen,
-      due_now_after_points: mode === "layaway" ? (deposit ?? 0) - chosen : total - chosen + codChosen,
+      total_after_points: total - couponOff - chosen + codChosen,
+      due_now_after_points: mode === "layaway" ? (deposit ?? 0) - chosen : total - couponOff - chosen + codChosen,
     },
   };
 }
-export function checkoutChoiceFixture(choice: { method: CheckoutMethod; points: number }): HubCheckoutChoice {
+
+/**
+ * Preview: the Hub's 409 for a code it does not know. Only TEST10 is known;
+ * "" / null (remove) and absent (keep) are never refused. A refused code
+ * stores nothing, like the Hub.
+ */
+export function fixtureCouponRefusal(choice: { coupon_code?: string | null }): { error: "coupon_not_found"; code: string } | null {
+  const raw = choice.coupon_code;
+  if (raw === undefined || raw === null || raw.trim() === "") return null;
+  return normalizeCouponCode(raw) === FIXTURE_COUPON ? null : { error: "coupon_not_found", code: raw.trim().toUpperCase() };
+}
+
+export function checkoutChoiceFixture(choice: { method: CheckoutMethod; points: number; coupon_code?: string | null }): HubCheckoutChoice {
+  // string = apply, "" / null = remove, undefined = keep (as the Hub).
+  if (choice.coupon_code !== undefined) fixtureCoupon = choice.coupon_code ? normalizeCouponCode(choice.coupon_code) : null;
   const c = fixtureChoiceContext;
-  return choiceBlockOf(c.mode, c.settlement, c.subtotal, c.total, c.deposit, choice);
+  const deposit = c.mode === "layaway"
+    ? layawayPlanOf(c.total - (fixtureCouponBlock(c.subtotalJpy, c.rate)?.discount ?? 0), c.termMonths).deposit
+    : c.deposit;
+  return choiceBlockOf(c.mode, c.settlement, c.subtotal, c.total, deposit, choice, c);
 }
 
 /** The same floor-and-remainder rule the Hub uses, so preview figures add up. */
@@ -607,7 +675,14 @@ export function draftPayFixture(mode: CheckoutMode = "full"): HubDraftPayResult 
     total: 236000, total_jpy: 236000, shipping_pending: true,
     deposit: mode === "layaway" ? 70800 : null, term_months: mode === "layaway" ? 6 : null,
     provisional: true, awaiting_confirmation: true, transfer_due_at: null, transfer_region: "OVERSEAS", transfer_methods: [],
+    ...fixtureCouponApplied(),
   };
+}
+
+/** Preview: the coupon the draft would carry (Hub #527 pay reply; draft reads once the Hub adds the fields). */
+function fixtureCouponApplied(): { coupon_code: string; coupon_discount: number; coupon_discount_jpy: number } | Record<string, never> {
+  const c = fixtureCouponBlock(fixtureChoiceContext.subtotalJpy, fixtureChoiceContext.rate);
+  return c ? { coupon_code: c.code, coupon_discount: c.discount, coupon_discount_jpy: c.discount_jpy } : {};
 }
 
 const fixtureDraft: HubDraft = {
@@ -628,8 +703,9 @@ export function draftsFixture(): HubDraft[] {
 }
 
 export function draftFixture(id: string): HubDraftDetail | null {
-  const d = draftsFixture().find((x) => x.id === id) ?? (id === FIXTURE_DRAFT_ID ? fixtureDraft : null);
-  if (!d) return null;
+  const found = draftsFixture().find((x) => x.id === id) ?? (id === FIXTURE_DRAFT_ID ? fixtureDraft : null);
+  if (!found) return null;
+  const d: HubDraft = found.id === FIXTURE_DRAFT_ID ? { ...found, ...fixtureCouponApplied() } : found;
   return {
     draft: { ...d, ship_to_address: { line1: "123 Rizal Avenue", city: "Makati", region: "Metro Manila", postal_code: "1200", country: "PH", recipient_name: "Maria Santos" } },
     items: [{ id: "l1", variant_id: null, product_id: null, title: "K18 Diamond Pendant / 45cm", title_ja: "K18 ダイヤモンドペンダント / 45cm", sku: "AL3", quantity: 1, unit_price_jpy: 236000, line_total_jpy: 236000, image_url: null }],

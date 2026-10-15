@@ -14,8 +14,9 @@ const b64urlDecode = (s) => Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"),
 const input = { orderId: "12fea41d-557b-4630-b0d3-4d3ed34f9efc", customerId: "6f1c2a90-0000-4000-8000-000000000001", amountJpy: 236000 };
 
 test("payload.base64url(HMAC-SHA256(key, payload)) with o, c, a, v:1 and e = now + 7 days", () => {
-  const prev = process.env.AGREEMENT_LOOKUP_TOKEN;
+  const prev = { look: process.env.AGREEMENT_LOOKUP_TOKEN, own: process.env.CARD_AGREEMENT_CTX_KEY };
   process.env.AGREEMENT_LOOKUP_TOKEN = "test-secret";
+  delete process.env.CARD_AGREEMENT_CTX_KEY;
   try {
     const now = new Date("2026-10-04T00:00:00Z");
     const token = cardAgreementContextToken(input, now);
@@ -29,12 +30,14 @@ test("payload.base64url(HMAC-SHA256(key, payload)) with o, c, a, v:1 and e = now
     // A different key gives a different signature.
     assert.notEqual(signCardAgreementContext(JSON.parse(b64urlDecode(payload)), "other"), token);
   } finally {
-    if (prev === undefined) delete process.env.AGREEMENT_LOOKUP_TOKEN; else process.env.AGREEMENT_LOOKUP_TOKEN = prev;
+    if (prev.look === undefined) delete process.env.AGREEMENT_LOOKUP_TOKEN; else process.env.AGREEMENT_LOOKUP_TOKEN = prev.look;
+    if (prev.own === undefined) delete process.env.CARD_AGREEMENT_CTX_KEY; else process.env.CARD_AGREEMENT_CTX_KEY = prev.own;
   }
 });
 
 test("no key, or an input that is not whole, means no token (fail closed)", () => {
-  const prev = process.env.AGREEMENT_LOOKUP_TOKEN;
+  const prev = { look: process.env.AGREEMENT_LOOKUP_TOKEN, own: process.env.CARD_AGREEMENT_CTX_KEY };
+  delete process.env.CARD_AGREEMENT_CTX_KEY;
   try {
     delete process.env.AGREEMENT_LOOKUP_TOKEN;
     assert.equal(cardAgreementContextToken(input), null);
@@ -47,7 +50,8 @@ test("no key, or an input that is not whole, means no token (fail closed)", () =
     assert.equal(cardAgreementContextToken({ ...input, amountJpy: 1.5 }), null);
     assert.ok(cardAgreementContextToken(input));
   } finally {
-    if (prev === undefined) delete process.env.AGREEMENT_LOOKUP_TOKEN; else process.env.AGREEMENT_LOOKUP_TOKEN = prev;
+    if (prev.look === undefined) delete process.env.AGREEMENT_LOOKUP_TOKEN; else process.env.AGREEMENT_LOOKUP_TOKEN = prev.look;
+    if (prev.own === undefined) delete process.env.CARD_AGREEMENT_CTX_KEY; else process.env.CARD_AGREEMENT_CTX_KEY = prev.own;
   }
 });
 

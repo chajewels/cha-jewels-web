@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { HubImage } from "@/components/media/hub-image";
 import { useHeroMotion } from "@/components/home/hero";
 import { trackHeroSlideCta } from "@/lib/analytics";
-import { formatMoney } from "@/lib/utils";
+import { SalePrice } from "@/components/commerce/sale-price";
 import { HERO_TURN } from "@/lib/motion";
 import type { HeroCategorySlide, HeroPhoto, HeroPiece, HeroSlide } from "@/lib/hero-deck";
 
@@ -223,7 +223,7 @@ function StageView({ slide, index, lang, active, mounted, side, moving }: ViewPr
 
   const labels = [t("home", "heroAcc1"), t("home", "heroAcc2"), t("home", "heroAcc3"), t("home", "heroAcc4")];
   const index0 = slide.layout === "index" && n === 0;
-  const priceOf = (p: HeroPiece) => formatMoney(p.priceJpy);
+  const priceOf = (p: HeroPiece) => <SalePrice price={p.priceJpy} full={p.fullPriceJpy} onSale={p.onSale} lang={lang} tone="dark" size="sm" />;
 
   return (
     <div className="hd-view hd-v3" data-side={side} data-layout={slide.layout} data-count={n}>
@@ -308,6 +308,13 @@ function StageView({ slide, index, lang, active, mounted, side, moving }: ViewPr
         <p className="hd-eyebrow hd-rise"><span className="hd-num">{pad(index + 1)}</span>{slide.caller}</p>
         <h2 className="hd-title hd-rise" style={d(0.1)}><span className="hd-line hd-gilt">{slide.name}</span></h2>
         {slide.description && <p className="hd-desc hd-rise" style={d(0.2)}>{slide.description}</p>}
+        {/* Stage and clock: the category's stock in one line. The Index keeps
+            its per-type legend instead; a failed read shows nothing. */}
+        {slide.layout !== "index" && slide.total !== null && (
+          <p className="hd-stock hd-num hd-rise" style={d(0.25)}>
+            {slide.total > 0 ? t("home", "heroStockTotal", { n: String(slide.total) }) : t("home", "heroComingSoon")}
+          </p>
+        )}
         {/* The approved Index as the legend for the pieces: stock per type,
             the featured piece's row lit. */}
         {slide.layout === "index" && n > 0 && slide.counts && (

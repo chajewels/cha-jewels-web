@@ -104,8 +104,12 @@ export function checkoutSummary({ quote, intended, subtotal, mode, peso }: {
  * Cash on delivery (Hub 2026-10-10): with COD chosen the Hub's
  * `totals.cod_fee` (the 代引手数料) is already inside `total_after_points`, so a
  * fee > 0 makes that figure the headline too, with or without points.
+ *
+ * Coupon (Hub #527, 2026-10-15): `totals.coupon_discount` is already taken off
+ * `total_after_points`, so an applied coupon makes that figure the headline
+ * too — with no points and no COD it is simply the Hub's total after the coupon.
  */
-export function amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints, codFee = 0 }: {
+export function amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAfterPoints, codFee = 0, couponDiscount = 0 }: {
   mode: "full" | "layaway";
   /** The quote on screen is in the summary's currency. */
   quoteShown: boolean;
@@ -114,8 +118,30 @@ export function amountToPayAfterPoints({ mode, quoteShown, pointsChosen, totalAf
   totalAfterPoints: number | null;
   /** The Hub's `totals.cod_fee` while COD is the chosen method; 0 otherwise. */
   codFee?: number;
+  /** The Hub's `totals.coupon_discount` (0 when no coupon is applied). */
+  couponDiscount?: number;
 }): number | null {
-  if (mode !== "full" || !quoteShown || !(pointsChosen > 0 || codFee > 0)) return null;
+  if (mode !== "full" || !quoteShown || !(pointsChosen > 0 || codFee > 0 || couponDiscount > 0)) return null;
   if (typeof totalAfterPoints !== "number" || !Number.isFinite(totalAfterPoints)) return null;
   return totalAfterPoints;
+}
+
+/**
+ * A LAYAWAY's headline with a coupon applied: the plan is priced on pieces −
+ * coupon (Hub #527), so the headline is the Hub's total after the coupon —
+ * `totals.total_after_points`, which with no points chosen is exactly that.
+ * With points chosen too, that figure is also net of the points (they pay the
+ * deposit, not the plan total) and the Hub sends no total-after-coupon alone,
+ * so null: the caller shows no headline figure rather than a wrong one.
+ * `undefined` = no coupon in play, the headline is unchanged.
+ */
+export function layawayTotalAfterCoupon({ quoteShown, pointsChosen, totalAfterPoints, couponDiscount = 0 }: {
+  quoteShown: boolean;
+  pointsChosen: number;
+  totalAfterPoints: number | null;
+  couponDiscount?: number;
+}): number | null | undefined {
+  if (!quoteShown || !(couponDiscount > 0)) return undefined;
+  if (pointsChosen > 0) return null;
+  return typeof totalAfterPoints === "number" && Number.isFinite(totalAfterPoints) ? totalAfterPoints : null;
 }

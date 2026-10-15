@@ -42,8 +42,13 @@ export type ProductMedia = { url: string; alt: string | null; sort: number; cuto
  * cannot produce (no rate → no `down_payment_php`), so each is optional and a
  * caller renders the reserve line only when every figure it needs is present.
  * Nothing here is ever derived from `price_jpy`: see scripts/check-money.mjs.
+ *
+ * `full_price_jpy` / `on_sale` (owner decisions 2026-10-15): on a sale the Hub
+ * sends the sale price AS `price_jpy`, the regular price as `full_price_jpy`
+ * (null when not on sale) and `on_sale: true`. Both come from the Hub; never
+ * derived here. Rendered only through components/commerce/sale-price.tsx.
  */
-export type ProductVariant = { id: string; size: string | null; stone: string | null; price_jpy: number; price_php?: number | null; stock_qty: number; down_payment_jpy?: number | null; down_payment_php?: number | null; down_payment_pct?: number | null; product_media: ProductMedia[] };
+export type ProductVariant = { id: string; size: string | null; stone: string | null; price_jpy: number; price_php?: number | null; full_price_jpy?: number | null; on_sale?: boolean; stock_qty: number; down_payment_jpy?: number | null; down_payment_php?: number | null; down_payment_pct?: number | null; product_media: ProductMedia[] };
 export type Condition = "New" | "Preloved";
 /** `condition` is optional so fixtures and any pre-condition Hub response still typecheck; absent is treated as New. */
 /**
@@ -274,7 +279,7 @@ export type HubMethodSwitchError =
   | "method_unavailable" | "over_cod_limit" | "cod_nothing_to_collect";
 /**
  * One choice, and why it is greyed out when it is (layaway | currency_not_yen |
- * address_not_jp | off | no_account; COD also nothing_to_collect |
+ * address_not_jp | customer_not_jp | off | no_account; COD also nothing_to_collect |
  * over_cod_limit). `fee_jpy` is COD only: the 代引手数料 choosing it adds — the
  * Hub's figure, null when not offered. The storefront never brackets a fee.
  */
@@ -295,15 +300,27 @@ export type HubCheckoutPoints = {
   chosen_value: number;
   applies_to: "pieces" | "deposit";
 };
+/**
+ * COUPON CODES (Hub #527, 2026-10-15). null = no code entered; `{ code, error }`
+ * = refused, nothing changed; else applied — `discount` is in the order's
+ * currency, off the pieces only. Every figure is the Hub's.
+ */
+export type HubCheckoutCoupon =
+  | null
+  | { code: string; error: string }
+  | { code: string; kind: "percent" | "amount"; value: number; discount_jpy: number; discount: number; error: null };
 export type HubCheckoutChoice = {
   payment_options: HubPaymentOption[];
   payment_method: CheckoutMethod | null;
   points: HubCheckoutPoints;
+  coupon: HubCheckoutCoupon;
   /**
    * `cod_fee` (2026-10-10): the 代引手数料 when COD is the chosen method, else
    * 0 — already included in the two figures after it. Absent on an older Hub.
+   * `coupon_discount` (2026-10-15): the coupon, in the order's currency,
+   * ALREADY taken off total_after_points / due_now_after_points.
    */
-  totals: { cod_fee?: number; total_after_points: number; due_now_after_points: number };
+  totals: { coupon_discount: number; cod_fee?: number; total_after_points: number; due_now_after_points: number };
 };
 export type HubQuoteItem = { variant_id: string; product_id: string | null; sku: string | null; slug: string | null; name: string; name_en?: string | null; name_ja?: string | null; qty: number; unit_price_jpy: number; line_total_jpy: number };
 export type HubQuote = {
@@ -465,7 +482,19 @@ export type HubDraftPayResult = {
   payment_method?: CheckoutMethod;
   /** Cash on delivery: the 代引手数料, already in `total` (0 otherwise). Absent on an older Hub. */
   cod_fee?: number;
+  /** The coupon applied (Hub #527): label, value in `currency`, and in yen. Already in `total`. */
+  coupon_code?: string | null;
+  coupon_discount?: number;
+  coupon_discount_jpy?: number;
 };
+
+/**
+ * The coupon on a draft as GET /drafts and /drafts/:id would carry it. NOT sent
+ * by the Hub yet (its DRAFT_FIELDS has no coupon columns): read defensively,
+ * and the "Coupon CODE" row shows only when the code and a discount are present.
+ * The draft's `subtotal` / `total` are already after the coupon.
+ */
+export type HubCouponApplied = { coupon_code?: string | null; coupon_discount?: number | null; coupon_discount_jpy?: number | null };
 
 export type DraftStatus = "to_confirm" | "confirmed" | "declined" | "expired";
 /** A draft as GET /drafts lists it (Hub PR 6). Money: settlement currency, provisional. */
@@ -510,7 +539,7 @@ export type HubDraft = {
   total_after_points?: number;
   /** Cash on delivery: the 代引手数料, already in `total` (0 otherwise). Absent on an older Hub. */
   cod_fee?: number;
-};
+} & HubCouponApplied;
 export type HubDraftLine = {
   id: string; variant_id: string | null; product_id: string | null;
   title: string; title_ja?: string | null; sku: string | null; quantity: number;
@@ -541,6 +570,12 @@ export type HubOrder = ReservationFlags & {
   total_amount: number; total_paid: number; remaining_balance: number; shipping_fee: number | null;
   /** Cash on delivery: the 代引手数料, already in total_amount. null/0 on other methods; absent on an older Hub. */
   cod_fee?: number | null;
+  /**
+   * The coupon used (Hub #527): cash_orders.coupon_code, the LABEL only. Its
+   * value is folded into the order's discount (already in total_amount); no
+   * coupon discount is sent on an order. Absent on an older Hub.
+   */
+  coupon_code?: string | null;
   transfer_due_at: string | null; recipient_name: string | null; gift_note: string | null;
   order_date: string | null; created_at: string; completed_at: string | null; cancelled_at: string | null;
   tracking_number: string | null; shipped_at: string | null;
@@ -922,7 +957,7 @@ export type HubLayawayDetail = {
  * `status` and `customer_note`. The Hub's `staff_note` is internal and never
  * crosses this API. Exactly one of `cash_order_id` / `layaway_plan_id` is set.
  */
-export type ServiceRequestKind = "resize" | "cleaning" | "repair" | "appraisal" | "other";
+export type ServiceRequestKind = "resize" | "cleaning" | "repair" | "appraisal" | "certificate" | "other";
 export type ServiceRequestStatus = "requested" | "received" | "in_progress" | "completed" | "declined";
 export type ServiceRequest = {
   id: string;

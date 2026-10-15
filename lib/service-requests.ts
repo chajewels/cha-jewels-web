@@ -8,7 +8,7 @@ import type { ServiceRequest, ServiceRequestKind, ServiceRequestStatus } from "@
  * its status; this side only asks and reads. Labels live in lib/i18n under
  * `service`, so the language toggle governs every word.
  */
-export const SERVICE_KINDS: readonly ServiceRequestKind[] = ["resize", "cleaning", "repair", "appraisal", "other"];
+export const SERVICE_KINDS: readonly ServiceRequestKind[] = ["resize", "cleaning", "repair", "appraisal", "certificate", "other"];
 
 export const isServiceKind = (v: unknown): v is ServiceRequestKind =>
   typeof v === "string" && (SERVICE_KINDS as readonly string[]).includes(v);
@@ -25,6 +25,7 @@ export function serviceKindLabel(kind: ServiceRequestKind, lang: Lang): string {
     case "cleaning": return dict.service.kindCleaning[lang];
     case "repair": return dict.service.kindRepair[lang];
     case "appraisal": return dict.service.kindAppraisal[lang];
+    case "certificate": return dict.service.kindCertificate[lang];
     default: return dict.service.kindOther[lang];
   }
 }

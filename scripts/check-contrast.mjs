@@ -126,6 +126,22 @@ add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "oran
   for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `film@${stop}/${luma}`, need, alpha, ratio: over(fg, surface(stop, luma), alpha) });
 }
 
+// SALE (components/commerce/sale-price.tsx, owner decisions 2026-10-15): the
+// struck regular price is chalk/60 on dark bands (price card on charcoal-deep,
+// hero caption and Sold card on the stage pool, rows below) and charcoal/70 on
+// the light cards — charcoal/60 is 3.5:1 on white and stays in the must-fail
+// set. The "Sale" tag is chalk on a gold-dark fill (11px, so TEXT).
+add("sale: struck price chalk/60 on charcoal-deep (price card)", "chalk", "charcoal-deep", TEXT, 0.6);
+add("sale: struck price charcoal/70 on white (cards)", "charcoal", "white", TEXT, 0.7);
+add("sale: struck price charcoal/70 on chalk (search row)", "charcoal", "chalk", TEXT, 0.7);
+add("sale: tag chalk on gold-dark", "chalk", "gold-dark", TEXT);
+{
+  const pool = blend([120, 92, 40], hex("#231e18"), 0.3);
+  const fg = blend(hex(C.chalk), pool, 0.6);
+  const [L1, L2] = [lum(fg), lum(pool)];
+  pairs.push({ label: "sale: struck price chalk/60 on the stage pool (hero caption, Sold card)", fg: "chalk", bg: "stage pool", need: TEXT, alpha: 0.6, ratio: (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05) });
+}
+
 // SOLD (components/commerce/add-to-cart.tsx, components/catalog/product-card.tsx):
 // a muted label, not a button — charcoal/70 on an opaque chalk fill.
 add("Sold label: charcoal/70 on chalk", "charcoal", "chalk", TEXT, 0.7);

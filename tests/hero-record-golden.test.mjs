@@ -33,7 +33,11 @@ async function snapshot() {
     }
   }
   delete process.env.HERO_HIDE_EMPTY_CATEGORIES;
-  return JSON.parse(JSON.stringify(out));
+  // A piece's sale fields (fullPriceJpy / onSale, 2026-10-15) are display data
+  // added after the golden was written; the golden pins WHICH pieces show, in
+  // what order, at what price — so they are left out rather than regenerating it.
+  // So is a slide's `total` (the stock line on every slide, 2026-10-15).
+  return JSON.parse(JSON.stringify(out), (k, v) => (k === "fullPriceJpy" || k === "onSale" || k === "total" ? undefined : v));
 }
 
 test("hero_record mode: the deck and the category stages are exactly as before ticks mode", async () => {

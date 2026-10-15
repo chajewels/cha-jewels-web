@@ -71,8 +71,12 @@ const KEY = process.env.HUB_API_KEY ?? "";
  * to the shopper as "Ref: …" so a failure on screen can be matched to the one
  * Hub log line that names its cause.
  */
-/** The customer's payment choice at checkout (C1–C7). */
-export type CheckoutChoiceInput = { method: CheckoutMethod; points: number };
+/**
+ * The customer's payment choice at checkout (C1–C7). `coupon_code` (Hub #527):
+ * a string applies it, "" or null removes it, absent (undefined) keeps the code
+ * the quote already holds — so it is sent only when present.
+ */
+export type CheckoutChoiceInput = { method: CheckoutMethod; points: number; coupon_code?: string | null };
 
 export class HubError extends Error {
   /**
@@ -136,6 +140,14 @@ async function call<T>(path: string, init: RequestInit & { revalidate?: number |
  * such thing", and it goes to the profile step (lib/profile.ts), so it is
  * rethrown rather than read as a missing order or plan.
  */
+/** Preview: a refused coupon is the Hub's 409 with its body, so the action maps it the same way. */
+function fixtureChoice(choice: CheckoutChoiceInput): Promise<HubCheckoutChoice> {
+  const refused = fx.fixtureCouponRefusal(choice);
+  return refused
+    ? Promise.reject(new HubError(409, `preview: ${refused.error}`, refused.error, null, refused.code, refused))
+    : Promise.resolve(fx.checkoutChoiceFixture(choice));
+}
+
 const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404 && e.code !== "not_linked") return null; throw e; } };
 
 export const hub = {
@@ -393,7 +405,7 @@ export const hub = {
    * time, so an abandoned checkout never sits on a one-of-a-kind piece.
    * Throws HubError(409) when a piece sold out between browsing and checkout.
    */
-  quote: (jwt: string, body: { items: { variant_id: string; qty: number }[]; order_type: OrderType; ship_to_address_id: string; recipient_name?: string; recipient_phone?: string; gift_note?: string; mode?: CheckoutMode; term_months?: number; settlement_currency?: SettlementCurrency }): Promise<HubQuote> =>
+  quote: (jwt: string, body: { items: { variant_id: string; qty: number }[]; order_type: OrderType; ship_to_address_id: string; recipient_name?: string; recipient_phone?: string; gift_note?: string; mode?: CheckoutMode; term_months?: number; settlement_currency?: SettlementCurrency; coupon_code?: string }): Promise<HubQuote> =>
     FIXTURES
       ? Promise.resolve(fx.quoteFixture(body))
       : call("/checkout/quote", { method: "POST", body: JSON.stringify({ mode: "full", ...body }), jwt, revalidate: false }),
@@ -413,7 +425,7 @@ export const hub = {
    */
   quoteById: (jwt: string, quote_id: string): Promise<HubQuote | null> =>
     FIXTURES
-      ? Promise.resolve(null)
+      ? Promise.resolve(fx.quoteByIdFixture(quote_id))
       : notFoundToNull(call(`/checkout/quote/${encodeURIComponent(quote_id)}`, { jwt, revalidate: false })),
   /**
    * With the Hub's web_checkout_mode = 'draft' (Hub PR 6) the answer is a
@@ -430,8 +442,15 @@ export const hub = {
    */
   checkoutChoice: (jwt: string, quote_id: string, choice: CheckoutChoiceInput): Promise<HubCheckoutChoice> =>
     FIXTURES
-      ? Promise.resolve(fx.checkoutChoiceFixture(choice))
-      : call(`/checkout/quote/${encodeURIComponent(quote_id)}/choice`, { method: "POST", body: JSON.stringify({ payment_method: choice.method, points: choice.points }), jwt, revalidate: false }),
+      ? fixtureChoice(choice)
+      : call(`/checkout/quote/${encodeURIComponent(quote_id)}/choice`, {
+          method: "POST",
+          body: JSON.stringify({
+            payment_method: choice.method, points: choice.points,
+            ...(choice.coupon_code !== undefined ? { coupon_code: choice.coupon_code } : {}),
+          }),
+          jwt, revalidate: false,
+        }),
   /**
    * The same endpoint, for a quote whose mode is layaway. The Hub decides from
    * the quote which it is; the two answers differ, so they are typed apart
