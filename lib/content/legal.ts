@@ -613,8 +613,8 @@ export const tokusho = {
 };
 
 export const privacyUpdated: Record<Lang, string> = {
-  ja: "最終更新：2026年10月4日",
-  en: "Last updated: October 4, 2026",
+  ja: "最終更新：2026年10月15日",
+  en: "Last updated: October 15, 2026",
 };
 
 /**
@@ -819,7 +819,7 @@ export const privacyArticles: LegalArticle[] = [
           ],
         },
       },
-      { kind: "p", text: { ja: "当社は、個人情報を販売または貸与することはありません。また、サイトをまたぐ行動ターゲティング広告のために個人情報を開示することはありません。", en: "We do not sell or rent personal information. We do not disclose personal information for cross-site behavioral advertising." } },
+      { kind: "p", text: { ja: "当社は、個人情報を販売または貸与することはありません。また、Cookieバナーを通じてお客様の同意をいただいた場合を除き、サイトをまたぐ行動ターゲティング広告のために個人情報を開示することはありません。", en: "We do not sell or rent personal information. We do not disclose personal information for cross-site behavioral advertising, except with your consent given through the cookie banner." } },
     ],
   },
   {
@@ -854,7 +854,7 @@ export const privacyArticles: LegalArticle[] = [
         },
       },
       { kind: "p", text: { ja: "ログインしているお客様がカートに入れた商品は、お客様アカウントにも保存されます。これにより、別の端末でも同じカートをご利用いただけるほか、ご希望いただいた場合に限り、カートに残した商品についてのお知らせメールをお送りします。カートの内容は、最後の変更から90日を経過すると削除されます。", en: "When you are signed in, the items in your cart are also saved to your customer account. This lets you pick up the same cart on another device and, only if you have asked for them, lets us send you reminder emails about pieces left in your cart. Saved cart contents are deleted 90 days after the last change." } },
-      { kind: "p", text: { ja: "当社は、アクセス状況の把握およびウェブサイトの改善のため、Vercel Web Analyticsを使用しています。これはCookieを使用しない仕組みで、ページの閲覧に加え、商品の閲覧およびカートへの追加という2種類の商品に関する操作を、その商品のSKUおよびお客様がご覧になっている言語とともに記録します。本ポリシーの日付時点において、当社は広告目的のCookieおよびサイトをまたぐ行動ターゲティング広告のトラッカーを使用していません。", en: "We use Vercel Web Analytics to understand traffic and improve the website. It is cookieless, and it records page views together with two product events — viewing a product and adding one to the cart — each with the item’s SKU and the language you are reading in. As of the date of this policy, we do not use advertising cookies or cross-site behavioral advertising trackers." } },
+      { kind: "p", text: { ja: "当社は、アクセス状況の把握およびウェブサイトの改善のため、Vercel Web Analyticsを使用しています。これはCookieを使用しない仕組みで、ページの閲覧に加え、商品の閲覧およびカートへの追加という2種類の商品に関する操作を、その商品のSKUおよびお客様がご覧になっている言語とともに記録します。", en: "We use Vercel Web Analytics to understand traffic and improve the website. It is cookieless, and it records page views together with two product events — viewing a product and adding one to the cart — each with the item’s SKU and the language you are reading in." } },
       {
         kind: "rich",
         runs: {
@@ -870,8 +870,31 @@ export const privacyArticles: LegalArticle[] = [
           ],
         },
       },
+      // ADVERTISING, WITH CONSENT ONLY (owner rule 2026-10-15; the owner
+      // approves this wording in the PR). What it says is what
+      // components/analytics/ads-tags.tsx and lib/analytics.ts do: nothing
+      // loads before Accept, never on account pages, no transaction_id.
+      {
+        kind: "rich",
+        runs: {
+          ja: [
+            { t: "お客様がCookieバナーで「同意する」を選択された場合に限り、当社は、Meta Platforms, Inc.が提供するMetaピクセル、およびGoogle LLCが提供するGoogle広告タグを使用します。これらは同意をいただいた後にのみ読み込まれ、同意をいただく前、および「必要なもののみ」を選択された場合には、一切読み込まれません。これらには、閲覧されたページ、閲覧またはカートに追加された商品（商品コード）、入力された検索語、ご購入手続きの開始、ならびにご注文があったこととその金額および通貨が送信されます。お客様のお名前、メールアドレス、ご住所またはご注文番号が送信されることはありません。ログイン、お客様アカウントおよびご注文完了の各ページの閲覧は送信されず、お客様アカウントのページではこれらは読み込まれません。当社は、これらの情報を、当社の広告の効果測定、ならびにMetaおよびGoogleのサービス上での当社の広告の表示のために利用します。MetaおよびGoogleは、お客様のブラウザにCookieその他の類似の技術を設定し、これらの情報を各社が保有する情報と組み合わせることがあり、その取扱いは各社のプライバシーポリシーに従います。同意は、各ページ下部の「Cookie設定」からいつでも撤回でき、撤回された後は、当社ウェブサイトからこれらに情報が送信されることはありません。各社による情報の取扱いについては、" },
+            { t: "Metaのプライバシーポリシー", href: "https://www.facebook.com/privacy/policy/" },
+            { t: "および" },
+            { t: "Googleのプライバシーポリシー", href: "https://policies.google.com/privacy" },
+            { t: "をご覧ください。" },
+          ],
+          en: [
+            { t: "Only with your consent, given by pressing “Accept” on the cookie banner, we use the Meta Pixel (provided by Meta Platforms, Inc.) and the Google Ads tag (provided by Google LLC). They are loaded only after you accept; before then, and if you choose “Only necessary”, they are not loaded at all. They receive the pages you view, a product you view or add to your cart (by its product code), a search term you enter, that you started checking out, and that an order was placed, with its amount and currency. They never receive your name, email address, address, or order number. Visits to sign-in, account, and order-confirmation pages are not sent, and the tags are never loaded on your account pages. We use this information to measure how our advertising performs and to show our ads on Meta’s and Google’s services. Meta and Google may set cookies or use similar technologies in your browser and may combine this information with information they hold, under their own privacy policies. You can withdraw your consent at any time through “Cookie settings” at the bottom of every page; after that, our website sends them nothing further. For how they handle information, see " },
+            { t: "Meta’s Privacy Policy", href: "https://www.facebook.com/privacy/policy/" },
+            { t: " and " },
+            { t: "Google’s Privacy Policy", href: "https://policies.google.com/privacy" },
+            { t: "." },
+          ],
+        },
+      },
       { kind: "p", text: { ja: "Cookieはブラウザの設定で管理いただけます。必要なCookieを無効にされた場合、ウェブサイト、お客様ポータルまたはお支払い手続きの一部が正しく動作しないことがあります。", en: "You can control cookies through your browser settings. Disabling necessary cookies may prevent parts of the website, customer portal, or checkout process from working correctly." } },
-      { kind: "p", text: { ja: "将来、任意のアクセス解析技術または広告技術を導入する場合には、本ポリシーを更新し、必要な場合には同意を取得します。", en: "If we introduce optional analytics or advertising technologies in the future, we will update this policy and obtain consent where required." } },
+      { kind: "p", text: { ja: "上記以外の任意のアクセス解析技術または広告技術を導入する場合には、本ポリシーを更新し、必要な場合には同意を取得します。", en: "If we introduce any other optional analytics or advertising technologies, we will update this policy and obtain consent where required." } },
     ],
   },
   {

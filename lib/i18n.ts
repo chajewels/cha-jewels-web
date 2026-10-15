@@ -476,7 +476,7 @@ export const dict = {
     buyBar: { ja: "購入バー", en: "Buy bar" },
     trustRows: { ja: "安心のポイント", en: "Why buy from us" },
   },
-  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." }, cards: { ja: "ご利用いただけるカード：Visa・Mastercard・American Express・JCB・Diners Club・Discover", en: "Cards accepted: Visa, Mastercard, American Express, JCB, Diners Club and Discover" }, paidy: { ja: "あと払い（ペイディ）がご利用いただけます", en: "Paidy (あと払い（ペイディ）) accepted" } },
+  footer: { follow: { ja: "フォローする", en: "Follow us" }, tokusho: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, invoiceReg: { ja: "適格請求書発行事業者登録番号 T7011801044120", en: "Qualified invoice issuer registration no. T7011801044120" }, secondhandPermit: { ja: "古物商許可 東京都公安委員会 第307762418064号", en: "Secondhand dealer permit: Tokyo Metropolitan Public Safety Commission No. 307762418064" }, shop: { ja: "ショップ", en: "Shop" }, all: { ja: "すべて", en: "All" }, help: { ja: "サポート", en: "Help" }, legal: { ja: "法的情報", en: "Legal" }, terms: { ja: "分割予約規約", en: "Layaway terms" }, faq: { ja: "よくある質問", en: "FAQ" }, goldGuide: { ja: "ゴールドの基礎知識", en: "Gold guide" }, privacy: { ja: "プライバシーポリシー", en: "Privacy policy" }, cookieSettings: { ja: "Cookie設定", en: "Cookie settings" }, sale: { ja: "利用規約", en: "Terms of Service" }, returns: { ja: "返品・キャンセル・返金", en: "Returns and refunds" }, collections: { ja: "コレクション", en: "Collections" }, care: { ja: "カスタマーケア・法的情報", en: "Customer care and legal" }, newsletter: { ja: "ニュースレター", en: "Newsletter" }, newsletterNote: { ja: "新着・会員向け先行案内。いつでも解除できます。", en: "New pieces, member previews. Unsubscribe any time." }, cards: { ja: "ご利用いただけるカード：Visa・Mastercard・American Express・JCB・Diners Club・Discover", en: "Cards accepted: Visa, Mastercard, American Express, JCB, Diners Club and Discover" }, paidy: { ja: "あと払い（ペイディ）がご利用いただけます", en: "Paidy (あと払い（ペイディ）) accepted" } },
   loyalty: {
     level: { ja: "レベル {n}", en: "Level {n}" }, onJoining: { ja: "入会時", en: "On joining" }, times: { ja: "{n}倍", en: "{n}x" },
     regionJp: { ja: "日本", en: "Japan" }, regionPh: { ja: "フィリピン", en: "Philippines" }, regionOther: { ja: "その他", en: "Elsewhere" },
@@ -1686,6 +1686,16 @@ export const dict = {
     errPhotoRead: { ja: "この写真を読み込めませんでした。別の写真をお選びください。", en: "We couldn't read this photo. Please choose another one." },
     errRate: { ja: "しばらく時間をおいてからお試しください。", en: "Too many attempts. Please try again shortly." },
     errGeneric: { ja: "送信できませんでした。時間をおいてお試しください。", en: "We couldn't send your review. Please try again later." },
+  },
+  // The cookie banner (components/site/consent-banner.tsx, owner rule
+  // 2026-10-15): advertising tags load only after Accept.
+  consent: {
+    region: { ja: "Cookieの同意", en: "Cookie consent" },
+    title: { ja: "Cookieの利用について", en: "Cookies on Cha Jewels" },
+    body: { ja: "ご同意いただいた場合に限り、広告の効果測定と配信のため、MetaピクセルおよびGoogle広告タグを使用します。同意されない場合、これらは読み込まれません。", en: "Only with your permission, we use the Meta Pixel and the Google Ads tag to measure and show our ads. If you don’t accept, they are never loaded." },
+    accept: { ja: "同意する", en: "Accept" },
+    necessary: { ja: "必要なもののみ", en: "Only necessary" },
+    privacy: { ja: "プライバシーポリシー", en: "Privacy policy" },
   },
   meta: {
     review: { title: { ja: "レビューを書く", en: "Write a review" } },
