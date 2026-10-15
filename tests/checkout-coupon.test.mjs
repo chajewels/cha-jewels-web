@@ -6,7 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { couponTyped, normalizeCouponCode, couponErrorKey, isCouponError, appliedCoupon, choiceCoupon, COUPON_ERRORS } = await import("@/lib/coupon");
+const { couponTyped, normalizeCouponCode, couponErrorKey, isCouponError, appliedCoupon, choiceCoupon, orderCouponCode, COUPON_ERRORS } = await import("@/lib/coupon");
 const { checkoutErrorCode } = await import("@/lib/checkout-error-code");
 const { amountToPayAfterPoints, layawayTotalAfterCoupon } = await import("@/lib/checkout-summary");
 const { dict } = await import("@/lib/i18n");
@@ -56,6 +56,19 @@ test("a coupon row needs a code and a discount (an older Hub sends neither)", ()
   assert.deepEqual(choiceCoupon({ code: "TEST10", kind: "percent", value: 10, discount_jpy: 100, discount: 100, error: null }), { code: "TEST10", discount: 100 });
   assert.equal(choiceCoupon({ code: "NOPE", error: "coupon_not_found" }), null);
   assert.equal(choiceCoupon(null), null);
+});
+
+test("an order's coupon is a label only: shown whenever coupon_code is a non-empty string", () => {
+  assert.equal(orderCouponCode({ coupon_code: "TEST10" }), "TEST10");
+  assert.equal(orderCouponCode({ coupon_code: " TEST10 " }), "TEST10");
+  // No coupon_discount on an order (folded into discount_amount): still shown.
+  assert.equal(orderCouponCode({ coupon_code: "TEST10", coupon_discount: undefined }), "TEST10");
+  assert.equal(orderCouponCode({ coupon_code: "" }), null);
+  assert.equal(orderCouponCode({ coupon_code: "   " }), null);
+  assert.equal(orderCouponCode({ coupon_code: null }), null);
+  assert.equal(orderCouponCode({}), null);
+  assert.equal(orderCouponCode(null), null);
+  assert.deepEqual(dict.checkout.couponUsed, { ja: "適用済み", en: "Applied" });
 });
 
 test("headline: an applied coupon makes the Hub's total after it the figure, with no points or COD", () => {

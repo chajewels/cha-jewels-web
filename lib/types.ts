@@ -570,10 +570,12 @@ export type HubOrder = ReservationFlags & {
   total_amount: number; total_paid: number; remaining_balance: number; shipping_fee: number | null;
   /** Cash on delivery: the 代引手数料, already in total_amount. null/0 on other methods; absent on an older Hub. */
   cod_fee?: number | null;
-  /** The coupon used (Hub #527), already in total_amount. Not sent by the Hub yet — read defensively. */
+  /**
+   * The coupon used (Hub #527): cash_orders.coupon_code, the LABEL only. Its
+   * value is folded into the order's discount (already in total_amount); no
+   * coupon discount is sent on an order. Absent on an older Hub.
+   */
   coupon_code?: string | null;
-  coupon_discount?: number | null;
-  coupon_discount_jpy?: number | null;
   transfer_due_at: string | null; recipient_name: string | null; gift_note: string | null;
   order_date: string | null; created_at: string; completed_at: string | null; cancelled_at: string | null;
   tracking_number: string | null; shipped_at: string | null;

@@ -51,6 +51,17 @@ export function appliedCoupon(r: { coupon_code?: string | null; coupon_discount?
   return code !== "" && Number.isFinite(discount) && discount > 0 ? { code, discount } : null;
 }
 
+/**
+ * The coupon on an ORDER (cash_orders.coupon_code): the label only. The Hub
+ * folds the coupon into the order's discount_amount and sends no coupon
+ * discount of its own, so the row says the code was applied and names no
+ * figure. null when absent or empty.
+ */
+export function orderCouponCode(o: { coupon_code?: string | null } | null | undefined): string | null {
+  const code = typeof o?.coupon_code === "string" ? o.coupon_code.trim() : "";
+  return code === "" ? null : code;
+}
+
 /** The choice block's coupon, when applied (not refused, not absent). */
 export function choiceCoupon(c: { code: string; error: string | null; discount?: number } | null | undefined): { code: string; discount: number } | null {
   return c && c.error === null && typeof c.discount === "number" ? { code: c.code, discount: c.discount } : null;
