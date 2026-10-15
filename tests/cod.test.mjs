@@ -84,15 +84,16 @@ test("the draft page's step 3 for COD", () => {
 });
 
 test("checkout: every reason the Hub gives COD has its own words, in both languages", () => {
-  const reasons = ["layaway", "currency_not_yen", "off", "address_not_jp", "nothing_to_collect", "over_cod_limit"];
+  const reasons = ["layaway", "currency_not_yen", "off", "address_not_jp", "customer_not_jp", "nothing_to_collect", "over_cod_limit"];
   const keys = reasons.map((reason) => methodWhyKey({ method: "cod", reason }));
-  assert.deepEqual(keys, ["methodWhyCodLayaway", "methodWhyCodYen", "methodWhyCodOff", "methodWhyCodJp", "methodWhyCodNothing", "methodWhyCodLimit"]);
+  assert.deepEqual(keys, ["methodWhyCodLayaway", "methodWhyCodYen", "methodWhyCodOff", "methodWhyCodJp", "methodWhyCodCustomerJp", "methodWhyCodNothing", "methodWhyCodLimit"]);
   for (const k of keys) {
     assert.ok(dict.checkout[k]?.en && dict.checkout[k]?.ja, `${k} has EN and JA copy`);
     assert.doesNotMatch(dict.checkout[k].ja, /分割予約|レイアウェイ/, `${k} (ja) never names layaway`);
   }
   // Paidy / card wording unchanged.
   assert.equal(methodWhyKey({ method: "paidy", reason: "address_not_jp" }), "methodWhyPaidyJp");
+  assert.equal(methodWhyKey({ method: "paidy", reason: "customer_not_jp" }), "methodWhyPaidyJp");
   assert.equal(methodWhyKey({ method: "card", reason: "currency_not_yen" }), "methodWhyCardYen");
   assert.equal(methodWhyKey({ method: "paidy", reason: "off" }), "methodWhyOff");
 });
