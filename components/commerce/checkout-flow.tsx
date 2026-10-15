@@ -26,6 +26,8 @@ import { addressLines } from "@/lib/address-format";
 import { cancellationPolicyHref } from "@/lib/cancellation-policy";
 import { paidy612Active } from "@/lib/paidy-widget";
 import { methodWhyKey } from "@/lib/checkout-method-why";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/analytics";
+import { purchaseFromPayResult } from "@/lib/ads";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -177,6 +179,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
   // A new quote (Review, or a re-quote after it aged out) brings its own
   // options and no points chosen: start the panel again from the Hub's answer.
   const lastQuoteId = useRef<string | null>(initial.quote?.quote_id ?? null);
+  // InitiateCheckout (advertising, lib/analytics.ts): once per checkout page,
+  // on the first Review quote, however many times Continue is pressed.
+  const checkoutStarted = useRef(false);
   useEffect(() => {
     if (!quote || quote.quote_id === lastQuoteId.current) return;
     lastQuoteId.current = quote.quote_id;
@@ -325,6 +330,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       const res = await quoteAction(quoteInput());
       if (!res.ok) { showError(res.code, res.requestId); return; }
       setQuote(res.data);
+      if (!checkoutStarted.current) { checkoutStarted.current = true; trackInitiateCheckout(); }
       // A full-price order has no agreement to sign and goes straight to Review.
       if (mode !== "layaway") { setAgreement(null); setStep(4); return; }
       // The quote was created a moment ago, so nobody can have signed against
@@ -402,6 +408,13 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
             new Promise((resolve) => setTimeout(resolve, 2500)),
           ]);
         }
+        // ADVERTISING PURCHASE, HERE AND NOWHERE ELSE (scripts/check-analytics.mjs
+        // gate 12): the Hub has created the order, draft or plan, and this is
+        // the last moment before the redirect to a thank-you page whose path is
+        // redacted. The Hub's own total and currency; no order reference. A
+        // no-op without Accept (lib/analytics.ts).
+        const purchase = purchaseFromPayResult(res.data);
+        if (purchase) trackPurchase(purchase);
         // Draft mode (Hub PR 6): a draft id, never an order or plan id — the
         // draft page, which moves on to the real order once staff confirm.
         if (isDraftPayResult(res.data)) {

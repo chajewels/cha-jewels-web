@@ -49,6 +49,13 @@ const SQUARE_CONNECT = [
 const METRICOOL = "https://tracker.metricool.com";
 /** Paidy: the checkout (apps.paidy.com), the product-page widget (cdn.paidy.com) and its API. Report-only pages only. */
 const PAIDY = ["https://apps.paidy.com", "https://cdn.paidy.com", "https://api.paidy.com"];
+/**
+ * The advertising tags (components/analytics/ads-tags.tsx; they load only
+ * after Accept on the cookie banner, and never on /account/*). REPORT-ONLY
+ * PAGES ONLY: payCardCsp must never list them (PCI DSS SAQ A).
+ */
+const ADS_SCRIPT = ["https://connect.facebook.net", "https://www.googletagmanager.com"];
+const ADS_CONNECT = ["https://www.facebook.com", "https://www.google.com", "https://www.google.co.jp", "https://googleads.g.doubleclick.net", "https://www.googletagmanager.com"];
 /** Vercel's preview toolbar (preview deployments only). Report-only pages only. */
 const VERCEL_LIVE = "https://vercel.live";
 
@@ -129,12 +136,12 @@ export function reportOnlyCsp(opts: CspOptions = {}): string {
   const supabaseWs = supabase ? supabase.replace(/^http/, "ws") : null;
   const d: Directives = [
     ["default-src", "'self'"],
-    ["script-src", "'self'", "'unsafe-inline'", ...(opts.dev ? ["'unsafe-eval'"] : []), ...SQUARE_SCRIPT, ...PAIDY, METRICOOL, VERCEL_LIVE],
+    ["script-src", "'self'", "'unsafe-inline'", ...(opts.dev ? ["'unsafe-eval'"] : []), ...SQUARE_SCRIPT, ...PAIDY, METRICOOL, ...ADS_SCRIPT, VERCEL_LIVE],
     ["style-src", "'self'", "'unsafe-inline'", "https:"],
     ["font-src", "'self'", "data:", "https:"],
     ["img-src", "'self'", "data:", "blob:", "https:"],
     ["media-src", "'self'", "blob:", "https:"],
-    ["connect-src", "'self'", ...SQUARE_CONNECT, ...PAIDY, METRICOOL, VERCEL_LIVE, ...(supabase ? [supabase] : []), ...(supabaseWs ? [supabaseWs] : []), ...(opts.dev ? ["ws:"] : [])],
+    ["connect-src", "'self'", ...SQUARE_CONNECT, ...PAIDY, METRICOOL, ...ADS_CONNECT, VERCEL_LIVE, ...(supabase ? [supabase] : []), ...(supabaseWs ? [supabaseWs] : []), ...(opts.dev ? ["ws:"] : [])],
     ["frame-src", "https:"],
     ["frame-ancestors", "'none'"],
     ["form-action", "'self'"],

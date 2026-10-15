@@ -2,6 +2,8 @@ import { track } from "@vercel/analytics";
 import { normalize } from "@/lib/search-normalize";
 import type { SearchOrigin } from "@/lib/search-origin";
 import { DEFAULT_LANG } from "@/lib/i18n";
+import { adsGranted } from "@/lib/consent";
+import { adsIds, purchaseCalls, purchaseLabel, type Purchase, type TagCall } from "@/lib/ads";
 
 /**
  * The single door to the analytics provider. Every call site goes through the
@@ -131,6 +133,85 @@ function emit(name: string, props: EventProps, onSent?: () => void): void {
 }
 
 /**
+ * ADVERTISING EVENTS (Meta Pixel, Google Ads; owner rule 2026-10-15).
+ *
+ * A SEPARATE DOOR FROM emit(). The Vercel events above, their two-property
+ * ceiling and their queue are untouched; these go to the tags that
+ * components/analytics/ads-tags.tsx loads, and to nothing else.
+ *
+ * Each call is checked at the moment it is made: analyticsEnabled(), both ids
+ * configured, and the visitor's consent still "granted" (lib/consent.ts). So a
+ * visitor who presses "Only necessary" in Cookie settings gets no further call
+ * from this side, even though the scripts already on the page cannot be
+ * unloaded.
+ *
+ * The tag functions are created by ads-tags.tsx's effect, which on a first
+ * page load runs AFTER a page's own mount effect (the same hole that once ate
+ * every `product_view`, see emit()). So a call waits for its function the same
+ * way emit() waits for window.va, and gives up quietly.
+ */
+type TagFn = (...args: unknown[]) => void;
+const tagFn = (tag: TagCall["tag"]): TagFn | null => {
+  const f = (window as unknown as Record<string, unknown>)[tag];
+  return typeof f === "function" ? (f as TagFn) : null;
+};
+
+function adsAllowed(): boolean {
+  return analyticsEnabled() && adsIds() !== null && adsGranted();
+}
+
+function sendTag(call: TagCall): void {
+  if (!adsAllowed()) return;
+  const send = (f: TagFn) => {
+    try {
+      f(...call.args);
+    } catch {
+      // Intentionally silent, like emit().
+    }
+  };
+  const ready = tagFn(call.tag);
+  if (ready) { send(ready); return; }
+  const startedAt = Date.now();
+  const retry = () => {
+    if (!adsAllowed()) return; // Consent withdrawn while waiting.
+    const f = tagFn(call.tag);
+    if (f) { send(f); return; }
+    if (Date.now() - startedAt >= QUEUE_WAIT_MS) return;
+    setTimeout(retry, QUEUE_POLL_MS);
+  };
+  setTimeout(retry, QUEUE_POLL_MS);
+}
+
+/** A Meta standard event. A no-op unless the Pixel may run (see above). */
+export function adsEvent(name: string, params?: Record<string, unknown>): void {
+  if (typeof window === "undefined") return;
+  sendTag({ tag: "fbq", args: params ? ["track", name, params] : ["track", name] });
+}
+
+/**
+ * Checkout reached Review: the Hub has priced the basket. Called once per
+ * checkout page from components/commerce/checkout-flow.tsx when the first
+ * quote arrives. No figures: the Purchase event carries the Hub's total.
+ */
+export function trackInitiateCheckout(): void {
+  adsEvent("InitiateCheckout");
+}
+
+/**
+ * An order (or draft, or layaway plan) the Hub has just created. CALLED ONLY
+ * FROM checkout-flow.tsx's pay-success branch, before the redirect — never on
+ * the thank-you page, whose path is redacted (scripts/check-analytics.mjs
+ * gate 12). `value` and `currency` are the Hub's figures (lib/ads.ts
+ * purchaseFromPayResult). No order reference is sent.
+ */
+export function trackPurchase(p: Purchase): void {
+  if (typeof window === "undefined") return;
+  const ids = adsIds();
+  if (!ids) return;
+  for (const call of purchaseCalls(p, ids.aw, purchaseLabel())) sendTag(call);
+}
+
+/**
  * Product views already counted in this JavaScript context.
  *
  * Module scope, not component state, so one entry survives everything that
@@ -177,6 +258,7 @@ export function trackProductView(sku: string, lang: string): void {
   if (!sku) return;
   if (viewedSkus.has(sku) || inFlight.has(sku)) return;
   inFlight.add(sku);
+  adsEvent("ViewContent", { content_ids: [sku], content_type: "product" });
   emit("product_view", { sku, lang }, () => {
     viewedSkus.add(sku);
     inFlight.delete(sku);
@@ -190,6 +272,7 @@ export function trackProductView(sku: string, lang: string): void {
  */
 export function trackAddToCart(sku: string, lang: string): void {
   if (!sku) return;
+  adsEvent("AddToCart", { content_ids: [sku] });
   emit("add_to_cart", { sku, lang });
 }
 
@@ -251,6 +334,7 @@ export function trackSearch(q: string, results: number, origin: SearchOrigin = "
   const term = normalize(q).slice(0, SEARCH_QUERY_MAX);
   if (!term) return;
   lastOrigin = origin;
+  adsEvent("Search", { search_string: term });
   emit("search", { q: term, results: Math.max(0, Math.floor(Number.isFinite(results) ? results : 0)) });
 }
 

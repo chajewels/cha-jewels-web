@@ -3,6 +3,7 @@
 import { Analytics } from "@vercel/analytics/react";
 import { analyticsEnabled } from "@/lib/analytics";
 import { useHydrated } from "@/components/analytics/use-hydrated";
+import { redactUrl } from "@/lib/redact-url";
 
 /**
  * Automatic page views, with the URL scrubbed before anything leaves the
@@ -15,46 +16,8 @@ import { useHydrated } from "@/components/analytics/use-hydrated";
  * a query string is personal data whether or not a cookie was set.
  */
 
-/**
- * Paths whose URL cannot be made safe by dropping the query string, because the
- * sensitive part is in the path itself or the page only exists to carry a
- * secret. These emit NO page view at all.
- */
-const BLOCKED_PREFIXES = [
-  "/auth/",              // /auth/confirm carries ?token_hash= — a live sign-in token
-  "/account",            // every /account/* path is customer-scoped; /account/orders/<id>
-                         // and /account/layaway/<id> put an order identifier in the path
-  "/checkout/complete/", // the order id is the last path segment
-  "/login",              // ?error= and ?next= describe a specific person's sign-in attempt
-];
-
-/**
- * The only query parameters allowed to survive. Everything else is dropped —
- * an allowlist rather than a blocklist, so a parameter added later is private
- * by default instead of leaking until someone notices.
- *
- * `lang` is the site language; `mode` is "full" or "layaway" on /checkout.
- * Neither identifies a person.
- */
-const ALLOWED_PARAMS = new Set(["lang", "mode"]);
-
-/** Exported for the test that proves the rules, not used elsewhere. */
-export function redactUrl(raw: string): string | null {
-  let u: URL;
-  try {
-    u = new URL(raw);
-  } catch {
-    return null; // Unparseable: drop rather than forward something unexamined.
-  }
-  if (BLOCKED_PREFIXES.some((p) => u.pathname === p.replace(/\/$/, "") || u.pathname.startsWith(p))) {
-    return null;
-  }
-  const kept = new URLSearchParams();
-  u.searchParams.forEach((v, k) => { if (ALLOWED_PARAMS.has(k)) kept.set(k, v); });
-  u.search = kept.toString();
-  u.hash = ""; // Supabase returns tokens in the fragment on some flows.
-  return u.toString();
-}
+/** Moved to lib/redact-url.ts (plain TypeScript, so unit tests can import it); re-exported for existing importers. */
+export { redactUrl };
 
 export function AnalyticsProvider() {
   // Nothing until hydration is over: the server cannot see the host (use-hydrated.ts).

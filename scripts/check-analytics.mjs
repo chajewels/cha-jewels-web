@@ -169,8 +169,70 @@ if (siImporters.length !== 1 || siImporters[0] !== SI_PROVIDER) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// ADVERTISING (owner rule 2026-10-15): NOTHING ADVERTISING-RELATED LOADS OR
+// FIRES UNTIL THE VISITOR PRESSES ACCEPT. The tags have one door; these keep
+// it the only one.
+const ADS_TAGS = "components/analytics/ads-tags.tsx";
+const sourceFiles = [];
+(function walk(dir) {
+  for (const name of readdirSync(dir)) {
+    if (SKIP.has(name) || name === "tests" || name === "e2e" || name === "docs" || name === "public" || name === "supabase") continue;
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) { walk(full); continue; }
+    if (!/\.(tsx?|jsx?|mjs)$/.test(name)) continue;
+    sourceFiles.push(relative(process.cwd(), full).split("\\").join("/"));
+  }
+})(process.cwd());
+
+// 9. The script URLs appear in ONE file. Comments count too: a loader named in
+//    prose is still a loader someone can copy. lib/csp.ts may list the Google
+//    host in its report-only allowlist (a host, never a script it loads).
+for (const [needle, allowed] of [["fbevents", [ADS_TAGS]], ["googletagmanager", [ADS_TAGS, "lib/csp.ts"]]]) {
+  const where = sourceFiles.filter((f) => readFileSync(f, "utf8").includes(needle));
+  const stray = where.filter((f) => !allowed.includes(f));
+  if (stray.length) fail(`"${needle}" may appear only in ${allowed.join(" and ")} — found in: ${stray.join(", ")}.`);
+  if (!where.includes(ADS_TAGS)) fail(`${ADS_TAGS} no longer mentions "${needle}" — this check needs rewriting.`);
+}
+
+// 10. The tags render nothing without analyticsEnabled() AND granted consent.
+let adsSrc = "";
+try { adsSrc = stripComments(readFileSync(ADS_TAGS, "utf8")); } catch { /* reported below */ }
+if (!adsSrc) {
+  fail(`${ADS_TAGS} is missing — the advertising tags have no gated mount.`);
+} else {
+  if (!/const enabled = [^;]*analyticsEnabled\(\)/.test(adsSrc)) fail(`${ADS_TAGS}: \`enabled\` no longer includes analyticsEnabled().`);
+  if (!/const granted = consent === "granted"/.test(adsSrc)) fail(`${ADS_TAGS}: \`granted\` is no longer exactly consent === "granted".`);
+  if (!/if \(!enabled \|\| !granted\b[^)]*\) return null;/.test(adsSrc)) fail(`${ADS_TAGS}: no longer returns null unless enabled AND granted.`);
+  if (!/if \(!adsLoadsOn\(pathname\)\) return null;/.test(adsSrc)) fail(`${ADS_TAGS}: no longer returns null on /account/* (adsLoadsOn).`);
+  const firstScript = adsSrc.indexOf("<Script");
+  const lastNull = adsSrc.lastIndexOf("return null");
+  if (firstScript === -1 || lastNull === -1 || lastNull > firstScript) fail(`${ADS_TAGS}: a <Script> is reachable before the gates return null.`);
+}
+
+// 11. Both are mounted in the layout; the tags after the Vercel provider, so
+//     the provider's effect still runs first (invariant 1).
+const consentPos = layout.indexOf("<ConsentBanner ");
+const adsPos = layout.indexOf("<AdsTags />");
+if (consentPos === -1) fail("app/layout.tsx: <ConsentBanner /> is not mounted.");
+if (adsPos === -1) fail("app/layout.tsx: <AdsTags /> is not mounted.");
+else if (provider !== -1 && adsPos < provider) fail("app/layout.tsx: <AdsTags /> is mounted before <AnalyticsProvider />.");
+
+// 12. ONE PURCHASE EMITTER: the pay-success branch of checkout-flow.tsx, before
+//     the redirect. Never the thank-you page, whose path is redacted.
+const PURCHASE_EMITTER = "components/commerce/checkout-flow.tsx";
+const purchaseCallers = sourceFiles.filter((f) => f !== "lib/analytics.ts" && /\btrackPurchase\s*\(/.test(stripComments(readFileSync(f, "utf8"))));
+if (purchaseCallers.length !== 1 || purchaseCallers[0] !== PURCHASE_EMITTER) {
+  fail(`trackPurchase must be called from ${PURCHASE_EMITTER} and nowhere else — found: ${purchaseCallers.length ? purchaseCallers.join(", ") : "no call sites at all"}.`);
+} else {
+  const flow = stripComments(readFileSync(PURCHASE_EMITTER, "utf8"));
+  const call = flow.indexOf("trackPurchase(");
+  const redirect = flow.indexOf("router.push(draftCompletePath");
+  if (redirect === -1 || call > redirect) fail(`${PURCHASE_EMITTER}: trackPurchase is no longer called before the redirect to the confirmation page.`);
+}
+
 if (failed) {
   console.error(`\n${failed} analytics invariant(s) broken.`);
   process.exit(1);
 }
-console.log("analytics check passed: provider mounts first, emit waits for the queue, dedupe records only on send, events stay within the property ceiling, the search event has exactly one emitter, and Speed Insights is gated and redacted like Analytics.");
+console.log("analytics check passed: provider mounts first, emit waits for the queue, dedupe records only on send, events stay within the property ceiling, the search event has exactly one emitter, Speed Insights is gated and redacted like Analytics, and the advertising tags have one gated door and one purchase emitter.");

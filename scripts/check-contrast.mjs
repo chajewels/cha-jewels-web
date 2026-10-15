@@ -86,6 +86,13 @@ add("gold-dark text on chalk (light band)", "gold-dark", "chalk", TEXT);
 add("gold-dark text on white (card)", "gold-dark", "white", TEXT);
 add("charcoal text on white (card)", "charcoal", "white", TEXT);
 add("gold-dark heading >=24px on chalk", "gold-dark", "chalk", LARGE);
+// The cookie banner (components/site/consent-banner.tsx): a white card. Body
+// text charcoal, title and button labels charcoal-deep, the privacy link
+// gold-dark, and the two equal outline buttons' charcoal/60 edge (non-text).
+add("consent banner body: charcoal on white", "charcoal", "white", TEXT);
+add("consent banner title + button labels: charcoal-deep on white", "charcoal-deep", "white", TEXT);
+add("consent banner privacy link: gold-dark on white", "gold-dark", "white", TEXT);
+add("consent banner button edge: charcoal/60 on white", "charcoal", "white", NONTEXT, 0.6);
 // Light calculator card (tone="light" in components/commerce/layaway-calculator.tsx).
 add("charcoal-deep figures on white (light calculator)", "charcoal-deep", "white", TEXT);
 add("gold-dark monthly figure on white (light calculator)", "gold-dark", "white", TEXT);
