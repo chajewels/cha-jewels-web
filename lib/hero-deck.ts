@@ -76,6 +76,9 @@ export type HeroPiece = {
   name: string;
   /** The in-stock variant's yen price, exactly as the Hub sent it. */
   priceJpy: number;
+  /** That variant's `full_price_jpy` / `on_sale`, as sent (components/commerce/sale-price.tsx). */
+  fullPriceJpy?: number | null;
+  onSale?: boolean;
   /** The photos the stage shows, first one first; never empty for a piece on a stage. */
   photos: HeroPhoto[];
   /** Accessories only: which Index row the piece belongs to (0–3, ACC_TYPES). */
@@ -204,6 +207,8 @@ function piece(p: Product, v: ProductVariant, lang: Lang, layout: HeroLayout): H
     slug: p.slug,
     name,
     priceJpy: v.price_jpy,
+    fullPriceJpy: v.full_price_jpy,
+    onSale: v.on_sale,
     photos,
     type: layout === "index" ? accessoryType(`${p.name} ${p.name_en ?? ""} ${p.name_ja ?? ""}`) : null,
   };
@@ -274,7 +279,7 @@ export function tickedPieces(products: Product[], lang: Lang, layout: HeroLayout
     if (!photos.length) continue;
     const place = typeof p.hero_place === "number" && Number.isFinite(p.hero_place) ? p.hero_place : null;
     cands.push({
-      piece: { slug: p.slug, name, priceJpy: v.price_jpy, photos, type: layout === "index" ? accessoryType(`${p.name} ${p.name_en ?? ""} ${p.name_ja ?? ""}`) : null },
+      piece: { slug: p.slug, name, priceJpy: v.price_jpy, fullPriceJpy: v.full_price_jpy, onSale: v.on_sale, photos, type: layout === "index" ? accessoryType(`${p.name} ${p.name_en ?? ""} ${p.name_ja ?? ""}`) : null },
       place,
       first,
     });

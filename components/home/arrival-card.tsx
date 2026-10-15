@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { allImages, fromPrice, primaryImage } from "@/lib/queries/products";
+import { allImages, fromPrice, fromVariant, primaryImage } from "@/lib/queries/products";
 import { CardFx, CardMedia } from "@/components/fx/card-fx";
 import type { Product } from "@/lib/types";
-import { formatMoney, formatWeight } from "@/lib/utils";
+import { formatWeight } from "@/lib/utils";
+import { SalePrice } from "@/components/commerce/sale-price";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { productName } from "@/lib/catalog-i18n";
 import { tr, type Lang } from "@/lib/i18n";
@@ -41,6 +42,7 @@ export function ArrivalCard({ product, lang, index = 0 }: { product: Product; la
   const img = primaryImage(product)!;
   const second = allImages(product)[1];
   const price = fromPrice(product)!;
+  const shown = fromVariant(product);
   const metal = metalsLabel(productMetals(product), lang);
   const meta = [metal, formatWeight(product.weight_g)].filter(Boolean).join(" · ");
   return (
@@ -61,7 +63,7 @@ export function ArrivalCard({ product, lang, index = 0 }: { product: Product; la
           <div className="mt-1 flex flex-wrap gap-1"><OriginBadge origin={product.origin} brand={product.brand} lang={lang} /></div>
         </div>
         <div className="flex items-center justify-between pt-1">
-          <span className="text-base font-bold text-charcoal">{formatMoney(price)}</span>
+          <span className="text-base font-bold text-charcoal"><SalePrice price={price} full={shown?.full_price_jpy} onSale={shown?.on_sale} lang={lang} tone="light" size="sm" /></span>
           <span className="text-[11px] font-semibold text-gold-dark group-hover:translate-x-0.5">{t("home", "newDetail")} ›</span>
         </div>
       </div>

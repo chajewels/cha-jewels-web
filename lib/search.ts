@@ -2,7 +2,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { hub } from "@/lib/hub-api";
 import { productName } from "@/lib/catalog-i18n";
-import { fromPrice, primaryImage, usableCutout } from "@/lib/queries/products";
+import { fromPrice, fromVariant, primaryImage, usableCutout } from "@/lib/queries/products";
 import { productAvailability } from "@/lib/availability";
 import type { Lang } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
@@ -136,15 +136,19 @@ export async function search(q: string, lang: Lang, limit = 8): Promise<SearchRe
  * every variant, every media row and both descriptions of eight pieces to draw
  * four lines of text and a thumbnail.
  */
-export type Suggestion = { slug: string; sku: string; name: string; price: number | null; image: string | null; cutout: string | null; sold: boolean };
+/** `full` / `on_sale`: the shown variant's `full_price_jpy` / `on_sale`, as the Hub sent them. */
+export type Suggestion = { slug: string; sku: string; name: string; price: number | null; full: number | null; on_sale: boolean; image: string | null; cutout: string | null; sold: boolean };
 
 export function toSuggestion(p: Product, lang: Lang): Suggestion {
   const img = primaryImage(p);
+  const shown = fromVariant(p);
   return {
     slug: p.slug,
     sku: p.sku,
     name: productName(p, lang),
     price: fromPrice(p),
+    full: shown?.full_price_jpy ?? null,
+    on_sale: shown?.on_sale === true,
     image: img?.url ?? null,
     // The Hub's usable cut-out when there is one, so the panel shows the piece
     // itself; otherwise the whole photo, contained, never cropped.
