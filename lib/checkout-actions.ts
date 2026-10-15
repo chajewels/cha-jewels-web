@@ -11,6 +11,7 @@ import { readCart, hydrateCart, cartSubtotal } from "@/lib/cart";
 import { writeCart } from "@/lib/cart";
 import { saveCartLater } from "@/lib/cart-sync";
 import { checkoutErrorCode } from "@/lib/checkout-error-code";
+import { isCouponError, normalizeCouponCode } from "@/lib/coupon";
 import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubDraftPayResult, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
 /**
@@ -25,7 +26,11 @@ import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubDr
  * locally: the Hub re-prices at /checkout/quote and again inside
  * create_web_order_atomic, so a tampered client cannot move a price.
  */
-export type ActionResult<T> = { ok: true; data: T } | { ok: false; code: string; requestId?: string | null };
+/**
+ * `payload` is the Hub's own 409 body on a refusal that carries figures for the
+ * message (a coupon's min_subtotal_jpy / per_customer_limit). Read, never trusted for money.
+ */
+export type ActionResult<T> = { ok: true; data: T } | { ok: false; code: string; requestId?: string | null; payload?: Record<string, unknown> | null };
 
 async function jwtOrNull(): Promise<string | null> {
   const supabase = await supabaseServer();
@@ -47,7 +52,23 @@ function toCode(err: unknown): string {
 }
 
 function fail<T>(err: unknown): ActionResult<T> {
-  return { ok: false, code: toCode(err), requestId: err instanceof HubError ? err.requestId : null };
+  const code = toCode(err);
+  return {
+    ok: false, code, requestId: err instanceof HubError ? err.requestId : null,
+    ...(isCouponError(code) && err instanceof HubError ? { payload: err.body } : {}),
+  };
+}
+
+/**
+ * The coupon as the action passes it on: undefined = keep (not sent), "" =
+ * remove, else the cleaned code. A code that cannot be one (bad characters,
+ * over 20) is never sent: it is refused here as the Hub would refuse it.
+ */
+function cleanCoupon(raw: unknown): { ok: true; value: string | undefined } | { ok: false } {
+  if (raw === undefined) return { ok: true, value: undefined };
+  if (raw === null || (typeof raw === "string" && raw.trim() === "")) return { ok: true, value: "" };
+  const code = normalizeCouponCode(raw);
+  return code ? { ok: true, value: code } : { ok: false };
 }
 
 /**
@@ -139,12 +160,32 @@ export async function quoteAction(input: {
  * on Review. Stored on her quote by the Hub, which answers every figure the
  * panel shows. Nothing is computed here.
  */
-export async function checkoutChoiceAction(quoteId: string, choice: { method: CheckoutMethod; points: number }): Promise<ActionResult<HubCheckoutChoice>> {
+export async function checkoutChoiceAction(quoteId: string, choice: { method: CheckoutMethod; points: number; coupon_code?: string | null }): Promise<ActionResult<HubCheckoutChoice>> {
+  const jwt = await jwtOrNull();
+  if (!jwt) return { ok: false, code: "signed_out" };
+  if (!quoteId) return { ok: false, code: "failed" };
+  const coupon = cleanCoupon(choice.coupon_code);
+  if (!coupon.ok) return { ok: false, code: "coupon_not_found" };
+  try {
+    return { ok: true, data: await hub.checkoutChoice(jwt, quoteId, { ...cleanChoice(choice), ...(coupon.value !== undefined ? { coupon_code: coupon.value } : {}) }) };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/**
+ * A LAYAWAY after a coupon is applied or removed: the plan is priced on pieces
+ * − coupon (Hub #527), and the choice answer carries no new deposit, monthly or
+ * schedule. GET /checkout/quote/:id does — re-priced by the Hub with the code
+ * the quote now holds, under the SAME quote_id the agreement is signed against.
+ */
+export async function refreshQuoteAction(quoteId: string): Promise<ActionResult<HubQuote>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!quoteId) return { ok: false, code: "failed" };
   try {
-    return { ok: true, data: await hub.checkoutChoice(jwt, quoteId, cleanChoice(choice)) };
+    const quote = await hub.quoteById(jwt, quoteId);
+    return quote ? { ok: true, data: quote } : { ok: false, code: "expired" };
   } catch (err) {
     return fail(err);
   }
