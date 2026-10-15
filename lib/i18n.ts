@@ -361,6 +361,7 @@ export const dict = {
     // Hero v3 slide 6 (owner approval 2026-09-26): each Index row's stock, or
     // 「入荷待ち」 / "Coming soon" when that type has none.
     heroAccCount: { ja: "{n}点", en: "{n} in stock" }, heroComingSoon: { ja: "入荷待ち", en: "Coming soon" },
+    heroStockTotal: { ja: "在庫{n}点", en: "{n} in stock" },
     // Preview deployments only (lib/hero-demo.ts): the label on the hero while
     // demo mode shows the comps' cut-outs. Never rendered in production.
     heroDemoTag: { ja: "プレビュー専用デモ：承認カンプの切り抜き画像を表示中", en: "Preview-only demo: showing the approved comps' cut-outs" },

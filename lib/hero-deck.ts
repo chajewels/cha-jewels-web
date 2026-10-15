@@ -170,6 +170,8 @@ export type HeroCategorySlide = {
   pieces: HeroPiece[];
   /** `index` only: in-stock pieces per Index row, counted over the whole category. */
   counts: number[] | null;
+  /** Every available piece in the category (the pool the Index counts); null = the read failed. */
+  total: number | null;
 };
 export type HeroSlide = HeroFilmSlide | HeroCategorySlide;
 
@@ -384,6 +386,7 @@ export async function buildHeroDeck(lang: Lang, categories: Category[]): Promise
       action: pieces.length && !ASKS.has(c.slug) ? "reserve" : "ask",
       pieces,
       counts,
+      total: pool ? pool.length : null,
     });
   });
   return slides;
