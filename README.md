@@ -40,6 +40,8 @@ Under every blog **article** (not news) `components/blog/comments-section.tsx` l
 - Contract: Hub repo `supabase/contracts/api.md`, "Article comments". The Hub decides whether the form is open (`open`), who may write, and what is listed; this side adds no language or layaway filter.
 - Preview: `NEXT_PUBLIC_PREVIEW_FIXTURES=1` shows one approved comment with a reply and, when signed in, one pending comment (`lib/fixtures.ts postCommentsFixture`).
 
+**Share bar (owner S1–S7, 2026-10-16).** Under every blog post — articles and news, both languages — `components/blog/share-bar.tsx` sits above the comments: Facebook, X, LINE, WhatsApp, Threads, Copy link, and "Share…" (the device's share sheet, drawn only where `navigator.share` exists). They are plain links to each platform's share page (`lib/share.ts buildShareUrl`), opened in a new tab: no SDK, no iframe, no third-party script, so the CSP needs nothing. The shared URL is the post's canonical one in the reader's language (`postShareUrl`: `siteUrl()` + `/blog/<slug>`, `?lang=en` for English, no parameter for Japanese — the hreflang rule) plus `utm_source=<facebook|x|line|whatsapp|threads|copy|native>&utm_medium=share`. Copy link falls back to a selected read-only field when the clipboard is refused. Each press calls `trackShare(network, slug)` (event `share`, two properties). Tests: `tests/share.test.mjs`.
+
 ## Deliberately not here
 - No product editor (Hub only).
 - No layaway or points math (RPCs only).
