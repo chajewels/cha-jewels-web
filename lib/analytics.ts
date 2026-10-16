@@ -25,7 +25,8 @@ import { adsIds, purchaseCalls, purchaseLabel, type Purchase, type TagCall } fro
  * `product_view` and `add_to_cart` spend them on `sku` and `lang`; `search`
  * spends them on `q` (the normalized term, at most 64 characters) and
  * `results`; `hero_slide_cta` spends them on `slug` and `lang`;
- * `service_request` spends them on `kind` and `lang`. Adding a third
+ * `service_request` spends them on `kind` and `lang`; `share` spends them on
+ * `network` and `slug`. Adding a third
  * silently costs money (Web Analytics Plus), so it is an owner decision, not a
  * code decision — emit() drops any event that carries more than the ceiling
  * rather than let one slip through.
@@ -395,4 +396,17 @@ export function trackContactSubmit(result: string): void {
 export function trackServiceRequest(kind: string, lang: string): void {
   if (!kind) return;
   emit("service_request", { kind, lang });
+}
+
+/**
+ * A share-bar button was pressed under a blog post (owner S7, 2026-10-16).
+ * `network` is the button: facebook, x, line, whatsapp, threads, copy or
+ * native (the phone's own share sheet); `slug` is the post. Fired on the click
+ * itself, once per click: the platform's page opens in another tab and this
+ * side never learns whether the post was actually published there, so this
+ * counts intent to share, not shares. Two properties: the budget, spent.
+ */
+export function trackShare(network: string, slug: string): void {
+  if (!network || !slug) return;
+  emit("share", { network, slug });
 }
