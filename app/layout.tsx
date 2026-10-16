@@ -56,6 +56,7 @@ export async function generateMetadata(): Promise<Metadata> {
     // app, which is how every URL on this site came to declare itself the home
     // page. The canonical and hreflang links are rendered per request by
     // <SeoLinks /> below — see lib/page-meta.tsx for why they cannot go here.
+    other: { google: "notranslate" },
   };
 }
 
@@ -95,8 +96,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/loyalty", label: t("home", "tabLoyalty"), icon: "loyalty" },
     { href: "/account", label: t("home", "tabAccount"), icon: "account" },
   ];
+  // NO BROWSER TRANSLATION (owner decision 2026-10-16). Chrome's Translate
+  // swaps React's text nodes for <font> elements; React then fails to find its
+  // own nodes (removeChild NotFoundError) and the visitor gets Next's bare
+  // "Application error" page. The site ships EN/JA itself, so the translate
+  // attribute here and the `google` meta in generateMetadata() opt out.
   return (
-    <html lang={lang} className={`${display.variable} ${sans.variable} ${jp.variable}`}>
+    <html lang={lang} translate="no" className={`${display.variable} ${sans.variable} ${jp.variable}`}>
       {/* The announcement bar's pre-paint script sets a data attribute here
           before React hydrates (components/site/announcement-bar.tsx), which is
           a mismatch React reports. Suppressed on <body> precisely because it
