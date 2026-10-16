@@ -1,4 +1,5 @@
 import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCheckoutCoupon, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload } from "@/lib/types";
+import type { PostComments } from "@/lib/comments";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { normalizeCouponCode } from "@/lib/coupon";
 import { faqSections } from "@/lib/content/faq";
@@ -1334,5 +1335,28 @@ export function pointsPreviewFixture(variantIds: string[]): HubPointsPreview {
     items: variantIds.map((id) => join
       ? { variant_id: id, eligible: true, points: 1500, base_points: 1500, promo_points: 0, multiplier: 1, tier: "Glimmer", upgraded_to: null }
       : { variant_id: id, eligible: true, points: 3600, base_points: 3000, promo_points: 600, multiplier: 2, tier: "Radiant", upgraded_to: null }),
+  };
+}
+
+/**
+ * Article comments in preview (lib/comments.ts): one approved comment with the
+ * Cha Jewels reply, and — when signed in — one of hers awaiting approval, so
+ * every state of the section can be looked at without the Hub.
+ */
+export function postCommentsFixture(signedIn: boolean): PostComments {
+  return {
+    open: true,
+    comments: [
+      {
+        id: "preview-approved-1",
+        author_first_name: "Joy",
+        body: "Thank you for this guide — I finally understand what the K18 stamp means.\nLooking forward to the next one!",
+        created_at: "2026-10-12T03:15:00Z",
+        reply: { body: "Thank you, Joy! We are glad it helped.", created_at: "2026-10-12T06:40:00Z" },
+      },
+    ],
+    pending_own: signedIn
+      ? [{ id: "preview-pending-1", author_first_name: "Maria", body: "Does this apply to preloved pieces too?", created_at: "2026-10-16T09:00:00Z", reply: null }]
+      : [],
   };
 }

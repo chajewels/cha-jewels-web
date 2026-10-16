@@ -4,6 +4,7 @@ import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, Of
 import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
+import type { PostComment, PostComments } from "@/lib/comments";
 
 /**
  * The website's only door into Cha Jewels Hub.
@@ -621,6 +622,38 @@ export const hub = {
         ? { status: "used" as const, first_name: null, piece_name: null, product: null }
         : { status: "valid" as const, first_name: "Maria", piece_name: "K18 ring", product: null })
       : call(`/review-invite/${encodeURIComponent(token)}`, { revalidate: false }),
+  /**
+   * ARTICLE COMMENTS (owner plan C1–C8, 2026-10-16). Approved comments and,
+   * with a JWT, the customer's own pending ones (lib/comments.ts).
+   *
+   * Without a JWT the answer is public and cached exactly like the post itself:
+   * tag "content", 60 s backstop — the Hub's trigger posts `{ tag: "content" }`
+   * whenever an approved comment changes. WITH a JWT it carries her pending
+   * comments and the Hub answers no-store, so it is never cached or shared.
+   * THROWS like the other content reads; the section catches and renders
+   * nothing rather than taking the article down with it.
+   */
+  postComments: (slug: string, jwt?: string): Promise<PostComments> =>
+    FIXTURES
+      ? Promise.resolve(fx.postCommentsFixture(Boolean(jwt)))
+      : call(`/content/posts/${encodeURIComponent(slug)}/comments`, jwt
+        ? { jwt, revalidate: false, timeout: SECONDARY_TIMEOUT_MS }
+        : { tags: ["content"], timeout: SECONDARY_TIMEOUT_MS }),
+  /** A new PENDING comment. `lang` is the site she wrote on. A write: never cached. */
+  createComment: (jwt: string, slug: string, body: string, lang: "ja" | "en"): Promise<{ comment: PostComment }> =>
+    FIXTURES
+      ? Promise.resolve({ comment: { id: `preview-${Date.now()}`, author_first_name: "Maria", body, created_at: new Date().toISOString(), reply: null } })
+      : call(`/content/posts/${encodeURIComponent(slug)}/comments`, { method: "POST", body: JSON.stringify({ body, lang }), jwt, revalidate: false }),
+  /** Her own comment, while it is still pending (409 comment_locked after that). */
+  updateComment: (jwt: string, slug: string, id: string, body: string): Promise<{ comment: PostComment }> =>
+    FIXTURES
+      ? Promise.resolve({ comment: { id, author_first_name: "Maria", body, created_at: new Date().toISOString(), reply: null } })
+      : call(`/content/posts/${encodeURIComponent(slug)}/comments/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ body }), jwt, revalidate: false }),
+  /** Soft-deletes her own comment, any status. */
+  deleteComment: (jwt: string, slug: string, id: string): Promise<{ ok: true }> =>
+    FIXTURES
+      ? Promise.resolve({ ok: true as const })
+      : call(`/content/posts/${encodeURIComponent(slug)}/comments/${encodeURIComponent(id)}`, { method: "DELETE", jwt, revalidate: false }),
   wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
     FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
 };

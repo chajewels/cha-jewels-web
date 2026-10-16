@@ -33,6 +33,13 @@ To test a preview instead of production, set `E2E_BASE_URL` to the branch alias 
 ## Routes
 `/` · `/about` · `/blog` · `/blog/[slug]` · `/loyalty` · `/loyalty/join` · `/collections/[slug]` · `/products/[slug]` · `/layaway` · `/legal/tokusho` · `/sitemap.xml` · `/robots.txt` · `POST /api/revalidate` · `POST /api/region`
 
+## Article comments (Hub-backed, owner plan C1–C8, 2026-10-16)
+Under every blog **article** (not news) `components/blog/comments-section.tsx` lists the approved comments, newest first — first name, "Verified customer", date in Japan time, the Cha Jewels reply when staff answered. A signed-in customer also sees her own comments awaiting approval (edit while pending, delete) and the form (1–1000 characters, plain text, 5 per 24 h — the Hub's bounds, mirrored in `lib/comments.ts`); a visitor sees "Sign in to comment" (`/login?next=/blog/<slug>`). Nothing is public until the owner approves it in the Hub (Website → Content → Comments).
+- Reads: `hub.postComments(slug, jwt?)` — public answer cached with the `content` tag (the Hub busts it when an approved comment changes); with a JWT it is never cached.
+- Writes: Server Actions in `lib/comment-actions.ts` (`createCommentAction` / `updateCommentAction` / `deleteCommentAction`) — the JWT stays on the server; the body is never logged; every Hub refusal becomes one code the form names (`lib/comments.ts`, tested in `tests/comments.test.mjs`).
+- Contract: Hub repo `supabase/contracts/api.md`, "Article comments". The Hub decides whether the form is open (`open`), who may write, and what is listed; this side adds no language or layaway filter.
+- Preview: `NEXT_PUBLIC_PREVIEW_FIXTURES=1` shows one approved comment with a reply and, when signed in, one pending comment (`lib/fixtures.ts postCommentsFixture`).
+
 ## Deliberately not here
 - No product editor (Hub only).
 - No layaway or points math (RPCs only).
