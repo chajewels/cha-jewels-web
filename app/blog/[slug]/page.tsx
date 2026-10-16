@@ -6,6 +6,9 @@ import { getLang } from "@/lib/i18n-server";
 import { allPostSlugs, getPost } from "@/lib/posts";
 import { JsonLd } from "@/components/site/json-ld";
 import { CommentsSection } from "@/components/blog/comments-section";
+import { ShareBar } from "@/components/blog/share-bar";
+import { postShareUrl } from "@/lib/share";
+import { siteUrl } from "@/lib/site";
 
 /**
  * EVERY SLUG THE HUB KNOWS, AND NEITHER LANGUAGE'S RULES. A param list says
@@ -96,6 +99,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             tag. `.post-body` in globals.css is what styles the elements it
             emits; nothing inside carries a class of its own except links. */}
         <div className="post-body mt-8" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} />
+        {/* Share bar under EVERY post, articles and news (owner S1–S7,
+            2026-10-16), above the comments. The URL is the canonical one in
+            the reader's language, built here because siteUrl() is server-side. */}
+        <ShareBar url={postShareUrl(siteUrl(), p.slug, lang)} title={p.title} slug={p.slug} lang={lang} />
         {/* Comments under ARTICLES only (owner plan C1–C8, 2026-10-16); news
             posts take none. The Hub still decides whether the form is open. */}
         {p.type === "article" && <CommentsSection slug={p.slug} lang={lang} />}
