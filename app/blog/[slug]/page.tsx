@@ -24,7 +24,40 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const lang = await getLang();
   const p = await getPost((await params).slug, lang);
-  return p ? { title: p.title, description: p.excerpt || undefined } : {};
+  if (!p) return {};
+  const description = p.excerpt || undefined;
+  // A shared article previews with its own cover, title and excerpt (owner
+  // decision 2026-10-16); it showed the site logo before.
+  //
+  // A page-level openGraph REPLACES the root layout's whole — Next merges
+  // metadata shallowly — so siteName and the locales are repeated here on
+  // purpose. That includes the root's app/opengraph-image.png, which Next
+  // attaches only at the root segment: an article without a cover has to name
+  // it, or it would preview with no image at all.
+  //
+  // No `url`: <SeoLinks /> (lib/page-meta.tsx) already renders og:url on every
+  // page with the canonical's value, and a second one here would duplicate it.
+  return {
+    title: p.title,
+    description,
+    openGraph: {
+      type: "article",
+      siteName: "Cha Jewels",
+      locale: lang === "ja" ? "ja_JP" : "en_US",
+      alternateLocale: [lang === "ja" ? "en_US" : "ja_JP"],
+      title: p.title,
+      description,
+      publishedTime: p.date,
+      images: [{ url: p.cover ?? "/opengraph-image.png" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: p.title,
+      description,
+      // Without its own images Next copies openGraph.images, the fallback included.
+      images: p.cover ? [p.cover] : undefined,
+    },
+  };
 }
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
