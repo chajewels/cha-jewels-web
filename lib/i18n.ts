@@ -464,6 +464,7 @@ export const dict = {
     specs: { ja: "仕様", en: "Specifications" },
     about: { ja: "作品について", en: "About this piece" },
     related: { ja: "関連する作品", en: "Related pieces" },
+    recentlyViewed: { ja: "最近見た商品", en: "Recently viewed" },
     condition: { ja: "状態", en: "Condition" },
     category: { ja: "カテゴリー", en: "Category" },
     size: { ja: "サイズ", en: "Size" },

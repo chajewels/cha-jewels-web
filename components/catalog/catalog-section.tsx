@@ -7,7 +7,8 @@ import { SocialGlyph } from "@/components/site/social-icons";
 import { Button } from "@/components/ui/button";
 import { tr, dict, type Lang } from "@/lib/i18n";
 import { collectionName } from "@/lib/catalog-i18n";
-import { fromPrice, type Product } from "@/lib/queries/products";
+import { fromPrice, fromVariant, type Product } from "@/lib/queries/products";
+import { struckFullPrice } from "@/lib/sale";
 import { productMetals, metalLabel } from "@/lib/metals";
 import { isBuyable, productAvailability } from "@/lib/availability";
 import { typeVisual } from "@/lib/type-icons";
@@ -22,17 +23,23 @@ import type { CollectionWithProducts } from "@/lib/catalog-context";
  */
 export function CatalogSection({ products, lang, messenger }: { products: Product[]; lang: Lang; messenger: string | null }) {
   const t = tr(lang);
-  const items: GridItem[] = products.map((p, i) => ({
-    key: p.id,
-    node: <ProductCard product={p} lang={lang} index={i} priority={i < 4} />,
-    preloved: p.condition === "Preloved",
-    type: p.item_type ?? null,
-    metals: productMetals(p).map((m) => ({ key: m, label: metalLabel(m, lang) })),
-    sold: !isBuyable(productAvailability(p)),
-    price: fromPrice(p),
-  }));
+  const items: GridItem[] = products.map((p, i) => {
+    const sold = !isBuyable(productAvailability(p));
+    // The variant ProductCard prices, and the same rule as its Sale tag.
+    const v = fromVariant(p);
+    return {
+      key: p.id,
+      node: <ProductCard product={p} lang={lang} index={i} priority={i < 4} />,
+      preloved: p.condition === "Preloved",
+      sale: struckFullPrice({ full: v?.full_price_jpy, onSale: v?.on_sale, sold }) != null,
+      type: p.item_type ?? null,
+      metals: productMetals(p).map((m) => ({ key: m, label: metalLabel(m, lang) })),
+      sold,
+      price: fromPrice(p),
+    };
+  });
   const labels: GridLabels = {
-    condition: t("collection", "condition"), all: t("collection", "filterAll"), new: t("collection", "filterNew"), preloved: t("collection", "filterPreloved"),
+    condition: t("collection", "condition"), all: t("collection", "filterAll"), new: t("collection", "filterNew"), preloved: t("collection", "filterPreloved"), sale: t("product", "sale"),
     type: t("collection", "type"), types: { Jewelry: t("collection", "typeJewelry"), Watch: t("collection", "typeWatch"), Accessory: t("collection", "typeAccessory") },
     metal: t("collection", "metal"), availableOnly: t("collection", "availableOnly"),
     sort: t("collection", "sort"), sortLabel: dict.collection.sortLabel[lang], sorts: { newest: t("collection", "sortNewest"), low: t("collection", "sortLow"), high: t("collection", "sortHigh") },
