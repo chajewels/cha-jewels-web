@@ -52,6 +52,8 @@ export type Review = {
   product: { slug: string; name: string } | null;
   photos: string[];
   approved_at: string;
+  /** The buyer's location as the Hub derives it; null when unknown. */
+  location: string | null;
 };
 
 export type ReviewList = { reviews: Review[]; count: number; average: number | null };

@@ -74,6 +74,9 @@ export function toStories(items: Testimonial[], lang: Lang): Story[] {
  *             layaway: a review is about a piece, and the owner's approval in
  *             the Hub is the gate
  *   quote     the body exactly as held, like a testimonial's
+ *   location  the Hub's derived buyer location, trimmed; null when absent or
+ *             blank (an older Hub payload has no field), shown like a
+ *             testimonial's
  *   date      the approval's month and year, never the day
  *   id        `review:<id>`, so it never collides with a testimonial's id
  */
@@ -88,7 +91,7 @@ export function reviewsToStories(reviews: Review[], lang: Lang): Story[] {
       name: r.display_name,
       item: r.piece_name,
       rating: Math.max(0, Math.min(5, Math.round(r.rating))),
-      location: null,
+      location: typeof r.location === "string" && r.location.trim() ? r.location.trim() : null,
       date: storyDate(r.approved_at, lang),
       verified: true,
     };
