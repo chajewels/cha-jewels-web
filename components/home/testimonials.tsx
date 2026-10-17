@@ -1,16 +1,22 @@
 import { tr, type Lang } from "@/lib/i18n";
-import { toStories, type Story } from "@/lib/stories";
-import type { Testimonial } from "@/lib/types";
+import type { Story } from "@/lib/stories";
 import { StoryShow } from "@/components/home/story-show";
+import { ReviewSummary } from "@/components/reviews/review-list";
 import { QuoteMark } from "@/components/fx/quote-mark";
 import { SplitHeading } from "@/components/fx/split-text";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 
 /**
- * Customer Stories (Stitch §9). `items` comes from the Hub (GET
- * /testimonials): the quote in the page's language, falling back to the other
- * language when one is null; stars from `rating` (row omitted when null);
- * customer name; item chip, location and month + year when present.
+ * Customer Stories (Stitch §9). `stories` are the Hub's testimonials (GET
+ * /testimonials) and approved reviews (GET /reviews) in one list, newest first
+ * (lib/stories.ts, built in components/home/sections.tsx): the quote in the
+ * page's language; stars from `rating` (row omitted when null); customer
+ * name, with "Verified buyer" on a review; item chip, location and month +
+ * year when present. The reviews' average and count sit at the right of the
+ * heading while any review is approved.
+ *
+ * ONE CUSTOMER SECTION (owner decision 2026-10-17). The separate "Customer
+ * reviews" grid that followed this section is gone; reviews play here.
  *
  * ONE STORY AT A TIME, TYPED (owner approval 2026-09-26). The heading block is
  * unchanged; the stories play in a typing slideshow — components/home/
@@ -33,11 +39,10 @@ import { RevealGroup, RevealItem } from "@/components/fx/reveal";
  * header of lib/hub-api.ts), so the homepage keeps serving its last successful
  * render rather than caching itself without this section for the next hour.
  */
-export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[] }) {
+export function Testimonials({ lang, stories, average, count }: { lang: Lang; stories: Story[]; average: number | null; count: number }) {
   const t = tr(lang);
   // Which stories, and how each is shown, is lib/stories.ts — the same rules
   // the header's mega-menus use (site frame, owner decision 2026-09-27).
-  const stories: Story[] = toStories(items, lang);
   if (stories.length === 0) return null;
 
   return (
@@ -49,16 +54,23 @@ export function Testimonials({ lang, items }: { lang: Lang; items: Testimonial[]
           labels={{
             prev: t("home", "storyPrev"), next: t("home", "storyNext"),
             pause: t("home", "storyPause"), play: t("home", "storyPlay"), upNext: t("home", "storyUpNext"),
+            verified: t("reviews", "verified"),
           }}
           head={
             <>
               {/* Entrance (components/fx): the gold quote mark draws itself, the
                   heading rises in, the lines around it follow. */}
               <QuoteMark className="mb-3" />
-              <RevealGroup className="max-w-[62ch] space-y-1">
-                <RevealItem index={0}><p className="text-[11px] font-bold uppercase tracking-widest text-gold-dark">{t("home", "testiEyebrow")}</p></RevealItem>
-                <SplitHeading text={t("home", "testiH")} lang={lang} className="font-display text-[clamp(28px,3.4vw,44px)] text-charcoal" />
-                <RevealItem index={2}><p className="text-sm text-charcoal/70">{t("home", "testiP")}</p></RevealItem>
+              {/* The approved reviews' stars and count sit at the right of the
+                  heading, as the removed reviews section had them; they wrap
+                  under it where there is no room. */}
+              <RevealGroup className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+                <div className="max-w-[62ch] space-y-1">
+                  <RevealItem index={0}><p className="text-[11px] font-bold uppercase tracking-widest text-gold-dark">{t("home", "testiEyebrow")}</p></RevealItem>
+                  <SplitHeading text={t("home", "testiH")} lang={lang} className="font-display text-[clamp(28px,3.4vw,44px)] text-charcoal" />
+                  <RevealItem index={2}><p className="text-sm text-charcoal/70">{t("home", "testiP")}</p></RevealItem>
+                </div>
+                {average != null && count > 0 && <RevealItem index={3}><ReviewSummary average={average} count={count} lang={lang} /></RevealItem>}
               </RevealGroup>
             </>
           }
