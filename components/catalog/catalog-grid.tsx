@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { ComponentStyle } from "@/components/fx/component-style";
+import { catalogFiltersToSearch, parseCatalogFilters } from "@/lib/catalog-filters";
 import type { ItemType } from "@/lib/types";
 
 /**
@@ -20,6 +21,11 @@ import type { ItemType } from "@/lib/types";
  *   sort        Newest (the Hub's own order), price low to high, high to low
  *               — comparisons of the Hub's yen prices, never arithmetic.
  *
+ * The five filters live in the address bar (lib/catalog-filters.ts; owner
+ * report 2026-10-17), so a shared link opens on the chosen group. They are
+ * read after mount and written with history.replaceState — no navigation, no
+ * refetch, and the page stays ISR (no searchParams, no useSearchParams).
+ *
  * An option with no pieces shows 0 and is dashed, not hidden. Below `md` the
  * groups move into a bottom sheet (a modal dialog) behind a Filter button.
  *
@@ -32,7 +38,8 @@ export type GridItem = {
   node: React.ReactNode;
   preloved: boolean;
   type: ItemType | null;
-  metals: string[];
+  /** `key` is the Hub stamp (filter, count, URL); `label` is what the chip shows. */
+  metals: { key: string; label: string }[];
   sold: boolean;
   price: number | null;
 };
@@ -48,6 +55,7 @@ export type GridLabels = {
 
 type Sort = "newest" | "low" | "high";
 const TYPES: ItemType[] = ["Jewelry", "Watch", "Accessory"];
+const has = (x: GridItem, key: string) => x.metals.some((m) => m.key === key);
 
 const CSS = `
 .cg-bar { position: sticky; top: var(--hdr-h, 0px); z-index: 20; background: rgb(245 245 242 / .97); border-bottom: 1px solid #E5E5E0; transition: top var(--dur-reveal) var(--ease-lux); }
@@ -88,19 +96,47 @@ export function CatalogGrid({ items, labels, tile }: {
   const [sheet, setSheet] = useState(false);
 
   const hasTypes = items.some((x) => x.type);
-  const metals = useMemo(() => [...new Set(items.flatMap((x) => x.metals))], [items]);
+  // One chip per stamp, in the order the stamps first appear on the page.
+  const metals = useMemo(() => [...new Map(items.flatMap((x) => x.metals).map((m) => [m.key, m] as const)).values()], [items]);
   const n = {
     new: items.filter((x) => !x.preloved).length,
     preloved: items.filter((x) => x.preloved).length,
     type: (k: ItemType) => items.filter((x) => x.type === k).length,
-    metal: (m: string) => items.filter((x) => x.metals.includes(m)).length,
+    metal: (m: string) => items.filter((x) => has(x, m)).length,
   };
+
+  // The URL: restored once after mount (the first render stays at the
+  // defaults, matching the server HTML), then kept in step with replaceState.
+  // The first run and the run the restore triggers are skipped, so the URL is
+  // never rewritten before it has been read.
+  const ready = useRef(false);
+  const skip = useRef(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !ready.current) return;
+    if (skip.current) { skip.current = false; return; }
+    const search = catalogFiltersToSearch(window.location.search, { cond, type, metal, availOnly, sort });
+    if (search === window.location.search) return;
+    window.history.replaceState(window.history.state, "", window.location.pathname + search + window.location.hash);
+  }, [cond, type, metal, availOnly, sort]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const f = parseCatalogFilters(window.location.search, {
+      types: hasTypes ? TYPES.filter((k) => items.some((x) => x.type === k)) : [],
+      metals: metals.map((m) => m.key),
+    });
+    ready.current = true;
+    if (f.cond === "all" && !f.type && !f.metal && !f.availOnly && f.sort === "newest") return;
+    skip.current = true;
+    setCond(f.cond); setType(f.type); setMetal(f.metal); setAvailOnly(f.availOnly); setSort(f.sort);
+    // Once, on mount: the page's own list is what the link is checked against.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const shown = useMemo(() => {
     const list = items.filter((x) =>
       (cond === "all" || (cond === "preloved") === x.preloved) &&
       (!type || x.type === type) &&
-      (!metal || x.metals.includes(metal)) &&
+      (!metal || has(x, metal)) &&
       (!availOnly || !x.sold));
     if (sort === "newest") return list;
     // A comparison of the Hub's yen prices; a piece without one goes last.
@@ -129,7 +165,7 @@ export function CatalogGrid({ items, labels, tile }: {
       )}
       {metals.length > 1 && (
         <Group label={labels.metal} inSheet={inSheet}>
-          {metals.map((m) => <Chip key={m} on={metal === m} n={n.metal(m)} onClick={() => setMetal(metal === m ? null : m)}>{m}</Chip>)}
+          {metals.map((m) => <Chip key={m.key} on={metal === m.key} n={n.metal(m.key)} onClick={() => setMetal(metal === m.key ? null : m.key)}>{m.label}</Chip>)}
         </Group>
       )}
     </>

@@ -27,7 +27,7 @@ export function CatalogSection({ products, lang, messenger }: { products: Produc
     node: <ProductCard product={p} lang={lang} index={i} priority={i < 4} />,
     preloved: p.condition === "Preloved",
     type: p.item_type ?? null,
-    metals: productMetals(p).map((m) => metalLabel(m, lang)),
+    metals: productMetals(p).map((m) => ({ key: m, label: metalLabel(m, lang) })),
     sold: !isBuyable(productAvailability(p)),
     price: fromPrice(p),
   }));
