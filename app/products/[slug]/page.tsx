@@ -12,7 +12,7 @@ import { OriginBadge } from "@/components/catalog/origin-badge";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { ProductCard } from "@/components/catalog/product-card";
-import { RecentlyViewed } from "@/components/catalog/recently-viewed";
+import { RecordView } from "@/components/catalog/recently-viewed";
 import { ProductTrust } from "@/components/catalog/product-trust";
 import { SoldCard } from "@/components/catalog/sold-card";
 import { availabilityKey, isBuyable, variantAvailability } from "@/lib/availability";
@@ -279,10 +279,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <RelatedGrid pieces={related} lang={lang} />
           </section>
         )}
-
-        {/* Owner 2026-10-17: drawn in the browser, from slugs this browser kept; absent until it has cards. */}
-        <RecentlyViewed currentSlug={p.slug} lang={lang} title={t("pdp", "recentlyViewed")} />
       </div>
+
+      {/* Remembers the visit for "Recently viewed" on the home page (owner 2026-10-17); renders nothing. */}
+      <RecordView slug={p.slug} />
 
       {buyable && variant && price != null && (
         <BuyBar watch="pdp-atc" price={formatMoney(price)} name={name} label={t("pdp", "buyBar")} variantId={variant.id} slug={p.slug} sku={p.sku} lang={lang} />

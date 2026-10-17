@@ -7,6 +7,7 @@ import { hub } from "@/lib/hub-api";
 import { JsonLd } from "@/components/site/json-ld";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
+import { RecentlyViewed } from "@/components/catalog/recently-viewed";
 import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
 import { typeVisual } from "@/lib/type-icons";
 import { headers } from "next/headers";
@@ -92,6 +93,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
 
       {/* §5 Values bento */}
       <ValuesBento lang={lang} />
+
+      {/* Recently viewed (owner decision 2026-10-17): above the layaway band —
+          on the Japanese home, between Values and Collections. Drawn in the
+          browser from the slugs the product page recorded; absent (the page
+          unchanged) until there are cards. */}
+      <RecentlyViewed lang={lang} title={t("pdp", "recentlyViewed")} />
 
       {/* §7 Layaway band — the pill, the pitch, the three steps and the
           calculator, now shared with /layaway (components/commerce/layaway-band).

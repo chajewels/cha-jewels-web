@@ -1,6 +1,5 @@
 import { cache } from "react";
 import { hub } from "@/lib/hub-api";
-import type { Product } from "@/lib/types";
 export type { Product } from "@/lib/types";
 // Thin cached wrappers over the Hub API. Components import from here and never see the transport.
 export const getCollections = cache(() => hub.collections());
