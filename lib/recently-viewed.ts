@@ -1,6 +1,7 @@
 /**
- * RECENTLY VIEWED (owner 2026-10-17): the pieces this browser opened, shown at
- * the foot of the product page (components/catalog/recently-viewed.tsx).
+ * RECENTLY VIEWED (owner 2026-10-17): the pieces this browser opened —
+ * recorded on the product page, shown on the home page above the layaway band
+ * (components/catalog/recently-viewed.tsx: RecordView / RecentlyViewed).
  *
  * One record in localStorage, `cj-viewed` = { v: 1, slugs: string[] }: most
  * recent first, no duplicates, at most 12. Slugs only — never a price, a name
