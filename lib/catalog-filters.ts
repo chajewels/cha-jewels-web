@@ -5,14 +5,14 @@ import type { ItemType } from "./types";
  * copied after choosing New or Preloved opened on "All"). The five filters of
  * CatalogGrid as query parameters, so a shared link lands on the chosen group:
  *
- *   cond=new|preloved   type=jewelry|watch|accessory   metal=<Hub stamp>
+ *   cond=new|preloved|sale   type=jewelry|watch|accessory   metal=<Hub stamp>
  *   stock=1 (same name as the search page)              sort=low|high
  *
  * A default removes its key, so a plain page keeps a plain URL; every other
  * parameter (lang…) is left untouched and in place. Pure: no React, no DOM.
  */
 export type CatalogFilters = {
-  cond: "all" | "new" | "preloved";
+  cond: "all" | "new" | "preloved" | "sale";
   type: ItemType | null;
   metal: string | null;
   availOnly: boolean;
@@ -29,7 +29,7 @@ export function parseCatalogFilters(search: string, allowed: { types: ItemType[]
   let q: URLSearchParams;
   try { q = new URLSearchParams(search); } catch { return f; }
   const cond = q.get("cond");
-  if (cond === "new" || cond === "preloved") f.cond = cond;
+  if (cond === "new" || cond === "preloved" || cond === "sale") f.cond = cond;
   const type = q.get("type")?.toLowerCase();
   if (type) f.type = allowed.types.find((t) => t.toLowerCase() === type) ?? null;
   const metal = q.get("metal")?.toUpperCase();

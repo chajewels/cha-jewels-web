@@ -1,4 +1,4 @@
-import { allImages, usableCutout } from "@/lib/queries/products";
+import { allImages, usableCutout } from "@/lib/product-facts";
 import type { Product, ProductMedia } from "@/lib/types";
 
 /**

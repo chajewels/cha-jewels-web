@@ -19,6 +19,13 @@ test("cond and metal; metal matched case-insensitively, returned in the allowed 
   assert.equal(f.metal, "K18");
 });
 
+test("cond=sale (owner 2026-10-17: Sale in the Condition filter)", () => {
+  assert.equal(parseCatalogFilters("?cond=sale", ALL).cond, "sale");
+  assert.equal(catalogFiltersToSearch("?lang=en", { ...DEFAULT_FILTERS, cond: "sale" }), "?lang=en&cond=sale");
+  const f = { ...DEFAULT_FILTERS, cond: "sale", metal: "K18" };
+  assert.deepEqual(parseCatalogFilters(catalogFiltersToSearch("", f), ALL), f);
+});
+
 test("a type the page does not show is ignored", () => {
   assert.equal(parseCatalogFilters("?type=watch", { types: [], metals: [] }).type, null);
   assert.equal(parseCatalogFilters("type=WATCH", ALL).type, "Watch", "without '?', any case");
