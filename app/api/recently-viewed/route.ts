@@ -3,7 +3,8 @@ import { getProductBySlug } from "@/lib/queries/products";
 import { isSlug, VIEWED_MAX } from "@/lib/recently-viewed";
 
 /**
- * The pieces for "Recently viewed" (components/catalog/recently-viewed.tsx).
+ * The pieces for "Recently viewed" on the home page, above the layaway band
+ * (components/catalog/recently-viewed.tsx; recorded on the product page).
  * The browser keeps slugs only (lib/recently-viewed.ts); every card is built
  * from the Hub's answer here, so prices, the Sale strike, Sold and the origin
  * badge are always current. The Hub API key stays on the server.
