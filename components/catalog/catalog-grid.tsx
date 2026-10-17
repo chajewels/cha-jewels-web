@@ -11,7 +11,9 @@ import type { ItemType } from "@/lib/types";
  * server (ProductCard) and handed in as nodes with the facts to filter on, so
  * the page stays ISR-cached and filtering is instant, with no Hub call.
  *
- *   condition   All / New / Preloved (the existing labels)
+ *   condition   All / New / Preloved / Sale (the existing labels). Sale is
+ *               the cards that show the Sale tag: on sale AND not sold
+ *               (lib/sale.ts struckFullPrice, decided in CatalogSection).
  *   type        Jewelry / Watch / Accessory — the Hub's `item_type` (D2-1).
  *               Not sent yet: the group appears only once a piece on the page
  *               carries one. Nothing is inferred from a SKU or a name.
@@ -37,6 +39,8 @@ export type GridItem = {
   key: string;
   node: React.ReactNode;
   preloved: boolean;
+  /** The card shows the Sale tag (lib/sale.ts struckFullPrice): on sale and not sold. */
+  sale: boolean;
   type: ItemType | null;
   /** `key` is the Hub stamp (filter, count, URL); `label` is what the chip shows. */
   metals: { key: string; label: string }[];
@@ -45,7 +49,7 @@ export type GridItem = {
 };
 
 export type GridLabels = {
-  condition: string; all: string; new: string; preloved: string;
+  condition: string; all: string; new: string; preloved: string; sale: string;
   type: string; types: Record<ItemType, string>;
   metal: string; availableOnly: string;
   sort: string; sortLabel: string; sorts: { newest: string; low: string; high: string };
@@ -88,7 +92,7 @@ export function CatalogGrid({ items, labels, tile }: {
   /** The "ask a person" tile's content; `.cg-permit` inside it shows from two cells. */
   tile: React.ReactNode;
 }) {
-  const [cond, setCond] = useState<"all" | "new" | "preloved">("all");
+  const [cond, setCond] = useState<"all" | "new" | "preloved" | "sale">("all");
   const [type, setType] = useState<ItemType | null>(null);
   const [metal, setMetal] = useState<string | null>(null);
   const [availOnly, setAvailOnly] = useState(false);
@@ -101,6 +105,7 @@ export function CatalogGrid({ items, labels, tile }: {
   const n = {
     new: items.filter((x) => !x.preloved).length,
     preloved: items.filter((x) => x.preloved).length,
+    sale: items.filter((x) => x.sale).length,
     type: (k: ItemType) => items.filter((x) => x.type === k).length,
     metal: (m: string) => items.filter((x) => has(x, m)).length,
   };
@@ -134,7 +139,7 @@ export function CatalogGrid({ items, labels, tile }: {
 
   const shown = useMemo(() => {
     const list = items.filter((x) =>
-      (cond === "all" || (cond === "preloved") === x.preloved) &&
+      (cond === "all" || (cond === "sale" ? x.sale : (cond === "preloved") === x.preloved)) &&
       (!type || x.type === type) &&
       (!metal || has(x, metal)) &&
       (!availOnly || !x.sold));
@@ -157,6 +162,7 @@ export function CatalogGrid({ items, labels, tile }: {
         <Chip on={cond === "all"} onClick={() => setCond("all")}>{labels.all}</Chip>
         <Chip on={cond === "new"} n={n.new} onClick={() => setCond(cond === "new" ? "all" : "new")}>{labels.new}</Chip>
         <Chip on={cond === "preloved"} n={n.preloved} onClick={() => setCond(cond === "preloved" ? "all" : "preloved")}>{labels.preloved}</Chip>
+        <Chip on={cond === "sale"} n={n.sale} onClick={() => setCond(cond === "sale" ? "all" : "sale")}>{labels.sale}</Chip>
       </Group>
       {hasTypes && (
         <Group label={labels.type} inSheet={inSheet}>

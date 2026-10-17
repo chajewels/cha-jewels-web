@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { fromPrice, fromVariant, type Product } from "@/lib/queries/products";
+import { fromPrice, fromVariant } from "@/lib/product-facts";
+import type { Product } from "@/lib/types";
 import { CardFx } from "@/components/fx/card-fx";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { HubImage } from "@/components/media/hub-image";
