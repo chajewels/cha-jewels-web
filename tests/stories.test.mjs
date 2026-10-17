@@ -14,6 +14,7 @@ const review = (over = {}) => ({
   product: { slug: "kihei-chain-50-cm", name: "Kihei chain 50 cm" },
   photos: [],
   approved_at: "2026-09-12T03:00:00+00:00",
+  location: null,
   ...over,
 });
 
@@ -40,6 +41,25 @@ test("a review becomes a verified story, its words exactly as held", () => {
   assert.equal(s.location, null);
   assert.equal(s.verified, true);
   assert.deepEqual(s.date, { iso: "2026-09-12T03:00:00+00:00", label: "September 2026" });
+});
+
+test("a review's location is the Hub's, trimmed, and shown like a testimonial's", () => {
+  const [s] = reviewsToStories([review({ location: "  Makati City, Philippines  " })], "en");
+  assert.equal(s.location, "Makati City, Philippines");
+  const [t] = toStories([testimonial()], "en");
+  assert.equal(t.location, "Manila");
+});
+
+test("an empty or blank review location is null", () => {
+  const out = reviewsToStories([review({ id: "a", location: "" }), review({ id: "b", location: "   " })], "en");
+  assert.deepEqual(out.map((s) => s.location), [null, null]);
+});
+
+test("a review from an older Hub payload (no location field) has a null location", () => {
+  const { location: _omit, ...older } = review();
+  assert.equal("location" in older, false);
+  const [s] = reviewsToStories([older], "en");
+  assert.equal(s.location, null);
 });
 
 test("a review's month is Japan time and never shows the day", () => {
