@@ -11,7 +11,7 @@ import { StoryQuote, typedCount } from "@/components/home/story-quote";
 export type { Story } from "@/lib/stories";
 import type { Story } from "@/lib/stories";
 
-type Labels = { prev: string; next: string; pause: string; play: string; upNext: string };
+type Labels = { prev: string; next: string; pause: string; play: string; upNext: string; verified: string };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -281,7 +281,11 @@ export function StoryShow({ stories, labels, head }: { stories: Story[]; labels:
                 restRef={(el) => { restRefs.current[i] = el; }}
               />
               <div className="story-who">
-                <p className="story-name">{s.name}</p>
+                <p className="story-name">
+                  {s.name}
+                  {/* A review from a buyer (lib/stories.ts reviewsToStories). */}
+                  {s.verified && <span className="story-verified">{labels.verified}</span>}
+                </p>
                 {(s.location || s.date) && (
                   <p className="story-meta">
                     {s.location}

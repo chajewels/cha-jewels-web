@@ -1700,9 +1700,6 @@ export const dict = {
    * review sections show on the Japanese site too.
    */
   reviews: {
-    eyebrow: { ja: "カスタマーレビュー", en: "Customer reviews" },
-    h: { ja: "お客様の声", en: "What our customers say" },
-    p: { ja: "実際にご購入いただいたお客様からいただいたレビューです。内容を確認のうえ掲載しています。", en: "Reviews from customers who bought from us, checked by our team before they appear." },
     pdpH: { ja: "この商品のレビュー", en: "Reviews of this piece" },
     summary: { ja: "{avg}（{n}件のレビュー）", en: "{avg} ({n} reviews)" },
     summaryOne: { ja: "{avg}（1件のレビュー）", en: "{avg} (1 review)" },
