@@ -100,7 +100,7 @@ export function resolveLang(
 
 export const dict = {
   newsletter: { placeholder: { ja: "メールアドレス", en: "Email address" }, submit: { ja: "登録", en: "Sign up" }, success: { ja: "ご登録ありがとうございます。", en: "Thank you — you're on the list." }, already: { ja: "すでにご登録いただいています。", en: "You're already subscribed." }, invalid: { ja: "メールアドレスをご確認ください。", en: "Please check the email address." }, rateLimited: { ja: "しばらく時間をおいてからお試しください。", en: "Too many attempts — please try again shortly." }, error: { ja: "登録できませんでした。時間をおいてお試しください。", en: "We couldn't sign you up. Please try again later." }, unsubscribed: { ja: "配信を停止しました。", en: "You're unsubscribed." } },
-  nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, menu: { ja: "メニュー", en: "Menu" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" }, tabBar: { ja: "モバイルナビゲーション", en: "Mobile navigation" } },
+  nav: { skip: { ja: "本文へ", en: "Skip to content" }, primary: { ja: "メインナビゲーション", en: "Primary" }, menu: { ja: "メニュー", en: "Menu" }, openMenu: { ja: "メニューを開く", en: "Open menu" }, closeMenu: { ja: "メニューを閉じる", en: "Close menu" }, language: { ja: "言語", en: "Language" }, langJa: { ja: "日本語", en: "日本語" }, langEn: { ja: "EN", en: "EN" }, home: { ja: "ホーム", en: "Home" }, about: { ja: "ブランドについて", en: "About Us" }, blog: { ja: "ブログ", en: "Blog" }, collections: { ja: "コレクション", en: "Collections" }, sale: { ja: "セール", en: "Sale" }, layaway: { ja: "分割予約", en: "Layaway" }, loyalty: { ja: "ロイヤルティ", en: "Loyalty" }, wholesale: { ja: "卸売", en: "Wholesale" }, account: { ja: "マイアカウント", en: "Account" }, cart: { ja: "カート", en: "Cart" }, orders: { ja: "ご注文履歴", en: "Orders" }, tabBar: { ja: "モバイルナビゲーション", en: "Mobile navigation" } },
   /**
    * Header menu copy. `tr` reads dict[section][key] as a {ja,en} leaf, so these
    * are flat keys in their own section rather than a nested nav.company object,
@@ -544,6 +544,16 @@ export const dict = {
     messengerButton: { ja: "Messengerでお問い合わせ", en: "Message us on Messenger" },
     whatsapp: { ja: "WhatsAppグループに参加", en: "Join the WhatsApp group" },
     line: { ja: "LINEグループに参加", en: "Join the LINE group" },
+  },
+  /**
+   * /sale (owner decisions 2026-10-18): every piece on sale across the whole
+   * catalogue, EN and JA. The figures are the cards' own, from the Hub.
+   */
+  salePage: {
+    h1: { ja: "セール", en: "Sale" },
+    lede: { ja: "現在セール中の商品を、すべてのコレクションからまとめてご覧いただけます。", en: "Every piece on sale right now, from every collection." },
+    empty: { ja: "現在セール中の商品はありません。", en: "Nothing is on sale right now." },
+    emptyCta: { ja: "コレクションを見る", en: "Browse the collections" },
   },
   wholesale: {
     h1: { ja: "東京から直接、店舗の仕入れを", en: "Stock your shop from Tokyo" },
@@ -1788,6 +1798,7 @@ export const dict = {
     goldGuide: { title: { ja: "ゴールドの基礎知識", en: "Gold guide" }, description: { ja: "K18の意味、刻印の読み方、ゴールドとパールのお手入れ方法。", en: "What K18 means, how to read a hallmark, and how to care for gold and pearls." } },
     checkout: { title: { ja: "ご注文手続き", en: "Checkout" } },
     complete: { title: { ja: "ご注文ありがとうございます", en: "Thank you" } },
+    sale: { title: { ja: "セール", en: "Sale" }, description: { ja: "Cha Jewelsで現在セール中の新品・プレラブドのジュエリーを一覧でご覧いただけます。", en: "Every Cha Jewels piece on sale right now, new and preloved, in one place." } },
     wholesale: { title: { ja: "卸売", en: "Wholesale" }, description: { ja: "日本とフィリピンのライブ販売者、ブティック、ファミリー経営の宝飾店に、K18ゴールドを卸価格で。", en: "K18 gold at trade prices for live sellers, boutiques and family jewelry businesses in Japan and the Philippines." } },
     cart: { title: { ja: "カート", en: "Cart" } },
     login: { title: { ja: "サインイン", en: "Sign in" } },

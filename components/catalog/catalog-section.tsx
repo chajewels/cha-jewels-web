@@ -7,8 +7,8 @@ import { SocialGlyph } from "@/components/site/social-icons";
 import { Button } from "@/components/ui/button";
 import { tr, dict, type Lang } from "@/lib/i18n";
 import { collectionName } from "@/lib/catalog-i18n";
-import { fromPrice, fromVariant, type Product } from "@/lib/queries/products";
-import { struckFullPrice } from "@/lib/sale";
+import { fromPrice, type Product } from "@/lib/queries/products";
+import { saleListed } from "@/lib/sale";
 import { productMetals, metalLabel } from "@/lib/metals";
 import { isBuyable, productAvailability } from "@/lib/availability";
 import { typeVisual } from "@/lib/type-icons";
@@ -25,13 +25,12 @@ export function CatalogSection({ products, lang, messenger }: { products: Produc
   const t = tr(lang);
   const items: GridItem[] = products.map((p, i) => {
     const sold = !isBuyable(productAvailability(p));
-    // The variant ProductCard prices, and the same rule as its Sale tag.
-    const v = fromVariant(p);
     return {
       key: p.id,
       node: <ProductCard product={p} lang={lang} index={i} priority={i < 4} />,
       preloved: p.condition === "Preloved",
-      sale: struckFullPrice({ full: v?.full_price_jpy, onSale: v?.on_sale, sold }) != null,
+      // The same rule as the card's Sale tag, the /sale page and the header link.
+      sale: saleListed(p),
       type: p.item_type ?? null,
       metals: productMetals(p).map((m) => ({ key: m, label: metalLabel(m, lang) })),
       sold,
