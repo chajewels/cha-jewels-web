@@ -2,8 +2,8 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { isLayawayTestimonial } from "@/lib/content-rules";
 import { graphemes, storySize, type QuoteLang } from "@/lib/story-timing";
 import { SITE_TIME_ZONE } from "@/lib/site-time";
-import { showable, type Review } from "@/lib/reviews";
-import type { Lang } from "@/lib/i18n";
+import { REVIEW_MAX_PHOTOS, showable, type Review } from "@/lib/reviews";
+import { tr, type Lang } from "@/lib/i18n";
 import type { Testimonial } from "@/lib/types";
 
 /**
@@ -32,7 +32,16 @@ export type Story = {
   date: { iso: string; label: string } | null;
   /** A review from a buyer (shown with the "verified" label); false for a testimonial. */
   verified: boolean;
+  /**
+   * The photos the owner approved with a review (Hub `photo_urls`, at most
+   * REVIEW_MAX_PHOTOS), each with its caption in the page's language. Always
+   * empty for a testimonial. Restored 2026-10-18: the home review cards showed
+   * them, and moving reviews into the stories (2026-10-17) had dropped them.
+   */
+  photos: StoryPhoto[];
 };
+
+export type StoryPhoto = { src: string; alt: string };
 
 /**
  * The stories for a page in `lang`:
@@ -63,6 +72,7 @@ export function toStories(items: Testimonial[], lang: Lang): Story[] {
         location: x.location,
         date: storyDate(x.testimonial_date, lang),
         verified: false,
+        photos: [],
       };
     });
 }
@@ -78,11 +88,19 @@ export function toStories(items: Testimonial[], lang: Lang): Story[] {
  *             blank (an older Hub payload has no field), shown like a
  *             testimonial's
  *   date      the approval's month and year, never the day
+ *   photos    the approved photos, in the Hub's order, at most
+ *             REVIEW_MAX_PHOTOS; anything that is not a non-empty string is
+ *             skipped (an older Hub payload has no field), each captioned
+ *             like the product page's review cards (reviews.photoAlt)
  *   id        `review:<id>`, so it never collides with a testimonial's id
  */
 export function reviewsToStories(reviews: Review[], lang: Lang): Story[] {
+  const t = tr(lang);
   return showable(reviews).map((r) => {
     const quote = r.body as string;
+    const srcs = (Array.isArray(r.photos) ? r.photos : [])
+      .filter((p): p is string => typeof p === "string" && p.trim().length > 0)
+      .slice(0, REVIEW_MAX_PHOTOS);
     return {
       id: `review:${r.id}`,
       quote,
@@ -94,6 +112,7 @@ export function reviewsToStories(reviews: Review[], lang: Lang): Story[] {
       location: typeof r.location === "string" && r.location.trim() ? r.location.trim() : null,
       date: storyDate(r.approved_at, lang),
       verified: true,
+      photos: srcs.map((src, i) => ({ src, alt: t("reviews", "photoAlt", { name: r.display_name, n: String(i + 1) }) })),
     };
   });
 }

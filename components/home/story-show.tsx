@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { Star } from "lucide-react";
 import { STAGGER, STORY } from "@/lib/motion";
 import { graphemes, storyTiming } from "@/lib/story-timing";
 import { useFinePointer, useReduced } from "@/components/fx/media";
 import { StoryQuote, typedCount } from "@/components/home/story-quote";
+import { isOptimizableImage } from "@/lib/image-hosts";
 
 /** One story as the server prepared it (lib/stories.ts, the rules that build it). `quote` is the Hub's text, untouched. */
 export type { Story } from "@/lib/stories";
@@ -280,6 +282,23 @@ export function StoryShow({ stories, labels, head }: { stories: Story[]; labels:
                 typedRef={(el) => { typedRefs.current[i] = el; }}
                 restRef={(el) => { restRefs.current[i] = el; }}
               />
+              {/* A review's approved photos (lib/stories.ts), like the product
+                  page's review cards: square thumbnails, each opening the full
+                  photo. A click here never completes or changes the story. */}
+              {s.photos.length > 0 && (
+                <ul className="story-photos">
+                  {s.photos.map((p) => (
+                    <li key={p.src}>
+                      <a href={p.src} target="_blank" rel="noreferrer" onClick={(ev) => ev.stopPropagation()}>
+                        {isOptimizableImage(p.src)
+                          ? <Image src={p.src} alt={p.alt} fill sizes="80px" className="object-cover" />
+                          // eslint-disable-next-line @next/next/no-img-element
+                          : <img src={p.src} alt={p.alt} loading="lazy" />}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <div className="story-who">
                 <p className="story-name">
                   {s.name}
