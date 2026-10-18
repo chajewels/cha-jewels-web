@@ -44,6 +44,10 @@ const LAYAWAY_GATED_KEYS = new Set([
   "service.viewPlan", // service-request row: plan link hidden when !layawayOffered
   "accountMenu.layaway", // header account menu: layawayOffered
   "meta.layaway.title", // pageMeta("layaway") returns {} when !layawayOffered
+  "layawayPage.pickerTitle", // /layaway piece picker: the page is notFound on ja
+  "layawayPage.pickerSearch", // same
+  "layawayPage.pickerNone", // same
+  "layawayPage.pickerClose", // same
 ]);
 
 const hits = [];

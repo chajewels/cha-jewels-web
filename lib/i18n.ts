@@ -516,6 +516,11 @@ export const dict = {
   layawayPage: {
     chosenPiece: { ja: "選んだ商品", en: "Chosen piece" },
     choosePiece: { ja: "ほかの商品を選ぶ", en: "Choose another piece" },
+    // The in-page piece picker the button above opens (owner 2026-10-18).
+    pickerTitle: { ja: "商品を選ぶ", en: "Choose a piece" },
+    pickerSearch: { ja: "商品名またはSKUで検索", en: "Search by name or SKU" },
+    pickerNone: { ja: "該当する商品はありません。", en: "No piece matches your search." },
+    pickerClose: { ja: "閉じる", en: "Close" },
     reserveThis: { ja: "この商品を予約する", en: "Reserve this piece with layaway" },
     reserveToday: { ja: "今すぐ予約できる商品", en: "Pieces you can reserve today" },
     allPieces: { ja: "すべての商品", en: "All pieces" },
