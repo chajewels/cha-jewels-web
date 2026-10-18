@@ -276,22 +276,25 @@ export function StoryShow({ stories, labels, head }: { stories: Story[]; labels:
                 ) : <span />}
                 {s.item && <span className="story-chip"><span aria-hidden="true" className="story-chip-dot" /><span className="truncate">{s.item}</span></span>}
               </div>
+              {/* Quote and a review's photos. Desktop: the photos sit to the
+                  right of the quote (owner 2026-10-18, "right side has a large
+                  space"); phone: under it. */}
+              <div className="story-body" data-photos={s.photos.length > 0 ? s.photos.length : undefined}>
               <StoryQuote
                 story={s}
                 typing={!isDone}
                 typedRef={(el) => { typedRefs.current[i] = el; }}
                 restRef={(el) => { restRefs.current[i] = el; }}
               />
-              {/* A review's approved photos (lib/stories.ts), like the product
-                  page's review cards: square thumbnails, each opening the full
-                  photo. A click here never completes or changes the story. */}
+              {/* A review's approved photos (lib/stories.ts), each opening the
+                  full photo. A click here never completes or changes the story. */}
               {s.photos.length > 0 && (
                 <ul className="story-photos">
                   {s.photos.map((p) => (
                     <li key={p.src}>
                       <a href={p.src} target="_blank" rel="noreferrer" onClick={(ev) => ev.stopPropagation()}>
                         {isOptimizableImage(p.src)
-                          ? <Image src={p.src} alt={p.alt} fill sizes="(min-width: 1024px) 160px, 120px" className="object-cover" />
+                          ? <Image src={p.src} alt={p.alt} fill sizes="(min-width: 1024px) 240px, 120px" className="object-cover" />
                           // eslint-disable-next-line @next/next/no-img-element
                           : <img src={p.src} alt={p.alt} loading="lazy" />}
                       </a>
@@ -299,6 +302,7 @@ export function StoryShow({ stories, labels, head }: { stories: Story[]; labels:
                   ))}
                 </ul>
               )}
+              </div>
               <div className="story-who">
                 <p className="story-name">
                   {s.name}

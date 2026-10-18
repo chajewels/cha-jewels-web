@@ -560,12 +560,20 @@
   .story-who { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid theme('colors.hairline'); padding-top: 14px; }
   .story-name { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; font-size: 14px; font-weight: 600; color: theme('colors.charcoal.deep'); }
   .story-meta { font-size: 12px; color: rgb(51 51 51 / .7); font-variant-numeric: lining-nums tabular-nums; }
-  /* A review's approved photos (components/home/story-show.tsx): a row of
-     square photos between the quote and the name (120px phone, 160px
-     desktop; owner 2026-10-18 "make it larger"). Each opens the full photo. */
+  /* A review's quote and approved photos (components/home/story-show.tsx).
+     Phone: the photos under the quote, 120px squares. Desktop: the photos in
+     their own column to the RIGHT of the quote (owner 2026-10-18), one photo
+     240px, several in a 2-wide grid of 116px. Each opens the full photo. */
+  .story-body { display: flex; flex-direction: column; gap: 20px; }
   .story-photos { display: flex; flex-wrap: wrap; gap: 10px; }
   .story-photos li { position: relative; width: 120px; height: 120px; overflow: hidden; border: 1px solid theme('colors.hairline'); background: theme('colors.white'); }
-  @media (min-width: 1024px) { .story-photos li { width: 160px; height: 160px; } }
+  @media (min-width: 1024px) {
+    .story-body[data-photos] { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 40px; align-items: start; }
+    .story-photos { display: grid; grid-template-columns: repeat(2, 116px); gap: 8px; }
+    .story-photos li { width: 116px; height: 116px; }
+    .story-body[data-photos="1"] .story-photos { grid-template-columns: 240px; }
+    .story-body[data-photos="1"] .story-photos li { width: 240px; height: 240px; }
+  }
   .story-photos a { display: block; width: 100%; height: 100%; }
   .story-photos a:focus-visible { outline: 2px solid theme('colors.gold.dark'); outline-offset: 2px; }
   .story-photos img { width: 100%; height: 100%; object-fit: cover; }
