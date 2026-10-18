@@ -106,3 +106,34 @@ test("mergeStories: newest first, undated after dated in their own order, nothin
   const many = reviewsToStories(Array.from({ length: 20 }, (_, i) => review({ id: `m${i}` })), "en");
   assert.equal(mergeStories(ts, many).length, 24);
 });
+
+// Review photos (2026-10-18): the home review cards showed them; moving reviews
+// into the stories had dropped them. They come back on review stories only.
+const PHOTO = "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/review-photos/r1/1.jpg";
+
+test("a review story carries its approved photos, captioned in the page's language", () => {
+  const [en] = reviewsToStories([review({ photos: [PHOTO] })], "en");
+  assert.deepEqual(en.photos, [{ src: PHOTO, alt: "Photo 1 from Maria S." }]);
+  const [ja] = reviewsToStories([review({ photos: [PHOTO], display_name: "岩城 ミ." })], "ja");
+  assert.deepEqual(ja.photos, [{ src: PHOTO, alt: "岩城 ミ.様のお写真 1" }]);
+});
+
+test("review photos keep the Hub's order and stop at four", () => {
+  const six = Array.from({ length: 6 }, (_, i) => `${PHOTO}?n=${i + 1}`);
+  const [s] = reviewsToStories([review({ photos: six })], "en");
+  assert.deepEqual(s.photos.map((p) => p.src), six.slice(0, 4));
+  assert.deepEqual(s.photos.map((p) => p.alt), ["Photo 1 from Maria S.", "Photo 2 from Maria S.", "Photo 3 from Maria S.", "Photo 4 from Maria S."]);
+});
+
+test("blank, non-string or missing review photos give no photos", () => {
+  const [a] = reviewsToStories([review({ photos: ["", "  ", null, 7] })], "en");
+  assert.deepEqual(a.photos, []);
+  const { photos: _omit, ...older } = review();
+  const [b] = reviewsToStories([older], "en");
+  assert.deepEqual(b.photos, []);
+});
+
+test("a testimonial never has photos", () => {
+  const [t] = toStories([testimonial()], "en");
+  assert.deepEqual(t.photos, []);
+});
