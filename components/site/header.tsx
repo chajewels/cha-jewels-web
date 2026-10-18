@@ -12,6 +12,8 @@ import { toStories } from "@/lib/stories";
 import { categoryBlurb } from "@/lib/content/frame";
 import { follow } from "@/lib/settings";
 import { layawayOffered } from "@/lib/layaway-availability";
+import { catalogue } from "@/lib/catalog-context";
+import { saleListed } from "@/lib/sale";
 import { readSession, customerFirstName } from "@/lib/session";
 import { MenuStory } from "./menu-story";
 import { CategoryThumb } from "./category-thumb";
@@ -30,8 +32,8 @@ import { NavUnderline } from "./nav-underline";
  *
  *   left    badge + wordmark: the logo is the home link, so there is no
  *           "Home" item in the desktop nav (D1-3; the phone tab bar keeps Home)
- *   nav     Collections ▾, Company ▾, Layaway (English only), Loyalty,
- *           Wholesale — from `xl`, where it fits; below it the drawer carries
+ *   nav     Collections ▾, Company ▾, Layaway (English only), Sale (only
+ *           while something is on sale), Loyalty, Wholesale — from `xl`, where it fits; below it the drawer carries
  *           the same list
  *   tools   search (a field from `lg`, a magnifier below), the JA/EN
  *           toggle (from `sm`; in the drawer below), Account (from `xl`; the
@@ -58,12 +60,17 @@ export async function Header({ lang }: { lang: Lang }) {
   // The testimonials are the home page's own read (hub.testimonials, cached
   // like the catalogue); a Hub that cannot answer costs the menus their story
   // panel, never the header.
-  const [session, collections, categories, followLinks, testimonials] = await Promise.all([
+  const [session, collections, categories, followLinks, testimonials, saleCount] = await Promise.all([
     readSession(),
     getCollections().catch(() => []),
     hub.categories().catch(() => []),
     follow().catch(() => []),
     hub.testimonials().catch(() => []),
+    // The Sale link shows only while something is on sale (owner decision
+    // 2026-10-18): counted from the catalogue's cached read with the same rule
+    // as the /sale page and the grid's Sale chip. A failed read counts 0, so
+    // the link hides rather than the header breaking.
+    catalogue().then((all) => all.filter(saleListed).length).catch(() => 0),
   ]);
   // The same stories, by the same rules, as the home page's Customer Stories
   // (lib/stories.ts): exact words, layaway stories on the English site only.
@@ -147,6 +154,9 @@ export async function Header({ lang }: { lang: Lang }) {
     // rule, in lib/layaway-availability; nothing layaway-related is visible on
     // the Japanese site.
     ...(layaway ? [{ href: "/layaway", label: t("nav", "layaway") }] : []),
+    // Sale: right after Layaway in English, first in Japanese (owner
+    // 2026-10-18); only while at least one piece is on sale.
+    ...(saleCount > 0 ? [{ href: "/sale", label: t("nav", "sale") }] : []),
     { href: "/loyalty", label: t("nav", "loyalty") },
     { href: "/wholesale", label: t("nav", "wholesale") },
   ];
