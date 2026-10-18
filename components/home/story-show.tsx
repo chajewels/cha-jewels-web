@@ -291,7 +291,7 @@ export function StoryShow({ stories, labels, head }: { stories: Story[]; labels:
                     <li key={p.src}>
                       <a href={p.src} target="_blank" rel="noreferrer" onClick={(ev) => ev.stopPropagation()}>
                         {isOptimizableImage(p.src)
-                          ? <Image src={p.src} alt={p.alt} fill sizes="80px" className="object-cover" />
+                          ? <Image src={p.src} alt={p.alt} fill sizes="(min-width: 1024px) 160px, 120px" className="object-cover" />
                           // eslint-disable-next-line @next/next/no-img-element
                           : <img src={p.src} alt={p.alt} loading="lazy" />}
                       </a>
