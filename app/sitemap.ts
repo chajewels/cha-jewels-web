@@ -52,6 +52,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // file: English needs its own path (an /en/... prefix), which is a URL-
     // scheme decision, not a sitemap entry. Until that exists, share the
     // English page as a link — /layaway?lang=en works perfectly for a person.
+    // /sale answers 200 in both languages, even with nothing on sale (its
+    // empty state), so it is safe to list whatever the catalogue holds.
+    { url: `${base}/sale`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/loyalty`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/wholesale`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },

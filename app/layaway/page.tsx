@@ -2,18 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMeta } from "@/lib/page-meta";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
+import { LayawayPiecePicker } from "@/components/commerce/layaway-piece-picker";
 import { ProductCard } from "@/components/catalog/product-card";
-import { HubImage } from "@/components/media/hub-image";
 import { Eyebrow } from "@/components/site/support-stage";
 import { H_DISPLAY, H_HEAD, LEDE_DARK, SEC, StageBand } from "@/components/site/brand-ui";
-import { tr } from "@/lib/i18n";
+import { tr, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { catalogue, isAvailable } from "@/lib/catalog-context";
 import { fromVariant, type Product } from "@/lib/queries/products";
 import { cardImage } from "@/lib/product-media";
 import { productName } from "@/lib/catalog-i18n";
-import { formatMoney, isFigure } from "@/lib/utils";
+import { isFigure } from "@/lib/utils";
+import { initialPieceSlug, type PickerPiece } from "@/lib/layaway-picker";
 
 export const generateMetadata = () => pageMeta("layaway");
 
@@ -28,6 +29,17 @@ function reservable(p: Product): boolean {
 }
 
 /**
+ * The picker's row for one reservable piece: only what it draws, never the
+ * whole Product. The price is the same variant field the panel always showed.
+ */
+function pickerPiece(p: Product, lang: Lang): PickerPiece | null {
+  const v = fromVariant(p);
+  if (!v) return null;
+  const img = cardImage(p);
+  return { slug: p.slug, name: productName(p, lang), sku: p.sku, price_jpy: v.price_jpy, image: img ? { kind: img.kind, src: img.src } : null };
+}
+
+/**
  * LAYAWAY (build step 5; comp page-comps/brand-programmes "layaway").
  *
  *  1. The dark stage: the pitch and the three numbered steps (the homepage
@@ -39,14 +51,17 @@ function reservable(p: Product): boolean {
  *     only ("coming soon" terms are not listed here), every figure the Hub's
  *     quote for that piece's price (hub.layawayQuote). Its one orange action
  *     goes to the piece. If no piece can be reserved, the calculator falls
- *     back to its price field, as on the homepage.
+ *     back to its price field, as on the homepage. "Choose another piece"
+ *     opens an in-page picker over the same pool (owner 2026-10-18,
+ *     components/commerce/layaway-piece-picker.tsx); ?piece=<slug> opens on
+ *     that piece, and an unknown slug opens on the default.
  *  3. Pieces you can reserve today: four real cards with their Hub down
  *     payments.
  *
  * The homepage's LayawayBand is no longer rendered here; it is unchanged on
  * the homepage.
  */
-export default async function LayawayPage() {
+export default async function LayawayPage({ searchParams }: { searchParams: Promise<{ piece?: string | string[] }> }) {
   const lang = await getLang();
 
   // 404, NOT a redirect and NOT the English page inside a Japanese site.
@@ -61,8 +76,11 @@ export default async function LayawayPage() {
   const t = tr(lang);
   const pool = (await catalogue()).filter(reservable);
   const chosen = pool.find((p) => cardImage(p)) ?? pool[0] ?? null;
-  const chosenVariant = chosen ? fromVariant(chosen) : null;
-  const chosenImage = chosen ? cardImage(chosen) : null;
+  const pieces = pool.map((p) => pickerPiece(p, lang)).filter((p): p is PickerPiece => p !== null);
+  // ?piece=<slug> opens on that piece when it is in the pool; anything else
+  // (unknown, sold, not reservable) opens on the default piece.
+  const requested = (await searchParams).piece;
+  const startSlug = chosen ? initialPieceSlug(pieces, typeof requested === "string" ? requested : null, chosen.slug) : null;
   const strip = pool.filter((p) => p.slug !== chosen?.slug).slice(0, 4);
 
   return (
@@ -91,37 +109,8 @@ export default async function LayawayPage() {
       <section className={`wrap ${SEC}`}>
         <Eyebrow>{t("home", "layCalcH")}</Eyebrow>
         <h2 className={`mb-7 mt-2.5 text-charcoal-deep ${H_HEAD}`}>{t("home", "layCalcP")}</h2>
-        {chosen && chosenVariant ? (
-          <div className="grid border border-hairline bg-white lg:grid-cols-[1fr_1.1fr]">
-            <StageBand as="div" className="flex flex-col">
-              <div className="flex h-full flex-col gap-2.5 p-[26px]">
-                <Eyebrow dark>{t("layawayPage", "chosenPiece")}</Eyebrow>
-                <Link href={`/products/${chosen.slug}`} className="relative block h-[230px]" aria-label={productName(chosen, lang)}>
-                  {chosenImage && (
-                    chosenImage.kind === "cut" ? (
-                      <span className="absolute inset-x-0 bottom-3 top-2 block [filter:drop-shadow(0_18px_18px_rgb(0_0_0/.55))]">
-                        <HubImage src={chosenImage.src} alt="" fill sizes="(min-width:1024px) 400px, 80vw" className="object-contain object-bottom" />
-                      </span>
-                    ) : (
-                      <span className="absolute bottom-3 left-1/2 top-2 block aspect-square -translate-x-1/2 border border-gold/45 bg-[#121110] p-[7%] shadow-[0_18px_30px_rgb(0_0_0/.5)]">
-                        <span className="relative block h-full"><HubImage src={chosenImage.src} alt="" fill sizes="(min-width:1024px) 240px, 60vw" className="object-contain" /></span>
-                      </span>
-                    )
-                  )}
-                </Link>
-                <p className="text-[13.5px] leading-normal text-chalk/85">{productName(chosen, lang)}</p>
-                <p className="lining-nums font-display text-[28px] leading-tight text-gold-pale">{formatMoney(chosenVariant.price_jpy)}</p>
-                <Link href="/collections" className="inline-flex min-h-11 items-center self-start text-sm text-gold-pale underline decoration-gold-pale/50 underline-offset-4 hover:decoration-gold-pale">{t("layawayPage", "choosePiece")}</Link>
-              </div>
-            </StageBand>
-            <LayawayCalculator
-              lang={lang}
-              fixedPiece
-              initialPrice={chosenVariant.price_jpy}
-              cta={{ label: t("layawayPage", "reserveThis"), href: `/products/${chosen.slug}` }}
-              className="gap-5 rounded-none border-0 p-6 shadow-none sm:p-7"
-            />
-          </div>
+        {startSlug ? (
+          <LayawayPiecePicker lang={lang} pieces={pieces} initialSlug={startSlug} />
         ) : (
           <LayawayCalculator lang={lang} cta={{ label: t("home", "layCta"), href: "/collections" }} className="max-w-2xl" />
         )}
