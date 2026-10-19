@@ -17,11 +17,16 @@ import { NextResponse } from "next/server";
  *            特定商取引法 Paidy entries) — L1, 2026-10-10
  *   square   the card switch (GET /payments/offered: footer card marks,
  *            特定商取引法 card entries) — L1, 2026-10-10
+ *   reviews  approved customer reviews (GET /reviews: product page reviews,
+ *            home page customer stories) — sent with the product's slug when
+ *            a review is approved, unapproved or deleted — 2026-10-18
+ *   loyalty  the tier ladder (GET /loyalty/tiers: /loyalty, /account) — sent
+ *            when a tier is added, edited or removed — 2026-10-18
  *
  * They are separate on purpose: a price change and a footer edit are different
  * events, and neither should throw away the other's cache.
  */
-const TAGS = ["catalog", "content", "paidy", "square"] as const;
+const TAGS = ["catalog", "content", "paidy", "square", "reviews", "loyalty"] as const;
 
 /**
  * Paths the Hub may name outright, for a page whose content has no slug of its
@@ -51,7 +56,7 @@ const PATHS = ["/faq"] as const;
 const isSlug = (value: unknown): value is string =>
   typeof value === "string" && /^[a-z0-9][a-z0-9-]{0,127}$/.test(value);
 
-/** Called by the Hub (Lovable edge function `notify_website`) when a product, variant, stock, post, FAQ answer or site setting changes. */
+/** Called by the Hub (Lovable edge function `notify_website`) when a product, variant, stock, post, FAQ answer, site setting, approved review or loyalty tier changes. */
 export async function POST(req: Request) {
   if (req.headers.get("x-revalidate-secret") !== process.env.REVALIDATE_SECRET) return NextResponse.json({ ok: false }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as { productSlug?: string; collectionSlug?: string; postSlug?: string; tag?: string; path?: string };
