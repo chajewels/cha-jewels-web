@@ -54,7 +54,7 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
   - Most pieces are one of a kind (quantity 1).
 - **Languages.** Japanese is primary. English is a toggle, handled by `lib/i18n.ts` and `lib/content/`. Layaway exists only when the language is English (`lib/layaway-availability.ts`).
 - **Currencies.** Yen is the price of record. A customer may pay in yen or in pesos, whichever they choose; the Hub converts at the checkout FX rate. Loyalty points are always calculated in yen.
-- **Buying flow: reserve first.** Every order is a reservation first. Staff confirm the piece, and only then does the customer receive payment details and a deadline. A transfer order holds stock for 72 hours after confirmation. A quote never reserves stock.
+- **Buying flow: reserve first.** Every order is a reservation first. Staff confirm the piece, and only then does the customer receive payment details and a deadline. A transfer order holds stock after confirmation for 24 hours (new customer) or 72 hours (returning customer, including an old Hub customer linked by email) — the Hub decides, owner confirmed 2026-10-18. A quote never reserves stock.
 - **Live orders.** Live claims are handled in the Hub (from a Page365 order link), not on this site. A live order reaches the customer through `/account`. There is no `/live` route.
 - **Chat-first customers.** Messenger, Facebook, email, WhatsApp and LINE are supported by `components/site/social-icons.tsx`. Which ones show is a Hub setting (`social.follow`).
 - **Deployment.** Next.js 15 App Router on Vercel. `develop` → PR → `main`, and the owner merges. Reviews happen on the branch alias preview URL.
