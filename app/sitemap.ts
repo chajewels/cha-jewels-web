@@ -66,6 +66,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/legal/privacy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/legal/terms`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/legal/returns`, changeFrequency: "yearly", priority: 0.3 },
+    // 特定商取引法に基づく表記: answers 200 in both languages (no notFound; only
+    // its layaway lines vary by language), so it is safe to list.
+    { url: `${base}/legal/tokusho`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
     ...indexablePosts.map((p) => ({
       url: `${base}/blog/${p.slug.trim()}`,
