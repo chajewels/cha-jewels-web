@@ -25,14 +25,14 @@ async function snapshot() {
   const out = {};
   for (const lang of ["en", "ja"]) {
     for (const hide of ["", "1"]) {
-      process.env.HERO_HIDE_EMPTY_CATEGORIES = hide;
+      process.env.STG_HERO_HIDE_EMPTY_CATEGORIES = hide;
       out[`deck:${lang}:hide=${hide || "off"}`] = await buildHeroDeck(lang, fx.categories);
     }
     for (const c of fx.categories) {
       out[`stage:${lang}:${c.slug}`] = stagePieces(fx.products.filter((p) => (p.category_slugs ?? []).includes(c.slug)), lang);
     }
   }
-  delete process.env.HERO_HIDE_EMPTY_CATEGORIES;
+  delete process.env.STG_HERO_HIDE_EMPTY_CATEGORIES;
   // A piece's sale fields (fullPriceJpy / onSale, 2026-10-15) are display data
   // added after the golden was written; the golden pins WHICH pieces show, in
   // what order, at what price — so they are left out rather than regenerating it.

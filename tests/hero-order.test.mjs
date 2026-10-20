@@ -120,8 +120,8 @@ const CATS = [
 ];
 async function deck(reads, hide) {
   hub.category = async (slug) => ({ ...CATS.find((c) => c.slug === slug), products: reads[slug] });
-  process.env.HERO_HIDE_EMPTY_CATEGORIES = hide ? "1" : "";
-  try { return await buildHeroDeck("en", CATS); } finally { delete process.env.HERO_HIDE_EMPTY_CATEGORIES; }
+  process.env.STG_HERO_HIDE_EMPTY_CATEGORIES = hide ? "1" : "";
+  try { return await buildHeroDeck("en", CATS); } finally { delete process.env.STG_HERO_HIDE_EMPTY_CATEGORIES; }
 }
 
 test("deck (ticks): slides show ticked pieces only; the accessories Index still counts every piece in stock", async () => {
@@ -145,9 +145,9 @@ test("deck (ticks): with the empty switch on, a slide with no ticked piece in st
   assert.deepEqual((await deck(reads, true)).map((s) => s.key), ["film", "preloved-designer-accessories"]);
   assert.deepEqual((await deck(reads, false)).map((s) => s.key), ["film", "fine-jewelry", "preloved-designer-accessories"]);
   hub.category = async () => { throw new Error("down"); };
-  process.env.HERO_HIDE_EMPTY_CATEGORIES = "1";
+  process.env.STG_HERO_HIDE_EMPTY_CATEGORIES = "1";
   assert.equal((await buildHeroDeck("en", CATS)).length, 3);
-  delete process.env.HERO_HIDE_EMPTY_CATEGORIES;
+  delete process.env.STG_HERO_HIDE_EMPTY_CATEGORIES;
 });
 
 test("deck: a category slide carries total = every available piece in its pool (sold not counted); the film slide has none", async () => {

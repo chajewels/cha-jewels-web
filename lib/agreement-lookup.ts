@@ -107,8 +107,8 @@ export async function agreementStatus(target: AgreementTarget): Promise<Agreemen
 
   if (!UUID.test(key)) return { ok: false, reason: card ? "bad_order_id" : "bad_quote_id" };
 
-  const base = (process.env.AGREEMENT_LOOKUP_URL ?? "").trim();
-  const token = (process.env.AGREEMENT_LOOKUP_TOKEN ?? "").trim();
+  const base = (process.env.STG_AGREEMENT_LOOKUP_URL ?? "").trim();
+  const token = (process.env.STG_AGREEMENT_LOOKUP_TOKEN ?? "").trim();
   // Missing configuration is an error, never "not signed". A preview deploy
   // without the secrets refuses layaway rather than waving it through.
   if (!base || !token) return { ok: false, reason: "not_configured" };

@@ -14,7 +14,7 @@
  * way, and the only honest thing to render when nobody has told us.
  */
 export function authLinkExpiryMinutes(): number | null {
-  const raw = process.env.NEXT_PUBLIC_AUTH_LINK_EXPIRY_MINUTES?.trim();
+  const raw = process.env.NEXT_PUBLIC_STG_AUTH_LINK_EXPIRY_MINUTES?.trim();
   if (!raw) return null;
   const minutes = Number(raw);
   return Number.isFinite(minutes) && minutes > 0 ? Math.round(minutes) : null;

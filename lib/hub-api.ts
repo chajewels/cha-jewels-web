@@ -63,8 +63,8 @@ import type { PostComment, PostComments } from "@/lib/comments";
  * the network, so there is nothing to throw.
  */
 const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
-const BASE = (process.env.HUB_API_URL ?? "").replace(/\/$/, "");
-const KEY = process.env.HUB_API_KEY ?? "";
+const BASE = (process.env.STG_HUB_API_URL ?? "").replace(/\/$/, "");
+const KEY = process.env.STG_HUB_API_KEY ?? "";
 
 /**
  * `code` is the Hub's machine-readable error string (e.g. "transfer_unavailable"),
@@ -710,8 +710,8 @@ export async function submitReview(token: string, form: FormData, clientIp: stri
  * customer's JWT is what actually authorizes the write.
  */
 export async function uploadProof(jwt: string, accountId: string, file: File): Promise<string> {
-  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const base = (process.env.NEXT_PUBLIC_STG_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const anon = process.env.NEXT_PUBLIC_STG_SUPABASE_ANON_KEY ?? "";
   if (!base || !anon) throw new HubError(500, "Supabase URL / anon key not configured");
 
   const form = new FormData();
@@ -760,8 +760,8 @@ export type EnrolResult =
   | { ok: false; status: number | null; reason: string };
 
 export async function loyaltyEnrol(jwt: string, source: EnrolSource): Promise<EnrolResult> {
-  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const base = (process.env.NEXT_PUBLIC_STG_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const anon = process.env.NEXT_PUBLIC_STG_SUPABASE_ANON_KEY ?? "";
   if (!base || !anon) return { ok: false, status: null, reason: "not_configured" };
 
   try {

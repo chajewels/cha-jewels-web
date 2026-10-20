@@ -36,7 +36,7 @@ export type OptimizedImageHost = {
 const PUBLIC_STORAGE = "/storage/v1/object/public/";
 
 export const HUB_IMAGE_HOST =
-  process.env.NEXT_PUBLIC_HUB_IMAGE_HOST || "pfoicalpzdcmyxzvwyhz.supabase.co";
+  process.env.NEXT_PUBLIC_STG_HUB_IMAGE_HOST || "pfoicalpzdcmyxzvwyhz.supabase.co";
 
 export const OPTIMIZED_IMAGE_HOSTS: readonly OptimizedImageHost[] = [
   { hostname: HUB_IMAGE_HOST, pathname: `${PUBLIC_STORAGE}**` },

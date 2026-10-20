@@ -25,7 +25,7 @@ import type { HubMe } from "@/lib/types";
 export type CookieSession = { jwt: string; expired: boolean };
 
 const PROJECT_REF = (() => {
-  try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname.split(".")[0] || null; } catch { return null; }
+  try { return new URL(process.env.NEXT_PUBLIC_STG_SUPABASE_URL ?? "").hostname.split(".")[0] || null; } catch { return null; }
 })();
 
 export async function readSession(): Promise<CookieSession | null> {

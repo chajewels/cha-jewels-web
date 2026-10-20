@@ -138,7 +138,7 @@ test("purchase payload: Meta always, Google only with a label, never an order re
 
 // ---------------------------------------------------------------- events
 
-const ENV = ["NEXT_PUBLIC_VERCEL_ENV", "NEXT_PUBLIC_META_PIXEL_ID", "NEXT_PUBLIC_GOOGLE_ADS_ID", "NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL", "NEXT_PUBLIC_PREVIEW_FIXTURES"];
+const ENV = ["NEXT_PUBLIC_VERCEL_ENV", "NEXT_PUBLIC_STG_META_PIXEL_ID", "NEXT_PUBLIC_STG_GOOGLE_ADS_ID", "NEXT_PUBLIC_STG_GOOGLE_ADS_PURCHASE_LABEL", "NEXT_PUBLIC_PREVIEW_FIXTURES"];
 const saved = Object.fromEntries(ENV.map((k) => [k, process.env[k]]));
 function restoreEnv() { for (const k of ENV) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } }
 
@@ -147,10 +147,10 @@ function browser(choice, { label } = {}) {
   consent.__resetConsentMemoForTest();
   analytics.__resetViewedForTest();
   process.env.NEXT_PUBLIC_VERCEL_ENV = "production";
-  process.env.NEXT_PUBLIC_META_PIXEL_ID = "123456789012345";
-  process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-1234567890";
+  process.env.NEXT_PUBLIC_STG_META_PIXEL_ID = "123456789012345";
+  process.env.NEXT_PUBLIC_STG_GOOGLE_ADS_ID = "AW-1234567890";
   delete process.env.NEXT_PUBLIC_PREVIEW_FIXTURES;
-  if (label) process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL = label; else delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
+  if (label) process.env.NEXT_PUBLIC_STG_GOOGLE_ADS_PURCHASE_LABEL = label; else delete process.env.NEXT_PUBLIC_STG_GOOGLE_ADS_PURCHASE_LABEL;
   const calls = [];
   const store = memoryStorage(choice ? { "cj-consent": JSON.stringify({ v: 1, ads: choice, at: "2026-10-15T00:00:00.000Z" }) } : {});
   globalThis.window = {
@@ -206,7 +206,7 @@ test("not production, or one id missing: nothing, even with Accept", () => {
   analytics.trackPurchase({ value: 1000, currency: "JPY" });
   assert.deepEqual(calls, []);
   calls = browser("granted");
-  delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+  delete process.env.NEXT_PUBLIC_STG_GOOGLE_ADS_ID;
   analytics.adsEvent("ViewContent", { content_ids: ["x"] });
   assert.deepEqual(calls, []);
 });

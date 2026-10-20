@@ -58,7 +58,7 @@ const isSlug = (value: unknown): value is string =>
 
 /** Called by the Hub (Lovable edge function `notify_website`) when a product, variant, stock, post, FAQ answer, site setting, approved review or loyalty tier changes. */
 export async function POST(req: Request) {
-  if (req.headers.get("x-revalidate-secret") !== process.env.REVALIDATE_SECRET) return NextResponse.json({ ok: false }, { status: 401 });
+  if (req.headers.get("x-revalidate-secret") !== process.env.STG_REVALIDATE_SECRET) return NextResponse.json({ ok: false }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as { productSlug?: string; collectionSlug?: string; postSlug?: string; tag?: string; path?: string };
   revalidatePath("/");
   if (body.productSlug) revalidatePath(`/products/${body.productSlug}`);

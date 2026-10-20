@@ -29,8 +29,8 @@ const LABEL = /^[A-Za-z0-9_-]{1,64}$/;
  * are literal so Next inlines them into the client bundle.
  */
 export function adsIds(
-  pixel: string | undefined = process.env.NEXT_PUBLIC_META_PIXEL_ID,
-  aw: string | undefined = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
+  pixel: string | undefined = process.env.NEXT_PUBLIC_STG_META_PIXEL_ID,
+  aw: string | undefined = process.env.NEXT_PUBLIC_STG_GOOGLE_ADS_ID,
 ): AdsIds | null {
   const p = pixel?.trim() ?? "";
   const a = aw?.trim() ?? "";
@@ -38,7 +38,7 @@ export function adsIds(
 }
 
 /** The Google Ads purchase conversion label, or null when unset or malformed. */
-export function purchaseLabel(label: string | undefined = process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL): string | null {
+export function purchaseLabel(label: string | undefined = process.env.NEXT_PUBLIC_STG_GOOGLE_ADS_PURCHASE_LABEL): string | null {
   const l = label?.trim() ?? "";
   return LABEL.test(l) ? l : null;
 }

@@ -333,7 +333,7 @@ export function within<T>(p: Promise<T>, ms: number): Promise<T> {
 
 /** The switch. Anything but "1" / "true" is off. */
 export function hideEmptyCategories(): boolean {
-  const v = process.env.HERO_HIDE_EMPTY_CATEGORIES?.trim().toLowerCase();
+  const v = process.env.STG_HERO_HIDE_EMPTY_CATEGORIES?.trim().toLowerCase();
   return v === "1" || v === "true";
 }
 

@@ -100,7 +100,7 @@ export async function middleware(req: NextRequest) {
   // headers carry the nonce on every path below (including the rebuilt
   // response in the Supabase cookie refresh).
   const csp = cspForPath(req.nextUrl.pathname, {
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? null,
+    supabaseUrl: process.env.NEXT_PUBLIC_STG_SUPABASE_URL ?? null,
     dev: process.env.NODE_ENV === "development",
   });
   // Fail-closed pay-card: tell the page, so she reads a plain line, not a dead form (M-5).
@@ -141,8 +141,8 @@ export async function middleware(req: NextRequest) {
     return response;
   };
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.NEXT_PUBLIC_STG_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_STG_SUPABASE_ANON_KEY;
 
   // Nothing below concerns a public page: skip the auth work entirely. This is
   // the performance rule above, and it is why widening the matcher is safe.

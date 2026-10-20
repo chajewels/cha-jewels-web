@@ -68,6 +68,6 @@ export function cardAgreementContextToken(input: { orderId: string; customerId: 
  * token, so nothing breaks in between (docs/agreement-site/README.md).
  */
 export function cardAgreementContextKey(): string {
-  const own = (process.env.CARD_AGREEMENT_CTX_KEY ?? "").trim();
-  return own || (process.env.AGREEMENT_LOOKUP_TOKEN ?? "").trim();
+  const own = (process.env.STG_CARD_AGREEMENT_CTX_KEY ?? "").trim();
+  return own || (process.env.STG_AGREEMENT_LOOKUP_TOKEN ?? "").trim();
 }
