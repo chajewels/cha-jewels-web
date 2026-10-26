@@ -5,6 +5,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { HubImage } from "@/components/media/hub-image";
 import { useHeroMotion } from "@/components/home/hero";
+import { HeroShine } from "@/components/fx/hero-shine";
 import { trackHeroSlideCta } from "@/lib/analytics";
 import { SalePrice } from "@/components/commerce/sale-price";
 import { HERO_TURN } from "@/lib/motion";
@@ -97,7 +98,7 @@ function FilmView({ lang }: { lang: Lang }) {
           <p className="hd-eyebrow hd-rise">{t("home", "heroSince")}</p>
           <h1 className="hd-title">
             <span className="hd-line hd-rise" style={d(0.12)}>{t("hero", "h1a")}</span>
-            <span className="hd-line hd-rise" style={d(0.24)}><span className="hd-gilt">{t("hero", "h1b")}</span></span>
+            <span className="hd-line hd-rise" style={d(0.24)}><HeroShine>{t("hero", "h1b")}</HeroShine></span>
           </h1>
           <p className="hd-origin hd-rise" style={d(0.36)}>{t("brand", "originNote")}</p>
           {/* Navigation, so the outline button — never orange (DESIGN.md, The
