@@ -337,6 +337,18 @@ if (process.env.NEXT_PUBLIC_PREVIEW_LIVE_MIRROR === "1") {
   for (const p of liveMirrorProducts) products.push({ ...p, col: p.col ?? "live" });
 }
 /**
+ * `collection_slugs` (LIVE, Hub 2026-10-27): every piece in the collection it
+ * sits in here, so the grids' Kind filter is seen in preview; a piece whose
+ * `col` is not a listed collection (watches, accessories) is in none, as the
+ * Hub sends `[]`. The Open heart pendant is in two (Necklaces and Pendants),
+ * as a Hub piece can be — so a category page counts it under both kinds.
+ */
+for (const p of products) p.collection_slugs = collections.some((c) => c.slug === p.col) ? [p.col] : [];
+{
+  const heart = products.find((p) => p.sku === "CJ-1010");
+  if (heart?.col === "necklaces") heart.collection_slugs = ["necklaces", "pendants"];
+}
+/**
  * FIELDS THE HUB DOES NOT SEND YET (D2-1, supabase/contracts/api.md "Proposed:
  * item type and product video"). Preview only, so the grid's Type filter and
  * the gallery's video slot can be seen before Lovable ships them:

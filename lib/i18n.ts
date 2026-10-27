@@ -437,11 +437,15 @@ export const dict = {
     condition: { ja: "状態", en: "Condition" },
     type: { ja: "種類", en: "Type" },
     typeJewelry: { ja: "ジュエリー", en: "Jewelry" }, typeWatch: { ja: "ウォッチ", en: "Watch" }, typeAccessory: { ja: "アクセサリー", en: "Accessory" },
+    // Kind = the Hub's collections, Brand = the Hub's brand (owner decisions
+    // 2026-10-27). Not 種類 for Kind: that is already Type's label above.
+    kind: { ja: "アイテム", en: "Kind" },
+    brand: { ja: "ブランド", en: "Brand" },
     metal: { ja: "素材", en: "Metal" },
     availableOnly: { ja: "販売中のみ", en: "Available only" },
     sort: { ja: "並び替え", en: "Sort" },
     sortLabel: { ja: "並び替え：{s}", en: "Sort: {s}" },
-    sortNewest: { ja: "新着順", en: "Newest" }, sortLow: { ja: "価格の安い順", en: "Price: low to high" }, sortHigh: { ja: "価格の高い順", en: "Price: high to low" },
+    sortNewest: { ja: "新着順", en: "Newest" }, sortOldest: { ja: "古い順", en: "Oldest" }, sortLow: { ja: "価格の安い順", en: "Price: low to high" }, sortHigh: { ja: "価格の高い順", en: "Price: high to low" },
     filter: { ja: "絞り込み", en: "Filter" },
     filters: { ja: "絞り込みと並び替え", en: "Filter and sort" },
     clear: { ja: "クリア", en: "Clear" },

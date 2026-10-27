@@ -17,13 +17,20 @@ import type { ItemType } from "@/lib/types";
  *   type        Jewelry / Watch / Accessory — the Hub's `item_type` (D2-1).
  *               Not sent yet: the group appears only once a piece on the page
  *               carries one. Nothing is inferred from a SKU or a name.
+ *   kind        the Hub's collections the pieces belong to (`collection_slugs`,
+ *               owner 2026-10-27), named in the Hub's words and order
+ *               (CatalogSection), when the page has more than one
+ *   brand       every `brand` on the page exactly as the Hub writes it — no
+ *               merging of spellings — when there is more than one; a piece
+ *               with no brand is in no chip
  *   metal       every stamp on the page, exactly as the Hub writes it (K18,
  *               750, Silver…), when there is more than one
  *   available   "Available only". Sold pieces show by default (D2-7).
- *   sort        Newest (the Hub's own order), price low to high, high to low
- *               — comparisons of the Hub's yen prices, never arithmetic.
+ *   sort        Newest (the Hub's own order), Oldest (that order reversed —
+ *               no dates read), price low to high, high to low — comparisons
+ *               of the Hub's yen prices, never arithmetic.
  *
- * The five filters live in the address bar (lib/catalog-filters.ts; owner
+ * The filters live in the address bar (lib/catalog-filters.ts; owner
  * report 2026-10-17), so a shared link opens on the chosen group. They are
  * read after mount and written with history.replaceState — no navigation, no
  * refetch, and the page stays ISR (no searchParams, no useSearchParams).
@@ -42,6 +49,10 @@ export type GridItem = {
   /** The card shows the Sale tag (lib/sale.ts struckFullPrice): on sale and not sold. */
   sale: boolean;
   type: ItemType | null;
+  /** The Hub's `collection_slugs` for the piece ([] when none). */
+  kinds: string[];
+  /** The Hub's `brand`, exactly as written; null when none. */
+  brand: string | null;
   /** `key` is the Hub stamp (filter, count, URL); `label` is what the chip shows. */
   metals: { key: string; label: string }[];
   sold: boolean;
@@ -51,13 +62,15 @@ export type GridItem = {
 export type GridLabels = {
   condition: string; all: string; new: string; preloved: string; sale: string;
   type: string; types: Record<ItemType, string>;
+  kind: string; brand: string;
   metal: string; availableOnly: string;
-  sort: string; sortLabel: string; sorts: { newest: string; low: string; high: string };
+  sort: string; sortLabel: string; sorts: Record<Sort, string>;
   filter: string; filters: string; clear: string; show: string; close: string;
   count: string; countOne: string; includingSold: string; emptyFiltered: string;
 };
 
-type Sort = "newest" | "low" | "high";
+type Sort = "newest" | "oldest" | "low" | "high";
+const SORTS: Sort[] = ["newest", "oldest", "low", "high"];
 const TYPES: ItemType[] = ["Jewelry", "Watch", "Accessory"];
 const has = (x: GridItem, key: string) => x.metals.some((m) => m.key === key);
 
@@ -86,14 +99,18 @@ const CSS = `
 @keyframes cg-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .cg-panel { animation: none; } .cg-bar, .cg-switch, .cg-switch::after { transition: none; } }`;
 
-export function CatalogGrid({ items, labels, tile }: {
+export function CatalogGrid({ items, kinds, labels, tile }: {
   items: GridItem[];
+  /** The page's collections, in the Hub's order, with their names in the current language (CatalogSection). */
+  kinds: { key: string; label: string }[];
   labels: GridLabels;
   /** The "ask a person" tile's content; `.cg-permit` inside it shows from two cells. */
   tile: React.ReactNode;
 }) {
   const [cond, setCond] = useState<"all" | "new" | "preloved" | "sale">("all");
   const [type, setType] = useState<ItemType | null>(null);
+  const [kind, setKind] = useState<string | null>(null);
+  const [brand, setBrand] = useState<string | null>(null);
   const [metal, setMetal] = useState<string | null>(null);
   const [availOnly, setAvailOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("newest");
@@ -102,12 +119,18 @@ export function CatalogGrid({ items, labels, tile }: {
   const hasTypes = items.some((x) => x.type);
   // One chip per stamp, in the order the stamps first appear on the page.
   const metals = useMemo(() => [...new Map(items.flatMap((x) => x.metals).map((m) => [m.key, m] as const)).values()], [items]);
+  // Shown only when a piece carries collection_slugs and the page has more than one kind.
+  const hasKinds = items.some((x) => x.kinds.length > 0) && kinds.length > 1;
+  // One chip per brand, in the order the brands first appear on the page.
+  const brands = useMemo(() => [...new Set(items.flatMap((x) => (x.brand ? [x.brand] : [])))], [items]);
   const n = {
     new: items.filter((x) => !x.preloved).length,
     preloved: items.filter((x) => x.preloved).length,
     sale: items.filter((x) => x.sale).length,
     type: (k: ItemType) => items.filter((x) => x.type === k).length,
     metal: (m: string) => items.filter((x) => has(x, m)).length,
+    kind: (k: string) => items.filter((x) => x.kinds.includes(k)).length,
+    brand: (b: string) => items.filter((x) => x.brand === b).length,
   };
 
   // The URL: restored once after mount (the first render stays at the
@@ -119,20 +142,22 @@ export function CatalogGrid({ items, labels, tile }: {
   useEffect(() => {
     if (typeof window === "undefined" || !ready.current) return;
     if (skip.current) { skip.current = false; return; }
-    const search = catalogFiltersToSearch(window.location.search, { cond, type, metal, availOnly, sort });
+    const search = catalogFiltersToSearch(window.location.search, { cond, type, kind, brand, metal, availOnly, sort });
     if (search === window.location.search) return;
     window.history.replaceState(window.history.state, "", window.location.pathname + search + window.location.hash);
-  }, [cond, type, metal, availOnly, sort]);
+  }, [cond, type, kind, brand, metal, availOnly, sort]);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const f = parseCatalogFilters(window.location.search, {
       types: hasTypes ? TYPES.filter((k) => items.some((x) => x.type === k)) : [],
       metals: metals.map((m) => m.key),
+      kinds: hasKinds ? kinds.map((k) => k.key) : [],
+      brands: brands.length > 1 ? brands : [],
     });
     ready.current = true;
-    if (f.cond === "all" && !f.type && !f.metal && !f.availOnly && f.sort === "newest") return;
+    if (f.cond === "all" && !f.type && !f.kind && !f.brand && !f.metal && !f.availOnly && f.sort === "newest") return;
     skip.current = true;
-    setCond(f.cond); setType(f.type); setMetal(f.metal); setAvailOnly(f.availOnly); setSort(f.sort);
+    setCond(f.cond); setType(f.type); setKind(f.kind); setBrand(f.brand); setMetal(f.metal); setAvailOnly(f.availOnly); setSort(f.sort);
     // Once, on mount: the page's own list is what the link is checked against.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -141,14 +166,18 @@ export function CatalogGrid({ items, labels, tile }: {
     const list = items.filter((x) =>
       (cond === "all" || (cond === "sale" ? x.sale : (cond === "preloved") === x.preloved)) &&
       (!type || x.type === type) &&
+      (!kind || x.kinds.includes(kind)) &&
+      (!brand || x.brand === brand) &&
       (!metal || has(x, metal)) &&
       (!availOnly || !x.sold));
     if (sort === "newest") return list;
+    // The Hub's own order, read backwards: no date is read or compared.
+    if (sort === "oldest") return [...list].reverse();
     // A comparison of the Hub's yen prices; a piece without one goes last.
     return [...list].sort((a, b) => (a.price == null ? 1 : b.price == null ? -1 : sort === "low" ? a.price - b.price : b.price - a.price));
-  }, [items, cond, type, metal, availOnly, sort]);
+  }, [items, cond, type, kind, brand, metal, availOnly, sort]);
 
-  const clear = () => { setCond("all"); setType(null); setMetal(null); setAvailOnly(false); setSort("newest"); };
+  const clear = () => { setCond("all"); setType(null); setKind(null); setBrand(null); setMetal(null); setAvailOnly(false); setSort("newest"); };
   const anySold = items.some((x) => x.sold);
   const count = (shown.length === 1 ? labels.countOne : labels.count).replace("{n}", String(shown.length)) + (anySold && !availOnly && shown.some((x) => x.sold) ? labels.includingSold : "");
 
@@ -169,6 +198,16 @@ export function CatalogGrid({ items, labels, tile }: {
           {TYPES.map((k) => <Chip key={k} on={type === k} n={n.type(k)} onClick={() => setType(type === k ? null : k)}>{labels.types[k]}</Chip>)}
         </Group>
       )}
+      {hasKinds && (
+        <Group label={labels.kind} inSheet={inSheet}>
+          {kinds.map((k) => <Chip key={k.key} on={kind === k.key} n={n.kind(k.key)} onClick={() => setKind(kind === k.key ? null : k.key)}>{k.label}</Chip>)}
+        </Group>
+      )}
+      {brands.length > 1 && (
+        <Group label={labels.brand} inSheet={inSheet}>
+          {brands.map((b) => <Chip key={b} on={brand === b} n={n.brand(b)} onClick={() => setBrand(brand === b ? null : b)}>{b}</Chip>)}
+        </Group>
+      )}
       {metals.length > 1 && (
         <Group label={labels.metal} inSheet={inSheet}>
           {metals.map((m) => <Chip key={m.key} on={metal === m.key} n={n.metal(m.key)} onClick={() => setMetal(metal === m.key ? null : m.key)}>{m.label}</Chip>)}
@@ -186,9 +225,7 @@ export function CatalogGrid({ items, labels, tile }: {
     <label className="relative inline-flex h-[38px] items-center rounded-sm border border-charcoal/30 bg-white text-[13px]">
       <span className="sr-only">{labels.sort}</span>
       <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="h-full appearance-none bg-transparent pl-3 pr-8 text-[13px] outline-none">
-        <option value="newest">{labels.sortLabel.replace("{s}", labels.sorts.newest)}</option>
-        <option value="low">{labels.sortLabel.replace("{s}", labels.sorts.low)}</option>
-        <option value="high">{labels.sortLabel.replace("{s}", labels.sorts.high)}</option>
+        {SORTS.map((k) => <option key={k} value={k}>{labels.sortLabel.replace("{s}", labels.sorts[k])}</option>)}
       </select>
       <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2.5 h-4 w-4" strokeWidth={1.6} />
     </label>
@@ -239,7 +276,7 @@ export function CatalogGrid({ items, labels, tile }: {
         <div className="grid gap-2.5 border-b border-hairline py-3.5">
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-dark [:lang(ja)_&]:text-xs [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{labels.sort}</span>
           <div className="flex flex-wrap gap-2">
-            {(["newest", "low", "high"] as const).map((k) => <Chip key={k} on={sort === k} onClick={() => setSort(k)}>{labels.sorts[k]}</Chip>)}
+            {SORTS.map((k) => <Chip key={k} on={sort === k} onClick={() => setSort(k)}>{labels.sorts[k]}</Chip>)}
           </div>
         </div>
       </Sheet>}
