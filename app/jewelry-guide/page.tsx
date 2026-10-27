@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
 import { tr, type Lang } from "@/lib/i18n";
@@ -10,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { GuideStory } from "@/components/fx/guide-story";
 import { GuidePlate } from "@/components/editorial/guide-plate";
-import { ClaspDrawing, DiamondDiagram, NecklaceDiagram, RingDiagram } from "@/components/editorial/jewelry-guide-art";
+import { CaratScale, ClarityScale, ColorScale, CutScale, NecklaceDiagram, RingDiagram } from "@/components/editorial/jewelry-guide-art";
 import { RevealBlock } from "@/components/fx/reveal";
 import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 
@@ -23,10 +24,11 @@ export const generateMetadata = () => pageMeta("jewelryGuide");
  * every inner page; the Gold Guide's dark plates and its scroll story live on
  * inside Metals and Care, where its copy was merged.
  *
- * Every word comes from lib/content/jewelry-guide.ts; every drawing is
- * components/editorial/jewelry-guide-art.tsx. Tables never push the page
- * sideways: the ring table sits in its own scroll box, and the stamp list
- * stacks.
+ * Every word comes from lib/content/jewelry-guide.ts. The ring and necklace
+ * drawings and the 4C scales are components/editorial/jewelry-guide-art.tsx;
+ * the clasps and the diamond are the owner's images in
+ * public/images/jewelry-guide/. Tables never push the page sideways: the ring table
+ * sits in its own scroll box, and the stamp list stacks.
  */
 export default async function JewelryGuidePage() {
   const lang = await getLang();
@@ -151,7 +153,9 @@ export default async function JewelryGuidePage() {
         <div className="rule-grid mt-8 grid sm:grid-cols-2 lg:grid-cols-5 [&>*:last-child]:sm:col-span-2 [&>*:last-child]:lg:col-span-1">
           {clasps.items.map((c) => (
             <div key={c.key} className="flex flex-col bg-white p-5">
-              <div className="flex justify-center bg-chalk px-3 py-4"><ClaspDrawing kind={c.key} /></div>
+              <div className="mx-auto w-full max-w-[220px] bg-white">
+                <Image src={c.img.src} alt={c.img.alt[lang]} width={800} height={800} sizes="220px" className="aspect-square h-auto w-full object-contain" />
+              </div>
               <h3 className="mt-4 font-display text-xl text-charcoal-deep">{c.name[lang]}</h3>
               <p className="mt-2 text-[15px] text-charcoal">{c.how[lang]}</p>
             </div>
@@ -204,22 +208,28 @@ export default async function JewelryGuidePage() {
       {/* 6. DIAMOND 4C */}
       <GuideSection id="diamond-4c" lang={lang}>
         <p className="max-w-[62ch] text-charcoal">{diamond4c.intro[lang]}</p>
-        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
-          <div className="flex justify-center bg-white p-6">
-            <DiamondDiagram labels={Object.fromEntries(Object.entries(diamond4c.art).map(([k, v]) => [k, v[lang]])) as Record<keyof typeof diamond4c.art, string>} />
-          </div>
-          <div className="min-w-0">
-            <div className="rule-grid grid sm:grid-cols-2">
-              {diamond4c.items.map((it) => (
-                <div key={it.key} className="bg-white p-5">
-                  <h3 className="font-display text-xl text-charcoal-deep">{it.name[lang]}</h3>
-                  <p className="mt-2 text-[15px] text-charcoal">{it.body[lang]}</p>
-                </div>
-              ))}
+        <div className="rule-grid mt-8 grid sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)] xl:grid-rows-2">
+          <figure className="flex flex-col items-center justify-center bg-white p-6 sm:col-span-2 xl:col-span-1 xl:col-start-2 xl:row-span-2 xl:row-start-1">
+            <Image src={diamond4c.image.src} alt={diamond4c.image.alt[lang]} width={720} height={540} sizes="(min-width: 1280px) 420px, (min-width: 640px) 480px, 90vw" className="h-auto w-full max-w-[440px]" />
+            <figcaption className="mt-4 grid w-full max-w-[440px] grid-cols-2 border-t border-hairline pt-3 text-center font-display text-base text-gold-dark sm:grid-cols-4">
+              {diamond4c.items.map((it) => <span key={it.key} className="py-1">{it.name[lang]}</span>)}
+            </figcaption>
+          </figure>
+          {diamond4c.items.map((it) => (
+            <div key={it.key} className={`bg-white p-5 ${FOUR_C_PLACE[it.key]}`}>
+              {lang === "ja" && <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-dark">{it.term}</p>}
+              <h3 className="font-display text-xl text-charcoal-deep">{it.name[lang]}</h3>
+              <div className="mt-4">
+                {it.key === "color" && <ColorScale from={diamond4c.scales.color.from[lang]} to={diamond4c.scales.color.to[lang]} sr={diamond4c.scales.color.sr[lang]} />}
+                {it.key === "clarity" && <ClarityScale from={diamond4c.scales.clarity.from[lang]} to={diamond4c.scales.clarity.to[lang]} sr={diamond4c.scales.clarity.sr[lang]} />}
+                {it.key === "cut" && <CutScale from={diamond4c.scales.cut.from[lang]} to={diamond4c.scales.cut.to[lang]} sr={diamond4c.scales.cut.sr[lang]} />}
+                {it.key === "carat" && <CaratScale unit={diamond4c.scales.carat.unit[lang]} note={diamond4c.scales.carat.note[lang]} sr={diamond4c.scales.carat.sr[lang]} />}
+              </div>
+              <p className="mt-4 text-[15px] text-charcoal">{it.body[lang]}</p>
             </div>
-            <p className="mt-4 text-sm text-charcoal/80">{diamond4c.note[lang]}</p>
-          </div>
+          ))}
         </div>
+        <p className="mt-4 text-sm text-charcoal/80">{diamond4c.note[lang]}</p>
       </GuideSection>
 
       {/* 7. CARE — the Gold Guide's care step and its plate. */}
@@ -248,6 +258,14 @@ export default async function JewelryGuidePage() {
     </>
   );
 }
+
+/** Where each C sits around the stone on wide screens: Cut and Carat left, Clarity and Colour right. */
+const FOUR_C_PLACE: Record<(typeof diamond4c.items)[number]["key"], string> = {
+  cut: "xl:col-start-1 xl:row-start-1",
+  carat: "xl:col-start-1 xl:row-start-2",
+  clarity: "xl:col-start-3 xl:row-start-1",
+  color: "xl:col-start-3 xl:row-start-2",
+};
 
 /** One numbered section with its anchor; `scroll-mt` keeps the heading clear of the sticky header. */
 function GuideSection({ id, lang, children }: { id: GuideSectionId; lang: Lang; children: React.ReactNode }) {
