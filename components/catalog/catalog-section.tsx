@@ -54,7 +54,9 @@ export async function CatalogSection({ products, lang, messenger }: { products: 
     kind: t("collection", "kind"), brand: t("collection", "brand"),
     metal: t("collection", "metal"), availableOnly: t("collection", "availableOnly"),
     sort: t("collection", "sort"), sortLabel: dict.collection.sortLabel[lang], sorts: { newest: t("collection", "sortNewest"), oldest: t("collection", "sortOldest"), low: t("collection", "sortLow"), high: t("collection", "sortHigh") },
-    filter: t("collection", "filter"), filters: t("collection", "filters"), clear: t("collection", "clear"), show: dict.collection.show[lang], close: t("collection", "close"),
+    filter: t("collection", "filter"), filters: t("collection", "filters"), clear: t("collection", "clear"),
+    activeFilters: t("collection", "activeFilters"), removeFilter: dict.collection.removeFilter[lang], clearAll: t("collection", "clearAll"),
+    brandSearch: t("collection", "brandSearch"), brandNone: t("collection", "brandNone"), show: dict.collection.show[lang], close: t("collection", "close"),
     count: dict.collection.count[lang], countOne: dict.collection.countOne[lang], includingSold: t("collection", "includingSold"), emptyFiltered: t("collection", "emptyFiltered"),
   };
   return <CatalogGrid items={items} kinds={kinds} labels={labels} tile={<AskTile lang={lang} messenger={messenger} />} />;
