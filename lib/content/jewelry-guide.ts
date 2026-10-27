@@ -109,10 +109,59 @@ export const ringSize = {
     { ja: "指は暑いとむくみ、寒いと細くなります。入浴直後や冷え込んだ朝は避けましょう。", en: "Fingers swell in the heat and shrink in the cold. Avoid measuring straight after a bath or on a cold morning." },
     { ja: "2〜3回測り、いちばん多く出た数字を選んでください。", en: "Measure two or three times and go with the figure that comes up most." },
   ],
-  /** The diagram's labels (RingDiagram). */
-  art: {
+  /**
+   * The on-screen ring sizer (components/editorial/ring-sizer.tsx). It reads
+   * RING_SIZES only. `valueText` is the slider's aria-valuetext; {n} and {d}
+   * are replaced with the size and its inside diameter. The ring is an
+   * owner-approved AI image (2026-10-27), captioned as an illustration.
+   */
+  sizer: {
+    h: { ja: "画面で確かめる", en: "Check it on screen" },
+    instruction: {
+      ja: "合っている指輪を、画面の金色のリングの上に平らに置きます。スライダーを動かし、金色のリングの内側の縁が、お手持ちの指輪の内側とぴったり重なる号数を探してください。",
+      en: "Lay a ring that fits flat on the screen, over the gold ring. Move the slider until the gold ring's inside edge lines up with the inside of yours.",
+    },
+    screens: {
+      ja: "画面によって表示される大きさは異なります。先に下の「画面の調整」を行ってください。結果はあくまで目安です。",
+      en: "Every screen shows sizes a little differently, so calibrate yours first (below). The result is a guide only.",
+    },
+    slider: { ja: "リングサイズ（号）", en: "Ring size (号)" },
+    valueText: { ja: "{n}号, 内径 {d} mm", en: "Size {n}, inside diameter {d} mm" },
+    size: { ja: "号数", en: "Size" },
+    sizeUnit: { ja: "号", en: "号" },
     diameter: { ja: "内径", en: "Inside diameter" },
     circumference: { ja: "内周", en: "Inside circumference" },
+    smaller: { ja: "1号小さく", en: "One size smaller" },
+    larger: { ja: "1号大きく", en: "One size larger" },
+    calibrateH: { ja: "画面の調整", en: "Calibrate your screen" },
+    calibrateLede: {
+      ja: "どちらかの方法で、画面上の長さを実物に合わせます。",
+      en: "Match lengths on screen to real life, by either method.",
+    },
+    ruler: { ja: "定規で", en: "With a ruler" },
+    card: { ja: "カードで", en: "With a card" },
+    rulerHow: {
+      ja: "定規を画面に当て、画面の目盛りが定規のmmと重なるまで「縮小」「拡大」で調整してください。",
+      en: "Hold a ruler against the screen and use Shrink and Enlarge until the marks on screen match its millimetres.",
+    },
+    cardHow: {
+      ja: "ICカードやポイントカードなど、標準サイズのカード（85.60 × 53.98 mm）を画面に当て、枠がカードとぴったり同じ大きさになるまで調整してください。",
+      en: "Hold any standard-size card (85.60 × 53.98 mm), such as an IC or point card, against the screen and adjust until the outline is exactly the size of the card.",
+    },
+    shrink: { ja: "縮小", en: "Shrink" },
+    enlarge: { ja: "拡大", en: "Enlarge" },
+    reset: { ja: "元に戻す", en: "Reset" },
+    scale: { ja: "表示の倍率", en: "Display scale" },
+    alt: {
+      ja: "イメージ図：真上から見た、磨き仕上げのK18イエローゴールドのリング。内側の縁が、選んだ号数の内径と同じ大きさで表示されます。",
+      en: "Illustration: a polished K18 yellow gold band seen from above. Its inside edge is shown at the inside diameter of the chosen size.",
+    },
+    notCalibrated: { ja: "未調整", en: "not yet calibrated" },
+    calibratedAt: { ja: "倍率 {p}%", en: "{p}%" },
+    saved: {
+      ja: "調整した倍率は、このブラウザに保存されます（ブラウザの設定によっては保存されません）。",
+      en: "Your setting is saved in this browser, if it allows it.",
+    },
   },
 } as const;
 
@@ -141,6 +190,28 @@ export const necklaceLength = {
     en: "Not sure? Lay a necklace you already own flat, measure it end to end with the clasp, and compare.",
   },
   caption: { ja: "ネックレスの長さの目安", en: "Typical necklace lengths" },
+  /**
+   * The length slider (components/editorial/necklace-sizer.tsx); {name} and
+   * {cm} come from `lengths`; `shorter` / `longer` label the step buttons.
+   * Its five pictures are owner-approved AI images (2026-10-27, replacing an
+   * earlier strapless set that cut off the long lengths): one woman in a
+   * cream silk blouse, chin to waist, identical framing, one chain length
+   * each (public/images/jewelry-guide/neckline-<key>.webp).
+   */
+  sizer: {
+    slider: { ja: "ネックレスの長さ", en: "Necklace length" },
+    valueText: { ja: "{name}, {cm}", en: "{name}, {cm}" },
+    alt: {
+      ja: "イメージ図：{name}（{cm}）の長さの細いゴールドチェーンを、クリーム色のブラウスの上に着けた姿。",
+      en: "Illustration: a fine gold chain at {name} length ({cm}), worn over a cream blouse.",
+    },
+    shorter: { ja: "短く：{name}", en: "Shorter: {name}" },
+    longer: { ja: "長く：{name}", en: "Longer: {name}" },
+    note: {
+      ja: "それぞれの長さが、体のどのあたりに来るかを示したイメージです。実寸ではありません。",
+      en: "Shows roughly where each length sits on the body. Not drawn to real size.",
+    },
+  },
   lengths: [
     { key: "choker", name: { ja: "チョーカー", en: "Choker" }, cm: { ja: "約35〜40cm", en: "about 35–40 cm" }, where: { ja: "首の付け根に沿う長さ。", en: "Close around the base of the neck." } },
     { key: "princess", name: { ja: "プリンセス", en: "Princess" }, cm: { ja: "約43〜48cm", en: "about 43–48 cm" }, where: { ja: "鎖骨の上か、すぐ下に収まる長さ。最初の一本に選ばれることの多い長さです。", en: "On or just below the collarbone. The length most people choose first." } },
@@ -205,6 +276,12 @@ export const sizeNotes = {
 
 // --------------------------------------------------------------------- 4. CLASPS
 
+/**
+ * Each clasp's picture: the owner's own photographs (2026-10-27), 800 × 800
+ * WebP on white in public/images/jewelry-guide/ — real photos, so no
+ * illustration caption. The alt text says what the clasp is
+ * and how it looks; it names no maker and claims no origin.
+ */
 export const clasps = {
   intro: {
     ja: "留め具の多くは、指先ひとつで開け閉めできます。よく見かける5つの留め具と、その扱い方です。",
@@ -213,6 +290,7 @@ export const clasps = {
   items: [
     {
       key: "spring", name: { ja: "引き輪", en: "Spring ring" },
+      img: { src: "/images/jewelry-guide/clasp-spring-ring.webp", alt: { ja: "引き輪：丸い輪の横に、輪を開けるための小さなつまみが付いています。", en: "Spring ring clasp: a round ring with a small lever on its side that opens it." } },
       how: {
         ja: "小さな丸い輪に、つまみが付いた留め具です。つまみを爪で引いて輪を開き、もう一方の輪を掛けて指を離すと、自然に閉じます。",
         en: "A small round ring with a tiny lever. Pull the lever back with a fingernail, slip the end ring in and let go: the ring closes by itself.",
@@ -220,6 +298,7 @@ export const clasps = {
     },
     {
       key: "lobster", name: { ja: "カニカン", en: "Lobster clasp" },
+      img: { src: "/images/jewelry-guide/clasp-lobster.webp", alt: { ja: "カニカン：細長いはさみ形の本体に、押して開けるレバーと小さな丸カンが付いています。", en: "Lobster clasp: a long claw-shaped body with a lever that opens the gate, and a small jump ring." } },
       how: {
         ja: "カニのはさみのような形の留め具です。レバーを押して開け、輪に掛けてから離します。引き輪よりつまみやすいのが特長です。",
         en: "Shaped like a claw. Press the lever to open the gate, hook it onto the end ring, then release. Easier to hold than a spring ring.",
@@ -227,6 +306,7 @@ export const clasps = {
     },
     {
       key: "box", name: { ja: "差し込み式（ボックスクラスプ）", en: "Box clasp" },
+      img: { src: "/images/jewelry-guide/clasp-box-safety-catch.webp", alt: { ja: "差し込み式（ボックスクラスプ）：平たい差し込み部分が箱形の本体に収まり、横にワイヤーの安全金具が掛かっています。", en: "Box clasp: a flat tongue sits inside a box-shaped case, with a wire safety catch hooked over the side." } },
       how: {
         ja: "平たい差し込み部分を箱に入れ、カチッと音がするまで押し込みます。外すときは、差し込み部分を押さえながら引き抜きます。横に安全金具が付いているものは、それも閉じてください。",
         en: "A flat tongue slides into a small box until it clicks. To open, press the tongue down and pull it out. If there is a safety catch on the side, close that too.",
@@ -234,6 +314,7 @@ export const clasps = {
     },
     {
       key: "magnetic", name: { ja: "マグネット", en: "Magnetic clasp" },
+      img: { src: "/images/jewelry-guide/clasp-magnetic-capsule.webp", alt: { ja: "マグネット：カプセル形の留め具。上は二つに分けた状態、下は留めた状態です。", en: "Magnetic clasp: a capsule-shaped clasp, shown apart (top) and closed (bottom)." } },
       how: {
         ja: "磁石で留める留め具です。近づけると自然にくっつきます。外すときは、まっすぐ引かずに横へずらしてください。",
         en: "The two ends hold together by magnet. Bring them close and they find each other. To open, slide them apart sideways rather than pulling straight.",
@@ -241,6 +322,7 @@ export const clasps = {
     },
     {
       key: "hook", name: { ja: "フック", en: "Hook clasp" },
+      img: { src: "/images/jewelry-guide/clasp-s-hook.webp", alt: { ja: "フック：両端が丸く仕上げられた、S字形のフックです。", en: "Hook clasp: an S-shaped hook with rounded ends." } },
       how: {
         ja: "S字やJ字のフックを、輪に掛けるだけの留め具です。フックを曲げずに、角度を変えて掛け外ししてください。",
         en: "An S- or J-shaped hook that passes through a ring. Hook and unhook it by changing the angle, never by bending the hook.",
@@ -354,28 +436,28 @@ export const diamond4c = {
   },
   items: [
     {
-      key: "cut", name: { ja: "カット", en: "Cut" },
+      key: "cut", term: "Cut", name: { ja: "カット", en: "Cut" },
       body: {
         ja: "形と研磨の出来ばえで、光をどれだけ返すかが決まります。ラウンドブリリアントは、ExcellentからPoorまでで評価されます。ダイヤモンドの輝きを決めるのが、カットです。",
         en: "How well the stone is shaped and polished, which decides how much light it sends back. Round brilliants are graded from Excellent to Poor. The cut is what makes a diamond sparkle.",
       },
     },
     {
-      key: "carat", name: { ja: "カラット", en: "Carat" },
+      key: "carat", term: "Carat", name: { ja: "カラット", en: "Carat" },
       body: {
         ja: "大きさではなく、重さの単位です。1カラットは0.2gです。同じカラットでも、カットによって見た目の大きさは変わります。",
         en: "Weight, not size: one carat is 0.2 g. Two stones of the same carat can look different in size, depending on how they are cut.",
       },
     },
     {
-      key: "clarity", name: { ja: "クラリティ", en: "Clarity" },
+      key: "clarity", term: "Clarity", name: { ja: "クラリティ", en: "Clarity" },
       body: {
         ja: "内包物（内部の小さな印）や、表面の傷の少なさです。10倍に拡大しても内包物が見えないFL（フローレス）から、IF、VVS、VS、SIを経て、肉眼でも見えることの多いIまであります。",
         en: "How free the stone is of tiny marks inside it (inclusions) and on its surface. The scale runs from FL, flawless under 10× magnification, through IF, VVS, VS and SI, to I, where marks are often visible to the eye.",
       },
     },
     {
-      key: "color", name: { ja: "カラー", en: "Colour" },
+      key: "color", term: "Colour", name: { ja: "カラー", en: "Colour" },
       body: {
         ja: "無色にどれだけ近いかです。D（無色）からZ（薄い黄色や褐色）まであり、隣り合うグレードの差は、肉眼ではほとんどわかりません。",
         en: "How close the stone is to colourless, from D (colourless) to Z (light yellow or brown). The difference between neighbouring grades is very hard to see with the eye alone.",
@@ -386,17 +468,40 @@ export const diamond4c = {
     ja: "鑑定書の付いた品については、お問い合わせいただければ内容をお伝えします。",
     en: "If a piece comes with a grading report, ask us and we will tell you what it says.",
   },
-  /** The diagram's labels (DiamondDiagram). */
-  art: {
-    crown: { ja: "クラウン", en: "Crown" },
-    girdle: { ja: "ガードル", en: "Girdle" },
-    pavilion: { ja: "パビリオン", en: "Pavilion" },
-    light: { ja: "光の反射", en: "Light returned" },
-    colorFrom: { ja: "D 無色", en: "D colourless" },
-    colorTo: { ja: "Z 薄い黄色", en: "Z light yellow" },
-    clarityFrom: { ja: "FL", en: "FL" },
-    clarityTo: { ja: "I", en: "I" },
-    caratUnit: { ja: "1ct = 0.2g", en: "1 ct = 0.2 g" },
+  /**
+   * The infographic (components/editorial/jewelry-guide-art.tsx Diamond4CScale).
+   * The stone is an owner-approved AI image (2026-10-27), side view on white,
+   * captioned as an illustration; every word around it is page text. Grade
+   * names are GIA's.
+   */
+  image: {
+    src: "/images/jewelry-guide/diamond-round-brilliant.webp",
+    alt: { ja: "イメージ図：ラウンドブリリアントカットのダイヤモンドを、横から見たところ。", en: "Illustration: a round brilliant diamond, seen from the side." },
+  },
+  scales: {
+    color: {
+      from: { ja: "無色", en: "Colourless" },
+      to: { ja: "薄い黄色", en: "Light yellow" },
+      sr: { ja: "D（無色）からZ（薄い黄色）までの23段階。", en: "23 grades from D (colourless) to Z (light yellow)." },
+    },
+    clarity: {
+      from: { ja: "10倍で内包物なし", en: "Flawless at 10×" },
+      to: { ja: "肉眼で見えることも", en: "Often visible to the eye" },
+      sr: { ja: "クラリティの11段階、良い順に", en: "The 11 clarity grades, best first" },
+    },
+    cut: {
+      from: { ja: "最も良い", en: "Best" },
+      to: { ja: "最も低い", en: "Lowest" },
+      sr: { ja: "カットの5段階、良い順に", en: "The 5 cut grades, best first" },
+    },
+    carat: {
+      unit: { ja: "1ct = 0.2g", en: "1 ct = 0.2 g" },
+      note: {
+        ja: "同じカットのラウンドを、重さに合わせた大きさで並べた比較です。",
+        en: "Round stones of the same cut, drawn to scale with each other by weight.",
+      },
+      sr: { ja: "0.5・1.0・1.5・2.0カラットのラウンドの大きさの比較。", en: "Round stones of 0.5, 1.0, 1.5 and 2.0 carats, compared in size." },
+    },
   },
 } as const;
 
