@@ -1,34 +1,54 @@
 // CATALOG FILTER URLS (owner report 2026-10-17: filters not carried in shared
 // collection links): the toolbar's filters read from and written to the
-// query string (lib/catalog-filters.ts). Run: npm run test:unit.
+// query string (lib/catalog-filters.ts). Multi-select since the compact
+// toolbar (owner 2026-10-27): comma-separated values, OR within a group.
+// Run: npm run test:unit.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const { DEFAULT_FILTERS, parseCatalogFilters, catalogFiltersToSearch } = await import("@/lib/catalog-filters");
 
 const ALL = { types: ["Jewelry", "Watch", "Accessory"], metals: ["K18", "PT900", "SILVER925"] };
+const PAGE = { ...ALL, kinds: ["necklaces", "rings", "pendants", "earrings"], brands: ["Tiffany & Co.", "BVLGARI", "Cartier", "CARTIER", "Van Cleef, Arpels"] };
+const F = (o) => ({ ...DEFAULT_FILTERS, ...o });
 
 test("empty string → defaults", () => {
   assert.deepEqual(parseCatalogFilters("", ALL), DEFAULT_FILTERS);
   assert.deepEqual(parseCatalogFilters("?", ALL), DEFAULT_FILTERS);
 });
 
-test("cond and metal; metal matched case-insensitively, returned in the allowed spelling", () => {
+// ONE-VALUE LINKS FROM BEFORE MULTI-SELECT (PR #359, PR #381) STILL OPEN.
+test("one-value links: cond and metal; metal matched case-insensitively, returned in the allowed spelling", () => {
   const f = parseCatalogFilters("?cond=preloved&metal=k18", { types: [], metals: ["K18", "PT900"] });
-  assert.equal(f.cond, "preloved");
-  assert.equal(f.metal, "K18");
+  assert.deepEqual(f.cond, ["preloved"]);
+  assert.deepEqual(f.metal, ["K18"]);
 });
 
-test("cond=sale (owner 2026-10-17: Sale in the Condition filter)", () => {
-  assert.equal(parseCatalogFilters("?cond=sale", ALL).cond, "sale");
-  assert.equal(catalogFiltersToSearch("?lang=en", { ...DEFAULT_FILTERS, cond: "sale" }), "?lang=en&cond=sale");
-  const f = { ...DEFAULT_FILTERS, cond: "sale", metal: "K18" };
+test("one-value links: cond=sale", () => {
+  assert.deepEqual(parseCatalogFilters("?cond=sale", ALL).cond, ["sale"]);
+  assert.equal(catalogFiltersToSearch("?lang=en", F({ cond: ["sale"] })), "?lang=en&cond=sale");
+  const f = F({ cond: ["sale"], metal: ["K18"] });
   assert.deepEqual(parseCatalogFilters(catalogFiltersToSearch("", f), ALL), f);
 });
 
-test("a type the page does not show is ignored", () => {
-  assert.equal(parseCatalogFilters("?type=watch", { types: [], metals: [] }).type, null);
-  assert.equal(parseCatalogFilters("type=WATCH", ALL).type, "Watch", "without '?', any case");
+test("one-value links: kind, brand, type", () => {
+  assert.deepEqual(parseCatalogFilters("?kind=rings", PAGE).kind, ["rings"]);
+  assert.deepEqual(parseCatalogFilters("?kind=RINGS", PAGE).kind, ["rings"]);
+  assert.deepEqual(parseCatalogFilters("?brand=Tiffany+%26+Co.", PAGE).brand, ["Tiffany & Co."]);
+  assert.deepEqual(parseCatalogFilters("type=WATCH", ALL).type, ["Watch"], "without '?', any case");
+});
+
+test("a value the page does not show is ignored", () => {
+  assert.deepEqual(parseCatalogFilters("?type=watch", { types: [], metals: [] }).type, []);
+  assert.deepEqual(parseCatalogFilters("?kind=anklets", PAGE).kind, []);
+  assert.deepEqual(parseCatalogFilters("?kind=rings", ALL).kind, [], "a page with no kinds ignores it");
+  assert.deepEqual(parseCatalogFilters("?brand=Hermès", PAGE).brand, []);
+});
+
+test("brand: exactly as the Hub writes it; two spellings stay two brands", () => {
+  assert.deepEqual(parseCatalogFilters("?brand=Cartier", PAGE).brand, ["Cartier"]);
+  assert.deepEqual(parseCatalogFilters("?brand=CARTIER", PAGE).brand, ["CARTIER"]);
+  assert.deepEqual(parseCatalogFilters("?brand=cartier", PAGE).brand, [], "no case folding, no merging");
 });
 
 test("stock=1 and sort", () => {
@@ -36,67 +56,69 @@ test("stock=1 and sort", () => {
   assert.equal(f.availOnly, true);
   assert.equal(f.sort, "high");
   assert.equal(parseCatalogFilters("?sort=low", ALL).sort, "low");
+  assert.equal(parseCatalogFilters("?sort=oldest", ALL).sort, "oldest");
+  assert.equal(parseCatalogFilters("?sort=OLDEST", ALL).sort, "newest", "sort values are exact");
 });
 
 test("invalid values → defaults", () => {
   assert.deepEqual(parseCatalogFilters("?cond=used&type=ring&metal=GOLD&stock=yes&sort=price", ALL), DEFAULT_FILTERS);
   assert.deepEqual(parseCatalogFilters("?%E0%A4%A=1&cond", ALL), DEFAULT_FILTERS, "malformed input never throws");
+  assert.deepEqual(parseCatalogFilters("?cond=all", ALL).cond, [], "All is nothing ticked, never a value");
 });
 
-test("writing: other params kept in place, new keys appended", () => {
-  assert.equal(catalogFiltersToSearch("?lang=en", { ...DEFAULT_FILTERS, cond: "new" }), "?lang=en&cond=new");
-  assert.equal(catalogFiltersToSearch("lang=en", { ...DEFAULT_FILTERS, availOnly: true, sort: "low" }), "?lang=en&stock=1&sort=low");
+// MULTI-VALUE (owner 2026-10-27).
+test("multi: comma-separated values, in link order, unknowns and repeats dropped", () => {
+  const f = parseCatalogFilters("?kind=rings,earrings&brand=Cartier,BVLGARI&cond=new,sale&metal=pt900,k18&type=watch,jewelry", PAGE);
+  assert.deepEqual(f.kind, ["rings", "earrings"]);
+  assert.deepEqual(f.brand, ["Cartier", "BVLGARI"]);
+  assert.deepEqual(f.cond, ["new", "sale"]);
+  assert.deepEqual(f.metal, ["PT900", "K18"]);
+  assert.deepEqual(f.type, ["Watch", "Jewelry"]);
+  assert.deepEqual(parseCatalogFilters("?kind=rings,anklets,RINGS,,earrings", PAGE).kind, ["rings", "earrings"]);
+  assert.deepEqual(parseCatalogFilters("?brand=Cartier,cartier,Hermès", PAGE).brand, ["Cartier"]);
+});
+
+test("multi: a list whose commas were escaped on the way still opens", () => {
+  assert.deepEqual(parseCatalogFilters("?kind=rings%2Cearrings", PAGE).kind, ["rings", "earrings"]);
+  assert.deepEqual(parseCatalogFilters("?brand=Cartier%2CBVLGARI", PAGE).brand, ["Cartier", "BVLGARI"]);
+});
+
+test("multi: a brand holding a comma travels as %2C and stays one brand", () => {
+  const f = F({ brand: ["Van Cleef, Arpels", "Cartier"] });
+  const s = catalogFiltersToSearch("", f);
+  assert.equal(s, "?brand=Van+Cleef%2C+Arpels,Cartier");
+  assert.deepEqual(parseCatalogFilters(s, PAGE).brand, ["Van Cleef, Arpels", "Cartier"]);
+});
+
+test("multi: a repeated key adds its values", () => {
+  assert.deepEqual(parseCatalogFilters("?kind=rings&kind=earrings", PAGE).kind, ["rings", "earrings"]);
+});
+
+test("writing: other params kept in place and as written, new keys appended", () => {
+  assert.equal(catalogFiltersToSearch("?lang=en", F({ cond: ["new"] })), "?lang=en&cond=new");
+  assert.equal(catalogFiltersToSearch("lang=en", F({ availOnly: true, sort: "low" })), "?lang=en&stock=1&sort=low");
+  assert.equal(catalogFiltersToSearch("?utm=a%20b&flag", F({ kind: ["rings"] })), "?utm=a%20b&flag&kind=rings");
+  assert.equal(catalogFiltersToSearch("?kind=rings&lang=ja", F({ kind: ["rings", "earrings"] })), "?kind=rings,earrings&lang=ja", "an existing key keeps its place");
 });
 
 test("writing: defaults remove their keys", () => {
   assert.equal(catalogFiltersToSearch("?lang=en&cond=new&metal=K18", DEFAULT_FILTERS), "?lang=en");
   assert.equal(catalogFiltersToSearch("?cond=new", DEFAULT_FILTERS), "");
   assert.equal(catalogFiltersToSearch("", DEFAULT_FILTERS), "");
+  assert.equal(catalogFiltersToSearch("?kind=rings&kind=earrings&lang=en", DEFAULT_FILTERS), "?lang=en", "repeated keys all go");
 });
 
-test("writing: type lowercase, metal as the Hub stamp", () => {
-  assert.equal(catalogFiltersToSearch("", { ...DEFAULT_FILTERS, type: "Jewelry" }), "?type=jewelry");
-  assert.equal(catalogFiltersToSearch("", { ...DEFAULT_FILTERS, metal: "SILVER925" }), "?metal=SILVER925");
+test("writing: literal commas, type lowercase, metal as the Hub stamp, brand encoded", () => {
+  assert.equal(catalogFiltersToSearch("", F({ kind: ["rings", "earrings"], brand: ["Cartier", "BVLGARI"] })), "?kind=rings,earrings&brand=Cartier,BVLGARI");
+  assert.equal(catalogFiltersToSearch("", F({ type: ["Jewelry", "Watch"] })), "?type=jewelry,watch");
+  assert.equal(catalogFiltersToSearch("", F({ metal: ["SILVER925"] })), "?metal=SILVER925");
+  assert.equal(catalogFiltersToSearch("", F({ brand: ["Tiffany & Co."] })), "?brand=Tiffany+%26+Co.");
+  assert.equal(catalogFiltersToSearch("", F({ sort: "oldest" })), "?sort=oldest");
 });
 
 test("round trip", () => {
-  const f = { cond: "preloved", type: "Watch", kind: null, brand: null, metal: "PT900", availOnly: true, sort: "high" };
-  assert.deepEqual(parseCatalogFilters(catalogFiltersToSearch("?lang=ja", f), ALL), f);
-});
-
-// KIND, BRAND AND OLDEST (owner decisions 2026-10-27).
-const PAGE = { ...ALL, kinds: ["necklaces", "rings", "pendants"], brands: ["Tiffany & Co.", "BVLGARI", "Cartier", "CARTIER"] };
-
-test("kind: a collection slug the page shows, any case, returned as the slug", () => {
-  assert.equal(parseCatalogFilters("?kind=rings", PAGE).kind, "rings");
-  assert.equal(parseCatalogFilters("?kind=RINGS", PAGE).kind, "rings");
-  assert.equal(parseCatalogFilters("?kind=anklets", PAGE).kind, null, "not on this page → ignored");
-  assert.equal(parseCatalogFilters("?kind=rings", ALL).kind, null, "a page with no kinds ignores it");
-});
-
-test("brand: exactly as the Hub writes it; two spellings stay two brands", () => {
-  assert.equal(parseCatalogFilters("?brand=Tiffany+%26+Co.", PAGE).brand, "Tiffany & Co.");
-  assert.equal(parseCatalogFilters("?brand=Cartier", PAGE).brand, "Cartier");
-  assert.equal(parseCatalogFilters("?brand=CARTIER", PAGE).brand, "CARTIER");
-  assert.equal(parseCatalogFilters("?brand=cartier", PAGE).brand, null, "no case folding, no merging");
-  assert.equal(parseCatalogFilters("?brand=Hermès", PAGE).brand, null, "not on this page → ignored");
-  assert.equal(parseCatalogFilters("?brand=Cartier", ALL).brand, null, "a page with no brands ignores it");
-});
-
-test("sort=oldest", () => {
-  assert.equal(parseCatalogFilters("?sort=oldest", ALL).sort, "oldest");
-  assert.equal(catalogFiltersToSearch("", { ...DEFAULT_FILTERS, sort: "oldest" }), "?sort=oldest");
-  assert.equal(parseCatalogFilters("?sort=newest", ALL).sort, "newest", "the default is never written, but reads fine");
-  assert.equal(parseCatalogFilters("?sort=OLDEST", ALL).sort, "newest", "sort values are exact");
-});
-
-test("writing kind and brand: set, encoded, removed at default", () => {
-  assert.equal(catalogFiltersToSearch("?lang=ja", { ...DEFAULT_FILTERS, kind: "rings" }), "?lang=ja&kind=rings");
-  assert.equal(catalogFiltersToSearch("", { ...DEFAULT_FILTERS, brand: "Tiffany & Co." }), "?brand=Tiffany+%26+Co.");
-  assert.equal(catalogFiltersToSearch("?kind=rings&brand=BVLGARI&lang=en", DEFAULT_FILTERS), "?lang=en");
-});
-
-test("round trip with kind, brand and oldest", () => {
-  const f = { cond: "preloved", type: null, kind: "pendants", brand: "Tiffany & Co.", metal: "K18", availOnly: true, sort: "oldest" };
-  assert.deepEqual(parseCatalogFilters(catalogFiltersToSearch("?lang=en", f), PAGE), f);
+  const a = { cond: ["preloved"], type: ["Watch"], kind: [], brand: [], metal: ["PT900"], availOnly: true, sort: "high" };
+  assert.deepEqual(parseCatalogFilters(catalogFiltersToSearch("?lang=ja", a), ALL), a);
+  const b = { cond: ["new", "sale"], type: [], kind: ["pendants", "rings"], brand: ["Tiffany & Co.", "Van Cleef, Arpels"], metal: ["K18", "SILVER925"], availOnly: false, sort: "oldest" };
+  assert.deepEqual(parseCatalogFilters(catalogFiltersToSearch("?lang=en", b), PAGE), b);
 });

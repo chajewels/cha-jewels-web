@@ -449,6 +449,12 @@ export const dict = {
     filter: { ja: "絞り込み", en: "Filter" },
     filters: { ja: "絞り込みと並び替え", en: "Filter and sort" },
     clear: { ja: "クリア", en: "Clear" },
+    // Compact toolbar (owner 2026-10-27): the active-filter tags and the Brand panel's search.
+    activeFilters: { ja: "選択中の条件", en: "Active filters" },
+    removeFilter: { ja: "{x}を解除", en: "Remove {x}" },
+    clearAll: { ja: "すべてクリア", en: "Clear all" },
+    brandSearch: { ja: "ブランドを検索", en: "Search brands" },
+    brandNone: { ja: "該当するブランドはありません", en: "No brand matches" },
     show: { ja: "{n}点を表示", en: "Show {n} pieces" },
     close: { ja: "閉じる", en: "Close" },
     askEyebrow: { ja: "スタッフに相談", en: "Ask a person" },
