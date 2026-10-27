@@ -5,6 +5,10 @@ import * as fx from "@/lib/fixtures";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
 import type { PostComment, PostComments } from "@/lib/comments";
+import type { HubReceipt } from "@/lib/receipts";
+
+/** GET /receipts/verify — the minimal public answer, nothing else. */
+export type ReceiptVerification = { receipt_number: string; issued_at: string; total: number; currency: "JPY" | "PHP"; status: "valid" | "cancelled" };
 
 /**
  * The website's only door into Cha Jewels Hub.
@@ -594,6 +598,51 @@ export const hub = {
     FIXTURES
       ? Promise.resolve(fx.createServiceRequestFixture(body))
       : call("/me/service-requests", { method: "POST", body: JSON.stringify(body), jwt, revalidate: false }),
+  /**
+   * WEBSITE RECEIPTS (領収書; Hub docs/RECEIPTS.md, contract "Receipts").
+   * Every receipt she owns, plans included, newest first — the caller hides
+   * plan receipts on the Japanese site (lib/receipts.ts visibleReceipts).
+   */
+  receipts: (jwt: string): Promise<HubReceipt[]> =>
+    FIXTURES
+      ? Promise.resolve(fx.receiptsFixture())
+      : call<{ receipts: HubReceipt[] }>("/me/receipts", { jwt, revalidate: false }).then((r) => r.receipts ?? []),
+  /** Addressee (宛名) and purpose line (但し書き); empty purpose = the Hub's default. Only while issued. */
+  updateReceipt: (jwt: string, id: string, body: { addressee: string; purpose: string }): Promise<{ ok: true; addressee: string | null; purpose: string }> =>
+    FIXTURES
+      ? Promise.resolve(fx.updateReceiptFixture(id, body.addressee, body.purpose))
+      : call(`/me/receipts/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(body), jwt, revalidate: false }),
+  /**
+   * The receipt PDF, as the Hub's own Response (bytes + Content-Disposition).
+   * EVERY call records a download on the Hub — the second and later are marked
+   * 再発行 / REISSUED — so this is called only when she presses Download.
+   */
+  receiptPdf: async (jwt: string, id: string, lang: "ja" | "en"): Promise<Response> => {
+    if (FIXTURES) {
+      return new Response(fx.FIXTURE_RECEIPT_PDF, {
+        headers: { "content-type": "application/pdf", "content-disposition": `attachment; filename="preview-receipt-${lang}.pdf"` },
+      });
+    }
+    if (!BASE || !KEY) throw new HubError(500, "HUB_API_URL / HUB_API_KEY not configured");
+    const res = await fetch(`${BASE}/me/receipts/${encodeURIComponent(id)}/pdf?lang=${lang}`, {
+      headers: { "x-api-key": KEY, Authorization: `Bearer ${jwt}` },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.json().then((b) => (b && typeof b === "object" ? b : null), () => null);
+      const code = typeof body?.error === "string" ? body.error : null;
+      throw new HubError(res.status, `Hub API ${res.status} on receipt pdf${code ? ` (${code})` : ""}`, code, res.headers.get("x-request-id"));
+    }
+    return res;
+  },
+  /**
+   * PUBLIC receipt check (the QR on every receipt). x-api-key only, no JWT;
+   * the visitor's IP goes along for the Hub's per-IP limit. null = no such code.
+   */
+  verifyReceipt: (code: string, ip: string | null): Promise<ReceiptVerification | null> =>
+    FIXTURES
+      ? Promise.resolve(fx.verifyReceiptFixture(code))
+      : notFoundToNull(call(`/receipts/verify?code=${encodeURIComponent(code)}`, { revalidate: false, headers: ip ? { "x-forwarded-for": ip } : {} })),
   /**
    * APPROVED reviews, newest approval first, with the count and average for
    * the same filter. `product` narrows to one website piece; without it, every

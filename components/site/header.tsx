@@ -159,7 +159,8 @@ export async function Header({ lang }: { lang: Lang }) {
     ...(saleCount > 0 ? [{ href: "/sale", label: t("nav", "sale") }] : []),
     { href: "/loyalty", label: t("nav", "loyalty") },
     { href: "/wholesale", label: t("nav", "wholesale") },
-    // The jewelry guide (owner 2026-10-27), last; a Shopping Guide will sit beside it later.
+    // The two guides (owner 2026-10-27), last: Shopping Guide, then Jewelry Guide.
+    { href: "/shopping-guide", label: t("nav", "shoppingGuide") },
     { href: "/jewelry-guide", label: t("nav", "jewelryGuide") },
   ];
 
@@ -167,6 +168,7 @@ export async function Header({ lang }: { lang: Lang }) {
     { href: "/account", label: t("accountMenu", "myAccount") },
     { href: "/account/orders", label: t("accountMenu", "orders") },
     ...(layaway ? [{ href: "/account/layaway", label: t("accountMenu", "layaway") }] : []),
+    { href: "/account/receipts", label: t("accountMenu", "receipts") },
     { href: "/account/addresses", label: t("accountMenu", "addresses") },
     { href: "/account/service-requests", label: t("accountMenu", "service") },
     { href: "/account#loyalty", label: t("accountMenu", "points") },
@@ -239,7 +241,10 @@ export async function Header({ lang }: { lang: Lang }) {
         {/* From xl, where the inline nav shows: the search is its magnifier and every gap a step
             tighter, so the nav fits one line in EN and JA with Sale and the Jewelry Guide link
             (owner decision 2026-10-27; measured in the PR). The container stops at 1240px, so a
-            wider screen gives no more room: this holds at every width from 1280. */}
+            wider screen gives no more room: this holds at every width from 1280.
+            With the Shopping Guide link too (2026-10-28) the row was 100px too wide in JA, so the
+            account is its icon alone on desktop (the name / "Account" stays for screen readers and
+            in the menu it opens). */}
         <div className="flex items-center gap-1 sm:gap-3 xl:gap-2">
           <SearchBox lang={lang} />
           <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>
@@ -249,7 +254,7 @@ export async function Header({ lang }: { lang: Lang }) {
               ? <AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} />
               : (
                 <Link href="/account" className="inline-flex h-11 items-center gap-2 whitespace-nowrap px-1.5 text-sm font-medium text-charcoal-deep hover:text-gold-dark">
-                  <User aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} />{t("nav", "account")}
+                  <User aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} /><span className="sr-only">{t("nav", "account")}</span>
                 </Link>
               )}
           </div>

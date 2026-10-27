@@ -324,6 +324,18 @@ export const VALUE_BURST = {
 } as const;
 
 /** The same numbers for CSS: set on :root by the plugin in tailwind.config.ts. */
+/**
+ * THE JEWELRY GUIDE'S SIZERS (components/editorial/ring-sizer.tsx,
+ * necklace-sizer.tsx), seconds. `ring`: the ring photo settling to a new
+ * size, on EASE_LUX — it arrives, heavy, no overshoot; short enough to keep
+ * up with a slider. `fade`: one neckline photo cross-fading into the next
+ * AND the frame's camera zoom to the new length, on EASE_SLIDE (a photo
+ * changing) — one token for both so fade and zoom stay in step; long enough
+ * that a 3× zoom reads as a camera move, not a jump.
+ * prefers-reduced-motion: both switch instantly.
+ */
+export const SIZER = { ring: 0.45, fade: 0.8 } as const;
+
 export const MOTION_CSS_VARS = {
   "--ease-lux": `cubic-bezier(${EASE_LUX.join(", ")})`,
   "--ease-slide": `cubic-bezier(${EASE_SLIDE.join(", ")})`,
@@ -352,4 +364,6 @@ export const MOTION_CSS_VARS = {
   "--dur-story-in": `${STORY.in}s`,
   "--dur-burst-letter": `${VALUE_BURST.letter}s`,
   "--burst-pop": `${VALUE_BURST.pop}`,
+  "--dur-sizer-ring": `${SIZER.ring}s`,
+  "--dur-sizer-fade": `${SIZER.fade}s`,
 } as const;

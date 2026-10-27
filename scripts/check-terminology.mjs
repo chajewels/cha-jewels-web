@@ -55,7 +55,7 @@ function walk(dir) {
     if (skip.has(name)) continue;
     const p = join(dir, name);
     if (statSync(p).isDirectory()) { walk(p); continue; }
-    if (!/\.(tsx?|mdx?|json|sql|css)$/.test(name) || name === "check-terminology.mjs" || name === "CLAUDE.md") continue;
+    if (!/\.(tsx?|mdx?|json|sql|css)$/.test(name) || name === "check-terminology.mjs" || name === "CLAUDE.md" || name === "CLAUDE-DETAILS.md") continue;
     const rel = relative(process.cwd(), p).split("\\").join("/");
     const lines = readFileSync(p, "utf8").split("\n");
     lines.forEach((line, i) => {
