@@ -67,14 +67,17 @@ Present on every product the API returns: `/catalog/products` (not the
 `?fields=` projection), `/catalog/products/:slug`, `/catalog/collections/:slug`
 and `/catalog/categories/:slug`.
 - **Site use** (owner decisions 2026-10-27): the collection and category grids'
-  **Kind** filter (`components/catalog/catalog-grid.tsx`, EN "Kind", JA
-  「アイテム」) — one chip per collection the page's pieces belong to, named by
+  **Type** filter (`components/catalog/catalog-grid.tsx`, EN "Type", JA
+  「種類」; named "Kind" until the owner's rename, 2026-10-27: "kind is type") —
+  one option per collection the page's pieces belong to, named by
   `GET /catalog/collections` (`collectionName`, the header menu's cached read;
   no call per product), shown only when a piece carries a slug and the page has
-  more than one kind. The **Brand** filter beside it reads `brand` exactly as
-  written (no merging of spellings) and shows with more than one brand. Both
-  are carried in the URL as `kind=` / `brand=` (`lib/catalog-filters.ts`). The
-  site treats an absent field as `[]` and never infers a kind from a SKU or name.
+  more than one type. It is the grids' only Type filter: the storefront no
+  longer filters on `item_type`. The **Brand** filter beside it reads `brand`
+  exactly as written (no merging of spellings) and shows with more than one
+  brand. Both are carried in the URL as `type=` / `brand=`
+  (`lib/catalog-filters.ts`; the old `kind=` is still read as `type=`). The site
+  treats an absent field as `[]` and never infers a type from a SKU or name.
 - **List order and the grid's sort.** "Newest" is the order the Hub sends;
   "Oldest" is that order reversed, nothing else (no date is read). That order
   is `website_collection_products.sort` on a collection,

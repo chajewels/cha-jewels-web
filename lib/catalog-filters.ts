@@ -1,18 +1,23 @@
-import type { ItemType } from "./types";
-
 /**
  * THE CATALOG TOOLBAR IN THE ADDRESS BAR (owner report 2026-10-17: a link
  * copied after choosing New or Preloved opened on "All"). The filters of
  * CatalogGrid as query parameters, so a shared link lands on the chosen group:
  *
- *   cond=new,preloved,sale   type=jewelry,watch,accessory   metal=<Hub stamps>
- *   kind=<collection slugs>  brand=<Hub brands, exactly as written>
+ *   cond=new,preloved,sale   type=<collection slugs>   metal=<Hub stamps>
+ *   brand=<Hub brands, exactly as written>
  *   stock=1 (same name as the search page)   sort=oldest|low|high
  *
+ * TYPE (owner 2026-10-27, "kind is type"): `type=` carries collection slugs
+ * (type=rings,necklaces). `kind=`, the name it had from PR #381 until this
+ * change, is still read as an alias, so a link shared since then opens on the
+ * same pieces; on the next write it becomes `type=` in the same place. The old
+ * item-type values (type=jewelry|watch|accessory) match no collection and are
+ * ignored like any unknown value.
+ *
  * MULTI-SELECT (owner 2026-10-27, compact toolbar): a group carries several
- * values, comma-separated (kind=rings,earrings&brand=Cartier,BVLGARI) — OR
+ * values, comma-separated (type=rings,earrings&brand=Cartier,BVLGARI) — OR
  * within a group, AND across groups (CatalogGrid). A one-value link from
- * before (PR #381, kind=rings) reads as a one-value list. The value list is
+ * before (type=rings, kind=rings) reads as a one-value list. The value list is
  * split on the RAW commas before decoding, so a Hub brand that itself holds a
  * comma travels as %2C and stays one brand.
  *
@@ -24,9 +29,8 @@ export type CondValue = "new" | "preloved" | "sale";
 export type CatalogFilters = {
   /** Nothing ticked = "All". */
   cond: CondValue[];
-  type: ItemType[];
   /** Collection slugs from the pieces' `collection_slugs` (owner 2026-10-27). */
-  kind: string[];
+  type: string[];
   /** `brand` values exactly as the Hub writes them (owner 2026-10-27). */
   brand: string[];
   metal: string[];
@@ -35,11 +39,13 @@ export type CatalogFilters = {
   sort: "newest" | "oldest" | "low" | "high";
 };
 
-export const DEFAULT_FILTERS: CatalogFilters = { cond: [], type: [], kind: [], brand: [], metal: [], availOnly: false, sort: "newest" };
+export const DEFAULT_FILTERS: CatalogFilters = { cond: [], type: [], brand: [], metal: [], availOnly: false, sort: "newest" };
 
-const KEYS = ["cond", "type", "kind", "brand", "metal", "stock", "sort"] as const;
+const KEYS = ["cond", "type", "brand", "metal", "stock", "sort"] as const;
 type Key = (typeof KEYS)[number];
-const isKey = (k: string): k is Key => (KEYS as readonly string[]).includes(k);
+/** `kind` is read as `type` (its name from PR #381 until the rename); everything else is itself. */
+const ALIAS: Record<string, Key> = { kind: "type" };
+const keyOf = (k: string): Key | null => ALIAS[k] ?? ((KEYS as readonly string[]).includes(k) ? (k as Key) : null);
 const CONDS: CondValue[] = ["new", "preloved", "sale"];
 
 /** application/x-www-form-urlencoded as URLSearchParams writes it (space → "+"); "," inside a value is always escaped. */
@@ -76,18 +82,17 @@ const anyCase = (o: string, v: string) => o.toLowerCase() === v.toLowerCase();
 
 /**
  * Reads a query string (with or without "?"); an unknown or invalid value is ignored. Never throws.
- * `allowed` is the page's own options: a type, kind, brand or metal the page does not show is ignored. A type,
- * kind (a slug) and metal match in any case; a brand matches only exactly, so two spellings stay two brands.
+ * `allowed` is the page's own options: a type (collection slug), brand or metal the page does not show is ignored.
+ * A type and a metal match in any case; a brand matches only exactly, so two spellings stay two brands.
  */
-export function parseCatalogFilters(search: string, allowed: { types: ItemType[]; metals: string[]; kinds?: string[]; brands?: string[] }): CatalogFilters {
+export function parseCatalogFilters(search: string, allowed: { types: string[]; metals: string[]; brands?: string[] }): CatalogFilters {
   const f: CatalogFilters = { ...DEFAULT_FILTERS };
   let segs: ReturnType<typeof segments>;
   try { segs = segments(search); } catch { return f; }
-  const raws = (k: Key) => segs.filter((s) => s.key === k).map((s) => s.raw);
+  const raws = (k: Key) => segs.filter((s) => keyOf(s.key) === k).map((s) => s.raw);
   const first = (k: Key) => { const r = raws(k)[0]; return r === undefined ? null : dec(r); };
   f.cond = list(raws("cond"), CONDS, (o, v) => o === v);
   f.type = list(raws("type"), allowed.types, anyCase);
-  f.kind = list(raws("kind"), allowed.kinds ?? [], anyCase);
   f.brand = list(raws("brand"), allowed.brands ?? [], (o, v) => o === v);
   f.metal = list(raws("metal"), allowed.metals, anyCase);
   f.availOnly = first("stock") === "1";
@@ -103,22 +108,22 @@ export function catalogFiltersToSearch(current: string, f: CatalogFilters): stri
   const csv = (vs: string[]) => (vs.length ? vs.map(enc).join(",") : null);
   const want: Record<Key, string | null> = {
     cond: csv(f.cond),
-    type: csv(f.type.map((t) => t.toLowerCase())),
-    kind: csv(f.kind),
+    type: csv(f.type),
     brand: csv(f.brand),
     metal: csv(f.metal),
     stock: f.availOnly ? "1" : null,
     sort: f.sort === "newest" ? null : f.sort,
   };
-  // A filter key already present keeps its place (its first occurrence); a new one is appended.
+  // A filter key already present keeps its place (its first occurrence, an alias's included); a new one is appended.
   const out: string[] = [];
   const placed = new Set<Key>();
   for (const s of segs) {
-    if (!isKey(s.key)) { out.push(s.text); continue; }
-    if (placed.has(s.key)) continue;
-    placed.add(s.key);
-    const w = want[s.key];
-    if (w != null) out.push(`${s.key}=${w}`);
+    const k = keyOf(s.key);
+    if (!k) { out.push(s.text); continue; }
+    if (placed.has(k)) continue;
+    placed.add(k);
+    const w = want[k];
+    if (w != null) out.push(`${k}=${w}`);
   }
   for (const k of KEYS) if (!placed.has(k) && want[k] != null) out.push(`${k}=${want[k]}`);
   return out.length ? `?${out.join("&")}` : "";
