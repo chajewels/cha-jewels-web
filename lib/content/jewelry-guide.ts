@@ -109,10 +109,59 @@ export const ringSize = {
     { ja: "指は暑いとむくみ、寒いと細くなります。入浴直後や冷え込んだ朝は避けましょう。", en: "Fingers swell in the heat and shrink in the cold. Avoid measuring straight after a bath or on a cold morning." },
     { ja: "2〜3回測り、いちばん多く出た数字を選んでください。", en: "Measure two or three times and go with the figure that comes up most." },
   ],
-  /** The diagram's labels (RingDiagram). */
-  art: {
+  /**
+   * The on-screen ring sizer (components/editorial/ring-sizer.tsx). It reads
+   * RING_SIZES only. `valueText` is the slider's aria-valuetext; {n} and {d}
+   * are replaced with the size and its inside diameter. The ring is an
+   * owner-approved AI image (2026-10-27), captioned as an illustration.
+   */
+  sizer: {
+    h: { ja: "画面で確かめる", en: "Check it on screen" },
+    instruction: {
+      ja: "合っている指輪を、画面の金色のリングの上に平らに置きます。スライダーを動かし、金色のリングの内側の縁が、お手持ちの指輪の内側とぴったり重なる号数を探してください。",
+      en: "Lay a ring that fits flat on the screen, over the gold ring. Move the slider until the gold ring's inside edge lines up with the inside of yours.",
+    },
+    screens: {
+      ja: "画面によって表示される大きさは異なります。先に下の「画面の調整」を行ってください。結果はあくまで目安です。",
+      en: "Every screen shows sizes a little differently, so calibrate yours first (below). The result is a guide only.",
+    },
+    slider: { ja: "リングサイズ（号）", en: "Ring size (号)" },
+    valueText: { ja: "{n}号, 内径 {d} mm", en: "Size {n}, inside diameter {d} mm" },
+    size: { ja: "号数", en: "Size" },
+    sizeUnit: { ja: "号", en: "号" },
     diameter: { ja: "内径", en: "Inside diameter" },
     circumference: { ja: "内周", en: "Inside circumference" },
+    smaller: { ja: "1号小さく", en: "One size smaller" },
+    larger: { ja: "1号大きく", en: "One size larger" },
+    calibrateH: { ja: "画面の調整", en: "Calibrate your screen" },
+    calibrateLede: {
+      ja: "どちらかの方法で、画面上の長さを実物に合わせます。",
+      en: "Match lengths on screen to real life, by either method.",
+    },
+    ruler: { ja: "定規で", en: "With a ruler" },
+    card: { ja: "カードで", en: "With a card" },
+    rulerHow: {
+      ja: "定規を画面に当て、画面の目盛りが定規のmmと重なるまで「縮小」「拡大」で調整してください。",
+      en: "Hold a ruler against the screen and use Shrink and Enlarge until the marks on screen match its millimetres.",
+    },
+    cardHow: {
+      ja: "ICカードやポイントカードなど、標準サイズのカード（85.60 × 53.98 mm）を画面に当て、枠がカードとぴったり同じ大きさになるまで調整してください。",
+      en: "Hold any standard-size card (85.60 × 53.98 mm), such as an IC or point card, against the screen and adjust until the outline is exactly the size of the card.",
+    },
+    shrink: { ja: "縮小", en: "Shrink" },
+    enlarge: { ja: "拡大", en: "Enlarge" },
+    reset: { ja: "元に戻す", en: "Reset" },
+    scale: { ja: "表示の倍率", en: "Display scale" },
+    alt: {
+      ja: "イメージ図：真上から見た、磨き仕上げのK18イエローゴールドのリング。内側の縁が、選んだ号数の内径と同じ大きさで表示されます。",
+      en: "Illustration: a polished K18 yellow gold band seen from above. Its inside edge is shown at the inside diameter of the chosen size.",
+    },
+    notCalibrated: { ja: "未調整", en: "not yet calibrated" },
+    calibratedAt: { ja: "倍率 {p}%", en: "{p}%" },
+    saved: {
+      ja: "調整した倍率は、このブラウザに保存されます（ブラウザの設定によっては保存されません）。",
+      en: "Your setting is saved in this browser, if it allows it.",
+    },
   },
 } as const;
 
@@ -141,6 +190,28 @@ export const necklaceLength = {
     en: "Not sure? Lay a necklace you already own flat, measure it end to end with the clasp, and compare.",
   },
   caption: { ja: "ネックレスの長さの目安", en: "Typical necklace lengths" },
+  /**
+   * The length slider (components/editorial/necklace-sizer.tsx); {name} and
+   * {cm} come from `lengths`; `shorter` / `longer` label the step buttons.
+   * Its five pictures are owner-approved AI images (2026-10-27, replacing an
+   * earlier strapless set that cut off the long lengths): one woman in a
+   * cream silk blouse, chin to waist, identical framing, one chain length
+   * each (public/images/jewelry-guide/neckline-<key>.webp).
+   */
+  sizer: {
+    slider: { ja: "ネックレスの長さ", en: "Necklace length" },
+    valueText: { ja: "{name}, {cm}", en: "{name}, {cm}" },
+    alt: {
+      ja: "イメージ図：{name}（{cm}）の長さの細いゴールドチェーンを、クリーム色のブラウスの上に着けた姿。",
+      en: "Illustration: a fine gold chain at {name} length ({cm}), worn over a cream blouse.",
+    },
+    shorter: { ja: "短く：{name}", en: "Shorter: {name}" },
+    longer: { ja: "長く：{name}", en: "Longer: {name}" },
+    note: {
+      ja: "それぞれの長さが、体のどのあたりに来るかを示したイメージです。実寸ではありません。",
+      en: "Shows roughly where each length sits on the body. Not drawn to real size.",
+    },
+  },
   lengths: [
     { key: "choker", name: { ja: "チョーカー", en: "Choker" }, cm: { ja: "約35〜40cm", en: "about 35–40 cm" }, where: { ja: "首の付け根に沿う長さ。", en: "Close around the base of the neck." } },
     { key: "princess", name: { ja: "プリンセス", en: "Princess" }, cm: { ja: "約43〜48cm", en: "about 43–48 cm" }, where: { ja: "鎖骨の上か、すぐ下に収まる長さ。最初の一本に選ばれることの多い長さです。", en: "On or just below the collarbone. The length most people choose first." } },
@@ -206,8 +277,9 @@ export const sizeNotes = {
 // --------------------------------------------------------------------- 4. CLASPS
 
 /**
- * Each clasp's picture: owner-supplied images (2026-10-27), 800 × 800 WebP on
- * white in public/images/jewelry-guide/. The alt text says what the clasp is
+ * Each clasp's picture: the owner's own photographs (2026-10-27), 800 × 800
+ * WebP on white in public/images/jewelry-guide/ — real photos, so no
+ * illustration caption. The alt text says what the clasp is
  * and how it looks; it names no maker and claims no origin.
  */
 export const clasps = {
@@ -398,12 +470,13 @@ export const diamond4c = {
   },
   /**
    * The infographic (components/editorial/jewelry-guide-art.tsx Diamond4CScale).
-   * The stone is the owner's image #1 cropped to the diamond alone (no text),
-   * on white; every word around it is page text. Grade names are GIA's.
+   * The stone is an owner-approved AI image (2026-10-27), side view on white,
+   * captioned as an illustration; every word around it is page text. Grade
+   * names are GIA's.
    */
   image: {
     src: "/images/jewelry-guide/diamond-round-brilliant.webp",
-    alt: { ja: "ラウンドブリリアントカットのダイヤモンドを、横から見たところ。", en: "A round brilliant diamond, seen from the side." },
+    alt: { ja: "イメージ図：ラウンドブリリアントカットのダイヤモンドを、横から見たところ。", en: "Illustration: a round brilliant diamond, seen from the side." },
   },
   scales: {
     color: {

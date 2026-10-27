@@ -183,6 +183,15 @@ add("viewer focus ring: gold-pale on charcoal-deep", "gold-pale", "charcoal-deep
   const [L1, L2] = [lum(hex(C.chalk)), lum(label)];
   pairs.push({ label: "guide illustration caption: chalk on charcoal-deep/85 over white", fg: "chalk", bg: "charcoal-deep/85@white", need: TEXT, alpha: 1, ratio: (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05) });
 }
+// JEWELRY GUIDE RING TABLE (components/editorial/ring-size-context.tsx): the
+// row the ring sizer is on is tinted gold-pale/35 over the white table; its
+// size number is gold-deep and its figures charcoal-deep.
+{
+  const row = blend(hex(C["gold-pale"]), hex(C.white), 0.35);
+  const on = (fgName) => { const [L1, L2] = [lum(hex(C[fgName])), lum(row)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  pairs.push({ label: "ring table current row: gold-deep on gold-pale/35 over white", fg: "gold-deep", bg: "white+gold-pale35", need: TEXT, alpha: 1, ratio: on("gold-deep") });
+  pairs.push({ label: "ring table current row: charcoal-deep on gold-pale/35 over white", fg: "charcoal-deep", bg: "white+gold-pale35", need: TEXT, alpha: 1, ratio: on("charcoal-deep") });
+}
 // LOYALTY LADDER (components/fx/tier-ladder.tsx): a lit tier's title turns
 // gold-dark over the white card; the inner glow peaks at gold/14 at the edge,
 // so the title is measured on that peak.

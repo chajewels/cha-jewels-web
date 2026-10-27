@@ -9,81 +9,11 @@
  * Charcoal for type, Ledger Hairline for edges. The colour strip's tints are
  * illustrative only, edged in hairline so the near-white end stays visible.
  *
- * Also the ring and necklace line drawings (inline SVG, labels as props,
- * hidden from assistive tech because the text beside them states the same
- * facts). Leaf Gold (#C9A227, 2.42:1 on white) is only the ring's decorative
- * band; Pale Gilt (#E8D28A) only a fill. The clasps are photographs.
+ * The ring and necklace sections use images moved by code
+ * (components/editorial/ring-sizer.tsx, necklace-sizer.tsx); the clasps are
+ * photographs.
  */
-const GOLD = "#C9A227";
 const ASSAY = "#8A6B12";
-const INK = "#222222";
-const RULE = "#E5E5E0";
-const PALE = "#E8D28A";
-const LABEL = "font-sans text-[11px] [font-variant-numeric:lining-nums_tabular-nums]";
-
-/** Ring seen face-on: the inside diameter across, the inside circumference around. */
-export function RingDiagram({ diameter, circumference }: { diameter: string; circumference: string }) {
-  return (
-    <svg viewBox="0 0 260 230" className="h-auto w-full max-w-[300px]" aria-hidden="true" focusable="false">
-      <defs>
-        <marker id="jg-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0 0 L8 4 L0 8 z" fill={INK} />
-        </marker>
-        <marker id="jg-arrow-gold" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
-          <path d="M0 0 L8 4 L0 8 z" fill={INK} />
-        </marker>
-      </defs>
-      {/* The band: a gold ring with a pale inner face. */}
-      <circle cx="130" cy="105" r="80" fill="none" stroke={GOLD} strokeWidth="16" />
-      <circle cx="130" cy="105" r="72" fill="none" stroke={PALE} strokeWidth="1.5" />
-      {/* Inside circumference: the inner edge, traced. */}
-      <path d="M 66 115 A 65 65 0 1 1 194 115" fill="none" stroke={INK} strokeWidth="1.2" strokeDasharray="3 4" markerEnd="url(#jg-arrow-gold)" />
-      {/* Inside diameter: straight across the inside. */}
-      <line x1="68" y1="105" x2="192" y2="105" stroke={INK} strokeWidth="1.4" markerStart="url(#jg-arrow)" markerEnd="url(#jg-arrow)" />
-      <text x="130" y="97" textAnchor="middle" className={LABEL} fill={INK}>{diameter}</text>
-      <text x="130" y="222" textAnchor="middle" className={LABEL} fill={INK}>{circumference}</text>
-      <line x1="130" y1="171" x2="130" y2="208" stroke={RULE} strokeWidth="1" />
-    </svg>
-  );
-}
-
-/**
- * Neck, shoulders and bust in one line, with five chains falling to their
- * typical depths. The chains carry numbers 1–5 that match the list beside
- * the drawing, so no word has to fit inside it.
- */
-export function NecklaceDiagram() {
-  // [depth of the lowest point, how far the chain swings out at the bottom]
-  const chains: [number, number][] = [[68, 12], [108, 34], [152, 56], [212, 80], [282, 104]];
-  return (
-    <svg viewBox="0 0 360 300" className="h-auto w-full max-w-[420px]" aria-hidden="true" focusable="false">
-      {/* Silhouette: neck, shoulders, collarbones, bust. */}
-      <g fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="round">
-        <path d="M150 0 V36 C150 56 122 64 72 74 C40 80 22 96 18 128 V300" />
-        <path d="M210 0 V36 C210 56 238 64 288 74 C320 80 338 96 342 128 V300" />
-      </g>
-      <g fill="none" stroke={RULE} strokeWidth="1.2" strokeLinecap="round">
-        <path d="M96 86 C124 94 150 96 172 90" />
-        <path d="M264 86 C236 94 210 96 188 90" />
-        <path d="M70 196 C96 232 146 238 176 214" />
-        <path d="M290 196 C264 232 214 238 184 214" />
-      </g>
-      {/* The chains, choker (1) to rope (5). */}
-      {chains.map(([depth, swing], i) => {
-        const top = 42 + i * 3;
-        return (
-          <g key={depth}>
-            <path d={`M${150 - i * 2} ${top} C ${150 - swing} ${depth}, ${210 + swing} ${depth}, ${210 + i * 2} ${top}`}
-              fill="none" stroke={ASSAY} strokeWidth="2" strokeLinecap="round" />
-            <circle cx="180" cy={top + (depth - top) * 0.75} r="9" fill="#fff" stroke={ASSAY} strokeWidth="1.2" />
-            <text x="180" y={top + (depth - top) * 0.75 + 4} textAnchor="middle" className={LABEL} fill={INK}>{i + 1}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 
 const COLOR_GRADES = "DEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const COLOR_MARKED = new Set(["D", "G", "J", "M", "Z"]);

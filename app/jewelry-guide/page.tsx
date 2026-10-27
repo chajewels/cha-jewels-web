@@ -11,7 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { GuideStory } from "@/components/fx/guide-story";
 import { GuidePlate } from "@/components/editorial/guide-plate";
-import { CaratScale, ClarityScale, ColorScale, CutScale, NecklaceDiagram, RingDiagram } from "@/components/editorial/jewelry-guide-art";
+import { CaratScale, ClarityScale, ColorScale, CutScale } from "@/components/editorial/jewelry-guide-art";
+import { NecklaceSizer } from "@/components/editorial/necklace-sizer";
+import { RingSizer } from "@/components/editorial/ring-sizer";
+import { RingSizeProvider, RingSizeRows } from "@/components/editorial/ring-size-context";
 import { RevealBlock } from "@/components/fx/reveal";
 import { NavHeading, SplitHeading } from "@/components/fx/split-text";
 
@@ -24,9 +27,12 @@ export const generateMetadata = () => pageMeta("jewelryGuide");
  * every inner page; the Gold Guide's dark plates and its scroll story live on
  * inside Metals and Care, where its copy was merged.
  *
- * Every word comes from lib/content/jewelry-guide.ts. The ring and necklace
- * drawings and the 4C scales are components/editorial/jewelry-guide-art.tsx;
- * the clasps and the diamond are the owner's images in
+ * Every word comes from lib/content/jewelry-guide.ts. Ring size and necklace
+ * length are interactive (components/editorial/ring-sizer.tsx,
+ * necklace-sizer.tsx) and move owner-approved AI images; those, and the
+ * diamond, carry the same "Illustration" caption as the stamp illustrations.
+ * The clasps are the owner's photographs (no caption). The 4C scales are
+ * components/editorial/jewelry-guide-art.tsx. All images are in
  * public/images/jewelry-guide/. Tables never push the page sideways: the ring table
  * sits in its own scroll box, and the stamp list stacks.
  */
@@ -59,11 +65,17 @@ export default async function JewelryGuidePage() {
 
       {/* 1. RING SIZE */}
       <GuideSection id="ring-size" lang={lang}>
+        <RingSizeProvider initial={RING_SIZES.findIndex(([n]) => n === 13)}>
         <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
           <div className="min-w-0">
             <p className="max-w-[62ch] text-charcoal">{ringSize.intro[lang]}</p>
             <p className="mt-4 max-w-[62ch] border-l-2 border-gold-dark pl-4 text-charcoal-deep">{ringSize.guideOnly[lang]}</p>
-            <div className="mt-8 flex justify-center bg-white p-6"><RingDiagram diameter={ringSize.art.diameter[lang]} circumference={ringSize.art.circumference[lang]} /></div>
+            <div className="mt-8">
+              <RingSizer
+                sizes={RING_SIZES} caption={t("gold", "illustration")}
+                copy={Object.fromEntries(Object.entries(ringSize.sizer).map(([k, v]) => [k, v[lang]])) as Record<keyof typeof ringSize.sizer, string>}
+              />
+            </div>
             <h3 className="mt-10 font-display text-[clamp(20px,2.4vw,28px)]">{ringSize.measureH[lang]}</h3>
             <div className="rule-grid mt-4 grid">
               {ringSize.measure.map((m) => (
@@ -81,7 +93,7 @@ export default async function JewelryGuidePage() {
             </ul>
           </div>
           <div className="min-w-0">
-            <div className="max-h-[min(80vh,760px)] overflow-auto border border-hairline bg-white" tabIndex={0} role="region" aria-labelledby="jg-ring-caption">
+            <div data-ring-table className="max-h-[min(80vh,760px)] overflow-auto border border-hairline bg-white" tabIndex={0} role="region" aria-labelledby="jg-ring-caption">
               <table className="w-full border-collapse text-[15px] [font-variant-numeric:lining-nums_tabular-nums]">
                 <caption id="jg-ring-caption" className="border-b border-hairline px-4 py-3 text-left text-sm font-semibold text-charcoal-deep">{ringSize.caption[lang]}</caption>
                 <thead className="sticky top-0 bg-chalk text-left text-xs text-charcoal/80">
@@ -91,47 +103,29 @@ export default async function JewelryGuidePage() {
                     <th scope="col" className="px-4 py-2.5 text-right font-semibold">{ringSize.colCircumference[lang]} ({ringSize.unit[lang]})</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {RING_SIZES.map(([n, d, c]) => (
-                    <tr key={n} className="border-t border-hairline">
-                      <th scope="row" className="px-4 py-2 text-left font-display text-base font-normal text-gold-dark">{n}</th>
-                      <td className="px-4 py-2 text-right text-charcoal-deep">{d}</td>
-                      <td className="px-4 py-2 text-right text-charcoal-deep">{c}</td>
-                    </tr>
-                  ))}
-                </tbody>
+                <RingSizeRows sizes={RING_SIZES} />
               </table>
             </div>
             <p className="mt-3 text-sm text-charcoal/80">{ringSize.scale[lang]}</p>
           </div>
         </div>
+        </RingSizeProvider>
       </GuideSection>
 
       {/* 2. NECKLACE LENGTH */}
       <GuideSection id="necklace-length" lang={lang}>
         <p className="max-w-[62ch] text-charcoal">{necklaceLength.intro[lang]}</p>
-        <figure className="mt-8 grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
-          <div className="flex justify-center bg-white p-6"><NecklaceDiagram /></div>
-          <figcaption className="min-w-0">
-            <span className="sr-only">{necklaceLength.caption[lang]}</span>
-            <ol className="rule-grid grid">
-              {necklaceLength.lengths.map((l, i) => (
-                <li key={l.key} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3 bg-white p-4">
-                  <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full border border-gold-dark text-xs text-charcoal-deep [font-variant-numeric:lining-nums_tabular-nums]">{i + 1}</span>
-                  <span>
-                    <span className="flex flex-wrap items-baseline justify-between gap-x-3">
-                      <span className="font-semibold text-charcoal-deep">{l.name[lang]}</span>
-                      <span className="text-sm text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{l.cm[lang]}</span>
-                    </span>
-                    <span className="mt-1 block text-[15px] text-charcoal">{l.where[lang]}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <p className="mt-4 text-sm text-charcoal/80">{necklaceLength.note[lang]}</p>
-            <p className="mt-2 text-[15px] text-charcoal">{necklaceLength.tip[lang]}</p>
-          </figcaption>
-        </figure>
+        <div className="mt-8">
+          <NecklaceSizer
+            caption={t("gold", "illustration")}
+            lengths={necklaceLength.lengths.map((l) => ({ key: l.key, name: l.name[lang], cm: l.cm[lang], where: l.where[lang] }))}
+            copy={{
+              slider: necklaceLength.sizer.slider[lang], valueText: necklaceLength.sizer.valueText[lang], alt: necklaceLength.sizer.alt[lang],
+              shorter: necklaceLength.sizer.shorter[lang], longer: necklaceLength.sizer.longer[lang], note: necklaceLength.sizer.note[lang],
+              rangeNote: necklaceLength.note[lang], tip: necklaceLength.tip[lang],
+            }}
+          />
+        </div>
       </GuideSection>
 
       {/* 3. SIZE NOTES */}
@@ -210,7 +204,10 @@ export default async function JewelryGuidePage() {
         <p className="max-w-[62ch] text-charcoal">{diamond4c.intro[lang]}</p>
         <div className="rule-grid mt-8 grid sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)] xl:grid-rows-2">
           <figure className="flex flex-col items-center justify-center bg-white p-6 sm:col-span-2 xl:col-span-1 xl:col-start-2 xl:row-span-2 xl:row-start-1">
-            <Image src={diamond4c.image.src} alt={diamond4c.image.alt[lang]} width={720} height={540} sizes="(min-width: 1280px) 420px, (min-width: 640px) 480px, 90vw" className="h-auto w-full max-w-[440px]" />
+            <div className="relative w-full max-w-[440px]">
+              <Image src={diamond4c.image.src} alt={diamond4c.image.alt[lang]} width={960} height={800} sizes="(min-width: 1280px) 420px, (min-width: 640px) 480px, 90vw" className="h-auto w-full" />
+              <span aria-hidden="true" className="absolute bottom-0 right-0 bg-charcoal-deep/85 px-2 py-0.5 text-[11px] tracking-[0.08em] text-chalk">{t("gold", "illustration")}</span>
+            </div>
             <figcaption className="mt-4 grid w-full max-w-[440px] grid-cols-2 border-t border-hairline pt-3 text-center font-display text-base text-gold-dark sm:grid-cols-4">
               {diamond4c.items.map((it) => <span key={it.key} className="py-1">{it.name[lang]}</span>)}
             </figcaption>
