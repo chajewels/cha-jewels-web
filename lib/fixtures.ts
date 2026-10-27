@@ -350,10 +350,13 @@ for (const p of products) p.collection_slugs = collections.some((c) => c.slug ==
 }
 /**
  * FIELDS THE HUB DOES NOT SEND YET (D2-1, supabase/contracts/api.md "Proposed:
- * item type and product video"). Preview only, so the grid's Type filter and
- * the gallery's video slot can be seen before Lovable ships them:
+ * item type and product video"). Preview only, so the fields can be seen
+ * before Lovable ships them:
  *   NEXT_PUBLIC_PREVIEW_ITEM_TYPE=1       every piece carries `item_type`
- *                                         (watches Watch, the rest Jewelry)
+ *                                         (watches Watch, the rest Jewelry).
+ *                                         No grid filter reads it any more —
+ *                                         the Type filter is collections
+ *                                         (PR #384, owner 2026-10-27)
  *   NEXT_PUBLIC_PREVIEW_VIDEO=<sku,…>     those pieces carry a `video_url`
  *                                         (the site's own gold film stands in)
  * Unset, the pieces carry neither: exactly what every deployment receives.

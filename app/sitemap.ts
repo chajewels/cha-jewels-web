@@ -58,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/loyalty`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/wholesale`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/gold-guide`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${base}/jewelry-guide`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/about`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${base}/why-cha-jewels`, changeFrequency: "yearly", priority: 0.6 },
     { url: `${base}/contact`, changeFrequency: "yearly", priority: 0.5 },

@@ -12,6 +12,8 @@ type Suggestion = { slug: string; sku: string; name: string; price: number | nul
 type CollectionHit = { slug: string; name: string };
 
 const DEBOUNCE_MS = 200;
+/** Where the header shows the field rather than the magnifier: the same breakpoints as the classes below. */
+const FIELD_SHOWN = "(min-width: 1024px) and (max-width: 1279.98px)";
 const MAX_SUGGESTIONS = 6;
 
 /**
@@ -19,18 +21,22 @@ const MAX_SUGGESTIONS = 6;
  *
  * THREE SHAPES, one component:
  *
- *   header, from `lg`   a field in the header row with a `/` shortcut hint.
- *                       Suggestions open in a wide panel under the header,
+ *   header, `lg` only   a field in the header row with a `/` shortcut hint.
+ *   (1024–1279px)       Suggestions open in a wide panel under the header,
  *                       right-aligned to the field.
  *   header, below `lg`  a magnifier. It opens a FULL-SCREEN SHEET (a dialog,
+ *   and from `xl`       (from 1280px the inline nav needs the room, and the
+ *                       container stops at 1240px so no wider screen gives
+ *                       more: owner decision 2026-10-27, the header measured
+ *                       too wide at 1280 EN with the Jewelry Guide link)
  *                       portalled to <body>, the page behind made inert),
  *                       with the field and a close button on top and the
  *                       suggestions below.
  *   drawer              the field inside the phone drawer, suggestions in
  *                       flow beneath it; `onNavigate` closes the drawer.
  *
- * `/` anywhere outside a text field focuses the search (from `lg`) or opens
- * the sheet (below it).
+ * `/` anywhere outside a text field focuses the field where it shows, or
+ * opens the sheet where the magnifier shows (FIELD_SHOWN).
  *
  * THE PANEL. Pieces first — the cut-out, or the whole photo contained and
  * never cropped; the Hub's exact name with the typed text marked in gold-dark;
@@ -126,7 +132,7 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       e.preventDefault();
-      if (window.matchMedia("(min-width: 1024px)").matches) inputRef.current?.focus();
+      if (window.matchMedia(FIELD_SHOWN).matches) inputRef.current?.focus();
       else setSheet(true);
     };
     document.addEventListener("keydown", onKey);
@@ -327,14 +333,14 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
         aria-label={t("search", "open")}
         aria-haspopup="dialog"
         onClick={() => setSheet(true)}
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-sm text-charcoal-deep hover:text-gold-dark lg:hidden"
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-sm text-charcoal-deep hover:text-gold-dark lg:hidden xl:grid"
       >
         <MagnifierIcon big />
       </button>
 
       {/* One width per breakpoint: focus changes the border colour, never the
           width, so the nav beside it never shifts under the pointer. */}
-      <div className="hidden lg:block lg:w-52 xl:w-[216px] 2xl:w-[240px]">
+      <div className="hidden lg:block lg:w-52 xl:hidden">
         {!sheet && field(inputRef, false)}
         {!sheet && live}
         {!sheet && open && status !== "idle" && (

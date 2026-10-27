@@ -45,7 +45,8 @@ const CSS = `
 }`;
 
 /**
- * THE GOLD GUIDE AS A SCROLL STORY. The page lays it out (app/gold-guide):
+ * THE METALS STEPS AS A SCROLL STORY (the Gold Guide's, merged into
+ * /jewelry-guide#metals 2026-10-27). The page lays it out (app/jewelry-guide):
  * on lg and up a pinned plate column beside the steps; below lg each step
  * carries its own plate inline, and the steps rise in one after another.
  *

@@ -159,6 +159,8 @@ export async function Header({ lang }: { lang: Lang }) {
     ...(saleCount > 0 ? [{ href: "/sale", label: t("nav", "sale") }] : []),
     { href: "/loyalty", label: t("nav", "loyalty") },
     { href: "/wholesale", label: t("nav", "wholesale") },
+    // The jewelry guide (owner 2026-10-27), last; a Shopping Guide will sit beside it later.
+    { href: "/jewelry-guide", label: t("nav", "jewelryGuide") },
   ];
 
   const accountItems = [
@@ -177,7 +179,7 @@ export async function Header({ lang }: { lang: Lang }) {
     // never while a menu is open or focus is inside. It is `sticky`, so it is
     // the containing block the full-width menu panels hang from.
     <HeaderShell className="sticky top-0 z-40 border-b border-hairline bg-chalk text-charcoal">
-      <div className="wrap flex h-16 items-center justify-between gap-3 lg:h-[72px] xl:gap-6">
+      <div className="wrap flex h-16 items-center justify-between gap-3 lg:h-[72px] xl:gap-4">
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3" aria-label="Cha Jewels">
           <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={44} height={44} alt="" className="h-10 w-10 shrink-0 lg:h-11 lg:w-11" />
           {/* Below 380px the row (badge, wordmark, search, language, bag, menu —
@@ -186,7 +188,7 @@ export async function Header({ lang }: { lang: Lang }) {
           <span className="gilt hidden font-display text-[22px] font-medium tracking-wide min-[380px]:inline sm:text-[26px]">Cha Jewels</span>
         </Link>
         <nav aria-label={t("nav", "primary")} className="hidden h-full xl:block">
-          <ul className="flex h-full items-stretch gap-7 whitespace-nowrap text-sm 2xl:gap-8">
+          <ul className="flex h-full items-stretch gap-4 whitespace-nowrap text-sm">
             <li className="flex" data-match="/collections /categories /products">
               <NavMenu label={t("navMenu", "collections")} menuLabel={t("navMenu", "collectionsMenu")}>
                 <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)_minmax(0,0.95fr)] gap-10">
@@ -234,7 +236,11 @@ export async function Header({ lang }: { lang: Lang }) {
           </ul>
           <NavUnderline />
         </nav>
-        <div className="flex items-center gap-1 sm:gap-3">
+        {/* From xl, where the inline nav shows: the search is its magnifier and every gap a step
+            tighter, so the nav fits one line in EN and JA with Sale and the Jewelry Guide link
+            (owner decision 2026-10-27; measured in the PR). The container stops at 1240px, so a
+            wider screen gives no more room: this holds at every width from 1280. */}
+        <div className="flex items-center gap-1 sm:gap-3 xl:gap-2">
           <SearchBox lang={lang} />
           <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>
           <div className="sm:hidden"><LangSwitcher lang={lang} compact /></div>
