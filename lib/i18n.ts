@@ -435,11 +435,9 @@ export const dict = {
     countOne: { ja: "{n}点", en: "{n} piece" },
     includingSold: { ja: "（売約済みを含む）", en: " (including sold)" },
     condition: { ja: "状態", en: "Condition" },
+    // Type = the Hub's collections (necklaces, rings…), owner 2026-10-27: "kind is type".
     type: { ja: "種類", en: "Type" },
-    typeJewelry: { ja: "ジュエリー", en: "Jewelry" }, typeWatch: { ja: "ウォッチ", en: "Watch" }, typeAccessory: { ja: "アクセサリー", en: "Accessory" },
-    // Kind = the Hub's collections, Brand = the Hub's brand (owner decisions
-    // 2026-10-27). Not 種類 for Kind: that is already Type's label above.
-    kind: { ja: "アイテム", en: "Kind" },
+    // Brand = the Hub's brand, exactly as written (owner decision 2026-10-27).
     brand: { ja: "ブランド", en: "Brand" },
     metal: { ja: "素材", en: "Metal" },
     availableOnly: { ja: "販売中のみ", en: "Available only" },
