@@ -81,6 +81,7 @@ export async function Footer({ lang }: { lang: Lang }) {
         // terms. English only, because layaway is.
         ...(layaway ? [{ href: "/faq#payments-and-layaway", label: t("footer", "terms") }] : []),
         { href: "/faq", label: t("footer", "faq") },
+        { href: "/shopping-guide", label: t("footer", "shoppingGuide") },
         { href: "/jewelry-guide", label: t("footer", "jewelryGuide") },
         { href: "/legal/returns", label: t("footer", "returns") },
         { href: "/legal/tokusho", label: t("footer", "tokusho") },

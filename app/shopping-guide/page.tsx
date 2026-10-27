@@ -1,0 +1,129 @@
+import Link from "next/link";
+import { pageMeta } from "@/lib/page-meta";
+import { type Lang } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
+import { layawayOffered } from "@/lib/layaway-availability";
+import { ALL_ON, tokushoRowsFor } from "@/lib/content/legal";
+import { guideBlocksFor, shoppingGuide, shoppingGuideIntro, type GuideBlock, type GuideRun } from "@/lib/content/shopping-guide";
+import { Button } from "@/components/ui/button";
+import { NavHeading } from "@/components/fx/split-text";
+
+export const generateMetadata = () => pageMeta("shoppingGuide");
+
+/**
+ * THE SHOPPING GUIDE (owner plan 2026-10-27, step 6). Nine sections with
+ * anchors, every word from lib/content/shopping-guide.ts. The Payment section
+ * renders the legal-notice (tokusho) rows themselves (tokushoRowsFor with ALL_ON, exactly
+ * as /legal/tokusho does), so the two pages say the same thing. Layaway blocks
+ * are English-only (layawayOffered).
+ */
+export default async function ShoppingGuidePage() {
+  const lang = await getLang();
+  const layaway = layawayOffered(lang);
+  const rows = tokushoRowsFor(layaway, ALL_ON);
+  const eyebrow = `text-[11px] font-semibold text-gold-dark ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`;
+  const intro = shoppingGuideIntro;
+
+  return (
+    <>
+      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
+        <div className="wrap">
+          <p className={eyebrow}>{intro.eyebrow[lang]}</p>
+          <NavHeading text={intro.h1[lang]} lang={lang} className="mt-3 max-w-[18ch] text-[clamp(36px,5.5vw,80px)]" />
+          <p className="mt-5 max-w-[58ch] text-charcoal">{intro.lede[lang]}</p>
+          <nav aria-labelledby="sg-contents" className="mt-10">
+            <p id="sg-contents" className={eyebrow}>{intro.contents[lang]}</p>
+            <ol className="rule-grid mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+              {shoppingGuide.map((s, i) => (
+                <li key={s.id} className="bg-white">
+                  <a href={`#${s.id}`} className="flex h-full min-h-[64px] flex-col justify-between gap-2 p-4 text-sm font-medium text-charcoal-deep hover:text-gold-dark">
+                    <span className="font-display text-xs tracking-[0.2em] text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{String(i + 1).padStart(2, "0")}</span>
+                    {s.title[lang]}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+      </section>
+
+      {shoppingGuide.map((s, i) => (
+        <section key={s.id} id={s.id} className="scroll-mt-24 border-b border-hairline py-[clamp(40px,6vw,80px)]">
+          <div className="wrap grid gap-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16">
+            <div>
+              <p className="font-display text-sm tracking-[0.2em] text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{String(i + 1).padStart(2, "0")}</p>
+              <h2 className="mt-2 font-display text-[clamp(26px,3.2vw,40px)] leading-tight text-charcoal-deep">{s.title[lang]}</h2>
+            </div>
+            <div className="min-w-0 space-y-5 text-[16px] leading-[1.85] text-charcoal [:lang(ja)_&]:text-[15.5px] [:lang(ja)_&]:leading-[1.95]">
+              {guideBlocksFor(s.blocks, layaway).map((b, j) => <Block key={j} block={b} lang={lang} rows={rows} />)}
+            </div>
+          </div>
+        </section>
+      ))}
+
+      <section className="py-[clamp(48px,7vw,96px)]">
+        <div className="wrap flex flex-wrap items-center justify-between gap-5">
+          <p className="font-display text-[clamp(22px,2.6vw,32px)] text-charcoal-deep">{intro.help[lang]}</p>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild><Link href="/contact">{intro.contact[lang]}</Link></Button>
+            <Button asChild variant="outline"><Link href="/faq">{intro.faq[lang]}</Link></Button>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function Runs({ runs, lang }: { runs: GuideRun[]; lang: Lang }) {
+  return (
+    <>
+      {runs.map((r, i) => r.href
+        ? <Link key={i} href={r.href} className="font-medium text-gold-dark underline underline-offset-4">{r.t[lang]}</Link>
+        : <span key={i}>{r.t[lang]}</span>)}
+    </>
+  );
+}
+
+function Block({ block, lang, rows }: { block: GuideBlock; lang: Lang; rows: ReturnType<typeof tokushoRowsFor> }) {
+  switch (block.kind) {
+    case "p": return <p className="max-w-[66ch]">{block.text[lang]}</p>;
+    case "note": return <p className="max-w-[66ch] border-l-2 border-gold-dark pl-4 text-charcoal-deep">{block.text[lang]}</p>;
+    case "rich": return <p className="max-w-[66ch]"><Runs runs={block.runs} lang={lang} /></p>;
+    case "list":
+      return (
+        <ul className="max-w-[66ch] space-y-2.5">
+          {block.items.map((it, i) => (
+            <li key={i} className="relative pl-5">
+              <i aria-hidden="true" className="absolute left-0 top-[0.8em] h-1.5 w-1.5 rotate-45 bg-gold-dark" />
+              {it[lang]}
+            </li>
+          ))}
+        </ul>
+      );
+    case "steps":
+      return (
+        <ol className="rule-grid grid sm:grid-cols-2">
+          {block.items.map((st, i) => (
+            <li key={i} className="bg-white p-5">
+              <span className="font-display text-xs tracking-[0.2em] text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{String(i + 1).padStart(2, "0")}</span>
+              <p className="mt-2 font-display text-[19px] leading-snug text-charcoal-deep">{st.h[lang]}</p>
+              <p className="mt-2 text-[14.5px] leading-relaxed text-charcoal/85">{st.p[lang]}</p>
+            </li>
+          ))}
+        </ol>
+      );
+    case "tokusho": {
+      const shown = block.keys.map((k) => rows.find((r) => r.k.en === k)).filter((r): r is (typeof rows)[number] => !!r);
+      return (
+        <dl className="border-t border-hairline">
+          {shown.map((r) => (
+            <div key={r.k.en} className={`grid gap-1 border-b border-hairline py-4 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)] sm:gap-6 ${r.layaway ? "bg-white/60 px-3" : ""}`}>
+              <dt className="text-[13px] font-semibold text-gold-dark">{r.k[lang]}</dt>
+              <dd className="text-[15px] leading-[1.8] text-charcoal-deep">{r.v[lang]}</dd>
+            </div>
+          ))}
+        </dl>
+      );
+    }
+  }
+}

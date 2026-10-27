@@ -25,6 +25,8 @@ import { HubImage } from "@/components/media/hub-image";
 import { Lock } from "lucide-react";
 import type { Tone } from "@/lib/order-status";
 import type { ServiceRequest } from "@/lib/types";
+import { receiptForOrder, type HubReceipt } from "@/lib/receipts";
+import { ReceiptPanel } from "@/components/account/receipt-panel";
 
 export const generateMetadata = () => pageMeta("layaway");
 export const dynamic = "force-dynamic";
@@ -75,9 +77,9 @@ export default async function LayawayPlanPage({ params, searchParams }: {
   // 404 not_linked (no customer record yet) goes to the profile step; 404
   // not_found (no such plan, or not hers) keeps the "not found" below.
   const link = notLinkedProbe();
-  const [detail, requests] = jwt
-    ? await Promise.all([hub.layawayPlan(jwt, id).catch(link.or(null)), hub.serviceRequests(jwt).catch(link.or<ServiceRequest[]>([]))])
-    : [null, [] as ServiceRequest[]];
+  const [detail, requests, receipts] = jwt
+    ? await Promise.all([hub.layawayPlan(jwt, id).catch(link.or(null)), hub.serviceRequests(jwt).catch(link.or<ServiceRequest[]>([])), hub.receipts(jwt).catch(link.or<HubReceipt[]>([]))])
+    : [null, [] as ServiceRequest[], [] as HubReceipt[]];
   if (link.hit) redirect(profileUrl(withQuery(`/account/layaway/${id}`, query)));
   if (!detail) {
     return (
@@ -141,6 +143,8 @@ export default async function LayawayPlanPage({ params, searchParams }: {
   const placed = siteDay(plan.order_date ?? plan.created_at);
 
   const reference = plan.web_reference ?? plan.invoice_number ?? "—";
+  // The receipt for a fully paid website plan — this page is English-only already.
+  const receipt = receiptForOrder(receipts, "layaway", plan.id);
   const first = items[0] ?? null;
   const firstName = first ? orderLineTitle(first, lang) : null;
 
@@ -350,6 +354,16 @@ export default async function LayawayPlanPage({ params, searchParams }: {
             ))}
           </ul>
         </section>
+      )}
+
+      {receipt && (
+        <ReceiptPanel
+          lang={lang}
+          receipt={receipt}
+          issuedLabel={fmtDate(receipt.issued_at)}
+          totalLabel={formatMoney(Number(receipt.total), receipt.currency)}
+          orderPath={`/account/layaway/${plan.id}`}
+        />
       )}
 
       {/* Work on the piece, asked for next to the plan it is on. A closed plan

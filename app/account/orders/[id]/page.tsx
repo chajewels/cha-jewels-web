@@ -37,6 +37,8 @@ import { Notice, PieceWell } from "@/components/commerce/commerce-ui";
 import { linePicture } from "@/components/commerce/confirmation";
 import { CardMarks } from "@/components/commerce/card-marks";
 import { addressLines } from "@/lib/address-format";
+import { receiptForOrder, type HubReceipt } from "@/lib/receipts";
+import { ReceiptPanel } from "@/components/account/receipt-panel";
 
 export const generateMetadata = () => pageMeta("order");
 export const dynamic = "force-dynamic";
@@ -69,9 +71,10 @@ export default async function OrderDetailPage({ params, searchParams }: {
   // 404 not_linked (no customer record yet) goes to the profile step; 404
   // not_found (no such order, or not hers) keeps the "not found" below.
   const link = notLinkedProbe();
-  const [detail, requests] = jwt
-    ? await Promise.all([hub.order(jwt, id).catch(link.or(null)), hub.serviceRequests(jwt).catch(link.or<ServiceRequest[]>([]))])
-    : [null, [] as ServiceRequest[]];
+  // Receipts are read alongside too, and fall back to none the same way.
+  const [detail, requests, receipts] = jwt
+    ? await Promise.all([hub.order(jwt, id).catch(link.or(null)), hub.serviceRequests(jwt).catch(link.or<ServiceRequest[]>([])), hub.receipts(jwt).catch(link.or<HubReceipt[]>([]))])
+    : [null, [] as ServiceRequest[], [] as HubReceipt[]];
   if (link.hit) redirect(profileUrl(withQuery(`/account/orders/${id}`, query)));
   if (!detail) {
     return (
@@ -154,6 +157,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
   const paidyNeedsProfile = chosen === "paidy" && !paidy && !!paidyReq && !(paidyReq.family_name && paidyReq.given_name && paidyReq.jp_mobile && paidyReq.jp_billing_address);
   // Chose Paidy or card, but the Hub offers it on this order no longer: say so.
   const chosenUnavailable = ((chosen === "paidy" && !paidy) || (chosen === "card" && !card)) && !paidyNeedsProfile;
+  const receipt = receiptForOrder(receipts, "cash", order.id);
   const shipping = order.shipping_fee != null && Number(order.shipping_fee) > 0 ? formatMoney(Number(order.shipping_fee), order.currency) : null;
 
   return (
@@ -312,6 +316,17 @@ export default async function OrderDetailPage({ params, searchParams }: {
                 );
               })}
             </ul>
+          )}
+
+          {/* The receipt, once the Hub has issued one for this fully paid website order. */}
+          {receipt && (
+            <ReceiptPanel
+              lang={lang}
+              receipt={receipt}
+              issuedLabel={fmtDate(receipt.issued_at)}
+              totalLabel={formatMoney(Number(receipt.total), receipt.currency)}
+              orderPath={`/account/orders/${order.id}`}
+            />
           )}
 
           {/* The Hub decided the cancellation and the refund; this block only reports them. */}
