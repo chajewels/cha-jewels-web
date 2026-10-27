@@ -26,9 +26,12 @@ export const isAvailable = (p: Product) => inStockVariant(p) !== null;
 
 export type CollectionWithProducts = Collection & { products: Product[] };
 
+/** The collection list alone, in the Hub's order (by name): the grids' Kind chip names. [] when the Hub is slow. */
+export const collectionList = () => soft(hub.collections(), [] as Collection[]);
+
 /** Every collection with its pieces, in the Hub's order. */
 export async function collectionsWithProducts(): Promise<CollectionWithProducts[]> {
-  const cols = await soft(hub.collections(), [] as Collection[]);
+  const cols = await collectionList();
   const full = await Promise.all(cols.map((c) => soft(hub.collection(c.slug), null)));
   return full.filter((c): c is CollectionWithProducts => !!c);
 }
