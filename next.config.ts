@@ -31,5 +31,11 @@ const config: NextConfig = {
     imageSizes: [16, 32, 48, 64, 80, 96, 128, 256, 384],
     formats: ["image/avif", "image/webp"],
   },
+  // The Gold Guide was merged into the jewelry guide (owner 2026-10-27): its
+  // old address lands on the section that holds its content. Permanent (308);
+  // runs before middleware, so no page or language logic is involved.
+  async redirects() {
+    return [{ source: "/gold-guide", destination: "/jewelry-guide#metals", permanent: true }];
+  },
 };
 export default config;

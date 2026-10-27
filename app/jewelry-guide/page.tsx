@@ -1,0 +1,278 @@
+import Link from "next/link";
+import { pageMeta } from "@/lib/page-meta";
+import { tr, type Lang } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
+import { metalLabel } from "@/lib/metals";
+import {
+  GUIDE_SECTIONS, RING_SIZES, careStep, clasps, diamond4c, guideIntro, metalSteps, metals, necklaceLength, ringSize, sizeNotes,
+  type GuideSectionId, type GuideStep,
+} from "@/lib/content/jewelry-guide";
+import { Button } from "@/components/ui/button";
+import { GuideStory } from "@/components/fx/guide-story";
+import { GuidePlate } from "@/components/editorial/guide-plate";
+import { ClaspDrawing, DiamondDiagram, NecklaceDiagram, RingDiagram } from "@/components/editorial/jewelry-guide-art";
+import { RevealBlock } from "@/components/fx/reveal";
+import { NavHeading, SplitHeading } from "@/components/fx/split-text";
+
+export const generateMetadata = () => pageMeta("jewelryGuide");
+
+/**
+ * THE JEWELRY GUIDE (owner decisions 2026-10-27). Seven sections, each with
+ * an anchor the contents list and other pages link to (/jewelry-guide#metals
+ * is where /gold-guide now redirects, next.config.ts). Light chalk page like
+ * every inner page; the Gold Guide's dark plates and its scroll story live on
+ * inside Metals and Care, where its copy was merged.
+ *
+ * Every word comes from lib/content/jewelry-guide.ts; every drawing is
+ * components/editorial/jewelry-guide-art.tsx. Tables never push the page
+ * sideways: the ring table sits in its own scroll box, and the stamp list
+ * stacks.
+ */
+export default async function JewelryGuidePage() {
+  const lang = await getLang();
+  const t = tr(lang);
+  const eyebrow = `text-[11px] font-semibold text-gold-dark ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`;
+  return (
+    <>
+      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
+        <div className="wrap">
+          <p className={eyebrow}>{guideIntro.eyebrow[lang]}</p>
+          <NavHeading text={guideIntro.h1[lang]} lang={lang} className="mt-3 max-w-[18ch] text-[clamp(36px,5.5vw,80px)]" />
+          <p className="mt-5 max-w-[58ch] text-charcoal">{guideIntro.lede[lang]}</p>
+          <nav aria-labelledby="jg-contents" className="mt-10">
+            <p id="jg-contents" className={eyebrow}>{guideIntro.contents[lang]}</p>
+            <ol className="rule-grid mt-4 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+              {GUIDE_SECTIONS.map((s, i) => (
+                <li key={s.id} className="bg-white">
+                  <a href={`#${s.id}`} className="flex min-h-[64px] h-full flex-col justify-between gap-2 p-4 text-sm font-medium text-charcoal-deep hover:text-gold-dark">
+                    <span className="font-display text-xs tracking-[0.2em] text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{String(i + 1).padStart(2, "0")}</span>
+                    {s.title[lang]}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+      </section>
+
+      {/* 1. RING SIZE */}
+      <GuideSection id="ring-size" lang={lang}>
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+          <div className="min-w-0">
+            <p className="max-w-[62ch] text-charcoal">{ringSize.intro[lang]}</p>
+            <p className="mt-4 max-w-[62ch] border-l-2 border-gold-dark pl-4 text-charcoal-deep">{ringSize.guideOnly[lang]}</p>
+            <div className="mt-8 flex justify-center bg-white p-6"><RingDiagram diameter={ringSize.art.diameter[lang]} circumference={ringSize.art.circumference[lang]} /></div>
+            <h3 className="mt-10 font-display text-[clamp(20px,2.4vw,28px)]">{ringSize.measureH[lang]}</h3>
+            <div className="rule-grid mt-4 grid">
+              {ringSize.measure.map((m) => (
+                <div key={m.h.en} className="bg-white p-5">
+                  <h4 className="text-[15px] font-semibold text-charcoal-deep">{m.h[lang]}</h4>
+                  <p className="mt-2 text-[15px] text-charcoal">{m.body[lang]}</p>
+                </div>
+              ))}
+            </div>
+            <h3 className="mt-10 font-display text-[clamp(20px,2.4vw,28px)]">{ringSize.tipsH[lang]}</h3>
+            <ul className="mt-4 grid gap-3">
+              {ringSize.tips.map((tip) => (
+                <li key={tip.en} className="flex gap-3 text-[15px] text-charcoal"><span aria-hidden="true" className="mt-[0.6em] h-px w-4 shrink-0 bg-gold-dark" />{tip[lang]}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="min-w-0">
+            <div className="max-h-[min(80vh,760px)] overflow-auto border border-hairline bg-white" tabIndex={0} role="region" aria-labelledby="jg-ring-caption">
+              <table className="w-full border-collapse text-[15px] [font-variant-numeric:lining-nums_tabular-nums]">
+                <caption id="jg-ring-caption" className="border-b border-hairline px-4 py-3 text-left text-sm font-semibold text-charcoal-deep">{ringSize.caption[lang]}</caption>
+                <thead className="sticky top-0 bg-chalk text-left text-xs text-charcoal/80">
+                  <tr>
+                    <th scope="col" className="px-4 py-2.5 font-semibold">{ringSize.colSize[lang]}</th>
+                    <th scope="col" className="px-4 py-2.5 text-right font-semibold">{ringSize.colDiameter[lang]} ({ringSize.unit[lang]})</th>
+                    <th scope="col" className="px-4 py-2.5 text-right font-semibold">{ringSize.colCircumference[lang]} ({ringSize.unit[lang]})</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {RING_SIZES.map(([n, d, c]) => (
+                    <tr key={n} className="border-t border-hairline">
+                      <th scope="row" className="px-4 py-2 text-left font-display text-base font-normal text-gold-dark">{n}</th>
+                      <td className="px-4 py-2 text-right text-charcoal-deep">{d}</td>
+                      <td className="px-4 py-2 text-right text-charcoal-deep">{c}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-sm text-charcoal/80">{ringSize.scale[lang]}</p>
+          </div>
+        </div>
+      </GuideSection>
+
+      {/* 2. NECKLACE LENGTH */}
+      <GuideSection id="necklace-length" lang={lang}>
+        <p className="max-w-[62ch] text-charcoal">{necklaceLength.intro[lang]}</p>
+        <figure className="mt-8 grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+          <div className="flex justify-center bg-white p-6"><NecklaceDiagram /></div>
+          <figcaption className="min-w-0">
+            <span className="sr-only">{necklaceLength.caption[lang]}</span>
+            <ol className="rule-grid grid">
+              {necklaceLength.lengths.map((l, i) => (
+                <li key={l.key} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3 bg-white p-4">
+                  <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full border border-gold-dark text-xs text-charcoal-deep [font-variant-numeric:lining-nums_tabular-nums]">{i + 1}</span>
+                  <span>
+                    <span className="flex flex-wrap items-baseline justify-between gap-x-3">
+                      <span className="font-semibold text-charcoal-deep">{l.name[lang]}</span>
+                      <span className="text-sm text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{l.cm[lang]}</span>
+                    </span>
+                    <span className="mt-1 block text-[15px] text-charcoal">{l.where[lang]}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-4 text-sm text-charcoal/80">{necklaceLength.note[lang]}</p>
+            <p className="mt-2 text-[15px] text-charcoal">{necklaceLength.tip[lang]}</p>
+          </figcaption>
+        </figure>
+      </GuideSection>
+
+      {/* 3. SIZE NOTES */}
+      <GuideSection id="size-notes" lang={lang}>
+        <p className="max-w-[62ch] text-charcoal">{sizeNotes.intro[lang]}</p>
+        <div className="rule-grid mt-8 grid sm:grid-cols-2 lg:grid-cols-3">
+          {sizeNotes.items.map((it) => (
+            <div key={it.key} className="bg-white p-5">
+              <h3 className="font-display text-xl text-charcoal-deep">{it.name[lang]}</h3>
+              <p className="mt-2 text-[15px] text-charcoal">{it.body[lang]}</p>
+            </div>
+          ))}
+        </div>
+      </GuideSection>
+
+      {/* 4. CLASPS */}
+      <GuideSection id="clasps" lang={lang}>
+        <p className="max-w-[62ch] text-charcoal">{clasps.intro[lang]}</p>
+        <div className="rule-grid mt-8 grid sm:grid-cols-2 lg:grid-cols-5 [&>*:last-child]:sm:col-span-2 [&>*:last-child]:lg:col-span-1">
+          {clasps.items.map((c) => (
+            <div key={c.key} className="flex flex-col bg-white p-5">
+              <div className="flex justify-center bg-chalk px-3 py-4"><ClaspDrawing kind={c.key} /></div>
+              <h3 className="mt-4 font-display text-xl text-charcoal-deep">{c.name[lang]}</h3>
+              <p className="mt-2 text-[15px] text-charcoal">{c.how[lang]}</p>
+            </div>
+          ))}
+        </div>
+      </GuideSection>
+
+      {/* 5. METALS — the Gold Guide's two steps, as its scroll story, then every stamp. */}
+      <GuideSection id="metals" lang={lang}>
+        <p className="max-w-[62ch] text-charcoal">{metals.intro[lang]}</p>
+        <div className="mt-10">
+          <GuideStory>
+            <div className="hidden lg:block">
+              <div className="fx-guide-pin">
+                {/* Plates repeat the facts beside them, so they are hidden
+                    from assistive tech — except the stamp plate, whose
+                    illustrations carry alt text. */}
+                {metalSteps.map((sec, i) => (
+                  <div key={sec.h.en} data-plate={i} aria-hidden={i === 1 ? undefined : "true"}><GuidePlate i={i} sec={sec} lang={lang} /></div>
+                ))}
+              </div>
+            </div>
+            <div>
+              {metalSteps.map((sec, i) => (
+                <article key={sec.h.en} data-guide-step={i} className="fx-guide-step">
+                  <RevealBlock index={0}>
+                    <div aria-hidden={i === 1 ? undefined : "true"} data-plate={i} className="fx-guide-inline"><GuidePlate i={i} sec={sec} lang={lang} /></div>
+                    <SplitHeading as="h3" text={sec.h[lang]} lang={lang} className="text-[clamp(24px,3vw,40px)]" />
+                    <p className="mt-4 max-w-[62ch] text-charcoal">{sec.body[lang]}</p>
+                    <Facts sec={sec} lang={lang} />
+                  </RevealBlock>
+                </article>
+              ))}
+            </div>
+          </GuideStory>
+        </div>
+        <h3 className="mt-16 font-display text-[clamp(20px,2.4vw,28px)]">{metals.tableH[lang]}</h3>
+        <dl className="mt-4 border-t border-hairline">
+          {metals.rows.map((r) => (
+            <div key={r.stamp} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-x-4 border-b border-hairline py-3 sm:grid-cols-[9rem_7rem_minmax(0,1fr)]">
+              <dt className="font-display text-lg text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{metalLabel(r.stamp, lang)}</dt>
+              <dd className="text-sm text-charcoal/80 sm:pt-1">{r.metal[lang]}</dd>
+              <dd className="col-span-2 mt-1 text-[15px] text-charcoal sm:col-span-1 sm:mt-0">{r.means[lang]}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-4 max-w-[62ch] text-sm text-charcoal/80">{metals.note[lang]}</p>
+      </GuideSection>
+
+      {/* 6. DIAMOND 4C */}
+      <GuideSection id="diamond-4c" lang={lang}>
+        <p className="max-w-[62ch] text-charcoal">{diamond4c.intro[lang]}</p>
+        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+          <div className="flex justify-center bg-white p-6">
+            <DiamondDiagram labels={Object.fromEntries(Object.entries(diamond4c.art).map(([k, v]) => [k, v[lang]])) as Record<keyof typeof diamond4c.art, string>} />
+          </div>
+          <div className="min-w-0">
+            <div className="rule-grid grid sm:grid-cols-2">
+              {diamond4c.items.map((it) => (
+                <div key={it.key} className="bg-white p-5">
+                  <h3 className="font-display text-xl text-charcoal-deep">{it.name[lang]}</h3>
+                  <p className="mt-2 text-[15px] text-charcoal">{it.body[lang]}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-sm text-charcoal/80">{diamond4c.note[lang]}</p>
+          </div>
+        </div>
+      </GuideSection>
+
+      {/* 7. CARE — the Gold Guide's care step and its plate. */}
+      <GuideSection id="care" lang={lang}>
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+          <div aria-hidden="true" className="min-h-[min(72vw,340px)] lg:aspect-[4/5] lg:max-h-[520px]"><GuidePlate i={2} sec={careStep} lang={lang} /></div>
+          <div className="min-w-0">
+            <p className="max-w-[62ch] text-charcoal">{careStep.body[lang]}</p>
+            <Facts sec={careStep} lang={lang} />
+          </div>
+        </div>
+      </GuideSection>
+
+      <section className="py-[clamp(48px,7vw,96px)]">
+        <div className="wrap grid gap-6 border-t border-charcoal-deep pt-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div>
+            <p className="font-display text-[clamp(22px,2.6vw,32px)] text-charcoal-deep">{guideIntro.askTitle[lang]}</p>
+            <p className="mt-2 max-w-[58ch] text-charcoal">{guideIntro.askBody[lang]}</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild><Link href="/contact">{t("navMenu", "contact")}</Link></Button>
+            <Button asChild variant="outline"><Link href="/collections">{t("gold", "cta")}</Link></Button>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/** One numbered section with its anchor; `scroll-mt` keeps the heading clear of the sticky header. */
+function GuideSection({ id, lang, children }: { id: GuideSectionId; lang: Lang; children: React.ReactNode }) {
+  const i = GUIDE_SECTIONS.findIndex((s) => s.id === id);
+  return (
+    <section id={id} aria-labelledby={`${id}-h`} className="scroll-mt-[88px] border-b border-hairline py-[clamp(48px,7vw,96px)]">
+      <div className="wrap">
+        <p className="font-display text-sm tracking-[0.2em] text-gold-dark [font-variant-numeric:lining-nums_tabular-nums]">{String(i + 1).padStart(2, "0")} / {String(GUIDE_SECTIONS.length).padStart(2, "0")}</p>
+        <div id={`${id}-h`}><SplitHeading text={GUIDE_SECTIONS[i].title[lang]} lang={lang} className="mt-2 text-[clamp(28px,3.6vw,48px)]" /></div>
+        <div className="mt-6">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+/** A step's three facts as hairline ledger cells (the Gold Guide's own pattern). */
+function Facts({ sec, lang }: { sec: GuideStep; lang: Lang }) {
+  return (
+    <dl className="rule-grid mt-8 grid sm:grid-cols-3">
+      {sec.facts.map((f) => (
+        <div key={f.k.en} className="bg-white p-5">
+          <dt className="text-xs text-charcoal/70">{f.k[lang]}</dt>
+          <dd className="mt-1 font-display text-xl text-gold-dark">{f.v[lang]}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}

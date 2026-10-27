@@ -1,6 +1,6 @@
 import { Droplets, CircleSlash, Gem } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
-import { stampIllustrations, type GuideSection } from "@/lib/content/gold-guide";
+import { stampIllustrations, type GuideStep } from "@/lib/content/jewelry-guide";
 import { ComponentStyle, mix } from "@/components/fx/component-style";
 
 /**
@@ -46,12 +46,13 @@ const PT900 = "/images/gold-guide/pt900-clasp-illustration.webp";
 const OPT = (src: string, w: number) => `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=75`;
 
 /**
- * One plate of the gold guide's scroll story (components/fx/guide-story.tsx):
+ * One plate of the jewelry guide's Metals story (components/fx/guide-story.tsx)
+ * and its Care section — the Gold Guide's plates, merged in (2026-10-27):
  * a dark, gold-edged panel that SHOWS the step's facts rather than a
  * photograph standing in for them — there is no photograph of a hallmark or
  * of care in the library, and a stock ring beside "how to read the stamp"
  * would be decoration pretending to be information. Every word and figure on
- * a plate comes from the step's own facts (lib/content/gold-guide.ts) or the
+ * a plate comes from the step's own facts (lib/content/jewelry-guide.ts) or the
  * dictionary, so the plate can never say something the page does not.
  *
  * Plates 0 and 2 are decorative for assistive tech (the caller marks them
@@ -60,7 +61,7 @@ const OPT = (src: string, w: number) => `/_next/image?url=${encodeURIComponent(s
  * 75 / 25 bar), plate 1 the stamp (illustrations of a stamped clasp), and any
  * other step shows its facts as a list (care, today).
  */
-export function GuidePlate({ i, sec, lang }: { i: number; sec: GuideSection; lang: Lang }) {
+export function GuidePlate({ i, sec, lang }: { i: number; sec: GuideStep; lang: Lang }) {
   const t = tr(lang);
   const style = <ComponentStyle id="fx-guide-plate" css={CSS} />;
   if (i === 0) {

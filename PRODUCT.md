@@ -62,7 +62,7 @@ Tone: **direct and pragmatic.** Say the fact, the number and the condition, then
 
 ## Capabilities and Constraints
 
-**Built today:** home (hero film and category slides, values, layaway band on EN, collections, testimonials, new arrivals), collections and product pages (ISR 60 s), cart (a cookie holding only variant, slug and quantity), reserve-first checkout, layaway checkout gated on a signed Tagalog agreement, email-link sign-in, account (orders, layaway plans, addresses, profile), loyalty, about, why, contact, FAQ, gold guide, blog/news, wholesale inquiry, legal pages.
+**Built today:** home (hero film and category slides, values, layaway band on EN, collections, testimonials, new arrivals), collections and product pages (ISR 60 s), cart (a cookie holding only variant, slug and quantity), reserve-first checkout, layaway checkout gated on a signed Tagalog agreement, email-link sign-in, account (orders, layaway plans, addresses, profile), loyalty, about, why, contact, FAQ, jewelry guide (ring sizes, lengths, clasps, metals, 4C, care; the old gold guide merged in), blog/news, wholesale inquiry, legal pages.
 
 **Hard constraints:**
 
