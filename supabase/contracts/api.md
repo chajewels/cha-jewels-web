@@ -15,6 +15,7 @@ Collection = { id, slug, name, hero_media: string|null, description: string|null
 Product = { id, sku, slug, name, karat: "K18"|"K14"|"K10"|"PT1000"|"PT950"|"PT900"|"SILVER925"|null, weight_g: number|null,
             description_en, description_ja, description_tl: string|null, status: "active",
             condition: "New"|"Preloved", origin: "JAPAN"|"BRAND"|"OTHER"|"UNKNOWN", brand: string|null,
+            collection_slugs: string[],
             product_variants: Variant[] }
 Variant = { id, size: string|null, stone: string|null, price_jpy: number, price_php: number|null,
             stock_qty: number, down_payment_jpy?: number, down_payment_php?: number, down_payment_pct?: number,
@@ -56,6 +57,29 @@ piece; `"BRAND"` renders `brand` (name only, never a logo) and claims no origin;
 `"OTHER"`, `"UNKNOWN"` and an absent value render nothing. The site never infers
 an origin from metal, name or description, and site-wide copy may only say
 "authenticated in Japan" / "hallmark checked in Japan".
+
+**`collection_slugs` — LIVE** (Hub PR #634/#635, deployed 2026-10-27 06:54
+UTC; the Hub's own contract is the source). The slugs of the collections
+(rings, necklaces, pendants…) the product belongs to, in collection-name order
+(the order `GET /catalog/collections` lists them); `[]` when the product is in
+no collection, and `[]` on every product if the Hub could not read the links.
+Present on every product the API returns: `/catalog/products` (not the
+`?fields=` projection), `/catalog/products/:slug`, `/catalog/collections/:slug`
+and `/catalog/categories/:slug`.
+- **Site use** (owner decisions 2026-10-27): the collection and category grids'
+  **Kind** filter (`components/catalog/catalog-grid.tsx`, EN "Kind", JA
+  「アイテム」) — one chip per collection the page's pieces belong to, named by
+  `GET /catalog/collections` (`collectionName`, the header menu's cached read;
+  no call per product), shown only when a piece carries a slug and the page has
+  more than one kind. The **Brand** filter beside it reads `brand` exactly as
+  written (no merging of spellings) and shows with more than one brand. Both
+  are carried in the URL as `kind=` / `brand=` (`lib/catalog-filters.ts`). The
+  site treats an absent field as `[]` and never infers a kind from a SKU or name.
+- **List order and the grid's sort.** "Newest" is the order the Hub sends;
+  "Oldest" is that order reversed, nothing else (no date is read). That order
+  is `website_collection_products.sort` on a collection,
+  `website_category_products.sort_order` then name on a category, and
+  `created_at` descending on `/catalog/products` (the `/sale` page).
 
 ## Endpoints
 | Method & path | Returns | Notes |

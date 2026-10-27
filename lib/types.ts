@@ -71,8 +71,15 @@ export type Origin = "JAPAN" | "BRAND" | "OTHER" | "UNKNOWN";
  * `video_url` / `video_poster_url`: the piece's MP4 and its still, same status.
  */
 export type ItemType = "Jewelry" | "Watch" | "Accessory";
-/** `metals`: every stamp on the piece in the Hub's order (PT900/K18); `karat` is the one-release bridge (= metals[0]) kept until the Hub drops it. */
-export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; category_slugs?: string[]; item_type?: ItemType | null; video_url?: string | null; video_poster_url?: string | null; product_variants: ProductVariant[];
+/**
+ * `metals`: every stamp on the piece in the Hub's order (PT900/K18); `karat` is the one-release bridge (= metals[0]) kept until the Hub drops it.
+ * `collection_slugs` (LIVE, Hub 2026-10-27): the collections (jewelry kinds —
+ * rings, necklaces…) the piece belongs to, in collection-name order; `[]` when
+ * in none, or when the Hub could not read the links. Optional so an older
+ * payload degrades to "no Kind filter". The grids' Kind filter reads it; nothing
+ * infers a kind from a SKU or a name.
+ */
+export type Product = { id: string; sku: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; karat: string | null; metals?: string[]; weight_g: number | null; description_en: string | null; description_ja: string | null; description_tl: string | null; status: ProductStatus; condition?: Condition; origin?: Origin; brand?: string | null; category_slugs?: string[]; collection_slugs?: string[]; item_type?: ItemType | null; video_url?: string | null; video_poster_url?: string | null; product_variants: ProductVariant[];
   /**
    * GET /catalog/categories/:slug only, and only while the Hub's hero runs on
    * ticked product cut-outs: the piece's place in this category's hero running

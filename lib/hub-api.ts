@@ -176,7 +176,7 @@ export const hub = {
       : notFoundToNull(call(`/catalog/categories/${encodeURIComponent(slug)}`)),
   collections: (): Promise<Collection[]> => FIXTURES ? Promise.resolve(fx.collections) : call("/catalog/collections"),
   collection: (slug: string): Promise<(Collection & { products: Product[] }) | null> =>
-    FIXTURES ? Promise.resolve((() => { const c = fx.collections.find((x) => x.slug === slug); return c ? { ...c, products: fx.products.filter((p) => p.col === slug) } : null; })())
+    FIXTURES ? Promise.resolve((() => { const c = fx.collections.find((x) => x.slug === slug); return c ? { ...c, products: fx.products.filter((p) => p.col === slug || (p.collection_slugs ?? []).includes(slug)) } : null; })())
              : notFoundToNull(call(`/catalog/collections/${encodeURIComponent(slug)}`)),
   product: (slug: string): Promise<Product | null> =>
     FIXTURES ? Promise.resolve(fx.products.find((p) => p.slug === slug) ?? null) : notFoundToNull(call(`/catalog/products/${encodeURIComponent(slug)}`)),
