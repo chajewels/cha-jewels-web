@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
  * The page's eyebrow and H1 are the shell's, so every account page opens the
  * same way. Nothing here reads the Hub.
  */
-export type AccountNavKey = "home" | "orders" | "layaway" | "addresses" | "service";
+export type AccountNavKey = "home" | "orders" | "layaway" | "receipts" | "addresses" | "service";
 
 export function AccountShell({ lang, current, eyebrow, title, headAside, back, children, className }: {
   lang: Lang;
@@ -44,6 +44,7 @@ export function AccountShell({ lang, current, eyebrow, title, headAside, back, c
     { key: "home", href: "/account", label: t("accountMenu", "myAccount") },
     { key: "orders", href: "/account/orders", label: t("accountMenu", "orders") },
     ...(layawayOffered(lang) ? [{ key: "layaway" as const, href: "/account/layaway", label: t("accountMenu", "layaway") }] : []),
+    { key: "receipts", href: "/account/receipts", label: t("accountMenu", "receipts") },
     { key: "addresses", href: "/account/addresses", label: t("accountMenu", "addresses") },
     { key: "service", href: "/account/service-requests", label: t("accountMenu", "service") },
     { key: "points", href: "/account#loyalty", label: t("accountMenu", "points") },

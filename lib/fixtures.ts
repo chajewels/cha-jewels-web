@@ -1375,3 +1375,33 @@ export function postCommentsFixture(signedIn: boolean): PostComments {
       : [],
   };
 }
+
+// ─── Website receipts (領収書), preview only ──────────────────────────────────
+// One issued receipt on the paid order, one cancelled on the refunded order and
+// one on the plan (English site only). NEXT_PUBLIC_PREVIEW_RECEIPTS=0 hides them
+// to preview the empty state.
+const receiptsOn = process.env.NEXT_PUBLIC_PREVIEW_RECEIPTS !== "0";
+const fixtureReceiptDetails = new Map<string, { addressee: string | null; purpose: string }>();
+export function receiptsFixture(): import("@/lib/receipts").HubReceipt[] {
+  if (!receiptsOn) return [];
+  const base: import("@/lib/receipts").HubReceipt[] = [
+    { id: "00000000-0000-4000-8000-0000000000a1", receipt_number: "CJR-2026-000003", kind: "cash", order_id: "order-paid", order_number: "CJ-W-019520", status: "issued", currency: "JPY", total: 112400, issued_at: "2026-10-27T15:28:44Z", cancelled_at: null, addressee: null, purpose: "お品代として", downloads: 0 },
+    { id: "00000000-0000-4000-8000-0000000000a2", receipt_number: "CJR-2026-000002", kind: "cash", order_id: "order-refunded", order_number: "CJ-W-019488", status: "cancelled", currency: "JPY", total: 152300, issued_at: "2026-10-20T03:10:00Z", cancelled_at: "2026-10-22T05:00:00Z", addressee: null, purpose: "お品代として", downloads: 1 },
+    { id: "00000000-0000-4000-8000-0000000000a3", receipt_number: "CJR-2026-000001", kind: "layaway", order_id: FIXTURE_PLAN_ID, order_number: FIXTURE_PLAN_REFERENCE, status: "issued", currency: "JPY", total: fixturePlanTotal, issued_at: "2026-10-18T01:00:00Z", cancelled_at: null, addressee: "Maria Santos", purpose: "お品代として", downloads: 2 },
+  ];
+  return base.map((r) => ({ ...r, ...(fixtureReceiptDetails.get(r.id) ?? {}) }));
+}
+export function updateReceiptFixture(id: string, addressee: string, purpose: string) {
+  const out = { addressee: addressee || null, purpose: purpose || "お品代として" };
+  fixtureReceiptDetails.set(id, out);
+  return { ok: true as const, ...out };
+}
+export function verifyReceiptFixture(code: string) {
+  return code === "0123456789abcdef0123456789abcdef01234567"
+    ? { receipt_number: "CJR-2026-000003", issued_at: "2026-10-27T15:28:44Z", total: 112400, currency: "JPY" as const, status: "valid" as const }
+    : code === "fedcba9876543210fedcba9876543210fedcba98"
+      ? { receipt_number: "CJR-2026-000002", issued_at: "2026-10-20T03:10:00Z", total: 152300, currency: "JPY" as const, status: "cancelled" as const }
+      : null;
+}
+/** A one-page blank PDF for the preview download (the real one is drawn by the Hub). */
+export const FIXTURE_RECEIPT_PDF = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n";
