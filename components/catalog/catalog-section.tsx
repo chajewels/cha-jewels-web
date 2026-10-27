@@ -21,7 +21,7 @@ import { collectionList, type CollectionWithProducts } from "@/lib/catalog-conte
  * dictionary labels; the "ask a person" tile. The first row's photos are the
  * page's largest paint and load with priority.
  *
- * KIND (owner 2026-10-27): the Hub's `collection_slugs` on each piece, named
+ * TYPE (owner 2026-10-27, "kind is type"): the Hub's `collection_slugs` on each piece, named
  * by the collection list — the header menu's own cached read, one call per
  * page, never one per piece — in the Hub's collection order. A slug the list
  * does not name (or every slug, when the list read gives up) gets no chip:
@@ -30,7 +30,7 @@ import { collectionList, type CollectionWithProducts } from "@/lib/catalog-conte
 export async function CatalogSection({ products, lang, messenger }: { products: Product[]; lang: Lang; messenger: string | null }) {
   const t = tr(lang);
   const onPage = new Set(products.flatMap((p) => p.collection_slugs ?? []));
-  const kinds = onPage.size ? (await collectionList()).filter((c) => onPage.has(c.slug)).map((c) => ({ key: c.slug, label: collectionName(c, lang) })) : [];
+  const types = onPage.size ? (await collectionList()).filter((c) => onPage.has(c.slug)).map((c) => ({ key: c.slug, label: collectionName(c, lang) })) : [];
   const items: GridItem[] = products.map((p, i) => {
     const sold = !isBuyable(productAvailability(p));
     return {
@@ -39,8 +39,7 @@ export async function CatalogSection({ products, lang, messenger }: { products: 
       preloved: p.condition === "Preloved",
       // The same rule as the card's Sale tag, the /sale page and the header link.
       sale: saleListed(p),
-      type: p.item_type ?? null,
-      kinds: p.collection_slugs ?? [],
+      types: p.collection_slugs ?? [],
       // Exactly as the Hub writes it; a blank brand is no brand (no chip, no count).
       brand: p.brand?.trim() ? p.brand : null,
       metals: productMetals(p).map((m) => ({ key: m, label: metalLabel(m, lang) })),
@@ -50,8 +49,7 @@ export async function CatalogSection({ products, lang, messenger }: { products: 
   });
   const labels: GridLabels = {
     condition: t("collection", "condition"), all: t("collection", "filterAll"), new: t("collection", "filterNew"), preloved: t("collection", "filterPreloved"), sale: t("product", "sale"),
-    type: t("collection", "type"), types: { Jewelry: t("collection", "typeJewelry"), Watch: t("collection", "typeWatch"), Accessory: t("collection", "typeAccessory") },
-    kind: t("collection", "kind"), brand: t("collection", "brand"),
+    type: t("collection", "type"), brand: t("collection", "brand"),
     metal: t("collection", "metal"), availableOnly: t("collection", "availableOnly"),
     sort: t("collection", "sort"), sortLabel: dict.collection.sortLabel[lang], sorts: { newest: t("collection", "sortNewest"), oldest: t("collection", "sortOldest"), low: t("collection", "sortLow"), high: t("collection", "sortHigh") },
     filter: t("collection", "filter"), filters: t("collection", "filters"), clear: t("collection", "clear"),
@@ -59,7 +57,7 @@ export async function CatalogSection({ products, lang, messenger }: { products: 
     brandSearch: t("collection", "brandSearch"), brandNone: t("collection", "brandNone"), show: dict.collection.show[lang], close: t("collection", "close"),
     count: dict.collection.count[lang], countOne: dict.collection.countOne[lang], includingSold: t("collection", "includingSold"), emptyFiltered: t("collection", "emptyFiltered"),
   };
-  return <CatalogGrid items={items} kinds={kinds} labels={labels} tile={<AskTile lang={lang} messenger={messenger} />} />;
+  return <CatalogGrid items={items} types={types} labels={labels} tile={<AskTile lang={lang} messenger={messenger} />} />;
 }
 
 /** The row filler: a person, not padding. The permit line shows from two cells (CatalogGrid). */

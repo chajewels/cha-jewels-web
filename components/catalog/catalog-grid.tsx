@@ -3,7 +3,6 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { DEFAULT_FILTERS, catalogFiltersToSearch, parseCatalogFilters, type CatalogFilters } from "@/lib/catalog-filters";
-import type { ItemType } from "@/lib/types";
 
 /**
  * THE COLLECTION / CATEGORY GRID WITH ITS TOOLBAR (step 2 build; comp
@@ -14,12 +13,13 @@ import type { ItemType } from "@/lib/types";
  *   condition   All / New / Preloved / Sale (the existing labels). Sale is
  *               the cards that show the Sale tag: on sale AND not sold
  *               (lib/sale.ts struckFullPrice, decided in CatalogSection).
- *   type        Jewelry / Watch / Accessory — the Hub's `item_type` (D2-1).
- *               Not sent yet: the group appears only once a piece on the page
- *               carries one. Nothing is inferred from a SKU or a name.
- *   kind        the Hub's collections the pieces belong to (`collection_slugs`,
- *               owner 2026-10-27), named in the Hub's words and order
- *               (CatalogSection), when the page has more than one
+ *   type        the Hub's collections the pieces belong to (`collection_slugs`:
+ *               necklaces, rings, pendants…), named in the Hub's words and
+ *               order (CatalogSection), when the page has more than one. Owner
+ *               2026-10-27: "kind is type … don't make it complicated" — the
+ *               one Type group; the old one built from `item_type`
+ *               (Jewelry / Watch / Accessory) is gone. Nothing is inferred
+ *               from a SKU or a name.
  *   brand       every `brand` on the page exactly as the Hub writes it — no
  *               merging of spellings — when there is more than one; a piece
  *               with no brand is in no chip
@@ -36,12 +36,12 @@ import type { ItemType } from "@/lib/types";
  * refetch, and the page stays ISR (no searchParams, no useSearchParams).
  *
  * COMPACT TOOLBAR (owner-approved mockup, 2026-10-27). From `lg` the bar is
- * one control row: a dropdown button per group (Condition, Item, Brand,
- * Metal, Type — "Brand · 2" when two are ticked) opening a short panel of
+ * one control row: a dropdown button per group (Condition, Type, Brand,
+ * Metal — "Brand · 2" when two are ticked) opening a short panel of
  * tick boxes, then "Available only" and Sort. Below the bar, one removable
  * tag per ticked option and "Clear all". Below `lg` the bar keeps Filter and
- * Sort — also one row: from 768 to 1023 px the five buttons, the switch and
- * Sort measure wider than the bar (EN ~850px), so tablets get the sheet rather
+ * Sort — also one row: from 768 to 1023 px the group buttons, the switch and
+ * Sort measure wider than the bar, so tablets get the sheet rather
  * than clipped controls. The bottom sheet (a modal dialog) holds the tags, then each group as
  * a section, closed by default, then Sort.
  *
@@ -63,9 +63,8 @@ export type GridItem = {
   preloved: boolean;
   /** The card shows the Sale tag (lib/sale.ts struckFullPrice): on sale and not sold. */
   sale: boolean;
-  type: ItemType | null;
-  /** The Hub's `collection_slugs` for the piece ([] when none). */
-  kinds: string[];
+  /** The Hub's `collection_slugs` for the piece ([] when none): the Type group. */
+  types: string[];
   /** The Hub's `brand`, exactly as written; null when none. */
   brand: string | null;
   /** `key` is the Hub stamp (filter, count, URL); `label` is what the chip shows. */
@@ -76,8 +75,7 @@ export type GridItem = {
 
 export type GridLabels = {
   condition: string; all: string; new: string; preloved: string; sale: string;
-  type: string; types: Record<ItemType, string>;
-  kind: string; brand: string;
+  type: string; brand: string;
   metal: string; availableOnly: string;
   sort: string; sortLabel: string; sorts: Record<Sort, string>;
   filter: string; filters: string; clear: string; show: string; close: string;
@@ -88,20 +86,18 @@ export type GridLabels = {
 
 type Sort = CatalogFilters["sort"];
 const SORTS: Sort[] = ["newest", "oldest", "low", "high"];
-const TYPES: ItemType[] = ["Jewelry", "Watch", "Accessory"];
-type GroupId = "cond" | "kind" | "brand" | "metal" | "type";
+type GroupId = "cond" | "type" | "brand" | "metal";
 type Opt = { key: string; label: string };
 type GroupDef = { id: GroupId; label: string; options: Opt[]; search: boolean };
 
 /** Does the piece pass one group's ticks (OR within the group)? */
 const PASS: Record<GroupId, (x: GridItem, sel: string[]) => boolean> = {
   cond: (x, sel) => sel.some((c) => (c === "sale" ? x.sale : (c === "preloved") === x.preloved)),
-  kind: (x, sel) => x.kinds.some((k) => sel.includes(k)),
+  type: (x, sel) => x.types.some((k) => sel.includes(k)),
   brand: (x, sel) => !!x.brand && sel.includes(x.brand),
   metal: (x, sel) => x.metals.some((m) => sel.includes(m.key)),
-  type: (x, sel) => !!x.type && sel.includes(x.type),
 };
-const GROUPS: GroupId[] = ["cond", "kind", "brand", "metal", "type"];
+const GROUPS: GroupId[] = ["cond", "type", "brand", "metal"];
 // One collator for both languages, so the brand list reads in the same order on EN and JA.
 const AZ = new Intl.Collator("en", { sensitivity: "base", numeric: true });
 // The brand search ignores case and accents ("hermes" finds Hermès).
@@ -144,10 +140,10 @@ const CSS = `
 @keyframes cg-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .cg-panel, .cg-pop { animation: none; } .cg-bar, .cg-switch, .cg-switch::after, .cg-drop svg { transition: none; } }`;
 
-export function CatalogGrid({ items, kinds, labels, tile }: {
+export function CatalogGrid({ items, types, labels, tile }: {
   items: GridItem[];
-  /** The page's collections, in the Hub's order, with their names in the current language (CatalogSection). */
-  kinds: { key: string; label: string }[];
+  /** The Type options: the page's collections, in the Hub's order, named in the current language (CatalogSection). */
+  types: { key: string; label: string }[];
   labels: GridLabels;
   /** The "ask a person" tile's content; `.cg-permit` inside it shows from two cells. */
   tile: React.ReactNode;
@@ -159,21 +155,19 @@ export function CatalogGrid({ items, kinds, labels, tile }: {
   const sheetTagsRef = useRef<HTMLUListElement>(null);
   const resultsRef = useRef<HTMLParagraphElement>(null);
 
-  const hasTypes = items.some((x) => x.type);
   // One option per stamp, in the order the stamps first appear on the page.
   const metals = useMemo(() => [...new Map(items.flatMap((x) => x.metals).map((m) => [m.key, m] as const)).values()], [items]);
-  // Shown only when a piece carries collection_slugs and the page has more than one kind.
-  const hasKinds = items.some((x) => x.kinds.length > 0) && kinds.length > 1;
+  // Shown only when a piece carries collection_slugs and the page has more than one type.
+  const hasTypes = items.some((x) => x.types.length > 0) && types.length > 1;
   // One option per brand, exactly as the Hub writes it, A–Z (ties keep the page's order).
   const brands = useMemo(() => [...new Set(items.flatMap((x) => (x.brand ? [x.brand] : [])))].sort((a, b) => AZ.compare(a, b)), [items]);
 
   // The groups the page shows, in the toolbar's order.
   const groups: GroupDef[] = [
     { id: "cond" as const, label: labels.condition, options: [{ key: "new", label: labels.new }, { key: "preloved", label: labels.preloved }, { key: "sale", label: labels.sale }], search: false },
-    ...(hasKinds ? [{ id: "kind" as const, label: labels.kind, options: kinds, search: false }] : []),
+    ...(hasTypes ? [{ id: "type" as const, label: labels.type, options: types, search: false }] : []),
     ...(brands.length > 1 ? [{ id: "brand" as const, label: labels.brand, options: brands.map((b) => ({ key: b, label: b })), search: brands.length > 8 }] : []),
     ...(metals.length > 1 ? [{ id: "metal" as const, label: labels.metal, options: metals, search: false }] : []),
-    ...(hasTypes ? [{ id: "type" as const, label: labels.type, options: TYPES.map((k) => ({ key: k, label: labels.types[k] })), search: false }] : []),
   ];
   const sel = (g: GroupId) => f[g] as string[];
 
@@ -199,9 +193,8 @@ export function CatalogGrid({ items, kinds, labels, tile }: {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const r = parseCatalogFilters(window.location.search, {
-      types: hasTypes ? TYPES : [],
+      types: hasTypes ? types.map((k) => k.key) : [],
       metals: metals.length > 1 ? metals.map((m) => m.key) : [],
-      kinds: hasKinds ? kinds.map((k) => k.key) : [],
       brands: brands.length > 1 ? brands : [],
     });
     ready.current = true;
