@@ -1,9 +1,9 @@
 "use client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { LANG_PARAM, tr, type Lang } from "@/lib/i18n";
 import type { SwitchTargets } from "@/lib/locale-nav";
+import { useSwitchTargets } from "./use-switch-targets";
 
 /**
  * The JA / EN toggle. Japanese first: it is the site's primary language.
@@ -15,7 +15,8 @@ import type { SwitchTargets } from "@/lib/locale-nav";
  * middleware syncs the cookie on the locale route it lands on, so the choice
  * still sticks. Without a target (private routes such as /cart or /account,
  * which must re-render in place), the option keeps the pre-2C behaviour: POST
- * /api/lang, then refresh.
+ * /api/lang, then refresh. After a client-side navigation the destinations are
+ * re-asked for the page on screen (./use-switch-targets.ts).
  *
  * NOT ORANGE (DESIGN.md, the Orange Means Buy rule; audit header #1). On light
  * the active segment is charcoal-deep with a chalk label; on a dark surface
@@ -46,22 +47,31 @@ export function LangSwitcher({ lang, targets, tone = "light", compact = false }:
     });
   }
   const dark = tone === "dark";
+  const current = useSwitchTargets(targets);
   /**
    * One control, link or button, same look. The current language never links away.
    *
-   * NEVER PREFETCHED (found 2026-10-28). The middleware syncs `cj-lang` to the
-   * locale of every /en or /ja request, and Next removes the router's prefetch
-   * headers before middleware runs, so it cannot tell a prefetch from a visit.
-   * This link is the only one on a page that names the OTHER language: its
-   * prefetch quietly switched the cookie — viewing an English page set
-   * `cj-lang=ja`, after which the English /layaway link 404'd and /cart
-   * rendered Japanese. A real click is still a navigation, so the cookie
-   * follows the customer's actual choice. tests/locale-nav.test.mjs guards it.
+   * A PLAIN <a>, A FULL PAGE LOAD (found 2026-10-28), and deliberately not
+   * next/link, for two reasons that both come from the root layout:
+   *  - The root layout — <html lang>, header, footer, drawer, tab bar — is not
+   *    re-rendered by a client-side navigation. A soft switch from /en/faq to
+   *    /ja/faq rendered the Japanese page under the ENGLISH frame, Layaway
+   *    link included. Changing language therefore loads a new document.
+   *  - A <Link> is prefetched, and a prefetch of the other language's URL ran
+   *    the middleware's cookie sync (Next strips the router's prefetch headers
+   *    before middleware, so it cannot tell): merely viewing an English page
+   *    set `cj-lang=ja`, after which the English /layaway link 404'd and /cart
+   *    rendered Japanese. A plain anchor is never prefetched; a click is a real
+   *    request, so the cookie follows the customer's actual choice.
+   * Still a real crawlable link with the same href, keyboard-operable as ever.
+   * tests/locale-nav.test.mjs guards both halves.
    */
   function Option({ l, className, children, label }: { l: Lang; className: string; children: React.ReactNode; label?: string }) {
-    const href = l === lang ? null : targets?.[l] ?? null;
+    // `current === null`: the destinations for this page are still being asked
+    // for — offer the destination language's home, which always exists.
+    const href = l === lang ? null : current === null ? `/${l}` : current?.[l] ?? null;
     return href ? (
-      <Link href={href} prefetch={false} lang={l} aria-label={label} className={className}>{children}</Link>
+      <a href={href} lang={l} aria-label={label} className={className}>{children}</a>
     ) : (
       <button type="button" lang={l} disabled={pending} aria-label={label} aria-pressed={l === lang || undefined} onClick={() => set(l)} className={className}>{children}</button>
     );
