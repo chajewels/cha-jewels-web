@@ -9,7 +9,7 @@ import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
 import { indexingFor } from "@/lib/seo-policy";
-import { localePath } from "@/lib/locale";
+import { localePath, localizeAuthoredHref } from "@/lib/locale";
 import { switchTargets } from "@/lib/locale-nav";
 import { dict, tr, PATH_HEADER } from "@/lib/i18n";
 import { headers } from "next/headers";
@@ -163,7 +163,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
-        {notice && <AnnouncementBar text={notice.text} href={notice.href && localePath(notice.href, lang)} lang={lang} nonce={h.get("x-nonce") ?? undefined} />}
+        {notice && <AnnouncementBar text={notice.text} href={notice.href && localizeAuthoredHref(notice.href, lang)} lang={lang} nonce={h.get("x-nonce") ?? undefined} />}
         {/* Tells an entrance whether this render is the first page load or a
             client navigation (components/fx/boot-marker.tsx). Renders nothing. */}
         <BootMarker />

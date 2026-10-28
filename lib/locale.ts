@@ -208,6 +208,31 @@ export function createLocaleRules(families: ReadonlyMap<string, FamilyRule> = FA
 export const { familyOf, isLocalizable, localePath, siblingPath } = createLocaleRules();
 
 /**
+ * AN AUTHOR-WRITTEN LINK (Hub markdown in posts and FAQ answers, the Hub
+ * announcement), localized for the page it appears on (OD-11, corrected
+ * 2026-10-28).
+ *
+ * An UNPREFIXED eligible public path takes the page's language, exactly as
+ * `localePath` gives it: "/faq" is "/ja/faq" on a Japanese page and "/en/faq"
+ * on an English one. A path the author already prefixed with "/en" or "/ja" is
+ * the author's explicit choice of language and is returned AS WRITTEN — never
+ * re-based onto the page's language. `localePath` itself swaps a prefix, which
+ * is right for the language switcher (it asks for the same page in the other
+ * language) and wrong for an editor who deliberately linked one language: an
+ * English-only article linked as "/en/blog/…" from a Japanese page used to
+ * become "/ja/blog/…", a 404.
+ *
+ * Everything else behaves as `localePath`: private, utility, unknown and
+ * not-yet-live paths (bare "/layaway") and anything that is not a site path
+ * come back unchanged; query, fragment and encoding are carried through. This
+ * decides a URL only — whether a page may link to another language's content is
+ * an editorial decision, not this function's.
+ */
+export function localizeAuthoredHref(input: string, locale: Locale): string {
+  return localeOf(input) ? input : localePath(input, locale);
+}
+
+/**
  * Every live URL of one resource: the bare path plus its /en and /ja forms when
  * the family is localizable (Phase 2C; used by cache revalidation so a Hub edit
  * refreshes all three renders). A non-localizable path comes back alone.

@@ -18,9 +18,13 @@ test("anchors and query strings ride along", () => {
   assert.equal(hrefOf(link("/collections/kihei?sort=new#top")), "/ja/collections/kihei?sort=new#top");
 });
 
-test("an already-localized link is re-based on the page language, never double-prefixed", () => {
-  assert.equal(hrefOf(link("/en/faq")), "/ja/faq");
+// Corrected 2026-10-28 (owner): an author's explicit /en/ or /ja/ is kept as
+// written. It used to be re-based onto the page's language, which turned an
+// English-only article linked as /en/blog/… from a Japanese page into a 404.
+test("an already-localized link keeps the author's language, never double-prefixed", () => {
+  assert.equal(hrefOf(link("/en/faq")), "/en/faq");
   assert.equal(hrefOf(link("/ja/faq")), "/ja/faq");
+  assert.equal(hrefOf(renderMarkdown("[t](/ja/faq)", "en")), "/ja/faq");
 });
 
 test("external, mailto, private, unknown, layaway and unsupported-locale paths are untouched", () => {
