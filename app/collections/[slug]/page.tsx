@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { redirectLegacy } from "@/lib/legacy-redirect-server";
 import type { Metadata } from "next";
 import { getCollectionWithProducts, getCollections } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
@@ -28,6 +29,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const [col, lang] = await Promise.all([getCollectionWithProducts((await params).slug), getLang()]);
   if (!col) notFound();
+  // A bare URL that exists in its language answers a 307 to its locale page
+  // (Phase 2E-stage-1; lib/legacy-redirect-server.ts). Never on a locale route.
+  await redirectLegacy();
   const t = tr(lang);
   const messenger = await follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null);
   const empty = col.products.length === 0;

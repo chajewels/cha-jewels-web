@@ -20,7 +20,7 @@ const ok = (route, what, cond, detail = "") => record(cond ? "PASS" : "FAIL", ro
 async function get(path) {
   const res = await fetch(`${BASE}${path}`, { redirect: "manual", headers: { "user-agent": "cha-seo-check/1" } });
   const body = res.status >= 300 && res.status < 400 ? "" : await res.text();
-  return { status: res.status, location: res.headers.get("location"), xrobots: res.headers.get("x-robots-tag"), body };
+  return { status: res.status, location: res.headers.get("location"), xrobots: res.headers.get("x-robots-tag"), cache: res.headers.get("cache-control"), body };
 }
 
 const robotsMeta = (html) => (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
@@ -66,9 +66,33 @@ ok("/robots.txt", "answers 200", rb.status === 200, `got ${rb.status}`);
 ok("/robots.txt", "declares the sitemap", /^Sitemap: https?:\/\/\S+\/sitemap\.xml$/m.test(rb.body));
 for (const p of ["/search", "/cart", "/login"]) ok("/robots.txt", `does not block ${p} (its noindex must be readable)`, !new RegExp(`^Disallow: ${p}\\b`, "m").test(rb.body));
 
+// ---------------------------------------------------------------- legacy redirects (Phase 2E-stage-1)
+// A no-signal request (this script's) to a bare public URL answers a TEMPORARY
+// 307 to its /ja page, never cached for someone else; ?lang=en goes to /en.
+// The root and /layaway are untouched; a missing slug keeps its 404.
+const BARE = ["/jewelry-guide", "/shopping-guide", "/faq", "/about", "/legal/tokusho", "/loyalty", "/sale", product, collection, category].filter(Boolean);
+for (const path of BARE) {
+  const r = await get(path);
+  ok(path, "2E-1: 307 to its /ja page (no signal)", r.status === 307 && (r.location ?? "").replace(BASE, "") === `/ja${path}`, `got ${r.status} ${r.location ?? ""}`);
+  ok(path, "2E-1: the redirect is not cacheable for others (private, no-store)", r.status !== 307 || /private/.test(r.cache ?? "") && /no-store/.test(r.cache ?? ""), `cache-control=${r.cache}`);
+}
+{
+  const r = await get("/faq?lang=en&utm_source=check");
+  ok("/faq?lang=en&utm_source=check", "2E-1: 307 to /en/faq, lang dropped, other parameters kept", r.status === 307 && (r.location ?? "").replace(BASE, "") === "/en/faq?utm_source=check", `got ${r.status} ${r.location ?? ""}`);
+}
+for (const [path, want] of [["/layaway", 404], ["/layaway?lang=en", 200], ["/products/nonexistent-seo-check-xyz", 404]]) {
+  const r = await get(path);
+  ok(path, `2E-1: untouched (${want})`, r.status === want, `got ${r.status} ${r.location ?? ""}`);
+}
+
 // ---------------------------------------------------------------- indexable pages
-const PUBLIC = ["/", product, collection, category, post, "/jewelry-guide", "/shopping-guide", "/faq", "/about", "/legal/tokusho", "/loyalty", "/sale"].filter(Boolean);
+// The root stays bare (OD-3); every other indexable page is checked at its
+// locale URLs, where its canonical and hreflang now live.
+const LOCALIZED = [product, collection, category, post, "/jewelry-guide", "/shopping-guide", "/faq", "/about", "/legal/tokusho", "/loyalty", "/sale"].filter(Boolean);
+const PUBLIC = ["/", ...LOCALIZED.flatMap((p) => [`/ja${p}`, `/en${p}`])];
 for (const path of PUBLIC) {
+  // An English-only post has no /ja page: that is the sitemap's rule too.
+  if (path === `/ja${post}` && !paths.includes(path)) continue;
   const r = await get(path);
   ok(path, "200", r.status === 200, `got ${r.status}`);
   if (r.status !== 200) continue;
@@ -76,18 +100,21 @@ for (const path of PUBLIC) {
   const c = canonicals(r.body);
   const self = `${BASE}${path === "/" ? "/" : path}`;
   ok(path, "one self canonical", c.length === 1 && c[0].replace(/\/$/, "") === self.replace(/\/$/, ""), `canonical=${c.join("|") || "none"}`);
-  ok(path, "hreflang ja / en / x-default present", ["ja", "en", "x-default"].every((l) => alternates(r.body).some((a) => a.lang === l)), JSON.stringify(alternates(r.body)));
+  // A single-language post names only the language it exists in (plus x-default).
+  const single = bareOf(path) === post && !(paths.includes(`/ja${post}`) && paths.includes(`/en${post}`));
+  const want = single ? [path.slice(1, 3), "x-default"] : ["ja", "en", "x-default"];
+  ok(path, `hreflang ${want.join(" / ")} present`, want.every((l) => alternates(r.body).some((a) => a.lang === l)), JSON.stringify(alternates(r.body)));
   const ld = jsonLd(r.body);
   const types = ld.map((d) => d["@type"]);
   if (path === "/") ok(path, "JSON-LD: JewelryStore", types.includes("JewelryStore"), types.join(","));
-  if (path === product) {
+  if (bareOf(path) === product) {
     const p = ld.find((d) => d["@type"] === "Product");
     ok(path, "JSON-LD: Product with name, sku, offer", !!p && !!p.name && !!p.sku && !!p.offers?.priceCurrency && p.offers.price != null, JSON.stringify(p ?? null).slice(0, 120));
     ok(path, "JSON-LD: availability is InStock or SoldOut", ["https://schema.org/InStock", "https://schema.org/SoldOut"].includes(p?.offers?.availability), p?.offers?.availability);
     ok(path, "JSON-LD: no countryOfOrigin invented", !JSON.stringify(ld).includes("countryOfOrigin"));
   }
-  if (path === post) ok(path, "JSON-LD: BlogPosting", types.includes("BlogPosting"), types.join(","));
-  if (path === "/faq") ok(path, "JSON-LD: FAQPage", types.includes("FAQPage"), types.join(","));
+  if (bareOf(path) === post) ok(path, "JSON-LD: BlogPosting", types.includes("BlogPosting"), types.join(","));
+  if (bareOf(path) === "/faq") ok(path, "JSON-LD: FAQPage", types.includes("FAQPage"), types.join(","));
 }
 
 // ---------------------------------------------------------------- noindex pages (200)

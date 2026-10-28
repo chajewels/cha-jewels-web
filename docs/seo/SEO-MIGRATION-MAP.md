@@ -941,3 +941,17 @@ Target language T is the language the bare URL would render for this request tod
 - **Known temporary inconsistency, accepted for this window:** `/` keeps its legacy self canonical and its legacy hreflang trio (`ja` = `/`, `en` = `/?lang=en`, `x-default` = `/`), while `/en` and `/ja` form their own cluster with x-default = `/en` (OD-2) and do not name `/`. The home page therefore has two hreflang clusters and three listed URLs for one page in two languages.
 - **Resolution gate:** root legacy hreflang consistency **must be resolved before any future permanent (308) redirect promotion** (map §20.2), through the OD-3 decision, which decides what `/` becomes and, with it, whether `/` leaves the sitemap.
 - History: recorded PENDING OWNER CONFIRMATION earlier on 2026-10-28 because the first approval ("the recommended root sitemap policy") could be read two ways; the owner then decided it explicitly for this review batch.
+
+### 20.4 Production release gate for the 307 stage (owner decision, 2026-10-28 three-PR review batch)
+**Redirect header decision — PROVISIONALLY ACCEPTED FOR PR REVIEW, NOT FINAL PRODUCTION APPROVAL.** Static-page 307s (middleware) send `Cache-Control: private, no-store` and `Vary: Cookie, Accept-Language`. Page-level 307s (products, categories, collections, posts) send `Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate`; their `Vary` is set by Next.js and is not changed (no unsupported workaround).
+
+**The production release is BLOCKED unless all of the following are verified on the actual Vercel Preview deployment** (not on a local build, and not inferred from an ignored-build status):
+1. Real HTTP `307` status on eligible bare URLs (static and page-level).
+2. The actual `Location` header: the correct locale, one hop, query kept minus `lang`, no double prefix.
+3. The actual `Cache-Control` header (`private` and `no-store` on every language-dependent 307).
+4. Redirect responses are not reused across language cookies (same URL, cookie `en` → `ja` → `en`).
+5. Correct targets across `Accept-Language` variants (en, ja, weighted, unsupported, absent).
+6. Missing locale siblings and unknown slugs keep their 404, never redirect.
+7. No redirect loops.
+8. No streamed meta-refresh substitution (a real 307, never a 200 carrying a refresh).
+
