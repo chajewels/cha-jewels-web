@@ -148,3 +148,35 @@ test("stage 1 is temporary only: no 308 / permanent redirect added, next.config 
     assert.throws(() => statSync(join(process.cwd(), d, f)), `${d}/${f} would break the real 307`);
   }
 });
+
+// ------------------------------------------------------------------ added 2026-10-28 (final QA)
+// Redirect regression coverage for the inputs a real browser sends. The
+// language rule is lib/i18n `detectLang` ("Japanese only for a visitor who
+// actually asks for Japanese": ja when it ranks above every other tag the site
+// understands; unsupported languages get English; no header gets Japanese).
+
+test("multiple and weighted Accept-Language headers", () => {
+  const al = (h) => to("/faq", { al: h });
+  assert.equal(al("en;q=0.5, ja;q=0.9"), "/ja/faq", "ja ranked first by weight");
+  assert.equal(al("ja;q=0.1, en;q=0.9"), "/en/faq", "en ranked first by weight");
+  assert.equal(al("ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7"), "/ja/faq", "a typical Japanese browser");
+  assert.equal(al("en-US,en;q=0.9,ja;q=0.8"), "/en/faq", "a typical English browser that also reads Japanese");
+  assert.equal(al("fil-PH,fil;q=0.9,en;q=0.8"), "/en/faq", "a Filipino browser: English");
+  assert.equal(al("zh-CN,zh;q=0.9"), "/en/faq", "an unsupported language: English");
+  assert.equal(al(""), "/ja/faq", "an empty header is no preference: Japanese");
+});
+
+test("invalid language cookies are ignored, never trusted", () => {
+  for (const bad of ["fr", "EN", "ja-JP", "", "en;", "<script>"]) {
+    assert.equal(to("/faq", { cookie: bad }), "/ja/faq", `cookie ${JSON.stringify(bad)}, no header`);
+    assert.equal(to("/faq", { cookie: bad, al: "en" }), "/en/faq", `cookie ${JSON.stringify(bad)} falls through to Accept-Language`);
+  }
+});
+
+test("every input together: ?lang= beats the cookie, the cookie beats Accept-Language", () => {
+  assert.equal(to("/faq?lang=ja", { cookie: "en", al: "en" }), "/ja/faq");
+  assert.equal(to("/faq?lang=en", { cookie: "ja", al: "ja" }), "/en/faq");
+  assert.equal(to("/faq?lang=bad", { cookie: "en", al: "ja" }), "/en/faq");
+  assert.equal(to("/products/x", { cookie: "ja", al: "en" }), "/ja/products/x");
+  assert.equal(to("/products/x?lang=xx", { al: "en" }), "/en/products/x");
+});
