@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { ChevronRight } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import { COMPANY_NAME_DISPLAY, tokusho } from "@/lib/content/legal";
@@ -79,7 +80,7 @@ export function LegalFrame({
               {PAGES.map((p) => (
                 <li key={p.key} className="flex-none">
                   <Link
-                    href={p.href}
+                    href={localePath(p.href, lang)}
                     aria-current={p.key === page ? "page" : undefined}
                     className="relative flex min-h-[44px] items-center whitespace-nowrap px-4 text-sm text-chalk/75 hover:text-chalk aria-[current]:text-gold-pale aria-[current]:after:absolute aria-[current]:after:inset-x-4 aria-[current]:after:-bottom-px aria-[current]:after:h-0.5 aria-[current]:after:bg-gold-pale"
                   >
@@ -117,14 +118,14 @@ export function LegalFrame({
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 border border-hairline bg-white px-5 py-5 text-sm text-charcoal-deep sm:px-6 print:hidden">
             <span>{t("legalPage", "questions")}</span>
             <a href="mailto:sales@chajewelsjp.com" className="text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">sales@chajewelsjp.com</a>
-            <Link href="/contact" className="text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("legalPage", "contact")}</Link>
+            <Link href={localePath("/contact", lang)} className="text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("legalPage", "contact")}</Link>
           </div>
 
           <nav aria-label={t("legalPage", "pages")} className="mt-16 grid border-t border-hairline sm:grid-cols-3 print:hidden">
             {PAGES.filter((p) => p.key !== page).map((p) => (
               <Link
                 key={p.key}
-                href={p.href}
+                href={localePath(p.href, lang)}
                 className="flex min-h-[64px] items-center justify-between gap-3 border-b border-hairline py-4 font-medium text-charcoal-deep hover:text-gold-dark sm:border-b-0 sm:border-r sm:px-[18px] sm:first:pl-0 sm:last:border-r-0"
               >
                 <span>{t("footer", p.label)}</span>

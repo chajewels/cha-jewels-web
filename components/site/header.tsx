@@ -19,6 +19,8 @@ import { MenuStory } from "./menu-story";
 import { CategoryThumb } from "./category-thumb";
 import { NavMenu, NavMenuItem, NavMenuTile } from "./nav-menu";
 import { LangSwitcher } from "./lang-switcher";
+import { localePath } from "@/lib/locale";
+import type { SwitchTargets } from "@/lib/locale-nav";
 import { SearchBox } from "./search-box";
 import { MobileNav, type DrawerGroup } from "./mobile-nav";
 import { CartButton } from "./cart-button";
@@ -54,7 +56,10 @@ import { NavUnderline } from "./nav-underline";
  * THE DARK RIGHT-HAND PANEL of both menus is a customer story (owner decision
  * on PR #168, 2026-09-27), rotating on every open: components/site/menu-story.tsx.
  */
-export async function Header({ lang }: { lang: Lang }) {
+export async function Header({ lang, switchTargets }: { lang: Lang; switchTargets?: SwitchTargets }) {
+  /** Every public destination in this chrome is locale-aware (Phase 2C). Private
+   *  routes and the bare /layaway exception pass through localePath unchanged. */
+  const L = (h: string) => localePath(h, lang);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
   // The testimonials are the home page's own read (hub.testimonials, cached
@@ -96,20 +101,20 @@ export async function Header({ lang }: { lang: Lang }) {
   // Blog and News are the same route with different `type` filters. The key
   // is explicit because the two hrefs share a path and differ only by query.
   const companyItems = [
-    { key: "about", href: "/about", label: t("navMenu", "about"), desc: t("navMenu", "aboutDesc"), icon: Info },
-    { key: "why", href: "/why-cha-jewels", label: t("navMenu", "why"), desc: t("navMenu", "whyDesc"), icon: Gem },
-    { key: "faq", href: "/faq", label: t("navMenu", "faq"), desc: t("navMenu", "faqDesc"), icon: CircleHelp },
-    { key: "blog", href: "/blog", label: t("navMenu", "blog"), desc: t("navMenu", "blogDesc"), icon: BookOpen },
-    { key: "news", href: "/blog?type=news", label: t("navMenu", "news"), desc: t("navMenu", "newsDesc"), icon: Megaphone },
-    { key: "contact", href: "/contact", label: t("navMenu", "contact"), desc: t("navMenu", "contactDesc"), icon: MessageCircle },
-    { key: "affiliations", href: "/affiliations", label: t("navMenu", "affiliations"), desc: t("navMenu", "affiliationsDesc"), icon: Landmark },
+    { key: "about", href: L("/about"), label: t("navMenu", "about"), desc: t("navMenu", "aboutDesc"), icon: Info },
+    { key: "why", href: L("/why-cha-jewels"), label: t("navMenu", "why"), desc: t("navMenu", "whyDesc"), icon: Gem },
+    { key: "faq", href: L("/faq"), label: t("navMenu", "faq"), desc: t("navMenu", "faqDesc"), icon: CircleHelp },
+    { key: "blog", href: L("/blog"), label: t("navMenu", "blog"), desc: t("navMenu", "blogDesc"), icon: BookOpen },
+    { key: "news", href: L("/blog?type=news"), label: t("navMenu", "news"), desc: t("navMenu", "newsDesc"), icon: Megaphone },
+    { key: "contact", href: L("/contact"), label: t("navMenu", "contact"), desc: t("navMenu", "contactDesc"), icon: MessageCircle },
+    { key: "affiliations", href: L("/affiliations"), label: t("navMenu", "affiliations"), desc: t("navMenu", "affiliationsDesc"), icon: Landmark },
   ];
 
   // The Hub's own photo wins; the placeholder map covers a slug it has none
   // for; a slug in neither shows the type's line icon (lib/type-icons.ts).
   const typeItems = collections.map((c) => ({
     key: c.slug,
-    href: `/collections/${c.slug}`,
+    href: L(`/collections/${c.slug}`),
     label: collectionName(c, lang),
     thumb: typeVisual(c),
     count: countText(counts[c.slug]),
@@ -122,7 +127,7 @@ export async function Header({ lang }: { lang: Lang }) {
     const entry = catMenu[c.slug];
     return {
       key: c.slug,
-      href: `/categories/${c.slug}`,
+      href: L(`/categories/${c.slug}`),
       label: categoryName(c, lang),
       blurb: categoryBlurb(c.slug, lang),
       thumb: entry?.thumb ?? { kind: "icon" as const },
@@ -140,7 +145,7 @@ export async function Header({ lang }: { lang: Lang }) {
       tilesHeading: t("navMenu", "shopByType"),
       rows: categoryItems.map(({ key, href, label, thumb, count, countLabel: cl }) => ({ key, href, label, media: <CategoryThumb slug={key} thumb={thumb} size={44} />, count, countLabel: cl })),
       rowsHeading: t("navMenu", "categories"),
-      footer: { href: "/collections", label: t("navMenu", "viewAll") },
+      footer: { href: L("/collections"), label: t("navMenu", "viewAll") },
     },
     {
       key: "company",
@@ -153,25 +158,25 @@ export async function Header({ lang }: { lang: Lang }) {
     // Layaway is offered in English only (owner decision 2026-09-15) — one
     // rule, in lib/layaway-availability; nothing layaway-related is visible on
     // the Japanese site.
-    ...(layaway ? [{ href: "/layaway", label: t("nav", "layaway") }] : []),
+    ...(layaway ? [{ href: L("/layaway"), label: t("nav", "layaway") }] : []),
     // Sale: right after Layaway in English, first in Japanese (owner
     // 2026-10-18); only while at least one piece is on sale.
-    ...(saleCount > 0 ? [{ href: "/sale", label: t("nav", "sale") }] : []),
-    { href: "/loyalty", label: t("nav", "loyalty") },
-    { href: "/wholesale", label: t("nav", "wholesale") },
+    ...(saleCount > 0 ? [{ href: L("/sale"), label: t("nav", "sale") }] : []),
+    { href: L("/loyalty"), label: t("nav", "loyalty") },
+    { href: L("/wholesale"), label: t("nav", "wholesale") },
     // The two guides (owner 2026-10-27), last: Shopping Guide, then Jewelry Guide.
-    { href: "/shopping-guide", label: t("nav", "shoppingGuide") },
-    { href: "/jewelry-guide", label: t("nav", "jewelryGuide") },
+    { href: L("/shopping-guide"), label: t("nav", "shoppingGuide") },
+    { href: L("/jewelry-guide"), label: t("nav", "jewelryGuide") },
   ];
 
   const accountItems = [
-    { href: "/account", label: t("accountMenu", "myAccount") },
-    { href: "/account/orders", label: t("accountMenu", "orders") },
-    ...(layaway ? [{ href: "/account/layaway", label: t("accountMenu", "layaway") }] : []),
-    { href: "/account/receipts", label: t("accountMenu", "receipts") },
-    { href: "/account/addresses", label: t("accountMenu", "addresses") },
-    { href: "/account/service-requests", label: t("accountMenu", "service") },
-    { href: "/account#loyalty", label: t("accountMenu", "points") },
+    { href: L("/account"), label: t("accountMenu", "myAccount") },
+    { href: L("/account/orders"), label: t("accountMenu", "orders") },
+    ...(layaway ? [{ href: L("/account/layaway"), label: t("accountMenu", "layaway") }] : []),
+    { href: L("/account/receipts"), label: t("accountMenu", "receipts") },
+    { href: L("/account/addresses"), label: t("accountMenu", "addresses") },
+    { href: L("/account/service-requests"), label: t("accountMenu", "service") },
+    { href: L("/account#loyalty"), label: t("accountMenu", "points") },
   ];
   const account = session ? { name, menuLabel: t("accountMenu", "menu"), items: accountItems, signOut: t("accountMenu", "signOut") } : null;
 
@@ -182,7 +187,7 @@ export async function Header({ lang }: { lang: Lang }) {
     // the containing block the full-width menu panels hang from.
     <HeaderShell className="sticky top-0 z-40 border-b border-hairline bg-chalk text-charcoal">
       <div className="wrap flex h-16 items-center justify-between gap-3 lg:h-[72px] xl:gap-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3" aria-label="Cha Jewels">
+        <Link href={L("/")} className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3" aria-label="Cha Jewels">
           <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={44} height={44} alt="" className="h-10 w-10 shrink-0 lg:h-11 lg:w-11" />
           {/* Below 380px the row (badge, wordmark, search, language, bag, menu —
               four 44px targets) no longer fits, so the narrowest phones keep the
@@ -207,7 +212,7 @@ export async function Header({ lang }: { lang: Lang }) {
                         <NavMenuItem key={it.key} href={it.href} title={it.label} description={it.blurb} media={<CategoryThumb slug={it.key} thumb={it.thumb} size={52} />} count={it.count} countLabel={it.countLabel} />
                       ))}
                     </div>
-                    <Link role="menuitem" tabIndex={-1} href="/collections" className="mt-6 inline-flex min-h-11 items-center gap-2 border-b border-gold-dark text-sm font-medium text-gold-dark hover:text-charcoal-deep">
+                    <Link role="menuitem" tabIndex={-1} href={L("/collections")} className="mt-6 inline-flex min-h-11 items-center gap-2 border-b border-gold-dark text-sm font-medium text-gold-dark hover:text-charcoal-deep">
                       {t("navMenu", "viewAll")}<ArrowRight aria-hidden="true" className="h-4 w-4" />
                     </Link>
                   </div>
@@ -247,19 +252,20 @@ export async function Header({ lang }: { lang: Lang }) {
             in the menu it opens). */}
         <div className="flex items-center gap-1 sm:gap-3 xl:gap-2">
           <SearchBox lang={lang} />
-          <div className="hidden sm:block"><LangSwitcher lang={lang} /></div>
-          <div className="sm:hidden"><LangSwitcher lang={lang} compact /></div>
+          <div className="hidden sm:block"><LangSwitcher lang={lang} targets={switchTargets} /></div>
+          <div className="sm:hidden"><LangSwitcher lang={lang} targets={switchTargets} compact /></div>
           <div className="hidden xl:block">
             {account
               ? <AccountMenu name={account.name} items={account.items} signOut={account.signOut} menuLabel={account.menuLabel} />
               : (
-                <Link href="/account" className="inline-flex h-11 items-center gap-2 whitespace-nowrap px-1.5 text-sm font-medium text-charcoal-deep hover:text-gold-dark">
+                <Link href={L("/account")} className="inline-flex h-11 items-center gap-2 whitespace-nowrap px-1.5 text-sm font-medium text-charcoal-deep hover:text-gold-dark">
                   <User aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} /><span className="sr-only">{t("nav", "account")}</span>
                 </Link>
               )}
           </div>
           <CartButton lang={lang} />
           <MobileNav
+            switchTargets={switchTargets}
             lang={lang}
             links={links}
             groups={groups}
@@ -267,7 +273,7 @@ export async function Header({ lang }: { lang: Lang }) {
             openLabel={t("nav", "openMenu")}
             closeLabel={t("nav", "closeMenu")}
             account={account}
-            accountLink={{ href: "/account", label: t("nav", "account") }}
+            accountLink={{ href: L("/account"), label: t("nav", "account") }}
             messenger={messenger ? { href: messenger, label: t("social", "messengerButton") } : null}
             since={t("navMenu", "since")}
             story={{ stories, eyebrow: t("home", "testiEyebrow"), moreLabel: t("navMenu", "moreStories") }}

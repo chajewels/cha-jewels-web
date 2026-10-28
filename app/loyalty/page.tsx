@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
@@ -48,7 +49,7 @@ export default async function LoyaltyPage() {
             <Eyebrow dark rule>{t("nav", "loyalty")}</Eyebrow>
             <h1 className={`gilt mt-4 ${H_DISPLAY}`}>{t("loyalty", "h1")}</h1>
             <p className={`mt-[18px] ${LEDE_DARK}`}>{t("loyalty", "lede")}</p>
-            <div className="mt-7"><Link href="/loyalty/join" className={JOIN_ON_DARK}>{t("loyalty", "join")}</Link></div>
+            <div className="mt-7"><Link href={localePath("/loyalty/join", lang)} className={JOIN_ON_DARK}>{t("loyalty", "join")}</Link></div>
           </div>
           <dl className="grid grid-cols-2 border border-rule">
             <div className="border-r border-rule p-4 sm:p-5">
@@ -126,7 +127,7 @@ export default async function LoyaltyPage() {
           <h2 className={`text-charcoal-deep ${H_TITLE}`}>{t("loyalty", "joinH")}</h2>
           <p className="mt-1.5 text-charcoal/75">{t("loyalty", "joinP")}</p>
         </div>
-        <Link href="/loyalty/join" className={JOIN_ON_LIGHT}>{t("loyalty", "join")}</Link>
+        <Link href={localePath("/loyalty/join", lang)} className={JOIN_ON_LIGHT}>{t("loyalty", "join")}</Link>
       </section>
     </>
   );

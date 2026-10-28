@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
@@ -104,7 +105,7 @@ export default async function CheckoutPage({ searchParams }: {
         <div className="wrap max-w-[720px]">
           <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
           <p className="mt-8 text-charcoal">{t("checkout", "emptyCart")}</p>
-          <Button asChild variant="outline" className="mt-6"><Link href="/collections">{t("cart", "browse")}</Link></Button>
+          <Button asChild variant="outline" className="mt-6"><Link href={localePath("/collections", lang)}>{t("cart", "browse")}</Link></Button>
         </div>
       </section>
     );

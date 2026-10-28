@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -352,7 +353,7 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
             <button type="button" onClick={() => router.refresh()} className="mt-3 inline-flex h-10 items-center border border-charcoal-deep px-4 text-[12px] font-medium uppercase tracking-[0.12em] text-charcoal-deep hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "refresh")}</button>
           )}
           {(code === "card_declined_cancelled" || code === "card_hold_unfiled" || code === "card_mismatch_void_pending") && (
-            <Link href="/contact" className="mt-3 inline-flex h-10 items-center border border-charcoal-deep px-4 text-[12px] font-medium uppercase tracking-[0.12em] text-charcoal-deep hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("navMenu", "contact")}</Link>
+            <Link href={localePath("/contact", lang)} className="mt-3 inline-flex h-10 items-center border border-charcoal-deep px-4 text-[12px] font-medium uppercase tracking-[0.12em] text-charcoal-deep hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("navMenu", "contact")}</Link>
           )}
         </div>
       )}

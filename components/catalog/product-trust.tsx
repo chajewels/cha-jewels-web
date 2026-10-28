@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { FileText, Lock, RotateCcw, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import { PRODUCT_TRUST } from "@/lib/content/product-trust";
@@ -33,7 +34,7 @@ export function ProductTrust({ lang, only }: { lang: Lang; only?: TrustRow[] }) 
     ["ship", Truck, t("pdp", "shipping"), PRODUCT_TRUST.shipping[lang]],
     ["returns", RotateCcw, t("pdp", "reserveReturns"), <>
       {PRODUCT_TRUST.returns[lang]}{" "}
-      <Link href="/legal/returns" className="whitespace-nowrap font-medium text-gold-dark underline-offset-4 hover:underline">{t("footer", "returns")} →</Link>
+      <Link href={localePath("/legal/returns", lang)} className="whitespace-nowrap font-medium text-gold-dark underline-offset-4 hover:underline">{t("footer", "returns")} →</Link>
     </>],
   ];
   const rows = all.filter(([key]) => !only || only.includes(key)).map(([, ...rest]) => rest);

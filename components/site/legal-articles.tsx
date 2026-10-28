@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import type { Lang } from "@/lib/i18n";
 import type { LegalArticle, LegalBlock } from "@/lib/content/legal";
 
@@ -75,7 +76,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
             run.href ? (
               <Link
                 key={i}
-                href={run.href}
+                href={localePath(run.href, lang)}
                 className="underline decoration-gold-dark/50 underline-offset-4 hover:text-gold-dark"
               >
                 {run.t}

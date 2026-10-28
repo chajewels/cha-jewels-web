@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
 import { tr, type Lang } from "@/lib/i18n";
@@ -247,8 +248,8 @@ export default async function JewelryGuidePage() {
             <p className="mt-2 max-w-[58ch] text-charcoal">{guideIntro.askBody[lang]}</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button asChild><Link href="/contact">{t("navMenu", "contact")}</Link></Button>
-            <Button asChild variant="outline"><Link href="/collections">{t("gold", "cta")}</Link></Button>
+            <Button asChild><Link href={localePath("/contact", lang)}>{t("navMenu", "contact")}</Link></Button>
+            <Button asChild variant="outline"><Link href={localePath("/collections", lang)}>{t("gold", "cta")}</Link></Button>
           </div>
         </div>
       </section>

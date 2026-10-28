@@ -9,13 +9,15 @@ import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
 import { indexingFor } from "@/lib/seo-policy";
-import { announcementBarAllowed } from "@/lib/statutory-path";
+import { localePath, localizeAuthoredHref } from "@/lib/locale";
+import { switchTargets } from "@/lib/locale-nav";
 import { dict, tr, PATH_HEADER } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { announcement, follow } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { MessengerButton } from "@/components/site/messenger-button";
 import { MobileTabBar, type Tab } from "@/components/site/mobile-tab-bar";
+import { LayawayLanguageSync } from "@/components/site/layaway-language-sync";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
@@ -82,9 +84,10 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * The rule itself is `announcementBarAllowed` in lib/statutory-path.ts, shared
  * with the cookie banner so the two cannot drift. It also recognises a locale
- * prefix (/en/legal/..., /ja/legal/...) before any such route exists.
+ * prefix (/en/legal/..., /ja/legal/...). Since 2026-10-28 the bar applies it to
+ * the path on screen, which covers client-side navigation; the layout no longer
+ * gates the read.
  */
-const bannerAllowed = announcementBarAllowed;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [lang, h] = await Promise.all([getLang(), headers()]);
@@ -93,7 +96,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // expired alike. CAUGHT, because the bar is chrome and this is the root
   // layout: an unreachable Hub must cost the strip, not every page on the site.
   // A page whose own content comes from the Hub still throws on its own read.
-  const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang).catch(() => null) : null;
+  //
+  // READ ON EVERY PAGE, legal ones included, and shown by the bar itself only
+  // where `announcementBarAllowed` says so for the path ON SCREEN: the root layout is not
+  // re-rendered by a client-side navigation, so the decision has to travel with
+  // the bar (components/site/announcement-bar.tsx). A legal page's server render
+  // still holds no bar; a click from it back to the shop brings the bar back.
+  const notice = await announcement(lang).catch(() => null);
+  // Language-switcher destinations for this path (OD-7, lib/locale-nav.ts):
+  // real links to the sibling page or the destination home; null keeps the
+  // cookie toggle (private routes). Caught like the chrome reads around it —
+  // a Hub hiccup on a blog post must cost the switcher's link, not the page.
+  const targets = await switchTargets(h.get(PATH_HEADER)).catch(() => ({ en: null, ja: null } as const));
   // The Messenger button's link is the `messenger` row of the Hub's social row,
   // the same read the footer makes (lib/settings.ts caches it per request). No
   // row, or no Hub, means no button — chrome again, so the failure is caught.
@@ -101,10 +115,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // The phone tab bar, on every page (site frame). Layaway is offered in
   // English only (lib/layaway-availability): the Japanese bar has four tabs.
   const tabs: Tab[] = [
-    { href: "/", label: t("home", "tabHome"), icon: "home" },
-    { href: "/collections", label: t("home", "tabPieces"), icon: "pieces" },
+    { href: localePath("/", lang), label: t("home", "tabHome"), icon: "home" },
+    { href: localePath("/collections", lang), label: t("home", "tabPieces"), icon: "pieces" },
     ...(layawayOffered(lang) ? [{ href: "/layaway", label: t("home", "tabLayaway"), icon: "layaway" as const }] : []),
-    { href: "/loyalty", label: t("home", "tabLoyalty"), icon: "loyalty" },
+    { href: localePath("/loyalty", lang), label: t("home", "tabLoyalty"), icon: "loyalty" },
     { href: "/account", label: t("home", "tabAccount"), icon: "account" },
   ];
   // NO BROWSER TRANSLATION (owner decision 2026-10-16). Chrome's Translate
@@ -149,21 +163,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
-        {notice && <AnnouncementBar text={notice.text} href={notice.href} lang={lang} nonce={h.get("x-nonce") ?? undefined} />}
+        {notice && <AnnouncementBar text={notice.text} href={notice.href && localizeAuthoredHref(notice.href, lang)} lang={lang} nonce={h.get("x-nonce") ?? undefined} />}
         {/* Tells an entrance whether this render is the first page load or a
             client navigation (components/fx/boot-marker.tsx). Renders nothing. */}
         <BootMarker />
         <PageEnter />
-        <Header lang={lang} />
+        <Header lang={lang} switchTargets={targets} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         {/* data-messenger: the Hub's Messenger link, for app/error.tsx — a client
             error boundary that cannot read the Hub itself. */}
         <main id="main" data-messenger={messenger ?? undefined}>{children}</main>
-        <Footer lang={lang} />
+        <Footer lang={lang} switchTargets={targets} />
         <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
+        {/* English documents only: an English Layaway link keeps working after
+            another tab switched the shared cookie to Japanese. Activation only;
+            the href stays the bare /layaway (lib/layaway-language-sync.ts). */}
+        {layawayOffered(lang) && <LayawayLanguageSync />}
         {/* Last in the document, so no page chrome paints over it. */}
         {/* The cookie banner: asks once, and again from "Cookie settings" in the footer. */}
-        <ConsentBanner copy={{ region: t("consent", "region"), title: t("consent", "title"), body: t("consent", "body"), accept: t("consent", "accept"), necessary: t("consent", "necessary"), privacy: t("consent", "privacy") }} />
+        <ConsentBanner privacyHref={localePath("/legal/privacy", lang)} copy={{ region: t("consent", "region"), title: t("consent", "title"), body: t("consent", "body"), accept: t("consent", "accept"), necessary: t("consent", "necessary"), privacy: t("consent", "privacy") }} />
         {messenger && <MessengerButton href={messenger} label={t("social", "messengerButton")} />}
       </body>
     </html>

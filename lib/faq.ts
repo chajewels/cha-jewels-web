@@ -80,8 +80,8 @@ const JA_HEADING_WITHOUT_LAYAWAY: Record<string, string> = { "payments-and-layaw
 const byOrder = <T extends { sort_order?: number }>(a: T, b: T) => (a.sort_order ?? 0) - (b.sort_order ?? 0);
 
 /** One answer, rendered once and flattened once, from the same markdown. */
-function answer(markdown: string, key: string, question: string): ViewFaqItem {
-  return { key, question, answerHtml: renderMarkdown(markdown), answerText: markdownToText(markdown) };
+function answer(markdown: string, key: string, question: string, lang: Lang): ViewFaqItem {
+  return { key, question, answerHtml: renderMarkdown(markdown, lang), answerText: markdownToText(markdown) };
 }
 
 /** The FAQ for this language, sections in order with their questions inside. */
@@ -105,7 +105,7 @@ export async function getFaq(lang: Lang): Promise<ViewFaqSection[]> {
           const q = text(lang === "ja" ? item.question_ja : item.question_en);
           const a = text(lang === "ja" ? item.answer_ja : item.answer_en);
           if (!offered && q && a && (LAYAWAY_WORDS.test(q) || LAYAWAY_WORDS.test(a))) return [];
-          return q && a ? [answer(a, item.id, q)] : [];
+          return q && a ? [answer(a, item.id, q, lang)] : [];
         });
       // A heading with nothing under it is the same broken page one level up.
       const key = section.id || section.slug;

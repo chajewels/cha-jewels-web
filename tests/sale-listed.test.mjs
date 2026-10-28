@@ -55,5 +55,5 @@ test("the chip, the /sale page and the header link all decide through saleListed
   assert.match(strip(readFileSync("app/sale/page.tsx", "utf8")), /\.filter\(saleListed\)/, "/sale page");
   const header = strip(readFileSync("components/site/header.tsx", "utf8"));
   assert.match(header, /\.filter\(saleListed\)\.length/, "header count");
-  assert.match(header, /saleCount > 0 \? \[\{ href: "\/sale", label: t\("nav", "sale"\) \}\]/, "link only while something is on sale");
+  assert.match(header, /saleCount > 0 \? \[\{ href: L\("\/sale"\), label: t\("nav", "sale"\) \}\]/, "link only while something is on sale");
 });

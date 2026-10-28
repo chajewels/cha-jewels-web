@@ -231,7 +231,7 @@ C0 keeps the self canonical on legacy bare URLs; H0 keeps their current hreflang
 | **2B dark launch** | Locale routes answer 200 but nothing links to them, they are not in the sitemap, and the legacy pages do not name them | Negligible: no crawl path to the locale URLs | **Safe** |
 | **2C links + 2D sitemap live, before 2E** | Internal links and the sitemap point to locale URLs; the bare URLs still answer 200 with a self canonical and the old hreflang | (1) Two indexable URLs for the same content (`/products/x` and `/ja/products/x`; for the home, `/`, `/ja` and `/en`, with `/` and `/ja` identical Japanese content to a crawler); the engine picks one per cluster and may keep the legacy URL for its history and inbound links. (2) Conflicting hreflang clusters: legacy says x-default = itself and `en` = a non-canonical `?lang=en` URL (finding X2), the locale pages say x-default = English and name each other, so return tags do not match across clusters and a search engine may ignore both. (3) Search Console noise ("duplicate without user-selected canonical", hreflang return-tag errors). (4) Link and ranking signals split between bare and locale URLs until the 2E redirects | **Acceptable only for a short, bounded window** |
 
-Conclusion: C0 + H0 safely supports the **dark launch**. It is acceptable but not ideal once links and the sitemap are live. Mitigations, none applied: (a) keep the gap between 2D and 2E short, with the `?lang=` rules and the bare-to-locale 307 stage prepared to ship in the same window; (b) approve C1 + H1/H2 for the legacy pages at the 2C gate instead; (c) settle which of `/`, `/en` and `/ja` the 2D sitemap lists while `/` stays unchanged (recommended: list `/en` and `/ja` and keep `/` until 2E, accepting the temporary duplication). Approved scope — **C0 + H0 is OWNER APPROVED for the Phase 2B dark launch ONLY** (2026-10-28):
+Conclusion: C0 + H0 safely supports the **dark launch**. It is acceptable but not ideal once links and the sitemap are live. Mitigations, none applied: (a) keep the gap between 2D and 2E short, with the `?lang=` rules and the bare-to-locale 307 stage prepared to ship in the same window; (b) approve C1 + H1/H2 for the legacy pages at the 2C gate instead; (c) settle which of `/`, `/en` and `/ja` the 2D sitemap lists while `/` stays unchanged (recommended: list `/en` and `/ja` and keep `/` until 2E, accepting the temporary duplication). **(c) OWNER APPROVED 2026-10-28 (three-PR review batch): preserve the existing `/` sitemap entry beside `/en` and `/ja`; root routing and metadata unchanged; OD-3 still separately gated (§20.3).** Approved scope — **C0 + H0 is OWNER APPROVED for the Phase 2B dark launch ONLY** (2026-10-28):
 - legacy URLs remain completely unchanged in 2B (canonical, hreflang, status, content);
 - the new locale URLs stay unlinked and unlisted throughout 2B;
 - the policy **must be reconsidered at the 2C gate**, before any internal link or sitemap entry points at a locale URL;
@@ -451,6 +451,8 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 
 ### OD-1: Destination of bare legacy URLs (`/products/x`, `/collections/kihei`, …)
 
+**OWNER APPROVED 2026-10-28 — L2-exact, temporary (307) stage only (binding spec: §20).** A bare public URL answers a 307 to the locale whose language it would have rendered for the same request (`?lang=`, then the cookie, then `Accept-Language`, then Japanese), and only when that locale page is known to answer 200; otherwise it keeps today's response. Any 308 is a separate later approval. The record below is kept unchanged.
+
 | | |
 |---|---|
 | **Options** | **L1** permanent redirect to `/ja/…` for everyone. **L2** permanent to `/ja/…` for requests with no language signal (a crawler), temporary to the visitor's language when a cookie or `Accept-Language` exists. **L3** temporary to the visitor's language for everyone |
@@ -492,6 +494,8 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Needed before** | Phase 2B only if OD-2 chooses `/` as x-default or something references `/`; otherwise before 2E, where it is built |
 
 ### OD-4: `?lang=` URLs
+
+**OWNER APPROVED 2026-10-28 — temporary (307) stage only (binding spec: §20).** `?lang=en|ja` on an eligible bare public URL answers a 307 to that locale, every `lang` parameter dropped and every other parameter kept; invalid values are ignored; root `/` and `/layaway` excluded; never to a missing sibling. The record below (which recommended 308) is kept unchanged; promotion to 308 is a separate later approval.
 
 | | |
 |---|---|
@@ -583,6 +587,8 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Needed before** | Phase 2C |
 
 ### OD-12: Hreflang in the sitemap as well as in the HTML
+
+**OWNER APPROVED 2026-10-28 — HTML only.** The sitemap carries no `alternates`/`xhtml:link`; hreflang stays in the HTML (`lib/locale-meta.ts`), one source of truth.
 
 | | |
 |---|---|
@@ -897,4 +903,55 @@ Order inside the batch: (1) OD-15 gating completion first; (2) link infrastructu
 ### 19.6 Approvals Phase 2C needs from the owner
 
 1. OD-7 (§19.1) — approve or amend. 2. OD-11 (§19.2) — approve or amend. 3. The §19.3 transition decision (Option C recommended; if C, also answer OD-1 and OD-4 at the 2D gate). 4. Written Phase 2C implementation authorization naming the §19.5 scope. 5. `/model` to Opus for the `checkout-actions.ts` step. 6. (Standing) preview data-source confirmation and, optionally, an automation bypass for preview crawls.
+
+## 20. Phase 2D and Phase 2E-stage-1: approved decisions and binding specification (OWNER APPROVED 2026-10-28)
+
+**Approved by the owner on 2026-10-28:** the recommended OD-1 (L2-exact), OD-4, missing-sibling policy, OD-12 (HTML only) and caching policy below. **Root sitemap policy (§7 (c)): OWNER APPROVED 2026-10-28 in the three-PR review batch** — see §20.3. **Authorized:** Phase 2D and Phase 2E-stage-1 development and local testing only, as separate PRs; no merge, no deployment. Not authorized: any 308, root `/` behaviour (OD-3), `/layaway` (OD-6 / Phase 3), production release.
+
+### 20.1 Phase 2D: the sitemap
+- Every public page is listed at its `/ja` and `/en` URL, never at its bare legacy URL; the root `/` is kept listed beside `/ja` and `/en` (unchanged from today; owner approved, §20.3).
+- Products, categories and collections: both languages (their pages decide 200/404 on the slug alone; OD-9 neutral-text eligibility).
+- Posts: only in the languages whose post page answers 200 (`postLanguages`, the switcher's predicate; a failed read lists neither). Layaway-only posts stay unlisted (layaway indexability is Phase 3).
+- No `/layaway`, `/en/layaway` or `/ja/layaway`; every URL is built with `localePath`. No hreflang in the sitemap (OD-12). The set of advertised pages is unchanged; only the URL form changes (the `/collections` index, never listed, stays unlisted).
+
+### 20.2 Phase 2E-stage-1: the redirect decision table (307 only)
+Target language T is the language the bare URL would render for this request today: `?lang=` (valid values only), then the `cj-lang` cookie, then `Accept-Language` (`detectLang`: unsupported languages give English), then Japanese. Googlebot sends no `Accept-Language` and therefore always gets `/ja/…`.
+
+| Request | Behaviour |
+|---|---|
+| Bare static public page (the 16 non-root `app/[lang]` static pages) | 307 to `/T/<path>` (middleware) |
+| Bare product, category or collection that exists | 307 to `/T/…` (the legacy page, after its own data load proves it exists) |
+| Bare blog post that exists in T | 307 to `/T/blog/<slug>` |
+| Post not in T; missing slug; Hub read failure | **no redirect**: today's response (404 or the page as it behaves now) |
+| `?lang=en` / `?lang=ja` on the rows above | the parameter sets T; same eligibility; every `lang` parameter dropped, other parameters kept in order |
+| Invalid `?lang=` value | ignored; T from cookie / `Accept-Language` / Japanese |
+| English-only post with `?lang=ja` | no redirect; today's 404 (never to a missing `/ja` page, never silently to English) |
+| `/layaway` (any signal, any `?lang=`) | unchanged until Phase 3 / OD-6 |
+| `/` and `/?lang=…` | unchanged (OD-3) |
+| `/en/*`, `/ja/*` (with or without `?lang=`) | never redirected; the URL is the language |
+| Private, auth, payment and utility routes; `/api`; files; unknown paths | never redirected |
+| Any method other than GET/HEAD; Server Action POSTs (`Next-Action`) | never redirected |
+| `/gold-guide` | existing 308 unchanged (a 308-then-307 chain until the 308 stage) |
+| Redirects switched off (kill switch) | every row behaves as before 2E |
+
+**Safeguards (approved caching policy):** every 307 sends `Cache-Control: private, no-store` and `Vary: Cookie, Accept-Language` (whether the platform keeps them on the wire is measured, not assumed); `Location` is a relative path built with `localePath` and validated with `isSitePath`; at most one hop and never a double prefix; the page-level redirect must answer a real HTTP 307 with a `Location` header, never a streamed meta refresh (which Google reads as permanent); a kill switch turns every redirect off. **No 308 anywhere** until a separate promotion approval after an owner-set observation window.
+
+### 20.3 Root `/` in the sitemap — OWNER APPROVED 2026-10-28 (three-PR review batch)
+- **Approved:** preserve the existing `/` sitemap entry, listed beside `/ja` and `/en`. Root routing and metadata remain unchanged. **OD-3 is still separately gated** (the root's own Phase 2E decision); no root redirect is introduced by 2D or 2E-stage-1.
+- **Known temporary inconsistency, accepted for this window:** `/` keeps its legacy self canonical and its legacy hreflang trio (`ja` = `/`, `en` = `/?lang=en`, `x-default` = `/`), while `/en` and `/ja` form their own cluster with x-default = `/en` (OD-2) and do not name `/`. The home page therefore has two hreflang clusters and three listed URLs for one page in two languages.
+- **Resolution gate:** root legacy hreflang consistency **must be resolved before any future permanent (308) redirect promotion** (map §20.2), through the OD-3 decision, which decides what `/` becomes and, with it, whether `/` leaves the sitemap.
+- History: recorded PENDING OWNER CONFIRMATION earlier on 2026-10-28 because the first approval ("the recommended root sitemap policy") could be read two ways; the owner then decided it explicitly for this review batch.
+
+### 20.4 Production release gate for the 307 stage (owner decision, 2026-10-28 three-PR review batch)
+**Redirect header decision — PROVISIONALLY ACCEPTED FOR PR REVIEW, NOT FINAL PRODUCTION APPROVAL.** Static-page 307s (middleware) send `Cache-Control: private, no-store` and `Vary: Cookie, Accept-Language`. Page-level 307s (products, categories, collections, posts) send `Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate`; their `Vary` is set by Next.js and is not changed (no unsupported workaround).
+
+**The production release is BLOCKED unless all of the following are verified on the actual Vercel Preview deployment** (not on a local build, and not inferred from an ignored-build status):
+1. Real HTTP `307` status on eligible bare URLs (static and page-level).
+2. The actual `Location` header: the correct locale, one hop, query kept minus `lang`, no double prefix.
+3. The actual `Cache-Control` header (`private` and `no-store` on every language-dependent 307).
+4. Redirect responses are not reused across language cookies (same URL, cookie `en` → `ja` → `en`).
+5. Correct targets across `Accept-Language` variants (en, ja, weighted, unsupported, absent).
+6. Missing locale siblings and unknown slugs keep their 404, never redirect.
+7. No redirect loops.
+8. No streamed meta-refresh substitution (a real 307, never a 200 carrying a refresh).
 

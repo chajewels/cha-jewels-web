@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { redirectLegacy } from "@/lib/legacy-redirect-server";
 import type { Metadata } from "next";
 import { hub } from "@/lib/hub-api";
 import { tr } from "@/lib/i18n";
@@ -40,6 +41,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const slug = (await params).slug;
   const [cat, lang] = await Promise.all([hub.category(slug), getLang()]);
   if (!cat) notFound();
+  // A bare URL that exists in its language answers a 307 to its locale page
+  // (Phase 2E-stage-1; lib/legacy-redirect-server.ts). Never on a locale route.
+  await redirectLegacy();
   const t = tr(lang);
   const name = categoryName(cat, lang);
   const description = categoryDescription(cat, lang);
@@ -58,7 +62,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <CollectionHead eyebrow={eyebrow} title={name} description={description} available={available} photo={cat.hero_media} lang={lang} />
       ) : (
         <div className="wrap pt-[clamp(20px,3vw,40px)]">
-          <CategoryStage pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} count={<CountLine available={available} lang={lang} />} />
+          <CategoryStage lang={lang} pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} count={<CountLine available={available} lang={lang} />} />
         </div>
       )}
       <div className="h-[clamp(12px,2vw,24px)]" />

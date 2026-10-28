@@ -99,7 +99,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
     const currency = display;
     const id = setTimeout(() => start(async () => {
       try {
-        const r = await layawayQuote(price, term, currency);
+        const r = await layawayQuote(price, term, currency, lang);
         if (r.ok) {
           setQuote({ q: r.quote, price, term, currency }); setError(null);
           // PIECE MODE FOLLOWS THE HUB'S TERM. A piece below a term's minimum

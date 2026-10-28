@@ -2,6 +2,8 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
+import { cookies } from "next/headers";
+import { LANG_COOKIE, asLang, gateLang } from "@/lib/i18n";
 import { hub, HubError, type CheckoutChoiceInput } from "@/lib/hub-api";
 import { TERM_NOT_LAUNCHED, termLaunched, LAYAWAY_UNAVAILABLE } from "@/lib/layaway-availability";
 import { layawayOfferedNow } from "@/lib/layaway-availability-server";
@@ -109,6 +111,8 @@ export async function quoteAction(input: {
   mode?: CheckoutMode;
   term_months?: number;
   settlement_currency?: SettlementCurrency;
+  /** The language of the page the customer was shown (OD-15); validated, optional, cookie fallback. */
+  lang?: string;
 }): Promise<ActionResult<HubQuote>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
@@ -119,7 +123,7 @@ export async function quoteAction(input: {
   // this action is reachable directly. Refused here rather than sent to the
   // Hub, so a Japanese session cannot hold a piece on a plan whose agreement
   // exists only in English and Tagalog. One rule — lib/layaway-availability.
-  if (input.mode === "layaway" && !(await layawayOfferedNow())) {
+  if (input.mode === "layaway" && !(await layawayOfferedNow(input.lang))) {
     return { ok: false, code: LAYAWAY_UNAVAILABLE };
   }
 
@@ -222,7 +226,7 @@ export async function payAction(quoteId: string, choice?: { method: CheckoutMeth
  * No money moves here. The plan is created, the piece comes off the shelf, and
  * the customer is told where to send the deposit and by when.
  */
-export async function payLayawayAction(quoteId: string, choice?: { points: number }): Promise<ActionResult<HubLayawayPayResult | HubDraftPayResult>> {
+export async function payLayawayAction(quoteId: string, choice?: { points: number }, lang?: string): Promise<ActionResult<HubLayawayPayResult | HubDraftPayResult>> {
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
   if (!quoteId) return { ok: false, code: "failed" };
@@ -230,7 +234,7 @@ export async function payLayawayAction(quoteId: string, choice?: { points: numbe
   // The backstop for a language switch between taking the quote and paying.
   // Nothing has moved yet — no money, no stock — so refusing here is clean:
   // the cart is untouched and the shopper can pay in full or switch back.
-  if (!(await layawayOfferedNow())) return { ok: false, code: LAYAWAY_UNAVAILABLE };
+  if (!(await layawayOfferedNow(lang))) return { ok: false, code: LAYAWAY_UNAVAILABLE };
 
   // NO UNSIGNED PLAN MAY EVER EXIST (owner decision). The refusal lives HERE,
   // not only in the checkout step machine, for the same reason the two above
@@ -253,10 +257,29 @@ export async function payLayawayAction(quoteId: string, choice?: { points: numbe
   if (!agreement.signed) return { ok: false, code: AGREEMENT_REQUIRED };
 
   try {
-    const result = await hub.payLayaway(jwt, quoteId, await getLang(), {
+    const result = await hub.payLayaway(jwt, quoteId, gateLang(lang, await getLang()), {
       version: agreement.version,
       signed_at: agreement.signedAt,
     }, cleanChoice({ method: "transfer", points: choice?.points })); // C2: a layaway is bank transfer
+    // POST-PAYMENT LANGUAGE SYNC (OD-15 pt 6). The plan now exists; the pages
+    // that show it (/checkout/complete/d/*, /account/layaway/*) gate on the
+    // cookie, so a customer who paid from an English page while another tab had
+    // switched the cookie to Japanese must not be 404'd by their own
+    // confirmation. Only a validated explicit language is written, only when it
+    // differs, and nothing about the payment changes.
+    // CAUGHT, because the plan already exists: a cookie write that fails must
+    // never turn a successful reservation into an error the customer retries.
+    try {
+      const paidIn = asLang(typeof lang === "string" ? lang : null);
+      if (paidIn) {
+        const jar = await cookies();
+        if (asLang(jar.get(LANG_COOKIE)?.value) !== paidIn) {
+          jar.set(LANG_COOKIE, paidIn, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+        }
+      }
+    } catch (err) {
+      console.error("[payLayawayAction] language cookie sync failed (plan unaffected):", err);
+    }
     // The plan holds the stock now, so the basket has served its purpose.
     // Cleared only on success — a refused plan leaves the cart intact.
     await writeCart([]);
@@ -325,11 +348,11 @@ export async function agreementStatusAction(
  * The plan figures are asked for only where layaway is offered; the Japanese
  * site gets the total alone.
  */
-export async function pesoEstimateAction(input: { mode: CheckoutMode; term_months: number }): Promise<ActionResult<{ total: number; deposit: number | null; monthly: number | null }>> {
+export async function pesoEstimateAction(input: { mode: CheckoutMode; term_months: number; lang?: string }): Promise<ActionResult<{ total: number; deposit: number | null; monthly: number | null }>> {
   const { items } = await hydrateCart(await readCart());
   const subtotal = cartSubtotal(items);
   if (subtotal <= 0) return { ok: false, code: "empty_cart" };
-  const layaway = input.mode === "layaway" && (await layawayOfferedNow());
+  const layaway = input.mode === "layaway" && (await layawayOfferedNow(input.lang));
   const term = layaway && termLaunched(input.term_months) ? input.term_months : 6;
   try {
     const q = await hub.layawayQuote(subtotal, term, "PHP");

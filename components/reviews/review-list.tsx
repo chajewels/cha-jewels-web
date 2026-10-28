@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { tr, type Lang } from "@/lib/i18n";
 import { isOptimizableImage } from "@/lib/image-hosts";
@@ -82,7 +83,7 @@ export function ReviewCard({ review, lang, showPiece = true }: { review: Review;
           {review.display_name} <span className="ml-1 text-xs font-normal text-charcoal/70">· {t("reviews", "verified")}</span>
         </p>
         {showPiece && (review.product
-          ? <Link href={`/products/${review.product.slug}`} className="text-gold-dark underline-offset-4 hover:underline">{review.piece_name}</Link>
+          ? <Link href={localePath(`/products/${review.product.slug}`, lang)} className="text-gold-dark underline-offset-4 hover:underline">{review.piece_name}</Link>
           : <p className="text-charcoal/75">{review.piece_name}</p>)}
       </footer>
     </article>

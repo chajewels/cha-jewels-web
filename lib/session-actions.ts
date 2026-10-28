@@ -1,6 +1,8 @@
 "use server";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
+import { localePath } from "@/lib/locale";
 
 /**
  * Sign out from the header menu, the drawer, or the account page. A Server
@@ -19,5 +21,7 @@ export async function signOutAction() {
   } catch {
     // Nothing to clear, or Auth unreachable: fall through to the redirect.
   }
-  redirect("/?notice=signed_out");
+  // Locale-aware landing (Phase 2C): the signed-out notice shows on the home
+  // page of the language the customer was using.
+  redirect(`${localePath("/", await getLang())}?notice=signed_out`);
 }

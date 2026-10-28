@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { redirectLegacy } from "@/lib/legacy-redirect-server";
+import { localePath } from "@/lib/locale";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getProductBySlug, primaryImage } from "@/lib/queries/products";
@@ -94,6 +96,9 @@ const CSS = `
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const [p, lang] = await Promise.all([getProductBySlug((await params).slug), getLang()]);
   if (!p) notFound();
+  // A bare URL that exists in its language answers a 307 to its locale page
+  // (Phase 2E-stage-1; lib/legacy-redirect-server.ts). Never on a locale route.
+  await redirectLegacy();
   const t = tr(lang);
   const layaway = layawayOffered(lang);
   const variant = p.product_variants[0];
@@ -125,8 +130,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const col = collectionOf(p, cols);
   const alternatives = buyable ? [] : soldAlternatives(p, all);
   const related = relatedPieces(p, col, all, 4, alternatives);
-  const crumb = col ? { href: `/collections/${col.slug}`, name: collectionName(col, lang) }
-    : category ? { href: `/categories/${category.slug}`, name: categoryName(category, lang) } : null;
+  const crumb = col ? { href: localePath(`/collections/${col.slug}`, lang), name: collectionName(col, lang) }
+    : category ? { href: localePath(`/categories/${category.slug}`, lang), name: categoryName(category, lang) } : null;
 
   const spec = [metals.length ? metalsLabel(metals, lang) : null, formatWeight(p.weight_g), variant?.stone?.trim() || null].filter((x): x is string => !!x);
   const ledger: [string, string][] = [
@@ -152,7 +157,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="wrap">
         <nav aria-label={t("pdp", "breadcrumb")} className="py-3.5 text-xs text-charcoal/70 sm:pb-[18px] sm:pt-[22px] sm:text-[13px]">
           <ol className="flex flex-wrap items-center gap-2">
-            <li><Link href="/collections" className="text-charcoal/80 hover:text-gold-dark">{t("nav", "collections")}</Link></li>
+            <li><Link href={localePath("/collections", lang)} className="text-charcoal/80 hover:text-gold-dark">{t("nav", "collections")}</Link></li>
             {crumb && <><li aria-hidden="true" className="text-gold-dark">/</li><li><Link href={crumb.href} className="text-charcoal/80 hover:text-gold-dark">{crumb.name}</Link></li></>}
             <li aria-hidden="true" className="text-gold-dark">/</li>
             <li aria-current="page" className="text-charcoal-deep">{p.sku}</li>
@@ -274,7 +279,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <section aria-labelledby="pdp-related" className="pb-16 pt-10 sm:pb-24 sm:pt-14">
             <div className="mb-6 flex items-end justify-between gap-5">
               <h2 id="pdp-related" className="text-[clamp(30px,4vw,52px)] leading-[1.08]">{t("pdp", "related")}</h2>
-              <Link href={crumb?.href ?? "/collections"} className="shrink-0 border-b border-gold-dark pb-0.5 text-sm font-medium text-gold-dark hover:text-charcoal-deep">{t("collection", "viewAll")}</Link>
+              <Link href={crumb?.href ?? localePath("/collections", lang)} className="shrink-0 border-b border-gold-dark pb-0.5 text-sm font-medium text-gold-dark hover:text-charcoal-deep">{t("collection", "viewAll")}</Link>
             </div>
             <RelatedGrid pieces={related} lang={lang} />
           </section>

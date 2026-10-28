@@ -1,6 +1,64 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site";
 import { hub } from "@/lib/hub-api";
+import { localePath, type Locale } from "@/lib/locale";
+import { postLanguages } from "@/lib/posts";
+
+/**
+ * THE LOCALE SITEMAP (Phase 2D, owner-approved 2026-10-28).
+ *
+ * Every public page is listed at its /ja and /en URLs — the self-canonical
+ * locale pages of Phase 2B — and NOT at its bare legacy URL, which Phase
+ * 2E-stage-1 answers with a 307 to one of them. A sitemap lists canonical
+ * URLs, never redirects.
+ *
+ * THE ROOT IS THE ONE EXCEPTION: `/` stays unchanged until its own Phase 2E
+ * decision (OD-3), and it stays listed beside `/ja` and `/en` exactly as it is
+ * listed today (owner approved, map §20.3), with its temporary duplication of
+ * the home page until OD-3.
+ *
+ * NO HREFLANG HERE (OD-12, approved): the alternates live in the HTML only, one
+ * source of truth (lib/locale-meta.ts). Entries carry no `alternates`.
+ *
+ * EVERY URL BUILT HERE GOES THROUGH `localePath`, so this file cannot mint a
+ * private, unknown or not-yet-live locale URL: `/en/layaway` (Phase 3) and
+ * `/ja/layaway` (never) are impossible by construction, not by care.
+ */
+type Freq = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
+
+/** Japanese first: the site's primary language. */
+const ORDER: readonly Locale[] = ["ja", "en"];
+
+/**
+ * The static public pages, each of which has an `app/[lang]` route that answers
+ * 200 in both languages (tests/seo-sitemap.test.mjs holds this list to the
+ * route files). /sale answers 200 even with nothing on sale (its empty state);
+ * /legal/tokusho in both languages (only its layaway lines vary). The
+ * /collections index has a route but was never listed, and 2D changes the URL
+ * form of the entries, not which pages are advertised.
+ *
+ * /layaway is NOT here, and that is not an oversight: it is English-only and
+ * its locale route is Phase 3. Its bare URL 404s in Japanese — the language a
+ * crawler is served — so it was never listable either.
+ */
+const STATIC_PAGES: readonly { path: string; changeFrequency: Freq; priority: number }[] = [
+  { path: "/sale", changeFrequency: "daily", priority: 0.8 },
+  { path: "/loyalty", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/wholesale", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/faq", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/jewelry-guide", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/shopping-guide", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/about", changeFrequency: "yearly", priority: 0.5 },
+  { path: "/why-cha-jewels", changeFrequency: "yearly", priority: 0.6 },
+  { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
+  { path: "/affiliations", changeFrequency: "yearly", priority: 0.4 },
+  { path: "/legal/privacy", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/legal/terms", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/legal/returns", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/legal/tokusho", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/blog", changeFrequency: "weekly", priority: 0.6 },
+];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
   const [cols, cats, prods, posts] = await Promise.all([
@@ -16,71 +74,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     hub.posts().catch(() => []),
   ]);
 
+  /** One resource in both languages. */
+  const both = (path: string, rest: Omit<MetadataRoute.Sitemap[number], "url">) =>
+    ORDER.map((l) => ({ url: `${base}${localePath(path, l)}`, ...rest }));
+
   /**
-   * POSTS, MINUS THE LAYAWAY-ONLY ONES — the same trap as /layaway below, and
-   * the reason that page is not listed either.
+   * POSTS: listed per language, only where the post page answers 200 in it.
    *
-   * A layaway post 404s in Japanese (lib/layaway-availability.ts), and a
-   * crawler with no cj-lang cookie is served Japanese because Googlebot does
-   * not send Accept-Language. Listing such a post would advertise a URL that
-   * 404s for the only visitor that reads this file. Its ?lang=en form resolves
-   * for a person, but its canonical is the bare path — the one that 404s — so
-   * listing that does not help either.
+   * A post may have words in one language only (finding F2), and the Hub's list
+   * route sends no bodies (lib/posts.ts), so the list cannot say which. Each
+   * post is asked through `postLanguages` — the same predicate the language
+   * switcher uses, one cached Hub read per post — so this file cannot advertise
+   * a /ja/blog URL for an English-only post. A failed read answers neither
+   * language: the post is left out, never listed as a guess.
    *
-   * `published` is normally absent (the Hub's list route returns published rows
-   * only); an explicit `false` is refused rather than trusted away.
+   * LAYAWAY-ONLY POSTS STAY UNLISTED, as before 2D. Their /en pages do answer
+   * 200, but layaway indexability is Phase 3, not this phase. `published` is
+   * normally absent (the list route returns published rows only); an explicit
+   * `false` is refused rather than trusted away.
    */
-  const indexablePosts = posts.filter((p) => p.slug?.trim() && p.layaway_only !== true && p.published !== false);
+  const listable = posts.filter((p) => p.slug?.trim() && p.layaway_only !== true && p.published !== false);
+  const postEntries = (
+    await Promise.all(
+      listable.map(async (p) => {
+        const slug = p.slug.trim();
+        const has = await postLanguages(slug).catch(() => ({ en: false, ja: false }));
+        // The last EDIT when the Hub records one; otherwise the day it went up.
+        // A post that has never been edited has not been modified since.
+        const lastModified = p.updated_at?.trim() || p.published_at;
+        return ORDER.filter((l) => has[l])
+          .map((l) => ({ url: `${base}${localePath(`/blog/${slug}`, l)}`, lastModified, changeFrequency: "monthly" as const, priority: 0.5 }));
+      }),
+    )
+  ).flat();
+
   return [
+    // The root, unchanged until OD-3 (see the header), then both locale homes.
     { url: base, changeFrequency: "daily", priority: 1 },
-    // /layaway is NOT listed, and this is not an oversight — read this before
-    // "fixing" it.
-    //
-    // It 404s in Japanese (owner decision 2026-09-15). A crawler with no
-    // cj-lang cookie falls through to Accept-Language, which Googlebot usually
-    // does not send, so it is served Japanese and gets the 404. Listing
-    // `/layaway` would therefore advertise a URL that 404s for the only visitor
-    // that reads this file.
-    //
-    // `/layaway?lang=en` DOES resolve for any crawler (see LANG_PARAM) — but
-    // listing that does not work either: its canonical is `/layaway` (we drop
-    // ?lang deliberately, so the parameter does not mint a second indexable URL
-    // per page), and that canonical is the URL which 404s. Pointing a crawler
-    // at a page whose canonical is a 404 is worse than saying nothing.
-    //
-    // So the page is genuinely unindexable today, and the fix is not in this
-    // file: English needs its own path (an /en/... prefix), which is a URL-
-    // scheme decision, not a sitemap entry. Until that exists, share the
-    // English page as a link — /layaway?lang=en works perfectly for a person.
-    // /sale answers 200 in both languages, even with nothing on sale (its
-    // empty state), so it is safe to list whatever the catalogue holds.
-    { url: `${base}/sale`, changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/loyalty`, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/wholesale`, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/jewelry-guide`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/shopping-guide`, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/about`, changeFrequency: "yearly", priority: 0.5 },
-    { url: `${base}/why-cha-jewels`, changeFrequency: "yearly", priority: 0.6 },
-    { url: `${base}/contact`, changeFrequency: "yearly", priority: 0.5 },
-    { url: `${base}/affiliations`, changeFrequency: "yearly", priority: 0.4 },
-    { url: `${base}/legal/privacy`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/legal/terms`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/legal/returns`, changeFrequency: "yearly", priority: 0.3 },
-    // 特定商取引法に基づく表記: answers 200 in both languages (no notFound; only
-    // its layaway lines vary by language), so it is safe to list.
-    { url: `${base}/legal/tokusho`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
-    ...indexablePosts.map((p) => ({
-      url: `${base}/blog/${p.slug.trim()}`,
-      // The last EDIT when the Hub records one; otherwise the day it went up.
-      // A post that has never been edited has not been modified since.
-      lastModified: p.updated_at?.trim() || p.published_at,
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    })),
-    ...cats.map((c) => ({ url: `${base}/categories/${c.slug}`, changeFrequency: "daily" as const, priority: 0.8 })),
-    ...cols.map((c) => ({ url: `${base}/collections/${c.slug}`, changeFrequency: "daily" as const, priority: 0.8 })),
-    ...prods.map((p) => ({ url: `${base}/products/${p.slug}`, lastModified: p.updated_at, changeFrequency: "weekly" as const, priority: 0.7 })),
+    ...both("/", { changeFrequency: "daily", priority: 1 }),
+    ...STATIC_PAGES.flatMap(({ path, ...rest }) => both(path, rest)),
+    ...postEntries,
+    // Products, categories and collections exist in both languages: their pages
+    // decide 200 or 404 on the slug alone, never on the language (OD-9 neutral-
+    // text eligibility, approved).
+    ...cats.flatMap((c) => both(`/categories/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
+    ...cols.flatMap((c) => both(`/collections/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
+    ...prods.flatMap((p) => both(`/products/${p.slug}`, { lastModified: p.updated_at, changeFrequency: "weekly", priority: 0.7 })),
   ];
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { reviewAction } from "@/app/actions/review";
 import { reviewSentKey } from "@/components/site/review-done";
@@ -91,7 +92,7 @@ export function ReviewForm({ token, lang }: { token: string; lang: Lang }) {
       <div role="status" className="grid gap-4">
         <h2 className="text-[clamp(22px,2.2vw,28px)] text-charcoal-deep">{t("thanksH")}</h2>
         <p className="text-[17px] leading-relaxed text-charcoal-deep">{t("thanksP")}</p>
-        <Link href="/collections" className="inline-flex min-h-11 items-center text-sm font-semibold text-gold-dark underline underline-offset-4">{t("browse")} →</Link>
+        <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm font-semibold text-gold-dark underline underline-offset-4">{t("browse")} →</Link>
       </div>
     );
   }

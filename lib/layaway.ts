@@ -22,13 +22,13 @@ export type LayawayQuoteResult =
  * `priceJpy` is the yen price whatever `currency` is. A peso quote is the
  * Hub's conversion and the Hub's peso schedule; nothing is converted here.
  */
-export async function layawayQuote(priceJpy: number, termMonths: number, currency: "JPY" | "PHP"): Promise<LayawayQuoteResult> {
+export async function layawayQuote(priceJpy: number, termMonths: number, currency: "JPY" | "PHP", lang?: string): Promise<LayawayQuoteResult> {
   // Defence in depth. The calculator does not render in Japanese, so this
   // should be unreachable there — but it is an exported server action, and an
   // unreachable path that still answers is one that quietly becomes reachable
   // the next time a component moves. Refusing rather than throwing keeps the
   // calculator's existing "could not get a quote" path.
-  if (!(await layawayOfferedNow())) return { ok: false, code: "failed" };
+  if (!(await layawayOfferedNow(lang))) return { ok: false, code: "failed" };
   try {
     return { ok: true, quote: await hub.layawayQuote(priceJpy, termMonths, currency) };
   } catch (err) {

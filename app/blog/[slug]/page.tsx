@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { redirectLegacy } from "@/lib/legacy-redirect-server";
+import { localePath } from "@/lib/locale";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
@@ -72,13 +74,16 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   const [{ slug }, lang] = await Promise.all([params, getLang()]);
   const p = await getPost(slug, lang);
   if (!p) notFound();
+  // A bare URL that exists in its language answers a 307 to its locale page
+  // (Phase 2E-stage-1; lib/legacy-redirect-server.ts). Never on a locale route.
+  await redirectLegacy();
   const t = tr(lang);
 
   return (
     <article className="py-[clamp(48px,7vw,96px)]">
       <JsonLd type="post" post={{ slug: p.slug, title: p.title, excerpt: p.excerpt, date: p.date, cover: p.cover, lang }} />
       <div className="wrap max-w-[760px]">
-        <Link href="/blog" className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
+        <Link href={localePath("/blog", lang)} className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
         {p.cover && (
           // Hub media may come from hosts next/image is not configured for.
           // Decorative: the <h1> below is the page's name, and an alt repeating
