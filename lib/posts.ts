@@ -99,6 +99,21 @@ export async function merge(lang: Lang, type?: PostType): Promise<ViewPost[]> {
  * /content/posts/:slug for the body, and refused if it has none in this
  * language.
  */
+/**
+ * WHICH LANGUAGES THIS POST EXISTS IN (Phase 2B, finding F2 and OD-8/OD-9):
+ * a language counts only when the detail row carries that language's title AND
+ * body (`fromHub` with needBody) and the layaway rule allows the language. The
+ * locale wrappers build hreflang and eligibility from this, so a sibling URL
+ * that would 404 is never named. One Hub detail read, the same cached call the
+ * article page makes.
+ */
+export async function postLanguages(slug: string): Promise<{ en: boolean; ja: boolean }> {
+  const full = await hub.post(slug).catch(() => null);
+  const has = (lang: Lang) =>
+    !!full && !!fromHub(full, lang, true) && (full.layaway_only !== true || layawayOffered(lang));
+  return { en: has("en"), ja: has("ja") };
+}
+
 export async function getPost(slug: string, lang: Lang): Promise<ViewPost | null> {
   const listed = (await merge(lang)).find((p) => p.slug === slug);
   if (!listed) return null;

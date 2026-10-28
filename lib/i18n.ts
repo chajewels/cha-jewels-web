@@ -22,6 +22,39 @@ export const LANG_PARAM = "lang";
  */
 export const PATH_HEADER = "x-cj-path";
 
+/**
+ * Request header that carries the URL's locale on /en/* and /ja/* routes
+ * (Phase 2B, OD-15). MIDDLEWARE-OWNED: the middleware deletes any client-sent
+ * value on every matched request and sets it only from the pathname, so a
+ * render that sees it can trust it. On these routes the URL is the
+ * authoritative display language; the cookie remains authority everywhere else.
+ */
+export const LANG_HEADER = "x-cj-lang";
+
+/**
+ * THE MIDDLEWARE'S WHOLE LANGUAGE DECISION, pure so tests can hold it still.
+ *
+ * Legacy paths (no locale prefix) reproduce the pre-2B behaviour exactly:
+ * ?lang= wins for this request and is persisted; otherwise a first visit is
+ * detected from Accept-Language and persisted; a returning cookie is left
+ * alone. A locale path makes the URL authoritative: the request renders in the
+ * URL's language whatever the cookie or ?lang= says, and the cookie is synced
+ * to it when it differs (OD-15 cookie synchronisation).
+ */
+export function langDecision(input: {
+  urlLocale: Lang | null;
+  cookieLang: Lang | null;
+  paramLang: Lang | null;
+  acceptLanguage: string | null;
+}): { lang: Lang; header: Lang | null; write: Lang | null } {
+  const { urlLocale, cookieLang, paramLang, acceptLanguage } = input;
+  if (urlLocale) {
+    return { lang: urlLocale, header: urlLocale, write: urlLocale !== cookieLang ? urlLocale : null };
+  }
+  const decided = paramLang ?? (cookieLang ? null : detectLang(acceptLanguage));
+  return { lang: decided ?? cookieLang ?? detectLang(acceptLanguage), header: null, write: decided };
+}
+
 /** A value we are willing to treat as a language choice. */
 export function asLang(value: string | null | undefined): Lang | null {
   return value === "ja" || value === "en" ? value : null;

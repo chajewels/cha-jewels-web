@@ -76,9 +76,9 @@ export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] 
       {outcome === "lost" && <p className="text-garnet">{c.err[lang]}</p>}
       <p className="text-xs text-charcoal/70">
         {c.consent[lang]}{" "}
-        <a href="/legal/terms" className="underline hover:text-gold-dark">{dict.footer.sale[lang]}</a>
+        <Link href="/legal/terms" className="underline hover:text-gold-dark">{dict.footer.sale[lang]}</Link>
         {" · "}
-        <a href="/legal/privacy" className="underline hover:text-gold-dark">{dict.footer.privacy[lang]}</a>
+        <Link href="/legal/privacy" className="underline hover:text-gold-dark">{dict.footer.privacy[lang]}</Link>
       </p>
     </div>
   );

@@ -1,0 +1,66 @@
+import type { Product } from "@/lib/queries/products";
+import { productAvailability } from "@/lib/availability";
+import { COMPANY_NAME } from "@/lib/content/legal";
+import { allImages, fromPrice } from "@/lib/queries/products";
+import { metalsLabel, productMetals } from "@/lib/metals";
+
+/**
+ * THE JSON-LD BUILDER, pure (Phase 2B design H). Extracted from
+ * components/site/json-ld.tsx so the structured data can be unit-tested — the
+ * component is JSX, which the test harness cannot import, and that gap (X4,
+ * partially) is what this closes. The component renders what this returns.
+ *
+ * `prefix` is the page's locale prefix: "" on a legacy page, "/en" or "/ja" on
+ * a locale page. Every URL in the data carries it, so `url`, `@id` and
+ * `offers.url` equal the page's own canonical URL (never a bare legacy URL from
+ * a locale page, never a locale URL from a legacy page). `inLanguage` is added
+ * to the store and product ONLY on a locale page: a legacy page's output must
+ * stay byte-identical (C0/H0), and key order is insertion order, so nothing
+ * here may be reordered and new fields go behind a `prefix` guard. The known
+ * X5 caveat stands: a product's `description` field is `description_en` even
+ * on a Japanese page until Phase 4; `inLanguage` describes the page.
+ *
+ * `post` is a BlogPosting for one editorial page. `image` is absolute because a
+ * relative one is not resolvable by a crawler reading the JSON on its own, and
+ * `inLanguage` is stated because the same slug is published per language — a
+ * crawler should be told which it was served rather than left to guess.
+ */
+export type PostLd = { slug: string; title: string; excerpt: string; date: string; cover: string | null; lang: "ja" | "en" };
+export type JsonLdProps =
+  | { type: "store" }
+  | { type: "product"; product: Product }
+  | { type: "faq"; items: { q: string; a: string }[] }
+  | { type: "post"; post: PostLd };
+
+const pageLanguage = (prefix: string) => (prefix === "/ja" ? "ja-JP" : "en");
+
+export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en" | "/ja" = ""): object {
+  return props.type === "store"
+    ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: `${base}${prefix}`, address: { "@type": "PostalAddress", addressLocality: "Katsushika-ku", addressRegion: "Tokyo", addressCountry: "JP" }, areaServed: ["JP", "PH"], priceRange: "¥¥¥", ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}) }
+    : props.type === "post"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: props.post.title,
+        description: props.post.excerpt || undefined,
+        datePublished: props.post.date,
+        inLanguage: props.post.lang === "ja" ? "ja-JP" : "en",
+        image: props.post.cover ? [new URL(props.post.cover, base).toString()] : undefined,
+        mainEntityOfPage: { "@type": "WebPage", "@id": `${base}${prefix}/blog/${props.post.slug}` },
+        author: { "@type": "Organization", name: "Cha Jewels" },
+        publisher: { "@type": "Organization", name: "Cha Jewels" },
+      }
+    : props.type === "faq"
+    ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: props.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })) }
+    : { "@context": "https://schema.org", "@type": "Product", name: props.product.name, sku: props.product.sku, image: allImages(props.product).map((m) => m.url), material: productMetals(props.product).length ? metalsLabel(productMetals(props.product), "en") : undefined, description: props.product.description_en ?? undefined,
+        // A brand only when the Hub says the piece is branded. No countryOfOrigin
+        // is ever emitted here — origin is a per-piece badge, not structured data.
+        brand: props.product.origin === "BRAND" && props.product.brand?.trim() ? { "@type": "Brand", name: props.product.brand.trim() } : undefined,
+        offers: { "@type": "Offer", price: fromPrice(props.product) ?? undefined, priceCurrency: "JPY",
+          // Absent condition is New — matches ConditionBadge, which only renders for Preloved.
+          itemCondition: props.product.condition === "Preloved" ? "https://schema.org/UsedCondition" : "https://schema.org/NewCondition",
+          // The same status the page shows (lib/availability.ts): in stock, or
+          // SoldOut. There is no held/BackOrder state (owner decision 2026-09-23).
+          availability: productAvailability(props.product) === "available" ? "https://schema.org/InStock" : "https://schema.org/SoldOut", url: `${base}${prefix}/products/${props.product.slug}` },
+        ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}) };
+}
