@@ -206,3 +206,13 @@ export function createLocaleRules(families: ReadonlyMap<string, FamilyRule> = FA
 }
 
 export const { familyOf, isLocalizable, localePath, siblingPath } = createLocaleRules();
+
+/**
+ * Every live URL of one resource: the bare path plus its /en and /ja forms when
+ * the family is localizable (Phase 2C; used by cache revalidation so a Hub edit
+ * refreshes all three renders). A non-localizable path comes back alone.
+ */
+export function localeVariants(path: string): string[] {
+  return [...new Set([path, localePath(path, "en"), localePath(path, "ja")])];
+}
+

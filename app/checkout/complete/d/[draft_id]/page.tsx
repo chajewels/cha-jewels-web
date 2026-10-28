@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import { appliedCoupon } from "@/lib/coupon";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -90,7 +91,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
             {declined && draft.decline_reason && <Cell k={t("draft", "reason")} v={draft.decline_reason} />}
           </dl>
           {/* No orange on a confirmation page (D3-10): nothing here buys. */}
-          <Button asChild variant="outline" className="mt-8"><Link href="/collections">{t("draft", "shop")}</Link></Button>
+          <Button asChild variant="outline" className="mt-8"><Link href={localePath("/collections", lang)}>{t("draft", "shop")}</Link></Button>
         </div>
       </section>
     );

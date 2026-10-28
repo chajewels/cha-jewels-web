@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import { localePath } from "@/lib/locale";
 import { availabilityKey, isBuyable, variantAvailability } from "@/lib/availability";
 import Link from "next/link";
 import { useTransition } from "react";
@@ -48,7 +49,7 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
         ].filter((x): x is string => !!x);
         return (
           <li key={item.variant_id} className="grid grid-cols-[96px_minmax(0,1fr)] gap-3.5 border border-hairline bg-white p-4 sm:grid-cols-[148px_minmax(0,1fr)_auto] sm:gap-6 sm:p-6">
-            <Link href={`/products/${item.slug}`} tabIndex={-1} aria-hidden="true" className="block">
+            <Link href={localePath(`/products/${item.slug}`, lang)} tabIndex={-1} aria-hidden="true" className="block">
               <PieceWell image={item.picture} alt={name} />
             </Link>
             <div className="min-w-0">
@@ -57,7 +58,7 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
                   {t("collection", "filterPreloved")}
                 </span>
               )}
-              <Link href={`/products/${item.slug}`} className="mt-1.5 block font-display text-[15px] leading-[1.45] text-charcoal-deep [font-variant-numeric:lining-nums] hover:underline sm:mt-2 sm:text-[18px]">
+              <Link href={localePath(`/products/${item.slug}`, lang)} className="mt-1.5 block font-display text-[15px] leading-[1.45] text-charcoal-deep [font-variant-numeric:lining-nums] hover:underline sm:mt-2 sm:text-[18px]">
                 {name}
               </Link>
               {spec.length > 0 && (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localePath } from "@/lib/locale";
 import { tr, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { normalize, search } from "@/lib/search";
@@ -83,7 +84,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               <li><ChipLink href={base} on={!stockOnly}>{t("support", "all")} <span className="cj-fig text-[11.5px] opacity-80">{total}</span></ChipLink></li>
               <li><ChipLink href={`${base}&stock=1`} on={stockOnly}>{t("support", "inStock")} <span className="cj-fig text-[11.5px] opacity-80">{inStockCount}</span></ChipLink></li>
               {matchingCols.map((c) => (
-                <li key={c.slug}><ChipLink href={`/collections/${c.slug}`}>{collectionName(c, lang)}</ChipLink></li>
+                <li key={c.slug}><ChipLink href={localePath(`/collections/${c.slug}`, lang)}>{collectionName(c, lang)}</ChipLink></li>
               ))}
             </ul>
           </nav>
@@ -111,7 +112,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               <>
                 <Eyebrow className={tries.length > 0 ? "mt-6" : ""}>{t("search", "collections")}</Eyebrow>
                 <ul className="mt-3.5 flex flex-wrap gap-2">
-                  {cols.map((c) => <li key={c.slug}><ChipLink href={`/collections/${c.slug}`}>{collectionName(c, lang)}</ChipLink></li>)}
+                  {cols.map((c) => <li key={c.slug}><ChipLink href={localePath(`/collections/${c.slug}`, lang)}>{collectionName(c, lang)}</ChipLink></li>)}
                 </ul>
               </>
             )}

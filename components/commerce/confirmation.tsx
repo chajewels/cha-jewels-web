@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { SocialGlyph } from "@/components/site/social-icons";
 import { ProductTrust } from "@/components/catalog/product-trust";
@@ -60,7 +61,7 @@ export async function ConfirmationActions({ lang, href, label }: { lang: Lang; h
         {messenger ? (
           <a href={messenger} target="_blank" rel="noopener noreferrer"><SocialGlyph name="messenger" size={18} />{t("social", "messenger")}</a>
         ) : (
-          <Link href="/contact">{t("social", "messenger")}</Link>
+          <Link href={localePath("/contact", lang)}>{t("social", "messenger")}</Link>
         )}
       </Button>
     </div>

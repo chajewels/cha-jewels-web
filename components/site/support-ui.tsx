@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { Search } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
@@ -43,7 +44,7 @@ export function InStockStrip({ lang, products }: { lang: Lang; products: Product
     <section className="wrap py-10 sm:py-14">
       <div className="mb-5 flex items-end justify-between gap-4">
         <h2 className="text-[clamp(22px,2.4vw,30px)] text-charcoal-deep">{t("support", "inStockNow")}</h2>
-        <Link href="/collections" className="text-sm text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("support", "seeAll")}</Link>
+        <Link href={localePath("/collections", lang)} className="text-sm text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("support", "seeAll")}</Link>
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-5 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-8">
         {products.map((p, i) => <ProductCard key={p.id} product={p} lang={lang} index={i} />)}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { ArrowRight } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
@@ -40,7 +41,7 @@ export function CollectionCards({ items, lang }: { items: CollectionCardData[]; 
           // with overflow-hidden — see .card-depth in globals.css.
           <CardEntrance key={c.id} index={i} className="card-depth relative w-full rounded-sm lg:w-[calc(25%-18px)]">
           <CardHairline />
-          <Link href={`/collections/${c.slug}`} className="group flex h-full w-full items-stretch overflow-hidden rounded-sm border border-hairline bg-white lg:flex-col">
+          <Link href={localePath(`/collections/${c.slug}`, lang)} className="group flex h-full w-full items-stretch overflow-hidden rounded-sm border border-hairline bg-white lg:flex-col">
             <div className="relative h-28 w-28 shrink-0 overflow-hidden lg:aspect-[4/3] lg:h-auto lg:w-full">
               {visual.kind === "photo" ? (
                 <CardWipe><HubImage src={visual.url} alt={name} fill sizes="(min-width: 1024px) 268px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" /></CardWipe>

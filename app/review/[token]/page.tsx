@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localePath } from "@/lib/locale";
 import Image from "next/image";
 import Link from "next/link";
 import { hub } from "@/lib/hub-api";
@@ -75,7 +76,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
             )}
             <div className="flex flex-wrap items-center gap-4">
               {invite?.status !== "used" && messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} />}
-              <Link href="/collections" className="inline-flex min-h-11 items-center text-sm font-semibold text-gold-dark underline underline-offset-4">{t("reviews", "browse")} →</Link>
+              <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm font-semibold text-gold-dark underline underline-offset-4">{t("reviews", "browse")} →</Link>
             </div>
           </div>
         </div>
@@ -111,7 +112,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
             )}
             {piece && <p className="relative font-display text-[clamp(21px,2.2vw,28px)] leading-snug text-gold-pale [:lang(ja)_&]:text-[19px] [:lang(ja)_&]:leading-[1.6]">{piece}</p>}
             {invite.product && (
-              <Link href={`/products/${invite.product.slug}`} className="relative inline-flex min-h-8 items-center text-sm text-gold-pale underline-offset-4 hover:underline">
+              <Link href={localePath(`/products/${invite.product.slug}`, lang)} className="relative inline-flex min-h-8 items-center text-sm text-gold-pale underline-offset-4 hover:underline">
                 {invite.product.name} →
               </Link>
             )}

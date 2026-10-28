@@ -29,7 +29,7 @@ import { useConsent } from "@/components/analytics/use-consent";
  */
 export type ConsentCopy = { region: string; title: string; body: string; accept: string; necessary: string; privacy: string };
 
-export function ConsentBanner({ copy }: { copy: ConsentCopy }) {
+export function ConsentBanner({ copy, privacyHref = "/legal/privacy" }: { privacyHref?: string; copy: ConsentCopy }) {
   const consent = useConsent();
   const path = usePathname() ?? "";
   const [opened, setOpened] = useState(false);
@@ -59,7 +59,7 @@ export function ConsentBanner({ copy }: { copy: ConsentCopy }) {
       <h2 id="cj-consent-title" ref={heading} tabIndex={-1} className="font-display text-[18px] font-medium text-charcoal-deep outline-none">{copy.title}</h2>
       <p className="mt-2 text-[14px] leading-relaxed">
         {copy.body}{" "}
-        <Link href="/legal/privacy" className="font-medium text-gold-dark underline underline-offset-2 hover:text-charcoal-deep">{copy.privacy}</Link>
+        <Link href={privacyHref} className="font-medium text-gold-dark underline underline-offset-2 hover:text-charcoal-deep">{copy.privacy}</Link>
       </p>
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Button type="button" variant="outline" className="min-h-11 px-3" onClick={() => choose("granted")}>{copy.accept}</Button>

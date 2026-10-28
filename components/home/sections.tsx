@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { hub } from "@/lib/hub-api";
 import { getFeaturedProducts } from "@/lib/queries/products";
@@ -96,7 +97,7 @@ async function ArrivalsAsync({ lang }: { lang: Lang }) {
             <RevealItem index={0}><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-deep">{t("home", "newEyebrow")}</p></RevealItem>
             <SplitHeading text={t("home", "newH")} lang={lang} className="mt-3 text-[clamp(28px,3.6vw,44px)]" />
           </div>
-          <RevealItem index={2}><Link href="/collections" className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link></RevealItem>
+          <RevealItem index={2}><Link href={localePath("/collections", lang)} className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep underline-offset-4 hover:underline">{t("home", "viewAll")} →</Link></RevealItem>
         </RevealGroup>
         {/* The pieces rise in one after another, and move under a mouse or a
             finger (components/fx/card-fx.tsx). */}

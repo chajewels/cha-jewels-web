@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { FullReloadLinks } from "@/components/commerce/full-reload-links";
 import { redirect } from "next/navigation";
@@ -147,7 +148,7 @@ export default async function PayCardPage({ params, searchParams }: {
               <p className="text-[15px] leading-relaxed text-charcoal/85" role="status">{t("card", "unverified")}</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <a href={`${orderPath}/pay-card`} className="inline-flex h-12 items-center justify-center bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</a>
-                <Button asChild variant="outline"><Link href="/contact">{t("navMenu", "contact")}</Link></Button>
+                <Button asChild variant="outline"><Link href={localePath("/contact", lang)}>{t("navMenu", "contact")}</Link></Button>
               </div>
             </>
           )}

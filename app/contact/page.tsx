@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
@@ -94,7 +95,7 @@ export default async function Contact() {
             <ContactForm lang={lang} />
             <p className="text-[13px] text-charcoal/75">
               {t("contact", "legalNote")}{" "}
-              <Link href="/legal/tokusho" className="text-gold-dark underline underline-offset-4">{t("footer", "tokusho")}</Link>
+              <Link href={localePath("/legal/tokusho", lang)} className="text-gold-dark underline underline-offset-4">{t("footer", "tokusho")}</Link>
             </p>
           </div>
         </div>

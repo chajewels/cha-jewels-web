@@ -80,7 +80,7 @@ test("checkout: required consent box gates the button; full payment says Place o
   assert.match(src, /const \[consented, setConsented\] = useState\(false\)/);
   assert.match(src, /disabled: pending \|\| !consented \|\|/);
   assert.match(src, /data-testid="checkout-consent"/);
-  assert.match(src, /href="\/legal\/privacy"/);
+  assert.match(src, /href=\{localePath\("\/legal\/privacy", lang\)\}/); // locale-aware since Phase 2C
   assert.match(src, /label: mode === "layaway"\s*\n\s*\? \(pending \? t\("checkout", "reserving"\) : t\("checkout", reserving \? "reserveNow" : "reservePiece"\)\)\s*\n\s*: \(pending \? t\("checkout", "placing"\) : t\("checkout", "placeOrder"\)\)/);
   assert.equal(dict.checkout.placeOrder.en, "Place order");
   assert.equal(dict.checkout.placeOrder.ja, "ご注文を確定する");

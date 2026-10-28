@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { useEffect, useRef, useState } from "react";
 import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -74,15 +75,15 @@ const d = (s: number) => ({ ["--d" as string]: s }) as React.CSSProperties;
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function Reserve({ piece, lang }: { piece: HeroPiece; lang: Lang }) {
-  return <Button asChild className="hd-btn"><Link href={`/products/${piece.slug}`}>{tr(lang)("home", "heroReserve")}</Link></Button>;
+  return <Button asChild className="hd-btn"><Link href={localePath(`/products/${piece.slug}`, lang)}>{tr(lang)("home", "heroReserve")}</Link></Button>;
 }
 function Ask({ lang }: { lang: Lang }) {
-  return <Button asChild className="hd-btn"><Link href="/contact">{tr(lang)("home", "heroAsk")}</Link></Button>;
+  return <Button asChild className="hd-btn"><Link href={localePath("/contact", lang)}>{tr(lang)("home", "heroAsk")}</Link></Button>;
 }
-function Explore({ slide }: { slide: HeroCategorySlide }) {
+function Explore({ slide, lang }: { slide: HeroCategorySlide; lang: Lang }) {
   return (
     <Button asChild variant="outline" className="hd-btn border-chalk/55 text-chalk hover:border-chalk hover:text-chalk">
-      <Link href={`/categories/${slide.slug}`} onClick={() => trackHeroSlideCta(slide.slug)}>{slide.cta}</Link>
+      <Link href={localePath(`/categories/${slide.slug}`, lang)} onClick={() => trackHeroSlideCta(slide.slug)}>{slide.cta}</Link>
     </Button>
   );
 }
@@ -106,7 +107,7 @@ function FilmView({ lang }: { lang: Lang }) {
               bench" links to it. */}
           <div className="hd-acts hd-film-acts hd-rise" style={d(0.48)}>
             <Button asChild variant="outline" className="hd-btn border-chalk/55 text-chalk hover:border-chalk hover:text-chalk">
-              <Link href="/collections" onClick={() => trackHeroSlideCta("film")}>{t("home", "heroViewAll")}</Link>
+              <Link href={localePath("/collections", lang)} onClick={() => trackHeroSlideCta("film")}>{t("home", "heroViewAll")}</Link>
             </Button>
           </div>
         </div>
@@ -252,7 +253,7 @@ function StageView({ slide, index, lang, active, mounted, side, moving }: ViewPr
           >
             {/* The picture is a pointer target; the caption below is the
                 piece's link for the keyboard and screen readers. */}
-            <Link href={`/products/${p.slug}`} className="hd-body" tabIndex={-1} aria-hidden="true">
+            <Link href={localePath(`/products/${p.slug}`, lang)} className="hd-body" tabIndex={-1} aria-hidden="true">
               <span className="hd-shadow" />
               <span className="hd-fl">
                 {p.photos.map((ph, i) => i <= mountTo[j] && <PhotoLayer key={i} photo={ph} on={i === photoAt[j]} mounted={mounted} />)}
@@ -274,7 +275,7 @@ function StageView({ slide, index, lang, active, mounted, side, moving }: ViewPr
         {pieces.map((p, j) => (
           <Link
             key={p.slug}
-            href={`/products/${p.slug}`}
+            href={localePath(`/products/${p.slug}`, lang)}
             className="hd-cap"
             data-place={places[j]}
             data-feat={isFeatured(places[j], n) ? "" : undefined}
@@ -288,7 +289,7 @@ function StageView({ slide, index, lang, active, mounted, side, moving }: ViewPr
         {/* Phone: the featured piece's line alone, under the stage; it
             cross-fades (a new key) each time the trio turns. */}
         {featured && (
-          <Link key={featured.slug} href={`/products/${featured.slug}`} className="hd-pcap" tabIndex={-1} aria-hidden="true">
+          <Link key={featured.slug} href={localePath(`/products/${featured.slug}`, lang)} className="hd-pcap" tabIndex={-1} aria-hidden="true">
             <span className="hd-cap-nm">{featured.name}</span>
             <span className="hd-cap-pr">{priceOf(featured)}</span>
           </Link>
@@ -331,7 +332,7 @@ function StageView({ slide, index, lang, active, mounted, side, moving }: ViewPr
         )}
         <div className="hd-acts hd-rise" style={d(0.3)}>
           {slide.action === "reserve" && featured ? <Reserve piece={featured} lang={lang} /> : <Ask lang={lang} />}
-          <Explore slide={slide} />
+          <Explore slide={slide} lang={lang} />
         </div>
       </div>
     </div>

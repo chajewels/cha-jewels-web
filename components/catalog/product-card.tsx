@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { fromPrice, fromVariant } from "@/lib/product-facts";
 import type { Product } from "@/lib/types";
 import { CardFx } from "@/components/fx/card-fx";
@@ -73,7 +74,7 @@ export function ProductCard({ product, lang, index = 0, priority = false }: { pr
   return (
     <CardFx index={index} tilt={false} quiet className="h-full">
       <ComponentStyle id="fx-pcard" css={CSS} />
-      <Link href={`/products/${product.slug}`} data-sold={sold ? "" : undefined} className="pcard relative flex h-full flex-col bg-white">
+      <Link href={localePath(`/products/${product.slug}`, lang)} data-sold={sold ? "" : undefined} className="pcard relative flex h-full flex-col bg-white">
         <span aria-hidden="true" className="pcard-rule" />
         <div className="relative aspect-square overflow-hidden bg-chalk">
           {img ? (

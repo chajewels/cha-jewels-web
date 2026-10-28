@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { dict, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -76,9 +77,9 @@ export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] 
       {outcome === "lost" && <p className="text-garnet">{c.err[lang]}</p>}
       <p className="text-xs text-charcoal/70">
         {c.consent[lang]}{" "}
-        <Link href="/legal/terms" className="underline hover:text-gold-dark">{dict.footer.sale[lang]}</Link>
+        <Link href={localePath("/legal/terms", lang)} className="underline hover:text-gold-dark">{dict.footer.sale[lang]}</Link>
         {" · "}
-        <Link href="/legal/privacy" className="underline hover:text-gold-dark">{dict.footer.privacy[lang]}</Link>
+        <Link href={localePath("/legal/privacy", lang)} className="underline hover:text-gold-dark">{dict.footer.privacy[lang]}</Link>
       </p>
     </div>
   );

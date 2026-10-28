@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import { siteDay } from "@/lib/site-time";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -98,7 +99,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       {!failed && rows.length === 0 && (
         <p className="border border-hairline bg-white p-5 text-charcoal-deep">
           {t("orders", "empty")}{" "}
-          <Link href="/collections" className="text-gold-dark underline underline-offset-4">{t("draft", "shop")}</Link>
+          <Link href={localePath("/collections", lang)} className="text-gold-dark underline underline-offset-4">{t("draft", "shop")}</Link>
         </p>
       )}
 

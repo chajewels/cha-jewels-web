@@ -1,4 +1,5 @@
 import { revalidatePath, revalidateTag } from "next/cache";
+import { localeVariants } from "@/lib/locale";
 import { NextResponse } from "next/server";
 
 /**
@@ -60,15 +61,19 @@ const isSlug = (value: unknown): value is string =>
 export async function POST(req: Request) {
   if (req.headers.get("x-revalidate-secret") !== process.env.REVALIDATE_SECRET) return NextResponse.json({ ok: false }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as { productSlug?: string; collectionSlug?: string; postSlug?: string; tag?: string; path?: string };
-  revalidatePath("/");
-  if (body.productSlug) revalidatePath(`/products/${body.productSlug}`);
-  if (body.collectionSlug) revalidatePath(`/collections/${body.collectionSlug}`);
+  // Since Phase 2C a resource renders at up to three URLs (bare, /en, /ja), so
+  // a Hub change refreshes all of them. localeVariants returns only paths that
+  // really exist (the Phase 2A family table); nothing else changes here.
+  const revalidateAll = (p: string) => localeVariants(p).forEach((v) => revalidatePath(v));
+  revalidateAll("/");
+  if (body.productSlug) revalidateAll(`/products/${body.productSlug}`);
+  if (body.collectionSlug) revalidateAll(`/collections/${body.collectionSlug}`);
   // A post moves TWO pages: its own, and the list it appears in. The list is
   // revalidated for a new post as well as an edited one, which is why it is not
   // conditional on the slug being one we already know.
   if (isSlug(body.postSlug)) {
-    revalidatePath("/blog");
-    revalidatePath(`/blog/${body.postSlug}`);
+    revalidateAll("/blog");
+    revalidateAll(`/blog/${body.postSlug}`);
   }
   revalidateTag("catalog");
   // `tag` is ADDITIVE to the catalog bust above, not a replacement for it: the
@@ -79,7 +84,7 @@ export async function POST(req: Request) {
   // Additive too: `{ tag: "content", path: "/faq" }` is the ordinary FAQ
   // notification, and either half alone still does its own half.
   const path = PATHS.find((p) => p === body.path);
-  if (path) revalidatePath(path);
+  if (path) revalidateAll(path);
   // An unrecognised tag, slug or path is REPORTED rather than swallowed — a Hub
   // that starts sending "settings" instead of "content", a slug this refuses to
   // put in a path, or a path that is not on the list, should find that out from

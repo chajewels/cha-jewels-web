@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
@@ -45,7 +46,7 @@ export function LayawayPiecePicker({ lang, pieces, initialSlug }: { lang: Lang; 
     window.history.replaceState(window.history.state, "", url);
   }
 
-  const href = `/products/${piece.slug}`;
+  const href = localePath(`/products/${piece.slug}`, lang);
   return (
     <div className="grid border border-hairline bg-white lg:grid-cols-[1fr_1.1fr]">
       <StageBand as="div" className="flex flex-col">

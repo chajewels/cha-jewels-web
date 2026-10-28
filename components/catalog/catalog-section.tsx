@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { FileText, ShieldCheck } from "lucide-react";
 import { CatalogGrid, type GridItem, type GridLabels } from "@/components/catalog/catalog-grid";
 import { ProductCard } from "@/components/catalog/product-card";
@@ -131,7 +132,7 @@ export function EmptyCatalog({ lang, stocked, now, messenger }: {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-dark [:lang(ja)_&]:text-xs [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{dict.collection.count[lang].replace("{n}", "0")}</p>
           <p className="text-[15px] leading-[1.7] md:text-[17px]">{t("collection", "empty")}</p>
           <div className="flex flex-wrap gap-2.5">
-            <Button asChild variant="outline"><Link href="/collections">{t("collection", "emptyCta")}</Link></Button>
+            <Button asChild variant="outline"><Link href={localePath("/collections", lang)}>{t("collection", "emptyCta")}</Link></Button>
             {messenger && (
               <Button asChild variant="ghost">
                 <a href={messenger} target="_blank" rel="noopener noreferrer"><SocialGlyph name="messenger" size={18} />{t("social", "messenger")}</a>
@@ -145,7 +146,7 @@ export function EmptyCatalog({ lang, stocked, now, messenger }: {
               const visual = typeVisual(col);
               return (
                 <li key={col.slug}>
-                  <Link href={`/collections/${col.slug}`} className="group block">
+                  <Link href={localePath(`/collections/${col.slug}`, lang)} className="group block">
                     <span className="relative block aspect-[4/3] overflow-hidden bg-hairline">
                       {visual.kind === "photo"
                         ? <HubImage src={visual.url} alt="" fill sizes="(min-width:768px) 22vw, 45vw" className="object-cover transition-transform duration-[1.2s] [transition-timing-function:var(--ease-lux)] group-hover:scale-[1.04] motion-reduce:transition-none" />
@@ -166,7 +167,7 @@ export function EmptyCatalog({ lang, stocked, now, messenger }: {
         <section className="wrap pb-28 pt-8 lg:pb-24">
           <div className="mb-6 flex items-end justify-between gap-5">
             <h2 className="text-[clamp(30px,4vw,52px)] leading-[1.08]">{t("collection", "availableNow")}</h2>
-            <Link href="/collections" className="shrink-0 border-b border-gold-dark pb-0.5 text-sm font-medium text-gold-dark hover:text-charcoal-deep">{t("collection", "viewAll")}</Link>
+            <Link href={localePath("/collections", lang)} className="shrink-0 border-b border-gold-dark pb-0.5 text-sm font-medium text-gold-dark hover:text-charcoal-deep">{t("collection", "viewAll")}</Link>
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-5 min-[834px]:grid-cols-3 min-[834px]:gap-x-6 min-[834px]:gap-y-8 lg:grid-cols-4">
             {now.map((p, i) => <ProductCard key={p.slug} product={p} lang={lang} index={i} />)}

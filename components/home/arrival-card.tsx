@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { allImages, fromPrice, fromVariant, primaryImage } from "@/lib/queries/products";
 import { CardFx, CardMedia } from "@/components/fx/card-fx";
 import type { Product } from "@/lib/types";
@@ -49,7 +50,7 @@ export function ArrivalCard({ product, lang, index = 0 }: { product: Product; la
     // Motion (components/fx/card-fx.tsx): rise-in, tilt + glint + second photo
     // under a mouse, a gold glint and press feedback on touch.
     <CardFx index={index} className="h-full">
-    <Link href={`/products/${product.slug}`} className="group flex h-full flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm transition-shadow hover:shadow-md">
+    <Link href={localePath(`/products/${product.slug}`, lang)} className="group flex h-full flex-col overflow-hidden rounded-sm border border-hairline bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="relative aspect-square overflow-hidden bg-chalk">
         <CardMedia src={img.url} second={second?.url} alt={img.alt ?? name} sizes="(min-width:1024px) 25vw, 50vw" unoptimized={passthrough(img.url)} />
         <span className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded-sm bg-chalk/90 px-1.5 py-0.5 text-[10px] tracking-tight text-charcoal backdrop-blur-sm">

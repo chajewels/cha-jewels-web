@@ -1,4 +1,5 @@
 "use client";
+import { stripLocale } from "@/lib/locale";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Award, Gem, Home, User, Wallet } from "lucide-react";
@@ -34,13 +35,14 @@ export function MobileTabBar({ tabs, label }: { tabs: Tab[]; label: string }) {
   // the Messenger button above it. Decided from the client pathname, like the
   // Messenger button's own pages, because the layout is not re-rendered on a
   // client navigation.
-  if (path.startsWith("/products/")) return null;
+  if (stripLocale(path).startsWith("/products/")) return null;
   return (
     <nav aria-label={label} data-mobile-tab-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-chalk/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
       <div className="flex h-16 items-center justify-around px-1">
         {tabs.map(({ href, label: name, icon }) => {
           const Icon = ICONS[icon];
-          const active = OWNS[icon].some((m) => (m === "/" ? path === "/" : path === m || path.startsWith(`${m}/`)));
+          const bare = stripLocale(path);
+          const active = OWNS[icon].some((m) => (m === "/" ? bare === "/" : bare === m || bare.startsWith(`${m}/`)));
           return (
             <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex h-14 min-w-[64px] flex-col items-center justify-center gap-1 px-1 text-[11px] leading-none ${active ? "font-semibold text-gold-deep" : "text-charcoal/75 hover:text-charcoal-deep"}`}>
               <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} />

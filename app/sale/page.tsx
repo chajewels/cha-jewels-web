@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
@@ -44,7 +45,7 @@ export default async function SalePage() {
           <div className="grid max-w-xl gap-4 border-t border-charcoal-deep pt-6">
             <p className="text-[15px] leading-[1.7] md:text-[17px]">{t("salePage", "empty")}</p>
             <div>
-              <Button asChild variant="outline"><Link href="/collections">{t("salePage", "emptyCta")}</Link></Button>
+              <Button asChild variant="outline"><Link href={localePath("/collections", lang)}>{t("salePage", "emptyCta")}</Link></Button>
             </div>
           </div>
         </section>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { notFound } from "next/navigation";
 import { pageMeta } from "@/lib/page-meta";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
@@ -120,7 +121,7 @@ export default async function LayawayPage({ searchParams }: { searchParams: Prom
         <section className="wrap pb-14 sm:pb-[88px]">
           <div className="mb-5 flex items-end justify-between gap-4">
             <h2 className="text-[clamp(22px,2.4vw,30px)] text-charcoal-deep">{t("layawayPage", "reserveToday")}</h2>
-            <Link href="/collections" className="inline-flex min-h-11 items-center text-sm text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("layawayPage", "allPieces")}</Link>
+            <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("layawayPage", "allPieces")}</Link>
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-5 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-8">
             {strip.map((p, i) => <ProductCard key={p.id} product={p} lang={lang} index={i} />)}

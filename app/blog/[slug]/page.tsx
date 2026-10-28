@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { localePath } from "@/lib/locale";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
@@ -78,7 +79,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     <article className="py-[clamp(48px,7vw,96px)]">
       <JsonLd type="post" post={{ slug: p.slug, title: p.title, excerpt: p.excerpt, date: p.date, cover: p.cover, lang }} />
       <div className="wrap max-w-[760px]">
-        <Link href="/blog" className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
+        <Link href={localePath("/blog", lang)} className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
         {p.cover && (
           // Hub media may come from hosts next/image is not configured for.
           // Decorative: the <h1> below is the page's name, and an alt repeating

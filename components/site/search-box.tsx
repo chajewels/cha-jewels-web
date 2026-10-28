@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { localePath } from "@/lib/locale";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -188,7 +189,7 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
     }
     if (e.key === "Enter") {
       e.preventDefault();
-      if (open && active >= 0 && active < items.length) go(`/products/${items[active].slug}`);
+      if (open && active >= 0 && active < items.length) go(localePath(`/products/${items[active].slug}`, lang));
       else submit();
       return;
     }
@@ -239,7 +240,7 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
       {status === "ready" && items.length === 0 && collections.length === 0 && (
         <div className={layout === "panel" ? "px-5 py-4" : "py-4"}>
           <p className="text-sm text-charcoal-deep">{t("search", "noneShort")}</p>
-          <Link href="/collections" onMouseDown={(e) => { e.preventDefault(); go("/collections"); }} onClick={(e) => { e.preventDefault(); go("/collections"); }} className="mt-1 inline-flex min-h-11 items-center text-sm text-gold-dark underline underline-offset-4">
+          <Link href={localePath("/collections", lang)} onMouseDown={(e) => { e.preventDefault(); go(localePath("/collections", lang)); }} onClick={(e) => { e.preventDefault(); go("/collections"); }} className="mt-1 inline-flex min-h-11 items-center text-sm text-gold-dark underline underline-offset-4">
             {t("search", "browseAll")}
           </Link>
         </div>
@@ -255,7 +256,7 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
                 role="option"
                 aria-selected={i === active}
                 onMouseEnter={() => setActive(i)}
-                onMouseDown={(e) => { e.preventDefault(); go(`/products/${s.slug}`); }}
+                onMouseDown={(e) => { e.preventDefault(); go(localePath(`/products/${s.slug}`, lang)); }}
                 className={`flex cursor-pointer items-center gap-4 border-l-2 px-3 py-2.5 ${layout === "panel" ? "" : "border-b border-b-hairline"} ${i === active ? "border-l-gold-dark bg-chalk" : "border-l-transparent"}`}
               >
                 <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-sm bg-white">
@@ -289,7 +290,7 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
           <p className={eyebrow(lang)}>{t("search", "collections")}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {collections.map((c) => (
-              <Link key={c.slug} href={`/collections/${c.slug}`} onClick={(e) => { e.preventDefault(); go(`/collections/${c.slug}`); }} className="inline-flex min-h-11 items-center rounded-sm border border-charcoal/60 bg-white px-4 text-sm text-charcoal-deep hover:border-gold-dark hover:text-gold-dark">
+              <Link key={c.slug} href={localePath(`/collections/${c.slug}`, lang)} onClick={(e) => { e.preventDefault(); go(`/collections/${c.slug}`); }} className="inline-flex min-h-11 items-center rounded-sm border border-charcoal/60 bg-white px-4 text-sm text-charcoal-deep hover:border-gold-dark hover:text-gold-dark">
                 {c.name}
               </Link>
             ))}

@@ -1,4 +1,5 @@
-import { LANG_PARAM, type Lang } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
+import { localePath } from "@/lib/locale";
 
 /**
  * SHARING A BLOG POST (owner decisions S1–S7, 2026-10-16).
@@ -19,14 +20,14 @@ export type ShareNetwork = (typeof SHARE_NETWORKS)[number];
 export type ShareSource = ShareNetwork | "copy" | "native";
 
 /**
- * The post's canonical absolute URL in the reader's language (S3) — the same
- * rule <SeoLinks /> (lib/page-meta.tsx) states as hreflang: Japanese is the
- * site default and carries no parameter, English carries `?lang=en`. `base` is
- * lib/site.ts siteUrl(), passed in because it reads server-only environment.
+ * The post's canonical absolute URL in the reader's language (S3). Since Phase
+ * 2C a share carries the LOCALE URL — the page's own canonical — instead of the
+ * legacy `?lang=en` form; old shared links keep working through the unchanged
+ * `?lang=` handling. `base` is lib/site.ts siteUrl(), passed in because it
+ * reads server-only environment.
  */
 export function postShareUrl(base: string, slug: string, lang: Lang): string {
-  const url = `${base.replace(/\/+$/, "")}/blog/${encodeURIComponent(slug)}`;
-  return lang === "en" ? `${url}?${LANG_PARAM}=en` : url;
+  return `${base.replace(/\/+$/, "")}${localePath(`/blog/${encodeURIComponent(slug)}`, lang)}`;
 }
 
 /** `url` with utm_source=<source>&utm_medium=share appended, keeping any `?lang=`. */
