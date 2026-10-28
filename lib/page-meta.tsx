@@ -5,6 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { siteUrl } from "@/lib/site";
 import { emitsCanonical } from "@/lib/seo-policy";
+import { localeOf } from "@/lib/locale";
 
 type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, string> };
 
@@ -49,6 +50,11 @@ type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, strin
 export async function SeoLinks() {
   const path = (await headers()).get(PATH_HEADER);
   if (!path || !path.startsWith("/")) return null;
+  // THE LOCALE TREE CARRIES ITS OWN METADATA (Phase 2B). /en/* and /ja/* pages
+  // declare canonical, hreflang and x-default through `generateMetadata`
+  // (lib/locale-meta.ts), and a locale 404 must emit nothing — which also
+  // closes finding X1 for that tree. Legacy paths are untouched (C0/H0).
+  if (localeOf(path)) return null;
 
   const base = siteUrl();
   const self = `${base}${path === "/" ? "/" : path.replace(/\/+$/, "")}`;

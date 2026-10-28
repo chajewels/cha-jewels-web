@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { LANG_COOKIE, LANG_PARAM, PATH_HEADER, asLang, detectLang, type Lang } from "@/lib/i18n";
+import { LANG_COOKIE, LANG_HEADER, LANG_PARAM, PATH_HEADER, asLang, langDecision, type Lang } from "@/lib/i18n";
+import { localeOf } from "@/lib/locale";
 import { cspForPath, CSP_FAILSAFE_HEADER, FRAME_OPTIONS } from "@/lib/csp";
 
 /**
@@ -73,10 +74,20 @@ export async function middleware(req: NextRequest) {
   // `decided` is set only when we need to WRITE the cookie — either the visitor
   // just made a choice via ?lang=, or this is a first visit and we detected one.
   // A returning visitor with a cookie is left alone entirely.
+  // On /en/* and /ja/* the URL itself is the language (Phase 2B, OD-15): it
+  // beats the cookie and ?lang= alike, and the cookie is synced to it when they
+  // differ. Everywhere else the decision is exactly what it always was. One
+  // pure rule, lib/i18n.ts `langDecision`, so the tests can hold it still.
   const cookieLang = asLang(req.cookies.get(LANG_COOKIE)?.value);
   const paramLang = asLang(req.nextUrl.searchParams.get(LANG_PARAM));
-  let decided: Lang | null = paramLang;
-  if (!decided && !cookieLang) decided = detectLang(req.headers.get("accept-language"));
+  const urlLocale = localeOf(req.nextUrl.pathname);
+  const { header: langHeader, write } = langDecision({
+    urlLocale,
+    cookieLang,
+    paramLang,
+    acceptLanguage: req.headers.get("accept-language"),
+  });
+  const decided: Lang | null = write;
 
   // Set it on the REQUEST as well as the response. Without this the page
   // rendering *this* request still reads the old (absent) cookie, so a
@@ -93,6 +104,10 @@ export async function middleware(req: NextRequest) {
   // write above so the language decision travels with it.
   const fwd = new Headers(req.headers);
   fwd.set(PATH_HEADER, req.nextUrl.pathname);
+  // LANG_HEADER is MIDDLEWARE-OWNED (OD-15 security requirement): a client-sent
+  // value never survives, and the header exists only on a locale route.
+  fwd.delete(LANG_HEADER);
+  if (langHeader) fwd.set(LANG_HEADER, langHeader);
 
   // ---------------------------------------------------------------- CSP
   //
