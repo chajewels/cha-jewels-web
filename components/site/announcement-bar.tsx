@@ -2,18 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { tr, type Lang } from "@/lib/i18n";
+import { announcementBarAllowed } from "@/lib/statutory-path";
 
 /**
  * The announcement strip above the header.
  *
  * WHAT IT IS FOR: one owner-written sentence — holiday shipping dates, a
  * closure, a live sale — set in the Hub and read through lib/settings.ts. The
- * decision to render it at all is made on the SERVER (app/layout.tsx): active,
- * non-empty in this reader's language, not past its end date, and not on
- * /legal/*. Nothing here re-checks any of that; by the time this mounts the
- * only remaining question is whether this visitor has already dismissed it.
+ * SERVER decides whether there is a notice at all (app/layout.tsx): active,
+ * non-empty in this reader's language, not past its end date.
+ *
+ * NOT ON /legal/* IS DECIDED HERE, ON THE PATH ON SCREEN (found 2026-10-28).
+ * The root layout is not re-rendered by a client-side navigation, so a bar the
+ * server allowed on /en stayed on screen after a click to the tokusho legal
+ * notice — the one page it must never sit on. `announcementBarAllowed` (the rule
+ * the consent banner shares) is asked of the current path on every render:
+ * on the server render of a legal page that is the request path, so its HTML
+ * holds no bar; after a navigation away from one, the bar returns.
  *
  * DISMISSED PER SESSION, KEYED ON THE TEXT. `sessionStorage` rather than
  * `localStorage`: closing a notice means "I have read this one", not "never
@@ -56,6 +64,7 @@ const PREPAINT = `try{if(sessionStorage.getItem(${JSON.stringify(STORAGE_KEY)})=
 
 export function AnnouncementBar({ text, href, lang, nonce }: { text: string; href: string | null; lang: Lang; /** The page's CSP nonce, on the one page with an enforced policy (pay-card, lib/csp.ts). */ nonce?: string }) {
   const t = tr(lang);
+  const allowed = announcementBarAllowed(usePathname());
   const [dismissed, setDismissed] = useState(false);
   const bar = useRef<HTMLElement>(null);
 
@@ -80,7 +89,7 @@ export function AnnouncementBar({ text, href, lang, nonce }: { text: string; hre
   useEffect(() => {
     const el = bar.current;
     const root = document.documentElement;
-    if (dismissed || !el) {
+    if (dismissed || !allowed || !el) {
       root.style.setProperty(HEIGHT_VAR, "0px");
       return;
     }
@@ -92,7 +101,7 @@ export function AnnouncementBar({ text, href, lang, nonce }: { text: string; hre
       observer.disconnect();
       root.style.setProperty(HEIGHT_VAR, "0px");
     };
-  }, [dismissed]);
+  }, [dismissed, allowed]);
 
   function dismiss() {
     setDismissed(true);
@@ -106,7 +115,7 @@ export function AnnouncementBar({ text, href, lang, nonce }: { text: string; hre
     document.body.setAttribute("data-cj-announcement", "dismissed");
   }
 
-  if (dismissed) return null;
+  if (dismissed || !allowed) return null;
 
   return (
     <>

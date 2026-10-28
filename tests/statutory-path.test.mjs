@@ -86,14 +86,19 @@ test("advertising tags: a localized legal path behaves exactly like its unprefix
 test("the live call sites use the shared rule and no longer spell /legal out", () => {
   const banner = read("components/site/consent-banner.tsx");
   const layout = read("app/layout.tsx");
+  const bar = read("components/site/announcement-bar.tsx");
   assert.match(banner, /from "@\/lib\/statutory-path"/);
   assert.match(banner, /isStatutoryPath\(path\)/);
   assert.doesNotMatch(banner, /path\s*===\s*"\/legal"|startsWith\("\/legal\/"\)/, "consent banner must not carry its own /legal literal");
-  assert.match(layout, /from "@\/lib\/statutory-path"/);
-  assert.match(layout, /announcementBarAllowed/);
   assert.doesNotMatch(layout, /path\s*!==\s*"\/legal"|startsWith\("\/legal\/"\)/, "root layout must not carry its own /legal literal");
-  // The layout still feeds the bar from the path header, and still fails safe through the shared rule.
-  assert.match(layout, /bannerAllowed\(h\.get\(PATH_HEADER\)\)/);
+  // Since 2026-10-28 the BAR applies the shared rule to the path on screen (the
+  // root layout is not re-rendered by a client-side navigation, so a layout-only
+  // gate left the bar on the 特定商取引法 page after a click). It fails safe
+  // through the same rule: a path it cannot classify shows no bar.
+  assert.match(bar, /from "@\/lib\/statutory-path"/);
+  assert.match(bar, /const allowed = announcementBarAllowed\(usePathname\(\)\)/);
+  assert.match(bar, /if \(dismissed \|\| !allowed\) return null;/);
+  assert.doesNotMatch(bar, /startsWith\("\/legal\/"\)|"\/legal"/, "the bar must not carry its own /legal literal");
 });
 
 test("a malformed or unsafe path is never statutory and never enables the bar (the fail-safe holds for every shape)", () => {

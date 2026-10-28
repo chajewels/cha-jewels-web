@@ -9,7 +9,6 @@ import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
 import { indexingFor } from "@/lib/seo-policy";
-import { announcementBarAllowed } from "@/lib/statutory-path";
 import { localePath } from "@/lib/locale";
 import { switchTargets } from "@/lib/locale-nav";
 import { dict, tr, PATH_HEADER } from "@/lib/i18n";
@@ -84,9 +83,10 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * The rule itself is `announcementBarAllowed` in lib/statutory-path.ts, shared
  * with the cookie banner so the two cannot drift. It also recognises a locale
- * prefix (/en/legal/..., /ja/legal/...) before any such route exists.
+ * prefix (/en/legal/..., /ja/legal/...). Since 2026-10-28 the bar applies it to
+ * the path on screen, which covers client-side navigation; the layout no longer
+ * gates the read.
  */
-const bannerAllowed = announcementBarAllowed;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [lang, h] = await Promise.all([getLang(), headers()]);
@@ -95,7 +95,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // expired alike. CAUGHT, because the bar is chrome and this is the root
   // layout: an unreachable Hub must cost the strip, not every page on the site.
   // A page whose own content comes from the Hub still throws on its own read.
-  const notice = bannerAllowed(h.get(PATH_HEADER)) ? await announcement(lang).catch(() => null) : null;
+  //
+  // READ ON EVERY PAGE, legal ones included, and shown by the bar itself only
+  // where `announcementBarAllowed` says so for the path ON SCREEN: the root layout is not
+  // re-rendered by a client-side navigation, so the decision has to travel with
+  // the bar (components/site/announcement-bar.tsx). A legal page's server render
+  // still holds no bar; a click from it back to the shop brings the bar back.
+  const notice = await announcement(lang).catch(() => null);
   // Language-switcher destinations for this path (OD-7, lib/locale-nav.ts):
   // real links to the sibling page or the destination home; null keeps the
   // cookie toggle (private routes). Caught like the chrome reads around it —
