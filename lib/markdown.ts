@@ -1,4 +1,4 @@
-import { localePath } from "@/lib/locale";
+import { localizeAuthoredHref } from "@/lib/locale";
 import type { Lang } from "@/lib/i18n";
 /**
  * A SMALL MARKDOWN RENDERER FOR POST BODIES, AND NOTHING ELSE.
@@ -97,8 +97,9 @@ function inline(text: string, lang?: Lang): string {
   // rather than leaving its closing bracket stranded in the sentence.
   out = out.replace(/\[([^\]\n]*)\]\(([^()\s]*(?:\([^()\s]*\)[^()\s]*)*)\)/g, (whole, label: string, href: string) => {
     const rawSafe = safeHref(href);
-    // OD-11: an eligible internal public path is localized at render time; see renderMarkdown.
-    const safe = rawSafe && lang ? localePath(rawSafe, lang) : rawSafe;
+    // OD-11: an unprefixed eligible internal public path is localized at render
+    // time; an author's explicit /en/ or /ja/ is kept as written (lib/locale.ts).
+    const safe = rawSafe && lang ? localizeAuthoredHref(rawSafe, lang) : rawSafe;
     if (!safe) return label.trim() || whole;
     // An empty label would be a link with no accessible name, which axe reports
     // and a screen reader announces as the URL anyway. Showing the URL is the
@@ -149,12 +150,14 @@ function block(lines: string[], lang?: Lang): string {
 /** Markdown → HTML. Empty in, empty out; never throws. */
 /**
  * `lang` (OD-11, Phase 2C): Hub-authored relative links are localized at render
- * time. Only an eligible site-internal public path changes (`localePath`, the
- * Phase 2A family table): externals, mailto, private, unknown, protocol-
- * relative and malformed values are untouched, the bare /layaway exception is
- * automatic (its family is not live), a query or hash rides along, and an
- * already-localized path is never double-prefixed. The Hub's stored text is
- * never modified — this is rendering only.
+ * time. Only an UNPREFIXED eligible site-internal public path changes
+ * (`localizeAuthoredHref`, the Phase 2A family table): externals, mailto,
+ * private, unknown, protocol-relative and malformed values are untouched, the
+ * bare /layaway exception is automatic (its family is not live), a query or
+ * hash rides along, and a path the author already prefixed with /en or /ja is
+ * kept exactly as written (corrected 2026-10-28; it used to be re-based onto
+ * the page's language). The Hub's stored text is never modified — this is
+ * rendering only.
  */
 export function renderMarkdown(source: string, lang?: Lang): string {
   const normalised = source
