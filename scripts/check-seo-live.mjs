@@ -34,14 +34,31 @@ ok("/sitemap.xml", "answers 200", sm.status === 200, `got ${sm.status}`);
 const locs = [...sm.body.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
 ok("/sitemap.xml", "lists URLs", locs.length > 0, "empty");
 const paths = locs.map((l) => new URL(l).pathname);
-const find = (re) => paths.find((p) => re.test(p));
+// Since Phase 2D the sitemap lists locale URLs (/ja/…, /en/…). The samples
+// below are taken without the prefix, so every check that follows still names
+// a real slug whichever form the sitemap uses.
+const bareOf = (p) => p.replace(/^\/(en|ja)(?=\/|$)/, "") || "/";
+const find = (re) => paths.map(bareOf).find((p) => re.test(p));
 const product = find(/^\/products\//), collection = find(/^\/collections\/./), category = find(/^\/categories\//), post = find(/^\/blog\/./);
 
 const NOINDEX_PREFIX = ["/search", "/cart", "/login", "/auth", "/account", "/checkout", "/loyalty/join", "/already-registered", "/review", "/receipts", "/newsletter/unsubscribe", "/cart-reminders"];
-const leaked = paths.filter((p) => NOINDEX_PREFIX.some((n) => p === n || p.startsWith(`${n}/`)));
+const leaked = paths.filter((p) => NOINDEX_PREFIX.some((n) => bareOf(p) === n || bareOf(p).startsWith(`${n}/`)));
 ok("/sitemap.xml", "lists no private or utility route", leaked.length === 0, leaked.join(", "));
-ok("/sitemap.xml", "does not list /layaway (404 to a crawler until Phase 3)", !paths.includes("/layaway"));
+ok("/sitemap.xml", "does not list /layaway, /en/layaway or /ja/layaway (Phase 3 / never)", !paths.some((p) => /^\/((en|ja)\/)?layaway$/.test(p)), paths.filter((p) => /layaway$/.test(p)).join(", "));
 ok("/sitemap.xml", "every URL is on the checked origin", locs.every((l) => l.startsWith(BASE)), locs.find((l) => !l.startsWith(BASE)) ?? "");
+// ---- Phase 2D: locale URLs only, the root `/` kept until OD-3, no hreflang (OD-12).
+const bareListed = paths.filter((p) => p !== "/" && !/^\/(en|ja)(\/|$)/.test(p));
+ok("/sitemap.xml", "2D: lists no bare legacy URL except the root", bareListed.length === 0, bareListed.slice(0, 5).join(", "));
+ok("/sitemap.xml", "2D: lists /, /ja and /en", ["/", "/ja", "/en"].every((p) => paths.includes(p)), paths.slice(0, 3).join(", "));
+ok("/sitemap.xml", "2D: no hreflang in the sitemap (OD-12: HTML only)", !/xhtml:link/.test(sm.body));
+// Every listed static page and post, and one entry per dynamic family and
+// language, must answer 200 itself — never a redirect, never a 404.
+const sample = [...new Set(paths.filter((p) => !/^\/(en|ja)\/(products|categories|collections)\/./.test(p)).concat(
+  ...["products", "categories", "collections"].flatMap((f) => ["ja", "en"].map((l) => paths.find((p) => p.startsWith(`/${l}/${f}/`)) ?? [])),
+))];
+const notOk = [];
+for (const p of sample) { const r = await get(p); if (r.status !== 200) notOk.push(`${p}:${r.status}`); }
+ok("/sitemap.xml", `2D: ${sample.length} sampled entries each answer 200 directly`, notOk.length === 0, notOk.slice(0, 5).join(", "));
 
 // ---------------------------------------------------------------- robots.txt
 const rb = await get("/robots.txt");
