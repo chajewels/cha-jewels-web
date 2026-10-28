@@ -495,7 +495,7 @@ Japanese Kihei Gold Chain Guide
 8. Best Kihei necklace lengths
 9. Kihei for men
 10. Kihei for women
-11. How to authenticate Japanese gold
+11. How to authenticate K18 jewelry in Japan
 12. How to care for Kihei chains
 
 ## Commercial linking
@@ -524,7 +524,7 @@ and relevant products.
 - What does K18 mean in Japan?
 - K18 vs 18K
 - K18 vs K24
-- Japanese gold hallmarks
+- K18 hallmarks used in Japan
 - How gold jewelry is weighed
 - Why gram weight matters
 - How to check real K18
@@ -596,7 +596,7 @@ Suggested pages:
 ```text
 Saan makakabili ng K18 gold sa Japan?
 Ano ang Kihei gold?
-Paano malaman kung tunay ang Japanese gold?
+Paano malaman kung tunay ang K18 jewelry sa Japan?
 Paano gumagana ang jewelry layaway sa Japan?
 K18 gold Japan para sa Filipino buyers
 ```
@@ -945,7 +945,7 @@ Product pages can link to:
 
 ```text
 Learn about Kihei cuts
-Learn about Japanese gold hallmarks
+Learn about K18 hallmarks used in Japan
 Learn how gram weight works
 ```
 
@@ -1476,7 +1476,7 @@ diamond jewelry Japan
 
 ```text
 what does K18 mean
-Japanese gold hallmark
+K18 hallmarks used in Japan
 what is Kihei
 8 cut Kihei meaning
 K18 vs 18K
@@ -1486,7 +1486,7 @@ K18 vs 18K
 
 ```text
 where to buy K18 gold Japan
-Japanese gold online
+K18 jewelry online in Japan
 Kihei shop Japan
 jewelry shop Tokyo
 ```
