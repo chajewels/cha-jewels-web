@@ -1,6 +1,6 @@
 # Cha Jewels SEO Implementation Status
 
-**Last updated:** 2026-10-28 (Phase 1 merged to `develop` as PR #393, not yet in `main`; Phase 2 is planning only)
+**Last updated:** 2026-10-28 (Phase 1 merged to `develop` as PR #393, not yet in `main`; Phase 2 planning merged as PR #394, with corrections in a follow-up PR; no Phase 2 implementation)
 **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` · **Evidence:** `docs/seo/SEO-BASELINE.md` (Day 0 and the Phase 1 addendum, §14-17)
 
 Statuses: NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE
@@ -26,7 +26,7 @@ Nothing in this file is marked indexed, ranking or rich-result eligible. Phase 1
 | 1 | Old-domain redirect (`chajewelsjapan.com`) | BLOCKED — EXTERNAL DOMAIN/DNS/HOST CONFIGURATION | Decided (D2). No repository change in Phase 1 |
 | 1 | Sold products in the sitemap | KEEP IN SITEMAP FOR NOW | Decided (D3). No sitemap change in Phase 1. Later policy review: X10 |
 | 2 | `/en` and `/ja` URL architecture | AUDITED / PLANNING | `SEO-MIGRATION-MAP.md` written 2026-10-28. **No route, redirect, canonical target, hreflang target, sitemap route or internal-link destination has been changed.** Not IMPLEMENTING. Gates 2A-2E defined (map §15). OD-13 and OD-14 resolved as technical conventions; OD-5 merged into OD-1; the remaining owner decisions are in map §14 |
-| 3 | `/en/layaway` | BLOCKED | Depends on Phase 2B and 2C; bare `/layaway` unchanged |
+| 3 | `/en/layaway` | BLOCKED | Depends on Phase 2B and 2C; bare `/layaway` unchanged. Phase 3 creates and validates `/en/layaway`, then repoints the English layaway links (Phase 2C leaves them on `/layaway`, Option ii) |
 | 4-10 | Structured data, Merchant Center, SEO fields, content hubs | NOT STARTED | Untouched |
 
 ---
@@ -113,9 +113,10 @@ All Phase 1 behaviour changes sit in two small edits (`app/layout.tsx`, `lib/pag
 - Resolved without the owner (technical conventions): **OD-13** locale homes are `/en` and `/ja` (existing `trailingSlash: false` kept); **OD-14** Phase 2 migrates the existing route families under locale prefixes, and master-plan §22's `/shop/*` and `/guides/*` tree stays future-phase architecture.
 - Owner decisions still needed (map §14; each carries a recommendation that is **not** applied): OD-1 bare legacy URLs (includes old shared links), OD-2 x-default, OD-3 behaviour of `/`, OD-4 `?lang=` URLs, OD-6 legacy `/layaway`, OD-7 switcher with no sibling, OD-8 single-language pages, OD-9 fallback-language content, OD-10 mechanism, OD-11 Hub-authored relative links, OD-12 sitemap alternates, OD-15 cookie role and sync.
 - Gates: **2A** locale infrastructure only, **2B** locale routes and metadata, **2C** links, switcher and application behaviour, **2D** sitemap and full validation, **2E** legacy redirects (last, staged 307 then 308). None started.
-- Verified findings F1-F5 the design must honour (map §2.1): stale-cookie layaway refusal, single-language blog posts, `/legal/*`-keyed consent and ad checks, relative links in Hub content, and (observation only, out of scope) no-store public responses.
-- **Interim canonical behaviour of bare legacy URLs: PROPOSED — OWNER APPROVAL REQUIRED** (map §7, options C0/C1/C2). Not approved architecture; it depends on OD-1, OD-2, OD-3 and OD-4. Until one option is approved, Phase 2B must not change any legacy page's canonical.
-- Work is on branch `seo/phase-2-multilingual-planning` (local commit, not pushed).
+- Verified findings F1-F5 the design must honour (map §2.1): stale-cookie layaway refusal, single-language blog posts, `/legal/*`-keyed consent, advertising and **announcement-bar** (`bannerAllowed`) checks, relative links in Hub content, and (observation only, out of scope) no-store public responses.
+- **Interim canonical AND hreflang behaviour of bare legacy URLs: PROPOSED — OWNER APPROVAL REQUIRED** (map §7, canonical options C0/C1/C2, hreflang options H0/H1/H2). Not approved architecture; it depends on OD-1, OD-2 (x-default), OD-3 and OD-4. Until one canonical option and one hreflang option are approved, Phase 2B must not change any legacy page's canonical or hreflang (C0 + H0). The x-default destination is not approved.
+- **Planning corrections (follow-up to PR #394, documentation only):** (B1) layaway links stay on the legacy `/layaway` through Phase 2C (Option ii) and nothing points to `/en/layaway` until Phase 3 validates it; 2C exit adds "No internal navigation link may resolve to HTTP 404"; Japanese layaway stays unavailable. (B2) `bannerAllowed` announcement-bar suppression on `/legal/*` is added to F3, the file inventory, the Phase 2A files and tests, and the test matrix. (N1) legacy hreflang and x-default added to the owner-approval block. (N2) locale-correct JSON-LD URLs moved to Phase 2B. (N3) Phase 2A may be verified with a local build; a deployed preview is required before 2B. (N4) a refreshed cookie alone does not close the stale-cookie case; the language-authoritative layaway gating correction must be merged and verified before localized links are activated (2C).
+- Work is on branch `seo/phase-2-planning-corrections`.
 
 ## Change log
 
@@ -124,3 +125,4 @@ All Phase 1 behaviour changes sit in two small edits (`app/layout.tsx`, `lib/pag
 - 2026-10-28: Phase 2 planning only: SEO-MIGRATION-MAP.md and skill cha-i18n-seo created; status set to AUDITED / PLANNING. No route or application change.
 - 2026-10-28: Phase 2 planning refined: OD-13 and OD-14 resolved as technical conventions; remaining owner decisions detailed with recommendations; findings F1-F5 recorded; implementation gates 2A-2E defined. Moved to branch `seo/phase-2-multilingual-planning`. No route or application change.
 - 2026-10-28: Phase 2 planning finalized for commit: the interim canonical behaviour of bare legacy URLs is reclassified PROPOSED — OWNER APPROVAL REQUIRED (it is not approved architecture); all remaining owner decisions stay unresolved. No route or application change.
+- 2026-10-28: Phase 2 planning corrections (docs only, follow-up to merged PR #394): layaway link sequencing (Option ii), `bannerAllowed` compliance coverage, legacy hreflang in the owner-approval block, JSON-LD timing, Phase 2A local verification, stale-cookie wording. All 12 remaining owner decisions stay unresolved; OD-13 and OD-14 stay resolved. No route or application change.
