@@ -67,7 +67,7 @@ Rules carried into every section below: `check:terms` applies to this repo's doc
 
 The `/shop/*` and expanded `/guides/*` tree in master-plan §22 is the future target information architecture for the later commercial and content phases (7-9). It is **not** used in Phase 2 to rename or restructure existing route families. Phase 2 introduces no `/en/shop/*`, `/ja/shop/*` or new guide clusters; a later approved phase would create those, with its own route-change approval.
 
-### Mechanism options (ARCHITECTURE DECISION REQUIRED, OD-10)
+### Mechanism options (OWNER APPROVED 2026-10-28: OD-10 = A)
 
 | | **A. `app/[lang]/…` segment** | **B. Middleware rewrite** (`/en/x` served by the existing `/x` page, language from a header) |
 |---|---|---|
@@ -79,7 +79,7 @@ The `/shop/*` and expanded `/guides/*` tree in master-plan §22 is the future ta
 | Rollback | Revert a large mechanical move | Remove one middleware block (smaller) |
 | Static rendering later | Possible (layout can read `params` instead of cookies) | Not without more work |
 
-**Proposed recommendation (not a decision):** A, delivered in sub-phases (§15), because it resolves X1 with the standard metadata API and is the documented pattern. B is the lower-churn fallback. Either way the root `app/layout.tsx` keeps the site chrome and takes the language from one place (the URL segment on locale routes, the cookie on private routes).
+**OWNER APPROVED (2026-10-28), OD-10 = A:** use real Next.js App Router locale routes (`app/[lang]/…`). Option B (middleware rewrite) is not used. This records the mechanism only; it does **not** authorize creating any route. Route creation still needs the written route-change approval and the rest of the 2B entry criteria (§15). Either way the root `app/layout.tsx` keeps the site chrome and takes the language from one place (the URL segment on locale routes, the cookie on private routes).
 
 ---
 
@@ -217,10 +217,26 @@ Options for the legacy **hreflang** tags (none selected):
 - **Conflicting language clusters.** With H0, the bare URL says `ja` = itself and `en` = its `?lang=en` form, while `/ja/x` and `/en/x` say they are the `ja` and `en` pages. Return tags do not match across the two clusters, so a search engine may ignore the hreflang of both.
 - **Canonical / hreflang disagreement.** A page whose canonical points at another URL (C1, C2) must not also claim to be the `ja` or `en` alternate of itself, because hreflang is read from canonical pages. Any approved combination has to be internally consistent: C0 pairs only with H0 or H1; C1 and C2 pair only with H1 or H2.
 - **`?lang=en` is already a non-canonical hreflang target** (finding X2): today's `en` alternate names a URL whose canonical is the bare path. H0 carries that defect forward through 2D.
-- **x-default.** Today's x-default is the bare Japanese URL. OD-2 may move it to `/en/<page>` (the recommendation, not a decision). Until it is approved the legacy x-default stays as it is, and the locale pages must not name a bare legacy URL as x-default.
+- **x-default.** Today's x-default is the bare Japanese URL. **OD-2 is OWNER APPROVED for the locale pages** (x-default = the corresponding English URL; a single-language page names its own eligible URL). It does not cover the legacy bare URLs: their x-default stays as it is (H0) unless H1 or H2 is approved, and the locale pages must not name a bare legacy URL as x-default.
 - **No claim of consolidation.** Neither option moves ranking signals until the 2E redirects exist and are recrawled.
 
-Until one canonical option **and** one hreflang option are approved in writing, **Phase 2B must not change any legacy page's canonical or hreflang** (that is C0 + H0). Changing either is a change to live pages and needs the route-change approval described in §15. OD-1, OD-2, OD-3 and OD-4 all remain unresolved.
+Until one canonical option **and** one hreflang option are approved in writing, **Phase 2B must not change any legacy page's canonical or hreflang** (that is C0 + H0). Changing either is a change to live pages and needs the route-change approval described in §15. OD-1 and OD-4 remain unresolved. OD-2 (x-default for the locale pages: English) and OD-3 (the root `/` stays unchanged through 2B-2D) are now OWNER APPROVED, and they do not decide the legacy options.
+
+**Transition risk assessment: C0 + H0 (reviewed 2026-10-28). C0/H0 is still a recommendation, NOT approved.**
+
+C0 keeps the self canonical on legacy bare URLs; H0 keeps their current hreflang (`ja` = itself, `en` = the `?lang=en` form, x-default = itself).
+
+| Stage | State | Risk | Verdict |
+|---|---|---|---|
+| **2B dark launch** | Locale routes answer 200 but nothing links to them, they are not in the sitemap, and the legacy pages do not name them | Negligible: no crawl path to the locale URLs | **Safe** |
+| **2C links + 2D sitemap live, before 2E** | Internal links and the sitemap point to locale URLs; the bare URLs still answer 200 with a self canonical and the old hreflang | (1) Two indexable URLs for the same content (`/products/x` and `/ja/products/x`; for the home, `/`, `/ja` and `/en`, with `/` and `/ja` identical Japanese content to a crawler); the engine picks one per cluster and may keep the legacy URL for its history and inbound links. (2) Conflicting hreflang clusters: legacy says x-default = itself and `en` = a non-canonical `?lang=en` URL (finding X2), the locale pages say x-default = English and name each other, so return tags do not match across clusters and a search engine may ignore both. (3) Search Console noise ("duplicate without user-selected canonical", hreflang return-tag errors). (4) Link and ranking signals split between bare and locale URLs until the 2E redirects | **Acceptable only for a short, bounded window** |
+
+Conclusion: C0 + H0 safely supports the **dark launch**. It is acceptable but not ideal once links and the sitemap are live. Mitigations, none applied: (a) keep the gap between 2D and 2E short, with the `?lang=` rules and the bare-to-locale 307 stage prepared to ship in the same window; (b) approve C1 + H1/H2 for the legacy pages at the 2C gate instead; (c) settle which of `/`, `/en` and `/ja` the 2D sitemap lists while `/` stays unchanged (recommended: list `/en` and `/ja` and keep `/` until 2E, accepting the temporary duplication). Recommended approval scope — **C0 + H0 is proposed for the Phase 2B dark launch ONLY** (still NOT approved):
+- legacy URLs remain completely unchanged in 2B (canonical, hreflang, status, content);
+- the new locale URLs stay unlinked and unlisted throughout 2B;
+- the policy **must be reconsidered at the 2C gate**, before any internal link or sitemap entry points at a locale URL;
+- the conflicting hreflang clusters described above are a real SEO risk once both URL sets are crawlable, and are accepted only inside the dark-launch window;
+- no canonical or hreflang change of any kind is approved by this scoping, and no redirect is introduced.
 
 ---
 
@@ -407,27 +423,27 @@ Expected values marked (OD-n) cannot be fixed until the decision is made. All lo
 
 Nothing that depends on these is implemented. Every "Recommended" entry below is a recommendation for the owner, **not a decision**; none has been applied.
 
-**Resolved, no longer owner decisions:**
+**Resolved, or OWNER APPROVED (no longer open):**
 
 | Was | Resolution |
 |---|---|
 | OD-13 locale-home trailing slash | Technical convention: `/en` and `/ja`, existing `trailingSlash: false` kept (§3) |
 | OD-14 Phase 2 path structure | Existing route families move under locale prefixes; master-plan §22 `/shop/*` and `/guides/*` stay future-phase architecture (§3) |
 | OD-5 old shared/bookmarked bare URLs | Merged into OD-1 (same URLs, same answer) |
+| **OD-10 mechanism: OWNER APPROVED 2026-10-28** | **A: real Next.js App Router locale routes (`app/[lang]`).** Mechanism only; no route is authorized by it |
+| **OD-2 x-default: OWNER APPROVED 2026-10-28** | **English.** The x-default of a localized page is the corresponding English URL. For a genuinely single-language page it is that page's eligible existing language URL, subject to valid hreflang rules. Applies to the new locale pages; the x-default emitted by legacy bare URLs is not covered (that stays under the unapproved C0/H0 question, §7) |
+| **OD-3 behaviour of `/`: OWNER APPROVED 2026-10-28** | **Redirect later.** The root `/` is unchanged through Phases 2B-2D. A language-aware root redirect belongs to Phase 2E; its signals, status codes and 307-to-308 staging are settled at the 2E gate together with OD-1 |
+| **OD-8 single-language pages: OWNER APPROVED 2026-10-28** | **Yes.** Publish and index only language versions that actually exist and meet content-eligibility requirements. No invented or machine-generated Japanese (or any) translations. The eligibility details for fallback-language content depend on OD-9, which is still open |
 
-**Remaining decisions at a glance:**
+**Remaining decisions at a glance** (OD-2, OD-3, OD-8 and OD-10 are now approved, above):
 
 | # | Decision | Recommended | Must be decided before |
 |---|---|---|---|
 | OD-1 | Destination of bare legacy URLs (includes old shared/bookmarked links) | L2, introduced as temporary first | **2E**; also feeds the interim canonical and hreflang question (§7) that gates 2B changes to legacy pages |
-| OD-2 | x-default | `/en/<same page>` | **2B** |
-| OD-3 | Behaviour of `/` | Redirect by language signal (same pattern as OD-1) | **2B** (x-default dependency; also feeds the interim canonical and hreflang question, §7); built in 2E |
 | OD-4 | `?lang=` URLs | 308 to the locale URL, indefinitely | **2E** (share links in 2C); also feeds the interim canonical and hreflang question (§7) |
 | OD-6 | Legacy `/layaway` | 308 to `/en/layaway` once Phase 3 is live | **Phase 3 / 2E** |
 | OD-7 | Switcher where no sibling exists | Link to the other language's home | **2C** |
-| OD-8 | Single-language pages | Confirm: index only the language that exists | **2B** |
 | OD-9 | Fallback-language content | Audit first; interim `noindex, follow` + no sitemap + no hreflang pair | **2B** (rule), **2D** (enforcement) |
-| OD-10 | Mechanism: `app/[lang]` or rewrite | `app/[lang]` | **2B** (2A stays neutral) |
 | OD-11 | Hub-authored relative links | Localize at render time | **2C** |
 | OD-12 | Hreflang in the sitemap too | HTML only | **2D** |
 | OD-15 | Cookie role and sync | Both: middleware sync and an explicit language argument | **2B** (design); argument in 2C |
@@ -444,7 +460,10 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Reversibility** | 307: fully reversible. 308: sticky in browsers and crawler memory; effectively one-way for already-cached visitors |
 | **Needed before** | Phase 2E for the redirects themselves. **Also**, together with OD-2, OD-3 and OD-4, it determines the interim canonical and hreflang behaviour of bare legacy URLs (§7), which must be approved before Phase 2B changes any legacy page; without that approval 2B leaves legacy canonicals and hreflang unchanged (options C0 + H0) |
 
-### OD-2: x-default
+### OD-2: x-default — OWNER APPROVED 2026-10-28 (English)
+
+**Approved:** the x-default of a localized page is the corresponding English URL; for a genuinely single-language page, its eligible existing language URL, subject to valid hreflang rules (so an English-only page names itself and a Japanese-only page names itself). This is the decision text; the analysis below is kept as the record. Legacy bare URLs keep their current x-default unless a separate legacy option (H1/H2, §7) is approved.
+
 
 | | |
 |---|---|
@@ -456,7 +475,10 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Reversibility** | Metadata only; fully reversible |
 | **Needed before** | Phase 2B (hreflang is first emitted there) |
 
-### OD-3: Behaviour of `/`
+### OD-3: Behaviour of `/` — OWNER APPROVED 2026-10-28 (redirect later)
+
+**Approved:** `/` is unchanged during Phases 2B-2D; a language-aware root redirect belongs to Phase 2E. Consequence to manage: until 2E the home content is served at `/`, `/en` and `/ja` (see the transition risk assessment in §7). The recommendation and options below are kept as the record.
+
 
 | | |
 |---|---|
@@ -504,7 +526,10 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Reversibility** | UI only; trivial |
 | **Needed before** | Phase 2C |
 
-### OD-8: Single-language pages
+### OD-8: Single-language pages — OWNER APPROVED 2026-10-28 (yes)
+
+**Approved:** publish and index only language versions that actually exist and meet content-eligibility requirements; no invented or machine-generated translations. What counts as eligible content for a page that exists but shows another language's text is OD-9 (open).
+
 
 | | |
 |---|---|
@@ -529,7 +554,10 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Reversibility** | Metadata only |
 | **Needed before** | The audit before Phase 2B entry; the rule before 2B (metadata); enforcement in 2D (sitemap) |
 
-### OD-10: Mechanism
+### OD-10: Mechanism — OWNER APPROVED 2026-10-28 (A, `app/[lang]`)
+
+**Approved:** real Next.js App Router locale routes. Mechanism only; no route is authorized by this. The comparison below is kept as the record.
+
 
 | | |
 |---|---|
@@ -601,7 +629,7 @@ Each sub-phase is its own branch and PR. A later sub-phase does not start until 
 | **Behaviour introduced** | `/en/…` and `/ja/…` serve R1-R18 (not layaway). Per-page canonical and hreflang through one helper. Language read from the URL; cookie synced on locale responses. Unknown locale and `/ja/layaway` return 404. **Structured data on each locale page (Product, BlogPosting, FAQPage, store) carries locale-correct `url`, `@id`, `offers.url` and `inLanguage`, equal to that page's own canonical URL and language** (N2): a localized page must not publish structured-data URLs that disagree with its canonical. Legacy bare URLs keep serving 200; their canonical **and hreflang** stay unchanged (C0 / H0, §7) unless an interim option has been approved in writing. **Nothing links to the new URLs and the sitemap does not list them yet** (unlinked dark launch; these are the safeguards under which 2B may proceed with the stale-cookie risk still open, see N4 below) |
 | **Files likely affected** | Option A: `app/[lang]/…` (moved pages), `app/layout.tsx`, `lib/i18n.ts`, `lib/i18n-server.ts`, `middleware.ts`, `lib/page-meta.tsx` (`SeoLinks` retired for the locale tree), `components/site/json-ld.tsx`. Option B: `middleware.ts` and the metadata helper |
 | **Tests required** | §12 locale-route, canonical, hreflang, x-default, 404, content-language, JSON-LD and private-route rows; unit tests for the metadata helper and sibling mapping; an updated route-check script |
-| **Entry criteria** | 2A merged and verified; **OD-2, OD-8, OD-9 (audit and rule), OD-10, OD-15 (design), and OD-3 if x-default uses `/`** answered; written route-change approval for the new routes; **an approved interim canonical option **and** hreflang option for legacy bare URLs (§7, which depend on OD-1 to OD-4), or explicit agreement that legacy canonicals and hreflang stay unchanged (C0 + H0)**; a working preview for the branch |
+| **Entry criteria** | 2A merged and verified; **OD-2, OD-3, OD-8 and OD-10 are OWNER APPROVED (2026-10-28)**; **still required: OD-9 (audit done, §16.1; rule pending), OD-15 (design in §17; pending), and an approved interim canonical option and hreflang option for legacy bare URLs (§7, or explicit agreement that they stay unchanged, C0 + H0)**; written route-change approval for the new routes; a deployed preview for the branch (the `develop` alias, see the status file); Phases 1 and 2A released to `main` first (Release 0) |
 | **Exit criteria** | Every R1-R18 locale URL returns 200 on the preview and then production; hreflang reciprocal for a sample of every family, never to a 404, redirect or noindex page; X1 closed in the locale tree (404s there emit no canonical or hreflang); legacy pages unchanged (including their canonical and hreflang, unless an interim option was approved); **parsed JSON-LD on a sample of every family has `url`, `@id`, `offers.url` and `inLanguage` equal to the page's canonical locale URL and language, and no structured-data URL points at a bare legacy URL** (N2); statutory-page compliance verified on locale legal pages (consent banner quiet, **announcement bar suppressed**, advertising parity); checkout and layaway journey from `/en` passes with a refreshed cookie. **N4:** a refreshed cookie alone does **not** close the two-tab / stale-cookie case (F1); 2B is acceptable only because it is unlinked and unlisted, and the 2B exit does not claim F1 is resolved |
 | **Rollback** | Revert the PR. The locale URLs then return 404, which is low impact because nothing links to or lists them yet. Legacy canonicals return to self |
 
@@ -671,4 +699,76 @@ Phase 3 (`/en/layaway`) follows 2B and 2C and is not part of this list. **Transi
 Before choosing, confirm the contract question above with one authenticated read of `GET /content/posts` (not made in Phase 2A).
 
 **Sitemap note (Phase 2D review item, recorded only).** `/collections` (the index) is not in today's sitemap. Whether to list `/collections`, `/en/collections` and `/ja/collections` is for the Phase 2D review. Phase 2A does not touch `app/sitemap.ts`, and the existing collection detail URLs are unchanged.
+
+### 16.1 OD-9 content audit: fallback-language and incomplete content (2026-10-28)
+
+**OD-9 is still open.** This is the evidence it was waiting for. Read-only: GET requests to the public site (a few thousand page fetches over four passes, at low concurrency with retries) plus the repository. **No Hub credential was used and no Hub endpoint was called directly**; the Hub was observed only through what the site renders.
+
+**Method.** The measured text is the **rendered body**, not metadata: the product "About this piece" (作品について) section, the collection and category intro paragraph, the blog article body, every FAQ question and full answer (from the FAQPage JSON-LD), and the whole `<main>` text of each guide and static page. Japanese text means CJK characters; an English body on a Japanese page is a fallback. **Latin brand names, model codes and specification strings are not counted as untranslated:** a page is judged by its surrounding text, and a body made only of a Latin brand or model echo is classed neutral. Confidence: VERIFIED = measured on the rendered page; INFERRED = follows from verified facts; UNVERIFIED = needs an authenticated Hub read.
+
+| Group | Examined | Complete English | Complete Japanese | Incomplete English | Incomplete Japanese | Single-language only | Unknown / unverified |
+|---|---|---|---|---|---|---|---|
+| Products (pages) | 447 | 447 | 447 | 0 | 0 | 0 | 0 (see the 500 note below) |
+| Categories (pages) | 5 | 5 | 5 | 0 | 0 | 0 | 0 |
+| Collections (pages) | 12 | 12 | 12 | 0 | 0 | 0 | 0 |
+| Blog posts | 2 | 2 | 1 | 0 | 0 | 1 | 0 |
+| FAQ items (the FAQ page itself exists in both) | 45 English, 31 Japanese | 45 | 31 | 0 | 0 | 14 English-only | 0 |
+| Guides (pages) | 2 | 2 | 2 | 0 | 0 | 0 | 0 |
+| Static, company and legal (pages) | 14 | 14 | 14 | 0 | 0 | 0 | 0 |
+
+**Detail behind the counts**
+- **Products (VERIFIED; final instrumented pass 2026-10-28, every fetch attempt logged).** All 447 reached in both languages. Five evidence categories, so a missing body is never silently counted as either complete or incomplete:
+  | Category | Count | Meaning |
+  |---|---|---|
+  | Verified localized | 355 | Japanese body of 30+ characters, Japanese name; English body present |
+  | Correctly localized, short description | 75 | A genuine Japanese body under 30 characters (e.g. 「PT900の一粒パールピアスです。」). Short is not incomplete: these are real Japanese sentences. An early draft misread 23 of them as fallback because it used a character threshold as language detection; corrected, and the policy below deliberately avoids authoritative word counts |
+  | No description body in either language | 16 | Names complete in both languages; nothing to fall back to. Kept as its own evidence category: eligibility rests on the name alone |
+  | Proper-name echo | 1 | `p2722-wallet-louis-vuitton…`: both bodies are exactly the Latin brand and model name beside a Japanese product name. Reviewed: this is catalogue data (the description equals the product name), not an English sentence shown to a Japanese reader. Classed eligible under the policy's neutral-text rule; whether such a page should stay indexable is explicitly an owner call in the policy |
+  | Genuinely fallback-language body | **0** | No Japanese page shows an English sentence as its body |
+- **The intermittent HTTP 500 (UNVERIFIED, not reproduced).** One product returned 500 in 2 of 4 early passes. Two later instrumented passes (every attempt logged, 894 fetches each) and a single-attempt status sweep saw **zero** non-200 responses, so the page is classed reachable, and the 500 stays recorded as an unreproduced transient with an unknown cause until server logs are checked (owner/Vercel dashboard).
+- **Collections and categories (VERIFIED).** All have a Japanese name and an intro in both languages.
+- **Blog (VERIFIED, with INFERRED cause).** `why-cha-jewels-care-behind-every-piece` is complete in both. `how-cha-jewels-began` is English-only (200 English, 404 Japanese, 7,137 characters of English body). Its absence from the sitemap, which omits only blank-slug, `layaway_only` and unpublished posts, indicates it is excluded by the layaway rule rather than by missing Japanese text (INFERRED, high confidence).
+- **FAQ (counts VERIFIED).** One English item carries a Japanese service name in its question ("Can I pay with Paidy (あと払い)?") and is counted complete: a proper name. Of the 14 English-only items, the per-section counts (payments-and-layaway 8, orders-and-live-selling-claims 2, shipping 2, loyalty-points-and-store-credit 1, trade-program-and-wholesale 1) never exceed the number of English items that use layaway wording in that section (8, 3, 2, 1 and 1), and the Japanese FAQ contains none. So all 14 are consistent with being layaway-related (INFERRED). Items carry no id, so they cannot be paired one to one across languages: per-item proof is UNVERIFIED.
+- **Guides and static pages (VERIFIED).** Both languages render with the right `<html lang>` and a Japanese share of letters of 0.75 to 1.00 on the Japanese side and at most 0.01 on the English side.
+
+**Limitations (precise).** (1) This sees only what the site renders. It cannot enumerate inactive or unpublished products, posts with no title in a language (they are not listed), or FAQ rows the site drops, so it is **not an inventory of the Hub**. (2) It cannot read the Hub fields, so it cannot tell a null `description_ja` from a Japanese description; it detects the rendered fallback, which is the thing that matters for indexing. (3) Per-post body existence cannot be established from the list route alone (the contract and a code comment disagree). An authenticated, read-only pass over `GET /catalog/products`, `/catalog/collections`, `/catalog/categories`, `/content/posts` and `/content/faq` would close all three; it was not made here. (4) A single point in time: the product count was 449 at the Phase 1 baseline and 447 now.
+
+**Recommended OD-9 policy (NOT approved; evidence-led).** Today the rule would change nothing: **0 of 447 product pages and 0 of the other audited pages are genuine fallback pages**, so this is insurance against future imports, not a content project.
+- A localized page is **eligible** when its name is in that language, or is a proper name or model code with the rest of the page in that language, **and** any body it shows is in that language. A body that is a Latin brand or model echo, a specification string or a code is neutral. A page with no body at all is eligible on its name alone.
+- A page whose body is **another language's running text** is **ineligible**: `noindex, follow`, left out of the sitemap, no hreflang pair, still reachable by link; it returns to normal when the Hub gains the text. "Running text" is decided by what the text is, not by a count: on a Japanese page, a body that contains no Japanese characters **and** is not neutral (not the product's own name, brand, model code or a specification string) is running foreign text. Word or character counts may serve as a tie-breaker inside the implementation but are never the detector — the 75 short-Japanese-description products are exactly the pages a count-based rule would misclassify.
+- Implemented as one pure, tested function; the audit script is re-run after each catalogue import and before every release.
+- Deferred to the owner: whether a page whose body is neutral-only (the proper-name echo case) stays indexable, and sign-off on the neutral-text rule itself.
+
+## 17. OD-15 design proposal: URL authority, cookie, and layaway gating (2026-10-28)
+
+**OD-15 is NOT approved.** This is the implementation-ready design it would approve. Nothing here changes payment or checkout code, and the Hub's calculations are untouched.
+
+**What exists today.** Four server-side layaway gates ask `layawayOfferedNow()`, which reads the **language cookie**, not the page the customer is on: `quoteAction` (`lib/checkout-actions.ts:122`), `payLayawayAction` (`:233`), `pesoEstimateAction` (`:332`) and `layawayQuote` (`lib/layaway.ts:31`). `payAction` and `payLayawayAction` also pass `getLang()` to the Hub for the language of the result. Every layaway page and component takes `lang` from the same cookie-or-Accept-Language resolution (`lib/i18n-server.ts`). The Japanese restriction is therefore enforced by cookie, and the language is self-selected: the code already states this is **not a security boundary**, only a guard against an inconsistent state.
+
+**The failure to prevent.** With locale URLs, a customer on `/en/…` can hold a stale `ja` cookie (a second tab switched the language, or a first visit was detected as Japanese). They see the layaway UI, and the action then refuses with `LAYAWAY_UNAVAILABLE`.
+
+**Design**
+1. **The locale URL is the authoritative display language on `/en/*` and `/ja/*`.** The middleware already sees the path (`x-cj-path`). It additionally sets a request header `x-cj-lang` to the URL's locale (`localeOf`, Phase 2A). `getLang()` resolves in the order: URL locale header, then cookie, then `Accept-Language`, then the default. One function, one rule, with a pure unit-tested core in `lib/i18n.ts`. Private routes have no URL locale, so they keep the existing cookie resolution.
+2. **Cookie synchronization.** On a response for a locale route the middleware sets `cj-lang` to the URL locale (same name, path, max-age and `sameSite` as today), and also sets it on the request so the render in progress sees it. It never writes the cookie on private or unprefixed routes and never changes the `?lang=` handling. The decision is a pure function (`cookieSyncFor(pathname, cookieLang)`) so it can be unit-tested, since the middleware itself cannot be imported by the test harness.
+3. **Explicit language to the four gates.** Add an optional `lang` to each gate's input (`quoteAction` input object, a third parameter on `payLayawayAction`, `pesoEstimateAction` input, a fourth parameter on `layawayQuote`). A pure `gateLang(explicit, cookieLang)` returns the explicit value when it is a valid locale and the cookie language otherwise, and the gate becomes `layawayOffered(gateLang(...))`. Every client caller passes the **`lang` prop it rendered with**, so the action judges what the customer was actually shown. A missing or invalid value behaves exactly as today, so the change is backward compatible and can ship before any caller uses it.
+4. **The Japanese restriction is preserved.** An explicit `ja` is refused for layaway even if the cookie says `en`. A request that omits `lang` on a Japanese cookie is refused as today. An explicit `en` with a `ja` cookie is allowed, which is the intended two-tab fix; it grants nothing a customer could not already do by choosing English, because the language is self-selected. `layawayOffered`, `LAYAWAY_LANGS`, the agreement gates, the unlaunched-term refusal and the `LAYAWAY_UNAVAILABLE` code are unchanged.
+5. **Hub-controlled behaviour is untouched.** Money comes only from the Hub: `hub.layawayQuote` takes no language at all. `hub.pay` and `hub.payLayaway` already receive a language today; how the Hub uses it is not visible from the website (UNVERIFIED), so the design changes only *which* value is passed (the page's language, the same one the customer saw) and nothing else about those calls. No figure is computed or converted on the website.
+6. **Downstream private pages.** After a successful layaway payment the action sets the cookie to the explicit language when it differs, so `/checkout/complete/d/[draft_id]` and `/account/layaway*`, which gate on the cookie, do not 404 a customer who has just paid in English from a stale-cookie tab (this exposure exists today; the sync closes it).
+7. **The temporary bare `/layaway` links** (Option ii) are navigations, not actions. A two-tab customer with a `ja` cookie who clicks one still gets the 404; this is rare and is accepted and tested, not engineered around. An optional `?lang=en` on those links would make them immune but changes the preserved link text, so it is a separate owner question and is not proposed.
+
+**Compatibility.** Account and checkout flows keep cookie language for rendering; locale visits keep the cookie in step. The agreement flow, Paidy, card and COD paths are not edited. Only the four gates and `payLayawayAction`'s cookie write touch `lib/checkout-actions.ts`: **run that change on Opus**, with a reviewer reading the diff for money logic (there should be none).
+
+**Security review (2026-10-28), against the actual actions and routes.**
+
+- **Which controls are what.** Server-enforced **business rules**, unchanged by this design: the signed-agreement gates (fail closed, `agreement_required` / `agreement_unverified`), the unlaunched-term refusal (`TERM_NOT_LAUNCHED`), the signed-out refusals, and every money figure (Hub only). **Language-based presentation restrictions**: the four `layawayOfferedNow()` gates — the code already documents them as "NOT A SECURITY BOUNDARY", because the language is self-selected (any visitor can choose English and get layaway). The design keeps that classification: it changes which self-selected signal the gate reads, never what the gate protects.
+- **No new authorization or payment bypass.** The explicit `lang` can only ever be `"en"` or `"ja"` after `isLocale` validation; anything else falls back to the cookie path, which is today's behaviour. An explicit `en` grants exactly what setting the cookie to `en` already grants. The agreement, term, auth and Hub-side gates run after the language gate and are untouched, so no payment path is reachable that was not reachable before. The one direction that changes is **stricter**: an explicit `ja` is refused even when the cookie says `en`.
+- **Trusted locale context.** `x-cj-lang` is trustworthy only if the middleware **sets it on locale routes and deletes it on every other matched request**, exactly as the middleware already snapshots headers for `x-cj-path`; a client-sent `x-cj-lang` must never survive. Paths the middleware does not match get no header and keep cookie resolution (the same fail-safe shape as `x-cj-path`). This is a hard requirement of the design, with a test.
+- **Private checkout and account routes** stay unprefixed and cookie-resolved; the cookie sync happens only on locale-route responses, so no private route's language resolution changes. **Payment-return and confirmation routes** (`/checkout/complete/*`, `/account/orders/[id]/pay-card`, `/account/layaway/*`) are full page loads on unprefixed paths: the pay-card CSP path rule (`isPayCardPath`) and the Paidy/card return URLs see identical paths. The only change that touches them is the post-payment cookie write in point 6, which prevents a 404 and reveals nothing.
+- **Cookie synchronization timing.** The middleware writes the cookie on the request as well as the response (the codebase's established pattern for the language cookie), so the render in progress and the next request agree; the post-payment write in the action covers the one case the middleware cannot see (an action succeeding under a different explicit language than the cookie).
+- **Backward compatibility.** Every gate treats an absent or invalid `lang` exactly as today; the change can ship with no caller updated and nothing moves.
+- **Japanese prohibition.** `/ja/layaway` cannot be produced (Phase 2A family table), layaway UI renders only where `layawayOffered(lang)` with the URL-authoritative `lang`, and an explicit `ja` is refused at all four gates. `check:layaway-ja` continues to guard the strings.
+
+**Tests.** Pure tests for `gateLang`, for `resolveLang` with a URL locale, and for `cookieSyncFor`. A table test of the two-tab matrix: explicit `en` with cookie `ja` allowed; explicit `ja` with cookie `en` refused; no explicit with cookie `ja` refused; invalid explicit falls back to the cookie. A source guard that no `layawayOfferedNow()` call remains without an explicit argument at the four gates, and a middleware test (pure helper) that a client-sent `x-cj-lang` is always overwritten or deleted. A fixtures-mode flow on the local build that requests a layaway quote on `/en` with a `ja` cookie and stops before any order. **No order, draft or payment is created by any test.**
+
+**Rollout inside 2C.** The explicit-argument change lands first and is backward compatible; the cookie sync arrives with the 2B locale routes; locale-aware links are activated only after the two-tab test passes.
 
