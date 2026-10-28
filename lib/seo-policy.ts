@@ -21,6 +21,8 @@
  * else re-expresses it.
  */
 
+import { familyOf, isSitePath, localeOf, splitPath, stripLocale, type Locale } from "@/lib/locale";
+
 export type Indexing = { index: false; follow: boolean };
 
 /** A route and everything under it. Matched by whole path segment, never by string prefix. */
@@ -64,4 +66,36 @@ export function indexingFor(pathname: string): Indexing | null {
  */
 export function emitsCanonical(pathname: string): boolean {
   return !isNoindexPath(pathname);
+}
+
+/**
+ * PREFIX-AWARE CLASSIFICATION (Phase 2A of docs/seo/SEO-MIGRATION-MAP.md).
+ *
+ * What a path is, whether or not a locale prefix is in front of it:
+ *  - `private`: one of the routes above, even behind a prefix. "/en/cart" is
+ *    never a localised page (private routes stay unprefixed, map §5), so it is
+ *    classed private and can never be mistaken for an indexable one.
+ *  - `public`: a public, indexable family (lib/locale.ts `familyOf`), in a
+ *    language that family exists in. That includes the deferred "/layaway" and
+ *    "/en/layaway" (English only) but never "/ja/layaway", which does not and
+ *    will not exist. It says nothing about whether the page exists or what it
+ *    returns.
+ *  - `unknown`: anything else, and anything that is not a site path.
+ *
+ * NOT WIRED TO ANY LIVE OUTPUT YET. `isNoindexPath`, `indexingFor` and
+ * `emitsCanonical` above keep their Phase 1 behaviour for every input, so the
+ * robots directive and the canonical/hreflang of every existing URL (and of the
+ * locale-looking URLs that 404 today) are exactly what they were. Phase 2B,
+ * which introduces the locale routes, is where this classifier replaces them.
+ */
+export type PathClass = { kind: "private" | "public" | "unknown"; locale: Locale | null; path: string };
+
+export function classifyPath(input: string): PathClass {
+  if (!isSitePath(input)) return { kind: "unknown", locale: null, path: input };
+  const locale = localeOf(input);
+  const path = splitPath(stripLocale(input)).path;
+  if (match(path)) return { kind: "private", locale, path };
+  const rule = familyOf(path);
+  if (rule && (locale === null || rule.locales.includes(locale))) return { kind: "public", locale, path };
+  return { kind: "unknown", locale, path };
 }
