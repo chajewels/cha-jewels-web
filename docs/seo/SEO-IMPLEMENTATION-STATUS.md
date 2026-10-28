@@ -1,0 +1,172 @@
+# Cha Jewels SEO Implementation Status
+
+**Last updated:** 2026-10-28 (Phase 2A implemented on branch `seo/phase-2a-locale-infrastructure`: READY FOR QA, not merged, not deployed; Phase 1 merged to `develop` as PR #393, not yet in `main`; Phase 2 planning merged as PR #394, with corrections in a follow-up PR; no Phase 2 implementation)
+**Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` · **Evidence:** `docs/seo/SEO-BASELINE.md` (Day 0 and the Phase 1 addendum, §14-17)
+
+Statuses: NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE
+
+Nothing in this file is marked indexed, ranking or rich-result eligible. Phase 1 is merged to `develop` (PR #393) but is not in `main`, so it is not in production; the Phase 1 rows below stay READY FOR QA until it is released and re-checked on production.
+"Locally verified" means: unit tests pass, and the changed pages were rendered by a local build (fixtures mode) and checked with `scripts/check-seo-live.mjs`. Production has not been re-checked because it does not have the change.
+
+---
+
+## Phase status
+
+| Phase | Item | Status | Note |
+|---|---|---|---|
+| 0 | SEO baseline (code + live probe) | VERIFIED | `SEO-BASELINE.md` |
+| 0 | Search Console Day-0 export | NOT STARTED | Needs the owner |
+| 1 | Private/utility route matrix | VERIFIED | Baseline §14. Signed-in renders not checked (see below) |
+| 1 | Search-page indexing policy | VERIFIED | Baseline §15: `noindex, follow`, not in sitemap, not blocked |
+| 1 | SEO regression tests | READY FOR QA | 20 new unit tests + `scripts/check-seo-live.mjs` |
+| 1 | Private/utility noindex | READY FOR QA | Locally verified; not deployed |
+| 1 | 404 metadata cleanup | PARTIAL: page-level 404s already correct; unmatched-route 404 DEFERRED to Phase 2 | Baseline §16 |
+| 1 | Verification-only checks | VERIFIED | Sold products, preview, HTTPS, www: baseline §17 |
+| 1 | Non-production `X-Robots-Tag` | NOT NEEDED | Preview is behind Vercel Authentication and already sends `x-robots-tag: noindex` |
+| 1 | Old-domain redirect (`chajewelsjapan.com`) | BLOCKED — EXTERNAL DOMAIN/DNS/HOST CONFIGURATION | Decided (D2). No repository change in Phase 1 |
+| 1 | Sold products in the sitemap | KEEP IN SITEMAP FOR NOW | Decided (D3). No sitemap change in Phase 1. Later policy review: X10 |
+| 2 | `/en` and `/ja` URL architecture | 2A READY FOR QA (uncommitted, awaiting independent review); 2B-2E NOT STARTED | Planning in `SEO-MIGRATION-MAP.md`; Phase 2A record below. **No route, redirect, canonical target, hreflang target, sitemap route or internal-link destination has been changed.** Not IMPLEMENTING. Gates 2A-2E defined (map §15). OD-13 and OD-14 resolved as technical conventions; OD-5 merged into OD-1; the remaining owner decisions are in map §14 |
+| 3 | `/en/layaway` | BLOCKED | Depends on Phase 2B and 2C; bare `/layaway` unchanged. Phase 3 creates and validates `/en/layaway`, then repoints the English layaway links (Phase 2C leaves them on `/layaway`, Option ii) |
+| 4-10 | Structured data, Merchant Center, SEO fields, content hubs | NOT STARTED | Untouched |
+
+---
+
+## Phase 1 item evidence
+
+### 1. Route matrix and search policy
+Baseline §14 (15 route rows, status/robots/canonical/hreflang/sitemap/private data/policy) and §15. Source: anonymous GETs to production on 2026-10-28, and reading `app/{cart,login,auth,account,checkout,loyalty/join,search}` and the middleware gate.
+
+### 2. Tests (written before the fix)
+- `tests/seo-index-policy.test.mjs` (8): states the intended policy: 22 private/utility paths are noindex; 22 curated paths stay indexable with no directive; match by path segment (`/cartography`, `/loyalty-program` are not caught; `/loyalty` is public, `/loyalty/join` is not); trailing slash; a Phase 1-managed private/utility noindex path emits no canonical or alternates.
+- `tests/seo-robots.test.mjs` (5): crawl rules. Account/checkout/API/review stay disallowed; `/search`, `/cart`, `/login` must **not** be disallowed, so their noindex can be read; no public path is blocked.
+- `tests/seo-sitemap.test.mjs` (7): absolute, query-free, same-origin, unique; no noindex route listed (checked against the policy module); curated pages listed; `/layaway` absent; layaway-only, unpublished and blank-slug posts absent; post `lastModified`; survives a Hub outage.
+- **Red first:** before `lib/seo-policy.ts` existed, all three files failed with `ERR_MODULE_NOT_FOUND`. Behaviour that was already correct (robots, sitemap eligibility) is preserved by tests 2 and 3; the policy tests encode the intended state, not the old one.
+- `scripts/check-seo-live.mjs <baseUrl>`: read-only; 120 checks over the route matrix, sitemap, robots.txt and JSON-LD (JewelryStore, Product incl. offer fields and availability value, BlogPosting, FAQPage; no `countryOfOrigin`).
+  - Production before the change: **92 pass, 27 fail, 1 deferred**. All 27 failures are the indexing defects below.
+  - This branch locally: **119 pass, 0 fail, 1 deferred**.
+- **Not covered by unit tests: JSON-LD output.** `components/site/json-ld.tsx` is TSX and the unit harness (`--experimental-strip-types`) cannot import JSX. JSON-LD is checked rendered, through the route script. A pure builder with unit tests belongs with the Phase 4 structured-data work.
+
+### 3. Implementation (`lib/seo-policy.ts`, `app/layout.tsx`, `lib/page-meta.tsx`)
+- One pure list of private/utility routes (matched by whole path segment) with the right `follow` value for each.
+- Root layout `generateMetadata` adds `robots: { index: false, follow }` for those paths (read from the existing `x-cj-path` header, the same way `<SeoLinks />` does). A page that sets its own `robots` still wins: `/search`, `/review`, `/receipts/verify` and the unsubscribe pages keep theirs.
+- `<SeoLinks />` omits the canonical and the three language alternates on those paths. `og:url` and `fb:app_id` stay.
+- **Scope of that statement:** Phase 1-managed private/utility noindex pages do not emit canonical or hreflang. It does **not** cover every noindex page on the site. The known exception: an unmatched generic 404 route (e.g. `/nonexistent-xyz`) is `noindex` (added by Next) but still inherits the canonical and hreflang from the global `<SeoLinks />`. That is X1, deferred to Phase 2; no workaround was added. A missing product, collection, category or post slug already emits no real canonical or hreflang element (Next serves its error shell), and is unchanged.
+- `robots.txt`, the sitemap, middleware, language logic, canonical rules for indexable pages and every JSON-LD block are unchanged.
+
+### 4. Before / after (anonymous requests)
+
+| Page | Robots before | Robots after | canonical + hreflang before | after |
+|---|---|---|---|---|
+| `/cart` | none (indexable) | `noindex, follow` | 4 | 0 |
+| `/login` | none (indexable) | `noindex, follow` | 4 | 0 |
+| `/auth/confirm?token_hash=…` | none (indexable) | `noindex, nofollow` | 4 | 0 |
+| `/already-registered` | none (indexable) | `noindex, nofollow` | 4 | 0 |
+| `/search…` | `noindex, follow` | same | 4 | 0 |
+| `/review/…`, `/receipts/verify`, unsubscribe pages | `noindex, nofollow` | same | 4 | 0 |
+| `/`, product, collection, category, post, guides, FAQ, about, tokusho, `/loyalty`, `/sale` | indexable | indexable, **unchanged** | 4 | 4 |
+| `/nonexistent-xyz` (unmatched) | `noindex` | `noindex` | 4 | 4 (DEFERRED) |
+
+### 5. Test results
+`npm run test:unit` 342/342 pass (322 existing + 20 new) · `npm run typecheck` clean · `npm run lint` exit 0 (only existing `<img>` warnings in files not touched) · `check:money` OK · `check:i18n` OK (incl. `check:layaway-ja`) · **`check:terms` FAILS, see D1.**
+
+---
+
+## Decisions needed from the owner
+
+| # | Decision | Why it matters | Recommendation |
+|---|---|---|---|
+| D1 | **RESOLVED (wording).** `check:terms` failed on 6 lines of the master plan that used the banned "country + gold" phrasing as search targets. The setup commit introduced it; the check had not been run before that commit. | The terminology rule bans "`<country>` gold" in any repo text, docs included. | The 6 lines were reworded to K18 phrasing ("K18 hallmarks used in Japan", "K18 jewelry online in Japan", and so on); the guard script was not touched. **Content phases (8-10) must use the same K18 wording on the site.** |
+| D2 | **DECIDED: BLOCKED — EXTERNAL DOMAIN/DNS/HOST CONFIGURATION.** Domain `chajewelsjapan.com`. Finding: it does not redirect to the current Cha Jewels site (the apex serves a third-party JSON page; `www.chajewelsjapan.com/about` is a 404). Desired destination: `https://www.chajewelsjp.com/`. **Phase 1 action: none; no repository or application change, and no domain routing is changed.** | Possible lost link equity from the old brand domain | Deferred external work, before any domain-routing change: verify registrar and domain ownership; inspect DNS; identify the current host; inspect indexed old URLs; inspect backlinks; determine whether page-to-page permanent redirects can be configured; write a redirect migration plan first |
+| D3 | **DECIDED: KEEP IN SITEMAP FOR NOW.** 120 of 449 sitemap product URLs (27%) are sold products. Decision: keep sold product URLs in the sitemap during Phase 1; sitemap behaviour is not altered. | The pages return HTTP 200, show the SoldOut state, keep useful product content, and may hold existing search equity | The longer-term policy is recorded as X10 and is **not approved**. Merchant Center (Phase 6) must still mark sold items out of stock |
+| D4 | `http://chajewelsjp.com/…` takes two 308 hops | Cosmetic; Vercel domain setting | Leave |
+
+---
+
+## Deferred findings
+
+| # | Finding | Goes to |
+|---|---|---|
+| X1 | Unmatched-route 404 emits canonical + hreflang (noindex already present) | Phase 2: `<SeoLinks />` rewrite |
+| X2 | English has no indexable URL; hreflang `en` points at a non-canonical URL | Phase 2 |
+| X3 | `/layaway` unindexable | Phase 3 |
+| X4 | JSON-LD unit tests (needs a pure builder) | Phase 4 |
+| X5 | Product JSON-LD uses `description_en` on the Japanese page | Phase 4 |
+| X6 | Signed-in render of `/account`, `/checkout`, `/loyalty/join` not rendered-checked | Manual QA on the preview with a test account |
+| X7 | Branch-alias preview URLs' protection assumed equal to the one sampled | Confirm in Vercel project settings |
+| X8 | Search Console, Merchant Center and Google Business Profile status | Owner |
+| X9 | Wording rule for every later phase (owner, 2026-10-28): no country-branded gold wording and no generic made-in or from-Japan phrasing; use "K18 jewelry in Japan", "K18 hallmarks used in Japan", "K18 jewelry authentication in Japan", "buy K18 jewelry in Japan"; origin claims only from verified product data/badges (`check:terms` enforces both) | Phases 5, 7-10 |
+| X10 | **Sold Product Indexation Policy.** Sold products stay in the sitemap for now (D3). The later Product SEO review evaluates, per product: Search Console impressions, clicks, backlinks, organic entrances, related-product interactions, product uniqueness, time since sold, content quality. Policies it may weigh: keep permanently; remove from the sitemap after a defined period; redirect selected commodity products; retain unique/preloved historical products; noindex weak obsolete pages. **No such change is approved.** Any redirect or route change needs approval under the route-change rule first | Phase 5 (Product SEO review) |
+
+---
+
+## Rollback
+
+All Phase 1 behaviour changes sit in two small edits (`app/layout.tsx`, `lib/page-meta.tsx`) plus one new pure module. `git revert` of the Phase 1 commit restores today's output exactly; no data, route, redirect, cookie, Hub call or sitemap entry changed. After deployment, `noindex` takes effect only when a crawler next fetches each URL; reverting is equally gradual.
+
+## Phase 2 planning (AUDITED / PLANNING)
+
+- Plan: `docs/seo/SEO-MIGRATION-MAP.md` (route-family map, redirect/canonical/hreflang/sitemap/switcher design, internal-link map, test matrix, risk report, owner decisions, implementation gates 2A-2E).
+- New skill: `.claude/skills/cha-i18n-seo/SKILL.md`.
+- Status of implementation: **none**. No file under `app/`, `components/`, `lib/`, `middleware.ts`, `next.config.ts` or `tests/` was changed for Phase 2.
+- Route-change rule in force: any change to a public route, redirect, canonical or hreflang target, sitemap route set or internal-link destination needs approval first.
+- Findings that feed the deferred list: X1 (resolved by design in the locale tree), X2 (the whole phase), X3 (Phase 3). New planning findings recorded in the map: uncached public pages (E5), cookie-gated layaway server actions (E7), per-language blog post existence and sitemap listing (E8, E10), compliance gates keyed on `/legal/*` paths (E12).
+- Resolved without the owner (technical conventions): **OD-13** locale homes are `/en` and `/ja` (existing `trailingSlash: false` kept); **OD-14** Phase 2 migrates the existing route families under locale prefixes, and master-plan §22's `/shop/*` and `/guides/*` tree stays future-phase architecture.
+- Owner decisions still needed (map §14; each carries a recommendation that is **not** applied): OD-1 bare legacy URLs (includes old shared links), OD-2 x-default, OD-3 behaviour of `/`, OD-4 `?lang=` URLs, OD-6 legacy `/layaway`, OD-7 switcher with no sibling, OD-8 single-language pages, OD-9 fallback-language content, OD-10 mechanism, OD-11 Hub-authored relative links, OD-12 sitemap alternates, OD-15 cookie role and sync.
+- Gates: **2A** locale infrastructure only, **2B** locale routes and metadata, **2C** links, switcher and application behaviour, **2D** sitemap and full validation, **2E** legacy redirects (last, staged 307 then 308). None started.
+- Verified findings F1-F5 the design must honour (map §2.1): stale-cookie layaway refusal, single-language blog posts, `/legal/*`-keyed consent, advertising and **announcement-bar** (`bannerAllowed`) checks, relative links in Hub content, and (observation only, out of scope) no-store public responses.
+- **Interim canonical AND hreflang behaviour of bare legacy URLs: PROPOSED — OWNER APPROVAL REQUIRED** (map §7, canonical options C0/C1/C2, hreflang options H0/H1/H2). Not approved architecture; it depends on OD-1, OD-2 (x-default), OD-3 and OD-4. Until one canonical option and one hreflang option are approved, Phase 2B must not change any legacy page's canonical or hreflang (C0 + H0). The x-default destination is not approved.
+- **Planning corrections (follow-up to PR #394, documentation only):** (B1) layaway links stay on the legacy `/layaway` through Phase 2C (Option ii) and nothing points to `/en/layaway` until Phase 3 validates it; 2C exit adds "No internal navigation link may resolve to HTTP 404"; Japanese layaway stays unavailable. (B2) `bannerAllowed` announcement-bar suppression on `/legal/*` is added to F3, the file inventory, the Phase 2A files and tests, and the test matrix. (N1) legacy hreflang and x-default added to the owner-approval block. (N2) locale-correct JSON-LD URLs moved to Phase 2B. (N3) Phase 2A may be verified with a local build; a deployed preview is required before 2B. (N4) a refreshed cookie alone does not close the stale-cookie case; the language-authoritative layaway gating correction must be merged and verified before localized links are activated (2C).
+- Work is on branch `seo/phase-2-planning-corrections`.
+
+## Phase 2A: locale infrastructure (READY FOR QA; local evidence only)
+
+Branch `seo/phase-2a-locale-infrastructure`, from `develop` at `7646282`. Not deployed. Phase 2B-2E are NOT STARTED. All 12 owner decisions (OD-1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 15) remain unresolved. Nothing here says anything is indexed or ranking.
+
+**What was built**
+- `lib/locale.ts`: `LOCALES`, `isLocale`, `isSitePath`, `splitPath`, `localeOf`, `stripLocale`, `familyOf`, `isLocalizable`, `localePath`, `siblingPath`, plus `FAMILY_RULES` and `createLocaleRules()`. Whole-segment prefix match; no trailing slash (existing convention); query and fragment preserved.
+- `lib/statutory-path.ts`: `isStatutoryPath` and `announcementBarAllowed`, one rule for `/legal` and `/legal/*` that looks past `/en` and `/ja`. Used by the cookie banner (`components/site/consent-banner.tsx`) and the announcement bar (`app/layout.tsx`).
+- `lib/seo-policy.ts`: prefix-aware `classifyPath` (private / public / unknown). The live `isNoindexPath`, `indexingFor` and `emitsCanonical` are unchanged for every input; the classifier is not wired to any output until Phase 2B.
+
+**Defects found in final code review and fixed (all inside Batch A)**
+1. `stripLocale("/en//evil.com")` returned `"//evil.com"` (a protocol-relative URL made from a prefixed path; an open-redirect hazard for any later redirect).
+2. Backslashes and control characters (CR/LF) were accepted as site paths.
+3. `announcementBarAllowed("/en//legal/tokusho")`, `"/en/\\legal"` and `"/legal\n"` returned `true`, so a path that could not be classified could enable the bar.
+4. `classifyPath("/ja/layaway")` called a Japanese layaway route "public", and the family model had no notion of an English-only family.
+Fix: `isSitePath` is strict (single leading slash, no backslash, no control character, no empty segment in the path part); every helper returns an unsafe input unchanged and never treats it as localised, private, statutory or public; the bar fails safe on any of them. Families are data (`shape`, `locales`, `live`).
+
+**Forward compatibility with Phase 3 (Option ii preserved).** `layaway` is `{ locales: ["en"], live: false }`. While not live, `localePath("/layaway", ...)` returns the bare `/layaway` (so Phase 2C keeps the existing English links) and `/en/layaway` cannot be produced. Phase 3 flips the one `live` flag after creating and validating the route; because the family is English-only, `/ja/layaway` cannot be produced before or after. Proven by test with an injected table (`createLocaleRules`), so no second implementation or workaround is needed. No route was created and no link changed.
+
+**Statutory-page behaviour (production behaviour preserved).** The consent banner never asks by itself on `/legal` and `/legal/*`; the announcement bar is not rendered there. The advertising tags have **no `/legal` rule** (`adsLoadsOn` excludes only `/account/*`; `tests/consent-ads.test.mjs` already asserted ads load on `/legal/privacy`). No new ad suppression was added; parity for prefixed legal paths is tested. Whether to suppress advertising on the statutory pages is an owner/legal decision, recorded and not taken. The planning documents' earlier claim that ad tags are off on `/legal` was wrong and is corrected.
+
+**Verification (local; no production verification is claimed)**
+- `npm run test:unit` 383 pass, 0 fail (342 existing + 41 new); `typecheck` clean; `lint` exit 0 with the same 12 existing warnings, none in touched files; `check:terms`, `check:money`, `check:i18n` (incl. `check:layaway-ja`) pass.
+- Local **production build** (`next build`, fixtures mode) succeeds; its route table has no `/en`, `/ja` or `[lang]` route. 35 routes snapshotted on the production server against the pre-change baseline (status, redirect, `<html lang>`, robots, canonical, hreflang, `og:url`, JSON-LD hash, internal-link hash, layaway links, sitemap, robots.txt): **0 differ**. `scripts/check-seo-live.mjs`: 119 pass, 0 fail, 1 deferred (X1).
+- Real renders with an active announcement: the bar shows on `/` and `/en/products/x`; absent on `/legal/tokusho`, `/legal/privacy`, `/en/legal/tokusho`, `/ja/legal`. `/en//legal/tokusho` is normalised by Next with a 308. In a real browser, cookie banner and bar show on `/` and neither on `/legal/tokusho` or `/en/legal/tokusho`.
+
+**Content-language audit** (public site, 2026-10-28; map §16). Confidence: VERIFIED = observed directly; INFERRED = follows from verified facts; UNVERIFIED = needs an authenticated Hub read.
+- Products: 447 sitemap URLs; all answer 200 in Japanese with a Japanese name; 446 of 447 meta descriptions contain Japanese (the exception is a Latin-named luxury item). VERIFIED. The earlier 449 is not a defect: the count differs by two and the cause (inventory change) is INFERRED, not shown.
+- Collections 12/12 and categories 5/5: both languages 200, Japanese names present. VERIFIED.
+- Blog: 1 sitemap post. `how-cha-jewels-began` is English-only (200 English, 404 Japanese, not in the Japanese list). VERIFIED. It is absent from the sitemap although published, and the sitemap omits only blank-slug, `layaway_only` and unpublished posts (`app/sitemap.ts:33`, identical to the deployed release), so it is **intentionally English-only through the layaway rule, not missing Japanese content**. INFERRED, high confidence. Whether it also lacks Japanese text: UNVERIFIED and moot.
+- FAQ: Japanese 31 items, English 45 (JSON-LD); 14 English-only: 8 in `payments-and-layaway`, 2 in `orders-and-live-selling-claims`, 2 in `shipping`, 1 in `loyalty-points-and-store-credit`, 1 in `trade-program-and-wholesale`. VERIFIED counts. The 8 layaway-section items are layaway-only: INFERRED. For the other 6, layaway-only versus untranslated general question cannot be told from the public page: UNVERIFIED. The Japanese FAQ mentions no layaway term (VERIFIED, matches policy).
+- 16 static public pages: 200 in both languages, correct `<html lang>`, Japanese H1 in Japanese. VERIFIED.
+
+**Hub dependency (blog).** No Hub change is needed for 2A or 2B. For Phase 2D the smallest reliable approach is **website-only detail reads**: for each post the list returns, read the detail (`hub.post(slug)`, already cached on the `content` tag). The proposed Hub fields `has_en_content` / `has_ja_content` on `GET /content/posts` rows (true only when that language's title **and** body are non-empty after trimming) become justified only if posts grow beyond a few dozen or the sitemap build time suffers; proposal only, no Hub contract change in this batch. **Phase 2D rule:** a localized article URL, its sitemap entry and any hreflang naming it exist only if that language's title and body are both present on the detail row **and** the layaway rule allows that language; a Japanese sibling URL that would 404 is never generated. UNVERIFIED: whether the list route returns bodies (the contract at `api.md:110` lists `body_*` on `Post`; a 2026-10-02 comment in `lib/posts.ts` says the list omits it). One authenticated read of `GET /content/posts` settles it; not made here.
+
+**Collections index.** `/collections` (and any `/en/collections`, `/ja/collections`) is **not** added to the sitemap in Batch A and `app/sitemap.ts` is untouched; the existing collection detail entries are unchanged. Inclusion is a Phase 2D review item, recommended only after checking indexability, content quality, canonical behaviour and customer value.
+
+**Phase numbering (record only; the master plan §26 numbering stands).** Phases 2A-2E subdivide master-plan Phase 2. Older references that use a different numbering, for final cleanup: `SEO-MIGRATION-MAP.md:16` (says content hubs are Phases 8-10 and landing pages Phase 7; master plan: landing pages 6, Kihei 7, K18 8, Filipino 9), `SEO-BASELINE.md:203` ("landing pages (Phase 7)"), the phase-table row `4-10` and rows X9/X10 ("Phases 5, 7-10", "Phase 5 Product SEO review"; master plan Phase 5 is Merchant Center and has no Product SEO phase), and the orchestrator skill's 11-step "Phase Order" list (a different grouping than master-plan Phases 0-12). Phases 2, 3 and 4 agree everywhere.
+
+**Not done, by design:** no route, redirect, canonical, hreflang, sitemap URL or internal link change; no checkout, payment, Hub or `layawayOffered` change; no Japanese layaway.
+
+**Phase 2B readiness: NOT READY.** It needs owner answers or explicit agreement on OD-2, OD-8, OD-9 (rule), OD-10 and OD-15 (design), the interim canonical and hreflang option for legacy URLs (or agreement to keep them unchanged, C0 + H0; this depends on OD-1, OD-3, OD-4), written route-change approval, and a deployed preview. See map §14 for every option, recommendation and gate. 2C needs OD-7 and OD-11 (and the OD-15 gating correction first); 2D needs OD-9 enforcement and OD-12; 2E needs OD-1, OD-3, OD-4 and OD-6.
+
+## Change log
+
+- 2026-10-28: Baseline and this file created (Phase 0). No application code changed.
+- 2026-10-28: Phase 1: route matrix, search policy, noindex for private/utility routes, canonical/hreflang removed on those routes, 20 unit tests, `scripts/check-seo-live.mjs`. 404 cleanup partly deferred. Branch not pushed.
+- 2026-10-28: Phase 2 planning only: SEO-MIGRATION-MAP.md and skill cha-i18n-seo created; status set to AUDITED / PLANNING. No route or application change.
+- 2026-10-28: Phase 2 planning refined: OD-13 and OD-14 resolved as technical conventions; remaining owner decisions detailed with recommendations; findings F1-F5 recorded; implementation gates 2A-2E defined. Moved to branch `seo/phase-2-multilingual-planning`. No route or application change.
+- 2026-10-28: Phase 2 planning finalized for commit: the interim canonical behaviour of bare legacy URLs is reclassified PROPOSED — OWNER APPROVAL REQUIRED (it is not approved architecture); all remaining owner decisions stay unresolved. No route or application change.
+- 2026-10-28: Phase 2 planning corrections (docs only, follow-up to merged PR #394): layaway link sequencing (Option ii), `bannerAllowed` compliance coverage, legacy hreflang in the owner-approval block, JSON-LD timing, Phase 2A local verification, stale-cookie wording. All 12 remaining owner decisions stay unresolved; OD-13 and OD-14 stay resolved. No route or application change.
+- 2026-10-28: Phase 2A implemented locally (READY FOR QA, uncommitted): `lib/locale.ts`, `lib/statutory-path.ts`, `classifyPath`, two behaviour-preserving call-site changes, 30 tests, content-completeness audit (map §16), correction of the ad-tag claim in the planning documents. No route or output change.
+- 2026-10-28: Phase 2A final QA (READY FOR QA, local): four defects in the new helpers fixed (protocol-relative output from a prefixed path, backslash and control characters, fail-safe holes in the bar rule, Japanese layaway classed public), family rules made data-driven for Phase 3, 41 new tests (383 total), production build and 35-route comparison clean, content-language audit validated with confidence labels, phase-numbering conflicts recorded. No route or output change.

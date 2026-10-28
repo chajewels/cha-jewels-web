@@ -28,3 +28,79 @@ Storefront (Next.js 15 App Router, TS strict, Tailwind 3.4, shadcn/ui in `compon
 - Cart cookie holds no prices; Server Actions only; a quote never reserves stock; drafts mode comes from the Hub.
 - Layaway and card pay are agreement-gated, fail closed (`agreement_required` / `agreement_unverified`); card is HOLD only; `/checkout` card = 501 by contract. No `/live` route.
 - Lock Tailwind at 3.4 (do not upgrade to v4).
+
+## SEO Implementation Governance
+
+1. Before implementing any SEO recommendation, inspect the current repository first and confirm whether the functionality already exists.
+
+2. Never implement an SEO recommendation merely because it appears in:
+   - `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md`
+   - an SEO audit
+   - a task description
+   - a previous recommendation
+
+3. If functionality already exists:
+   - verify it,
+   - identify actual defects or gaps,
+   - improve the existing implementation,
+   - do not create a duplicate SEO system.
+
+4. Treat these existing systems as assets unless a verified defect requires modification:
+   - robots
+   - sitemap
+   - canonical handling
+   - hreflang handling
+   - metadata
+   - Product JSON-LD
+   - BlogPosting JSON-LD
+   - FAQ JSON-LD
+   - JewelryStore JSON-LD
+   - OpenGraph metadata
+   - image optimization
+   - Search Console/analytics integrations
+
+5. SEO work must follow this sequence:
+
+   AUDIT → DESIGN → IMPLEMENT → TEST → VERIFY → DOCUMENT
+
+6. Do not implement multiple high-risk SEO phases in one uncontrolled change.
+
+7. Multilingual route migration, canonical changes, redirect changes, sitemap architecture changes, and indexing changes are high-risk and must be handled in dedicated phases and branches.
+
+8. Never claim a page is indexed, ranking, or receiving rich results merely because code was deployed.
+
+   Use this status vocabulary:
+   - NOT STARTED
+   - AUDITED
+   - IMPLEMENTING
+   - BLOCKED
+   - READY FOR QA
+   - VERIFIED
+   - DEPLOYED
+   - SEARCH ENGINE RECRAWL PENDING
+   - OBSERVED IN SEARCH CONSOLE
+
+9. Maintain these SEO documents when relevant:
+   - `docs/seo/SEO-BASELINE.md`
+   - `docs/seo/SEO-IMPLEMENTATION-STATUS.md`
+   - `docs/seo/SEO-MIGRATION-MAP.md`
+   - `docs/seo/SEO-QA-REPORT.md`
+
+10. Do not expose private customer, order, account, payment, API, environment, or Hub secret data through SEO output.
+
+11. Structured data must reflect real visible content and real Hub data. Never fabricate reviews, ratings, GTIN, MPN, shipping rules, returns, brand, origin, or product attributes.
+
+12. Do not begin a later SEO phase until required dependencies from earlier phases have been verified.
+
+13. Preserve production ecommerce behavior, including:
+   - checkout
+   - payments
+   - account/customer pages
+   - layaway logic
+   - inventory
+   - product availability
+   - analytics
+   - legal pages
+   - language behavior
+
+14. Every SEO implementation must include appropriate regression testing.

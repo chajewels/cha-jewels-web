@@ -8,6 +8,8 @@ import { FlashNotice } from "@/components/site/flash-notice";
 import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
+import { indexingFor } from "@/lib/seo-policy";
+import { announcementBarAllowed } from "@/lib/statutory-path";
 import { dict, tr, PATH_HEADER } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { announcement, follow } from "@/lib/settings";
@@ -46,8 +48,14 @@ const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], v
 const jp = Noto_Serif_JP({ subsets: ["latin"], weight: ["500"], variable: "--font-jp", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const lang = await getLang();
+  const [lang, h] = await Promise.all([getLang(), headers()]);
+  // Private and utility pages say so in the page itself (lib/seo-policy.ts).
+  // A page that sets its own `robots` replaces this whole field, which is fine:
+  // /search, /review and the unsubscribe pages already say noindex.
+  const path = h.get(PATH_HEADER);
+  const robots = path ? indexingFor(path) : null;
   return {
+    ...(robots ? { robots } : {}),
     metadataBase: new URL(siteUrl()),
     title: { default: dict.meta.site.title[lang], template: "%s | Cha Jewels" },
     description: dict.meta.site.description[lang],
@@ -71,9 +79,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * told the pathname. NO HEADER MEANS NO BAR: a path the middleware did not
  * match is a path we cannot classify, and the safe answer to "is this the legal
  * notice?" is the one that cannot put a banner on it.
+ *
+ * The rule itself is `announcementBarAllowed` in lib/statutory-path.ts, shared
+ * with the cookie banner so the two cannot drift. It also recognises a locale
+ * prefix (/en/legal/..., /ja/legal/...) before any such route exists.
  */
-const bannerAllowed = (path: string | null) =>
-  !!path && path.startsWith("/") && path !== "/legal" && !path.startsWith("/legal/");
+const bannerAllowed = announcementBarAllowed;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [lang, h] = await Promise.all([getLang(), headers()]);

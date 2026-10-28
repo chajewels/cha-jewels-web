@@ -4,6 +4,7 @@ import { dict, LANG_PARAM, PATH_HEADER, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { siteUrl } from "@/lib/site";
+import { emitsCanonical } from "@/lib/seo-policy";
 
 type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, string> };
 
@@ -51,9 +52,13 @@ export async function SeoLinks() {
 
   const base = siteUrl();
   const self = `${base}${path === "/" ? "/" : path.replace(/\/+$/, "")}`;
+  // A noindex page (lib/seo-policy.ts) names no canonical and no language
+  // alternates: there is nothing to consolidate onto a page that should not be
+  // found. og:url and fb:app_id stay: they describe a share, not an index entry.
+  const indexable = emitsCanonical(path);
   return (
     <>
-      <link rel="canonical" href={self} />
+      {indexable && <link rel="canonical" href={self} />}
       {/* og:url is the link's identity for Facebook and Messenger: without it
           the scraper falls back to whatever URL was pasted (with ?lang, utm_*
           and the like), so one page becomes several previews and a cached one
@@ -70,9 +75,13 @@ export async function SeoLinks() {
           middleware honours, so the URL resolves for a crawler that sends no
           Accept-Language — which is most of them. x-default points at the
           default language for anyone we have not matched. */}
-      <link rel="alternate" hrefLang="ja" href={self} />
-      <link rel="alternate" hrefLang="en" href={`${self}?${LANG_PARAM}=en`} />
-      <link rel="alternate" hrefLang="x-default" href={self} />
+      {indexable && (
+        <>
+          <link rel="alternate" hrefLang="ja" href={self} />
+          <link rel="alternate" hrefLang="en" href={`${self}?${LANG_PARAM}=en`} />
+          <link rel="alternate" hrefLang="x-default" href={self} />
+        </>
+      )}
     </>
   );
 }

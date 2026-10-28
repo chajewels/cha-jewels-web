@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CONSENT_OPEN_EVENT, openConsent, writeConsent } from "@/lib/consent";
 import { isPayCardPath } from "@/lib/csp";
+import { isStatutoryPath } from "@/lib/statutory-path";
 import { useConsent } from "@/components/analytics/use-consent";
 
 /**
@@ -43,7 +44,8 @@ export function ConsentBanner({ copy }: { copy: ConsentCopy }) {
   // Opened on request: take the reader there. Asked by itself: do not steal focus.
   useEffect(() => { if (opened) heading.current?.focus(); }, [opened]);
 
-  const quietHere = path === "/legal" || path.startsWith("/legal/") || isPayCardPath(path);
+  // The statutory pages, prefixed by a locale or not (lib/statutory-path.ts).
+  const quietHere = isStatutoryPath(path) || isPayCardPath(path);
   const asking = consent === "unset" && !quietHere;
   if (consent === "unknown" || (!asking && !opened)) return null;
 
