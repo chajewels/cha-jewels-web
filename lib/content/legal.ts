@@ -97,6 +97,16 @@ export const COMPANY_NAME = "\uFF23\uFF48\uFF41\u3000\uFF2A\uFF45\uFF57\uFF45\uF
  * English pages give the English form with the registered name in brackets;
  * Japanese pages the registered name alone. Legal pages keep COMPANY_NAME.
  */
+/**
+ * The representative's name, uniform across every legal page (owner,
+ * 2026-10-28): English in Western order, Japanese in katakana, surname first,
+ * full-width spaces, including the middle name on both sides.
+ */
+export const REPRESENTATIVE_NAME: Record<Lang, string> = {
+  ja: "\u30E9\u30EB\u30B4\u3000\u30B7\u30F3\u30C6\u30A3\u30A2\u3000\u30CD\u30E9",
+  en: "Cynthia Nera Largo",
+};
+
 export const COMPANY_NAME_DISPLAY: Record<Lang, string> = {
   ja: COMPANY_NAME,
   en: `Cha Jewels Co., Ltd. (${COMPANY_NAME})`,
@@ -346,7 +356,7 @@ export const returnsArticles: LegalArticle[] = [
     h: { ja: "お問い合わせ", en: "Contact Us" },
     blocks: [
       { kind: "p", text: { ja: "ご質問または返品のお申し出は、次の窓口までご連絡ください。", en: "For questions or return requests, contact:" } },
-      { kind: "lines", lines: { ja: [COMPANY_NAME, "代表取締役：Cynthia Largo"], en: [COMPANY_NAME, "Representative Director: Cynthia Largo"] } },
+      { kind: "lines", lines: { ja: [COMPANY_NAME, `代表取締役：${REPRESENTATIVE_NAME.ja}`], en: [COMPANY_NAME, `Representative Director: ${REPRESENTATIVE_NAME.en}`] } },
       { kind: "lines", lines: { ja: ["〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] } },
       { kind: "lines", lines: { ja: ["Messenger：m.me/chajewelsjapan", "メールアドレス：sales@chajewelsjp.com"], en: ["Messenger: m.me/chajewelsjapan", "Email: sales@chajewelsjp.com"] } },
     ],
@@ -512,7 +522,7 @@ export const tokusho = {
     },
     {
       k: { ja: "代表者", en: "Representative" },
-      v: { ja: "Cynthia Largo", en: "Cynthia Largo" },
+      v: REPRESENTATIVE_NAME,
     },
     {
       k: { ja: "所在地", en: "Address" },
@@ -664,7 +674,7 @@ export const privacyArticles: LegalArticle[] = [
       },
       {
         kind: "lines",
-        lines: { ja: ["代表取締役：Cynthia Nera Largo", "メールアドレス：sales@chajewelsjp.com"], en: ["Representative Director: Cynthia Nera Largo", "Email: sales@chajewelsjp.com"] },
+        lines: { ja: [`代表取締役：${REPRESENTATIVE_NAME.ja}`, "メールアドレス：sales@chajewelsjp.com"], en: [`Representative Director: ${REPRESENTATIVE_NAME.en}`, "Email: sales@chajewelsjp.com"] },
       },
       { kind: "p", text: { ja: "本プライバシーポリシーは、当社のウェブサイト、オンラインショップ、お客様アカウントおよびお客様ポータル、会員プログラム、お問い合わせ対応、メッセージ機能、ならびにライブ販売によるご注文に適用されます。", en: "This Privacy Policy applies to our website, online shop, customer accounts and portal, layaway services, loyalty program, customer inquiries, messaging channels, and orders placed through our live-selling activities." } },
     ],
@@ -1057,7 +1067,7 @@ export const tosArticles: LegalArticle[] = [
     h: { ja: "Cha Jewelsについて", en: "About Cha Jewels" },
     blocks: [
       { kind: "p", text: { ja: "本ウェブサイトおよび関連するサービスは、次の者が運営しています。", en: "This website and the related services are operated by:" } },
-      { kind: "lines", lines: { ja: [`Cha Jewels Co., Ltd.（${COMPANY_NAME}）`, "代表取締役：Cynthia Largo"], en: [`Cha Jewels Co., Ltd. (${COMPANY_NAME})`, "Representative Director: Cynthia Largo"] } },
+      { kind: "lines", lines: { ja: [`Cha Jewels Co., Ltd.（${COMPANY_NAME}）`, `代表取締役：${REPRESENTATIVE_NAME.ja}`], en: [`Cha Jewels Co., Ltd. (${COMPANY_NAME})`, `Representative Director: ${REPRESENTATIVE_NAME.en}`] } },
       { kind: "lines", lines: { ja: ["〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] } },
       { kind: "lines", lines: { ja: ["メールアドレス：sales@chajewelsjp.com", "Messenger：m.me/chajewelsjapan"], en: ["Email: sales@chajewelsjp.com", "Messenger: m.me/chajewelsjapan"] } },
       { kind: "p", text: { ja: `本規約において「Cha Jewels」「当社」とは${COMPANY_NAME}を指し、「お客様」とは、当社の商品またはサービスをご購入、ご予約またはご利用になる方を指します。`, en: `In these Terms, “Cha Jewels,” “we,” “us,” and “our” refer to ${COMPANY_NAME}. “Customer,” “you,” and “your” refer to the person purchasing, reserving, or using our products or services.` } },
@@ -1392,7 +1402,7 @@ export const tosArticles: LegalArticle[] = [
     h: { ja: "お問い合わせ", en: "Contact Us" },
     blocks: [
       { kind: "p", text: { ja: "本規約に関するご質問は、次の窓口までお寄せください。", en: "Questions about these Terms may be directed to:" } },
-      { kind: "lines", lines: { ja: [COMPANY_NAME, "代表取締役：Cynthia Largo"], en: [COMPANY_NAME, "Representative Director: Cynthia Largo"] } },
+      { kind: "lines", lines: { ja: [COMPANY_NAME, `代表取締役：${REPRESENTATIVE_NAME.ja}`], en: [COMPANY_NAME, `Representative Director: ${REPRESENTATIVE_NAME.en}`] } },
       { kind: "lines", lines: { ja: ["〒124-0012", "東京都葛飾区立石6-5-1", "タイムマンション301"], en: ["Time Mansion 301", "6-5-1 Tateishi, Katsushika-ku", "Tokyo 124-0012, Japan"] } },
       { kind: "lines", lines: { ja: ["メールアドレス：sales@chajewelsjp.com", "Messenger：m.me/chajewelsjapan"], en: ["Email: sales@chajewelsjp.com", "Messenger: m.me/chajewelsjapan"] } },
     ],
