@@ -187,7 +187,7 @@ Implementation split (proposed): redirects that are static (`?lang=` rewrites, `
 
 Rollout order (proposed, matches the skill): locale routes first, links and sitemap next, **legacy redirects last**, after the locale URLs are verified live. Until then legacy URLs keep serving 200. **What canonical they declare during that period is not approved** (see the PROPOSED block below). Whatever is approved, a canonical must never point at a redirecting URL or a 404.
 
-**Interim canonical AND hreflang behaviour of bare legacy URLs: PROPOSED — OWNER APPROVAL REQUIRED. Not approved architecture.**
+**Interim canonical AND hreflang behaviour of bare legacy URLs: C0 + H0 OWNER APPROVED 2026-10-28 — FOR THE PHASE 2B DARK LAUNCH ONLY. The approval expires at the Phase 2C gate; everything beyond 2B remains unapproved.**
 
 While the locale URLs and the bare legacy URLs both return 200 (Phases 2B-2D, before the redirects of 2E), a bare URL such as `/products/x` still has to declare *some* canonical **and still emits the old hreflang tags**. Today `SeoLinks` gives every bare URL `hreflang="ja"` pointing at itself, `hreflang="en"` pointing at its `?lang=en` form, and `hreflang="x-default"` pointing at itself (`lib/page-meta.tsx:80-82`). **No canonical behaviour, no hreflang behaviour and no x-default destination for legacy bare URLs is approved**, and this document does not choose `/en` or `/ja` for them. The final behaviour depends on the answers to:
 
@@ -222,7 +222,7 @@ Options for the legacy **hreflang** tags (none selected):
 
 Until one canonical option **and** one hreflang option are approved in writing, **Phase 2B must not change any legacy page's canonical or hreflang** (that is C0 + H0). Changing either is a change to live pages and needs the route-change approval described in §15. OD-1 and OD-4 remain unresolved. OD-2 (x-default for the locale pages: English) and OD-3 (the root `/` stays unchanged through 2B-2D) are now OWNER APPROVED, and they do not decide the legacy options.
 
-**Transition risk assessment: C0 + H0 (reviewed 2026-10-28). C0/H0 is still a recommendation, NOT approved.**
+**Transition risk assessment: C0 + H0 (reviewed 2026-10-28; since OWNER APPROVED for the Phase 2B dark launch only — the risks below are the record, and the 2C-window risks are why the approval expires at the 2C gate).**
 
 C0 keeps the self canonical on legacy bare URLs; H0 keeps their current hreflang (`ja` = itself, `en` = the `?lang=en` form, x-default = itself).
 
@@ -231,7 +231,7 @@ C0 keeps the self canonical on legacy bare URLs; H0 keeps their current hreflang
 | **2B dark launch** | Locale routes answer 200 but nothing links to them, they are not in the sitemap, and the legacy pages do not name them | Negligible: no crawl path to the locale URLs | **Safe** |
 | **2C links + 2D sitemap live, before 2E** | Internal links and the sitemap point to locale URLs; the bare URLs still answer 200 with a self canonical and the old hreflang | (1) Two indexable URLs for the same content (`/products/x` and `/ja/products/x`; for the home, `/`, `/ja` and `/en`, with `/` and `/ja` identical Japanese content to a crawler); the engine picks one per cluster and may keep the legacy URL for its history and inbound links. (2) Conflicting hreflang clusters: legacy says x-default = itself and `en` = a non-canonical `?lang=en` URL (finding X2), the locale pages say x-default = English and name each other, so return tags do not match across clusters and a search engine may ignore both. (3) Search Console noise ("duplicate without user-selected canonical", hreflang return-tag errors). (4) Link and ranking signals split between bare and locale URLs until the 2E redirects | **Acceptable only for a short, bounded window** |
 
-Conclusion: C0 + H0 safely supports the **dark launch**. It is acceptable but not ideal once links and the sitemap are live. Mitigations, none applied: (a) keep the gap between 2D and 2E short, with the `?lang=` rules and the bare-to-locale 307 stage prepared to ship in the same window; (b) approve C1 + H1/H2 for the legacy pages at the 2C gate instead; (c) settle which of `/`, `/en` and `/ja` the 2D sitemap lists while `/` stays unchanged (recommended: list `/en` and `/ja` and keep `/` until 2E, accepting the temporary duplication). Recommended approval scope — **C0 + H0 is proposed for the Phase 2B dark launch ONLY** (still NOT approved):
+Conclusion: C0 + H0 safely supports the **dark launch**. It is acceptable but not ideal once links and the sitemap are live. Mitigations, none applied: (a) keep the gap between 2D and 2E short, with the `?lang=` rules and the bare-to-locale 307 stage prepared to ship in the same window; (b) approve C1 + H1/H2 for the legacy pages at the 2C gate instead; (c) settle which of `/`, `/en` and `/ja` the 2D sitemap lists while `/` stays unchanged (recommended: list `/en` and `/ja` and keep `/` until 2E, accepting the temporary duplication). Approved scope — **C0 + H0 is OWNER APPROVED for the Phase 2B dark launch ONLY** (2026-10-28):
 - legacy URLs remain completely unchanged in 2B (canonical, hreflang, status, content);
 - the new locale URLs stay unlinked and unlisted throughout 2B;
 - the policy **must be reconsidered at the 2C gate**, before any internal link or sitemap entry points at a locale URL;
@@ -433,9 +433,12 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **OD-10 mechanism: OWNER APPROVED 2026-10-28** | **A: real Next.js App Router locale routes (`app/[lang]`).** Mechanism only; no route is authorized by it |
 | **OD-2 x-default: OWNER APPROVED 2026-10-28** | **English.** The x-default of a localized page is the corresponding English URL. For a genuinely single-language page it is that page's eligible existing language URL, subject to valid hreflang rules. Applies to the new locale pages; the x-default emitted by legacy bare URLs is not covered (that stays under the unapproved C0/H0 question, §7) |
 | **OD-3 behaviour of `/`: OWNER APPROVED 2026-10-28** | **Redirect later.** The root `/` is unchanged through Phases 2B-2D. A language-aware root redirect belongs to Phase 2E; its signals, status codes and 307-to-308 staging are settled at the 2E gate together with OD-1 |
+| **OD-9 fallback-language content: OWNER APPROVED 2026-10-28** | A localized page is eligible when its primary content is genuinely in the URL's language. Product names, brand names, model numbers, technical specifications and neutral catalogue text never disqualify a page; a missing optional description is not foreign fallback; valid short native-language descriptions stay eligible. Foreign-language **running text** in place of required local content makes a page ineligible: `noindex, follow`, no sitemap entry, no hreflang alternate pointing to it, still reachable until localized. Word counts are never the primary language detector. The reviewed proper-name case (the Louis Vuitton wallet) is eligible neutral catalogue content. Evidence: §16.1 |
+| **OD-15 URL/cookie/layaway authority: OWNER APPROVED 2026-10-28, WITH SECURITY REQUIREMENTS** | The locale URL is the authoritative display language; the middleware-owned `x-cj-lang` context must not be spoofable by client headers; cookies sync on locale responses; layaway gates take a validated explicit language, and a missing or invalid argument keeps today's safe fallback. **Not relaxed:** authentication, agreement requirements, layaway term restrictions, authorization checks, payment validation, Hub calculations. Japanese layaway stays unavailable; no Hub payment-contract change is approved. Design and security review: §17 |
+| **C0/H0 legacy canonical + hreflang: OWNER APPROVED 2026-10-28 — FOR PHASE 2B ONLY** | During the 2B dark launch, legacy bare URLs keep their existing canonical and hreflang byte-identically, and the new locale URLs stay unlinked and unlisted. **This approval expires at the Phase 2C gate**: before any localized public link or sitemap entry activates, the legacy strategy must be reconsidered and separately approved. Risk record: §7 |
 | **OD-8 single-language pages: OWNER APPROVED 2026-10-28** | **Yes.** Publish and index only language versions that actually exist and meet content-eligibility requirements. No invented or machine-generated Japanese (or any) translations. The eligibility details for fallback-language content depend on OD-9, which is still open |
 
-**Remaining decisions at a glance** (OD-2, OD-3, OD-8 and OD-10 are now approved, above):
+**Remaining decisions at a glance** (OD-2, OD-3, OD-8, OD-9, OD-10, OD-15 and C0/H0-for-2B are now approved, above; still open: OD-1, OD-4, OD-6, OD-7, OD-11, OD-12):
 
 | # | Decision | Recommended | Must be decided before |
 |---|---|---|---|
@@ -443,10 +446,8 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | OD-4 | `?lang=` URLs | 308 to the locale URL, indefinitely | **2E** (share links in 2C); also feeds the interim canonical and hreflang question (§7) |
 | OD-6 | Legacy `/layaway` | 308 to `/en/layaway` once Phase 3 is live | **Phase 3 / 2E** |
 | OD-7 | Switcher where no sibling exists | Link to the other language's home | **2C** |
-| OD-9 | Fallback-language content | Audit first; interim `noindex, follow` + no sitemap + no hreflang pair | **2B** (rule), **2D** (enforcement) |
 | OD-11 | Hub-authored relative links | Localize at render time | **2C** |
 | OD-12 | Hreflang in the sitemap too | HTML only | **2D** |
-| OD-15 | Cookie role and sync | Both: middleware sync and an explicit language argument | **2B** (design); argument in 2C |
 
 ### OD-1: Destination of bare legacy URLs (`/products/x`, `/collections/kihei`, …)
 
@@ -542,7 +543,7 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Reversibility** | Metadata only |
 | **Needed before** | Phase 2B |
 
-### OD-9: Fallback-language content
+### OD-9: Fallback-language content — OWNER APPROVED 2026-10-28 (see §14 for the approved text; §16.1 is the evidence; the material below is the record)
 
 | | |
 |---|---|
@@ -593,7 +594,7 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **Reversibility** | Trivial |
 | **Needed before** | Phase 2D |
 
-### OD-15: Cookie role and sync (finding F1)
+### OD-15: Cookie role and sync (finding F1) — OWNER APPROVED 2026-10-28 WITH SECURITY REQUIREMENTS (see §14; §17 is the binding design; the material below is the record)
 
 | | |
 |---|---|
@@ -629,7 +630,7 @@ Each sub-phase is its own branch and PR. A later sub-phase does not start until 
 | **Behaviour introduced** | `/en/…` and `/ja/…` serve R1-R18 (not layaway). Per-page canonical and hreflang through one helper. Language read from the URL; cookie synced on locale responses. Unknown locale and `/ja/layaway` return 404. **Structured data on each locale page (Product, BlogPosting, FAQPage, store) carries locale-correct `url`, `@id`, `offers.url` and `inLanguage`, equal to that page's own canonical URL and language** (N2): a localized page must not publish structured-data URLs that disagree with its canonical. Legacy bare URLs keep serving 200; their canonical **and hreflang** stay unchanged (C0 / H0, §7) unless an interim option has been approved in writing. **Nothing links to the new URLs and the sitemap does not list them yet** (unlinked dark launch; these are the safeguards under which 2B may proceed with the stale-cookie risk still open, see N4 below) |
 | **Files likely affected** | Option A: `app/[lang]/…` (moved pages), `app/layout.tsx`, `lib/i18n.ts`, `lib/i18n-server.ts`, `middleware.ts`, `lib/page-meta.tsx` (`SeoLinks` retired for the locale tree), `components/site/json-ld.tsx`. Option B: `middleware.ts` and the metadata helper |
 | **Tests required** | §12 locale-route, canonical, hreflang, x-default, 404, content-language, JSON-LD and private-route rows; unit tests for the metadata helper and sibling mapping; an updated route-check script |
-| **Entry criteria** | 2A merged and verified; **OD-2, OD-3, OD-8 and OD-10 are OWNER APPROVED (2026-10-28)**; **still required: OD-9 (audit done, §16.1; rule pending), OD-15 (design in §17; pending), and an approved interim canonical option and hreflang option for legacy bare URLs (§7, or explicit agreement that they stay unchanged, C0 + H0)**; written route-change approval for the new routes; a deployed preview for the branch (the `develop` alias, see the status file); Phases 1 and 2A released to `main` first (Release 0) |
+| **Entry criteria** | 2A merged and verified; Release 0 deployed and production-verified (done 2026-10-28); **OD-2, OD-3, OD-8, OD-9, OD-10, OD-15 and C0/H0-for-2B all OWNER APPROVED (2026-10-28)**; **the one remaining gate: Gate A of §18 — owner approval of the exact R1-R18 route inventory and written authorization to implement**; a deployed preview path per §18 (the `develop` alias) |
 | **Exit criteria** | Every R1-R18 locale URL returns 200 on the preview and then production; hreflang reciprocal for a sample of every family, never to a 404, redirect or noindex page; X1 closed in the locale tree (404s there emit no canonical or hreflang); legacy pages unchanged (including their canonical and hreflang, unless an interim option was approved); **parsed JSON-LD on a sample of every family has `url`, `@id`, `offers.url` and `inLanguage` equal to the page's canonical locale URL and language, and no structured-data URL points at a bare legacy URL** (N2); statutory-page compliance verified on locale legal pages (consent banner quiet, **announcement bar suppressed**, advertising parity); checkout and layaway journey from `/en` passes with a refreshed cookie. **N4:** a refreshed cookie alone does **not** close the two-tab / stale-cookie case (F1); 2B is acceptable only because it is unlinked and unlisted, and the 2B exit does not claim F1 is resolved |
 | **Rollback** | Revert the PR. The locale URLs then return 404, which is low impact because nothing links to or lists them yet. Legacy canonicals return to self |
 
@@ -700,9 +701,9 @@ Before choosing, confirm the contract question above with one authenticated read
 
 **Sitemap note (Phase 2D review item, recorded only).** `/collections` (the index) is not in today's sitemap. Whether to list `/collections`, `/en/collections` and `/ja/collections` is for the Phase 2D review. Phase 2A does not touch `app/sitemap.ts`, and the existing collection detail URLs are unchanged.
 
-### 16.1 OD-9 content audit: fallback-language and incomplete content (2026-10-28)
+### 16.1 OD-9 content audit: fallback-language and incomplete content (2026-10-28; the policy built on it is OWNER APPROVED, §14)
 
-**OD-9 is still open.** This is the evidence it was waiting for. Read-only: GET requests to the public site (a few thousand page fetches over four passes, at low concurrency with retries) plus the repository. **No Hub credential was used and no Hub endpoint was called directly**; the Hub was observed only through what the site renders.
+This is the evidence the OD-9 approval rests on. Read-only: GET requests to the public site (a few thousand page fetches over four passes, at low concurrency with retries) plus the repository. **No Hub credential was used and no Hub endpoint was called directly**; the Hub was observed only through what the site renders.
 
 **Method.** The measured text is the **rendered body**, not metadata: the product "About this piece" (作品について) section, the collection and category intro paragraph, the blog article body, every FAQ question and full answer (from the FAQPage JSON-LD), and the whole `<main>` text of each guide and static page. Japanese text means CJK characters; an English body on a Japanese page is a fallback. **Latin brand names, model codes and specification strings are not counted as untranslated:** a page is judged by its surrounding text, and a body made only of a Latin brand or model echo is classed neutral. Confidence: VERIFIED = measured on the rendered page; INFERRED = follows from verified facts; UNVERIFIED = needs an authenticated Hub read.
 
@@ -733,15 +734,15 @@ Before choosing, confirm the contract question above with one authenticated read
 
 **Limitations (precise).** (1) This sees only what the site renders. It cannot enumerate inactive or unpublished products, posts with no title in a language (they are not listed), or FAQ rows the site drops, so it is **not an inventory of the Hub**. (2) It cannot read the Hub fields, so it cannot tell a null `description_ja` from a Japanese description; it detects the rendered fallback, which is the thing that matters for indexing. (3) Per-post body existence cannot be established from the list route alone (the contract and a code comment disagree). An authenticated, read-only pass over `GET /catalog/products`, `/catalog/collections`, `/catalog/categories`, `/content/posts` and `/content/faq` would close all three; it was not made here. (4) A single point in time: the product count was 449 at the Phase 1 baseline and 447 now.
 
-**Recommended OD-9 policy (NOT approved; evidence-led).** Today the rule would change nothing: **0 of 447 product pages and 0 of the other audited pages are genuine fallback pages**, so this is insurance against future imports, not a content project.
+**OD-9 policy (OWNER APPROVED 2026-10-28; the §14 text is authoritative).** Today the rule would change nothing: **0 of 447 product pages and 0 of the other audited pages are genuine fallback pages**, so this is insurance against future imports, not a content project.
 - A localized page is **eligible** when its name is in that language, or is a proper name or model code with the rest of the page in that language, **and** any body it shows is in that language. A body that is a Latin brand or model echo, a specification string or a code is neutral. A page with no body at all is eligible on its name alone.
 - A page whose body is **another language's running text** is **ineligible**: `noindex, follow`, left out of the sitemap, no hreflang pair, still reachable by link; it returns to normal when the Hub gains the text. "Running text" is decided by what the text is, not by a count: on a Japanese page, a body that contains no Japanese characters **and** is not neutral (not the product's own name, brand, model code or a specification string) is running foreign text. Word or character counts may serve as a tie-breaker inside the implementation but are never the detector — the 75 short-Japanese-description products are exactly the pages a count-based rule would misclassify.
 - Implemented as one pure, tested function; the audit script is re-run after each catalogue import and before every release.
-- Deferred to the owner: whether a page whose body is neutral-only (the proper-name echo case) stays indexable, and sign-off on the neutral-text rule itself.
+- Decided with the approval: the neutral-text rule stands, and the proper-name echo case (the Louis Vuitton wallet) is eligible neutral catalogue content.
 
-## 17. OD-15 design proposal: URL authority, cookie, and layaway gating (2026-10-28)
+## 17. OD-15 design: URL authority, cookie, and layaway gating (OWNER APPROVED 2026-10-28, with the §14 security requirements)
 
-**OD-15 is NOT approved.** This is the implementation-ready design it would approve. Nothing here changes payment or checkout code, and the Hub's calculations are untouched.
+This is the approved implementation design; the §14 security requirements bind it. Nothing here changes payment or checkout code, and the Hub's calculations are untouched.
 
 **What exists today.** Four server-side layaway gates ask `layawayOfferedNow()`, which reads the **language cookie**, not the page the customer is on: `quoteAction` (`lib/checkout-actions.ts:122`), `payLayawayAction` (`:233`), `pesoEstimateAction` (`:332`) and `layawayQuote` (`lib/layaway.ts:31`). `payAction` and `payLayawayAction` also pass `getLang()` to the Hub for the language of the result. Every layaway page and component takes `lang` from the same cookie-or-Accept-Language resolution (`lib/i18n-server.ts`). The Japanese restriction is therefore enforced by cookie, and the language is self-selected: the code already states this is **not a security boundary**, only a guard against an inconsistent state.
 
@@ -771,4 +772,70 @@ Before choosing, confirm the contract question above with one authenticated read
 **Tests.** Pure tests for `gateLang`, for `resolveLang` with a URL locale, and for `cookieSyncFor`. A table test of the two-tab matrix: explicit `en` with cookie `ja` allowed; explicit `ja` with cookie `en` refused; no explicit with cookie `ja` refused; invalid explicit falls back to the cookie. A source guard that no `layawayOfferedNow()` call remains without an explicit argument at the four gates, and a middleware test (pure helper) that a client-sent `x-cj-lang` is always overwritten or deleted. A fixtures-mode flow on the local build that requests a layaway quote on `/en` with a `ja` cookie and stops before any order. **No order, draft or payment is created by any test.**
 
 **Rollout inside 2C.** The explicit-argument change lands first and is backward compatible; the cookie sync arrives with the 2B locale routes; locale-aware links are activated only after the two-tab test passes.
+
+---
+
+## 18. Phase 2B execution specification (2026-10-28)
+
+**Status: READY FOR GATE A. Not authorized to implement.** Approving OD-9, OD-15 and C0/H0 did not authorize creating, merging, publishing or deploying any route; that is Gate A below.
+
+### 18.1 Exact route inventory (for the Gate A approval)
+
+Locale homes `/en` and `/ja`, plus `/en/<path>` and `/ja/<path>` for the existing public families, **unrenamed**, and only where the language version exists and is eligible (OD-8, OD-9):
+
+| Family (map §4) | Localized routes | Languages |
+|---|---|---|
+| R1 home | `/en`, `/ja` | both |
+| R2 `/products/[slug]` | `/{en,ja}/products/[slug]` | both (eligibility per product, OD-9) |
+| R3 `/categories/[slug]` | `/{en,ja}/categories/[slug]` | both |
+| R4 `/collections` | `/{en,ja}/collections` | both |
+| R5 `/collections/[slug]` | `/{en,ja}/collections/[slug]` | both |
+| R6 `/blog` | `/{en,ja}/blog` | both |
+| R7 `/blog/[slug]` | `/{en,ja}/blog/[slug]` | **per post**: only a language with title + body, and the layaway rule (F2) |
+| R8-R17 `/jewelry-guide`, `/shopping-guide`, `/faq`, `/about`, `/why-cha-jewels`, `/contact`, `/affiliations`, `/loyalty`, `/sale`, `/wholesale` | `/{en,ja}/<same>` | both |
+| R18 `/legal/{privacy,terms,returns,tokusho}` | `/{en,ja}/legal/<same>` | both (statutory suppressions preserved, F3) |
+
+**Excluded, by decision:** `/` unchanged (OD-3); bare legacy URLs byte-identical (C0/H0); `/en/layaway` and `/ja/layaway` (Phase 3 / never); `/en/shop/*`, `/ja/shop/*`, new guide clusters (later phases); localized private, account or checkout routes (map §5); legacy redirects (2E); internal navigation link changes and locale sitemap entries (2C/2D — in 2B nothing links to or lists the new URLs).
+
+### 18.2 Implementation design (review only; no source edited)
+
+| # | Element | Design |
+|---|---|---|
+| A | Route organization | OD-10 = A: the R1-R18 pages move under `app/[lang]/…` with `generateStaticParams` limited to `en`/`ja` and an invalid `[lang]` answering 404; private routes stay at the root; the root `/` page stays where it is (OD-3) |
+| B | URL-authoritative locale | `getLang()` resolution order becomes URL locale (from the request context), then cookie, then `Accept-Language`, then default — one rule in `lib/i18n.ts`, pure and unit-tested |
+| C | `x-cj-lang` | Middleware-owned: set from `localeOf(pathname)` on locale routes, **deleted on every other request** so a client-sent value never survives (the `x-cj-path` pattern; OD-15 security requirement) |
+| D | Cookie sync | Middleware writes `cj-lang` on locale-route requests and responses (existing cookie attributes); never on private routes; the OD-15 explicit-language argument (landing in 2C) is what closes the two-tab case — 2B is safe meanwhile because nothing links to the locale URLs |
+| E | Canonical + hreflang | Per-page `generateMetadata` through one helper fed by `siblingPath` (structure) and the data eligibility answer (OD-9, F2): self canonical, reciprocal `en`/`ja` only when the sibling exists, is 200 and indexable |
+| F | x-default | OD-2: the corresponding English URL; a single-language page names its own eligible URL |
+| G | 404s | Locale-tree not-found pages emit **no canonical and no hreflang** (closing X1 there): unknown `[lang]`, unknown family, missing slug, ineligible language |
+| H | JSON-LD | A pure builder extracted to `lib/json-ld.ts` (unit-testable, closing the JSX gap), rendered by the existing component; `url`, `@id`, `offers.url` locale-correct and equal to the page canonical; `inLanguage` from the page language |
+| I | Blog eligibility | Existing Hub post-detail reads (`hub.post(slug)`, cached on the `content` tag): a language page exists only with that language's title + body and the layaway rule; no Hub contract change |
+| J | Statutory pages | Already handled by Phase 2A (`lib/statutory-path.ts` looks past the prefix); re-verified on real `/en/legal/*`, `/ja/legal/*` renders: consent banner quiet, announcement bar absent, advertising parity |
+| K | Private routes | Unchanged paths, unchanged behaviour; Phase 1 noindex policy tests keep passing; `classifyPath` becomes the live classifier for the locale tree only |
+| L | Legacy pages | Byte-identical metadata (C0/H0): the 35-route snapshot must show zero differences; `SeoLinks` keeps serving the unprefixed tree unchanged |
+| M | Layaway | No `/en/layaway` or `/ja/layaway` (the 2A family table already cannot produce them); English layaway links stay on bare `/layaway` (Option ii); layaway UI renders only where `layawayOffered(lang)` with the URL-authoritative language; `check:layaway-ja` green |
+
+### 18.3 Preview and build safety
+
+- Feature branches get no Vercel build (Ignored Build Step); the only deployed preview is the **`develop` alias** (`cha-jewels-web-git-develop-cha-jewels.vercel.app`), verified again 2026-10-28: Vercel SSO (302) + `x-robots-tag: noindex`. **Merge-to-preview risk:** 2B code must merge to `develop` before any deployed preview exists, so the pre-merge gates below are the protection; `develop` is not production (release to `main` is a separate owner-gated PR), and the rollback is reverting the merge on `develop`.
+- **Mandatory pre-merge protections:** full local checks (unit, typecheck, lint, `check:terms`, `check:money`, `check:i18n`) **and a local production build** (`next build`) whose route table is inspected; the 35-route legacy snapshot and the locale route matrix run against the local production server. CI runs no build (recommendation to add one stands, needs approval).
+- UNVERIFIED (owner/dashboard): Preview environment-variable targets (live Hub vs fixtures); a safe test customer account. Supabase redirect allow-list covers the `develop` alias per `docs/CLAUDE-DETAILS.md:48`; sign-in tests only from the alias. No automation-bypass credentials exist or will be created without authorization; no test orders, drafts, payments or refunds, ever.
+
+### 18.4 Release gates (none skipped or combined)
+
+| Gate | Content |
+|---|---|
+| A | Owner approves the §18.1 inventory and gives **written authorization to implement Phase 2B** |
+| B | Implementation on a dedicated branch (proposed: `seo/phase-2b-locale-routes`) |
+| C | Unit, typecheck, lint, terminology, money and language guards all pass |
+| D | Local production build passes; route table inspected |
+| E | 35-route legacy snapshot byte-identical |
+| F | Localized routes pass the SEO route matrix (§12 rows for 2B) |
+| G | PR reviewed and approved (not self-merged) |
+| H | `develop` preview deployed and validated (manual smoke via SSO, or approved automation bypass) |
+| I | Owner separately authorizes the production release (`develop` → `main` PR) |
+| J | Production deployment verified by actual route checks (recorded output, never the expected numbers) |
+| K | No customer-facing locale links or locale sitemap entries activate until Phases 2C/2D, each under its own approval; C0/H0 reconsidered at the 2C gate |
+
+**Rollback:** revert the 2B merge on `develop` (locale URLs return to 404; nothing links to them, so no customer path breaks); after a production release, revert the release merge on `main` — legacy URLs are untouched throughout, so working URLs are preserved at every stage.
 

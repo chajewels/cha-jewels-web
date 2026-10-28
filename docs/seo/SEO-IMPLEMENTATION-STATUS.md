@@ -1,11 +1,11 @@
 # Cha Jewels SEO Implementation Status
 
-**Last updated:** 2026-10-28 (Phase 2A merged to `develop` as PR #396, not in `main`; Phase 1 merged to `develop` as PR #393, not yet in `main`; Phase 2 planning merged as PR #394, with corrections in a follow-up PR; no Phase 2 implementation)
+**Last updated:** 2026-10-28 (Release 0 DEPLOYED to production and verified; OD-9, OD-15 and C0/H0-for-2B OWNER APPROVED; Phase 2B awaiting Gate A written authorization)
 **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` · **Evidence:** `docs/seo/SEO-BASELINE.md` (Day 0 and the Phase 1 addendum, §14-17)
 
 Statuses: NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE
 
-Nothing in this file is marked indexed, ranking or rich-result eligible. Phase 1 is merged to `develop` (PR #393) but is not in `main`, so it is not in production; the Phase 1 rows below stay READY FOR QA until it is released and re-checked on production.
+Nothing in this file is marked indexed, ranking or rich-result eligible. Release 0 (PR #397, merge `5fc238a`) deployed Phases 1 and 2A to production on 2026-10-28; verification evidence is in the Release 0 section below.
 "Locally verified" means: unit tests pass, and the changed pages were rendered by a local build (fixtures mode) and checked with `scripts/check-seo-live.mjs`. Production has not been re-checked because it does not have the change.
 
 ---
@@ -18,14 +18,14 @@ Nothing in this file is marked indexed, ranking or rich-result eligible. Phase 1
 | 0 | Search Console Day-0 export | NOT STARTED | Needs the owner |
 | 1 | Private/utility route matrix | VERIFIED | Baseline §14. Signed-in renders not checked (see below) |
 | 1 | Search-page indexing policy | VERIFIED | Baseline §15: `noindex, follow`, not in sitemap, not blocked |
-| 1 | SEO regression tests | READY FOR QA | 20 new unit tests + `scripts/check-seo-live.mjs` |
-| 1 | Private/utility noindex | READY FOR QA | Locally verified; not deployed |
+| 1 | SEO regression tests | DEPLOYED (Release 0) | 20 new unit tests + `scripts/check-seo-live.mjs` |
+| 1 | Private/utility noindex | DEPLOYED; production verified 2026-10-28; SEARCH ENGINE RECRAWL PENDING | Release 0 (PR #397, `5fc238a`); verifier 119/0/1 on production |
 | 1 | 404 metadata cleanup | PARTIAL: page-level 404s already correct; unmatched-route 404 DEFERRED to Phase 2 | Baseline §16 |
 | 1 | Verification-only checks | VERIFIED | Sold products, preview, HTTPS, www: baseline §17 |
 | 1 | Non-production `X-Robots-Tag` | NOT NEEDED | Preview is behind Vercel Authentication and already sends `x-robots-tag: noindex` |
 | 1 | Old-domain redirect (`chajewelsjapan.com`) | BLOCKED — EXTERNAL DOMAIN/DNS/HOST CONFIGURATION | Decided (D2). No repository change in Phase 1 |
 | 1 | Sold products in the sitemap | KEEP IN SITEMAP FOR NOW | Decided (D3). No sitemap change in Phase 1. Later policy review: X10 |
-| 2 | `/en` and `/ja` URL architecture | 2A merged to `develop` (PR #396), not in production; 2B-2E NOT STARTED | Planning in `SEO-MIGRATION-MAP.md`; Phase 2A record below. **No route, redirect, canonical target, hreflang target, sitemap route or internal-link destination has been changed.** Not IMPLEMENTING. Gates 2A-2E defined (map §15). OD-13 and OD-14 resolved as technical conventions; OD-5 merged into OD-1; the remaining owner decisions are in map §14 |
+| 2 | `/en` and `/ja` URL architecture | 2A DEPLOYED (Release 0); 2B NOT STARTED (awaiting Gate A); 2C-2E NOT STARTED | Planning in `SEO-MIGRATION-MAP.md`; Phase 2A record below. **No route, redirect, canonical target, hreflang target, sitemap route or internal-link destination has been changed.** Not IMPLEMENTING. Gates 2A-2E defined (map §15). OD-13 and OD-14 resolved as technical conventions; OD-5 merged into OD-1; the remaining owner decisions are in map §14 |
 | 3 | `/en/layaway` | BLOCKED | Depends on Phase 2B and 2C; bare `/layaway` unchanged. Phase 3 creates and validates `/en/layaway`, then repoints the English layaway links (Phase 2C leaves them on `/layaway`, Option ii) |
 | 4-10 | Structured data, Merchant Center, SEO fields, content hubs | NOT STARTED | Untouched |
 
@@ -111,10 +111,10 @@ All Phase 1 behaviour changes sit in two small edits (`app/layout.tsx`, `lib/pag
 - Route-change rule in force: any change to a public route, redirect, canonical or hreflang target, sitemap route set or internal-link destination needs approval first.
 - Findings that feed the deferred list: X1 (resolved by design in the locale tree), X2 (the whole phase), X3 (Phase 3). New planning findings recorded in the map: uncached public pages (E5), cookie-gated layaway server actions (E7), per-language blog post existence and sitemap listing (E8, E10), compliance gates keyed on `/legal/*` paths (E12).
 - Resolved without the owner (technical conventions): **OD-13** locale homes are `/en` and `/ja` (existing `trailingSlash: false` kept); **OD-14** Phase 2 migrates the existing route families under locale prefixes, and master-plan §22's `/shop/*` and `/guides/*` tree stays future-phase architecture.
-- **Owner decisions** (map §14). OWNER APPROVED 2026-10-28: OD-10 = A (real App Router locale routes), OD-2 = English x-default, OD-3 = redirect later (root unchanged through 2B-2D), OD-8 = yes (publish only language versions that exist and meet eligibility; no invented translations). **Still open, each with a recommendation that is not applied:** OD-1, OD-4, OD-6, OD-7, OD-9, OD-11, OD-12, OD-15, plus the interim legacy canonical and hreflang option (C0/H0, map §7), which is a recommendation and not approved.
+- **Owner decisions** (map §14). OWNER APPROVED 2026-10-28: OD-10 = A, OD-2 = English x-default, OD-3 = root unchanged until 2E, OD-8 = eligible existing language versions only, OD-9 = content-eligibility policy (neutral-text rule), OD-15 = URL-authoritative language with security requirements, C0/H0 = legacy canonical+hreflang unchanged **for 2B only** (expires at the 2C gate). **Still open:** OD-1, OD-4, OD-6 (2E); OD-7, OD-11 and the C0/H0 reconsideration (2C); OD-12 (2D).
 - Gates: **2A** locale infrastructure only, **2B** locale routes and metadata, **2C** links, switcher and application behaviour, **2D** sitemap and full validation, **2E** legacy redirects (last, staged 307 then 308). None started.
 - Verified findings F1-F5 the design must honour (map §2.1): stale-cookie layaway refusal, single-language blog posts, `/legal/*`-keyed consent, advertising and **announcement-bar** (`bannerAllowed`) checks, relative links in Hub content, and (observation only, out of scope) no-store public responses.
-- **Interim canonical AND hreflang behaviour of bare legacy URLs: PROPOSED — OWNER APPROVAL REQUIRED** (map §7, canonical options C0/C1/C2, hreflang options H0/H1/H2). Not approved architecture; it depends on OD-1, OD-2 (x-default), OD-3 and OD-4. Until one canonical option and one hreflang option are approved, Phase 2B must not change any legacy page's canonical or hreflang (C0 + H0). The x-default destination is not approved.
+- **Interim canonical AND hreflang behaviour of bare legacy URLs:** C0 + H0 **OWNER APPROVED 2026-10-28 for the Phase 2B dark launch only** (map §7, §14); the approval expires at the Phase 2C gate, where the legacy strategy must be reconsidered and separately approved.
 - **Planning corrections (follow-up to PR #394, documentation only):** (B1) layaway links stay on the legacy `/layaway` through Phase 2C (Option ii) and nothing points to `/en/layaway` until Phase 3 validates it; 2C exit adds "No internal navigation link may resolve to HTTP 404"; Japanese layaway stays unavailable. (B2) `bannerAllowed` announcement-bar suppression on `/legal/*` is added to F3, the file inventory, the Phase 2A files and tests, and the test matrix. (N1) legacy hreflang and x-default added to the owner-approval block. (N2) locale-correct JSON-LD URLs moved to Phase 2B. (N3) Phase 2A may be verified with a local build; a deployed preview is required before 2B. (N4) a refreshed cookie alone does not close the stale-cookie case; the language-authoritative layaway gating correction must be merged and verified before localized links are activated (2C).
 - Work is on branch `seo/phase-2-planning-corrections`.
 
@@ -170,11 +170,11 @@ No implementation. `develop` is `ccb8917`, `main` is `f963f2c`, no PR is open, a
 
 | Item | State |
 |---|---|
-| OD-9 fallback-language policy | Audit done and quality-corrected (map §16.1): all 447 products reached in both languages; **0 genuine fallback pages**; five product evidence categories (355 verified localized, 75 correctly localized with short Japanese descriptions, 16 with no description body in either language, 1 proper-name echo, 0 fallback); 14 English-only FAQ items consistent with the layaway rule. Policy proposed with a neutral-text rule instead of word-count language detection; **not approved** |
-| OD-15 URL, cookie and layaway-gating authority | Implementation-ready design plus a security review in map §17 (presentation gates vs server-enforced business rules; explicit `lang` creates no new authorization or payment bypass; `x-cj-lang` must be middleware-owned; private, payment-return and confirmation routes unchanged); **not approved** |
-| Interim legacy canonical and hreflang (C0/H0) | Risk assessment in map §7: safe for the 2B dark launch; **proposed for 2B ONLY** (legacy URLs fully unchanged, locale URLs unlinked and unlisted, mandatory reconsideration at the 2C gate because of the conflicting hreflang clusters); **not approved** |
-| Written route-change approval | Not given |
-| Release 0 | **Required and not done.** `main` lacks Phase 1 (private-route noindex) and Phase 2A; any release PR from `develop` carries all merged work, so Phase 1 + 2A should be released and verified on production first |
+| OD-9 fallback-language policy | Audit done and quality-corrected (map §16.1): all 447 products reached in both languages; **0 genuine fallback pages**; five product evidence categories (355 verified localized, 75 correctly localized with short Japanese descriptions, 16 with no description body in either language, 1 proper-name echo, 0 fallback); 14 English-only FAQ items consistent with the layaway rule. Policy proposed with a neutral-text rule instead of word-count language detection; **OWNER APPROVED 2026-10-28** (map §14) |
+| OD-15 URL, cookie and layaway-gating authority | Implementation-ready design plus a security review in map §17 (presentation gates vs server-enforced business rules; explicit `lang` creates no new authorization or payment bypass; `x-cj-lang` must be middleware-owned; private, payment-return and confirmation routes unchanged); **OWNER APPROVED 2026-10-28 with security requirements** (map §14, §17) |
+| Interim legacy canonical and hreflang (C0/H0) | Risk assessment in map §7: safe for the 2B dark launch; **proposed for 2B ONLY** (legacy URLs fully unchanged, locale URLs unlinked and unlisted, mandatory reconsideration at the 2C gate because of the conflicting hreflang clusters); **OWNER APPROVED 2026-10-28 FOR PHASE 2B ONLY; expires at the 2C gate** |
+| Written route-change approval | **Gate A still required**: approval of the exact route inventory (map §18.1) and written authorization to implement |
+| Release 0 | **DONE.** PR #397 merged by the owner (`5fc238a`), Production deployment success, production verified (below) |
 | A deployed preview | Available only through the `develop` branch alias (below) |
 
 **Vercel preview facts**
@@ -213,6 +213,18 @@ No implementation. `develop` is `ccb8917`, `main` is `f963f2c`, no PR is open, a
 
 **Production deployment prerequisites (owner):** create the release PR `develop` → `main` (Cynthia merges per the project workflow); after deploy, run `scripts/check-seo-live.mjs` against production expecting 119/0/1 (it reads 92 pass / 27 fail / 1 deferred on today's production); spot-check `/legal/tokusho` (banner absent, bar absent) and `/cart`,`/login` (noindex); then mark Phase 1 rows DEPLOYED and the noindex items SEARCH ENGINE RECRAWL PENDING — never "indexed".
 
+## Release 0: DEPLOYED and production-verified (2026-10-28)
+
+- PR #397 (`develop` → `main`) merged by the owner at 06:46Z; merge `5fc238a`; `main`'s tree byte-identical to pre-merge `develop` (`ccb8917`); 21 files, all Phase 1 + 2A; zero payment/checkout/middleware/config/migration files. PR #398 (Phase 2B prerequisites docs) merged to `develop` (`4c5c19a`).
+- GitHub Production deployment `7379037269` for `5fc238a`: **success** (06:48Z); production confirmed serving the release (`/cart` carries `noindex, follow`).
+- **Actual production verification (recorded output):** `scripts/check-seo-live.mjs https://www.chajewelsjp.com` → **119 pass, 0 fail, 1 deferred** (X1, deferred to Phase 2B's locale tree; the unprefixed-tree case remains by design until then). Pre-release production read 92/27/1.
+- Spot-checks: `/cart`, `/login` 200 + `noindex, follow`, no canonical/hreflang; `/auth/confirm`, `/already-registered` `noindex, nofollow`; `/legal/tokusho` indexable with no announcement bar and no consent banner; indexable pages' canonical/hreflang unchanged; sitemap 481 URLs with zero locale entries; robots.txt unchanged; `/en`, `/ja`, `/en/layaway`, `/ja/layaway` all 404 + noindex; no layaway link or term on the Japanese surfaces; apex→www one 308. The one anomaly chased (`/collections/kihei` 404) is a fixtures-only slug that was never a live collection — not a regression.
+- Status vocabulary: Phase 1 and 2A are **DEPLOYED**; the noindex changes are **SEARCH ENGINE RECRAWL PENDING**. Nothing is INDEXED or RANKING.
+
+## Phase 2B gate status (2026-10-28)
+
+**All owner decisions needed for 2B are now approved** (OD-2, OD-3, OD-8, OD-9, OD-10, OD-15, C0/H0-for-2B — map §14). The execution specification, route inventory, design A-M, preview/build safety and release gates A-K are in **map §18**. **The single remaining gate is Gate A: owner approval of the §18.1 route inventory and written authorization to implement Phase 2B.** Still UNVERIFIED on the owner side: Preview environment-variable targets (live Hub vs fixtures) and a safe test customer account; optional: CI build step, automation bypass. Still open for later phases: OD-7, OD-11 and the C0/H0 reconsideration (2C); OD-12 and the collections-index review (2D); OD-1, OD-4, OD-6 (2E); Phase 3 layaway.
+
 ## Change log
 
 - 2026-10-28: Baseline and this file created (Phase 0). No application code changed.
@@ -225,3 +237,4 @@ No implementation. `develop` is `ccb8917`, `main` is `f963f2c`, no PR is open, a
 - 2026-10-28: Phase 2A final QA (READY FOR QA, local): four defects in the new helpers fixed (protocol-relative output from a prefixed path, backslash and control characters, fail-safe holes in the bar rule, Japanese layaway classed public), family rules made data-driven for Phase 3, 41 new tests (383 total), production build and 35-route comparison clean, content-language audit validated with confidence labels, phase-numbering conflicts recorded. No route or output change.
 - 2026-10-28: Phase 2B prerequisite review (documentation only): OD-10, OD-2, OD-3 and OD-8 recorded as OWNER APPROVED; OD-9 content audit completed (map §16.1, policy proposed, not approved); OD-15 design written (map §17, not approved); C0/H0 risk assessed (map §7, not approved); Release 0 identified as a prerequisite; preview readiness documented. No route or application change.
 - 2026-10-28: Final Phase 2B prerequisites (documentation only): OD-9 audit quality-corrected into five evidence categories (0 fallback pages; neutral-text rule replaces word-count detection; the intermittent 500 unreproduced in instrumented passes); OD-15 security review added (no new authorization or payment bypass; middleware-owned x-cj-lang); C0/H0 explicitly scoped to the 2B dark launch only, unapproved; Release 0 preflight recorded (safe, one PR, not created). No route or application change.
+- 2026-10-28: Release 0 verified in production (119/0/1 recorded); Phase 1 and 2A marked DEPLOYED, recrawl pending; OD-9, OD-15 (with security requirements) and C0/H0 (2B only, expires at the 2C gate) recorded OWNER APPROVED; Phase 2B execution specification added (map §18). No application change; Phase 2B not started.
