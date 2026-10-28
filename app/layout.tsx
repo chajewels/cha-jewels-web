@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
 import { indexingFor } from "@/lib/seo-policy";
+import { announcementBarAllowed } from "@/lib/statutory-path";
 import { dict, tr, PATH_HEADER } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { announcement, follow } from "@/lib/settings";
@@ -78,9 +79,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * told the pathname. NO HEADER MEANS NO BAR: a path the middleware did not
  * match is a path we cannot classify, and the safe answer to "is this the legal
  * notice?" is the one that cannot put a banner on it.
+ *
+ * The rule itself is `announcementBarAllowed` in lib/statutory-path.ts, shared
+ * with the cookie banner so the two cannot drift. It also recognises a locale
+ * prefix (/en/legal/..., /ja/legal/...) before any such route exists.
  */
-const bannerAllowed = (path: string | null) =>
-  !!path && path.startsWith("/") && path !== "/legal" && !path.startsWith("/legal/");
+const bannerAllowed = announcementBarAllowed;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [lang, h] = await Promise.all([getLang(), headers()]);
