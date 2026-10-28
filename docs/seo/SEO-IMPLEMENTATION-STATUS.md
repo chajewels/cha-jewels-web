@@ -1,11 +1,11 @@
 # Cha Jewels SEO Implementation Status
 
-**Last updated:** 2026-10-28 (Phase 1 on branch `seo/phase-1-technical-hardening`, not pushed, not merged)
+**Last updated:** 2026-10-28 (Phase 1 merged to `develop` as PR #393, not yet in `main`; Phase 2 is planning only)
 **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` · **Evidence:** `docs/seo/SEO-BASELINE.md` (Day 0 and the Phase 1 addendum, §14-17)
 
 Statuses: NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE
 
-Nothing in this file is marked indexed, ranking or rich-result eligible. Nothing from Phase 1 is deployed.
+Nothing in this file is marked indexed, ranking or rich-result eligible. Phase 1 is merged to `develop` (PR #393) but is not in `main`, so it is not in production; the Phase 1 rows below stay READY FOR QA until it is released and re-checked on production.
 "Locally verified" means: unit tests pass, and the changed pages were rendered by a local build (fixtures mode) and checked with `scripts/check-seo-live.mjs`. Production has not been re-checked because it does not have the change.
 
 ---
@@ -25,8 +25,8 @@ Nothing in this file is marked indexed, ranking or rich-result eligible. Nothing
 | 1 | Non-production `X-Robots-Tag` | NOT NEEDED | Preview is behind Vercel Authentication and already sends `x-robots-tag: noindex` |
 | 1 | Old-domain redirect (`chajewelsjapan.com`) | BLOCKED — EXTERNAL DOMAIN/DNS/HOST CONFIGURATION | Decided (D2). No repository change in Phase 1 |
 | 1 | Sold products in the sitemap | KEEP IN SITEMAP FOR NOW | Decided (D3). No sitemap change in Phase 1. Later policy review: X10 |
-| 2 | `/en` and `/ja` URL architecture | NOT STARTED | Unchanged. Next |
-| 3 | `/en/layaway` | BLOCKED | Depends on Phase 2 |
+| 2 | `/en` and `/ja` URL architecture | AUDITED / PLANNING | `SEO-MIGRATION-MAP.md` written 2026-10-28. **No route, redirect, canonical target, hreflang target, sitemap route or internal-link destination has been changed.** Not IMPLEMENTING. Gates 2A-2E defined (map §15). OD-13 and OD-14 resolved as technical conventions; OD-5 merged into OD-1; the remaining owner decisions are in map §14 |
+| 3 | `/en/layaway` | BLOCKED | Depends on Phase 2B and 2C; bare `/layaway` unchanged |
 | 4-10 | Structured data, Merchant Center, SEO fields, content hubs | NOT STARTED | Untouched |
 
 ---
@@ -103,7 +103,24 @@ Baseline §14 (15 route rows, status/robots/canonical/hreflang/sitemap/private d
 
 All Phase 1 behaviour changes sit in two small edits (`app/layout.tsx`, `lib/page-meta.tsx`) plus one new pure module. `git revert` of the Phase 1 commit restores today's output exactly; no data, route, redirect, cookie, Hub call or sitemap entry changed. After deployment, `noindex` takes effect only when a crawler next fetches each URL; reverting is equally gradual.
 
+## Phase 2 planning (AUDITED / PLANNING)
+
+- Plan: `docs/seo/SEO-MIGRATION-MAP.md` (route-family map, redirect/canonical/hreflang/sitemap/switcher design, internal-link map, test matrix, risk report, owner decisions, implementation gates 2A-2E).
+- New skill: `.claude/skills/cha-i18n-seo/SKILL.md`.
+- Status of implementation: **none**. No file under `app/`, `components/`, `lib/`, `middleware.ts`, `next.config.ts` or `tests/` was changed for Phase 2.
+- Route-change rule in force: any change to a public route, redirect, canonical or hreflang target, sitemap route set or internal-link destination needs approval first.
+- Findings that feed the deferred list: X1 (resolved by design in the locale tree), X2 (the whole phase), X3 (Phase 3). New planning findings recorded in the map: uncached public pages (E5), cookie-gated layaway server actions (E7), per-language blog post existence and sitemap listing (E8, E10), compliance gates keyed on `/legal/*` paths (E12).
+- Resolved without the owner (technical conventions): **OD-13** locale homes are `/en` and `/ja` (existing `trailingSlash: false` kept); **OD-14** Phase 2 migrates the existing route families under locale prefixes, and master-plan §22's `/shop/*` and `/guides/*` tree stays future-phase architecture.
+- Owner decisions still needed (map §14; each carries a recommendation that is **not** applied): OD-1 bare legacy URLs (includes old shared links), OD-2 x-default, OD-3 behaviour of `/`, OD-4 `?lang=` URLs, OD-6 legacy `/layaway`, OD-7 switcher with no sibling, OD-8 single-language pages, OD-9 fallback-language content, OD-10 mechanism, OD-11 Hub-authored relative links, OD-12 sitemap alternates, OD-15 cookie role and sync.
+- Gates: **2A** locale infrastructure only, **2B** locale routes and metadata, **2C** links, switcher and application behaviour, **2D** sitemap and full validation, **2E** legacy redirects (last, staged 307 then 308). None started.
+- Verified findings F1-F5 the design must honour (map §2.1): stale-cookie layaway refusal, single-language blog posts, `/legal/*`-keyed consent and ad checks, relative links in Hub content, and (observation only, out of scope) no-store public responses.
+- **Interim canonical behaviour of bare legacy URLs: PROPOSED — OWNER APPROVAL REQUIRED** (map §7, options C0/C1/C2). Not approved architecture; it depends on OD-1, OD-2, OD-3 and OD-4. Until one option is approved, Phase 2B must not change any legacy page's canonical.
+- Work is on branch `seo/phase-2-multilingual-planning` (local commit, not pushed).
+
 ## Change log
 
 - 2026-10-28: Baseline and this file created (Phase 0). No application code changed.
 - 2026-10-28: Phase 1: route matrix, search policy, noindex for private/utility routes, canonical/hreflang removed on those routes, 20 unit tests, `scripts/check-seo-live.mjs`. 404 cleanup partly deferred. Branch not pushed.
+- 2026-10-28: Phase 2 planning only: SEO-MIGRATION-MAP.md and skill cha-i18n-seo created; status set to AUDITED / PLANNING. No route or application change.
+- 2026-10-28: Phase 2 planning refined: OD-13 and OD-14 resolved as technical conventions; remaining owner decisions detailed with recommendations; findings F1-F5 recorded; implementation gates 2A-2E defined. Moved to branch `seo/phase-2-multilingual-planning`. No route or application change.
+- 2026-10-28: Phase 2 planning finalized for commit: the interim canonical behaviour of bare legacy URLs is reclassified PROPOSED — OWNER APPROVAL REQUIRED (it is not approved architecture); all remaining owner decisions stay unresolved. No route or application change.
