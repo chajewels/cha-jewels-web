@@ -14,8 +14,8 @@ import { postLanguages } from "@/lib/posts";
  *
  * THE ROOT IS THE ONE EXCEPTION: `/` stays unchanged until its own Phase 2E
  * decision (OD-3), and it stays listed beside `/ja` and `/en` exactly as it is
- * listed today. That listing is the recommended policy, PENDING OWNER
- * CONFIRMATION (map §20.3), with its temporary duplication of the home page.
+ * listed today (owner approved, map §20.3), with its temporary duplication of
+ * the home page until OD-3.
  *
  * NO HREFLANG HERE (OD-12, approved): the alternates live in the HTML only, one
  * source of truth (lib/locale-meta.ts). Entries carry no `alternates`.
