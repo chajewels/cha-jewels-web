@@ -839,3 +839,62 @@ Locale homes `/en` and `/ja`, plus `/en/<path>` and `/ja/<path>` for the existin
 
 **Rollback:** revert the 2B merge on `develop` (locale URLs return to 404; nothing links to them, so no customer path breaks); after a production release, revert the release merge on `main` — legacy URLs are untouched throughout, so working URLs are preserved at every stage.
 
+---
+
+## 19. Phase 2C approval package (2026-10-28; Phase 2B is DEPLOYED and production-verified)
+
+**Nothing here is implemented or approved.** It is the decision set and the one implementation batch Phase 2C needs. Phase 2D (sitemap), 2E (redirects) and Phase 3 (`/en/layaway`) stay excluded.
+
+### 19.1 OD-7 — switcher with no sibling (RECOMMENDATION, not approval)
+
+When the destination language has no version of the current page (English-only posts; `/layaway` pages until Phase 3), the switcher links to the **destination language's home** (`/ja` or `/en`). It never links to a missing localized page, never to the layaway page from Japanese, and never renders a dead control. English-only content stays English-only (OD-8); no Japanese layaway exposure.
+
+### 19.2 OD-11 — Hub-controlled relative links (RECOMMENDATION, not approval)
+
+Localize **eligible** Hub-controlled relative links at render time, using the Phase 2A helpers (`localePath`; only paths `isLocalizable` accepts are rewritten): blog markdown `[text](/path)` (`lib/markdown.ts`), the announcement `href` (`lib/settings.ts` / announcement bar), Hub-fed page content and navigation URLs (collection/category links built from Hub rows). **Never rewritten:** external URLs, `mailto:`, private/checkout/payment URLs (not localizable by the family table), and the bare `/layaway` exception (its family is not live, so `localePath` already returns it unchanged). Hub data and contracts untouched: the Hub keeps storing bare paths.
+
+### 19.3 Legacy canonical/hreflang for the 2C-2D window (C0/H0 expired at this gate — DECISION REQUIRED)
+
+| | **A. Keep legacy metadata unchanged (C0+H0 extended through 2C-2D)** | **B. Change legacy canonicals to the locale URLs and/or drop legacy hreflang (C1/C2 + H1/H2)** | **C. Coordinated staged redirects: pull Phase 2E's 307 stage forward to ship with 2D** |
+|---|---|---|---|
+| Search-engine impact | Two indexable URL sets for the same content once links/sitemap point at locale URLs; engines pick one per cluster; Search Console duplicate warnings | Signals consolidate onto locale URLs before any redirect exists; however a canonical pointing from a 200 page it still serves is a weak hint and may be ignored | Cleanest: links, sitemap and redirects move together, so crawlers meet one canonical URL set |
+| Canonical consistency | Each URL self-consistent; the two sets conflict with each other | Legacy pages declare a canonical that differs from what they serve — exactly the mixed signal §7 warned about if paired with H0 | Fully consistent |
+| Hreflang reciprocity | Legacy trio (incl. the X2 `?lang=en` defect) conflicts with the locale clusters; return tags do not match | H1 (drop legacy hreflang) restores reciprocity for the locale cluster; H2 needs legacy pages to name locale URLs they do not canonicalize to | Reciprocal from day one |
+| x-default | Legacy says itself (ja), locale cluster says English — split answer | Resolvable (H1 leaves only the locale cluster's English x-default) | Single answer (English, OD-2) |
+| English visitors | Unaffected (they reach locale pages through the new links) | Unaffected | Old bookmarks land on `/en|ja/...` per OD-1 signals — better |
+| Japanese visitors | Unaffected | Unaffected | Same, 307s are invisible to people |
+| Bookmarks / old shared links | Keep serving the bare pages | Keep serving, but with off-page canonicals | Redirected (307: reversible) |
+| Implementation complexity | Zero | Small-medium (SeoLinks change on live pages) | Medium (the 2E middleware/next.config work, 307-only, minus OD-1's permanent stage) |
+| Rollback risk | None | Low (metadata revert) | Low: 307s are not cached as permanent; full revert possible |
+| Phase 2E compatibility | 2E later replaces everything anyway | Partially throwaway work | IS the 2E first stage; 308 promotion stays a separate later approval (OD-1/OD-4 still decide targets) |
+| **Verdict** | Acceptable only if the 2D→2E gap is short and bounded | **Not recommended**: B with H0 is self-contradictory; B with H1 buys little that C does not buy better | **RECOMMENDED** |
+
+**Recommendation (one):** **Option C** — extend the window plan so the 307 stage of the legacy redirects (OD-1 L2 shape, OD-4 `?lang=` rules) ships **with or immediately after 2D**, keeping legacy metadata untouched (effectively A) for the short 2C window in between, during which locale links exist but the sitemap still lists only legacy URLs. Requires answering **OD-1 and OD-4 at the 2D gate instead of 2E**, root `/` behaviour unchanged until its separately approved 2E decision (OD-3), and **no 308 anywhere** until the separate promotion approval. If the owner prefers zero redirect work before 2E, Option A with a written bound on the 2D→2E gap is the fallback.
+
+### 19.4 OD-15 implementation boundary (design approved; implementation gated)
+
+Exactly four gates take the new optional validated `lang` (`isLocale`, anything else = today's cookie path): `quoteAction`, `payLayawayAction`, `pesoEstimateAction` (`lib/checkout-actions.ts:122,233,332`) and `layawayQuote` (`lib/layaway.ts:31`), plus the post-payment cookie write in `payLayawayAction`. **Unchanged:** authentication, agreement gates (fail-closed), `UNLAUNCHED_TERMS`, payment validation, every Hub money call, `layawayOffered`/`LAYAWAY_LANGS`, the bare `/layaway` links (until Phase 3). Explicit `ja` is always refused. Middleware context stays middleware-owned (client `x-cj-lang` deleted — already live and tested). Tests: the two-tab table, the no-cookie-only-gate source guard, and a fixtures checkout regression that creates nothing. **Process: the `lib/checkout-actions.ts` diff is money-adjacent — per CLAUDE.md the owner switches the session to Opus (`/model`) for that change and its review.**
+
+### 19.5 Combined Phase 2C execution plan (ONE batch after approval)
+
+Order inside the batch: (1) OD-15 gating completion first; (2) link infrastructure; (3) switcher; (4) crawl + regression.
+
+| Area | Work |
+|---|---|
+| Switcher | Crawlable `<a>` to `siblingPath` (data-eligible); OD-7 fallback to the destination home; cookie still written on click-through by the middleware sync |
+| Desktop + mobile navigation | Header, nav-menu, footer, mobile-nav, mobile tab bar: locale-aware `href`s via `localePath(path, lang)`; active-state matching via `stripLocale` (tab bar, nav-underline); the tab bar's product-page hide rule re-based |
+| Search | Search-box suggestion/`router.push` targets localized |
+| Catalogue + content links | Product cards, sold cards, breadcrumbs, related pieces, category/collection links, blog/guide/FAQ-anchor links, `lib/content/*` hrefs |
+| Share URLs | `lib/share.ts`: locale URL replaces the `?lang=en` form |
+| Hub relative links | §19.2 (markdown, announcement, Hub-fed nav) |
+| Revalidation | `app/api/revalidate`: revalidate bare + `/en` + `/ja` variants of each path |
+| Sign-out | `lib/session-actions.ts` destination locale-aware |
+| Layaway gating | §19.4 |
+| Exceptions | English layaway links stay on bare `/layaway` (documented, tested); no other bare-legacy public link may remain |
+
+**Exit requirements:** full-site crawl on the local production build and then the develop preview — **zero internal links resolving to HTTP 404** and zero bare-legacy public links outside the layaway exception; locale content correct; no Japanese layaway; checkout regression suite (quotes only, nothing created); legacy URLs stable (35-route snapshot); full local production build green; preview verification (owner SSO or approved bypass); **separate owner approval for the production release**. Excluded: 2D sitemap, 2E redirects (unless Option C is approved, in which case its 307 stage is still built and released under its own gates), Phase 3.
+
+### 19.6 Approvals Phase 2C needs from the owner
+
+1. OD-7 (§19.1) — approve or amend. 2. OD-11 (§19.2) — approve or amend. 3. The §19.3 transition decision (Option C recommended; if C, also answer OD-1 and OD-4 at the 2D gate). 4. Written Phase 2C implementation authorization naming the §19.5 scope. 5. `/model` to Opus for the `checkout-actions.ts` step. 6. (Standing) preview data-source confirmation and, optionally, an automation bypass for preview crawls.
+
