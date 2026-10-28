@@ -55,3 +55,25 @@ test("localeVariants: a localizable path has three URLs; others stand alone", ()
   assert.deepEqual(localeVariants("/layaway"), ["/layaway"]);
   assert.deepEqual(localeVariants("/account"), ["/account"]);
 });
+
+// THE SWITCHER IS NEVER PREFETCHED (found 2026-10-28). Its prefetch of the other
+// language's URL ran the middleware's cookie sync — Next strips the router's
+// prefetch headers before middleware, so the middleware cannot tell — and
+// viewing an English page set cj-lang=ja. It is also the only component that
+// links into the other language; every other link is built in the page's own.
+test("the language switcher's link is never prefetched, and nothing else links into a fixed language", async () => {
+  const { readFileSync, readdirSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const sw = readFileSync(join(process.cwd(), "components/site/lang-switcher.tsx"), "utf8");
+  const links = sw.match(/<Link\b[^>]*>/g) ?? [];
+  assert.ok(links.length > 0, "the switcher renders links");
+  for (const l of links) assert.match(l, /prefetch=\{false\}/, l);
+  const files = [];
+  (function walk(d) { for (const n of readdirSync(d)) { const f = join(d, n); if (statSync(f).isDirectory()) walk(f); else if (/\.tsx?$/.test(n)) files.push(f); } })(join(process.cwd(), "components"));
+  (function walk(d) { for (const n of readdirSync(d)) { const f = join(d, n); if (statSync(f).isDirectory()) walk(f); else if (/\.tsx?$/.test(n)) files.push(f); } })(join(process.cwd(), "app"));
+  for (const f of files) {
+    const s = readFileSync(f, "utf8");
+    assert.ok(!/localePath\([^)]*,\s*["'](en|ja)["']\)/.test(s), `${f} builds a link into a fixed language`);
+    assert.ok(!/href=[{"'`]+\/(en|ja)([/"'`?]|$)/.test(s), `${f} hard-codes a locale href`);
+  }
+});

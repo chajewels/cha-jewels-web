@@ -46,11 +46,22 @@ export function LangSwitcher({ lang, targets, tone = "light", compact = false }:
     });
   }
   const dark = tone === "dark";
-  /** One control, link or button, same look. The current language never links away. */
+  /**
+   * One control, link or button, same look. The current language never links away.
+   *
+   * NEVER PREFETCHED (found 2026-10-28). The middleware syncs `cj-lang` to the
+   * locale of every /en or /ja request, and Next removes the router's prefetch
+   * headers before middleware runs, so it cannot tell a prefetch from a visit.
+   * This link is the only one on a page that names the OTHER language: its
+   * prefetch quietly switched the cookie — viewing an English page set
+   * `cj-lang=ja`, after which the English /layaway link 404'd and /cart
+   * rendered Japanese. A real click is still a navigation, so the cookie
+   * follows the customer's actual choice. tests/locale-nav.test.mjs guards it.
+   */
   function Option({ l, className, children, label }: { l: Lang; className: string; children: React.ReactNode; label?: string }) {
     const href = l === lang ? null : targets?.[l] ?? null;
     return href ? (
-      <Link href={href} lang={l} aria-label={label} className={className}>{children}</Link>
+      <Link href={href} prefetch={false} lang={l} aria-label={label} className={className}>{children}</Link>
     ) : (
       <button type="button" lang={l} disabled={pending} aria-label={label} aria-pressed={l === lang || undefined} onClick={() => set(l)} className={className}>{children}</button>
     );
