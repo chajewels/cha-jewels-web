@@ -96,7 +96,10 @@ test("switch targets follow the current route through the same switchTargets rul
   assert.match(hook, /usePathname\(\)/);
   assert.match(hook, /\/api\/switch-targets\?path=\$\{encodeURIComponent\(path\)\}/);
   assert.match(hook, /if \(onLoadedPage\) return initial;/, "the server's answer stands on the page it was computed for");
-  assert.match(route, /await switchTargets\(path\)/, "one rule: the endpoint answers with the layout's own function");
+  assert.match(hook, /const documentPath = typeof window === "undefined" \? null : window\.location\.pathname;/, "the props describe the DOCUMENT's page, not the path when a switcher mounts (the drawer mounts late)");
+  assert.doesNotMatch(hook, /useState\(pathname\)/, "a mount-time path would trust stale props in a late-mounted switcher");
+  assert.match(hook, /return \(\) => \{ live = false; \};/, "an answer for a path no longer on screen is dropped");
+  assert.match(route, /await switchTargets\(splitPath\(raw\)\.path\)/, "one rule: the endpoint answers with the layout's own function, for the pathname only");
   assert.doesNotMatch(route, /cookies\(\)|headers\(\)/, "the answer depends on the path alone, never on the visitor");
   // The endpoint's answers for the pages the browser journey visits.
   assert.deepEqual(await switchTargets("/en/faq"), { en: "/en/faq", ja: "/ja/faq" });

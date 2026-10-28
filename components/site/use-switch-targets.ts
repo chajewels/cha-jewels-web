@@ -22,8 +22,22 @@ import type { SwitchTargets } from "@/lib/locale-nav";
  * `null` means "not known for this path yet" (the answer is in flight, or the
  * request failed). The switcher then offers each language's HOME — a page that
  * always exists — rather than a destination that belonged to another page.
+ *
+ * WHICH PAGE THE PROPS DESCRIBE is the page this DOCUMENT was loaded on,
+ * recorded once when this module first runs in the browser — not the path at
+ * the moment a switcher mounts. The phone drawer mounts its switcher only when
+ * opened, so "first render" there can be several client navigations after the
+ * layout computed its answer (found in review 2026-10-28). A full page load
+ * runs the module afresh, with props for the new page.
+ *
+ * NO OLD ANSWER CAN LAND ON A NEWER PAGE: each answer is applied only while its
+ * path is still the one on screen (the effect's cleanup), and only read back
+ * for the path it was asked for.
  */
 const answers = new Map<string, Promise<SwitchTargets | null>>();
+
+/** The path of the document the layout rendered (null during the server render, where the props are always right). */
+const documentPath = typeof window === "undefined" ? null : window.location.pathname;
 
 function load(path: string): Promise<SwitchTargets | null> {
   let answer = answers.get(path);
@@ -38,12 +52,16 @@ function load(path: string): Promise<SwitchTargets | null> {
   return answer;
 }
 
+/** usePathname() is decoded; location.pathname is percent-encoded. Compare them decoded. */
+function samePath(a: string, b: string): boolean {
+  if (a === b) return true;
+  try { return decodeURIComponent(a) === decodeURIComponent(b); } catch { return false; }
+}
+
 export function useSwitchTargets(initial: SwitchTargets | undefined): SwitchTargets | null | undefined {
   const pathname = usePathname();
-  // The path the props were computed for: the path this document was rendered on.
-  const [loadedOn] = useState(pathname);
   const [fresh, setFresh] = useState<{ path: string; targets: SwitchTargets | null } | null>(null);
-  const onLoadedPage = pathname === loadedOn;
+  const onLoadedPage = documentPath === null || samePath(pathname, documentPath);
 
   useEffect(() => {
     if (onLoadedPage) return;
