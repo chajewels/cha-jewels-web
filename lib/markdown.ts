@@ -1,3 +1,5 @@
+import { localePath } from "@/lib/locale";
+import type { Lang } from "@/lib/i18n";
 /**
  * A SMALL MARKDOWN RENDERER FOR POST BODIES, AND NOTHING ELSE.
  *
@@ -81,7 +83,7 @@ function safeHref(href: string): string | null {
  * rules that avoids it. A placeholder that cannot occur in the input is the
  * only way both rules can be simple.
  */
-function inline(text: string): string {
+function inline(text: string, lang?: Lang): string {
   const slots: string[] = [];
   const hold = (html: string) => `${SLOT}${slots.push(html) - 1}${SLOT}`;
 
@@ -94,7 +96,9 @@ function inline(text: string): string {
   // URL survives and `javascript:alert(1)` is captured whole and refused whole
   // rather than leaving its closing bracket stranded in the sentence.
   out = out.replace(/\[([^\]\n]*)\]\(([^()\s]*(?:\([^()\s]*\)[^()\s]*)*)\)/g, (whole, label: string, href: string) => {
-    const safe = safeHref(href);
+    const rawSafe = safeHref(href);
+    // OD-11: an eligible internal public path is localized at render time; see renderMarkdown.
+    const safe = rawSafe && lang ? localePath(rawSafe, lang) : rawSafe;
     if (!safe) return label.trim() || whole;
     // An empty label would be a link with no accessible name, which axe reports
     // and a screen reader announces as the URL anyway. Showing the URL is the
@@ -125,25 +129,34 @@ const UL = /^\s*[-*]\s+/;
 const OL = /^\s*\d+\.\s+/;
 
 /** One blank-line-separated block → one element. */
-function block(lines: string[]): string {
+function block(lines: string[], lang?: Lang): string {
   const h3 = lines[0].match(/^###\s+(.*)$/);
-  if (h3) return `<h3>${inline(h3[1])}</h3>`;
+  if (h3) return `<h3>${inline(h3[1], lang)}</h3>`;
   const h2 = lines[0].match(/^##\s+(.*)$/);
-  if (h2) return `<h2>${inline(h2[1])}</h2>`;
+  if (h2) return `<h2>${inline(h2[1], lang)}</h2>`;
 
   // A list only when EVERY line is an item. A block that is half prose and half
   // dashes is prose with dashes in it, and guessing which half was meant is how
   // a renderer starts producing surprises.
-  if (lines.every((l) => UL.test(l))) return `<ul>${lines.map((l) => `<li>${inline(l.replace(UL, ""))}</li>`).join("")}</ul>`;
-  if (lines.every((l) => OL.test(l))) return `<ol>${lines.map((l) => `<li>${inline(l.replace(OL, ""))}</li>`).join("")}</ol>`;
+  if (lines.every((l) => UL.test(l))) return `<ul>${lines.map((l) => `<li>${inline(l.replace(UL, ""), lang)}</li>`).join("")}</ul>`;
+  if (lines.every((l) => OL.test(l))) return `<ol>${lines.map((l) => `<li>${inline(l.replace(OL, ""), lang)}</li>`).join("")}</ol>`;
 
   // Single newlines inside a paragraph are a wrapped line, not a break — the
   // same reading every markdown implementation has. A real break is a blank line.
-  return `<p>${inline(lines.join(" "))}</p>`;
+  return `<p>${inline(lines.join(" "), lang)}</p>`;
 }
 
 /** Markdown → HTML. Empty in, empty out; never throws. */
-export function renderMarkdown(source: string): string {
+/**
+ * `lang` (OD-11, Phase 2C): Hub-authored relative links are localized at render
+ * time. Only an eligible site-internal public path changes (`localePath`, the
+ * Phase 2A family table): externals, mailto, private, unknown, protocol-
+ * relative and malformed values are untouched, the bare /layaway exception is
+ * automatic (its family is not live), a query or hash rides along, and an
+ * already-localized path is never double-prefixed. The Hub's stored text is
+ * never modified — this is rendering only.
+ */
+export function renderMarkdown(source: string, lang?: Lang): string {
   const normalised = source
     .replace(/[\u0000\u0001]/g, "")
     .replace(/\r\n?/g, "\n")
@@ -157,7 +170,7 @@ export function renderMarkdown(source: string): string {
     .split(/\n{2,}/)
     .map((chunk) => chunk.split("\n").map((l) => l.trimEnd()).filter((l) => l.trim() !== ""))
     .filter((lines) => lines.length > 0)
-    .map(block)
+    .map((lines) => block(lines, lang))
     .join("");
   // ADJACENT LISTS OF THE SAME KIND ARE ONE LIST. An author who puts a blank
   // line between bullets means one list — CommonMark reads it that way too —

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { stripLocale } from "@/lib/locale";
 import { usePathname } from "next/navigation";
 import { ComponentStyle, mix } from "@/components/fx/component-style";
 
@@ -15,7 +16,7 @@ const CSS = `
 
 /** Does this path belong to the item? "/" only matches itself; anything else matches its section. */
 const owns = (match: string, path: string) =>
-  match.split(" ").some((m) => (m === "/" ? path === "/" : path === m || path.startsWith(`${m}/`)));
+  match.split(" ").some((m) => { const bare = stripLocale(path); return m === "/" ? bare === "/" : bare === m || bare.startsWith(`${m}/`); });
 
 /**
  * A gold underline that slides between the primary nav's items: it rests

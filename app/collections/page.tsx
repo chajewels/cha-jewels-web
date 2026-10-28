@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { getCollections } from "@/lib/queries/products";
 import { getLang, } from "@/lib/i18n-server";
@@ -18,7 +19,7 @@ export default async function CollectionsIndex() {
         <h1 className="text-[clamp(36px,5.5vw,80px)]">{t("nav", "collections")}</h1>
         <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
           {collections.map((c) => (
-            <Link key={c.id} href={`/collections/${c.slug}`} className="flex min-h-[200px] flex-col bg-white hover:underline underline-offset-8">
+            <Link key={c.id} href={localePath(`/collections/${c.slug}`, lang)} className="flex min-h-[200px] flex-col bg-white hover:underline underline-offset-8">
               {/* hero_media when the Hub has one, else the Stitch placeholder for
                   that slug, else the type's line icon (lib/type-icons.ts), so
                   every card in the grid has the same 4/3 box. Never a product photo.

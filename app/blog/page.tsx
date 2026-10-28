@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
@@ -52,7 +53,7 @@ export default async function Blog({ searchParams }: { searchParams: Promise<{ t
         </div>
         {type && (
           <p className="mt-4">
-            <Link href="/blog" className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
+            <Link href={localePath("/blog", lang)} className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
           </p>
         )}
         {posts.length === 0 ? (
@@ -73,7 +74,7 @@ export default async function Blog({ searchParams }: { searchParams: Promise<{ t
                     {new Date(p.date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
                   </time>
                   <h2 className="mt-2 text-[clamp(24px,2.6vw,36px)]">
-                    <Link href={`/blog/${p.slug}`} className="hover:text-gold-dark">{p.title}</Link>
+                    <Link href={localePath(`/blog/${p.slug}`, lang)} className="hover:text-gold-dark">{p.title}</Link>
                   </h2>
                   {p.excerpt && <p className="mt-2 max-w-[62ch] text-charcoal">{p.excerpt}</p>}
                 </div>

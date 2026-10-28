@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { HubImage } from "@/components/media/hub-image";
 import type { HeroPiece } from "@/lib/hero-deck";
 
@@ -33,7 +34,7 @@ function placeOf(j: number, n: number): number {
 const PIECE_SIZES = "(min-width:1024px) 400px, 60vw";
 
 /** `count`: the live "n available" line under the description (step 2 build). */
-export function CategoryStage({ pieces, eyebrow, title, description, count }: { pieces: HeroPiece[]; eyebrow: string; title: string; description: string | null; count?: React.ReactNode }) {
+export function CategoryStage({ pieces, eyebrow, title, description, count, lang }: { pieces: HeroPiece[]; eyebrow: string; title: string; description: string | null; count?: React.ReactNode; lang: import("@/lib/i18n").Lang }) {
   const n = pieces.length;
   return (
     <div className="cs band-dark" data-count={n}>
@@ -51,7 +52,7 @@ export function CategoryStage({ pieces, eyebrow, title, description, count }: { 
             return (
               <Link
                 key={p.slug}
-                href={`/products/${p.slug}`}
+                href={localePath(`/products/${p.slug}`, lang)}
                 className="cs-pc"
                 data-place={place}
                 data-feat={n === 3 ? (place === 1 ? "" : undefined) : ""}

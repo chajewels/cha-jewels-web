@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { localePath } from "@/lib/locale";
 import { ChevronDown, ExternalLink, Info, Lock, Plus, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -278,12 +279,12 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     if (!needsPesoEstimate) return;
     let live = true;
     setPeso({ status: "loading" });
-    pesoEstimateAction({ mode, term_months: pesoTerm || 6 }).then(
+    pesoEstimateAction({ mode, term_months: pesoTerm || 6, lang }).then(
       (res) => { if (live) setPeso(res.ok ? { status: "ok", estimate: res.data } : { status: "unavailable" }); },
       () => { if (live) setPeso({ status: "unavailable" }); },
     );
     return () => { live = false; };
-  }, [needsPesoEstimate, mode, pesoTerm, subtotal]);
+  }, [needsPesoEstimate, mode, pesoTerm, subtotal, lang]);
   const summary = checkoutSummary({ quote, intended: intendedCurrency, subtotal, mode, peso });
   const summaryMoney = (n: number | null) => {
     if (n === null) return "\u2014";
@@ -292,6 +293,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
   };
 
   const quoteInput = () => ({
+    lang, // the page's language (OD-15): the gate judges what the customer saw
     ship_to_address_id: addressId,
     order_type: orderType,
     recipient_name: orderType === "SELF" ? undefined : recipientName,
@@ -386,7 +388,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       // The Hub's confirmed figure, never the typed one: what the panel showed.
       const points = usePoints ? choice?.points.chosen ?? 0 : 0;
       const res = mode === "layaway"
-        ? await payLayawayAction(quote.quote_id, { points })
+        ? await payLayawayAction(quote.quote_id, { points }, lang)
         : await payAction(quote.quote_id, { method, points });
       if (res.ok) {
         // ENROLMENT HAPPENS HERE AND NOWHERE EARLIER. The order or plan exists,
@@ -1149,7 +1151,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     </label>
                     <p className="mt-2 pl-8 text-[13px] text-charcoal/75">
                       {t("checkout", "joinLoyaltyNote")}{" "}
-                      <Link href="/loyalty" className="font-medium text-gold-dark underline underline-offset-4">
+                      <Link href={localePath("/loyalty", lang)} className="font-medium text-gold-dark underline underline-offset-4">
                         {t("checkout", "joinLoyaltyLink")}
                       </Link>
                     </p>
@@ -1174,9 +1176,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     />
                     <span>
                       {t("checkout", "consentPrefix")}
-                      <Link href="/legal/privacy" target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-privacy-policy">{t("checkout", "policyPrivacy")}</Link>
+                      <Link href={localePath("/legal/privacy", lang)} target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-privacy-policy">{t("checkout", "policyPrivacy")}</Link>
                       {t("checkout", "consentComma")}
-                      <Link href="/legal/terms" target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-terms">{t("checkout", "policyTerms")}</Link>
+                      <Link href={localePath("/legal/terms", lang)} target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-terms">{t("checkout", "policyTerms")}</Link>
                       {t("checkout", "policyJoin")}
                       <Link href={cancellationPolicyHref(lang)} target="_blank" rel="noopener" className="font-medium text-gold-dark underline underline-offset-4" data-testid="checkout-cancellation-policy">{t("checkout", "policyCancel")}</Link>
                       {t("checkout", "consentSuffix")}

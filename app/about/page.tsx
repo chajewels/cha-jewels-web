@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -127,7 +128,7 @@ export default async function About() {
             ))}
           </ul>
           {example && (
-            <Proof className="mt-4" label={<Link href={`/products/${example.slug}`} className="underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{c.example.replace("{name}", example.sku)}</Link>}>
+            <Proof className="mt-4" label={<Link href={localePath(`/products/${example.slug}`, lang)} className="underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{c.example.replace("{name}", example.sku)}</Link>}>
               <ProofCells cells={[
                 { v: example.metal, k: t("product", "metal") },
                 { v: example.weight, k: t("product", "weight") },
@@ -180,10 +181,10 @@ export default async function About() {
         <p className="mt-12 max-w-[68ch] text-[17px] leading-relaxed text-charcoal-deep">{c.closing[0]}</p>
         <p className={`mt-4 font-display text-gold-dark ${H_TITLE}`}>{c.closing[1]}</p>
         <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <Link href="/collections" className="btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-gold-dark px-6 py-3 text-[15px] font-medium text-gold-dark hover:border-charcoal-deep hover:text-charcoal-deep">
+          <Link href={localePath("/collections", lang)} className="btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-gold-dark px-6 py-3 text-[15px] font-medium text-gold-dark hover:border-charcoal-deep hover:text-charcoal-deep">
             {c.cta} <ArrowRight aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
           </Link>
-          <Link href="/affiliations" className="inline-flex min-h-11 items-center text-[15px] text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("contact", "affiliationsFromAbout")}</Link>
+          <Link href={localePath("/affiliations", lang)} className="inline-flex min-h-11 items-center text-[15px] text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("contact", "affiliationsFromAbout")}</Link>
         </div>
       </section>
     </>

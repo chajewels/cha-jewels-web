@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { Info, Lock } from "lucide-react";
 import { getLang } from "@/lib/i18n-server";
@@ -61,7 +62,7 @@ export default async function CartPage() {
               <p className="font-display text-[22px] text-charcoal-deep">{t("cart", "empty")}</p>
               <p className="mt-1.5 text-[13px] leading-relaxed text-charcoal/75">{t("cart", "emptyHelp")}</p>
             </div>
-            <Button asChild variant="outline"><Link href="/collections">{t("cart", "browse")}</Link></Button>
+            <Button asChild variant="outline"><Link href={localePath("/collections", lang)}>{t("cart", "browse")}</Link></Button>
           </div>
           {now.length > 0 && (
             <section className="mt-12">
@@ -97,7 +98,7 @@ export default async function CartPage() {
               <section className="mt-12">
                 <div className="mb-[18px] flex flex-wrap items-baseline justify-between gap-x-4">
                   <h2 className="font-display text-[22px] text-charcoal-deep">{t("cart", "youMayLike")}</h2>
-                  <Link href="/collections" className="inline-flex min-h-11 items-center text-sm font-medium text-gold-dark underline-offset-4 hover:underline">{t("cart", "browse")}</Link>
+                  <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm font-medium text-gold-dark underline-offset-4 hover:underline">{t("cart", "browse")}</Link>
                 </div>
                 <div className="grid grid-cols-2 gap-x-3 sm:grid-cols-3 sm:gap-x-4 lg:gap-x-6">
                   {more.map((p, i) => <div key={p.slug} className={i === 2 ? "hidden sm:block" : undefined}><ProductCard product={p} lang={lang} index={i} /></div>)}
@@ -123,7 +124,7 @@ export default async function CartPage() {
               <p className="mt-3 text-[13px] leading-relaxed text-chalk/80">{t("cart", "shippingNote")}</p>
             </OrderSlab>
             <div className="border border-hairline bg-white px-4"><ProductTrust lang={lang} /></div>
-            <Link href="/collections" className="inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep">← {t("cart", "continueShopping")}</Link>
+            <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep">← {t("cart", "continueShopping")}</Link>
           </div>
         </div>
       </div>

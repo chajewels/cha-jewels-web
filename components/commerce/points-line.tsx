@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { tr, type Lang } from "@/lib/i18n";
 import { pointsLineAction } from "@/lib/points-actions";
@@ -27,7 +28,7 @@ export function PointsLine({ variantId, lang }: { variantId: string; lang: Lang 
     return (
       <p className="text-[13px] leading-relaxed text-charcoal/80" data-testid="points-line">
         {t("product", "pointsJoin", { points: formatPoints(line.points) })}{" "}
-        <Link href="/loyalty/join" className="whitespace-nowrap font-medium text-gold-dark underline underline-offset-4">
+        <Link href={localePath("/loyalty/join", lang)} className="whitespace-nowrap font-medium text-gold-dark underline underline-offset-4">
           {t("product", "pointsJoinCta")}
         </Link>
       </p>

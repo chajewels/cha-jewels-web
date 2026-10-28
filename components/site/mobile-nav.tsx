@@ -1,11 +1,13 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { localePath } from "@/lib/locale";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { signOutAction } from "@/lib/session-actions";
 import { SearchBox } from "./search-box";
 import { LangSwitcher } from "./lang-switcher";
+import type { SwitchTargets } from "@/lib/locale-nav";
 import { SocialGlyph } from "./social-icons";
 import { MenuStory } from "./menu-story";
 import type { Lang } from "@/lib/i18n";
@@ -58,7 +60,7 @@ export type DrawerGroup = {
  *
  * Motion: `.drawer-in` (220ms, ease-lux); reduced motion shows it at once.
  */
-export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, closeLabel, account, accountLink, messenger, since, story }: {
+export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, closeLabel, account, accountLink, messenger, since, story , switchTargets }: {
   lang: Lang;
   links: { href: string; label: string }[];
   groups?: DrawerGroup[];
@@ -68,6 +70,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
   account?: DrawerAccount | null;
   accountLink: { href: string; label: string };
   messenger: { href: string; label: string } | null;
+  switchTargets?: SwitchTargets;
   since: string;
   story?: { stories: Story[]; eyebrow: string; moreLabel: string } | null;
 }) {
@@ -150,7 +153,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
           className="drawer-in fixed inset-0 z-50 flex flex-col bg-chalk text-charcoal-deep xl:hidden"
         >
           <div className="wrap flex h-16 w-full shrink-0 items-center justify-between border-b border-hairline">
-            <Link href="/" onClick={close} className="flex items-center gap-2 sm:gap-3" aria-label="Cha Jewels">
+            <Link href={localePath("/", lang)} onClick={close} className="flex items-center gap-2 sm:gap-3" aria-label="Cha Jewels">
               <img src="/images/brand/logo-badge-96.webp" srcSet="/images/brand/logo-badge-96.webp 1x, /images/brand/logo-badge-192.webp 2x" width={40} height={40} alt="" className="h-10 w-10" />
               <span className="gilt font-display text-[22px] font-medium tracking-wide sm:text-[26px]">Cha Jewels</span>
             </Link>
@@ -258,7 +261,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
                 </a>
               )}
               <div className="mt-3 flex items-center justify-between gap-3">
-                <LangSwitcher lang={lang} tone="dark" />
+                <LangSwitcher lang={lang} targets={switchTargets} tone="dark" />
                 <span className="text-xs text-chalk/75">{since}</span>
               </div>
             </div>

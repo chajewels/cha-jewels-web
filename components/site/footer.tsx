@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
+import type { SwitchTargets } from "@/lib/locale-nav";
 import { tr, type Lang } from "@/lib/i18n";
 import { getCollections } from "@/lib/queries/products";
 import { collectionName } from "@/lib/catalog-i18n";
@@ -40,7 +42,9 @@ import { CookieSettingsLink } from "@/components/site/consent-banner";
  * unreachable Hub costs the collection list, the tagline and the icons, never
  * the page. A setting the Hub does not hold renders nothing.
  */
-export async function Footer({ lang }: { lang: Lang }) {
+export async function Footer({ lang, switchTargets }: { lang: Lang; switchTargets?: SwitchTargets }) {
+  // Locale-aware public links (Phase 2C); private and /layaway pass through unchanged.
+  const L = (h: string) => localePath(h, lang);
   const t = tr(lang);
   const [collections, followLinks, tagline, offered] = await Promise.all([
     getCollections().catch(() => []),
@@ -56,21 +60,21 @@ export async function Footer({ lang }: { lang: Lang }) {
     {
       key: "collections",
       heading: t("footer", "collections"),
-      links: [...collections.map((c) => ({ href: `/collections/${c.slug}`, label: collectionName(c, lang) })), { href: "/collections", label: t("footer", "all") }],
+      links: [...collections.map((c) => ({ href: L(`/collections/${c.slug}`), label: collectionName(c, lang) })), { href: L("/collections"), label: t("footer", "all") }],
     },
     {
       key: "company",
       heading: t("trust", "company"),
       links: [
-        { href: "/about", label: t("navMenu", "about") },
-        { href: "/why-cha-jewels", label: t("navMenu", "why") },
-        { href: "/faq", label: t("navMenu", "faq") },
-        { href: "/blog", label: t("navMenu", "blog") },
-        { href: "/blog?type=news", label: t("navMenu", "news") },
-        { href: "/contact", label: t("navMenu", "contact") },
-        { href: "/affiliations", label: t("navMenu", "affiliations") },
-        { href: "/loyalty", label: t("nav", "loyalty") },
-        { href: "/wholesale", label: t("nav", "wholesale") },
+        { href: L("/about"), label: t("navMenu", "about") },
+        { href: L("/why-cha-jewels"), label: t("navMenu", "why") },
+        { href: L("/faq"), label: t("navMenu", "faq") },
+        { href: L("/blog"), label: t("navMenu", "blog") },
+        { href: L("/blog?type=news"), label: t("navMenu", "news") },
+        { href: L("/contact"), label: t("navMenu", "contact") },
+        { href: L("/affiliations"), label: t("navMenu", "affiliations") },
+        { href: L("/loyalty"), label: t("nav", "loyalty") },
+        { href: L("/wholesale"), label: t("nav", "wholesale") },
       ],
     },
     {
@@ -79,14 +83,14 @@ export async function Footer({ lang }: { lang: Lang }) {
       links: [
         // The FAQ's layaway section, not /layaway: "Layaway terms" promises
         // terms. English only, because layaway is.
-        ...(layaway ? [{ href: "/faq#payments-and-layaway", label: t("footer", "terms") }] : []),
-        { href: "/faq", label: t("footer", "faq") },
-        { href: "/shopping-guide", label: t("footer", "shoppingGuide") },
-        { href: "/jewelry-guide", label: t("footer", "jewelryGuide") },
-        { href: "/legal/returns", label: t("footer", "returns") },
-        { href: "/legal/tokusho", label: t("footer", "tokusho") },
-        { href: "/legal/privacy", label: t("footer", "privacy") },
-        { href: "/legal/terms", label: t("footer", "sale") },
+        ...(layaway ? [{ href: L("/faq#payments-and-layaway"), label: t("footer", "terms") }] : []),
+        { href: L("/faq"), label: t("footer", "faq") },
+        { href: L("/shopping-guide"), label: t("footer", "shoppingGuide") },
+        { href: L("/jewelry-guide"), label: t("footer", "jewelryGuide") },
+        { href: L("/legal/returns"), label: t("footer", "returns") },
+        { href: L("/legal/tokusho"), label: t("footer", "tokusho") },
+        { href: L("/legal/privacy"), label: t("footer", "privacy") },
+        { href: L("/legal/terms"), label: t("footer", "sale") },
       ],
     },
   ];
@@ -188,7 +192,7 @@ export async function Footer({ lang }: { lang: Lang }) {
           {offered.card && <CardMarks label={t("footer", "cards")} />}
           {offered.paidy && <PaidyMark label={t("footer", "paidy")} />}
         </div>
-        <LangSwitcher lang={lang} tone="dark" />
+        <LangSwitcher lang={lang} targets={switchTargets} tone="dark" />
       </div>
     </footer>
   );

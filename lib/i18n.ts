@@ -41,6 +41,20 @@ export const LANG_HEADER = "x-cj-lang";
  * URL's language whatever the cookie or ?lang= says, and the cookie is synced
  * to it when it differs (OD-15 cookie synchronisation).
  */
+/**
+ * THE LANGUAGE A LAYAWAY GATE JUDGES (OD-15, Phase 2C). A server action may be
+ * handed the language of the page the customer was actually shown; a value that
+ * is not exactly "en" or "ja" is ignored and the gate falls back to the
+ * caller's own resolution (the cookie), which is the pre-2C behaviour. This is
+ * NOT authentication and NOT payment authorization: the language was always
+ * self-selected (the cookie is client state too); the gate only keeps the
+ * refusal consistent with what the customer saw. An explicit "ja" still refuses
+ * layaway — the strict direction never loosens.
+ */
+export function gateLang(explicit: unknown, fallback: Lang): Lang {
+  return asLang(typeof explicit === "string" ? explicit : null) ?? fallback;
+}
+
 export function langDecision(input: {
   urlLocale: Lang | null;
   cookieLang: Lang | null;

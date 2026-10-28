@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { HubImage } from "@/components/media/hub-image";
 import { SocialGlyph } from "@/components/site/social-icons";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ export function SoldCard({ alternatives, messenger, lang }: { alternatives: Prod
             const shown = fromVariant(x);
             return (
               <li key={x.slug}>
-                <Link href={`/products/${x.slug}`} className="grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 border-b border-gold/30 py-2.5 text-[13px] leading-snug hover:text-gold-pale">
+                <Link href={localePath(`/products/${x.slug}`, lang)} className="grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 border-b border-gold/30 py-2.5 text-[13px] leading-snug hover:text-gold-pale">
                   <span className="relative grid h-14 w-14 place-items-center bg-chalk">
                     {img && <span className={img.kind === "cut" ? "absolute inset-[7%]" : "absolute inset-0"}><HubImage src={img.src} alt="" fill sizes="56px" className="object-contain" /></span>}
                   </span>

@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/page-meta";
+import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLang } from "@/lib/i18n-server";
@@ -314,7 +315,7 @@ function LevelCard({ me, tiers, lang }: { me: HubMe; tiers: HubTier[]; lang: Lan
 
           <p className="mt-5 text-[13px] leading-relaxed text-chalk/80">
             {t("account", "levelRule")} {t("account", "pointsSpend")}{" "}
-            <Link href="/loyalty" className="text-gold-pale underline underline-offset-4">{t("nav", "loyalty")}</Link>
+            <Link href={localePath("/loyalty", lang)} className="text-gold-pale underline underline-offset-4">{t("nav", "loyalty")}</Link>
           </p>
         </>
       ) : (
@@ -324,7 +325,7 @@ function LevelCard({ me, tiers, lang }: { me: HubMe; tiers: HubTier[]; lang: Lan
             <p className="mt-2 text-[15px] text-chalk/90">{t("account", "notEnrolled")}</p>
           </div>
           <Button asChild variant="outline" className="border-chalk/70 text-chalk hover:border-chalk hover:text-chalk">
-            <Link href="/loyalty">{t("nav", "loyalty")}</Link>
+            <Link href={localePath("/loyalty", lang)}>{t("nav", "loyalty")}</Link>
           </Button>
         </div>
       )}

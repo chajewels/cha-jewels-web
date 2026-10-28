@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { localePath } from "@/lib/locale";
 import { useSearchParams } from "next/navigation";
 import { dict, type Lang } from "@/lib/i18n";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -113,7 +114,7 @@ export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string |
           {messenger ? (
             <a href={messenger} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-charcoal-deep">{c.stuck[lang]}</a>
           ) : (
-            <Link href="/contact" className="underline underline-offset-4 hover:text-charcoal-deep">{c.stuck[lang]}</Link>
+            <Link href={localePath("/contact", lang)} className="underline underline-offset-4 hover:text-charcoal-deep">{c.stuck[lang]}</Link>
           )}
         </p>
       </div>

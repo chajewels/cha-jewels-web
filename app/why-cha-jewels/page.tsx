@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { pageMeta } from "@/lib/page-meta";
@@ -72,7 +73,7 @@ export default async function WhyChaJewels() {
       </Proof>
     ) : null,
     s3: spec ? (
-      <Proof label={<Link href={`/products/${spec.slug}`} className="underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("why", "proofExample", { sku: spec.sku })}</Link>}>
+      <Proof label={<Link href={localePath(`/products/${spec.slug}`, lang)} className="underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("why", "proofExample", { sku: spec.sku })}</Link>}>
         <ProofCells cells={[
           { v: spec.metal, k: t("product", "metal") },
           { v: spec.weight, k: t("product", "weight") },
@@ -85,7 +86,7 @@ export default async function WhyChaJewels() {
         {spec && dpVariant && isFigure(dpVariant.down_payment_jpy) && isFigure(dpVariant.down_payment_php) && (
           <ProofRow k={t("why", "dpOn", { sku: spec.sku })} v={formatYenPeso(dpVariant.down_payment_jpy, dpVariant.down_payment_php)} />
         )}
-        <Link href="/layaway" className="mt-1 inline-flex min-h-11 items-center text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("why", "howLayaway")}</Link>
+        <Link href={localePath("/layaway", lang)} className="mt-1 inline-flex min-h-11 items-center text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("why", "howLayaway")}</Link>
       </Proof>
     ),
     s5: (
@@ -146,7 +147,7 @@ export default async function WhyChaJewels() {
       <DarkBand>
         <div className={`wrap ${SEC_S} flex flex-wrap items-center justify-between gap-5`}>
           <p className={`font-display text-gold-pale ${H_TITLE}`}>{t("why", "close")}</p>
-          <Link href="/collections" className="btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-chalk/55 px-6 py-3 text-[15px] font-medium text-chalk hover:border-chalk">
+          <Link href={localePath("/collections", lang)} className="btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border border-chalk/55 px-6 py-3 text-[15px] font-medium text-chalk hover:border-chalk">
             {t("why", "cta")} <ArrowRight aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
           </Link>
         </div>

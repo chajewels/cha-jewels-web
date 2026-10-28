@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { catalogue, isAvailable } from "@/lib/catalog-context";
@@ -21,7 +22,7 @@ export default async function NotFound() {
     <>
       <EmptyStage code="404" title={t("notFound", "h1")} lede={t("notFound", "p")}>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <Link href="/collections" className="btn-press inline-flex min-h-12 items-center justify-center rounded-sm border border-chalk/55 px-6 py-3 text-[15px] font-medium text-chalk hover:border-chalk">
+          <Link href={localePath("/collections", lang)} className="btn-press inline-flex min-h-12 items-center justify-center rounded-sm border border-chalk/55 px-6 py-3 text-[15px] font-medium text-chalk hover:border-chalk">
             {t("notFound", "back")}
           </Link>
         </div>

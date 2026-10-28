@@ -8,29 +8,30 @@ const { SHARE_NETWORKS, postShareUrl, withShareUtm, buildShareUrl } = await impo
 
 const BASE = "https://www.chajewelsjp.com";
 const SLUG = "why-cha-jewels-care-behind-every-piece";
-const EN = `${BASE}/blog/${SLUG}?lang=en`;
-const JA = `${BASE}/blog/${SLUG}`;
+// Phase 2C (OD-11/2C share change): a share carries the locale URL, not ?lang=.
+const EN = `${BASE}/en/blog/${SLUG}`;
+const JA = `${BASE}/ja/blog/${SLUG}`;
 
 test("the networks, in the bar's order", () => {
   assert.deepEqual([...SHARE_NETWORKS], ["facebook", "x", "line", "whatsapp", "threads"]);
 });
 
-test("post URL: English carries ?lang=en, Japanese carries no parameter", () => {
+test("post URL: each language shares its own locale URL (Phase 2C)", () => {
   assert.equal(postShareUrl(BASE, SLUG, "en"), EN);
   assert.equal(postShareUrl(BASE, SLUG, "ja"), JA);
   assert.equal(postShareUrl(`${BASE}/`, SLUG, "ja"), JA, "a trailing slash on the base is not doubled");
-  assert.equal(postShareUrl(BASE, "a b/c", "ja"), `${BASE}/blog/a%20b%2Fc`, "the slug is one path segment");
+  assert.equal(postShareUrl(BASE, "a b/c", "ja"), `${BASE}/ja/blog/a%20b%2Fc`, "the slug is one path segment");
 });
 
-test("utm_source and utm_medium=share are added, ?lang=en kept", () => {
-  assert.equal(withShareUtm(EN, "copy"), `${EN}&utm_source=copy&utm_medium=share`);
+test("utm_source and utm_medium=share are added to the locale URL", () => {
+  assert.equal(withShareUtm(EN, "copy"), `${EN}?utm_source=copy&utm_medium=share`);
   assert.equal(withShareUtm(JA, "native"), `${JA}?utm_source=native&utm_medium=share`);
 });
 
 test("every endpoint, URL-encoded, with its own utm_source", () => {
   const title = "Why Cha Jewels? Care & K18 gold";
   const t = encodeURIComponent(title);
-  const shared = (n) => `${EN}&utm_source=${n}&utm_medium=share`;
+  const shared = (n) => `${EN}?utm_source=${n}&utm_medium=share`;
   const u = (n) => encodeURIComponent(shared(n));
   assert.equal(buildShareUrl("facebook", EN, title), `https://www.facebook.com/sharer/sharer.php?u=${u("facebook")}`);
   assert.equal(buildShareUrl("x", EN, title), `https://twitter.com/intent/tweet?url=${u("x")}&text=${t}`);
@@ -46,9 +47,9 @@ test("encoding: no raw &, ?, # or space from the title or URL leaks into the sha
     const params = [...link.searchParams.keys()];
     assert.ok(params.length <= 2, `${n}: ${params}`);
     const carried = link.searchParams.get("u") ?? link.searchParams.get("url") ?? link.searchParams.get("text");
-    assert.ok(carried.includes(`${EN}&utm_source=${n}&utm_medium=share`), `${n} carries the post URL intact`);
+    assert.ok(carried.includes(`${EN}?utm_source=${n}&utm_medium=share`), `${n} carries the post URL intact`);
     if (n === "x") assert.equal(link.searchParams.get("text"), title);
-    if (n === "whatsapp" || n === "threads") assert.equal(carried, `${title} ${EN}&utm_source=${n}&utm_medium=share`);
+    if (n === "whatsapp" || n === "threads") assert.equal(carried, `${title} ${EN}?utm_source=${n}&utm_medium=share`);
   }
 });
 

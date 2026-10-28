@@ -58,7 +58,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <CollectionHead eyebrow={eyebrow} title={name} description={description} available={available} photo={cat.hero_media} lang={lang} />
       ) : (
         <div className="wrap pt-[clamp(20px,3vw,40px)]">
-          <CategoryStage pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} count={<CountLine available={available} lang={lang} />} />
+          <CategoryStage lang={lang} pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} count={<CountLine available={available} lang={lang} />} />
         </div>
       )}
       <div className="h-[clamp(12px,2vw,24px)]" />

@@ -68,7 +68,7 @@ function fromHub(row: HubPost, lang: Lang, needBody: boolean): ViewPost | null {
     excerpt: pick(lang === "ja" ? row.excerpt_ja : row.excerpt_en) ?? "",
     cover,
     layawayOnly: row.layaway_only === true,
-    bodyHtml: body ? renderMarkdown(body) : "",
+    bodyHtml: body ? renderMarkdown(body, lang) : "",
   };
 }
 

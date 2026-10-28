@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
 import { type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
@@ -65,8 +66,8 @@ export default async function ShoppingGuidePage() {
         <div className="wrap flex flex-wrap items-center justify-between gap-5">
           <p className="font-display text-[clamp(22px,2.6vw,32px)] text-charcoal-deep">{intro.help[lang]}</p>
           <div className="flex flex-wrap gap-3">
-            <Button asChild><Link href="/contact">{intro.contact[lang]}</Link></Button>
-            <Button asChild variant="outline"><Link href="/faq">{intro.faq[lang]}</Link></Button>
+            <Button asChild><Link href={localePath("/contact", lang)}>{intro.contact[lang]}</Link></Button>
+            <Button asChild variant="outline"><Link href={localePath("/faq", lang)}>{intro.faq[lang]}</Link></Button>
           </div>
         </div>
       </section>
@@ -78,7 +79,7 @@ function Runs({ runs, lang }: { runs: GuideRun[]; lang: Lang }) {
   return (
     <>
       {runs.map((r, i) => r.href
-        ? <Link key={i} href={r.href} className="font-medium text-gold-dark underline underline-offset-4">{r.t[lang]}</Link>
+        ? <Link key={i} href={localePath(r.href, lang)} className="font-medium text-gold-dark underline underline-offset-4">{r.t[lang]}</Link>
         : <span key={i}>{r.t[lang]}</span>)}
     </>
   );

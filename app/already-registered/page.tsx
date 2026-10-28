@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
@@ -28,7 +29,7 @@ export default async function AlreadyRegisteredPage() {
         <div role="status" className="mt-8 border border-hairline bg-white p-6">
           <p className="text-charcoal-deep">{t("profile", "registeredP")}</p>
           <p className="mt-3 text-sm text-charcoal/70">{t("profile", "registeredSignedOut")}</p>
-          <Button asChild className="mt-6"><Link href="/contact">{t("profile", "contactCta")}</Link></Button>
+          <Button asChild className="mt-6"><Link href={localePath("/contact", lang)}>{t("profile", "contactCta")}</Link></Button>
         </div>
         <EndSessionOnMount />
       </div>
