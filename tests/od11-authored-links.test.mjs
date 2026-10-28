@@ -63,6 +63,17 @@ test("query strings, fragments and URL encoding are preserved, and nothing is do
   assert.equal(href("[t](/en/products/%E3%83%AA%E3%83%B3%E3%82%B0)", "ja"), "/en/products/%E3%83%AA%E3%83%B3%E3%82%B0");
   for (const page of ["en", "ja"]) for (const h of ["/en/faq", "/ja/faq", "/faq"]) assert.doesNotMatch(href(`[t](${h})`, page), /^\/(en|ja)\/(en|ja)(\/|$)/);
 });
+test("locale prefixes are matched on whole path segments only", () => {
+  for (const p of ["/english/faq", "/enx/faq", "/en-us/faq", "/EN/faq", "/jap/about", "/ja-jp/faq", "/entry"]) {
+    for (const page of ["en", "ja"]) assert.equal(href(`[t](${p})`, page), p, `${p} is not a locale prefix`);
+  }
+});
+test("an explicit link keeps its language but is tidied like any other: no trailing-slash redirect hop", () => {
+  assert.equal(href("[t](/en/faq/)", "ja"), "/en/faq");
+  assert.equal(href("[t](/en/)", "ja"), "/en");
+  assert.equal(href("[t](/ja/about/#top)", "en"), "/ja/about#top");
+  assert.equal(href("[t](/en?x=1)", "ja"), "/en?x=1");
+});
 test("unknown slugs and unknown paths: no data lookup, no invention", () => {
   assert.equal(href("[t](/en/blog/no-such-post)", "ja"), "/en/blog/no-such-post", "explicit kept as written");
   assert.equal(href("[t](/products/no-such-piece)", "ja"), "/ja/products/no-such-piece", "unprefixed: structural, as before");

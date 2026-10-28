@@ -215,8 +215,8 @@ export const { familyOf, isLocalizable, localePath, siblingPath } = createLocale
  * An UNPREFIXED eligible public path takes the page's language, exactly as
  * `localePath` gives it: "/faq" is "/ja/faq" on a Japanese page and "/en/faq"
  * on an English one. A path the author already prefixed with "/en" or "/ja" is
- * the author's explicit choice of language and is returned AS WRITTEN — never
- * re-based onto the page's language. `localePath` itself swaps a prefix, which
+ * the author's explicit choice of language and keeps that language — never
+ * re-based onto the page's language (a trailing slash is still normalised). `localePath` itself swaps a prefix, which
  * is right for the language switcher (it asks for the same page in the other
  * language) and wrong for an editor who deliberately linked one language: an
  * English-only article linked as "/en/blog/…" from a Japanese page used to
@@ -229,7 +229,10 @@ export const { familyOf, isLocalizable, localePath, siblingPath } = createLocale
  * an editorial decision, not this function's.
  */
 export function localizeAuthoredHref(input: string, locale: Locale): string {
-  return localeOf(input) ? input : localePath(input, locale);
+  // An explicit prefix is localized into ITS OWN language: the language never
+  // changes, and the path is tidied exactly as `localePath` tidies any link
+  // ("/en/faq/" → "/en/faq"), so an author's trailing slash costs no redirect.
+  return localePath(input, localeOf(input) ?? locale);
 }
 
 /**
