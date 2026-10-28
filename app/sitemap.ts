@@ -12,9 +12,10 @@ import { postLanguages } from "@/lib/posts";
  * 2E-stage-1 answers with a 307 to one of them. A sitemap lists canonical
  * URLs, never redirects.
  *
- * THE ROOT IS THE ONE EXCEPTION (map §7 (c), approved): `/` stays unchanged
- * until its own Phase 2E decision (OD-3), so it is listed beside `/ja` and
- * `/en`, accepting the temporary duplication of the home page.
+ * THE ROOT IS THE ONE EXCEPTION: `/` stays unchanged until its own Phase 2E
+ * decision (OD-3), and it stays listed beside `/ja` and `/en` exactly as it is
+ * listed today. That listing is the recommended policy, PENDING OWNER
+ * CONFIRMATION (map §20.3), with its temporary duplication of the home page.
  *
  * NO HREFLANG HERE (OD-12, approved): the alternates live in the HTML only, one
  * source of truth (lib/locale-meta.ts). Entries carry no `alternates`.
