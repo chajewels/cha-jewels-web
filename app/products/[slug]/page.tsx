@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { redirectLegacy } from "@/lib/legacy-redirect-server";
 import { localePath } from "@/lib/locale";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -95,6 +96,9 @@ const CSS = `
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const [p, lang] = await Promise.all([getProductBySlug((await params).slug), getLang()]);
   if (!p) notFound();
+  // A bare URL that exists in its language answers a 307 to its locale page
+  // (Phase 2E-stage-1; lib/legacy-redirect-server.ts). Never on a locale route.
+  await redirectLegacy();
   const t = tr(lang);
   const layaway = layawayOffered(lang);
   const variant = p.product_variants[0];

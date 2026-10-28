@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { LANG_COOKIE, LANG_HEADER, LANG_PARAM, PATH_HEADER, asLang, langDecision, type Lang } from "@/lib/i18n";
 import { localeOf } from "@/lib/locale";
+import { LEGACY_REDIRECT_HEADER, legacyRedirect, legacyRedirectsEnabled } from "@/lib/legacy-redirect";
 import { cspForPath, CSP_FAILSAFE_HEADER, FRAME_OPTIONS } from "@/lib/csp";
 
 /**
@@ -81,7 +82,7 @@ export async function middleware(req: NextRequest) {
   const cookieLang = asLang(req.cookies.get(LANG_COOKIE)?.value);
   const paramLang = asLang(req.nextUrl.searchParams.get(LANG_PARAM));
   const urlLocale = localeOf(req.nextUrl.pathname);
-  const { header: langHeader, write } = langDecision({
+  const { lang: renderLang, header: langHeader, write } = langDecision({
     urlLocale,
     cookieLang,
     paramLang,
@@ -108,6 +109,26 @@ export async function middleware(req: NextRequest) {
   // value never survives, and the header exists only on a locale route.
   fwd.delete(LANG_HEADER);
   if (langHeader) fwd.set(LANG_HEADER, langHeader);
+
+  // ---------------------------------------------------------------- legacy redirects
+  //
+  // PHASE 2E-STAGE-1 (owner-approved 2026-10-28; map §20.2; lib/legacy-redirect.ts).
+  // A bare public URL answers a TEMPORARY 307 to the locale page in the language
+  // it would have rendered (`renderLang`, the same decision as above). Static
+  // pages are redirected below; a product, category, collection or post is
+  // handed to its page through LEGACY_REDIRECT_HEADER, which redirects only once
+  // its data has proved the page exists. MIDDLEWARE-OWNED like LANG_HEADER: a
+  // client-sent value never survives. `SEO_LEGACY_REDIRECTS=off` is the kill switch.
+  const legacy = legacyRedirect({
+    method: req.method,
+    isAction: req.headers.has("next-action"),
+    pathname: req.nextUrl.pathname,
+    search: req.nextUrl.search,
+    lang: renderLang,
+    enabled: legacyRedirectsEnabled(process.env.SEO_LEGACY_REDIRECTS),
+  });
+  fwd.delete(LEGACY_REDIRECT_HEADER);
+  if (legacy?.kind === "dynamic") fwd.set(LEGACY_REDIRECT_HEADER, legacy.location);
 
   // ---------------------------------------------------------------- CSP
   //
@@ -155,6 +176,16 @@ export async function middleware(req: NextRequest) {
     }
     return response;
   };
+
+  // A static public page: redirect here. The target depends on the visitor's
+  // cookie and Accept-Language, so no cache may keep it and hand it to someone
+  // else (approved caching policy): private, no-store, and Vary on both inputs.
+  if (legacy?.kind === "static") {
+    const out = withLang(NextResponse.redirect(new URL(legacy.location, req.url), 307));
+    out.headers.set("Cache-Control", "private, no-store");
+    out.headers.set("Vary", "Cookie, Accept-Language");
+    return out;
+  }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { redirectLegacy } from "@/lib/legacy-redirect-server";
 import type { Metadata } from "next";
 import { hub } from "@/lib/hub-api";
 import { tr } from "@/lib/i18n";
@@ -40,6 +41,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const slug = (await params).slug;
   const [cat, lang] = await Promise.all([hub.category(slug), getLang()]);
   if (!cat) notFound();
+  // A bare URL that exists in its language answers a 307 to its locale page
+  // (Phase 2E-stage-1; lib/legacy-redirect-server.ts). Never on a locale route.
+  await redirectLegacy();
   const t = tr(lang);
   const name = categoryName(cat, lang);
   const description = categoryDescription(cat, lang);
