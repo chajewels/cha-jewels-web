@@ -448,6 +448,8 @@ Not claimed: indexing, rich results or ranking effects. Product image entries ar
 
 Evidence baseline (production, 2026-10-29): 5 of 12 collections have a real Hub `hero_media` (earrings, luxury-bags, luxury-wallet, luxury-watches, other-accessories; images are 0.1-1.8 MB); no category has one yet, so category OG stays the brand image until the owner uploads a hero. Google's carousel rich result supports only Course, Movie, Recipe and Restaurant lists, so this ItemList is valid schema.org markup that describes the page and is NOT expected to produce a rich result. No claim is made about rich results, indexing or ranking.
 
+The ItemList describes the initial server-rendered grid (the Hub's order, "Newest"), not a visitor's later client-side sort or filter. Size on real production listings, measured by running the builder over their real slugs: 0.3-1.7% of the page (largest 28.9 KB on `/categories/preloved-jewelry`, 194 pieces). `scripts/check-seo-live.mjs` now reads the rendered HTML of 10 listing pages (og/twitter inheritance, hero-or-brand image, ItemList = rendered grid) so the same checks run against production after release.
+
 ## Change log
 
 - 2026-10-29: Stabilization release PR #426 → `main` `97a6e76` (BUG-02 sameAs chat-link exclusion, BUG-05 robots/noindex on `/already-registered`, BUG-08 docs, defect review). Production-verified: checker 289/0/0, sameAs Facebook only, Messenger links intact, private routes unchanged (QA §8). No Hub, payment or Google change; OD-6 not implemented.

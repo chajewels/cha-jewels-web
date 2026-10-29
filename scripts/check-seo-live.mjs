@@ -211,6 +211,48 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   ok(path, "404 with noindex, and no canonical or hreflang element", r.status === 404 && /noindex/i.test(robotsMeta(r.body) ?? "") && canonicals(r.body).length + alternates(r.body).length === 0, `status ${r.status}, robots=${robotsMeta(r.body)}, canonical=${canonicals(r.body).length}, alt=${alternates(r.body).length}`);
 }
 
+// ---------------------------------------------------------------- Step 2: collection / category listings
+// SEO Step 2 (Master Plan §33.3). Reads the RENDERED HTML of listing pages, the
+// way a crawler or a link-preview scraper does: the OpenGraph / Twitter block
+// must still follow the page's own title and description (a page-level
+// `openGraph` replaces the root's block, and an explicit `openGraph: undefined`
+// erases it), the image is the owner's hero or the brand image and nothing
+// else, and the ItemList equals the grid the server rendered.
+{
+  const listingPaths = ["ja", "en"].flatMap((l) => [
+    ...paths.filter((p) => p.startsWith(`/${l}/collections/`)).slice(0, 3),
+    ...paths.filter((p) => p.startsWith(`/${l}/categories/`)).slice(0, 2),
+  ]);
+  const metaContent = (html, attr, name) => { const m = html.match(new RegExp(`<meta ${attr}="${name}" content="([^"]*)"`)); return m ? unescapeHtml(m[1]) : null; };
+  for (const path of listingPaths) {
+    const r = await get(path);
+    if (r.status !== 200) { ok(path, "Step 2: listing answers 200", false, `got ${r.status}`); continue; }
+    const h = r.body, lang = path.slice(1, 3);
+    const title = unescapeHtml((h.match(/<title>(.*?)<\/title>/s) ?? [])[1] ?? ""), desc = metaContent(h, "name", "description");
+    ok(path, "Step 2: og:title and twitter:title follow the <title>", title !== "" && metaContent(h, "property", "og:title") === title && metaContent(h, "name", "twitter:title") === title, `title=${title} og=${metaContent(h, "property", "og:title")}`);
+    ok(path, "Step 2: og:description and twitter:description follow the description", metaContent(h, "property", "og:description") === desc && metaContent(h, "name", "twitter:description") === desc, `desc=${desc} og=${metaContent(h, "property", "og:description")}`);
+    ok(path, "Step 2: og:site_name, og:type and the locale pair are the root's", metaContent(h, "property", "og:site_name") === "Cha Jewels" && metaContent(h, "property", "og:type") === "website" && metaContent(h, "property", "og:locale") === (lang === "ja" ? "ja_JP" : "en_US") && metaContent(h, "property", "og:locale:alternate") === (lang === "ja" ? "en_US" : "ja_JP"), `site=${metaContent(h, "property", "og:site_name")} type=${metaContent(h, "property", "og:type")} locale=${metaContent(h, "property", "og:locale")}`);
+    const og = metaContent(h, "property", "og:image"), tw = metaContent(h, "name", "twitter:image");
+    const brand = og?.startsWith(`${BASE}/opengraph-image`);
+    ok(path, "Step 2: og:image is the brand image or an absolute https hero, and twitter:image is the same", !!og && (brand || /^https:\/\/\S+$/.test(og)) && tw === og, `og=${og} twitter=${tw}`);
+    ok(path, "Step 2: a hero image carries the page's name as its alt; the brand image keeps its own", brand ? metaContent(h, "property", "og:image:alt") === "Cha Jewels" : !!metaContent(h, "property", "og:image:alt"), `alt=${metaContent(h, "property", "og:image:alt")}`);
+    ok(path, "Step 2: exactly one canonical, self-referencing, and the ja/en/x-default alternates are still present", canonicals(h).length === 1 && canonicals(h)[0] === `${BASE}${path}` && alternates(h).length === 3, `canonical=${canonicals(h).join("|")} alternates=${alternates(h).length}`);
+    // The grid the server rendered: product links in <main>, outside the hidden crawl lists,
+    // in last-occurrence order (a category's stage repeats a piece above the grid).
+    const main = (h.replace(/<ul hidden[^>]*>.*?<\/ul>/gs, "").match(/<main\b.*?<\/main>/s) ?? [h])[0];
+    const links = [...main.matchAll(new RegExp(`href="(/${lang}/products/[^"#?]+)"`, "g"))].map((m) => `${BASE}${m[1]}`);
+    const grid = []; for (const l of [...links].reverse()) if (!grid.includes(l)) grid.push(l); grid.reverse();
+    const lists = jsonLd(h).filter((x) => x["@type"] === "ItemList");
+    if (grid.length < 2) { ok(path, `Step 2: ${grid.length}-piece listing emits no ItemList`, lists.length === 0, `${lists.length} ItemList(s)`); continue; }
+    ok(path, "Step 2: exactly one ItemList", lists.length === 1, `${lists.length}`);
+    const il = lists[0]; if (!il) continue;
+    const items = il.itemListElement ?? [], urls = items.map((i) => i.url);
+    ok(path, `Step 2: ItemList equals the rendered grid (${grid.length} pieces, same order, no duplicates, positions 1..n)`, urls.length === grid.length && urls.every((u, i) => u === grid[i]) && new Set(urls).size === urls.length && items.every((it, i) => it.position === i + 1) && il.numberOfItems === items.length, `items ${urls.length} vs grid ${grid.length}`);
+    ok(path, "Step 2: ItemList entries are locale product URLs with only @type, position and url (no price, availability or rating)", items.every((it) => Object.keys(it).join() === "@type,position,url" && it.url.startsWith(`${BASE}/${lang}/products/`)) && !/offers|price|availability|rating|review/i.test(JSON.stringify(il)), JSON.stringify(items[0]));
+    ok(path, "Step 2: BreadcrumbList is still emitted", jsonLd(h).some((x) => x["@type"] === "BreadcrumbList"));
+  }
+}
+
 // ---------------------------------------------------------------- report
 const w = Math.max(...results.map((r) => r.route.length));
 for (const r of results) console.log(`${r.status.padEnd(8)} ${r.route.padEnd(w)}  ${r.what}${r.detail ? `  [${r.detail}]` : ""}`);
