@@ -192,8 +192,8 @@ export const hub = {
    * than per keystroke against the Hub. Cached like every other catalog read:
    * 60s, tag "catalog", so the Hub's notify_website webhook busts it too.
    */
-  allProducts: (limit = 5000): Promise<Product[]> =>
-    FIXTURES ? Promise.resolve(fx.products) : call(`/catalog/products?limit=${limit}`),
+  allProducts: (limit = 5000, opts: { timeout?: number } = {}): Promise<Product[]> =>
+    FIXTURES ? Promise.resolve(fx.products) : call(`/catalog/products?limit=${limit}`, opts.timeout ? { timeout: opts.timeout } : {}),
   productSlugs: (): Promise<{ slug: string; updated_at: string }[]> => FIXTURES ? Promise.resolve(fx.products.map((p) => ({ slug: p.slug, updated_at: "2026-09-01" }))) : call("/catalog/products?fields=slug,updated_at&limit=5000"),
   /**
    * The Hub's layaway_quote for a piece, in the currency the customer is

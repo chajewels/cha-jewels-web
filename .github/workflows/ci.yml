@@ -16,6 +16,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          # check:lastmod reads Git history for the sitemap's page dates.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v5
         with:
@@ -46,6 +49,11 @@ jobs:
       # Hero = the original tool's cut-outs only; product pages and cards =
       # Photoroom / normal photos only (owner rule 2026-09-28).
       - run: npm run check:cutouts
+
+      # The sitemap's <lastmod> for /about and /jewelry-guide is the Git date of
+      # their content file, committed in lib/page-lastmod.generated.ts. Editing
+      # either file without regenerating fails here (SEO Step 1, Master Plan 33.3e).
+      - run: npm run check:lastmod
 
       # H2 (Paidy QC 2026-10-09): the unit tests — Paidy flow, card, CSP,
       # order display, site time — were never run on a push; a regression

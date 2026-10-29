@@ -24,8 +24,8 @@ import { primaryImage } from "@/lib/product-facts";
  * source of truth (lib/locale-meta.ts). Entries carry no `alternates`.
  *
  * <lastmod> AND IMAGES (SEO Step 1, Master Plan §33.3e). A date appears only
- * where a real content-change timestamp exists: a Hub product's or post's own
- * `updated_at`, the blog index's newest listed post, and — for the two pages
+ * where a real content-change timestamp exists: a Hub post's own `updated_at`
+ * (an editor's last edit), the blog index's newest listed post, and — for the two pages
  * whose whole text is one repository file — that file's last Git change
  * (lib/page-lastmod.generated.ts). Never the build time, never today. Everything
  * else (collections and categories: the Hub sends no modification time;
@@ -37,6 +37,8 @@ import { primaryImage } from "@/lib/product-facts";
  * private, unknown or not-yet-live locale URL: `/en/layaway` (Phase 3) and
  * `/ja/layaway` (never) are impossible by construction, not by care.
  */
+/** How long the optional product-photo read may take before the sitemap goes out without image tags. */
+const IMAGE_LOOKUP_TIMEOUT_MS = 10_000;
 type Freq = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
 
 /** Japanese first: the site's primary language. */
@@ -87,13 +89,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // busts the tag and rebuilds this.
     hub.posts().catch(() => []),
     // The primary photo of each active piece, from the catalog read the
-    // storefront search already caches. A failed read costs the image tags
-    // only — never the sitemap.
-    hub.allProducts().catch(() => []),
+    // storefront search already uses (same URL, so the same cached copy when
+    // the Data Cache can hold it). It is the heaviest Hub read in this file, so
+    // it is time-boxed: a slow or failed read costs the image tags only — never
+    // the sitemap, never a canonical URL.
+    hub.allProducts(5000, { timeout: IMAGE_LOOKUP_TIMEOUT_MS }).catch(() => []),
   ]);
   const photo = new Map<string, string>();
-  for (const p of catalog) {
-    const url = primaryImage(p)?.url;
+  for (const p of Array.isArray(catalog) ? catalog : []) {
+    let url: unknown;
+    try { url = primaryImage(p)?.url; } catch { continue; } // a malformed row has no photo, nothing more
     if (p.slug && typeof url === "string" && /^https:\/\/\S+$/.test(url)) photo.set(p.slug, url);
   }
 
@@ -160,6 +165,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // text eligibility, approved).
     ...cats.flatMap((c) => both(`/categories/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
     ...cols.flatMap((c) => both(`/collections/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
-    ...prods.flatMap((p) => both(`/products/${p.slug}`, { lastModified: p.updated_at, changeFrequency: "weekly", priority: 0.7, ...(photo.has(p.slug) ? { images: [photo.get(p.slug)!] } : {}) })),
+    // NO lastmod on products. The Hub's `updated_at` is a row-level trigger on
+    // website_products: it moves on administrative and Page365-sync writes that
+    // change nothing a visitor sees, and it does NOT move when a price, stock
+    // level or photo changes (those live in the variant and media tables). It is
+    // not a public-content modification time, so it is not reported as one.
+    // Each slug once, even if the Hub list repeats it.
+    ...[...new Set(prods.map((p) => p.slug))].flatMap((slug) => both(`/products/${slug}`, { changeFrequency: "weekly", priority: 0.7, ...(photo.has(slug) ? { images: [photo.get(slug)!] } : {}) })),
   ];
 }

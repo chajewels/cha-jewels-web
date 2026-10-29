@@ -69,3 +69,13 @@ test("blog: the article's lead image alt is its title; list thumbnails stay deco
   assert.match(read("app/blog/[slug]/page.tsx"), /<img src=\{p\.cover\} alt=\{p\.title\}/);
   assert.match(read("app/blog/page.tsx"), /<img src=\{p\.cover\} alt=""/);
 });
+
+test("FINDING A: /collections visibly links every category, from the Hub list, in the page's language", () => {
+  const src = read("app/collections/page.tsx");
+  assert.match(src, /hub\.categories\(\)\.catch\(\(\) => \[\]\)/);
+  assert.match(src, /localePath\(`\/categories\/\$\{c\.slug\}`, lang\)/);
+  assert.match(src, /categories\.length > 0/, "no empty heading when the Hub has none");
+  assert.match(src, /min-h-11/, "44px tap target");
+  const block = src.slice(src.indexOf("categories.length > 0"));
+  assert.ok(!/\bhidden\b|sr-only/.test(block.replace(/overflow-hidden/g, "")), "visible, not hidden");
+});

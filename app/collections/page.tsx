@@ -4,14 +4,15 @@ import Link from "next/link";
 import { getCollections } from "@/lib/queries/products";
 import { getLang, } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
-import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
+import { categoryName, collectionDescription, collectionName } from "@/lib/catalog-i18n";
+import { hub } from "@/lib/hub-api";
 import { typeVisual } from "@/lib/type-icons";
 import { TypeIconWell } from "@/components/catalog/type-icon";
 import { HubImage } from "@/components/media/hub-image";
 export const generateMetadata = () => pageMeta("collections");
 export const revalidate = 60;
 export default async function CollectionsIndex() {
-  const [lang, collections] = await Promise.all([getLang(), getCollections().catch(() => [])]);
+  const [lang, collections, categories] = await Promise.all([getLang(), getCollections().catch(() => []), hub.categories().catch(() => [])]);
   const t = tr(lang);
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
@@ -49,6 +50,21 @@ export default async function CollectionsIndex() {
             </Link>
           ))}
         </div>
+        {/* The categories (Fine Jewelry, the preloved ranges) are not collections, and
+            until now were visibly linked from the home page alone. One plain row of
+            links under the grid: the Hub's names, no copy added, nothing repeated. */}
+        {categories.length > 0 && (
+          <nav aria-label={t("navMenu", "categories")} className="mt-16">
+            <h2 className="text-[28px] text-charcoal-deep">{t("navMenu", "categories")}</h2>
+            <ul className="mt-4 flex flex-wrap gap-x-8 gap-y-1 border-t border-hairline pt-4">
+              {categories.map((c) => (
+                <li key={c.slug}>
+                  <Link href={localePath(`/categories/${c.slug}`, lang)} className="inline-flex min-h-11 items-center text-charcoal-deep underline-offset-8 hover:text-gold-dark hover:underline">{categoryName(c, lang)}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </div>
     </section>
   );
