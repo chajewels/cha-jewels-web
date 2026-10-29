@@ -1,5 +1,11 @@
 # Performance baseline
 
+## 2026-10-29 — SEO Step 3a on production (PR #436, main `81f9aa0`)
+
+Matched production runs (5 each, fresh profile, interleaved, before and after the merge): `/ja` 74 → 68 (ranges 61–83 and 62–90), `/ja/collections/rings` 90 → 90, `/en` 85 → 85. Within noise; the local-build gain (77 → 84) was not reproduced. Details and the desktop re-wrap finding: `docs/seo/SEO-QA-REPORT.md` §11.
+
+---
+
 ## 2026-10-29 — SEO Step 3a: Japanese heading font after load
 
 Full method, production baseline, rejected variant and architecture proposals: `docs/seo/PERF-STEP3-FINDINGS.md`.

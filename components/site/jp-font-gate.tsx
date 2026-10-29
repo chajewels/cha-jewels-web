@@ -4,6 +4,7 @@ import { useEffect } from "react";
 /**
  * Lets the Japanese heading font (Noto Serif JP) download AFTER the page has
  * loaded rather than during it (app/globals.css, "JAPANESE HEADING FONT").
+ * Rendered on the Japanese HOME page only (lib/jp-font-defer.ts).
  *
  * Noto Serif JP reaches the browser as unicode-range slices, one request per
  * block of kanji the page uses. The Japanese home page asks for 37 of them

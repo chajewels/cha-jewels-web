@@ -21,6 +21,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
 import { JpFontGate } from "@/components/site/jp-font-gate";
+import { deferJpFont } from "@/lib/jp-font-defer";
 import { MetricoolTracker } from "@/components/analytics/metricool-tracker";
 import { AdsTags } from "@/components/analytics/ads-tags";
 import { ConsentBanner } from "@/components/site/consent-banner";
@@ -91,6 +92,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [lang, h] = await Promise.all([getLang(), headers()]);
+  const deferJp = deferJpFont(lang, h.get(PATH_HEADER));
   const t = tr(lang);
   // `announcement()` answers null for inactive, empty-in-this-language and
   // expired alike. CAUGHT, because the bar is chrome and this is the root
@@ -129,7 +131,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // "Application error" page. The site ships EN/JA itself, so the translate
   // attribute here and the `google` meta in generateMetadata() opt out.
   return (
-    <html lang={lang} translate="no" className={`${display.variable} ${sans.variable} ${jp.variable}`}>
+    <html lang={lang} translate="no" className={`${display.variable} ${sans.variable} ${jp.variable}`} {...(deferJp ? { "data-jp-defer": "" } : {})}>
       {/* The announcement bar's pre-paint script sets a data attribute here
           before React hydrates (components/site/announcement-bar.tsx), which is
           a mismatch React reports. Suppressed on <body> precisely because it
@@ -157,7 +159,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AdsTags />
         {/* Web Vitals, behind the same gate and URL redaction as Analytics. */}
         <SpeedInsightsProvider />
-        {lang === "ja" && <JpFontGate />}
+        {deferJp && <JpFontGate />}
         {/* Metricool traffic statistics, production deployments only: local
             dev, fixture mode and every Vercel preview (develop included) never
             render it, so the script is not even requested there. The browser

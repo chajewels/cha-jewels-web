@@ -79,3 +79,28 @@ Options, against SEO and UX:
 ## 7. Remaining observations
 - axe (WCAG 2a/2aa, 390 px) reports `definition-list` (1) and `dlitem` (10) on `/ja`, `/en`, a collection and a category; it also appears on `/en` pages, which this change does not touch, so it predates Step 3. Not addressed here.
 - Hero PNGs (collections) remain 1.3–1.8 MB; not changed.
+
+## 8. Production follow-up (2026-10-29): scope the gate to the Japanese home page
+
+Trigger: after the release (PR #436) matched production Lighthouse runs showed no gain, and the Japanese Rings page showed a font-induced re-wrap on desktop.
+
+**Re-wrap, reproduced on production.** At 1440 and 1920 px the product title (`H2.pcard-name`) wraps to 3 lines in the fallback and 2 in Noto Serif JP (67 px to 45 px), moving the caption below by 22 px (CLS 0.000048, 8 of 8 loads at 1920 px; not at 1024 or 390 px). Cause measured on that title: the fallback's Latin letters (+8 px), digits (+14 px) and spaces (+5 px) are about 10% wider than Noto's, kana equal; next/font sized the fallback (`size-adjust: 121.11%`) from average character width.
+
+**Retuning the fallback does not fix it.** Across 1,136 headings and titles (6 pages, 390 and 1440 px), mismatching wraps: 100 at 121%, 43 at 111%, 45 at 114%, 68 at 109%, 105 at 103%. 111% halves the total but makes the home page worse (0 to 9 at 1440 px, 1 to 7 at 390 px). No size-adjust removes it, so no retune was applied.
+
+**Where the gate pays off (production, real CDP throttling 1.6 Mbps / 150 ms / 4x CPU, fresh context per load, 8 interleaved loads per arm; the "no gate" arm sets `data-jp-font` at document start, which is the pre-release behaviour):**
+
+| Page | LCP gate (range) | LCP no gate (range) | Hero poster finished | Load event |
+|---|---|---|---|---|
+| `/ja` | 3.44 s (3.24–3.60) | 6.18 s (2.16–7.79) | 3.4 s vs 6.1 s | 3.4 s vs 7.0 s |
+| `/ja/collections/rings` | 3.08 s (2.81–3.22) | 3.02 s (2.89–3.69) | n/a (heading is the LCP) | 3.7 s vs 5.2 s |
+
+The Lighthouse runs on production did not show this (its simulated throttling does not model the poster competing with the font slices), and variance in the no-gate arm is large (one run 2.2 s), so the home figure is a median of 8, not a promise. On the home page the fallback matches the final font (0 of 52 headings wrap differently at 1440 px) and there was no layout shift in 16 of 16 desktop loads.
+
+**Change.** The gate now applies to the Japanese home page only: `lib/jp-font-defer.ts` (`deferJpFont`) decides, `app/layout.tsx` puts `data-jp-defer` on `<html>` and renders the gate only then, and the CSS rule is `html[data-jp-defer]:not([data-jp-font])`. Every other page loads the font exactly as before the gate (no deferral state).
+
+**Before and after on real Hub data (production, 1920 px; the "after" arm sets the gate attribute at document start, equal to the fix on non-home pages):** Rings 8 of 8 loads with a shift (CLS 0.000048) before, 0 of 8 after; Preloved Jewelry 0 of 5 both. Regression coverage: `tests/perf-step3-jp-font.test.mjs` and `scripts/check-jp-font-live.mjs` (`npm run check:jp-font`, real browser, 390/1440/1920 px; 35 checks pass on the fix build with fixtures). The listing-page layout-shift checks only fail against real Hub titles, so run the script against a real-Hub deployment after release.
+
+**Language switcher (checked, no change).** 36 of 36 scenarios pass on production (mobile and desktop, clean and returning-cookie sessions, home, collection, category, product and English layaway): the link goes to the sibling URL, `html lang`, canonical and the `cj-lang` cookie follow, hreflang has 3 entries, English layaway switches to the Japanese home page (no Japanese layaway). The desktop control is the visible "EN" / "日本語" link; the aria-labelled "言語" link is the mobile one and is hidden on desktop, which is why an earlier automation click on it timed out.
+
+**Not verified.** Android and Windows system fonts (only Mac available); the fallback widths measured here are for Hiragino Mincho and Times New Roman. Real-user data.
