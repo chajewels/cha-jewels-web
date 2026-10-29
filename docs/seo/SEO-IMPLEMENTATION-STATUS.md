@@ -385,9 +385,10 @@ Everything below is local evidence on production builds (`next build` + `next st
 - **Matching:** 0 provider records vs 0 Hub records in the window. Nothing unmatched; no failed or pending deliveries.
 
 **Follow-ups (separate, not Phase 2 blockers):**
-- **P2:** pg_net calls from the Hub's cron jobs time out at the 2 s default (`page365-inventory-schedule`, `page365-invoice-check`; `square-reconcile` completed regardless); the pg_net response IDs restarted around 16:47 UTC.
-- **P3:** whether the Hub's refund records include the full ¥8,570 Square refund on TEST-900080 (a production payment, refunded on Square 2026-10-11).
-- **P3:** two test-tagged Paidy authorizations from 2026-10-03 are still open (capture deadline 2026-11-02).
+- **P3 (deferred, observability only):** pg_net calls from the Hub's cron jobs time out at the observed 5 s default (`page365-inventory-schedule`, `page365-invoice-check`); the functions complete within their own budgets and record completion themselves, so no schedule, timeout or function change is proposed. The pg_net response IDs restarted around 16:47 UTC (unexplained, low priority).
+- **TEST-900080 — VERIFIED, CLOSED (2026-10-29):** the ¥8,570 production Square capture (2026-10-11) and its full refund the same day are both recorded in the Hub and match Square.
+- **Paidy test authorizations — CLOSED (2026-10-29):** both unused ¥20,000 test-tagged authorizations from 2026-10-03 were closed in Paidy without capture (¥0 captured, ¥0 refunded); the captured payment and order CJ-W-900060 are unchanged.
+- **Paidy M5 source recognition — DEPLOYED; live check NOT TESTED:** la-tracking PRs #668/#669 merged and the corrected `paidy-webhook` Edge Function deployed 2026-10-29 (the Cloudflare-set `cf-connecting-ip` now decides; Supabase's gateway hop in `x-forwarded-for` no longer rejects Paidy). The next genuine Paidy delivery requires a read-only verification (`source_recognised = true` from a Paidy IP, processed without error). `PAIDY_WEBHOOK_RATE_CAP` remains OFF until then.
 - **Docs:** the Japanese layaway guard (`layawayOffered`, `check:layaway-ja`) does not scan Hub article bodies.
 
 ## Change log
@@ -409,6 +410,7 @@ Everything below is local evidence on production builds (`next build` + `next st
 - 2026-10-28: Three-PR review batch: root sitemap policy OWNER APPROVED (preserve `/`); redirect headers provisionally accepted for PR review only, with the Vercel Preview release gate recorded (map §20.4); two-tab layaway decision (interim mitigation or approved Phase 3 deferral) required before production approval.
 - 2026-10-29: Release PR #412 merged (`7aac136`, identical tree to `809bc7f`) and deployed (`cha-jewels-8c1h7g79r`) ahead of the final gate report. Production-verified: real 307 headers, cache isolation (page-level `Vary` gap analysed: no defect), locale navigation, canonical/hreflang, sitemap, robots, Japanese layaway exclusion, auth boundaries, 0 runtime errors. SEARCH ENGINE RECRAWL PENDING. `main` CI first attempt cancelled by the account after all steps passed; rerun attempt 2 succeeded. CSP report-only warnings classified (no policy change). Open: Japanese Hub article revision (owner approval), incident-window reconciliation (BLOCKED). No indexing claimed.
 - 2026-10-29: Phase 2 closeout. Japanese article `why-cha-jewels-care-behind-every-piece` corrected in the Hub (owner-approved ¶28–¶32, ¶49, excerpt) and VERIFIED live. 2026-10-28 incident reconciled read-only across Hub, Square and Paidy: no discrepancies. Outage timeline corrected. Follow-ups P2/P3 recorded. Code deployment unchanged; SEARCH ENGINE RECRAWL PENDING; no indexing claimed.
+- 2026-10-29: Follow-ups updated (docs only). TEST-900080 refund synchronisation VERIFIED and closed; the two unused Paidy test authorizations closed without capture; Paidy M5 source-recognition fix (la-tracking PRs #668/#669) deployed to `paidy-webhook`, live verification NOT TESTED pending the next genuine delivery, rate cap OFF; pg_net timeout corrected to the observed 5 s default and kept deferred. No application, payment or SEO change.
 
 ## Phase 2B: DEPLOYED — PRODUCTION VERIFIED (2026-10-28)
 
