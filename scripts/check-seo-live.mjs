@@ -126,7 +126,11 @@ for (const path of PUBLIC) {
     // Phase 4 §6/§7: nothing invented — identifiers never; a rating only with reviews behind it.
     ok(path, "JSON-LD: P4 no gtin / mpn invented", !/"(gtin|mpn)/.test(JSON.stringify(ld)));
     ok(path, "JSON-LD: P4 aggregateRating, if present, has a count > 0 and matches the review count shown", !p?.aggregateRating || (p.aggregateRating.reviewCount > 0 && (!p.review || p.review.length <= p.aggregateRating.reviewCount)), JSON.stringify(p?.aggregateRating ?? null));
-    ok(path, "JSON-LD: P4 shippingDetails, if present, is JP-only with a ¥0 or ¥800 rate", !p?.offers?.shippingDetails || (p.offers.shippingDetails.shippingDestination?.addressCountry === "JP" && [0, 800].includes(p.offers.shippingDetails.shippingRate?.value)), JSON.stringify(p?.offers?.shippingDetails?.shippingRate ?? null));
+    // Owner decision 2026-10-29 (final QA): no return policy and no shipping
+    // rate are emitted — the published rules are cart-based / defect-aware and
+    // the offer-level fields misrepresented them. Pinned until a faithful
+    // encoding is approved (R-1 / S-1 in docs/seo/SEO-QA-REPORT.md).
+    ok(path, "JSON-LD: no offer-level return policy or shipping rate (R-1 / S-1 pending)", !p?.offers?.hasMerchantReturnPolicy && !p?.offers?.shippingDetails, JSON.stringify({ r: p?.offers?.hasMerchantReturnPolicy ?? null, s: p?.offers?.shippingDetails ?? null }));
   }
   // Phase 4 §8: a BreadcrumbList on every product, collection, category, post
   // and guide page, every item an absolute URL on this origin, the trail's last

@@ -30,8 +30,7 @@ Legacy key order untouched; new fields appended (`logo`, `telephone`, then `emai
 ### Product (§6, §7) — `app/products/[slug]/page.tsx`
 - **X5 closed**: `description` = `description_ja` on a `/ja` page when the Hub's Japanese text is non-empty, else `description_en`. Legacy and `/en` unchanged.
 - **aggregateRating / review**: the page passes `{ count, average, reviews }` from `hub.reviews` **under the same condition it renders the summary and the review section** (`reviews.length > 0 && reviewAverage != null`); otherwise `null`. The builder emits `aggregateRating { ratingValue: average, reviewCount: count }` only when `count > 0` and `average` is a number, and one `Review` per card rendered (`author.name = display_name`, `reviewRating.ratingValue = rating`, `reviewBody = body` when present, `datePublished = approved_at`). Nothing is computed or padded here.
-- **hasMerchantReturnPolicy** (own commit `aacb81e`, owner decision — see §3).
-- **shippingDetails** (own commit `f324135`, owner decision — see §3).
+- **hasMerchantReturnPolicy and shippingDetails: NOT emitted.** Both were proposed as separate commits (`aacb81e`, `f324135`) and **removed from this PR by owner decision after the final QA** (`docs/seo/SEO-QA-REPORT.md` §2.4-2.5): the published shipping rule is cart-based (free when pieces total ¥8,000 or more) and the published return policy carries defect remedies and store-credit cancellation rules that the offer-level fields could not represent. A test now pins their absence until a faithful encoding is approved (R-1 / S-1). See §3.
 
 ### Unchanged
 BlogPosting, FAQPage, availability / condition logic, `inLanguage` behaviour, legacy ("" prefix) byte-stability of fields that existed before (new fields only appended).
@@ -47,11 +46,13 @@ BlogPosting, FAQPage, availability / condition logic, `inLanguage` behaviour, le
 | `aggregateRating` when no reviews are shown | Would claim a rating the page does not display. |
 | `Organization` / `WebSite` entities, `priceValidUntil` | Out of Phase 4's named scope; not in the master plan's Phase 4 list. |
 
-## 3. Owner decisions (each in its own commit so it can be dropped with one `git revert`)
+## 3. Owner decisions — RESOLVED 2026-10-29: both commits REMOVED (branch rebased without them)
 
-**A. Return policy — commit `aacb81e`.** Encodes the published policy (`/legal/returns`, restated in the shopping guide: "We do not accept change-of-mind returns or exchanges"; defects reported within 5 days) as `MerchantReturnPolicy { applicableCountry: "JP", returnPolicyCategory: MerchantReturnNotPermitted, merchantReturnLink: ${base}${prefix}/legal/returns }`. schema.org has no "defects-only remedy" category. **Google may display this as "no returns"** on product results. Google's return-policy documentation (developers.google.com/search/docs/appearance/structured-data/return-policy, read 2026-10-29) confirms `MerchantReturnNotPermitted` is a valid category and that `applicableCountry` + `returnPolicyCategory` are the required pair; `merchantReturnLink` is documented as the alternative "Option B", included here as well so the nuance is one click away. Decision needed: keep, or drop the commit.
+**Final QA finding** (`SEO-QA-REPORT.md` §2.4-2.5): `MerchantReturnNotPermitted` + `applicableCountry: JP` omitted the policy's defect remedies (free return shipping when Cha Jewels confirms the problem) and wrongly limited the policy to Japan; the per-offer ¥800 rate over-stated the fee for pieces under ¥8,000 because the published rule is cart-based. **Owner decision:** remove both; do not substitute `merchantReturnLink` alone as a claimed return-policy implementation without first verifying Google's requirements for it (its offer-level support is not documented). Open decisions R-1 (return policy encoding) and S-1 (shipping encoding; confirm the rate card first) stay with the owner; nothing is emitted until one is approved. The original proposals are kept below for the record.
 
-**B. Shipping rate card — commit `f324135`.** `OfferShippingDetails` for JP only: `shippingRate 0` when the offer price ≥ ¥8,000, else `800` (a comparison with the threshold, never arithmetic); `handlingTime 0–5 DAY`. The two figures now live **once** as `JP_FREE_SHIPPING_FROM_JPY` / `JP_SHIPPING_FEE_JPY` in `lib/content/shopping-guide.ts`, and the guide's Shipping line is built from them (rendered words byte-identical, pinned in both languages by a test). Decision needed: **confirm the rate card is current** (the file's header says it mirrors the Hub's shipping rate card, JP 0 → ¥800, ¥8,000 → free). If the Hub later serves the rate card by API, this should read it instead.
+**A. Return policy — commit `aacb81e` (REMOVED).** Encodes the published policy (`/legal/returns`, restated in the shopping guide: "We do not accept change-of-mind returns or exchanges"; defects reported within 5 days) as `MerchantReturnPolicy { applicableCountry: "JP", returnPolicyCategory: MerchantReturnNotPermitted, merchantReturnLink: ${base}${prefix}/legal/returns }`. schema.org has no "defects-only remedy" category. **Google may display this as "no returns"** on product results. Google's return-policy documentation (developers.google.com/search/docs/appearance/structured-data/return-policy, read 2026-10-29) confirms `MerchantReturnNotPermitted` is a valid category and that `applicableCountry` + `returnPolicyCategory` are the required pair; `merchantReturnLink` is documented as the alternative "Option B", included here as well so the nuance is one click away. Decision needed: keep, or drop the commit.
+
+**B. Shipping rate card — commit `f324135` (REMOVED; the `JP_FREE_SHIPPING_FROM_JPY` / `JP_SHIPPING_FEE_JPY` constants went with it, so `lib/content/shopping-guide.ts` is unchanged by this PR).** `OfferShippingDetails` for JP only: `shippingRate 0` when the offer price ≥ ¥8,000, else `800` (a comparison with the threshold, never arithmetic); `handlingTime 0–5 DAY`. The two figures now live **once** as `JP_FREE_SHIPPING_FROM_JPY` / `JP_SHIPPING_FEE_JPY` in `lib/content/shopping-guide.ts`, and the guide's Shipping line is built from them (rendered words byte-identical, pinned in both languages by a test). Decision needed: **confirm the rate card is current** (the file's header says it mirrors the Hub's shipping rate card, JP 0 → ¥800, ¥8,000 → free). If the Hub later serves the rate card by API, this should read it instead.
 
 ## 4. Test and build evidence (all run on this branch at `54cc316`, 2026-10-29)
 
@@ -77,11 +78,14 @@ Documentation used: Google "Merchant listing" and "Return policy" structured-dat
 - **aggregateRating / review live output**: fixture mode returns no reviews, so the rating branch was verified by unit tests only; needs a branch-preview check on a product with approved reviews.
 - **X5 on real data**: fixtures have `description_ja: null`, so the local `/ja` product showed the English fallback (correct per rule); the Japanese branch is unit-tested, not seen live.
 - **`email` / `sameAs` from the real Hub**: local values came from `settingsFixture`; the production Hub's `contact.email` and `social.follow` rows decide what appears.
-- **Google's rendering** of `MerchantReturnNotPermitted` and of the shipping rate: cannot be known before the Rich Results Test and Search Console.
+- ~~Google's rendering of `MerchantReturnNotPermitted` and of the shipping rate~~ — moot: neither is emitted (§3).
+
+## 4b. Evidence after the rebase without `aacb81e` / `f324135` (2026-10-29)
+See the "Integration" section of `docs/seo/SEO-QA-REPORT.md` for the full-suite results on the rebased branch; the Rich Results Test (code mode) on the previous product block reported Product snippets, Merchant listings and Breadcrumbs valid, with only optional-field notices (`aggregateRating`, `review`, `transitTime`).
 
 ## 6. Rich Results Test — TODO (READY FOR QA)
 Cannot run locally (needs a public URL). On the branch preview, then on production after release, run https://search.google.com/test/rich-results on:
-1. `/en/products/<slug with reviews>` and `/ja/products/<same>` — expect Product (with Offer, return policy, shipping, rating) + BreadcrumbList, zero errors.
+1. `/en/products/<slug with reviews>` and `/ja/products/<same>` — expect Product (with Offer and rating; no return policy, no shipping) + BreadcrumbList, zero errors.
 2. `/en/collections/<slug>`, `/en/categories/<slug>` — BreadcrumbList.
 3. `/en/blog/<slug>` — BlogPosting + BreadcrumbList.
 4. `/` — JewelryStore (LocalBusiness) with logo / telephone / address / sameAs.
