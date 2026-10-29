@@ -4,7 +4,7 @@ Five distinct workstreams that are **open**, tracked here so none is lost or mar
 
 | # | Item | Repository / workstream | Status |
 |---|---|---|---|
-| 1 | BUG-03 article wording | Hub article content (website repo holds the proposal) | OWNER APPROVAL PENDING |
+| 1 | BUG-03 article wording | Hub article content (website repo holds the proposal) | OPEN — owner A/B article wording decision pending |
 | 2 | HUB-CATALOG catalog delete of unused products | Hub repository `chajewels/la-tracking` | LIVE — FIRST REAL DELETE PENDING |
 | 3 | BUG-09 Search Console | Google Search Console (owner account) | PROPERTY VERIFIED (owner-reported); INDEXING AND BASELINE PENDING |
 | 4 | BUG-06 `/gold-guide` redirect chain | Website repository, routing | OPEN — deferred until owner-approved redirect work |
