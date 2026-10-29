@@ -72,7 +72,7 @@ ok("/sitemap.xml", `2D: ${sample.length} sampled entries each answer 200 directl
 const rb = await get("/robots.txt");
 ok("/robots.txt", "answers 200", rb.status === 200, `got ${rb.status}`);
 ok("/robots.txt", "declares the sitemap", /^Sitemap: https?:\/\/\S+\/sitemap\.xml$/m.test(rb.body));
-for (const p of ["/search", "/cart", "/login"]) ok("/robots.txt", `does not block ${p} (its noindex must be readable)`, !new RegExp(`^Disallow: ${p}\\b`, "m").test(rb.body));
+for (const p of ["/search", "/cart", "/login", "/already-registered"]) ok("/robots.txt", `does not block ${p} (its noindex must be readable)`, !new RegExp(`^Disallow: ${p}\\b`, "m").test(rb.body));
 
 // ---------------------------------------------------------------- legacy redirects (Phase 2E-stage-1)
 // A no-signal request (this script's) to a bare public URL answers a TEMPORARY
