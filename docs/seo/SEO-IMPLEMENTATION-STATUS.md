@@ -496,10 +496,11 @@ One legacy behaviour changed and it is **not pre-approved; it needs the owner's 
 - 2026-10-29: SEO Step 1 (Master Plan §33.3) implemented (PR #429, develop `c6bec5c`) and released to production via PR #430 (main `2e18bcc`); production-verified, recrawl pending. No redirect, canonical, hreflang, route or Hub change.
 - 2026-10-29: SEO Step 2 (Master Plan §33.3) merged (PR #432, develop `5533801`) and released to production via PR #433 (main `49c0fd6`); production-verified, recrawl pending. No redirect, canonical, hreflang, route, payment or Hub change.
 
-## Step 3 — Performance (Master Plan §33.3): 3a READY FOR QA; 3b and 3c AUDITED (2026-10-29; branch `perf/step-3-measure`; NOT DEPLOYED)
+## Step 3 — Performance (Master Plan §33.3): 3a DEPLOYED (benefit NOT confirmed in production lab runs); 3b and 3c AUDITED (2026-10-29; PR #435 → develop `04bf8c9`, released via PR #436 → main `81f9aa0`)
 
 | Item | Status | Note |
 |---|---|---|
-| 3a Japanese heading font after load | READY FOR QA | Noto Serif JP slices (37, 568 KB) no longer compete with the hero during load; mobile `/ja` 77 → 84, LCP 6.6 → 4.4 s (local A/B, 7 runs); CLS 0; English untouched. See `docs/seo/PERF-STEP3-FINDINGS.md`. |
+| 3a Japanese heading font after load | DEPLOYED | Noto Serif JP slices (37, 568 KB) no longer compete with the hero during load; mobile `/ja` 77 → 84, LCP 6.6 → 4.4 s (local A/B, 7 runs); CLS 0; English untouched. See `docs/seo/PERF-STEP3-FINDINGS.md`. |
 | 3b Large collection payloads | AUDITED | 1.26 MB raw / 48 KB brotli (Rings); not the measured bottleneck; no change; options in the findings doc. |
 | 3c Root-layout dynamic rendering and caching | AUDITED | Every public page is `private, no-store`; proposal only, high risk, own phase. |
+- 2026-10-29: SEO Step 3a (Japanese heading font after load) merged (PR #435, develop `04bf8c9`) and released to production via PR #436 (main `81f9aa0`). Behaviour verified live; the lab performance gain seen on local builds was NOT reproduced in matched production Lighthouse runs; a tiny desktop-only font-induced re-wrap is recorded in QA report §11. No redirect, canonical, hreflang, route, payment or Hub change.
