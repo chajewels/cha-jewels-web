@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
-import { type Lang } from "@/lib/i18n";
+import { dict, tr, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { ALL_ON, tokushoRowsFor } from "@/lib/content/legal";
 import { guideBlocksFor, shoppingGuide, shoppingGuideIntro, type GuideBlock, type GuideRun } from "@/lib/content/shopping-guide";
@@ -27,9 +28,13 @@ export default async function ShoppingGuidePage() {
 
   return (
     <>
-      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
+      <section className="border-b border-hairline pb-[clamp(48px,7vw,96px)]">
         <div className="wrap">
-          <p className={eyebrow}>{intro.eyebrow[lang]}</p>
+          {/* Home › Shopping guide (Phase 4): the page's <title>, from the same
+              dict.meta entry pageMeta reads — visible crumb and BreadcrumbList
+              from one array, above the heading. */}
+          <Breadcrumbs lang={lang} label={tr(lang)("pdp", "breadcrumb")} className="py-3.5 text-xs text-charcoal/70 sm:pt-[22px] sm:text-[13px]" items={[{ name: tr(lang)("nav", "home"), path: "/" }, { name: dict.meta.shoppingGuide.title[lang], path: "/shopping-guide" }]} />
+          <p className={`${eyebrow} pt-[clamp(24px,4vw,56px)]`}>{intro.eyebrow[lang]}</p>
           <NavHeading text={intro.h1[lang]} lang={lang} className="mt-3 max-w-[18ch] text-[clamp(36px,5.5vw,80px)]" />
           <p className="mt-5 max-w-[58ch] text-charcoal">{intro.lede[lang]}</p>
           <nav aria-labelledby="sg-contents" className="mt-10">

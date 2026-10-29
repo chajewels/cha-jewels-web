@@ -2,9 +2,10 @@ import Image from "next/image";
 import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
-import { tr, type Lang } from "@/lib/i18n";
+import { dict, tr, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { metalLabel } from "@/lib/metals";
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import {
   GUIDE_SECTIONS, RING_SIZES, careStep, clasps, diamond4c, guideIntro, metalSteps, metals, necklaceLength, ringSize, sizeNotes,
   type GuideSectionId, type GuideStep,
@@ -43,9 +44,13 @@ export default async function JewelryGuidePage() {
   const eyebrow = `text-[11px] font-semibold text-gold-dark ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`;
   return (
     <>
-      <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
+      <section className="border-b border-hairline pb-[clamp(48px,7vw,96px)]">
         <div className="wrap">
-          <p className={eyebrow}>{guideIntro.eyebrow[lang]}</p>
+          {/* Home › Jewelry guide (Phase 4): the page's <title>, from the same
+              dict.meta entry pageMeta reads — visible crumb and BreadcrumbList
+              from one array, above the heading. */}
+          <Breadcrumbs lang={lang} label={t("pdp", "breadcrumb")} className="py-3.5 text-xs text-charcoal/70 sm:pt-[22px] sm:text-[13px]" items={[{ name: t("nav", "home"), path: "/" }, { name: dict.meta.jewelryGuide.title[lang], path: "/jewelry-guide" }]} />
+          <p className={`${eyebrow} pt-[clamp(24px,4vw,56px)]`}>{guideIntro.eyebrow[lang]}</p>
           <NavHeading text={guideIntro.h1[lang]} lang={lang} className="mt-3 max-w-[18ch] text-[clamp(36px,5.5vw,80px)]" />
           <p className="mt-5 max-w-[58ch] text-charcoal">{guideIntro.lede[lang]}</p>
           <nav aria-labelledby="jg-contents" className="mt-10">
