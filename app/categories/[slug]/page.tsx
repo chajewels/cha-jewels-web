@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { redirectLegacy } from "@/lib/legacy-redirect-server";
 import type { Metadata } from "next";
+import { listingTitle } from "@/lib/meta-text";
 import { hub } from "@/lib/hub-api";
 import { tr } from "@/lib/i18n";
 import { categoryDescription, categoryName } from "@/lib/catalog-i18n";
@@ -35,7 +36,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const [cat, lang] = await Promise.all([hub.category((await params).slug).catch(() => null), getLang()]);
-  return cat ? { title: categoryName(cat, lang), description: categoryDescription(cat, lang) ?? undefined } : {};
+  return cat ? { title: listingTitle("category", cat.slug, categoryName(cat, lang), lang), description: categoryDescription(cat, lang) ?? undefined } : {};
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import type { TypeVisual } from "@/lib/type-icons";
 import { TypeIconWell } from "@/components/catalog/type-icon";
+import { CrawlLinks, type CrawlLink } from "./crawl-links";
 
 /** Fired when a menu opens, so any other open one closes at once (two panels never overlap). */
 const OPEN_EVENT = "cj:navmenu-open";
@@ -34,10 +35,12 @@ const CLOSE_DELAY_MS = 160;
  * straight down from the trigger stays inside it until the panel begins.
  *
  * The panel is not rendered when closed, so its links are out of the tab order
- * without tabindex bookkeeping. Motion: `.menu-in` (180ms fade-drop on
+ * without tabindex bookkeeping. While it is closed the same destinations are
+ * still in the initial HTML as a `hidden` list (`crawlLinks`, components/site/
+ * crawl-links.tsx) so a crawler can find them. Motion: `.menu-in` (180ms fade-drop on
  * ease-lux); reduced motion shows it at once (app/globals.css).
  */
-export function NavMenu({ label, menuLabel, children }: { label: string; menuLabel: string; children: ReactNode }) {
+export function NavMenu({ label, menuLabel, crawlLinks = [], children }: { label: string; menuLabel: string; crawlLinks?: CrawlLink[]; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -141,6 +144,7 @@ export function NavMenu({ label, menuLabel, children }: { label: string; menuLab
           <path d="M2.5 4.5 6 8l3.5-3.5" />
         </svg>
       </button>
+      {!open && <CrawlLinks links={crawlLinks} />}
       {open && (
         <div
           className="absolute inset-x-0 top-full z-50 whitespace-normal border-b border-hairline bg-chalk shadow-[0_24px_48px_rgba(35,29,18,0.14)]"

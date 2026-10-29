@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { redirectLegacy } from "@/lib/legacy-redirect-server";
 import type { Metadata } from "next";
+import { listingTitle } from "@/lib/meta-text";
 import { getCollectionWithProducts, getCollections } from "@/lib/queries/products";
 import { tr } from "@/lib/i18n";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
@@ -15,7 +16,7 @@ export const revalidate = 60;
 export async function generateStaticParams() { try { return (await getCollections()).map((c) => ({ slug: c.slug })); } catch { return []; } }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const [col, lang] = await Promise.all([getCollectionWithProducts((await params).slug), getLang()]);
-  return col ? { title: collectionName(col, lang), description: collectionDescription(col, lang) ?? undefined } : {};
+  return col ? { title: listingTitle("collection", col.slug, collectionName(col, lang), lang), description: collectionDescription(col, lang) ?? undefined } : {};
 }
 
 /**

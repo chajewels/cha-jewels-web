@@ -42,6 +42,12 @@ function stubHub(over = {}) {
       { slug: "  ", published_at: "2026-09-04" },
     ],
     post: async (slug) => FULL[slug] ?? null,
+    allProducts: async () => [
+      { slug: "p1-ring", product_variants: [{ product_media: [{ url: "https://img.example.com/p1.jpg", sort: 0 }] }] },
+      // p2-chain: no photo at all. p3: a photo that is not an absolute https URL.
+      { slug: "p2-chain", product_variants: [{ product_media: [] }] },
+      { slug: "p3-rel", product_variants: [{ product_media: [{ url: "/relative.jpg", sort: 0 }] }] },
+    ],
     ...over,
   });
 }
@@ -161,9 +167,148 @@ test("a post's lastModified is its edit date, else its publish date, in both lan
 
 test("a Hub outage still answers with the static pages instead of throwing", async () => {
   const boom = async () => { throw new Error("hub down"); };
-  stubHub({ collections: boom, categories: boom, productSlugs: boom, posts: boom, post: boom });
+  stubHub({ collections: boom, categories: boom, productSlugs: boom, posts: boom, post: boom, allProducts: boom });
   const u = await urls();
   assert.ok(u.includes(BASE));
   assert.ok(u.includes(`${BASE}/ja/faq`) && u.includes(`${BASE}/en/faq`));
   assert.ok(!u.some((x) => x.includes("/products/")));
+});
+
+// ---- SEO Step 1 (Master Plan §33.3e): truthful lastmod, product images -------
+
+test("STEP 1: no entry carries a lastmod it cannot source (products, collections, categories and shared-content pages have none)", async () => {
+  stubHub();
+  const all = await sitemap();
+  const by = (suffix) => all.filter((x) => x.url.endsWith(suffix));
+  for (const e of [...all.filter((x) => /\/(collections|categories|products)\//.test(x.url)), ...by("/faq"), ...by("/legal/tokusho"), ...by("/sale"), ...by("/en/layaway")]) {
+    assert.equal(e.lastModified, undefined, e.url);
+  }
+  // Never today's date or the build time.
+  const today = new Date().toISOString().slice(0, 10);
+  for (const e of all) assert.ok(!String(e.lastModified ?? "").startsWith(today), e.url);
+});
+
+test("STEP 1: the two single-content-file pages carry their Git content date; it matches the generated file", async () => {
+  stubHub();
+  const { PAGE_LASTMOD } = await import("@/lib/page-lastmod.generated");
+  assert.deepEqual(Object.keys(PAGE_LASTMOD).sort(), ["/about", "/jewelry-guide"]);
+  const all = await sitemap();
+  for (const [route, date] of Object.entries(PAGE_LASTMOD)) {
+    assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
+    for (const l of ["ja", "en"]) assert.equal(all.find((x) => x.url === `${BASE}/${l}${route}`).lastModified, date);
+  }
+});
+
+test("STEP 1: the blog index's lastmod is its newest listed post in that language", async () => {
+  stubHub();
+  const all = await sitemap();
+  // ja: what-is-kihei (edited 09-05), japanese-only (09-07); ja-title-no-body has no ja page.
+  // en: what-is-kihei (09-05), english-only (09-06), ja-title-no-body (09-08).
+  assert.equal(all.find((x) => x.url === `${BASE}/ja/blog`).lastModified, "2026-09-07");
+  assert.equal(all.find((x) => x.url === `${BASE}/en/blog`).lastModified, "2026-09-08");
+  stubHub({ posts: async () => [] });
+  assert.equal((await sitemap()).find((x) => x.url === `${BASE}/en/blog`).lastModified, undefined, "no posts, no date");
+});
+
+test("STEP 1: product entries get an image only from a real absolute https photo", async () => {
+  stubHub({ productSlugs: async () => [{ slug: "p1-ring", updated_at: "2026-10-01" }, { slug: "p2-chain", updated_at: "2026-10-02" }, { slug: "p3-rel", updated_at: "2026-10-03" }] });
+  const all = await sitemap();
+  for (const l of ["ja", "en"]) {
+    assert.deepEqual(all.find((x) => x.url === `${BASE}/${l}/products/p1-ring`).images, ["https://img.example.com/p1.jpg"]);
+    assert.equal(all.find((x) => x.url === `${BASE}/${l}/products/p2-chain`).images, undefined);
+    assert.equal(all.find((x) => x.url === `${BASE}/${l}/products/p3-rel`).images, undefined);
+  }
+  // Only products carry images.
+  for (const e of all.filter((x) => !x.url.includes("/products/"))) assert.equal(e.images, undefined, e.url);
+});
+
+test("STEP 1: URLs are unchanged by the enhancements - a failed catalog read only drops the image tags", async () => {
+  stubHub();
+  const withImages = await urls();
+  stubHub({ allProducts: async () => { throw new Error("down"); } });
+  assert.deepEqual(await urls(), withImages);
+  assert.ok((await sitemap()).every((x) => x.images === undefined));
+});
+
+// ---- PR #429 review: Finding B (image lookup) and Finding C (product lastmod) --
+
+test("FINDING C: a product's row-level Hub updated_at is never reported as its lastmod", async () => {
+  stubHub();
+  const all = await sitemap();
+  for (const e of all.filter((x) => x.url.includes("/products/"))) assert.equal(e.lastModified, undefined, e.url);
+  // ...while a post's editor timestamp still is.
+  assert.equal(all.find((x) => x.url.endsWith("/ja/blog/what-is-kihei")).lastModified, "2026-09-05");
+});
+
+test("FINDING B: the image lookup is time-boxed and asked for the same list the storefront search reads", async () => {
+  let args;
+  stubHub({ allProducts: async (...a) => { args = a; return []; } });
+  await sitemap();
+  assert.equal(args[0], 5000, "same URL as search, so the same cached copy");
+  assert.ok(args[1]?.timeout > 0 && args[1].timeout <= 15000, "a bounded wait");
+});
+
+test("FINDING B: a slow/failed image lookup never removes a canonical URL, English or Japanese", async () => {
+  stubHub();
+  const ok = await urls();
+  for (const bad of [async () => { throw new Error("timeout"); }, async () => null, async () => [{ slug: "p1-ring" }]]) {
+    stubHub({ allProducts: bad });
+    assert.deepEqual(await urls(), ok);
+  }
+});
+
+test("FINDING B: duplicate Hub slugs are listed once per language; images follow the slug", async () => {
+  stubHub({ productSlugs: async () => [{ slug: "p1-ring", updated_at: "x" }, { slug: "p1-ring", updated_at: "y" }, { slug: "p2-chain", updated_at: "z" }] });
+  const all = await sitemap();
+  for (const l of ["ja", "en"]) assert.equal(all.filter((x) => x.url === `${BASE}/${l}/products/p1-ring`).length, 1);
+  const u = all.map((x) => x.url);
+  assert.equal(new Set(u).size, u.length);
+});
+
+test("FINDING B: only the first photo of the piece, and only a valid absolute https URL, becomes an image entry", async () => {
+  const media = (...urls) => [{ product_media: urls.map((url, i) => ({ url, sort: i })) }];
+  stubHub({
+    productSlugs: async () => ["a", "b", "c", "d", "e"].map((slug) => ({ slug, updated_at: "x" })),
+    allProducts: async () => [
+      { slug: "a", product_variants: media("https://img.example.com/a1.jpg", "https://img.example.com/a2.jpg") },
+      { slug: "b", product_variants: media("http://img.example.com/b.jpg") },
+      { slug: "c", product_variants: media("javascript:alert(1)") },
+      { slug: "d", product_variants: media("https://img.example.com/has space.jpg") },
+      { slug: "ghost", product_variants: media("https://img.example.com/ghost.jpg") },
+    ],
+  });
+  const all = await sitemap();
+  const img = (s) => all.find((x) => x.url === `${BASE}/en/products/${s}`).images;
+  assert.deepEqual(img("a"), ["https://img.example.com/a1.jpg"]);
+  for (const s of ["b", "c", "d", "e"]) assert.equal(img(s), undefined, s);
+  assert.ok(!all.some((x) => x.url.includes("ghost")), "a photo for a product not in the slug list adds no URL");
+});
+
+test("FINDING B: a 5000-piece catalog builds quickly and the URL set is exactly 2 per product", async () => {
+  const n = 5000;
+  const slugs = Array.from({ length: n }, (_, i) => ({ slug: `p${i}`, updated_at: "x" }));
+  const big = Array.from({ length: n }, (_, i) => ({ slug: `p${i}`, product_variants: [1, 2, 3].map((v) => ({ product_media: [1, 2, 3, 4, 5].map((m) => ({ url: `https://img.example.com/p${i}-${v}-${m}.jpg`, sort: m })) })) }));
+  stubHub({ productSlugs: async () => slugs, allProducts: async () => big });
+  const t0 = performance.now();
+  const all = await sitemap();
+  const ms = performance.now() - t0;
+  assert.equal(all.filter((x) => x.url.includes("/products/")).length, n * 2);
+  assert.equal(all.filter((x) => x.images).length, n * 2);
+  assert.ok(ms < 2000, `sitemap build took ${Math.round(ms)}ms`);
+});
+
+test("FINDING B: no Japanese layaway URL and no bare legacy product URL, with images on", async () => {
+  stubHub();
+  const p = await paths();
+  assert.ok(!p.includes("/ja/layaway") && !p.includes("/layaway"));
+  assert.ok(p.includes("/en/layaway"));
+  assert.ok(!p.some((x) => /^\/products\//.test(x)), "no bare legacy product URL");
+});
+
+test("FRESHNESS: the committed page dates match Git (a content edit without regenerating fails here and in CI)", async (t) => {
+  const { spawnSync } = await import("node:child_process");
+  const shallow = spawnSync("git", ["rev-parse", "--is-shallow-repository"], { encoding: "utf8" });
+  if (shallow.status !== 0 || shallow.stdout.trim() !== "false") return t.skip("needs full Git history");
+  const r = spawnSync("node", ["scripts/gen-page-lastmod.mjs", "--check"], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr || r.stdout);
 });
