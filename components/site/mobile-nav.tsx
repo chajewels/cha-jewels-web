@@ -10,6 +10,7 @@ import { LangSwitcher } from "./lang-switcher";
 import type { SwitchTargets } from "@/lib/locale-nav";
 import { SocialGlyph } from "./social-icons";
 import { MenuStory } from "./menu-story";
+import { CrawlLinks } from "./crawl-links";
 import type { Lang } from "@/lib/i18n";
 import type { Story } from "@/lib/stories";
 import type { TypeVisual } from "@/lib/type-icons";
@@ -144,6 +145,12 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
       <button ref={triggerRef} type="button" aria-label={open ? closeLabel : openLabel} aria-expanded={open} onClick={() => setOpen(!open)} className="grid h-11 w-11 place-items-center rounded-sm text-charcoal-deep hover:text-gold-dark xl:hidden">
         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 7h16M4 12h16M9 17h11" /></svg>
       </button>
+      {/* Closed: the drawer's destinations as a hidden list in the initial HTML
+          (components/site/crawl-links.tsx). The drawer itself mounts on open. */}
+      {!open && <CrawlLinks links={[
+        ...groups.flatMap((g) => [...(g.tiles ?? []), ...g.rows, ...(g.footer ? [g.footer] : [])].map((it) => ({ href: it.href, label: it.label }))),
+        ...links,
+      ]} />}
       {host && createPortal(
         <div
           ref={panelRef}

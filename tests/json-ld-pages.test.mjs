@@ -63,7 +63,8 @@ test("the shared component: one items array feeds the JSON-LD and the visible <n
   assert.match(s, /<ol className="flex flex-wrap items-center gap-2">/);
   assert.match(s, /<li aria-hidden="true" className="text-gold-dark">\/<\/li>/);
   assert.match(s, /<li aria-current="page" className="text-charcoal-deep">\{r\.name\}<\/li>/);
-  assert.match(s, /<li><Link href=\{r\.href\} className="text-charcoal\/80 hover:text-gold-dark">\{r\.name\}<\/Link><\/li>/);
+  // SEO Step 1: the same classes plus an invisible ::after that enlarges the tap area (no layout change).
+  assert.match(s, /<li><Link href=\{r\.href\} className="relative text-charcoal\/80 hover:text-gold-dark after:absolute after:-inset-x-1 after:-inset-y-\[15px\] after:content-\[\x27\x27\]">\{r\.name\}<\/Link><\/li>/);
   assert.doesNotMatch(s, /"use client"/, "a server component, like the JsonLd it mounts");
 });
 

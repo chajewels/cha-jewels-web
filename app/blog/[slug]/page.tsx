@@ -88,10 +88,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <Breadcrumbs lang={lang} label={t("pdp", "breadcrumb")} className="text-xs text-charcoal/70 sm:text-[13px]" items={[{ name: t("nav", "blog"), path: "/blog" }, { name: p.title, path: `/blog/${p.slug}` }]} />
         {p.cover && (
           // Hub media may come from hosts next/image is not configured for.
-          // Decorative: the <h1> below is the page's name, and an alt repeating
-          // it is the title read twice.
+          // The article's lead image, and the one image search can index for
+          // it: its alt is the article's title (SEO Step 1). The blog LIST's
+          // thumbnails stay alt="" — there the image sits beside a linked title
+          // that already names it.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.cover} alt="" className="mt-6 aspect-[16/9] w-full rounded-sm border border-hairline object-cover" />
+          <img src={p.cover} alt={p.title} className="mt-6 aspect-[16/9] w-full rounded-sm border border-hairline object-cover" />
         )}
         {/* Formatted the same way the list formats it. It printed the raw
             YYYY-MM-DD before, which was tolerable when every date was typed

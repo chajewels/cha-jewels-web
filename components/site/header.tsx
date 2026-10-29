@@ -197,7 +197,7 @@ export async function Header({ lang, switchTargets }: { lang: Lang; switchTarget
         <nav aria-label={t("nav", "primary")} className="hidden h-full xl:block">
           <ul className="flex h-full items-stretch gap-4 whitespace-nowrap text-sm">
             <li className="flex" data-match="/collections /categories /products">
-              <NavMenu label={t("navMenu", "collections")} menuLabel={t("navMenu", "collectionsMenu")}>
+              <NavMenu label={t("navMenu", "collections")} menuLabel={t("navMenu", "collectionsMenu")} crawlLinks={[...typeItems, ...categoryItems, { href: L("/collections"), label: t("navMenu", "viewAll") }].map(({ href, label }) => ({ href, label }))}>
                 <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)_minmax(0,0.95fr)] gap-10">
                   <div className="min-w-0">
                     <p className={eyebrow(lang)}>{t("navMenu", "shopByType")}</p>
@@ -221,7 +221,7 @@ export async function Header({ lang, switchTargets }: { lang: Lang; switchTarget
               </NavMenu>
             </li>
             <li className="flex" data-match={companyItems.map((it) => it.href.split("?")[0]).join(" ")}>
-              <NavMenu label={t("navMenu", "company")} menuLabel={t("navMenu", "companyMenu")}>
+              <NavMenu label={t("navMenu", "company")} menuLabel={t("navMenu", "companyMenu")} crawlLinks={companyItems.map(({ href, label }) => ({ href, label }))}>
                 <div className="grid grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] gap-10">
                   <div className="min-w-0">
                     <p className={eyebrow(lang)}>{t("navMenu", "company")}</p>

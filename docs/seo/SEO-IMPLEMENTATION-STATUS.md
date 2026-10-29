@@ -422,6 +422,19 @@ One coordinated session, four branches from `develop` `4dc3c23`, four draft PRs 
 
 **This session's model:** the sweep ran on Fable 5.1 (the owner's decision rule prefers Opus for architecture and money-adjacent logic; no money logic changed, and `check:money` is green on both code branches). The owner may request an Opus review of #419's `lib/json-ld.ts` shipping/return commits at the PR.
 
+## Step 1 — Crawlability and metadata (Master Plan §33.3): READY FOR QA (2026-10-29; branch `seo/step-1-crawlability-metadata`; NOT DEPLOYED)
+
+| Item | Status | What changed |
+|---|---|---|
+| A. Crawlable navigation | READY FOR QA | Closed Collections/Company menus and the phone drawer render a `hidden` link list (`components/site/crawl-links.tsx`), removed while the menu is open. Five category pages that were reachable only through the menus are now linked from every page's HTML. |
+| B. Tokusho descriptions | READY FOR QA | Own EN and JA `description` in `dict.meta.tokusho`; no layaway wording in JA; legal text untouched. |
+| C. Titles | READY FOR QA | Product `<title>` moves the SKU last only when the Hub name starts with the product's own SKU; EN titles lengthened for the seven jewelry-type collections and Fine Jewelry only. H1, slug and Hub name unchanged. |
+| D. Blog alt | READY FOR QA | Article lead image `alt` = article title; list thumbnails stay `alt=""`. |
+| E. Sitemap | READY FOR QA | `lastmod` only from Hub post/product `updated_at`, the blog index's newest post, and the Git date of the dedicated content file for `/about` and `/jewelry-guide` (`scripts/gen-page-lastmod.mjs`). Everything else has none. Product `images` entries from the Hub's absolute https primary photo. URL set unchanged. |
+| F. Breadcrumb tap target | READY FOR QA | Invisible `::after` grows the tap area to about 45px; layout unchanged. |
+
+Not claimed: indexing, rich results or ranking effects. Product image entries are covered by unit tests only; the local build runs on fixtures with relative image URLs, so no live image entry was produced. Recheck after deployment against the real Hub.
+
 ## Change log
 
 - 2026-10-29: Stabilization release PR #426 → `main` `97a6e76` (BUG-02 sameAs chat-link exclusion, BUG-05 robots/noindex on `/already-registered`, BUG-08 docs, defect review). Production-verified: checker 289/0/0, sameAs Facebook only, Messenger links intact, private routes unchanged (QA §8). No Hub, payment or Google change; OD-6 not implemented.
@@ -465,3 +478,4 @@ One legacy behaviour changed and it is **not pre-approved; it needs the owner's 
 - 2026-10-28: Phase 2B implemented under Gate A authorization (development and testing only), branch `seo/phase-2b-locale-routes`. 21 locale routes as thin wrappers over the legacy pages (`app/[lang]`), URL-authoritative `getLang` via middleware-owned `x-cj-lang`, cookie sync, SeoLinks locale skip, pure JSON-LD builder (`lib/json-ld.ts`), locale metadata helper, per-post language eligibility. Gates B-F evidence: 405 unit tests pass (22 new); typecheck/lint/terms/money/i18n green; production build with 21 `[lang]` routes; legacy snapshot 28/29 byte-identical (the 29th, an unknown single-segment 404, only lost its misleading canonical/hreflang — the approved design G / X1 closure; branded 404 still hydrates); Gate F matrix 310/310; legacy route checker 120 pass / 0 fail / **0 deferred** (X1 closed); browser pass clean (console, 375px, statutory suppressions, Option ii layaway links to bare `/layaway`, no Japanese layaway). Not pushed, not merged, not deployed; Phase 2C untouched (`lib/checkout-actions.ts` unchanged).
 - 2026-10-28: Phase 2B closed as DEPLOYED — PRODUCTION VERIFIED (PR #401 / `bd28cc6`; checker 120/0/0; matrix 284/0). X1 resolved. Phase 2C approval package added (map §19). No route, navigation, sitemap, redirect, checkout or Hub change in this closeout.
 - 2026-10-28: Phase 2C implemented locally under the development-and-testing authorization (uncommitted): OD-15 gating completion, OD-7 switcher links, OD-11 Hub-link localization, full locale-aware navigation, share/sign-out/revalidation, 16 new tests. Crawl 0×404 / 0 bare-public; legacy metadata unchanged. Opus review of checkout-actions pending at PR. Not committed, not deployed.
+- 2026-10-29: SEO Step 1 (Master Plan §33.3) implemented on `seo/step-1-crawlability-metadata` — READY FOR QA, not deployed. No redirect, canonical, hreflang, route or Hub change.

@@ -42,6 +42,12 @@ function stubHub(over = {}) {
       { slug: "  ", published_at: "2026-09-04" },
     ],
     post: async (slug) => FULL[slug] ?? null,
+    allProducts: async () => [
+      { slug: "p1-ring", product_variants: [{ product_media: [{ url: "https://img.example.com/p1.jpg", sort: 0 }] }] },
+      // p2-chain: no photo at all. p3: a photo that is not an absolute https URL.
+      { slug: "p2-chain", product_variants: [{ product_media: [] }] },
+      { slug: "p3-rel", product_variants: [{ product_media: [{ url: "/relative.jpg", sort: 0 }] }] },
+    ],
     ...over,
   });
 }
@@ -161,9 +167,65 @@ test("a post's lastModified is its edit date, else its publish date, in both lan
 
 test("a Hub outage still answers with the static pages instead of throwing", async () => {
   const boom = async () => { throw new Error("hub down"); };
-  stubHub({ collections: boom, categories: boom, productSlugs: boom, posts: boom, post: boom });
+  stubHub({ collections: boom, categories: boom, productSlugs: boom, posts: boom, post: boom, allProducts: boom });
   const u = await urls();
   assert.ok(u.includes(BASE));
   assert.ok(u.includes(`${BASE}/ja/faq`) && u.includes(`${BASE}/en/faq`));
   assert.ok(!u.some((x) => x.includes("/products/")));
+});
+
+// ---- SEO Step 1 (Master Plan §33.3e): truthful lastmod, product images -------
+
+test("STEP 1: no entry carries a lastmod it cannot source (collections, categories and shared-content pages have none)", async () => {
+  stubHub();
+  const all = await sitemap();
+  const by = (suffix) => all.filter((x) => x.url.endsWith(suffix));
+  for (const e of [...all.filter((x) => /\/(collections|categories)\//.test(x.url)), ...by("/faq"), ...by("/legal/tokusho"), ...by("/sale"), ...by("/en/layaway")]) {
+    assert.equal(e.lastModified, undefined, e.url);
+  }
+  // Never today's date or the build time.
+  const today = new Date().toISOString().slice(0, 10);
+  for (const e of all) assert.ok(!String(e.lastModified ?? "").startsWith(today), e.url);
+});
+
+test("STEP 1: the two single-content-file pages carry their Git content date; it matches the generated file", async () => {
+  stubHub();
+  const { PAGE_LASTMOD } = await import("@/lib/page-lastmod.generated");
+  assert.deepEqual(Object.keys(PAGE_LASTMOD).sort(), ["/about", "/jewelry-guide"]);
+  const all = await sitemap();
+  for (const [route, date] of Object.entries(PAGE_LASTMOD)) {
+    assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
+    for (const l of ["ja", "en"]) assert.equal(all.find((x) => x.url === `${BASE}/${l}${route}`).lastModified, date);
+  }
+});
+
+test("STEP 1: the blog index's lastmod is its newest listed post in that language", async () => {
+  stubHub();
+  const all = await sitemap();
+  // ja: what-is-kihei (edited 09-05), japanese-only (09-07); ja-title-no-body has no ja page.
+  // en: what-is-kihei (09-05), english-only (09-06), ja-title-no-body (09-08).
+  assert.equal(all.find((x) => x.url === `${BASE}/ja/blog`).lastModified, "2026-09-07");
+  assert.equal(all.find((x) => x.url === `${BASE}/en/blog`).lastModified, "2026-09-08");
+  stubHub({ posts: async () => [] });
+  assert.equal((await sitemap()).find((x) => x.url === `${BASE}/en/blog`).lastModified, undefined, "no posts, no date");
+});
+
+test("STEP 1: product entries get an image only from a real absolute https photo", async () => {
+  stubHub({ productSlugs: async () => [{ slug: "p1-ring", updated_at: "2026-10-01" }, { slug: "p2-chain", updated_at: "2026-10-02" }, { slug: "p3-rel", updated_at: "2026-10-03" }] });
+  const all = await sitemap();
+  for (const l of ["ja", "en"]) {
+    assert.deepEqual(all.find((x) => x.url === `${BASE}/${l}/products/p1-ring`).images, ["https://img.example.com/p1.jpg"]);
+    assert.equal(all.find((x) => x.url === `${BASE}/${l}/products/p2-chain`).images, undefined);
+    assert.equal(all.find((x) => x.url === `${BASE}/${l}/products/p3-rel`).images, undefined);
+  }
+  // Only products carry images.
+  for (const e of all.filter((x) => !x.url.includes("/products/"))) assert.equal(e.images, undefined, e.url);
+});
+
+test("STEP 1: URLs are unchanged by the enhancements - a failed catalog read only drops the image tags", async () => {
+  stubHub();
+  const withImages = await urls();
+  stubHub({ allProducts: async () => { throw new Error("down"); } });
+  assert.deepEqual(await urls(), withImages);
+  assert.ok((await sitemap()).every((x) => x.images === undefined));
 });
