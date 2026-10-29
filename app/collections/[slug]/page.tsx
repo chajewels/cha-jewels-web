@@ -9,7 +9,7 @@ import { CatalogSection, CollectionHead, EmptyCatalog } from "@/components/catal
 import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { catalogue, collectionsWithProducts, isAvailable, stockedCollections } from "@/lib/catalog-context";
 import { follow } from "@/lib/settings";
-import { JsonLd } from "@/components/site/json-ld";
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 export const revalidate = 60;
 // Pre-render known collections when the Hub is reachable; otherwise build with none and render on demand.
 export async function generateStaticParams() { try { return (await getCollections()).map((c) => ({ slug: c.slug })); } catch { return []; } }
@@ -39,10 +39,12 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   const [cols, all] = empty ? await Promise.all([collectionsWithProducts(), catalogue()]) : [[], []];
   return (
     <>
-      {/* Collections › this collection (Phase 4). The page draws no breadcrumb
-          nav of its own; the trail is the one the product page shows above a
-          piece of this collection, one level up. */}
-      <JsonLd type="breadcrumb" items={[{ name: t("nav", "collections"), path: "/collections" }, { name: collectionName(col, lang), path: `/collections/${col.slug}` }]} />
+      {/* Collections › this collection (Phase 4): the trail the product page
+          shows above a piece of this collection, one level up — visible crumb
+          and BreadcrumbList from one array, above the dark head. */}
+      <div className="wrap">
+        <Breadcrumbs lang={lang} label={t("pdp", "breadcrumb")} items={[{ name: t("nav", "collections"), path: "/collections" }, { name: collectionName(col, lang), path: `/collections/${col.slug}` }]} />
+      </div>
       <CollectionHead
         eyebrow={t("collection", "eyebrow")}
         title={collectionName(col, lang)}

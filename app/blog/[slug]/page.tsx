@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation";
 import { redirectLegacy } from "@/lib/legacy-redirect-server";
-import { localePath } from "@/lib/locale";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { allPostSlugs, getPost } from "@/lib/posts";
 import { JsonLd } from "@/components/site/json-ld";
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { CommentsSection } from "@/components/blog/comments-section";
 import { ShareBar } from "@/components/blog/share-bar";
 import { postShareUrl } from "@/lib/share";
@@ -82,10 +81,11 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   return (
     <article className="py-[clamp(48px,7vw,96px)]">
       <JsonLd type="post" post={{ slug: p.slug, title: p.title, excerpt: p.excerpt, date: p.date, cover: p.cover, lang }} />
-      {/* Blog › this article (Phase 4): the back link below is the trail's first step. */}
-      <JsonLd type="breadcrumb" items={[{ name: t("nav", "blog"), path: "/blog" }, { name: p.title, path: `/blog/${p.slug}` }]} />
       <div className="wrap max-w-[760px]">
-        <Link href={localePath("/blog", lang)} className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
+        {/* Blog › this article (Phase 4): the visible trail and its BreadcrumbList
+            from one array. Its "Blog" link is the way back to the list, which the
+            underlined back link here used to be. */}
+        <Breadcrumbs lang={lang} label={t("pdp", "breadcrumb")} className="text-xs text-charcoal/70 sm:text-[13px]" items={[{ name: t("nav", "blog"), path: "/blog" }, { name: p.title, path: `/blog/${p.slug}` }]} />
         {p.cover && (
           // Hub media may come from hosts next/image is not configured for.
           // Decorative: the <h1> below is the page's name, and an alt repeating
