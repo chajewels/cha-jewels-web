@@ -1,6 +1,6 @@
 # Outstanding issues register (2026-10-29)
 
-Five distinct workstreams that are **open**, tracked here so none is lost or marked done early. Status vocabulary is the SEO governance one (NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE) plus OWNER APPROVAL PENDING, LIVE and CONFIRMED DEFECT. Nothing below is completed. Each item says what evidence exists, what is owner-reported rather than observed, and what "done" means.
+Five distinct workstreams that are **open**, tracked here so none is lost or marked done early. Status vocabulary is the SEO governance one (NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE) plus OWNER APPROVAL PENDING, LIVE, IMPLEMENTED and CONFIRMED DEFECT. Nothing below is completed. Each item says what evidence exists, what is owner-reported rather than observed, and what "done" means.
 
 | # | Item | Repository / workstream | Status |
 |---|---|---|---|
@@ -8,7 +8,7 @@ Five distinct workstreams that are **open**, tracked here so none is lost or mar
 | 2 | HUB-CATALOG catalog delete of unused products | Hub repository `chajewels/la-tracking` | LIVE — FIRST REAL DELETE PENDING |
 | 3 | BUG-09 Search Console | Google Search Console (owner account) | PROPERTY VERIFIED (owner-reported); INDEXING AND BASELINE PENDING |
 | 4 | BUG-06 `/gold-guide` redirect chain | Website repository, routing | OPEN — deferred until owner-approved redirect work |
-| 5 | OG-PRODUCT product-page sharing metadata | Website repository, metadata | CONFIRMED PRODUCTION METADATA DEFECT — CODE FIX REQUIRED |
+| 5 | OG-PRODUCT product-page sharing metadata | Website repository, metadata | IMPLEMENTED — PRODUCTION VERIFICATION PENDING |
 
 ## 1. BUG-03 — article wording A/B
 - **Current status:** OPEN — owner A/B article wording decision pending (confirmed defect). Nothing has been edited.
@@ -61,22 +61,24 @@ Five distinct workstreams that are **open**, tracked here so none is lost or mar
 - **Definition of done:** an approved redirect change merged and released with tests; `/gold-guide` reaches `/{lang}/jewelry-guide#metals` in one hop in both languages; other legacy redirects, canonical and hreflang unchanged; recorded in the QA report.
 
 ## 5. OG-PRODUCT — product-page sharing metadata
-- **Current status:** CONFIRMED PRODUCTION METADATA DEFECT — CODE FIX REQUIRED. Not implemented: no code change is made by this tracking PR. (Corrected 2026-10-29: the first version said "AUDITED; QA PENDING".)
+- **Current status:** IMPLEMENTED — PRODUCTION VERIFICATION PENDING. The code correction is in PR #441 (`fix/og-product-metadata`, code commit `c4791fd`), open, **not merged, not deployed**. It is not complete: it stays open until the fix is released and independently verified on the live English and Japanese product pages. CI passing or a merge into `develop` does not close it. History: first recorded as "AUDITED; QA PENDING", then corrected to "CONFIRMED PRODUCTION METADATA DEFECT — CODE FIX REQUIRED" (PR #440).
+- **Implemented correction (PR #441):** `lib/product-seo.ts` `productOpenGraph()` restates `type: "website"`, `siteName: "Cha Jewels"`, `locale` / `alternateLocale`, `og:url` (the canonical, built by the same `localeAlternates` function that writes it), and the product's own primary photo with the product name as alt; the no-photo fallback names the brand image (`/opengraph-image.png`, 1200×630, alt "Cha Jewels"). `app/products/[slug]/page.tsx` calls it. Title, description, Twitter, canonical, hreflang and JSON-LD are unchanged. Evidence and tests: `docs/seo/SEO-QA-REPORT.md` §13.
+- **Original record, kept (the defect as it stood before PR #441):**
 - **Repository / workstream:** website, `app/products/[slug]/page.tsx` `generateMetadata`.
 - **Root cause (code, observed):** `openGraph: img ? { images: [img.url] } : undefined`. A page-level `openGraph` object replaces the inherited site-wide one (the same mechanism fixed for collection and category pages in Step 2 with a conditional spread; product pages were not touched).
 - **Evidence:**
   - **Owner-provided audit evidence (not an exhaustive crawl):** 453 products appear in English and Japanese, giving 906 product URLs in the reported sitemap (906 is the sitemap count, not a crawl). Twenty-one sampled live product pages consistently lacked the relevant OpenGraph fields. Product pages share one metadata generator.
   - **Observed by Claude (production, 2026-10-29, product R2715, EN and JA):** product-specific `og:title`, `og:description` and `og:image` and the Twitter title, description, card and image are present; `og:site_name`, `og:type`, `og:locale`, `og:locale:alternate` and `og:url` are absent, as are image alt and size.
 - **What is wrong:** the product's own title, description and image survive, but the site-wide fields (site name, page type, language and alternate language) and `og:url` are missing from every sampled product page.
-- **Required future fix (separate, owner-approved PR; NOT part of PR #440):**
+- **Required fix (now implemented in PR #441, pending release and live verification):**
   - preserve each product's title, description and authentic product image;
   - restore the site name, an appropriate OpenGraph page type, and the language and alternate-language fields;
   - verify `og:url`;
   - keep canonical and hreflang unchanged;
   - keep the existing Twitter sharing metadata;
   - add automated regression coverage.
-  - Open design points for the owner before implementation: which OpenGraph type a product page should declare (the site-wide value today is `website`; whether a product-specific type is supported by the installed Next.js metadata types has not been checked here — UNVERIFIED, to be confirmed against the Next.js documentation first), and what `og:url` should equal (the locale canonical URL).
-- **No-photo edge case (not a confirmed defect):** no active product without a photo was observed, so this is not classed as a production defect. The same code path would emit no `openGraph` at all for such a product. **Expected behaviour to be agreed before implementation:** the page keeps its title and description, keeps the full site-wide OpenGraph fields, and uses the site brand image as the share image (the existing fallback used by collection and category pages), never an empty or broken image. The regression tests must include a simulated product without a photo.
+  - Design points, resolved in PR #441: the type is `website` (the installed Next 15.5.25 OpenGraph types, `opengraph-types.d.ts`, have no product type — previously marked UNVERIFIED, now checked), and `og:url` equals the locale canonical.
+- **No-photo edge case (not a confirmed defect):** no active product without a photo was observed, so this is not classed as a production defect. The same code path would emit no `openGraph` at all for such a product. **Expected behaviour (implemented in PR #441 as simulated-only coverage):** the page keeps its title and description, keeps the full site-wide OpenGraph fields, and uses the site brand image as the share image (the existing fallback used by collection and category pages), never an empty or broken image. The regression tests must include a simulated product without a photo.
 - **Not evidenced:** how Facebook and Messenger render a shared product link. The Facebook Sharing Debugger can add verification but is not a prerequisite for classifying the metadata issue as confirmed.
-- **Owner approval:** required before the code correction is implemented (metadata change). No new share tags are added by this work.
-- **Definition of done:** the focused code correction is approved, merged, deployed and verified against actual English and Japanese product pages, with automated tests (including the simulated no-photo product) and live metadata evidence showing the title, description, image, site name, type, locale pair and `og:url`, with canonical, hreflang, Twitter metadata, and the `Product` and `BreadcrumbList` schema unchanged.
+- **Owner approval:** the code correction (PR #441) needs owner review and approval before merge and release; it adds no tag beyond the fields listed above and makes no claim about origin, quality, certification or availability.
+- **Definition of done (unchanged):** the focused code correction is approved, merged, deployed and verified against actual English and Japanese product pages, with automated tests (including the simulated no-photo product) and live metadata evidence showing the title, description, image, site name, type, locale pair and `og:url`, with canonical, hreflang, Twitter metadata, and the `Product` and `BreadcrumbList` schema unchanged.
