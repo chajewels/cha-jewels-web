@@ -1299,3 +1299,12 @@
   .print-invoice { padding: 0 !important; }
   .print-invoice .wrap { max-width: none !important; padding: 0 !important; }
 }
+
+/* JAPANESE HEADING FONT (SEO Step 3, docs/perf-baseline.md). Noto Serif JP is
+   37 unicode-range slices on the Japanese home page; fetching them during load
+   competes with the hero image. Until components/site/jp-font-gate.tsx sets
+   data-jp-font on <html> (window load), --font-jp names the stack's own system
+   serif, so no slice is requested; afterwards the next/font value applies again.
+   Unlayered on purpose: next/font's variable class is unlayered too, and this
+   must outrank it. */
+html:not([data-jp-font]) { --font-jp: "Noto Serif JP Fallback"; }
