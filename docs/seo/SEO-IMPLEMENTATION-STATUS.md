@@ -1,6 +1,6 @@
 # Cha Jewels SEO Implementation Status
 
-**Last updated:** 2026-10-29 (Phases 3 and 4 DEPLOYED: release PR #421, `main` `82effab`, Vercel production Ready, production-verified 288/0/0 — `SEO-QA-REPORT.md` §7; SEARCH ENGINE RECRAWL PENDING. Earlier: Phase 3 PR #416 VERIFIED LOCALLY — READY FOR OWNER REVIEW; Phase 4 PR #419 REBASED WITHOUT the return-policy and shipping commits (owner decision) and READY FOR OWNER MERGE AUTHORIZATION, visible breadcrumbs included; Phases 6-8 AUDITED with content drafts in PR #417; Phases 5, 9-12 AUDITED in PR #418. Nothing from the sweep is merged or deployed. Production is unchanged at `main` `7aac136`: Phase 2C + 2D + 2E-stage-1 DEPLOYED, SEARCH ENGINE RECRAWL PENDING)
+**Last updated:** 2026-10-29. **Current state:** Phases 1, 2 (2A-2E-stage-1), **3 and 4 are DEPLOYED**. Phases 3 and 4 shipped in release PR #421 (`main` `82effab`, Vercel production Ready, production-verified 288/0/0 — `SEO-QA-REPORT.md` §7) and are **SEARCH ENGINE RECRAWL PENDING**: no Google indexing, ranking or rich result is claimed until Search Console shows it. Phases 6-8 are AUDITED with content drafts (PR #417, merged to `develop` and released with #421 as documentation); Phases 5, 9-12 are AUDITED (PR #418, same). OD-6 (bare `/layaway` redirect) and the 308 promotion are NOT STARTED. Historical "not merged" / "not deployed" wording further down this file describes the moment it was written and is superseded by this line and the change log.
 **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` · **Evidence:** `docs/seo/SEO-BASELINE.md` (Day 0 and the Phase 1 addendum, §14-17)
 
 Statuses: NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE
@@ -399,9 +399,9 @@ Everything below is local evidence on production builds (`next build` + `next st
 - **Paidy M5 source recognition — DEPLOYED; live check NOT TESTED:** la-tracking PRs #668/#669 merged and the corrected `paidy-webhook` Edge Function deployed 2026-10-29 (the Cloudflare-set `cf-connecting-ip` now decides; Supabase's gateway hop in `x-forwarded-for` no longer rejects Paidy). The next genuine Paidy delivery requires a read-only verification (`source_recognised = true` from a Paidy IP, processed without error). `PAIDY_WEBHOOK_RATE_CAP` remains OFF until then.
 - **Docs:** the Japanese layaway guard (`layawayOffered`, `check:layaway-ja`) does not scan Hub article bodies.
 
-## Master-plan sweep (2026-10-29): Phases 3-12 — READY FOR QA / AUDITED; nothing merged or deployed
+## Master-plan sweep (2026-10-29): Phases 3-12 — record of the sweep session (SUPERSEDED: Phases 3-4 were since DEPLOYED in PR #421, `main` `82effab`; see the opening line and the change log)
 
-One coordinated session, four branches from `develop` `4dc3c23`, four draft PRs against `develop`. Production is unchanged. Every status below is local evidence on production builds (fixtures) or documentation; no indexing, ranking or rich result is claimed. Merge order: #416 then #419 (they share only `scripts/check-seo-live.mjs`; a trial merge is clean), then the two docs PRs in any order.
+One coordinated session, four branches from `develop` `4dc3c23`, four draft PRs against `develop`. At the time of writing production was unchanged; the table below is the local evidence recorded then, kept as history. No indexing, ranking or rich result is claimed. Merge order: #416 then #419 (they share only `scripts/check-seo-live.mjs`; a trial merge is clean), then the two docs PRs in any order.
 
 | Batch | Phase | PR | Commits | Classification | Evidence / blockers |
 |---|---|---|---|---|---|
