@@ -34,13 +34,14 @@
  * in and whether its locale routes are LIVE. Private and utility routes stay
  * unprefixed (map §5) and are not in the table.
  *
- * LAYAWAY (Option ii, map §6 and §9 F). `layaway` exists in English only
- * (owner policy: nothing layaway-related on the Japanese site), and its locale
- * route does not exist until Phase 3, so it is `live: false`: no helper produces
- * `/en/layaway`, and the existing English layaway links stay on the bare
- * `/layaway` through Phase 2C. When Phase 3 has created and validated
- * `/en/layaway` it flips that one `live` flag; because the family is English-
- * only, `/ja/layaway` can never be produced, before or after.
+ * LAYAWAY (map §6; Phase 3 of the master plan). `layaway` exists in English
+ * only (owner policy: nothing layaway-related on the Japanese site). Through
+ * Phase 2C it was `live: false` (Option ii: the English links stayed on the
+ * bare, cookie-decided `/layaway`). Phase 3 created `app/[lang]/layaway` and
+ * flipped the flag: every helper now produces `/en/layaway` for an English
+ * link, and because the family is English-only, `/ja/layaway` can never be
+ * produced. The BARE `/layaway` is NOT redirected by this (OD-6 is a separate,
+ * unapproved decision; lib/legacy-redirect.ts leaves it alone).
  */
 import type { Lang } from "@/lib/i18n";
 
@@ -117,7 +118,8 @@ const ROOT: FamilyRule = { shape: "exact", locales: BOTH, live: true };
 
 /**
  * Public families (map §4). `/loyalty/join` is private, so `loyalty` is exact.
- * `layaway` is English-only and NOT live (see the header). Never add "ja" to it.
+ * `layaway` is English-only and live since Phase 3 (see the header). Never add
+ * "ja" to it.
  */
 export const FAMILY_RULES: ReadonlyMap<string, FamilyRule> = new Map<string, FamilyRule>([
   ["products", section()],
@@ -135,7 +137,7 @@ export const FAMILY_RULES: ReadonlyMap<string, FamilyRule> = new Map<string, Fam
   ["loyalty", page()],
   ["sale", page()],
   ["wholesale", page()],
-  ["layaway", { shape: "exact", locales: ["en"], live: false }],
+  ["layaway", { shape: "exact", locales: ["en"], live: true }],
 ]);
 
 /**

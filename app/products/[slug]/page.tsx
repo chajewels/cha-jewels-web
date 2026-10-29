@@ -30,6 +30,7 @@ import { MessengerAnchor } from "@/components/site/messenger-anchor";
 import { Button } from "@/components/ui/button";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { JsonLd } from "@/components/site/json-ld";
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { ProductView } from "@/components/analytics/product-view";
 import { galleryItems } from "@/lib/product-media";
 import { catalogue, categoryOf, collectionOf, collectionsWithProducts, relatedPieces, soldAlternatives } from "@/lib/catalog-context";
@@ -130,8 +131,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const col = collectionOf(p, cols);
   const alternatives = buyable ? [] : soldAlternatives(p, all);
   const related = relatedPieces(p, col, all, 4, alternatives);
-  const crumb = col ? { href: localePath(`/collections/${col.slug}`, lang), name: collectionName(col, lang) }
-    : category ? { href: localePath(`/categories/${category.slug}`, lang), name: categoryName(category, lang) } : null;
+  // `path` is the bare route <Breadcrumbs> renders and makes absolute with the
+  // page's own locale prefix (lib/json-ld.ts); `href` is the "view all" link.
+  const crumb = col ? { href: localePath(`/collections/${col.slug}`, lang), path: `/collections/${col.slug}`, name: collectionName(col, lang) }
+    : category ? { href: localePath(`/categories/${category.slug}`, lang), path: `/categories/${category.slug}`, name: categoryName(category, lang) } : null;
 
   const spec = [metals.length ? metalsLabel(metals, lang) : null, formatWeight(p.weight_g), variant?.stone?.trim() || null].filter((x): x is string => !!x);
   const ledger: [string, string][] = [
@@ -151,18 +154,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <JsonLd type="product" product={p} />
+      {/* The rating goes into the JSON-LD under the SAME condition the summary
+          and the review section render (reviews shown and an average present),
+          so the structured data never claims a review the page does not show. */}
+      <JsonLd type="product" product={p} rating={reviews.length > 0 && reviewAverage != null ? { count: reviewCount, average: reviewAverage, reviews } : null} />
       <ProductView sku={p.sku} lang={lang} />
       <ComponentStyle id="fx-pdp" css={CSS} />
       <div className="wrap">
-        <nav aria-label={t("pdp", "breadcrumb")} className="py-3.5 text-xs text-charcoal/70 sm:pb-[18px] sm:pt-[22px] sm:text-[13px]">
-          <ol className="flex flex-wrap items-center gap-2">
-            <li><Link href={localePath("/collections", lang)} className="text-charcoal/80 hover:text-gold-dark">{t("nav", "collections")}</Link></li>
-            {crumb && <><li aria-hidden="true" className="text-gold-dark">/</li><li><Link href={crumb.href} className="text-charcoal/80 hover:text-gold-dark">{crumb.name}</Link></li></>}
-            <li aria-hidden="true" className="text-gold-dark">/</li>
-            <li aria-current="page" className="text-charcoal-deep">{p.sku}</li>
-          </ol>
-        </nav>
+        {/* Collections › [collection or category] › SKU — the visible trail and
+            its BreadcrumbList from one array (Phase 4, components/site/breadcrumbs.tsx). */}
+        <Breadcrumbs lang={lang} label={t("pdp", "breadcrumb")} items={[{ name: t("nav", "collections"), path: "/collections" }, ...(crumb ? [{ name: crumb.name, path: crumb.path }] : []), { name: p.sku, path: `/products/${p.slug}` }]} />
 
         {/* Owner blueprint 2026-10-01 (every product page): on desktop the
             photo column is a fixed 470 px — square photo + one thumbnail strip —

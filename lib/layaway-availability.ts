@@ -48,6 +48,15 @@ export function layawayOffered(lang: Lang): boolean {
   return LAYAWAY_LANGS.includes(lang);
 }
 
+/**
+ * THE SAME RULE AS DATA, for the locale metadata of /en/layaway (Phase 3,
+ * lib/locale-meta.ts `localizedMeta`): which languages the layaway page exists
+ * in. Derived from `layawayOffered`, never written out by hand, so the page's
+ * hreflang can only ever name a language the page is offered in — there is no
+ * `ja` alternate because there is no Japanese page.
+ */
+export const LAYAWAY_ELIGIBILITY: Readonly<Record<Lang, boolean>> = { en: layawayOffered("en"), ja: layawayOffered("ja") };
+
 /** The refusal code the checkout actions return, and the UI has copy for. */
 export const LAYAWAY_UNAVAILABLE = "layaway_unavailable";
 

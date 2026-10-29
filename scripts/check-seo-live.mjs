@@ -27,6 +27,11 @@ const robotsMeta = (html) => (html.match(/<meta name="robots" content="([^"]*)"/
 const canonicals = (html) => [...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1]);
 const alternates = (html) => [...html.matchAll(/<link rel="alternate" hrefLang="([^"]*)" href="([^"]*)"/g)].map((m) => ({ lang: m[1], href: m[2] }));
 const jsonLd = (html) => [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].map((m) => JSON.parse(m[1]));
+// The visible breadcrumb <nav> (components/site/breadcrumbs.tsx), by its
+// accessible name in either language (lib/i18n.ts pdp.breadcrumb); its inner
+// HTML, or null when the page draws none.
+const crumbNav = (html) => html.match(/<nav aria-label="(?:Breadcrumb|パンくずリスト)"[^>]*>(.*?)<\/nav>/s)?.[1] ?? null;
+const unescapeHtml = (s) => s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#x27;/g, "'").replace(/&#39;/g, "'");
 
 // ---------------------------------------------------------------- sitemap
 const sm = await get("/sitemap.xml");
@@ -44,7 +49,10 @@ const product = find(/^\/products\//), collection = find(/^\/collections\/./), c
 const NOINDEX_PREFIX = ["/search", "/cart", "/login", "/auth", "/account", "/checkout", "/loyalty/join", "/already-registered", "/review", "/receipts", "/newsletter/unsubscribe", "/cart-reminders"];
 const leaked = paths.filter((p) => NOINDEX_PREFIX.some((n) => bareOf(p) === n || bareOf(p).startsWith(`${n}/`)));
 ok("/sitemap.xml", "lists no private or utility route", leaked.length === 0, leaked.join(", "));
-ok("/sitemap.xml", "does not list /layaway, /en/layaway or /ja/layaway (Phase 3 / never)", !paths.some((p) => /^\/((en|ja)\/)?layaway$/.test(p)), paths.filter((p) => /layaway$/.test(p)).join(", "));
+// Phase 3: the English layaway page is listed once, at /en/layaway; the bare
+// cookie-decided /layaway and the non-existent /ja/layaway never are.
+ok("/sitemap.xml", "Phase 3: lists /en/layaway exactly once", paths.filter((p) => p === "/en/layaway").length === 1, paths.filter((p) => /layaway$/.test(p)).join(", ") || "none");
+ok("/sitemap.xml", "does not list /layaway or /ja/layaway (cookie-decided / never)", !paths.some((p) => /^\/(ja\/)?layaway$/.test(p)), paths.filter((p) => /layaway$/.test(p)).join(", "));
 ok("/sitemap.xml", "every URL is on the checked origin", locs.every((l) => l.startsWith(BASE)), locs.find((l) => !l.startsWith(BASE)) ?? "");
 // ---- Phase 2D: locale URLs only, the root `/` kept until OD-3, no hreflang (OD-12).
 const bareListed = paths.filter((p) => p !== "/" && !/^\/(en|ja)(\/|$)/.test(p));
@@ -85,6 +93,29 @@ for (const [path, want] of [["/layaway", 404], ["/layaway?lang=en", 200], ["/pro
   ok(path, `2E-1: untouched (${want})`, r.status === want, `got ${r.status} ${r.location ?? ""}`);
 }
 
+// ---------------------------------------------------------------- layaway (Phase 3)
+// /en/layaway is the one English-only indexable page: 200, self canonical,
+// hreflang `en` + x-default (English) and NO `ja` alternate; FAQPage JSON-LD
+// for its visible FAQ. /ja/layaway does not exist and says nothing.
+{
+  const r = await get("/en/layaway");
+  ok("/en/layaway", "200", r.status === 200, `got ${r.status} ${r.location ?? ""}`);
+  if (r.status === 200) {
+    ok("/en/layaway", "no noindex", !/noindex/i.test(robotsMeta(r.body) ?? "") && !/noindex/i.test(r.xrobots ?? ""), `robots=${robotsMeta(r.body)}`);
+    const c = canonicals(r.body);
+    ok("/en/layaway", "one self canonical", c.length === 1 && c[0] === `${BASE}/en/layaway`, `canonical=${c.join("|") || "none"}`);
+    const alts = alternates(r.body);
+    ok("/en/layaway", "hreflang en + x-default only (no ja: there is no Japanese layaway page)", alts.some((a) => a.lang === "en") && alts.some((a) => a.lang === "x-default") && !alts.some((a) => a.lang === "ja"), JSON.stringify(alts));
+    ok("/en/layaway", "x-default is the English page", alts.find((a) => a.lang === "x-default")?.href === `${BASE}/en/layaway`, JSON.stringify(alts));
+    ok("/en/layaway", "one H1", (r.body.match(/<h1[\s>]/g) ?? []).length === 1, `${(r.body.match(/<h1[\s>]/g) ?? []).length} h1`);
+    ok("/en/layaway", "JSON-LD: FAQPage", jsonLd(r.body).some((d) => d["@type"] === "FAQPage"), jsonLd(r.body).map((d) => d["@type"]).join(","));
+    ok("/en/layaway", "links to the FAQ, the Shopping Guide and the Jewelry Guide", ["/en/faq", "/en/shopping-guide", "/en/jewelry-guide"].every((p) => r.body.includes(`href="${p}`)), "");
+  }
+  const ja = await get("/ja/layaway");
+  ok("/ja/layaway", "404 (no Japanese layaway, ever)", ja.status === 404, `got ${ja.status}`);
+  ok("/ja/layaway", "no canonical or hreflang element", canonicals(ja.body).length + alternates(ja.body).length === 0, `canonical=${canonicals(ja.body).length}, alt=${alternates(ja.body).length}`);
+}
+
 // ---------------------------------------------------------------- indexable pages
 // The root stays bare (OD-3); every other indexable page is checked at its
 // locale URLs, where its canonical and hreflang now live.
@@ -106,12 +137,46 @@ for (const path of PUBLIC) {
   ok(path, `hreflang ${want.join(" / ")} present`, want.every((l) => alternates(r.body).some((a) => a.lang === l)), JSON.stringify(alternates(r.body)));
   const ld = jsonLd(r.body);
   const types = ld.map((d) => d["@type"]);
-  if (path === "/") ok(path, "JSON-LD: JewelryStore", types.includes("JewelryStore"), types.join(","));
+  if (path === "/") {
+    const s = ld.find((d) => d["@type"] === "JewelryStore");
+    ok(path, "JSON-LD: JewelryStore", !!s, types.join(","));
+    // Phase 4 §16: the entity facts, and the address with its street and postcode.
+    ok(path, "JSON-LD: P4 store has logo, telephone, streetAddress, postalCode", !!s?.logo && !!s?.telephone && !!s?.address?.streetAddress && !!s?.address?.postalCode, JSON.stringify(s?.address ?? null));
+    ok(path, "JSON-LD: P4 store declares no openingHours (customer-service hours are not shop hours)", !("openingHours" in (s ?? {})));
+  }
   if (bareOf(path) === product) {
     const p = ld.find((d) => d["@type"] === "Product");
     ok(path, "JSON-LD: Product with name, sku, offer", !!p && !!p.name && !!p.sku && !!p.offers?.priceCurrency && p.offers.price != null, JSON.stringify(p ?? null).slice(0, 120));
     ok(path, "JSON-LD: availability is InStock or SoldOut", ["https://schema.org/InStock", "https://schema.org/SoldOut"].includes(p?.offers?.availability), p?.offers?.availability);
     ok(path, "JSON-LD: no countryOfOrigin invented", !JSON.stringify(ld).includes("countryOfOrigin"));
+    // Phase 4 §6/§7: nothing invented — identifiers never; a rating only with reviews behind it.
+    ok(path, "JSON-LD: P4 no gtin / mpn invented", !/"(gtin|mpn)/.test(JSON.stringify(ld)));
+    ok(path, "JSON-LD: P4 aggregateRating, if present, has a count > 0 and matches the review count shown", !p?.aggregateRating || (p.aggregateRating.reviewCount > 0 && (!p.review || p.review.length <= p.aggregateRating.reviewCount)), JSON.stringify(p?.aggregateRating ?? null));
+    // Owner decision 2026-10-29 (final QA): no return policy and no shipping
+    // rate are emitted — the published rules are cart-based / defect-aware and
+    // the offer-level fields misrepresented them. Pinned until a faithful
+    // encoding is approved (R-1 / S-1 in docs/seo/SEO-QA-REPORT.md).
+    ok(path, "JSON-LD: no offer-level return policy or shipping rate (R-1 / S-1 pending)", !p?.offers?.hasMerchantReturnPolicy && !p?.offers?.shippingDetails, JSON.stringify({ r: p?.offers?.hasMerchantReturnPolicy ?? null, s: p?.offers?.shippingDetails ?? null }));
+  }
+  // Phase 4 §8: a BreadcrumbList on every product, collection, category, post
+  // and guide page, every item an absolute URL on this origin, the trail's last
+  // item being the page itself — and a VISIBLE crumb (<nav aria-label=
+  // "Breadcrumb" / 「パンくずリスト」) whose links are the same URLs in the same
+  // order, its current item the same name: structured data must reflect real
+  // visible content (components/site/breadcrumbs.tsx draws both from one array).
+  if ([product, collection, category, post, "/jewelry-guide", "/shopping-guide"].includes(bareOf(path))) {
+    const bc = ld.find((d) => d["@type"] === "BreadcrumbList");
+    ok(path, "JSON-LD: P4 BreadcrumbList", !!bc, types.join(","));
+    const items = bc?.itemListElement ?? [];
+    ok(path, "JSON-LD: P4 breadcrumb items are absolute URLs on this origin", items.length >= 2 && items.every((i) => typeof i.item === "string" && i.item.startsWith(BASE)), items.map((i) => i.item).join(" | "));
+    ok(path, "JSON-LD: P4 breadcrumb ends at this page", (items.at(-1)?.item ?? "").replace(/\/$/, "") === `${BASE}${path}`.replace(/\/$/, ""), items.at(-1)?.item);
+    const nav = crumbNav(r.body);
+    ok(path, "P4 visible breadcrumb nav (aria-label Breadcrumb / パンくずリスト) with a list", !!nav && /<ol\b/.test(nav), nav ? "no <ol>" : "no <nav aria-label=\"Breadcrumb\">");
+    const hrefs = nav ? [...nav.matchAll(/<a\b[^>]*\bhref="([^"]*)"/g)].map((m) => new URL(unescapeHtml(m[1]), BASE).href.replace(/\/$/, "")) : [];
+    const current = nav ? unescapeHtml((nav.match(/<li aria-current="page"[^>]*>(.*?)<\/li>/s)?.[1] ?? "").replace(/<[^>]+>/g, "")) : "";
+    const ldUrls = items.map((i) => String(i.item).replace(/\/$/, ""));
+    ok(path, "P4 visible crumb links = BreadcrumbList items (same order, same count; the last item is the page, not a link)", hrefs.length === items.length - 1 && hrefs.every((h, i) => h === ldUrls[i]), `links ${hrefs.join(" | ")} vs items ${ldUrls.join(" | ")}`);
+    ok(path, "P4 visible current crumb = BreadcrumbList last name", current !== "" && current === String(items.at(-1)?.name ?? ""), `"${current}" vs "${items.at(-1)?.name}"`);
   }
   if (bareOf(path) === post) ok(path, "JSON-LD: BlogPosting", types.includes("BlogPosting"), types.join(","));
   if (bareOf(path) === "/faq") ok(path, "JSON-LD: FAQPage", types.includes("FAQPage"), types.join(","));

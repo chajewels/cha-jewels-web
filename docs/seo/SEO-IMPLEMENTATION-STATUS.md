@@ -1,6 +1,6 @@
 # Cha Jewels SEO Implementation Status
 
-**Last updated:** 2026-10-28 (Phase 2C IMPLEMENTED locally on `seo/phase-2c-locale-navigation`, uncommitted — READY FOR QA; Phase 2B deployed)
+**Last updated:** 2026-10-29 (post-merge integration QA on the real-Hub `develop` preview `675a7c3` PASSED — `SEO-QA-REPORT.md` §6; release `develop` → `main` awaits owner authorization. Earlier: Phase 3 PR #416 VERIFIED LOCALLY — READY FOR OWNER REVIEW; Phase 4 PR #419 REBASED WITHOUT the return-policy and shipping commits (owner decision) and READY FOR OWNER MERGE AUTHORIZATION, visible breadcrumbs included; Phases 6-8 AUDITED with content drafts in PR #417; Phases 5, 9-12 AUDITED in PR #418. Nothing from the sweep is merged or deployed. Production is unchanged at `main` `7aac136`: Phase 2C + 2D + 2E-stage-1 DEPLOYED, SEARCH ENGINE RECRAWL PENDING)
 **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` · **Evidence:** `docs/seo/SEO-BASELINE.md` (Day 0 and the Phase 1 addendum, §14-17)
 
 Statuses: NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE
@@ -25,9 +25,17 @@ Nothing in this file is marked indexed, ranking or rich-result eligible. Release
 | 1 | Non-production `X-Robots-Tag` | NOT NEEDED | Preview is behind Vercel Authentication and already sends `x-robots-tag: noindex` |
 | 1 | Old-domain redirect (`chajewelsjapan.com`) | BLOCKED — EXTERNAL DOMAIN/DNS/HOST CONFIGURATION | Decided (D2). No repository change in Phase 1 |
 | 1 | Sold products in the sitemap | KEEP IN SITEMAP FOR NOW | Decided (D3). No sitemap change in Phase 1. Later policy review: X10 |
-| 2 | `/en` and `/ja` URL architecture | 2A DEPLOYED; **2B DEPLOYED — PRODUCTION VERIFIED (`bd28cc6`)**; **2C merged to `develop` (PR #405, `0c213dd`); four browser defects found 2026-10-28 and fixed locally on `fix/locale-prefetch-cookie` (READY FOR QA); NOT DEPLOYED to production (activation blocker below)**; **2D READY FOR QA (local, branch `seo/phase-2d-locale-sitemap`)**; **2E-stage-1 READY FOR QA (local, branch `seo/phase-2e1-legacy-redirects`, stacked on 2D)**; 308 stage NOT STARTED | Planning in `SEO-MIGRATION-MAP.md`; Phase 2A record below. **No route, redirect, canonical target, hreflang target, sitemap route or internal-link destination has been changed.** Not IMPLEMENTING. Gates 2A-2E defined (map §15). OD-13 and OD-14 resolved as technical conventions; OD-5 merged into OD-1; the remaining owner decisions are in map §14 |
-| 3 | `/en/layaway` | BLOCKED | Depends on Phase 2B and 2C; bare `/layaway` unchanged. Phase 3 creates and validates `/en/layaway`, then repoints the English layaway links (Phase 2C leaves them on `/layaway`, Option ii) |
-| 4-10 | Structured data, Merchant Center, SEO fields, content hubs | NOT STARTED | Untouched |
+| 2 | `/en` and `/ja` URL architecture | 2A DEPLOYED; **2B DEPLOYED — PRODUCTION VERIFIED (`bd28cc6`)**; **2C (PR #405, #406), 2D (PR #407), 2E-stage-1 temporary 307s (PR #408/#409) and fixes #410, #411: DEPLOYED in Release PR #412 (`main` `7aac136`, 2026-10-29), production-verified; SEARCH ENGINE RECRAWL PENDING**; 308 stage NOT STARTED | Release record: "Phase 2C + 2D + 2E-stage-1 release" below. Planning in `SEO-MIGRATION-MAP.md`. Japanese Hub article corrected (VERIFIED 2026-10-29) and 2026-10-28 incident reconciled (no discrepancies): see "Phase 2 closeout" below. `main` CI rerun succeeded. Not observed in Search Console |
+| 3 | `/en/layaway` | **MERGED TO `develop` (#416, `e61de1f`) — VERIFIED ON THE REAL-HUB PREVIEW `675a7c3`; NOT DEPLOYED** (QA §6 P3-1..8 all PASS) | QA §1: 10 PASS, 1 BLOCKED (branch preview), 0 FAIL. Route created, English-only metadata, FAQ + FAQPage JSON-LD, links repointed, sitemap entry; bare `/layaway` unchanged (OD-6 not approved). Record: `phase-3/PHASE-3-REPORT.md` and "Master-plan sweep" below |
+| 4 | Structured data | **MERGED TO `develop` (#419, `ad42fe8`) — VERIFIED ON THE REAL-HUB PREVIEW `675a7c3`; NOT DEPLOYED** (QA §6 P4-1..6: real Japanese descriptions, Hub contact/social, visible crumbs = JSON-LD, no return/shipping fields; rating branch unverified only because no approved product review exists yet) | QA §2-3: checker 277/0 at matched origin; RRT code-mode valid (Product, Merchant listing, Breadcrumbs); real-Hub data BLOCKED until the `develop` preview. Visible breadcrumbs added on every BreadcrumbList template (`a51e2b2`…`a0b851f`). BreadcrumbList, JewelryStore fields, X5, aggregateRating/review; Record: `phase-4/PHASE-4-REPORT.md` |
+| 5 | Merchant Center | AUDITED (PR #418) | `phase-5/MERCHANT-CENTER-READINESS.md`; account state UNKNOWN (X8); feed route needs owner approval |
+| 6 | Commercial landing pages | AUDITED — READY FOR OWNER REVIEW (PR #417) | `phase-6/COMMERCIAL-LANDING-ARCHITECTURE.md`, `INTERNAL-LINKING-MAP.md`; no route created; Hub SEO fields are a contract DRAFT |
+| 7 | Kihei authority | AUDITED — content DRAFT (PR #417) | `phase-7/KIHEI-PILLAR-DRAFT.md`, `KIHEI-CLUSTER-PLAN.md`; route `/en/guides/kihei` NOT created (approval needed); no Kihei collection exists in the Hub |
+| 8 | K18 authority | AUDITED — content DRAFT (PR #417) | `phase-8/K18-PILLAR-DRAFT.md`, `K18-CLUSTER-PLAN.md`; route `/en/guides/k18-gold-japan` NOT created |
+| 9 | Filipino search moat | AUDITED — briefs + one DRAFT (PR #418) | `phase-9/FILIPINO-CONTENT-BRIEFS.md`; nothing published; no `/fil/` route |
+| 10 | Local SEO / Business Profile | AUDITED (PR #418) | `phase-10/LOCAL-SEO-GBP-READINESS.md`; eligibility is OD-GBP-1; profile state UNKNOWN |
+| 11 | Authority / backlinks | AUDITED, documentation only (PR #418) | `phase-11/AUTHORITY-OPPORTUNITIES.md`; no outreach |
+| 12 | Weekly Search Console operations | AUDITED (PR #418) | `phase-12/SEARCH-CONSOLE-OPERATIONS.md`; no export exists yet (owner) |
 
 ---
 
@@ -288,8 +296,138 @@ Everything below is local evidence on production builds (`next build` + `next st
 
 **Root sitemap:** `/` stays listed (unchanged) — OWNER APPROVED in the three-PR review batch (map §20.3); root legacy hreflang consistency must be resolved before any 308 promotion.
 
+## Phase 2C + 2D + 2E-stage-1 release (PR #412): DEPLOYED — PRODUCTION VERIFIED; SEARCH ENGINE RECRAWL PENDING (2026-10-29)
+
+**Release identity.** PR #412 (`develop` → `main`) merged 2026-10-28 15:25:37 UTC (00:25 JST 10-29) by the `chajewels` account, **before the final gate report was delivered** (owner to confirm the merge was intended). Merge commit `7aac136bdbd7e5488864cf6c3b349734d619adeb`. Its tree is identical to the QA'd `develop` head `809bc7f` (`git diff` empty). Included: #405, #406, #407, #409 (carrying #408), #410, #411. Vercel production deployment `cha-jewels-8c1h7g79r-cha-jewels.vercel.app` (`7aac136`), Ready, assigned to `www.chajewelsjp.com` and `cha-jewels-web.vercel.app`; no later production deployment (Vercel dashboard and GitHub deployments, 2026-10-29 00:42 JST). Previous production: `c2f14aa` (Phase 2B).
+
+**CI.** Pre-merge CI on `809bc7f` succeeded (run 40684894288). The push run on `main` (40715837192) concluded **cancelled**. Annotation: "The run was canceled by @chajewels." The cancel landed after all 12 steps had finished green (terms, i18n incl. layaway-ja, analytics, money, cutouts, unit, typecheck, lint). `ci.yml` has no `concurrency` group, and no newer run replaced it. The first attempt is **not** counted as CI success. **Rerun (attempt 2, owner-authorised, 2026-10-29 00:48 JST): conclusion `success`, all 8 check steps green on `7aac136`. It created no deployment.** CI never runs `next build`, which is covered only by the Vercel build (Ready).
+
+**Production evidence (curl, sequential, 1 s spacing, 2026-10-29 00:28–00:30 and 00:41 JST):**
+- Static-page 307 (middleware), e.g. `/faq`: cookie `en` → `/en/faq`; cookie `ja` → `/ja/faq`; no cookie → by `Accept-Language`; `?lang=` beats the cookie and is dropped from `Location`. Headers: `Cache-Control: private, no-store`, `Vary: Cookie, Accept-Language`.
+- Page-level 307, e.g. bare product: cookie `en`/`ja` → `/en/products/…` / `/ja/products/…`; en → ja → en re-evaluated each time. Headers: `Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate`, `x-vercel-cache: MISS`, `age: 0`, `Vary` set by Next (`rsc, next-router-…`).
+- One hop then 200; no loops; no new 308 (only the pre-existing `/gold-guide`); missing slug 404.
+- **Page-level `Vary` gap analysis.** Vercel's CDN does not store responses carrying `private`, `no-cache` or `no-store`, and `Vary` has no effect without a caching directive (vercel.com/docs/caching/cdn-cache, cache-control-headers). `no-store` also forbids browser storage. Measured `MISS`/`age: 0` on every page-level 307, and the redirect followed each cookie change. **Cache isolation is correct; no defect.** Classification as closed is for the owner to confirm; it is not recorded as an accepted risk.
+- `/`, `/en`, `/ja`, EN/JA product, `/ja/why-cha-jewels`: 200, correct `lang`, self-canonical. Locale pages carry `en`/`ja`/`x-default`→EN hreflang. Root `/` unchanged (canonical `/`, hreflang `ja=/`, `en=/?lang=en`, `x-default=/`).
+- `sitemap.xml` 963 URLs = 481 `/en` + 481 `/ja` + `/`; 0 bare; 0 layaway; no `/ja/blog/how-cha-jewels-began`. `robots.txt` unchanged.
+- Japanese pages: 0 レイアウェイ/分割予約 in site UI (code), 0 layaway hrefs. Hub article bodies are not covered by the code guard: the Japanese body of `why-cha-jewels-care-behind-every-piece` still rendered レイアウェイ until its 2026-10-29 correction (closeout below). `/layaway`: cookie `en` 200, cookie `ja` 404.
+- Signed-out `/account`, `/checkout`, `/account/layaway` → 307 `/login?next=…` (pre-existing middleware code, unchanged by the release).
+- Runtime logs, production, past hour at 00:42 and 00:49 JST: 0 error, 0 fatal. Warnings (75, then 91) are all `/api/csp-report`; `lib/csp.ts` is unchanged by the release.
+- **CSP warning classification (no policy change made).** `lib/csp.ts` enforces a policy only on `/account/orders/[id]/pay-card`; every other page is **report-only**, so these reports are would-block notices, not failed requests. Every logged report came from report-only pages (collections, products, loyalty, search, about).
+
+  | Blocked host | Directive | Classification | Evidence |
+  |---|---|---|---|
+  | `ping.paidy.com/promotional-messaging/3pay` | connect-src | Required production integration (Paidy upsell widget telemetry) | Referenced in Paidy's own `cdn.paidy.com/promotional-messaging/general/paidy-upsell-widget.js`; product pages only |
+  | `googleads.g.doubleclick.net/pagead/viewthroughconversion/…` | script-src-elem | Optional advertising (Google Ads tag, after cookie Accept) | Host is in `ADS_CONNECT` but not `ADS_SCRIPT` |
+  | `ad.doubleclick.net/ccm/s/collect` | connect-src | Optional advertising (Google Ads conversion measurement) | Not listed |
+  | `mpc2-prod-24-is5qnl632q-uw.a.run.app/events` | connect-src | **Unknown** | Not in first-party code, Metricool's `be.js`, Meta's `fbevents.js` or Paidy's widget; seen site-wide. Do not allowlist until identified |
+
+  Before any future enforcement, the first three need listing or a deliberate decision; the fourth needs identification.
+- **Previously affected sitemap URLs (Hub incident 2026-10-28).** 26 products × `/en` + `/ja` = 52 URLs rechecked on the Preview after the incident (22:25–22:50 JST, sequential, no retries): **52/52 HTTP 200**. Production spot checks today (`p2926` EN/JA) are 200.
+
+**Rollback (not executed).**
+- **Full Instant Rollback to `c2f14aa`.** Eligible (previously production-aliased, Ready, retained); operator `chajewels` is a team Owner.
+  - Keeps the Phase 2B `/en` and `/ja` routes: 21 `app/[lang]` pages at `c2f14aa`, still 200.
+  - Reverts 2C navigation and switcher, #406 fixes, OD-15 page-language gating (incl. agreement-language propagation and post-reservation cookie sync), the 2D sitemap (back to bare URLs only), 2E 307s (bare URLs serve 200 again), #410 and #411.
+  - Domains: Vercel re-points them instantly and turns off production auto-assignment until "Undo rollback".
+- **`SEO_LEGACY_REDIRECTS=off` + a new production deployment.** Removes only the 307s; env changes apply only to new deployments.
+
+**Known limitations (unchanged by design).**
+- English layaway links stay on bare `/layaway` until Phase 3.
+- #410 resyncs `cj-lang=en` when an English layaway link is clicked. A typed or pasted `/layaway` under a `ja` cookie still 404s (fails closed).
+- No layaway on the Japanese site.
+
+**Open items from the release (both closed 2026-10-29; details in "Phase 2 closeout" below):**
+- (1) Hub article `why-cha-jewels-care-behind-every-piece` (Japanese body): layaway passages (¶28–¶32) and the 404 founding-story link (¶49). **Corrected and VERIFIED.**
+- (2) Incident-window transactions (2026-10-28 13:30 JST onward): **Reconciled, no discrepancies.**
+- (3) `main` CI: **resolved** by the rerun above.
+
+**Phase 3 handoff.** Prerequisites now in production: locale routes, localized navigation, localized sitemap, temporary 307s, `gateLang`/OD-15. Phase 3 creates and validates `/en/layaway`, repoints English layaway links, then removes the bare-`/layaway` cookie dependency. A 308 promotion stays separately gated: root legacy hreflang (`en=/?lang=en`) must be resolved first (map §20.3), and Search Console observation is required.
+
+## Phase 2 closeout (2026-10-29): Japanese content corrected; 2026-10-28 incident reconciled
+
+**Japanese article — VERIFIED (published 2026-10-29, checked 02:26 JST).**
+- **Owner approval:** exact wording approved in session.
+- **Edit:** made in the Hub (app.chajewelsjp.com → Website → Content). Only `body_ja` and `excerpt_ja` of `why-cha-jewels-care-behind-every-piece` changed.
+  - Before the edit, the stored source matched the approved "before" text: each paragraph exactly once; ¶49 stored as `[チャジュエルズの創業ストーリー](/blog/how-cha-jewels-began)`.
+  - After saving, a fresh reload showed the six new paragraphs and the new excerpt stored exactly. 6 of 99 body lines changed.
+- **¶28–¶32:** neutral shopping guidance; no layaway, deposit, schedule, calculator or plan wording.
+  - ¶29 reads 「…商品ページでは価格に加えて、商品に応じて素材や重量などの情報をご案内しています。中古の商品には「プレラブド」と表示しています。」.
+  - This matches `app/products/[slug]/page.tsx` (素材/重量 rows show "—" when empty) and `components/catalog/condition-badge.tsx`.
+- **¶49:** 「チャジュエルズの創業やこれまでの歩みについては、「[Cha Jewelsが選ばれる理由](/ja/why-cha-jewels)」のページでもご紹介しています。」. Only the page title is linked.
+- **Excerpt (meta, og and twitter descriptions):** 「お支払いの計画」 → 「お支払い方法」.
+- **Live QA (one request each):**
+  - Article 200, `lang="ja"`, self-canonical; changed blocks exactly ¶28–¶32 and ¶49, each equal to the approved text.
+  - 0 レイアウェイ/分割予約/頭金/毎月の支払額/計算機 and 0 layaway hrefs in the article.
+  - ¶4–¶9, ¶42 and ¶50 identical; the ¶49 link points to `/ja/why-cha-jewels` (200).
+  - Meta, og and twitter descriptions updated.
+  - Both English articles identical to their pre-change snapshots; `/ja/blog/how-cha-jewels-began` still 404, so the founding article stays English-only.
+
+**2026-10-28 incident — reconciled, no discrepancies (read-only; window 2026-10-28 13:30 JST → 2026-10-29 ~02:25 JST).**
+
+*Outage timeline (corrected; read-only evidence).*
+- Episode 1, ~14:30–14:45 JST: storefront 500s on product pages at 14:39; the Hub's `auto-expire-cash-orders` has no 14:40 run.
+- Episode 2: storefront product-page 500/504 from ≤ 21:09 JST.
+  - Hub cron runs failed with "job startup timeout" from 21:20 JST (12:20 UTC), including the 21:40 expiry run.
+  - Database restarted ~22:03 JST; sign-in recovered 22:07:38 JST.
+  - The "21:44" in the Hub's first diagnosis was its log-retention start, not the outage start.
+- No 5xx on cart, checkout, account or API routes.
+
+*Hub queries.* Lovable Cloud SQL editor; each query wrapped in `SET TRANSACTION READ ONLY`; role `postgres`, bypasses RLS.
+
+| Check | Result |
+|---|---|
+| Orders | 211 visible, 0 pending, newest created 2026-10-26 |
+| Checkout drafts since the window start | 0 |
+| Expired/cancelled orders since the window start | 0 |
+| Order audit entries | 0 |
+| Paidy webhook inbox | 0 events |
+| Square webhook inbox | 0 events |
+| Payment rows changed | 4 Square captures, all from 2026-10-04 to 10-11, recorded in the Hub, re-stamped by the `square-reconcile` sweep |
+| Square sync checkpoint | Current (last OK = last run, 16:53 UTC) |
+
+`auto-expire-cash-orders` is Active, hourly at :40 UTC (cron TZ GMT). With 0 pending orders it had nothing to expire, so no pause was needed.
+
+*Providers.*
+- **Square production:** 0 transactions of any status, and 0 webhook deliveries or failures, after 2026-10-26 13:49 JST.
+- **Paidy:** 0 payments after 2026-10-05.
+- **Matching:** 0 provider records vs 0 Hub records in the window. Nothing unmatched; no failed or pending deliveries.
+
+**Follow-ups (separate, not Phase 2 blockers):**
+- **P3 (deferred, observability only):** pg_net calls from the Hub's cron jobs time out at the observed 5 s default (`page365-inventory-schedule`, `page365-invoice-check`); the functions complete within their own budgets and record completion themselves, so no schedule, timeout or function change is proposed. The pg_net response IDs restarted around 16:47 UTC (unexplained, low priority).
+- **TEST-900080 — VERIFIED, CLOSED (2026-10-29):** the ¥8,570 production Square capture (2026-10-11) and its full refund the same day are both recorded in the Hub and match Square.
+- **Paidy test authorizations — CLOSED (2026-10-29):** both unused ¥20,000 test-tagged authorizations from 2026-10-03 were closed in Paidy without capture (¥0 captured, ¥0 refunded); the captured payment and order CJ-W-900060 are unchanged.
+- **Paidy M5 source recognition — DEPLOYED; live check NOT TESTED:** la-tracking PRs #668/#669 merged and the corrected `paidy-webhook` Edge Function deployed 2026-10-29 (the Cloudflare-set `cf-connecting-ip` now decides; Supabase's gateway hop in `x-forwarded-for` no longer rejects Paidy). The next genuine Paidy delivery requires a read-only verification (`source_recognised = true` from a Paidy IP, processed without error). `PAIDY_WEBHOOK_RATE_CAP` remains OFF until then.
+- **Docs:** the Japanese layaway guard (`layawayOffered`, `check:layaway-ja`) does not scan Hub article bodies.
+
+## Master-plan sweep (2026-10-29): Phases 3-12 — READY FOR QA / AUDITED; nothing merged or deployed
+
+One coordinated session, four branches from `develop` `4dc3c23`, four draft PRs against `develop`. Production is unchanged. Every status below is local evidence on production builds (fixtures) or documentation; no indexing, ranking or rich result is claimed. Merge order: #416 then #419 (they share only `scripts/check-seo-live.mjs`; a trial merge is clean), then the two docs PRs in any order.
+
+| Batch | Phase | PR | Commits | Classification | Evidence / blockers |
+|---|---|---|---|---|---|
+| A | 3 Layaway indexing | #416 `seo/phase-3-layaway-indexing` | `e186b5f` route + links, `ce1e8c8` sitemap, `1592afd` report | **IMPLEMENTED AND TESTED locally → READY FOR OWNER REVIEW** | unit 478/478; `check-seo-live` 208/0/0 on a local build; browser 1280/375 px, 0 console errors; `/ja/layaway` 404 tagless; Japanese pages 0 layaway links. Owner decisions P3-1..P3-5 in `phase-3/PHASE-3-REPORT.md` (route approval; wording; OD-6 still unapproved; layaway-only posts; Messenger-button locale fix). Deployment: preview QA on the branch alias, release, then Rich Results Test and Search Console request (owner) |
+| B | 4 Structured data | #419 `seo/phase-4-structured-data` | `07d0e30` breadcrumbs, `103b436` store entity, `b7fe6ed` X5 + ratings, return policy and shipping commits REMOVED (owner decision 2026-10-29), `456c77f` live check, `5cbf4ee` report, `21d7d91` `8cbea05` `ccb53ee` `0c898aa` visible breadcrumbs, `ecd3b4f` absence pinned (rebased SHAs) | **IMPLEMENTED AND TESTED locally → AWAITING OWNER MERGE AUTHORIZATION** | unit 501/501; build clean; 70/70 JSON-LD assertions over 11 rendered pages; `check:money` green (the shipping rate is a threshold comparison, constants defined once in `lib/content/shopping-guide.ts`). Not verifiable locally: live review data (fixtures have none), Japanese descriptions (fixtures null), Hub social/email values, Google rendering; Rich Results Test after deployment. Owner decisions: keep/drop `aacb81e` ("no returns" may display), confirm the rate card before keeping `f324135` |
+| C | 6 Commercial landing architecture | #417 `seo/phase-6-8-commercial-authority-prep` | `8b87889` | **READY FOR OWNER REVIEW** (no route created) | 7 of 9 themes already served by existing collection/category pages; `luxury-watches` collection and `preloved-watches` category duplicate each other; no Kihei collection exists; search-volume metrics UNVERIFIED (SERP observations only). Decisions OD-P6-1..9 (Kihei Hub collection, preloved-watch primary URL, Hub SEO-field contract, `/en/guides/*` family, no `/en/shop/*`) |
+| D | 7 Kihei authority | #417 | `a51dc70` | **PARTIALLY COMPLETE** (draft content; route not created, editorial approval required) | Pillar draft ~1,900 words, 12-topic cluster plan, sources cited; "Shop Kihei" has no destination until a Hub collection exists |
+| D | 8 K18 authority | #417 | `15db7ec` | **PARTIALLY COMPLETE** (draft content; route not created, editorial approval required) | Pillar draft ~1,540 words linking the Jewelry Guide's metals section rather than duplicating it; cluster plan |
+| E | 5 Merchant Center | #418 `seo/phase-5-9-12-readiness` | `798dcd0` | **BLOCKED** on owner (account state, feed route approval, rate card) — readiness AUDITED | Recommends a storefront feed route reading the Website API (needs route approval) over a Hub endpoint; sold → out_of_stock per D3/X10; no GTIN/MPN |
+| E | 9 Filipino content | #418 | `0d38c96`, `ee5d3fb` | **PARTIALLY COMPLETE** (8 briefs + one Taglish draft; nothing published) | Publish as English-site Hub posts (`layaway_only: true`); links swap to `/en/layaway` once Phase 3 is deployed |
+| E | 10 Local SEO | #418 | `4350d5f` | **BLOCKED** on OD-GBP-1 (visitable office or not) — audit AUDITED | NAP consistent across the site's legal constants; G1 (entity fields) is addressed by #419 |
+| E | 11 Authority | #418 | `ddec8e3` | **AUDITED** (documentation only, by design) | No outreach; D2 old-domain redirect is the first zero-outreach asset |
+| E | 12 Search Console ops | #418 | `ee02ffa` | **BLOCKED** on the first export (owner) — workflow AUDITED | Report template, opportunity rules, helper described (not written) |
+
+**Not done anywhere in this sweep (approval-gated, on purpose):** no new public route other than `/en/layaway`; no redirect or canonical policy change (OD-6, 308 promotion untouched); no customer-facing content published; no Google account touched; no payment or database change; no merge; no deployment.
+
+**Cross-PR notes:** #416 removes `lib/layaway-language-sync.ts` and its component/test (the PR #410 mitigation) and fixes the Messenger button's locale-prefix matching. #419 adds exported constants to `lib/content/shopping-guide.ts` and new `JsonLd` props on the product and home pages. The Phase 9 brief in #418 still writes `/layaway` as the working link until #416 is deployed.
+
+**This session's model:** the sweep ran on Fable 5.1 (the owner's decision rule prefers Opus for architecture and money-adjacent logic; no money logic changed, and `check:money` is green on both code branches). The owner may request an Opus review of #419's `lib/json-ld.ts` shipping/return commits at the PR.
+
 ## Change log
 
+- 2026-10-29: Post-merge integration QA on the `develop` preview (`675a7c3`, Vercel Ready, real Hub): 23 checks PASS, 0 FAIL (QA §6); release scope = `develop` `675a7c3`; STOPPED for owner authorization; OD-6 not implemented.
+- 2026-10-29: Controlled integration stage: #419 rebased without `aacb81e`/`f324135` (unit 502/502, checker 277/0, build clean); #416 unchanged on `develop` head; #416, #417, #419 marked ready for review; no merge performed — explicit owner authorization requested (`SEO-QA-REPORT.md` §5). OD-6 not implemented.
+- 2026-10-29: Final QA of #416 and #419 recorded in `SEO-QA-REPORT.md` (new): #416 all checks PASS locally incl. the two-tab case, branch preview BLOCKED by Vercel settings (previews build on `develop` only); #419 checker 277/0, RRT valid, visible breadcrumbs added, return-policy and shipping commits found not to represent the published cart-based shipping rule and the complete return/store-credit policy → held, owner decisions R-1/S-1; real-Hub validation BLOCKED locally (no credentials). Merge order: #416 → #419 (without the two commits) → docs → release.
+- 2026-10-29: Master-plan sweep (docs + two code branches, none merged): Phase 3 READY FOR QA (#416), Phase 4 READY FOR QA (#419), Phases 6-8 AUDITED with drafts (#417), Phases 5, 9-12 AUDITED (#418). Phase-status table rows 3-12 rewritten. No production change; SEARCH ENGINE RECRAWL PENDING unchanged; no indexing claimed.
 - 2026-10-28: Baseline and this file created (Phase 0). No application code changed.
 - 2026-10-28: Phase 1: route matrix, search policy, noindex for private/utility routes, canonical/hreflang removed on those routes, 20 unit tests, `scripts/check-seo-live.mjs`. 404 cleanup partly deferred. Branch not pushed.
 - 2026-10-28: Phase 2 planning only: SEO-MIGRATION-MAP.md and skill cha-i18n-seo created; status set to AUDITED / PLANNING. No route or application change.
@@ -305,6 +443,9 @@ Everything below is local evidence on production builds (`next build` + `next st
 - 2026-10-28: Phase 2E-stage-1 implemented locally (READY FOR QA): 307-only legacy redirects per map §20.2; page-level `Vary` gap measured and recorded; Phase 2C prefetch cookie defect found and recorded as a release blocker.
 - 2026-10-28: Coordinated release QA (local): Phase 2C browser defects 1-4 recorded with their fixes on `fix/locale-prefetch-cookie`; switch-targets endpoint security review; redirect cache findings (Vercel Preview headers remain a deployment gate); locale matrix 335/335, redirect matrix 502/502, unit 450/450; bare `/layaway` cross-tab limitation recorded as not fixed; root sitemap pending owner confirmation.
 - 2026-10-28: Three-PR review batch: root sitemap policy OWNER APPROVED (preserve `/`); redirect headers provisionally accepted for PR review only, with the Vercel Preview release gate recorded (map §20.4); two-tab layaway decision (interim mitigation or approved Phase 3 deferral) required before production approval.
+- 2026-10-29: Release PR #412 merged (`7aac136`, identical tree to `809bc7f`) and deployed (`cha-jewels-8c1h7g79r`) ahead of the final gate report. Production-verified: real 307 headers, cache isolation (page-level `Vary` gap analysed: no defect), locale navigation, canonical/hreflang, sitemap, robots, Japanese layaway exclusion, auth boundaries, 0 runtime errors. SEARCH ENGINE RECRAWL PENDING. `main` CI first attempt cancelled by the account after all steps passed; rerun attempt 2 succeeded. CSP report-only warnings classified (no policy change). Open: Japanese Hub article revision (owner approval), incident-window reconciliation (BLOCKED). No indexing claimed.
+- 2026-10-29: Phase 2 closeout. Japanese article `why-cha-jewels-care-behind-every-piece` corrected in the Hub (owner-approved ¶28–¶32, ¶49, excerpt) and VERIFIED live. 2026-10-28 incident reconciled read-only across Hub, Square and Paidy: no discrepancies. Outage timeline corrected. Follow-ups P2/P3 recorded. Code deployment unchanged; SEARCH ENGINE RECRAWL PENDING; no indexing claimed.
+- 2026-10-29: Follow-ups updated (docs only). TEST-900080 refund synchronisation VERIFIED and closed; the two unused Paidy test authorizations closed without capture; Paidy M5 source-recognition fix (la-tracking PRs #668/#669) deployed to `paidy-webhook`, live verification NOT TESTED pending the next genuine delivery, rate cap OFF; pg_net timeout corrected to the observed 5 s default and kept deferred. No application, payment or SEO change.
 
 ## Phase 2B: DEPLOYED — PRODUCTION VERIFIED (2026-10-28)
 

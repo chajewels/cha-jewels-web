@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { isNotLinked, profileUrl, withQuery } from "@/lib/profile";
 import { getLang } from "@/lib/i18n-server";
 import { layawayOffered } from "@/lib/layaway-availability";
+import { localePath } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
@@ -76,7 +77,7 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
         {!failed && plans.length === 0 && drafts.length === 0 && (
           <>
             <p className="mt-10 text-charcoal">{t("plans", "empty")}</p>
-            <Link href="/layaway" className="mt-6 inline-block text-gold-dark underline underline-offset-4">{t("account", "layawayLearn")}</Link>
+            <Link href={localePath("/layaway", lang)} className="mt-6 inline-block text-gold-dark underline underline-offset-4">{t("account", "layawayLearn")}</Link>
           </>
         )}
 

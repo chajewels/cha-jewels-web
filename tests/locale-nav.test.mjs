@@ -26,11 +26,12 @@ test("an English-only post: Japanese goes HOME, never to a missing page (OD-7)",
   assert.equal(t.en, "/en/blog/s", "the current language keeps its own URL (the active side never renders as a link)");
 });
 
-test("layaway: Japanese goes home; no /en/layaway and no /ja/layaway is ever produced", async () => {
-  const t = await switchTargets("/layaway?lang=en");
-  assert.equal(t.ja, "/ja");
-  assert.ok(t.en === "/en" || t.en === null, `en side must not mint /en/layaway (got ${t.en})`);
-  assert.ok(!Object.values(t).some((v) => typeof v === "string" && v.includes("layaway")), JSON.stringify(t));
+test("layaway (Phase 3): the English side is /en/layaway, the Japanese side goes home; /ja/layaway is never produced", async () => {
+  const bare = await switchTargets("/layaway?lang=en&piece=p1");
+  assert.deepEqual(bare, { en: "/en/layaway?piece=p1", ja: "/ja" }, "bare: English sibling keeps the query minus lang; Japanese goes home (OD-7)");
+  const en = await switchTargets("/en/layaway?piece=p1");
+  assert.deepEqual(en, { en: "/en/layaway?piece=p1", ja: "/ja" }, "on /en/layaway the Japanese control goes home, never to a layaway page");
+  for (const t of [bare, en]) assert.ok(!/ja\/layaway/.test(JSON.stringify(t)), JSON.stringify(t));
 });
 
 test("private routes keep the cookie toggle: both null", async () => {
@@ -52,7 +53,7 @@ test("an unknown path offers the homes", async () => {
 test("localeVariants: a localizable path has three URLs; others stand alone", () => {
   assert.deepEqual(localeVariants("/products/x"), ["/products/x", "/en/products/x", "/ja/products/x"]);
   assert.deepEqual(localeVariants("/"), ["/", "/en", "/ja"]);
-  assert.deepEqual(localeVariants("/layaway"), ["/layaway"]);
+  assert.deepEqual(localeVariants("/layaway"), ["/layaway", "/en/layaway"], "Phase 3: the English layaway page, never a Japanese one");
   assert.deepEqual(localeVariants("/account"), ["/account"]);
 });
 

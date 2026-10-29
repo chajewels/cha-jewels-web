@@ -17,7 +17,6 @@ import { announcement, follow } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { MessengerButton } from "@/components/site/messenger-button";
 import { MobileTabBar, type Tab } from "@/components/site/mobile-tab-bar";
-import { LayawayLanguageSync } from "@/components/site/layaway-language-sync";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
@@ -117,7 +116,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const tabs: Tab[] = [
     { href: localePath("/", lang), label: t("home", "tabHome"), icon: "home" },
     { href: localePath("/collections", lang), label: t("home", "tabPieces"), icon: "pieces" },
-    ...(layawayOffered(lang) ? [{ href: "/layaway", label: t("home", "tabLayaway"), icon: "layaway" as const }] : []),
+    // Phase 3: the English layaway page lives at /en/layaway (localePath; the
+    // family is English-only, so this can never mint a Japanese layaway URL).
+    ...(layawayOffered(lang) ? [{ href: localePath("/layaway", lang), label: t("home", "tabLayaway"), icon: "layaway" as const }] : []),
     { href: localePath("/loyalty", lang), label: t("home", "tabLoyalty"), icon: "loyalty" },
     { href: "/account", label: t("home", "tabAccount"), icon: "account" },
   ];
@@ -175,10 +176,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main id="main" data-messenger={messenger ?? undefined}>{children}</main>
         <Footer lang={lang} switchTargets={targets} />
         <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
-        {/* English documents only: an English Layaway link keeps working after
-            another tab switched the shared cookie to Japanese. Activation only;
-            the href stays the bare /layaway (lib/layaway-language-sync.ts). */}
-        {layawayOffered(lang) && <LayawayLanguageSync />}
         {/* Last in the document, so no page chrome paints over it. */}
         {/* The cookie banner: asks once, and again from "Cookie settings" in the footer. */}
         <ConsentBanner privacyHref={localePath("/legal/privacy", lang)} copy={{ region: t("consent", "region"), title: t("consent", "title"), body: t("consent", "body"), accept: t("consent", "accept"), necessary: t("consent", "necessary"), privacy: t("consent", "privacy") }} />

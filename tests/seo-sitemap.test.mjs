@@ -120,11 +120,24 @@ test("2D: a post whose article read fails is left out, not guessed", async () =>
   assert.ok(!(await paths()).some((x) => /\/blog\/[^/]+$/.test(x)), "no post URL without a successful read");
 });
 
-test("layaway is never listed: no /layaway, /en/layaway or /ja/layaway, no layaway-only post", async () => {
+test("PHASE 3: /en/layaway is listed once, in English only; bare /layaway and /ja/layaway never; layaway-only posts still unlisted", async () => {
   stubHub();
   const p = await paths();
-  assert.ok(!p.some((x) => /^\/(en\/|ja\/)?layaway$/.test(x)));
-  assert.ok(!p.some((x) => x.includes("layaway-how-it-works")), "layaway-only post (layaway indexability is Phase 3)");
+  assert.equal(p.filter((x) => x === "/en/layaway").length, 1, "/en/layaway listed exactly once");
+  assert.ok(!p.includes("/layaway"), "the bare URL is cookie-decided and 404s for a crawler: never listed");
+  assert.ok(!p.includes("/ja/layaway"), "no Japanese layaway, ever");
+  assert.ok(!p.some((x) => x.includes("layaway-how-it-works")), "layaway-only posts stay unlisted (separate owner decision)");
+});
+
+test("PHASE 3: the /en/layaway entry is well-formed and comes right after the static pages", async () => {
+  stubHub();
+  const entries = await sitemap();
+  const e = entries.find((x) => new URL(x.url).pathname === "/en/layaway");
+  assert.ok(e, "entry present");
+  assert.equal(e.url, `${BASE}/en/layaway`);
+  assert.equal(e.changeFrequency, "monthly");
+  assert.ok(typeof e.priority === "number" && e.priority > 0 && e.priority <= 1);
+  assert.equal("alternates" in e, false, "OD-12: no hreflang in the sitemap");
 });
 
 test("posts that are not published, or have no slug, are not listed", async () => {
