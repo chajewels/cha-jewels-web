@@ -199,3 +199,21 @@ Commits `a51e2b2` (shared `components/site/breadcrumbs.tsx` + pure `lib/breadcru
 | 13 | SEO checker | PASS | `scripts/check-seo-live.mjs https://www.chajewelsjp.com` → **288 pass / 0 fail / 0 deferred** |
 
 **Exceptions:** none. **Not done, by instruction:** OD-6, return/shipping structured data, Hub data, payment systems, Google accounts, secrets. **Next (owner):** Search Console "request indexing" for `/en/layaway`; Rich Results Test by URL on `/en/layaway` and a product URL; status becomes SEARCH ENGINE RECRAWL PENDING.
+
+## 8. Stabilization release (2026-10-29): PR #426 → `main` `97a6e76`
+
+**Scope.** `develop` `9e1d564` → `main`: #423 (BUG-02 sameAs chat-link exclusion), #424 (BUG-05 robots/noindex), #425 (BUG-08 status + defect review), #422 (docs). Nine files; no middleware, config, dependency, workflow, Supabase, env, checkout, layaway-money, card or Paidy file.
+**Gates before merge.** CI on `9e1d564` success (develop and PR runs); local: typecheck 0, lint 0 errors, unit 508/508, terms/money/i18n/analytics/cutouts pass, build exit 0, `check-seo-live` 289/0 on the built head. Combined `develop` preview QA PASS (§ above).
+**Deployment.** `main` `97a6e76`; `main` CI success; Vercel production deployment Ready and serving (robots change observable live).
+
+**Production QA (anonymous, 2026-10-29).**
+
+| Check | Result |
+|---|---|
+| JewelryStore `sameAs` on `/en` | PASS — `["https://www.facebook.com/chajewelsjapan"]`; m.me excluded |
+| Messenger customer links | PASS — footer `https://m.me/chajewelsjapan` present; resolves (302 to Facebook Messenger); Messenger button on product pages |
+| `/already-registered` | PASS — 200, `noindex, nofollow`, no canonical/hreflang; robots.txt no longer disallows it |
+| Other private routes | PASS — robots.txt Disallow exactly `/account`, `/checkout`, `/api`, `/review/`; `/account`, `/checkout`, `/checkout?mode=layaway`, `/account/layaway` → 307 `/login?next=…`; `/cart`, `/login`, `/search` 200 with their noindex |
+| Layaway, canonical, hreflang, sitemap | PASS — `/en/layaway` 200, `/ja/layaway` 404, bare `/layaway` 404; `check-seo-live https://www.chajewelsjp.com` **289 pass / 0 fail / 0 deferred** |
+
+**Exceptions:** none. Phases 3–4 remain SEARCH ENGINE RECRAWL PENDING.

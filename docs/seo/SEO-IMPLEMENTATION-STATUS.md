@@ -424,6 +424,7 @@ One coordinated session, four branches from `develop` `4dc3c23`, four draft PRs 
 
 ## Change log
 
+- 2026-10-29: Stabilization release PR #426 → `main` `97a6e76` (BUG-02 sameAs chat-link exclusion, BUG-05 robots/noindex on `/already-registered`, BUG-08 docs, defect review). Production-verified: checker 289/0/0, sameAs Facebook only, Messenger links intact, private routes unchanged (QA §8). No Hub, payment or Google change; OD-6 not implemented.
 - 2026-10-29: PRODUCTION RELEASE: PR #421 merged (`main` `82effab`), Vercel production Ready (`cha-jewels-dzlgl93u3`), `main` CI success; production QA 13/13 PASS, checker 288/0/0 (QA §7). Phases 3 and 4 DEPLOYED, SEARCH ENGINE RECRAWL PENDING; no indexing claimed. OD-6 not implemented.
 - 2026-10-29: Post-merge integration QA on the `develop` preview (`675a7c3`, Vercel Ready, real Hub): 23 checks PASS, 0 FAIL (QA §6); release scope = `develop` `675a7c3`; STOPPED for owner authorization; OD-6 not implemented.
 - 2026-10-29: Controlled integration stage: #419 rebased without `aacb81e`/`f324135` (unit 502/502, checker 277/0, build clean); #416 unchanged on `develop` head; #416, #417, #419 marked ready for review; no merge performed — explicit owner authorization requested (`SEO-QA-REPORT.md` §5). OD-6 not implemented.
