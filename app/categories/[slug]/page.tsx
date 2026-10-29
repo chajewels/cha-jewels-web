@@ -12,6 +12,8 @@ import { CatalogSection, CollectionHead, CountLine, EmptyCatalog } from "@/compo
 import { catalogue, collectionsWithProducts, isAvailable, stockedCollections } from "@/lib/catalog-context";
 import { follow } from "@/lib/settings";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
+import { JsonLd } from "@/components/site/json-ld";
+import { listingOpenGraph, listingProductSlugs, ogFor } from "@/lib/listing-seo";
 
 export const revalidate = 60;
 
@@ -36,7 +38,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const [cat, lang] = await Promise.all([hub.category((await params).slug).catch(() => null), getLang()]);
-  return cat ? { title: listingTitle("category", cat.slug, categoryName(cat, lang), lang), description: categoryDescription(cat, lang) ?? undefined } : {};
+  return cat ? { title: listingTitle("category", cat.slug, categoryName(cat, lang), lang), description: categoryDescription(cat, lang) ?? undefined, ...ogFor(listingOpenGraph(cat.hero_media, categoryName(cat, lang), lang)) } : {};
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -55,8 +57,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const empty = cat.products.length === 0;
   const [cols, all] = empty ? await Promise.all([collectionsWithProducts(), catalogue()]) : [[], []];
 
+  // SEO Step 2: the ItemList is the grid's own list, same array, same order.
+  const itemSlugs = listingProductSlugs(cat.products);
+
   return (
     <>
+      {itemSlugs.length > 0 && <JsonLd type="itemlist" slugs={itemSlugs} />}
       {/* Home › this category (Phase 4): a category hangs off the home page's
           hero deck, not off /collections, so the trail starts at Home — visible
           crumb and BreadcrumbList from one array, above the head. */}

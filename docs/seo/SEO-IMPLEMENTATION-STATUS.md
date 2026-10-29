@@ -439,6 +439,17 @@ PR #429 review fixes (2026-10-29): (A) `/collections` now shows a visible, 44px-
 
 Not claimed: indexing, rich results or ranking effects. Product image entries are covered by unit tests only; the local build runs on fixtures with relative image URLs, so no live image entry was produced. Recheck after deployment against the real Hub.
 
+## Step 2 — Collection and category SEO (Master Plan §33.3): READY FOR QA (2026-10-29; branch `seo/step-2-collection-itemlist-og`; NOT DEPLOYED)
+
+| Item | Status | What changed |
+|---|---|---|
+| ItemList JSON-LD | READY FOR QA | One `ItemList` per collection/category page with at least two pieces: the grid's own `products` array, in its order (sold pieces included, as the grid shows them), each distinct product URL once, positions 1..n, locale-correct canonical URLs. Only `position` and `url` per item: no name, price, availability or rating (each product page carries its own Product markup). No list for an empty or one-piece page. |
+| Hero OpenGraph image | READY FOR QA | The Hub's own `hero_media`, only when an absolute https URL. Bundled placeholders, category-stage product photos and relative or http values are never used; those pages keep today's brand image. OG title/description unchanged; Twitter image follows. |
+
+Evidence baseline (production, 2026-10-29): 5 of 12 collections have a real Hub `hero_media` (earrings, luxury-bags, luxury-wallet, luxury-watches, other-accessories; images are 0.1-1.8 MB); no category has one yet, so category OG stays the brand image until the owner uploads a hero. Google's carousel rich result supports only Course, Movie, Recipe and Restaurant lists, so this ItemList is valid schema.org markup that describes the page and is NOT expected to produce a rich result. No claim is made about rich results, indexing or ranking.
+
+The ItemList describes the initial server-rendered grid (the Hub's order, "Newest"), not a visitor's later client-side sort or filter. Size on real production listings, measured by running the builder over their real slugs: 0.3-1.7% of the page (largest 28.9 KB on `/categories/preloved-jewelry`, 194 pieces). `scripts/check-seo-live.mjs` now reads the rendered HTML of 10 listing pages (og/twitter inheritance, hero-or-brand image, ItemList = rendered grid) so the same checks run against production after release.
+
 ## Change log
 
 - 2026-10-29: Stabilization release PR #426 → `main` `97a6e76` (BUG-02 sameAs chat-link exclusion, BUG-05 robots/noindex on `/already-registered`, BUG-08 docs, defect review). Production-verified: checker 289/0/0, sameAs Facebook only, Messenger links intact, private routes unchanged (QA §8). No Hub, payment or Google change; OD-6 not implemented.
