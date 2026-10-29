@@ -41,7 +41,7 @@ test("6. missing destination: an UNPREFIXED link is localized structurally, as a
 });
 test("7. unchanged: externals, layaway, private paths", () => {
   assert.equal(href("[x](https://www.chajewelsjp.com/en/blog/how-cha-jewels-began)", "ja"), "https://www.chajewelsjp.com/en/blog/how-cha-jewels-began");
-  assert.equal(href("[l](/layaway)", "en"), "/layaway");
+  assert.equal(href("[l](/layaway)", "ja"), "/layaway", "a Japanese page never gets a layaway link minted for it");
   assert.equal(href("[c](/cart)", "ja"), "/cart");
 });
 
@@ -93,11 +93,13 @@ test("private, checkout and account routes are never localized, prefixed or not"
     for (const page of ["en", "ja"]) assert.equal(href(`[t](${p})`, page), p, `${p} on ${page}`);
   }
 });
-test("layaway: bare /layaway stays bare; explicit locale layaway URLs are kept as written and never created", () => {
-  for (const page of ["en", "ja"]) assert.equal(href("[t](/layaway)", page), "/layaway");
-  assert.equal(href("[t](/en/layaway)", "en"), "/en/layaway", "as written (a Phase 3 URL the author typed; not created by code)");
-  assert.equal(href("[t](/ja/layaway)", "ja"), "/ja/layaway", "as written");
-  assert.equal(localizeAuthoredHref("/layaway", "en"), "/layaway");
+test("layaway (Phase 3): an authored /layaway becomes /en/layaway on an English page, stays bare on a Japanese one; /ja/layaway is never created", () => {
+  assert.equal(href("[t](/layaway)", "en"), "/en/layaway", "the live English page");
+  assert.equal(href("[t](/layaway)", "ja"), "/layaway", "no Japanese layaway page exists to localise into");
+  assert.equal(href("[t](/en/layaway)", "en"), "/en/layaway", "as written");
+  assert.equal(href("[t](/en/layaway)", "ja"), "/en/layaway", "an author's explicit English link keeps its language");
+  assert.equal(href("[t](/ja/layaway)", "ja"), "/ja/layaway", "as written (not a page; never minted by code)");
+  assert.equal(localizeAuthoredHref("/layaway", "en"), "/en/layaway");
   assert.equal(localizeAuthoredHref("/layaway", "ja"), "/layaway");
 });
 

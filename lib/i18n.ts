@@ -579,6 +579,16 @@ export const dict = {
     reserveThis: { ja: "この商品を予約する", en: "Reserve this piece with layaway" },
     reserveToday: { ja: "今すぐ予約できる商品", en: "Pieces you can reserve today" },
     allPieces: { ja: "すべての商品", en: "All pieces" },
+    // PHASE 3 (SEO): /en/layaway is a crawlable page with its own H1 (the
+    // homepage band keeps home.layH), a layaway FAQ drawn from the Hub FAQ, and
+    // a "before you reserve" link block. The page is notFound on ja, so the
+    // Japanese strings never render (scripts/check-layaway-ja.mjs lists them).
+    h1: { ja: "ジュエリーの分割予約：今すぐ予約、月々のお支払い", en: "Jewelry layaway in Japan: reserve now, pay monthly at 0% interest" },
+    faqH: { ja: "分割予約のよくある質問", en: "Layaway questions" },
+    faqAll: { ja: "お支払いと分割予約の質問をすべて見る", en: "See every payment and layaway question" },
+    moreH: { ja: "ご予約の前に", en: "Before you reserve" },
+    moreP: { ja: "ご注文からお届けまでの流れ、サイズの選び方、Cha Jewelsについて。", en: "How ordering and delivery work, how to choose a size, and who you are buying from." },
+    whyLink: { ja: "Cha Jewelsが選ばれる理由", en: "Why Cha Jewels" },
   },
   /**
    * The announcement bar (components/site/announcement-bar.tsx). Its SENTENCE
@@ -1896,7 +1906,11 @@ export const dict = {
     // sanctions, and it is a claim about our own checking rather than about
     // documents travelling with the stone.
     site: { title: { ja: "Cha Jewels | K18ゴールド・パール・ダイヤモンド", en: "Cha Jewels | K18 gold, pearls and diamonds" }, description: { ja: "日本で真贋確認済みのK18ゴールド、あこや真珠、ダイヤモンド。東京からの卸売、世界中へ配送。", en: "K18 gold, Akoya pearls and diamonds, authenticated in Japan. 0% layaway, wholesale from Tokyo, shipping worldwide." } },
-    layaway: { title: { ja: "分割予約", en: "Layaway" } },
+    // Phase 3: /en/layaway is indexable, so it carries a real title and
+    // description (English is the only language the page exists in; pageMeta
+    // returns {} on ja). No figure here is computed: the terms are the owner's
+    // published ones (home.layP).
+    layaway: { title: { ja: "分割予約", en: "Jewelry layaway in Japan: 30% deposit, 0% interest" }, description: { ja: "K18ゴールド、パール、ダイヤモンドのジュエリーを30%の頭金で確保し、残額を無利息で月々お支払い。計算機、条件、よくある質問。", en: "Reserve K18 gold, pearl and diamond jewelry in Japan with a 30% deposit, then pay monthly at 0% interest over 3 to 8 months. Calculator, terms and FAQ." } },
     blog: { title: { ja: "ブログ", en: "Blog" }, description: { ja: "K18ゴールド、パール、ジュエリーのお手入れについて、Cha Jewelsからの記事とお知らせ。", en: "Articles and news from Cha Jewels: K18 gold, pearls and how to care for your jewelry." } },
     account: { title: { ja: "アカウント", en: "Account" } },
     orders: { title: { ja: "ご注文履歴", en: "Your orders" } },

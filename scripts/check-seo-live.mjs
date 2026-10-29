@@ -44,7 +44,10 @@ const product = find(/^\/products\//), collection = find(/^\/collections\/./), c
 const NOINDEX_PREFIX = ["/search", "/cart", "/login", "/auth", "/account", "/checkout", "/loyalty/join", "/already-registered", "/review", "/receipts", "/newsletter/unsubscribe", "/cart-reminders"];
 const leaked = paths.filter((p) => NOINDEX_PREFIX.some((n) => bareOf(p) === n || bareOf(p).startsWith(`${n}/`)));
 ok("/sitemap.xml", "lists no private or utility route", leaked.length === 0, leaked.join(", "));
-ok("/sitemap.xml", "does not list /layaway, /en/layaway or /ja/layaway (Phase 3 / never)", !paths.some((p) => /^\/((en|ja)\/)?layaway$/.test(p)), paths.filter((p) => /layaway$/.test(p)).join(", "));
+// Phase 3: the English layaway page is listed once, at /en/layaway; the bare
+// cookie-decided /layaway and the non-existent /ja/layaway never are.
+ok("/sitemap.xml", "Phase 3: lists /en/layaway exactly once", paths.filter((p) => p === "/en/layaway").length === 1, paths.filter((p) => /layaway$/.test(p)).join(", ") || "none");
+ok("/sitemap.xml", "does not list /layaway or /ja/layaway (cookie-decided / never)", !paths.some((p) => /^\/(ja\/)?layaway$/.test(p)), paths.filter((p) => /layaway$/.test(p)).join(", "));
 ok("/sitemap.xml", "every URL is on the checked origin", locs.every((l) => l.startsWith(BASE)), locs.find((l) => !l.startsWith(BASE)) ?? "");
 // ---- Phase 2D: locale URLs only, the root `/` kept until OD-3, no hreflang (OD-12).
 const bareListed = paths.filter((p) => p !== "/" && !/^\/(en|ja)(\/|$)/.test(p));
@@ -83,6 +86,29 @@ for (const path of BARE) {
 for (const [path, want] of [["/layaway", 404], ["/layaway?lang=en", 200], ["/products/nonexistent-seo-check-xyz", 404]]) {
   const r = await get(path);
   ok(path, `2E-1: untouched (${want})`, r.status === want, `got ${r.status} ${r.location ?? ""}`);
+}
+
+// ---------------------------------------------------------------- layaway (Phase 3)
+// /en/layaway is the one English-only indexable page: 200, self canonical,
+// hreflang `en` + x-default (English) and NO `ja` alternate; FAQPage JSON-LD
+// for its visible FAQ. /ja/layaway does not exist and says nothing.
+{
+  const r = await get("/en/layaway");
+  ok("/en/layaway", "200", r.status === 200, `got ${r.status} ${r.location ?? ""}`);
+  if (r.status === 200) {
+    ok("/en/layaway", "no noindex", !/noindex/i.test(robotsMeta(r.body) ?? "") && !/noindex/i.test(r.xrobots ?? ""), `robots=${robotsMeta(r.body)}`);
+    const c = canonicals(r.body);
+    ok("/en/layaway", "one self canonical", c.length === 1 && c[0] === `${BASE}/en/layaway`, `canonical=${c.join("|") || "none"}`);
+    const alts = alternates(r.body);
+    ok("/en/layaway", "hreflang en + x-default only (no ja: there is no Japanese layaway page)", alts.some((a) => a.lang === "en") && alts.some((a) => a.lang === "x-default") && !alts.some((a) => a.lang === "ja"), JSON.stringify(alts));
+    ok("/en/layaway", "x-default is the English page", alts.find((a) => a.lang === "x-default")?.href === `${BASE}/en/layaway`, JSON.stringify(alts));
+    ok("/en/layaway", "one H1", (r.body.match(/<h1[\s>]/g) ?? []).length === 1, `${(r.body.match(/<h1[\s>]/g) ?? []).length} h1`);
+    ok("/en/layaway", "JSON-LD: FAQPage", jsonLd(r.body).some((d) => d["@type"] === "FAQPage"), jsonLd(r.body).map((d) => d["@type"]).join(","));
+    ok("/en/layaway", "links to the FAQ, the Shopping Guide and the Jewelry Guide", ["/en/faq", "/en/shopping-guide", "/en/jewelry-guide"].every((p) => r.body.includes(`href="${p}`)), "");
+  }
+  const ja = await get("/ja/layaway");
+  ok("/ja/layaway", "404 (no Japanese layaway, ever)", ja.status === 404, `got ${ja.status}`);
+  ok("/ja/layaway", "no canonical or hreflang element", canonicals(ja.body).length + alternates(ja.body).length === 0, `canonical=${canonicals(ja.body).length}, alt=${alternates(ja.body).length}`);
 }
 
 // ---------------------------------------------------------------- indexable pages

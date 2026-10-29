@@ -100,7 +100,7 @@ test("dropLangParam: only the lang key, decoded, is removed", () => {
   assert.equal(dropLangParam("?%E0%A4%A=1"), "?%E0%A4%A=1", "a malformed key is kept as it came");
 });
 
-test("STATIC_PAGES is exactly the static app/[lang] pages, root excluded", () => {
+test("STATIC_PAGES is exactly the static app/[lang] pages, root and /layaway excluded", () => {
   const root = join(process.cwd(), "app", "[lang]");
   const found = [];
   (function walk(dir, rel) {
@@ -110,7 +110,12 @@ test("STATIC_PAGES is exactly the static app/[lang] pages, root excluded", () =>
       else if (name === "page.tsx" && rel) found.push(rel);
     }
   })(root, "");
-  assert.deepEqual([...STATIC_PAGES].sort(), found.sort());
+  // /layaway HAS a locale route since Phase 3 (/en/layaway, English only) but
+  // the bare URL is deliberately NOT redirected: its legacy behaviour is OD-6,
+  // a separate owner decision that is not approved. It stays exactly as it was.
+  assert.ok(found.includes("/layaway"), "Phase 3: app/[lang]/layaway/page.tsx exists");
+  assert.ok(!STATIC_PAGES.has("/layaway"), "OD-6 is not approved: bare /layaway is never redirected");
+  assert.deepEqual([...STATIC_PAGES].sort(), found.filter((p) => p !== "/layaway").sort());
 });
 
 // ------------------------------------------------------------------ source guards

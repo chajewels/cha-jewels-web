@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
+import { stripLocale } from "@/lib/locale";
 import { SocialGlyph } from "@/components/site/social-icons";
 import { MessengerAnchor } from "@/components/site/messenger-anchor";
 
@@ -36,7 +37,9 @@ import { MessengerAnchor } from "@/components/site/messenger-anchor";
 const SHOWN_ON = ["/products", "/collections", "/categories", "/cart", "/checkout", "/layaway", "/loyalty", "/wholesale"];
 
 export function MessengerButton({ href, label }: { href: string; label: string }) {
-  const path = usePathname();
+  // Compared WITHOUT the locale prefix (Phase 3, with /en/layaway live): the
+  // list above names bare paths, and the same page is /en/… or /ja/… now.
+  const path = stripLocale(usePathname());
   if (!SHOWN_ON.some((p) => path === p || path.startsWith(`${p}/`))) return null;
   return (
     <MessengerAnchor

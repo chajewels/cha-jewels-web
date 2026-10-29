@@ -48,18 +48,19 @@ test("missing siblings fall back to the language home; English-only and layaway-
   assert.deepEqual((await call("/en/blog/both")).body, { en: "/en/blog/both", ja: "/ja/blog/both" });
 });
 
-test("no layaway destination, ever: the entry rendered as a link never names a layaway URL", async () => {
+test("no Japanese layaway destination, ever; the English side of a layaway page is /en/layaway (Phase 3)", async () => {
   // The switcher links only to the OTHER language (the current one is a
   // non-link control), so for each requested path the other entry is the
-  // destination. It is never /ja/layaway (policy) nor /en/layaway (Phase 3).
+  // destination. The Japanese entry is never a layaway URL (policy); since
+  // Phase 3 the English entry of a layaway page is the live /en/layaway.
   for (const [p, own] of [["/layaway", null], ["/en/layaway", "en"], ["/ja/layaway", "ja"], ["/en/faq", "en"]]) {
     const r = await call(p);
-    for (const l of ["en", "ja"]) {
-      if (l === own) { assert.equal(r.body[l], p, `${p}: the own-language entry only names the page itself`); continue; }
-      assert.ok(!/layaway/.test(r.body[l] ?? ""), `${p} → ${l}: ${r.body[l]}`);
-    }
+    if (own) assert.equal(r.body[own], p, `${p}: the own-language entry only names the page itself (never rendered as a link)`);
+    if (own !== "ja") assert.ok(!/layaway/.test(r.body.ja ?? ""), `${p} → ja: ${r.body.ja}`);
   }
-  assert.deepEqual((await call("/layaway")).body, { en: "/en", ja: "/ja" });
+  assert.deepEqual((await call("/layaway")).body, { en: "/en/layaway", ja: "/ja" });
+  assert.deepEqual((await call("/en/layaway")).body, { en: "/en/layaway", ja: "/ja" });
+  assert.deepEqual((await call("/ja/layaway")).body, { en: "/en/layaway", ja: "/ja/layaway" }, "a 404 URL's own entry names itself (the page is not found anyway); the English entry is the real page");
 });
 
 test("hostile or malformed input is a 400 with nothing in it; every 200 answer is a same-site path", async () => {
