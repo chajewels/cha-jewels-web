@@ -25,7 +25,7 @@
 
 | Purpose | Route (English site) | Note |
 |---|---|---|
-| Layaway page | `/layaway` (bare, English only, 404 on JA) | `/en/layaway` is **Phase 3, BLOCKED/not yet created** (status doc). Until Phase 3 repoints links, the working English link is the bare `/layaway` (Option ii exception, `SEO-MIGRATION-MAP.md:158`). Briefs below write `/en/layaway` as the **target** route and the editor uses `/layaway` until Phase 3 ships. |
+| Layaway page | `/layaway` (bare, English only, 404 on JA) | `/en/layaway` is **Phase 3, READY FOR QA in draft PR #416 (not deployed)**. Until that PR is deployed, the working English link in production is the bare `/layaway` (Option ii exception, `SEO-MIGRATION-MAP.md:158`). Briefs below write `/en/layaway` as the **target** route and the editor uses `/layaway` until Phase 3 ships. |
 | Collections | `/en/collections`, `/en/collections/<slug>` | Slugs are Hub data; fixtures show `necklaces`, `rings`, `bracelets`, `earrings`, `pendants`. Confirm live slugs in `GET /catalog/collections` before linking. |
 | Jewelry Guide (metals, K18 meaning, sizes) | `/en/jewelry-guide` (`#metals` anchor exists: `/gold-guide` redirects there) | |
 | FAQ | `/en/faq` | Hub FAQ when present |
@@ -117,7 +117,7 @@ Format per brief: intent · proposed title (≤60 chars where possible) · H1 ·
 
 ## 6. Full draft — B4 (DRAFT — EDITORIAL APPROVAL REQUIRED)
 
-> **DRAFT — EDITORIAL APPROVAL REQUIRED.** Taglish, English-site only (`layaway_only: true`). Every layaway term below is copied from the published site copy (`lib/i18n.ts` `home.layP`, `home.layStep1H/P`–`layStep3H/P`, `home.layPill`; tokusho 支払時期 and 引渡時期 rows; `/shopping-guide`). No new figures, no worked examples. Links: `/layaway` is the working link until Phase 3 creates `/en/layaway`. Word count ≈ 850.
+> **DRAFT — EDITORIAL APPROVAL REQUIRED.** Taglish, English-site only (`layaway_only: true`). Every layaway term below is copied from the published site copy (`lib/i18n.ts` `home.layP`, `home.layStep1H/P`–`layStep3H/P`, `home.layPill`; tokusho 支払時期 and 引渡時期 rows; `/shopping-guide`). No new figures, no worked examples. Links: `/layaway` is the working link in production until Phase 3 (PR #416) is deployed; then `/en/layaway`. Word count ≈ 850.
 
 **Title:** Paano gumagana ang jewelry layaway sa Japan? (Cha Jewels)
 **Meta description (draft):** Layaway sa Cha Jewels: 30% deposit, 0% interest, 3, 6 o 8 buwan. Alamin kung paano i-reserve ang K18 jewelry sa Japan at bayaran buwan-buwan.
@@ -195,7 +195,7 @@ Handa ka na? [Buksan ang layaway calculator](/layaway), pumili ng piyesa, at i-r
 
 - `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` §12, §13, §20, PHASE 9
 - `docs/seo/SEO-MIGRATION-MAP.md` (no `/fil/`; layaway link exception; F2 per-language posts)
-- `docs/seo/SEO-IMPLEMENTATION-STATUS.md` (X8, X9; Phase 3 BLOCKED)
+- `docs/seo/SEO-IMPLEMENTATION-STATUS.md` (X8, X9; Phase 3 READY FOR QA, PR #416)
 - `lib/i18n.ts` (`home.layP`, `home.layStep1–3`, `home.layPill`, `checkout.couponLayawayNotAllowed`, `layawayPage.*`, `wholesale.*`, `gold.*`), `lib/content/legal.ts` (tokusho rows), `lib/content/shopping-guide.ts`, `lib/content/faq.ts`, `lib/content/about.ts`, `supabase/contracts/api.md` (posts, FAQ, products `description_tl`), `app/` route listing
 
 **UNVERIFIED:** live collection/category slugs; whether `description_tl` is populated in the Hub; Search Console demand for any Filipino query (no export exists); analytics event for layaway starts; Search Console regex case-sensitivity behaviour.
