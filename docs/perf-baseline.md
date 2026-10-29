@@ -1,5 +1,10 @@
 # Performance baseline
 
+## 2026-10-29 — SEO Step 3a: Japanese heading font after load
+
+Full method, production baseline, rejected variant and architecture proposals: `docs/seo/PERF-STEP3-FINDINGS.md`.
+Local `next start`, mobile Lighthouse 13.5.0 (simulated Slow 4G, 4x CPU), interleaved, 7 runs each: `/ja` 77 → 84 (LCP 6.6 → 4.4 s), `/ja/collections/rings` 80 → 87 (LCP 5.3 → 4.0 s), `/en` 82 → 82; CLS 0 → 0 on all.
+
 ## 2026-09-24 — Loyalty tier medallions, round 2 (owner review of #136)
 
 Before = `bc8ffc1` (the reviewed medallions). After = this commit. Same

@@ -495,3 +495,11 @@ One legacy behaviour changed and it is **not pre-approved; it needs the owner's 
 - 2026-10-28: Phase 2C implemented locally under the development-and-testing authorization (uncommitted): OD-15 gating completion, OD-7 switcher links, OD-11 Hub-link localization, full locale-aware navigation, share/sign-out/revalidation, 16 new tests. Crawl 0×404 / 0 bare-public; legacy metadata unchanged. Opus review of checkout-actions pending at PR. Not committed, not deployed.
 - 2026-10-29: SEO Step 1 (Master Plan §33.3) implemented (PR #429, develop `c6bec5c`) and released to production via PR #430 (main `2e18bcc`); production-verified, recrawl pending. No redirect, canonical, hreflang, route or Hub change.
 - 2026-10-29: SEO Step 2 (Master Plan §33.3) merged (PR #432, develop `5533801`) and released to production via PR #433 (main `49c0fd6`); production-verified, recrawl pending. No redirect, canonical, hreflang, route, payment or Hub change.
+
+## Step 3 — Performance (Master Plan §33.3): 3a READY FOR QA; 3b and 3c AUDITED (2026-10-29; branch `perf/step-3-measure`; NOT DEPLOYED)
+
+| Item | Status | Note |
+|---|---|---|
+| 3a Japanese heading font after load | READY FOR QA | Noto Serif JP slices (37, 568 KB) no longer compete with the hero during load; mobile `/ja` 77 → 84, LCP 6.6 → 4.4 s (local A/B, 7 runs); CLS 0; English untouched. See `docs/seo/PERF-STEP3-FINDINGS.md`. |
+| 3b Large collection payloads | AUDITED | 1.26 MB raw / 48 KB brotli (Rings); not the measured bottleneck; no change; options in the findings doc. |
+| 3c Root-layout dynamic rendering and caching | AUDITED | Every public page is `private, no-store`; proposal only, high risk, own phase. |

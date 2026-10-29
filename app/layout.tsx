@@ -20,6 +20,7 @@ import { MobileTabBar, type Tab } from "@/components/site/mobile-tab-bar";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SpeedInsightsProvider } from "@/components/analytics/speed-insights-provider";
+import { JpFontGate } from "@/components/site/jp-font-gate";
 import { MetricoolTracker } from "@/components/analytics/metricool-tracker";
 import { AdsTags } from "@/components/analytics/ads-tags";
 import { ConsentBanner } from "@/components/site/consent-banner";
@@ -156,6 +157,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AdsTags />
         {/* Web Vitals, behind the same gate and URL redaction as Analytics. */}
         <SpeedInsightsProvider />
+        {lang === "ja" && <JpFontGate />}
         {/* Metricool traffic statistics, production deployments only: local
             dev, fixture mode and every Vercel preview (develop included) never
             render it, so the script is not even requested there. The browser
