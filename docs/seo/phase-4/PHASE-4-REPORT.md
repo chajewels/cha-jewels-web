@@ -25,7 +25,7 @@ Legacy key order untouched; new fields appended (`logo`, `telephone`, then `emai
 - `logo`: `${base}/images/brand/logo-badge-512.webp` (static asset, never locale-prefixed).
 - `telephone`: `COMPANY_PHONE.office` converted to E.164 → `+81-3-6657-6129` (derived from the one place the digits live, not retyped).
 - `email`: `contactEmail()` from `lib/settings.ts` (the Hub's `contact.email`), omitted when null.
-- `sameAs`: the `href`s of `follow()` (the Hub's `social.follow` row), filtered to `http(s)` **profile** URLs (`isProfileUrl`) — `mailto:` links and chat entry points such as `m.me/…` are not profiles (BUG-02, 2026-10-29: Google flagged the Messenger link as an invalid `sameAs`). Both reads are caught in `app/page.tsx` like the other chrome reads: a failed read omits the field, never the page.
+- `sameAs`: the `href`s of `follow()` (the Hub's `social.follow` row), filtered to `http(s)` **profile** URLs (`isProfileUrl`) — `mailto:` links and chat entry points such as `m.me/…` are not profiles (BUG-02, 2026-10-29: the Messenger link is a messaging endpoint, not an identity profile, so it is excluded; Google's Rich Results Test did not report it as an error). Both reads are caught in `app/page.tsx` like the other chrome reads: a failed read omits the field, never the page.
 
 ### Product (§6, §7) — `app/products/[slug]/page.tsx`
 - **X5 closed**: `description` = `description_ja` on a `/ja` page when the Hub's Japanese text is non-empty, else `description_en`. Legacy and `/en` unchanged.

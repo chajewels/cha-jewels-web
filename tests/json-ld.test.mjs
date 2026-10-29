@@ -112,14 +112,14 @@ test("store: email and sameAs come from the Hub only — absent when not passed;
   const onlyMail = buildJsonLd({ type: "store", sameAs: ["mailto:sales@example.com"] }, B, "");
   assert.equal("sameAs" in onlyMail, false, "a row of mailto links is no sameAs");
   const onlyChat = buildJsonLd({ type: "store", sameAs: ["https://m.me/chajewelsjapan"] }, B, "");
-  assert.equal("sameAs" in onlyChat, false, "a row of only chat links is no sameAs (BUG-02: Google rejects m.me as a profile)");
+  assert.equal("sameAs" in onlyChat, false, "a row of only chat links is no sameAs (BUG-02: m.me is a messaging endpoint, not an identity profile)");
   const d = buildJsonLd({ type: "store", email: "sales@example.com", sameAs: ["mailto:sales@example.com", "https://www.facebook.com/chajewelsjapan", "https://m.me/chajewelsjapan"] }, B, "/en");
   assert.equal(d.email, "sales@example.com");
   assert.deepEqual(d.sameAs, ["https://www.facebook.com/chajewelsjapan"], "the real Hub row (facebook + m.me) yields the profile only");
   assert.equal("openingHours" in d, false, "customer-service hours are not shop hours");
 });
 
-test("isProfileUrl (BUG-02): social profiles yes; chat entry points, mailto, relative and malformed no", async () => {
+test("isProfileUrl (BUG-02) excludes KNOWN chat endpoints, mailto, relative and malformed hrefs; it is not a validator of social-profile URLs — any other http(s) host passes", async () => {
   const { isProfileUrl } = await import("@/lib/json-ld");
   for (const ok of ["https://www.facebook.com/chajewelsjapan", "https://facebook.com/chajewelsjapan", "https://www.instagram.com/chajewels", "https://www.tiktok.com/@chajewels", "https://www.youtube.com/@chajewels", "https://x.com/chajewels", "http://www.pinterest.com/chajewels", "https://www.threads.net/@chajewels", "https://www.linkedin.com/company/cha-jewels"]) {
     assert.equal(isProfileUrl(ok), true, ok);

@@ -68,9 +68,13 @@ const e164Jp = (domestic: string) => `+81-${domestic.replace(/^0/, "")}`;
  * `sameAs` names a page that unambiguously identifies the business — a social
  * profile. A CHAT entry point (Messenger `m.me/…`, `messenger.com/t/…`, WhatsApp
  * `wa.me` / `api.whatsapp.com`, LINE `line.me/ti/…`, Telegram `t.me`, Viber) is a
- * conversation URL, not an identity page, and Google flags such a `sameAs` as
- * invalid. Those links stay in the visible footer and the Messenger button;
- * only this structured-data field drops them. mailto: links were already out.
+ * conversation URL, not an identity page, so it does not belong in `sameAs`
+ * (Google's Rich Results Test does not report it as an error; the exclusion
+ * is about meaning, not validation). Those links stay in the visible footer
+ * and the Messenger button; only this structured-data field drops them.
+ * mailto: links were already out. This is a filter of KNOWN chat endpoints,
+ * not a validator of social-profile URLs: an http(s) URL on any other host
+ * passes through unchanged.
  */
 const CHAT_HOSTS = /^(?:www\.)?(?:m\.me|messenger\.com|wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com|line\.me|lin\.ee|t\.me|telegram\.me|viber\.com)$/i;
 export function isProfileUrl(href: string): boolean {
