@@ -11,7 +11,7 @@
 
 | Item | State |
 |---|---|
-| Search Console property for `www.chajewelsjp.com` (Domain property preferred; it covers `agreement.` and any future subdomain) | UNKNOWN (X8) |
+| Search Console property for `www.chajewelsjp.com` (Domain property preferred; it covers `agreement.` and any future subdomain) | EXISTS (observed 2026-10-30): Domain property `chajewelsjp.com`, ownership verified, readable through the company Google account; the owner's primary Google account has no access. First read: `docs/seo/SEARCH-CONSOLE-BASELINE-2026-10-30.md` (UI-read, no exports; reports still processing) |
 | Who has Owner/Full access; whether Claude Code is ever given a read-only export (CSV files dropped into a folder) | Owner decision OD-SC-1 |
 | Property for the old domain `chajewelsjapan.com` (to watch its traffic fall once D2 redirects) | UNKNOWN |
 | Merchant Center account (Phase 5) and GBP (Phase 10) for the monthly review | UNKNOWN (X8) |

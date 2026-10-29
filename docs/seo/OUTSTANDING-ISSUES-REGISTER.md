@@ -6,7 +6,7 @@ Five distinct workstreams, tracked here so none is lost or marked done early. Fo
 |---|---|---|---|
 | 1 | BUG-03 article wording | Hub article content (website repo holds the proposal) | OPEN — owner A/B article wording decision pending |
 | 2 | HUB-CATALOG catalog delete of unused products | Hub repository `chajewels/la-tracking` | LIVE — FIRST REAL DELETE PENDING |
-| 3 | BUG-09 Search Console | Google Search Console (owner account) | PROPERTY VERIFIED (owner-reported); INDEXING AND BASELINE PENDING |
+| 3 | BUG-09 Search Console | Google Search Console (owner account) | OPEN — property verified and 3 priority URLs observed indexed (2026-10-30); coverage report and performance baseline pending (Google still processing) |
 | 4 | BUG-06 `/gold-guide` redirect chain | Website repository, routing | OPEN — deferred until owner-approved redirect work |
 | 5 | OG-PRODUCT product-page sharing metadata | Website repository, metadata | CLOSED — DEPLOYED AND VERIFIED LIVE (2026-10-30) |
 
@@ -42,13 +42,13 @@ Five distinct workstreams, tracked here so none is lost or marked done early. Fo
   - no unrelated product or inventory change occurred.
 
 ## 3. BUG-09 — Search Console
-- **Current status:** property VERIFIED and sitemap processing SUCCESS (owner-reported); actual indexing and the performance baseline are PENDING. The earlier status "BLOCKED (access)" is superseded.
+- **Current status:** OPEN. First Search Console read on 2026-10-30 (Domain property `chajewelsjp.com`; `docs/seo/SEARCH-CONSOLE-BASELINE-2026-10-30.md`): ownership **verified** ("You are a verified owner") and sitemap **Success** (976 discovered pages) are now **observed** and no longer only owner-reported. The three priority URLs (`/en`, `/ja`, `/en/layaway`) are **observed indexed** per Google's stored status (OBSERVED IN SEARCH CONSOLE for those three only). The Page indexing and Performance reports still say "Processing data", so there is **no indexed/not-indexed count, no exclusion breakdown and NO PERFORMANCE BASELINE AVAILABLE YET.** Of 8 sampled deeper URLs, 6 are "Discovered – currently not indexed" and 2 "URL is unknown to Google" (expected so soon after the sitemap read). The earlier status "BLOCKED (access)" remains superseded.
 - **Repository / workstream:** Google Search Console, owner account. This repository records evidence only.
 - **Reference:** `docs/seo/SEO-DEFECTS-2026-10-29.md` §BUG-09.
 - **Existing evidence:** historical (kept unchanged): on 2026-10-29 the Google account signed in on the Claude machine owned no property, so no coverage evidence was available to Claude; Rich Results Test by URL: a product page valid for Product snippets, Merchant listings and Breadcrumbs, `/en` valid for Organisation and Local business, `/en/layaway` no items (expected). **Owner-reported later the same day (not observed by Claude):** Domain property verified; sitemap status Success with 976 discovered URLs; priority indexing requests for `/en`, `/ja` and `/en/layaway` accepted.
-- **Remaining action:** owner exports index coverage, URL inspection for the three priority URLs and the Performance report as a dated baseline; later compare after recrawl.
+- **Remaining action:** re-read the Pages and Performance reports in about 7 and 14 days and take the CSV export set when data appears (`docs/seo/phase-12/SEARCH-CONSOLE-OPERATIONS.md`); re-inspect the same 8 sampled URLs on the same days (do not request indexing); decide the account/export route (OD-SC-1). Act on a finding only when Google has real data (baseline report §8).
 - **Owner approval:** access and any Search Console setting change are the owner's; Claude changes none.
-- **Definition of done:** coverage and URL-inspection results for the priority URLs are saved with dates (OBSERVED IN SEARCH CONSOLE), a performance baseline exists for comparison, and no page is described as indexed or ranking before that.
+- **Definition of done:** coverage and URL-inspection results for the priority URLs are saved with dates (OBSERVED IN SEARCH CONSOLE), a performance baseline exists for comparison, and no page is described as indexed or ranking before that. **Progress 2026-10-30:** URL-inspection results for the three priority URLs are saved (done); the coverage report has no data yet and no performance baseline exists (not done). BUG-09 therefore stays open.
 - **Rule:** discovered URLs, a successful sitemap read and accepted requests are not indexing. Do not claim indexed pages without Search Console evidence.
 
 ## 4. BUG-06 — `/gold-guide` redirect chain
