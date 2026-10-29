@@ -422,20 +422,33 @@ One coordinated session, four branches from `develop` `4dc3c23`, four draft PRs 
 
 **This session's model:** the sweep ran on Fable 5.1 (the owner's decision rule prefers Opus for architecture and money-adjacent logic; no money logic changed, and `check:money` is green on both code branches). The owner may request an Opus review of #419's `lib/json-ld.ts` shipping/return commits at the PR.
 
-## Step 1 — Crawlability and metadata (Master Plan §33.3): READY FOR QA (2026-10-29; branch `seo/step-1-crawlability-metadata`; NOT DEPLOYED)
+## Step 1 — Crawlability and metadata (Master Plan §33.3): DEPLOYED — PRODUCTION VERIFIED; SEARCH ENGINE RECRAWL PENDING (2026-10-29)
+
+Release: PR #430 (develop `c6bec5c` → main `2e18bcc64d3d36798c6ca8b00d0ef1d9fc19e409`, merge commit). Work: PR #429. Production deployment `7407795774` Ready. Live QA record: SEO-QA-REPORT.md §9.
 
 | Item | Status | What changed |
 |---|---|---|
-| A. Crawlable navigation | READY FOR QA | Closed Collections/Company menus and the phone drawer render a `hidden` link list (`components/site/crawl-links.tsx`), removed while the menu is open. Five category pages that were reachable only through the menus are now linked from every page's HTML. |
-| B. Tokusho descriptions | READY FOR QA | Own EN and JA `description` in `dict.meta.tokusho`; no layaway wording in JA; legal text untouched. |
-| C. Titles | READY FOR QA | Product `<title>` moves the SKU last only when the Hub name starts with the product's own SKU; EN titles lengthened for the seven jewelry-type collections and Fine Jewelry only. H1, slug and Hub name unchanged. |
-| D. Blog alt | READY FOR QA | Article lead image `alt` = article title; list thumbnails stay `alt=""`. |
-| E. Sitemap | READY FOR QA | `lastmod` only from a Hub post's `updated_at` (editor edit), the blog index's newest post, and the Git date of the dedicated content file for `/about` and `/jewelry-guide` (`scripts/gen-page-lastmod.mjs`). Everything else has none. Product `images` entries from the Hub's absolute https primary photo. URL set unchanged. |
-| F. Breadcrumb tap target | READY FOR QA | Invisible `::after` grows the tap area to about 45px; layout unchanged. |
+| A. Crawlable navigation | DEPLOYED | Closed Collections/Company menus and the phone drawer render a `hidden` link list (`components/site/crawl-links.tsx`), removed while the menu is open. Five category pages that were reachable only through the menus are now linked from every page's HTML. |
+| B. Tokusho descriptions | DEPLOYED | Own EN and JA `description` in `dict.meta.tokusho`; no layaway wording in JA; legal text untouched. |
+| C. Titles | DEPLOYED | Product `<title>` moves the SKU last only when the Hub name starts with the product's own SKU; EN titles lengthened for the seven jewelry-type collections and Fine Jewelry only. H1, slug and Hub name unchanged. |
+| D. Blog alt | DEPLOYED | Article lead image `alt` = article title; list thumbnails stay `alt=""`. |
+| E. Sitemap | DEPLOYED | `lastmod` only from a Hub post's `updated_at` (editor edit), the blog index's newest post, and the Git date of the dedicated content file for `/about` and `/jewelry-guide` (`scripts/gen-page-lastmod.mjs`). Everything else has none. Product `images` entries from the Hub's absolute https primary photo. URL set unchanged. |
+| F. Breadcrumb tap target | DEPLOYED | Invisible `::after` grows the tap area to about 45px; layout unchanged. |
 
 PR #429 review fixes (2026-10-29): (A) `/collections` now shows a visible, 44px-tall list of every category (previously the five category pages were visibly linked from the home page only); the hidden menu lists stay as a supplement. (B) The product-photo read is time-boxed (10 s), tolerant of malformed rows, and de-duplicates slugs; a failure never removes a URL. (C) Product `lastmod` REMOVED: the Hub's `website_products.updated_at` is a row-level trigger that moves on Page365-sync and admin writes and does not move on price, stock or photo changes (separate variant/media tables), so it is not a public-content time. Posts keep theirs. `npm run check:lastmod` (CI, full history) fails when `/about` or `/jewelry-guide` content is committed without regenerating `lib/page-lastmod.generated.ts`.
 
 Not claimed: indexing, rich results or ranking effects. Product image entries are covered by unit tests only; the local build runs on fixtures with relative image URLs, so no live image entry was produced. Recheck after deployment against the real Hub.
+
+## Step 2 — Collection and category SEO (Master Plan §33.3): READY FOR QA (2026-10-29; branch `seo/step-2-collection-itemlist-og`; NOT DEPLOYED)
+
+| Item | Status | What changed |
+|---|---|---|
+| ItemList JSON-LD | READY FOR QA | One `ItemList` per collection/category page with at least two pieces: the grid's own `products` array, in its order (sold pieces included, as the grid shows them), each distinct product URL once, positions 1..n, locale-correct canonical URLs. Only `position` and `url` per item: no name, price, availability or rating (each product page carries its own Product markup). No list for an empty or one-piece page. |
+| Hero OpenGraph image | READY FOR QA | The Hub's own `hero_media`, only when an absolute https URL. Bundled placeholders, category-stage product photos and relative or http values are never used; those pages keep today's brand image. OG title/description unchanged; Twitter image follows. |
+
+Evidence baseline (production, 2026-10-29): 5 of 12 collections have a real Hub `hero_media` (earrings, luxury-bags, luxury-wallet, luxury-watches, other-accessories; images are 0.1-1.8 MB); no category has one yet, so category OG stays the brand image until the owner uploads a hero. Google's carousel rich result supports only Course, Movie, Recipe and Restaurant lists, so this ItemList is valid schema.org markup that describes the page and is NOT expected to produce a rich result. No claim is made about rich results, indexing or ranking.
+
+The ItemList describes the initial server-rendered grid (the Hub's order, "Newest"), not a visitor's later client-side sort or filter. Size on real production listings, measured by running the builder over their real slugs: 0.3-1.7% of the page (largest 28.9 KB on `/categories/preloved-jewelry`, 194 pieces). `scripts/check-seo-live.mjs` now reads the rendered HTML of 10 listing pages (og/twitter inheritance, hero-or-brand image, ItemList = rendered grid) so the same checks run against production after release.
 
 ## Change log
 
@@ -480,4 +493,4 @@ One legacy behaviour changed and it is **not pre-approved; it needs the owner's 
 - 2026-10-28: Phase 2B implemented under Gate A authorization (development and testing only), branch `seo/phase-2b-locale-routes`. 21 locale routes as thin wrappers over the legacy pages (`app/[lang]`), URL-authoritative `getLang` via middleware-owned `x-cj-lang`, cookie sync, SeoLinks locale skip, pure JSON-LD builder (`lib/json-ld.ts`), locale metadata helper, per-post language eligibility. Gates B-F evidence: 405 unit tests pass (22 new); typecheck/lint/terms/money/i18n green; production build with 21 `[lang]` routes; legacy snapshot 28/29 byte-identical (the 29th, an unknown single-segment 404, only lost its misleading canonical/hreflang — the approved design G / X1 closure; branded 404 still hydrates); Gate F matrix 310/310; legacy route checker 120 pass / 0 fail / **0 deferred** (X1 closed); browser pass clean (console, 375px, statutory suppressions, Option ii layaway links to bare `/layaway`, no Japanese layaway). Not pushed, not merged, not deployed; Phase 2C untouched (`lib/checkout-actions.ts` unchanged).
 - 2026-10-28: Phase 2B closed as DEPLOYED — PRODUCTION VERIFIED (PR #401 / `bd28cc6`; checker 120/0/0; matrix 284/0). X1 resolved. Phase 2C approval package added (map §19). No route, navigation, sitemap, redirect, checkout or Hub change in this closeout.
 - 2026-10-28: Phase 2C implemented locally under the development-and-testing authorization (uncommitted): OD-15 gating completion, OD-7 switcher links, OD-11 Hub-link localization, full locale-aware navigation, share/sign-out/revalidation, 16 new tests. Crawl 0×404 / 0 bare-public; legacy metadata unchanged. Opus review of checkout-actions pending at PR. Not committed, not deployed.
-- 2026-10-29: SEO Step 1 (Master Plan §33.3) implemented on `seo/step-1-crawlability-metadata` — READY FOR QA, not deployed. No redirect, canonical, hreflang, route or Hub change.
+- 2026-10-29: SEO Step 1 (Master Plan §33.3) implemented (PR #429, develop `c6bec5c`) and released to production via PR #430 (main `2e18bcc`); production-verified, recrawl pending. No redirect, canonical, hreflang, route or Hub change.

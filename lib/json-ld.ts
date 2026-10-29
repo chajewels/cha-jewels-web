@@ -31,6 +31,14 @@ import { metalsLabel, productMetals } from "@/lib/metals";
  * builder makes them absolute with the page's own prefix, so a trail on /en
  * points at /en pages and a legacy page's at legacy ones. A path of "/" is the
  * locale home (`${base}${prefix}`, or the bare origin on a legacy page).
+ *
+ * `itemlist` (SEO Step 2) is the ItemList of a collection or category page: one
+ * ListItem per piece the page's grid shows, in the grid's order, with only the
+ * position and the piece's own canonical URL (`${base}${prefix}/products/slug`,
+ * the same URL as its Product offer). No name, price, availability or rating:
+ * each product page already carries those in its own Product markup, and
+ * repeating them here would be a second copy to keep true. The caller passes the
+ * slugs from `listingProductSlugs` (lib/listing-seo.ts).
  */
 export type PostLd = { slug: string; title: string; excerpt: string; date: string; cover: string | null; lang: "ja" | "en" };
 export type Crumb = { name: string; path: string };
@@ -57,7 +65,8 @@ export type JsonLdProps =
   | { type: "product"; product: Product; rating?: ProductRatingLd | null }
   | { type: "faq"; items: { q: string; a: string }[] }
   | { type: "post"; post: PostLd }
-  | { type: "breadcrumb"; items: Crumb[] };
+  | { type: "breadcrumb"; items: Crumb[] }
+  | { type: "itemlist"; slugs: string[] };
 
 const pageLanguage = (prefix: string) => (prefix === "/ja" ? "ja-JP" : "en");
 const crumbUrl = (base: string, prefix: string, path: string) => (path === "/" ? `${base}${prefix}` : `${base}${prefix}${path}`);
@@ -87,7 +96,9 @@ export function isProfileUrl(href: string): boolean {
 }
 
 export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en" | "/ja" = ""): object {
-  return props.type === "breadcrumb"
+  return props.type === "itemlist"
+    ? { "@context": "https://schema.org", "@type": "ItemList", numberOfItems: props.slugs.length, itemListElement: props.slugs.map((slug, i) => ({ "@type": "ListItem", position: i + 1, url: `${base}${prefix}/products/${slug}` })) }
+    : props.type === "breadcrumb"
     ? { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: props.items.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: crumbUrl(base, prefix, c.path) })) }
     : props.type === "store"
     ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: `${base}${prefix}`,
