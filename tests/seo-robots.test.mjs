@@ -21,15 +21,18 @@ test("the sitemap is declared as an absolute URL", () => {
 });
 
 test("customer, checkout and API areas are blocked from crawling", () => {
-  for (const p of ["/account", "/checkout", "/api", "/already-registered", "/review/"]) {
+  for (const p of ["/account", "/checkout", "/api", "/review/"]) {
     assert.ok(disallow.includes(p), `${p} should stay disallowed`);
   }
+  assert.deepEqual([...disallow].sort(), ["/account", "/api", "/checkout", "/review/"], "exactly these four; nothing added or dropped silently");
 });
 
 test("a page that relies on a noindex directive is not also blocked", () => {
   // /search, /cart and /login return 200 and say noindex in the page; a
-  // Disallow would stop the crawler from ever seeing it.
-  for (const p of ["/search", "/cart", "/login"]) {
+  // Disallow would stop the crawler from ever seeing it. /already-registered
+  // joined this list in BUG-05 (2026-10-29): it is a public static notice that
+  // says noindex, nofollow itself, so it must stay fetchable.
+  for (const p of ["/search", "/cart", "/login", "/already-registered"]) {
     assert.equal(policy.isNoindexPath(p), true, `${p} is a noindex page`);
     assert.ok(!disallow.some((d) => p === d || p.startsWith(d)), `${p} must stay crawlable so its noindex is read`);
   }

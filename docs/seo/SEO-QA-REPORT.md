@@ -173,3 +173,29 @@ Commits `a51e2b2` (shared `components/site/breadcrumbs.tsx` + pure `lib/breadcru
 4. Vercel feature-branch previews are not built; QA of future branches happens on `develop`.
 
 **Proposed exact `develop` → `main` release scope:** `origin/develop` `675a7c3` (= `main` `7aac136` + the four merges `e61de1f`, `ad42fe8`, `f421f11`, `675a7c3`): Phase 3 `/en/layaway` (+ links, sitemap, Messenger locale fix, mitigation removal), Phase 4 BreadcrumbList + visible breadcrumbs, JewelryStore fields, Japanese descriptions, review-backed ratings (no return policy, no shipping), and the Phase 5-12 documentation. Nothing else is on `develop`. Excluded: OD-6, any return/shipping structured data, Hub data, payment systems, Google accounts, secrets. **STOPPED for owner authorization before the production release.**
+
+## 7. Production release and verification (2026-10-29)
+
+**Release.** PR #421 `develop` → `main`, merged by the normal merge-commit process under the owner's written authorization. `main` = **`82effabf26332d3278ac1021ffcd7f9dca4a0b6c`** (= `develop` `e7dba20` + merge). Content: #416, #419, #417, #418, #420, plus the three docs-only Phase 2 record merges already on `develop` (#413–#415, one markdown file). Gates before merge: CI on `e7dba20` success (push run 40827488264, PR run 40827777927); local at `e7dba20`: typecheck 0, lint 0 errors, unit 506/506, terms/money/i18n/analytics/cutouts pass, build exit 0. Diff verified: 49 files; `lib/legacy-redirect.ts` identical to `main` (no OD-6); the only `hasMerchantReturnPolicy`/`shippingDetails` mention is the live-check assertion that pins their absence; no `middleware.ts`, config, dependency, workflow, `supabase/`, env or payment/money files.
+
+**Deployment.** GitHub deployment 7405468374 (Production, `82effab`) status `success` 06:14:35 UTC; Vercel production deployment `cha-jewels-dzlgl93u3-cha-jewels.vercel.app`, Ready, assigned to `www.chajewelsjp.com`; `main` CI run 40827915381 success. Previous production: `7aac136`.
+
+**Read-only production QA (anonymous requests to https://www.chajewelsjp.com, 2026-10-29 ~15:20 JST).**
+
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| 1 | `/en/layaway` 200, canonical, hreflang | PASS | 200; canonical `https://www.chajewelsjp.com/en/layaway`; hreflang `en` + `x-default` (no `ja`); no robots meta; title "Jewelry layaway in Japan: 30% deposit, 0% interest"; one H1; FAQPage with 7 Hub questions |
+| 2 | `/ja/layaway` 404 | PASS | 404, `noindex`, 0 canonical, 0 hreflang |
+| 3 | Bare `/layaway` unchanged | PASS | no signal 404; `?lang=en` 200; cookie `en` 200; no redirect |
+| 4 | English layaway navigation and calculator | PASS | header, tab bar (`/en/layaway`), `/en`, `/en/faq`, collections → `/en/layaway`; calculator on a real piece ¥39,980 → ¥11,994 down / ¥4,664 monthly (Hub quote); "Reserve this piece with layaway"; switcher → `/ja`; Messenger button present; 0 console errors |
+| 5 | Japanese restrictions | PASS | `/ja`, `/ja/faq`, `/ja/why-cha-jewels`, `/ja/shopping-guide`, `/ja/legal/tokusho`: 0 layaway links, 0 レイアウェイ/分割予約 |
+| 6 | Sitemap | PASS | 976 URLs; `/en/layaway` exactly once; no `/ja/layaway`; no bare non-root URL |
+| 7 | Product breadcrumbs and JSON-LD | PASS | 40 sampled products: 40/40 visible crumb = BreadcrumbList; collection/category/guide crumbs EN+JA match |
+| 8 | Real Hub Japanese descriptions | PASS | N1616 and R2715 `/ja` pages carry the Hub's Japanese text, `inLanguage ja-JP` |
+| 9 | Store identity and social | PASS | `+81-3-6657-6129`, `sales@chajewelsjp.com`, `sameAs` = footer social row (facebook; **m.me removed by BUG-02 — chat links are not profiles**), postal code 124-0012, street address, logo |
+| 10 | No return-policy or shipping structured data; no GTIN/MPN/origin | PASS | 0 hits in 40 products; offer keys `@type, price, priceCurrency, itemCondition, availability, url`; brand only on 14 branded pieces; no `aggregateRating` (no approved product review exists yet) |
+| 11 | Checkout and payment routes | PASS | `/checkout?mode=layaway`, `/checkout`, `/account/layaway` → 307 `/login?next=…`; `/cart` 200; no payment code in the release |
+| 12 | Phase 2 behaviour unchanged | PASS | bare `/faq` → 307 `/ja/faq`; `?lang=en` → `/en/faq`; bare product → 307 locale page; `/gold-guide` 308; `robots.txt` unchanged |
+| 13 | SEO checker | PASS | `scripts/check-seo-live.mjs https://www.chajewelsjp.com` → **288 pass / 0 fail / 0 deferred** |
+
+**Exceptions:** none. **Not done, by instruction:** OD-6, return/shipping structured data, Hub data, payment systems, Google accounts, secrets. **Next (owner):** Search Console "request indexing" for `/en/layaway`; Rich Results Test by URL on `/en/layaway` and a product URL; status becomes SEARCH ENGINE RECRAWL PENDING.
