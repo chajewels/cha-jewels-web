@@ -11,12 +11,14 @@ import { COLLECTION_PLACEHOLDER } from "@/lib/collection-placeholders";
 import { catalogue, collectionsWithProducts, isAvailable, stockedCollections } from "@/lib/catalog-context";
 import { follow } from "@/lib/settings";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
+import { JsonLd } from "@/components/site/json-ld";
+import { listingOpenGraph, listingProductSlugs, ogFor } from "@/lib/listing-seo";
 export const revalidate = 60;
 // Pre-render known collections when the Hub is reachable; otherwise build with none and render on demand.
 export async function generateStaticParams() { try { return (await getCollections()).map((c) => ({ slug: c.slug })); } catch { return []; } }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const [col, lang] = await Promise.all([getCollectionWithProducts((await params).slug), getLang()]);
-  return col ? { title: listingTitle("collection", col.slug, collectionName(col, lang), lang), description: collectionDescription(col, lang) ?? undefined } : {};
+  return col ? { title: listingTitle("collection", col.slug, collectionName(col, lang), lang), description: collectionDescription(col, lang) ?? undefined, ...ogFor(listingOpenGraph(col.hero_media, collectionName(col, lang), lang)) } : {};
 }
 
 /**
@@ -38,8 +40,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   const messenger = await follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null);
   const empty = col.products.length === 0;
   const [cols, all] = empty ? await Promise.all([collectionsWithProducts(), catalogue()]) : [[], []];
+  // SEO Step 2: the ItemList is the grid's own list, same array, same order.
+  const itemSlugs = listingProductSlugs(col.products);
   return (
     <>
+      {itemSlugs.length > 0 && <JsonLd type="itemlist" slugs={itemSlugs} />}
       {/* Collections › this collection (Phase 4): the trail the product page
           shows above a piece of this collection, one level up — visible crumb
           and BreadcrumbList from one array, above the dark head. */}
