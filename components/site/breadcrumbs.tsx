@@ -17,7 +17,9 @@ import { JsonLd } from "@/components/site/json-ld";
  *
  * `label` is the nav's accessible name, t("pdp", "breadcrumb") in the page's
  * language — the string scripts/check-seo-live.mjs looks for.
- * `className` replaces the default spacing when a template needs other room.
+ * Each link carries an invisible ::after that grows its tap area to about 45px
+ * tall (the crumbs are ~15px text) without moving anything: the row, its gaps and
+ * the hierarchy are exactly as before. `className` replaces the default spacing when a template needs other room.
  */
 export function Breadcrumbs({ lang, items, label, className }: { lang: Lang; items: Crumb[]; label: string; className?: string }) {
   const rows = crumbRows(items, lang);
@@ -31,7 +33,7 @@ export function Breadcrumbs({ lang, items, label, className }: { lang: Lang; ite
               {i > 0 && <li aria-hidden="true" className="text-gold-dark">/</li>}
               {r.href === null
                 ? <li aria-current="page" className="text-charcoal-deep">{r.name}</li>
-                : <li><Link href={r.href} className="text-charcoal/80 hover:text-gold-dark">{r.name}</Link></li>}
+                : <li><Link href={r.href} className="relative text-charcoal/80 hover:text-gold-dark after:absolute after:-inset-x-1 after:-inset-y-[15px] after:content-['']">{r.name}</Link></li>}
             </Fragment>
           ))}
         </ol>

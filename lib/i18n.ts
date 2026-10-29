@@ -1939,7 +1939,7 @@ export const dict = {
     collections: { title: { ja: "コレクション", en: "Collections" } },
     terms: { title: { ja: "利用規約", en: "Terms of Service" }, description: { ja: "ご注文と契約の成立、価格と通貨、お支払い、配送、返品、サービス、ポイント、責任、準拠法。", en: "Orders and contract formation, prices and currency, payment, layaway, shipping, returns, services, loyalty points, liability and governing law." } },
     privacy: { title: { ja: "プライバシーポリシー", en: "Privacy policy" }, description: { ja: "Cha Jewelsが収集する情報、その目的、第三者への提供、開示・削除のご請求方法。", en: "What Cha Jewels collects, why, who else sees it, and how to ask for a copy or a deletion." } },
-    tokusho: { title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" } },
+    tokusho: { title: { ja: "特定商取引法に基づく表記", en: "Legal notice (Specified Commercial Transactions Act)" }, description: { ja: "特定商取引法に基づく表記。販売業者、所在地、連絡先、販売価格、支払方法と時期、引渡時期、返品・交換、古物商許可について。", en: "Legal notice under Japan's Specified Commercial Transactions Act: seller details, contact, prices, payment methods, delivery timing and returns." } },
     returns: { title: { ja: "返品・キャンセル・返金ポリシー", en: "Return, Cancellation and Refund Policy" }, description: { ja: "返品をお受けする場合と条件、キャンセル料、ストアクレジットの有効期限、返品のお申し出の手続。", en: "When we accept a return and on what terms, cancellation charges, layaway down payments, how long store credit lasts, and how to make a request." } },
   },
 } as const;

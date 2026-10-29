@@ -4,6 +4,8 @@ import { hub } from "@/lib/hub-api";
 import { localePath, type Locale } from "@/lib/locale";
 import { LAYAWAY_LANGS } from "@/lib/layaway-availability";
 import { postLanguages } from "@/lib/posts";
+import { PAGE_LASTMOD } from "@/lib/page-lastmod.generated";
+import { primaryImage } from "@/lib/product-facts";
 
 /**
  * THE LOCALE SITEMAP (Phase 2D, owner-approved 2026-10-28).
@@ -21,10 +23,22 @@ import { postLanguages } from "@/lib/posts";
  * NO HREFLANG HERE (OD-12, approved): the alternates live in the HTML only, one
  * source of truth (lib/locale-meta.ts). Entries carry no `alternates`.
  *
+ * <lastmod> AND IMAGES (SEO Step 1, Master Plan §33.3e). A date appears only
+ * where a real content-change timestamp exists: a Hub post's own `updated_at`
+ * (an editor's last edit), the blog index's newest listed post, and — for the two pages
+ * whose whole text is one repository file — that file's last Git change
+ * (lib/page-lastmod.generated.ts). Never the build time, never today. Everything
+ * else (collections and categories: the Hub sends no modification time;
+ * pages whose words are spread across shared files) carries NO lastmod.
+ * Product entries add the piece's primary photo as an image-sitemap entry, only
+ * from the Hub's own absolute https image URL; no photo, no image tag.
+ *
  * EVERY URL BUILT HERE GOES THROUGH `localePath`, so this file cannot mint a
  * private, unknown or not-yet-live locale URL: `/en/layaway` (Phase 3) and
  * `/ja/layaway` (never) are impossible by construction, not by care.
  */
+/** How long the optional product-photo read may take before the sitemap goes out without image tags. */
+const IMAGE_LOOKUP_TIMEOUT_MS = 10_000;
 type Freq = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
 
 /** Japanese first: the site's primary language. */
@@ -63,7 +77,7 @@ const STATIC_PAGES: readonly { path: string; changeFrequency: Freq; priority: nu
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const [cols, cats, prods, posts] = await Promise.all([
+  const [cols, cats, prods, posts, catalog] = await Promise.all([
     hub.collections().catch(() => []),
     hub.categories().catch(() => []),
     hub.productSlugs().catch(() => []),
@@ -74,7 +88,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // the crawler that came for it. It self-heals — the next content change
     // busts the tag and rebuilds this.
     hub.posts().catch(() => []),
+    // The primary photo of each active piece, from the catalog read the
+    // storefront search already uses (same URL, so the same cached copy when
+    // the Data Cache can hold it). It is the heaviest Hub read in this file, so
+    // it is time-boxed: a slow or failed read costs the image tags only — never
+    // the sitemap, never a canonical URL.
+    hub.allProducts(5000, { timeout: IMAGE_LOOKUP_TIMEOUT_MS }).catch(() => []),
   ]);
+  const photo = new Map<string, string>();
+  for (const p of Array.isArray(catalog) ? catalog : []) {
+    let url: unknown;
+    try { url = primaryImage(p)?.url; } catch { continue; } // a malformed row has no photo, nothing more
+    if (p.slug && typeof url === "string" && /^https:\/\/\S+$/.test(url)) photo.set(p.slug, url);
+  }
 
   /** One resource in both languages. */
   const both = (path: string, rest: Omit<MetadataRoute.Sitemap[number], "url">) =>
@@ -96,6 +122,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    * `false` is refused rather than trusted away.
    */
   const listable = posts.filter((p) => p.slug?.trim() && p.layaway_only !== true && p.published !== false);
+  const newestPost: Partial<Record<Locale, string>> = {};
   const postEntries = (
     await Promise.all(
       listable.map(async (p) => {
@@ -105,7 +132,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         // A post that has never been edited has not been modified since.
         const lastModified = p.updated_at?.trim() || p.published_at;
         return ORDER.filter((l) => has[l])
-          .map((l) => ({ url: `${base}${localePath(`/blog/${slug}`, l)}`, lastModified, changeFrequency: "monthly" as const, priority: 0.5 }));
+          .map((l) => {
+            // The blog index changes when its newest post does.
+            const seen = newestPost[l];
+            if (lastModified && !Number.isNaN(Date.parse(lastModified)) && (!seen || Date.parse(lastModified) > Date.parse(seen))) newestPost[l] = lastModified;
+            return { url: `${base}${localePath(`/blog/${slug}`, l)}`, lastModified, changeFrequency: "monthly" as const, priority: 0.5 };
+          });
       }),
     )
   ).flat();
@@ -114,7 +146,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // The root, unchanged until OD-3 (see the header), then both locale homes.
     { url: base, changeFrequency: "daily", priority: 1 },
     ...both("/", { changeFrequency: "daily", priority: 1 }),
-    ...STATIC_PAGES.flatMap(({ path, ...rest }) => both(path, rest)),
+    ...STATIC_PAGES.flatMap(({ path, ...rest }) => ORDER.map((l) => {
+      // Blog index: the newest post listed in THIS language; any other page: its
+      // content file's Git date when it has one; otherwise no lastmod at all.
+      const lastModified = path === "/blog" ? newestPost[l] : PAGE_LASTMOD[path];
+      return { url: `${base}${localePath(path, l)}`, ...(lastModified ? { lastModified } : {}), ...rest };
+    })),
     // LAYAWAY (Phase 3): listed in every language it is offered in — which is
     // English alone (LAYAWAY_LANGS, the one gate) — so /en/layaway and nothing
     // else. `localePath` can only produce the English URL for this family
@@ -128,6 +165,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // text eligibility, approved).
     ...cats.flatMap((c) => both(`/categories/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
     ...cols.flatMap((c) => both(`/collections/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
-    ...prods.flatMap((p) => both(`/products/${p.slug}`, { lastModified: p.updated_at, changeFrequency: "weekly", priority: 0.7 })),
+    // NO lastmod on products. The Hub's `updated_at` is a row-level trigger on
+    // website_products: it moves on administrative and Page365-sync writes that
+    // change nothing a visitor sees, and it does NOT move when a price, stock
+    // level or photo changes (those live in the variant and media tables). It is
+    // not a public-content modification time, so it is not reported as one.
+    // Each slug once, even if the Hub list repeats it.
+    ...[...new Set(prods.map((p) => p.slug))].flatMap((slug) => both(`/products/${slug}`, { changeFrequency: "weekly", priority: 0.7, ...(photo.has(slug) ? { images: [photo.get(slug)!] } : {}) })),
   ];
 }
