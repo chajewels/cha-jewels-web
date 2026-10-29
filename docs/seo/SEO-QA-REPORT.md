@@ -235,3 +235,28 @@ Diff reviewed before merge: only PR #429's Step 1 files plus docs PRs #427/#428;
 
 **Status:** DEPLOYED; SEARCH ENGINE RECRAWL PENDING. Nothing is claimed about indexing, image-search inclusion or ranking.
 
+## 10. SEO Step 2 production release (2026-10-29): PR #433 → `main` `49c0fd6`
+
+**Scope.** `develop` `5533801` → `main` (PR #432 at approved HEAD `d5e169b`, plus docs PR #431). Diff: 8 files (two listing pages, `lib/json-ld.ts`, `lib/listing-seo.ts`, `scripts/check-seo-live.mjs`, `tests/seo-step2-listing.test.mjs`, `docs/seo/*`). No payment, checkout, middleware, redirect, canonical/hreflang, Hub, migration or config change.
+**Gates.** CI `check` success on `5533801`; on that commit locally: typecheck, 539/539 unit tests, build, terms, money, i18n, `check:lastmod` pass; lint 0 errors (existing warnings only).
+**Deployment.** `main` `49c0fd6`; Vercel production deployment `7411360935` Ready (https://cha-jewels-b5l3vudja-cha-jewels.vercel.app).
+
+**Production QA (anonymous, 2026-10-29).**
+
+| Check | Result |
+|---|---|
+| SEO checker | PASS — `check-seo-live https://www.chajewelsjp.com` **289 pass / 0 fail / 0 deferred** (live catalog samples fewer pages than the 389 local-fixture run; not a regression) |
+| ItemList vs grid, 34 listing pages EN/JA | PASS — exactly one ItemList where the grid has 2+ pieces; URLs, order, positions 1..n, `/en/` or `/ja/` product URLs, `numberOfItems` all equal the rendered grid; entries are `@type, position, url` only |
+| Sold pieces | PASS — included where the grid shows them (e.g. Rings 135, Preloved Jewelry 194) |
+| Single-product / empty | PASS — Anklets (1 piece) and Handmade Gemstone Bracelets (0 pieces; its 4 cards are "Available now" suggestions) emit no ItemList |
+| OpenGraph / Twitter | PASS — all 34 pages: og/twitter title and description equal page title/description, site_name, type, locale pair, `summary_large_image`, twitter:image = og:image |
+| Hero images | PASS — earrings (`…562b6aaf72a6.jpg`), luxury-bags, luxury-wallet, luxury-watches, other-accessories (PNG) use their own Hub image with the collection name as alt (EN and JA); all other collections and all categories keep the brand image |
+| Canonical / hreflang / robots | PASS — one self canonical, `en`/`ja`/`x-default`, no new robots meta, unchanged |
+| Product and BreadcrumbList JSON-LD | PASS — SHA-256 of Product (one product page) and BreadcrumbList (rings, earrings, ja fine-jewelry) identical before and after release |
+| Layaway and protections | PASS — `/en/layaway` 200, `/ja/layaway` 404; `/account`, `/checkout` → 307 `/login?next=…` |
+
+**Performance (observable only).** HTML grows by about twice the ItemList, because Next emits it in the page and again in its streamed page data: Rings 1,250 KB → 1,260 KB reported by the live sampler (+~41 KB measured on the preview), Preloved Jewelry 1,726 → 1,742 KB; ItemList itself 0.8–28 KB (≤1.7% of the page). Live response 200–720 ms (first request per page slower, then cached). No extra Hub request: the ItemList reuses the grid's array. Mobile 375/390 px: no horizontal overflow, no console errors on Rings, Luxury Bags, ja Earrings, ja Fine Jewelry, Anklets.
+
+**Limitations.** Vercel runtime logs were not read (no log access used). Hero PNGs are 1.3–1.8 MB, 4:3, so social previews will crop them; no compression added. Product pages still use `openGraph: undefined` for pieces without a photo (pre-existing, untouched). Google lists no rich result for product ItemLists; none is expected.
+
+**Status:** DEPLOYED; SEARCH ENGINE RECRAWL PENDING. Nothing is claimed about indexing, rich results or ranking.
