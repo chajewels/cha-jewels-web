@@ -10,7 +10,7 @@ Scope: the independently confirmed defects and open findings from the October 29
 | BUG-03 | Blog article carries origin wording outside the approved surfaces | **CONFIRMED — owner approval required (Hub content edit)** | §3 below |
 | BUG-06 | `/gold-guide` takes two hops | **CONFIRMED — proposal only (route-change rule)** | §6 below |
 | BUG-07 | `#payments-and-layaway` fragment on the Japanese FAQ | **NOT A BUG** | §7 below |
-| BUG-09 | Google indexing of `/en/layaway`; product rich-result eligibility | **BLOCKED (Search Console) / PARTIAL evidence (Rich Results Test)** | §9 below |
+| BUG-09 | Google indexing of `/en/layaway`; product rich-result eligibility | **Status SUPERSEDED 2026-10-29: property verified (owner-reported), indexing and baseline PENDING** — historical "BLOCKED" below kept as evidence; see `OUTSTANDING-ISSUES-REGISTER.md` §3 | §9 below |
 
 ## BUG-02 — chat link in `sameAs`
 - **Root cause:** `lib/json-ld.ts` accepted every `http(s)` href of the Hub social row (`follow()`); the row holds the Messenger entry point, which is a conversation URL, not an identity page.
@@ -48,6 +48,8 @@ EN ¶12 / JA ¶13 ("Their materials, origins, condition, and available documenta
 - **Verdict: NOT A BUG.** It is a stable internal anchor from the Hub slug with no customer-facing text; renaming the Hub slug would break the English footer link and the Phase 3 layaway page's link to the same section. Closed.
 
 ## BUG-09 — Google indexing and rich-result eligibility
+> **Status update (2026-10-29, later the same day):** the "Search Console: BLOCKED" finding below described the Google account on the Claude machine and stays as historical evidence. The owner has since reported (not observed by Claude): Domain property verified, sitemap status Success with 976 discovered URLs, and priority indexing requests for `/en`, `/ja` and `/en/layaway` accepted. Indexing itself and the performance baseline are still pending; no page is claimed indexed. Tracked in `docs/seo/OUTSTANDING-ISSUES-REGISTER.md` §3.
+
 - **Search Console: BLOCKED.** The Google account signed in on this machine opens Search Console at its "Welcome / Add a website" screen, i.e. it owns no verified property for `chajewelsjp.com`. No index-coverage or URL-inspection evidence is available to this session (finding X8 stands). The owner must verify the property (or grant access) before any indexing claim can be made.
 - **Rich Results Test by URL on production (2026-10-29 15:40-15:41 JST, pages fetched live by Google):**
   - `/en/products/n1616-…` — crawled successfully; **3 valid items**: Product snippets, Merchant listings, Breadcrumbs (non-critical notices only: optional `aggregateRating`/`review`, `shippingDetails`, `hasMerchantReturnPolicy`). → product rich results are **eligible** by Google's tool.

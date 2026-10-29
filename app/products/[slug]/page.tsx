@@ -7,6 +7,7 @@ import { getProductBySlug, primaryImage } from "@/lib/queries/products";
 import { tr, type Lang } from "@/lib/i18n";
 import { categoryName, collectionName, productDescription, productName } from "@/lib/catalog-i18n";
 import { productMetaDescription, productTitle } from "@/lib/meta-text";
+import { productOgImageUrl, productOpenGraph } from "@/lib/product-seo";
 import { getLang } from "@/lib/i18n-server";
 import { PriceBlock } from "@/components/commerce/price-block";
 import { ConditionBadge } from "@/components/catalog/condition-badge";
@@ -43,14 +44,15 @@ import { ReviewGrid, ReviewSummary } from "@/components/reviews/review-list";
 
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const [p, lang] = await Promise.all([getProductBySlug((await params).slug), getLang()]);
+  const { slug } = await params;
+  const [p, lang] = await Promise.all([getProductBySlug(slug), getLang()]);
   if (!p) return {};
-  const img = primaryImage(p);
   const name = productName(p, lang);
   return {
     title: productTitle(name, p.sku),
     description: productMetaDescription(name, productDescription(p, lang), lang),
-    openGraph: img ? { images: [img.url] } : undefined,
+    // OG-PRODUCT: the block is restated in full (lib/product-seo.ts says why).
+    openGraph: productOpenGraph({ name, lang, slug, imageUrl: productOgImageUrl(primaryImage(p)) }),
   };
 }
 
