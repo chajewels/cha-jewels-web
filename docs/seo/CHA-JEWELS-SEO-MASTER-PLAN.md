@@ -28,7 +28,7 @@ The existing website already has a strong technical SEO foundation, including:
 - Product reviews
 - Jewelry education content
 - Image optimization
-- Search Console usage
+- Search Console verification and data exports (**not yet established; see audit addendum**)
 - Analytics and conversion tracking
 
 The next stage should **not rebuild these systems**.
@@ -83,7 +83,7 @@ The next stage should focus on:
 | Meta/Google Ads tracking | ✅ Present | Keep |
 | AVIF/WebP image optimization | ✅ Present | Keep |
 | Redirect support | ✅ Present | Verify old-domain redirects |
-| Search Console | ✅ In use | Formalize weekly workflow |
+| Search Console | ⚠️ No verified property observed in 2026-10-29 audit | Owner must verify Domain property and establish Day-0 export |
 
 ---
 
@@ -1589,3 +1589,67 @@ Technical verification
 ```
 
 This sequence protects the SEO work already completed while building the next layer required for Cha Jewels to become substantially more discoverable across Google Search, Shopping, Images, Lens, local search, and high-intent product queries.
+
+---
+
+# 27. October 29, 2026 — 19-Point Audit Integration and Revised Execution Gates
+
+**Source:** owner's attached `seo-19-point-audit-2026-10-29.md` (read-only; 19 named SEO checks plus mobile-responsiveness check numbered 20). Audit methods reported: production checker 288 pass / 0 fail; 130 sampled pages (all 70 non-product sitemap URLs and 60 product URLs); 1,007 unique links followed; 12 mobile/desktop Lighthouse runs; 17 responsive templates at 360/390 px. Results are **auditor-reported**, not independently reproduced by this plan update. Audit baseline: production `main` `82effab`. Its references to website PRs #423–#425 as open are a time-of-audit snapshot; **they subsequently merged into `develop`** as #423 `77ea02c`, #424 `1a22af5`, #425 `9e1d564`, and have **not been confirmed released to production** as of this addendum. Do not interpret the later develop state as the audited production state.
+
+## 27.1 Corrected baseline and phase status
+
+| Phase / component | As of this addendum | Evidence or gate |
+|---|---|---|
+| 0, Measurement baseline | Production code/live baseline verified; Search Console export NOT STARTED | Owner must verify Search Console property, submit sitemap, export queries/pages and coverage |
+| 1, Technical audit | VERIFIED at audit level; mobile speed and crawlable navigation are outstanding work | 19-point audit and measurements below |
+| 2, Locale URL architecture | 2A–2E stage 1 DEPLOYED; 308 promotion NOT STARTED | Existing 307s remain until explicitly approved; do not implement OD-6 as part of this audit |
+| 3, English layaway | DEPLOYED on production in #421 | `/en/layaway` 200; `/ja/layaway` absent; Search Console recrawl pending |
+| 4, Structured data | DEPLOYED on production in #421 | Breadcrumbs + JewelryStore; no merchant shipping/returns by owner decision; rating only when genuine approved review exists |
+| BUG-02 / BUG-05 / BUG-08 | FIXED IN DEVELOP ONLY | #423–#425 merged to develop; separate main release and live QA required |
+| 5–12 | AUDITED / documents and drafts only | No Merchant Center/account integration, content rollout, GBP action or backlink campaign implied |
+
+**Important corrections to earlier master-plan language:** §2.1 previously claimed Search Console was “in use” as a verified fact. The audit found no website verification token, no DNS TXT token, and no verified property in the signed-in Google account; the owner must verify a Domain property, so Google indexing and rankings remain unverified. The old-domain redirect recommendation in §18 is **not authorized**: `chajewelsjapan.com` currently serves a functioning Page365 shop, and redirecting it would disrupt that storefront. Secure an explicit owner decision to keep, replace or migrate it before editing DNS or redirects. The historical recommendations above are superseded by these current gates.
+
+## 27.2 Audit evidence and remaining opportunities
+
+| SEO area | Audit observation | Action / disposition |
+|---|---|---|
+| Noindex / robots | Private/utility noindex; `/already-registered` robots conflict | BUG-05 fix merged into develop; verify after production release |
+| Titles | One title per sampled page; root `/` and `/ja` duplicate; English generic titles and SKU-first product titles | Defer root duplicate to approved Phase 2 redirect stage; refine metadata-only product title ordering and English titles without modifying Hub product names |
+| Descriptions | All sampled pages have meta descriptions; `/en/legal/tokusho` and `/ja/legal/tokusho` reuse home description, short English collection summaries, raw product specification lists | Give legal pages distinct accurate descriptions; prepare Hub collection/product content edits with owner approval |
+| Image alt | 3,864 sampled images, no missing alt; some decorative empty alts justified | Improve blog cover alt using article title; inspect two guide illustrations for contextual alt before editing |
+| Performance | Desktop Lighthouse 91–100; mobile `/ja` 36 (LCP 5.2 s, TBT 1.85 s), `/en` 61 (LCP 3.7 s, TBT 1.2 s); Rings 80, product 86; CLS near zero | Dedicated performance phase; audit indicates per-request headers/cookies and `private, no-store` defeat `revalidate=60`; verify root cause before caching edits |
+| Sitemap | 976 URLs, 908 `lastmod` entries, 70 static/page entries without `lastmod`, no image sitemap entries | Add truthful modification dates where known; include supported product image entries, avoiding invented dates |
+| OpenGraph | Product and blog use their own photos; collection/category commonly use generic image | Prefer actual Hub collection/category hero image when available; preserve fallback |
+| Links / crawlability | 1,007 unique sampled links, zero persistently broken; hidden-until-open desktop/phone menus omit category/company links from initial HTML; 5 category pages have weak inbound links | Keep meaningful menu links in initial crawlable HTML **without** exposing closed panels visually or breaking keyboard/focus behavior; improve category linking separately |
+| Crawling under load | One transient product 500 and four timeouts at 10 parallel requests; individual retries passed | Treat as load/performance signal, not proven broken links; investigate safely during performance phase |
+| Headers / canonical / HTTPS / slugs | One H1 per sampled page; canonical present; HTTPS 308 and HSTS; slugs generally valid | No slug migrations or HSTS `includeSubDomains` rollout from this audit |
+| Schema | JewelryStore, Product, BreadcrumbList, FAQPage, BlogPosting present | BUG-02 `sameAs` chat-filter fix in develop; evaluate ItemList for visible collection/category listings and genuine entity fields only |
+| Search Console | Verification and Day-0 export missing | Owner DNS TXT verification and sitemap submission required; do not claim coverage/rankings |
+| Mobile UX | No horizontal scrolling at 360/390 px on 17 templates; breadcrumb tap areas ~15 px tall; home labels ~11.5 px | Improve tap target and label readability without disturbing layout |
+| Existing policy | Sold products remain in sitemap by owner decision D3; `/ja/layaway` must remain absent | Preserve both behaviors |
+
+The audit records no skipped heading levels, no broken links in the sampled set, properly optimized image delivery, and no evidence that existing slugs require renaming. These are **sample results**, not a guarantee about every URL or real-user Core Web Vitals. Do not treat Lighthouse lab results as Search Console field metrics.
+
+## 27.3 Revised prioritized delivery roadmap (approval per step)
+
+**Gate 0 — Owners and releases.** First complete normal production release/QA of develop website fixes #423–#425, without unrelated code or routing changes. Independently, owner verifies Google Search Console **Domain** property via DNS TXT, submits `https://www.chajewelsjp.com/sitemap.xml`, records initial coverage/query/page reports when available, and makes a written decision about the live Page365 old-domain shop. No DNS modifications or Google-account actions are assumed authorized by this document. Treat Search Console as an operational prerequisite, not as an automatic blocker for harmless metadata fixes.
+
+**Step 1 — Crawlability and metadata (low-risk, distinct reviewable PR).** (a) Include meaningful desktop-menu/phone-drawer category and company links in initial server HTML, visually hidden when closed but preserving accessibility and interaction; (b) unique accurate EN/JA Tokusho descriptions; (c) title-tag-only SKU placement and keyword-aware concise EN titles; (d) blog cover alt text drawn from article title; (e) sitemap accurate page `lastmod` only with defensible update timestamps, and supported product image metadata; (f) increase breadcrumb tap area without changing semantics. Test mobile nav focus order, keyboard controls, locale links, canonical/hreflang and performance. Do not create fictional image/dates or alter Hub names.
+
+**Step 2 — Collection SEO enhancements (separate PR).** Add valid ItemList only for items visibly listed on collection/category pages, reflecting exact page contents; use live Hub hero image as collection/category OG image when one exists. Test empty/paginated lists, localized URLs, metadata fallback and structured-data eligibility; avoid ratings, offers and unsupported business claims.
+
+**Step 3 — Performance workstream (dedicated phase; medium-to-high risk).** 3a investigate and optimize phone home animations/layout work; 3b reduce large collection/category HTML payloads (audit examples: Rings 1.24 MB, Fine Jewelry 959 KB); 3c separately evaluate caching and dynamic root-layout header/cookie dependencies. Protect correct locale routing, cookies, cart/account personalized flows, Hub data freshness and order/payment boundaries. Collect comparable mobile Lighthouse measurements before/after and, once Search Console access is established, real-user Core Web Vitals. Do not apply root caching simply to satisfy a synthetic score.
+
+**Step 4 — Hub-managed content (owner edit gate).** Establish accurate SEO text fields for collections/categories in a separate Hub-approved scope; improve overly short English descriptions and raw-spec product descriptions using verified product facts. Preserve actual karat, weight, SKU, condition and origin evidence. Correct the separately tracked unsupported generalized “Japan-made” claims in both article languages **only after exact replacement text is owner approved**.
+
+**Step 5 — Resume existing master-plan roadmap.** After data and decisions, handle the explicitly approved Phase 2 permanent-redirect stage (not automatic OD-6); Phase 5 Merchant Center; Phase 6 commercial landing pages; Phase 7 Kihei; Phase 8 K18; Phase 9 Filipino/Taglish; Phase 10 Google Business Profile; Phase 11 legitimate authority/backlinks; Phase 12 weekly Search Console operations with monthly sampled link checks. No Kihei collection should be invented when Hub has none.
+
+## 27.4 Explicit exclusions / decisions
+
+- Do not redirect `chajewelsjapan.com` without deciding the fate of its live Page365 shop.
+- Do not create an unapproved Japanese layaway URL, permanent legacy redirect, unsupported shipping/returns markup, review rating, GTIN, manufacturing origin, or made-in-Japan claim.
+- Do not rename existing product slugs merely for cosmetic SEO, enable HSTS `includeSubDomains` without subdomain audit, or schedule a redundant standalone link checker; include periodic link health in Phase 12.
+- Do not conflate the separate Hub PR #672 migration readiness with website SEO releases; Hub live function checksum, read-only impact list and owner approval remain prerequisites.
+- This addendum is **planning/documentation only**. None of Steps 1–5 is implemented by writing this section.
+
