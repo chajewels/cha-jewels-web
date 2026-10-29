@@ -116,3 +116,48 @@ test("store: email and sameAs come from the Hub only — absent when not passed,
   assert.deepEqual(d.sameAs, ["https://www.facebook.com/chajewelsjapan", "https://m.me/chajewelsjapan"]);
   assert.equal("openingHours" in d, false, "customer-service hours are not shop hours");
 });
+
+// ---------------------------------------------------------------- Phase 4: Product — X5 description, §7 reviews
+const bilingual = { ...product, description_ja: "指輪です。" };
+
+test("X5: the Japanese page describes the piece in Japanese when the Hub has it; English otherwise", () => {
+  assert.equal(buildJsonLd({ type: "product", product: bilingual }, B, "/ja").description, "指輪です。");
+  assert.equal(buildJsonLd({ type: "product", product: bilingual }, B, "/en").description, "A ring.");
+  assert.equal(buildJsonLd({ type: "product", product: bilingual }, B, "").description, "A ring.", "legacy page unchanged");
+  assert.equal(buildJsonLd({ type: "product", product: { ...product, description_ja: "   " } }, B, "/ja").description, "A ring.", "blank Japanese falls back to English");
+  assert.equal(buildJsonLd({ type: "product", product: { ...product, description_ja: null } }, B, "/ja").description, "A ring.");
+  assert.equal(buildJsonLd({ type: "product", product: { ...product, description_en: null, description_ja: null } }, B, "/ja").description, undefined);
+});
+
+const shown = [
+  { display_name: "Maria", rating: 5, body: "Lovely piece.", approved_at: "2026-10-01T03:00:00Z" },
+  { display_name: "Ken", rating: 4, body: null, approved_at: "2026-10-05T03:00:00Z" },
+];
+
+test("reviews: no rating passed, count 0, or a null average → no aggregateRating and no review", () => {
+  for (const rating of [undefined, null, { count: 0, average: null, reviews: [] }, { count: 0, average: 5, reviews: [] }, { count: 3, average: null, reviews: shown }]) {
+    const d = buildJsonLd({ type: "product", product, rating }, B, "/en");
+    assert.equal("aggregateRating" in d, false, JSON.stringify(rating));
+    assert.equal("review" in d, false, JSON.stringify(rating));
+  }
+});
+
+test("reviews: the Hub's count and average verbatim, one Review per card shown, body omitted when null", () => {
+  const d = buildJsonLd({ type: "product", product, rating: { count: 7, average: 4.6, reviews: shown } }, B, "/en");
+  assert.deepEqual(d.aggregateRating, { "@type": "AggregateRating", ratingValue: 4.6, reviewCount: 7 });
+  assert.equal(d.review.length, 2);
+  assert.deepEqual(d.review[0], { "@type": "Review", author: { "@type": "Person", name: "Maria" }, reviewRating: { "@type": "Rating", ratingValue: 5 }, reviewBody: "Lovely piece.", datePublished: "2026-10-01T03:00:00Z" });
+  assert.equal("reviewBody" in d.review[1], false);
+  assert.equal(d.review[1].author.name, "Ken");
+});
+
+test("reviews: an aggregate with no cards passed emits aggregateRating alone", () => {
+  const d = buildJsonLd({ type: "product", product, rating: { count: 2, average: 5, reviews: [] } }, B, "");
+  assert.equal(d.aggregateRating.reviewCount, 2);
+  assert.equal("review" in d, false);
+});
+
+test("the Product never invents identifiers or origin: no gtin, mpn or countryOfOrigin in any branch", () => {
+  const s = JSON.stringify(buildJsonLd({ type: "product", product: bilingual, rating: { count: 7, average: 4.6, reviews: shown } }, B, "/ja"));
+  for (const k of ["gtin", "mpn", "countryOfOrigin"]) assert.equal(s.includes(k), false, k);
+});

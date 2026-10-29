@@ -153,7 +153,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <JsonLd type="product" product={p} />
+      {/* The rating goes into the JSON-LD under the SAME condition the summary
+          and the review section render (reviews shown and an average present),
+          so the structured data never claims a review the page does not show. */}
+      <JsonLd type="product" product={p} rating={reviews.length > 0 && reviewAverage != null ? { count: reviewCount, average: reviewAverage, reviews } : null} />
       {/* The same trail the <nav> below shows: Collections › [collection or category] › SKU (Phase 4). */}
       <JsonLd type="breadcrumb" items={[{ name: t("nav", "collections"), path: "/collections" }, ...(crumb ? [{ name: crumb.name, path: crumb.path }] : []), { name: p.sku, path: `/products/${p.slug}` }]} />
       <ProductView sku={p.sku} lang={lang} />

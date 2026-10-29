@@ -42,9 +42,18 @@ export type Crumb = { name: string; path: string };
  * become `sameAs`: the row also carries mailto: links, which are not profiles.
  */
 export type StoreLd = { email?: string | null; sameAs?: string[] };
+/**
+ * The reviews THE PAGE SHOWS (Phase 4 §7): the product page passes the Hub's
+ * count and average and the approved reviews it renders, only when it renders
+ * them; otherwise null, and the Product carries no rating at all. The builder
+ * emits aggregateRating only when count > 0 and the average is a number, and
+ * one Review per review passed — never computed, never padded.
+ */
+export type ReviewLd = { display_name: string; rating: number; body: string | null; approved_at: string };
+export type ProductRatingLd = { count: number; average: number | null; reviews: ReviewLd[] };
 export type JsonLdProps =
   | ({ type: "store" } & StoreLd)
-  | { type: "product"; product: Product }
+  | { type: "product"; product: Product; rating?: ProductRatingLd | null }
   | { type: "faq"; items: { q: string; a: string }[] }
   | { type: "post"; post: PostLd }
   | { type: "breadcrumb"; items: Crumb[] };
@@ -88,7 +97,10 @@ export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en"
       }
     : props.type === "faq"
     ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: props.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })) }
-    : { "@context": "https://schema.org", "@type": "Product", name: props.product.name, sku: props.product.sku, image: allImages(props.product).map((m) => m.url), material: productMetals(props.product).length ? metalsLabel(productMetals(props.product), "en") : undefined, description: props.product.description_en ?? undefined,
+    : { "@context": "https://schema.org", "@type": "Product", name: props.product.name, sku: props.product.sku, image: allImages(props.product).map((m) => m.url), material: productMetals(props.product).length ? metalsLabel(productMetals(props.product), "en") : undefined,
+        // X5 (Phase 4): the Japanese page describes the piece in Japanese when
+        // the Hub has that text; otherwise, and on every other page, English.
+        description: (prefix === "/ja" && props.product.description_ja?.trim() ? props.product.description_ja : props.product.description_en) ?? undefined,
         // A brand only when the Hub says the piece is branded. No countryOfOrigin
         // is ever emitted here — origin is a per-piece badge, not structured data.
         brand: props.product.origin === "BRAND" && props.product.brand?.trim() ? { "@type": "Brand", name: props.product.brand.trim() } : undefined,
@@ -98,5 +110,13 @@ export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en"
           // The same status the page shows (lib/availability.ts): in stock, or
           // SoldOut. There is no held/BackOrder state (owner decision 2026-09-23).
           availability: productAvailability(props.product) === "available" ? "https://schema.org/InStock" : "https://schema.org/SoldOut", url: `${base}${prefix}/products/${props.product.slug}` },
-        ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}) };
+        ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}),
+        // Phase 4 (§7): only what the page shows. The Hub's count and average
+        // (the figures ReviewSummary prints), and one Review per card rendered.
+        ...(props.rating && props.rating.count > 0 && typeof props.rating.average === "number"
+          ? { aggregateRating: { "@type": "AggregateRating", ratingValue: props.rating.average, reviewCount: props.rating.count },
+              ...(props.rating.reviews.length
+                ? { review: props.rating.reviews.map((r) => ({ "@type": "Review", author: { "@type": "Person", name: r.display_name }, reviewRating: { "@type": "Rating", ratingValue: r.rating }, ...(r.body ? { reviewBody: r.body } : {}), datePublished: r.approved_at })) }
+                : {}) }
+          : {}) };
 }
