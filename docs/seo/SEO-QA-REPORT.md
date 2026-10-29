@@ -316,3 +316,29 @@ Variance is as large as any difference, so no improvement and no regression is c
 **Limitations.** Android and Windows fonts untested; the signed-in-Chrome-only preview checks covered 1920 px; real-user Core Web Vitals not observed; the cause of the earlier intermittent 106 px preview movement remains unknown (not reproduced in clean production loads).
 **Status:** DEPLOYED.
 
+## 13. OG-PRODUCT product-page OpenGraph (2026-10-30): IMPLEMENTED — PRODUCTION VERIFICATION PENDING
+
+**PR and commit.** PR #441 `fix/og-product-metadata` → `develop`, code commit `c4791fd`. Open, not merged, not deployed.
+
+**Confirmed root cause.** `app/products/[slug]/page.tsx` set `openGraph: img ? { images: [img.url] } : undefined`. Next merges metadata shallowly (Next documentation, *generateMetadata → Merging*: "all `openGraph` fields from the layout are replaced" by a page that sets `openGraph`), so the root block (site name, type, locale pair) was lost; the product's own title, description and image survived because Next derives title and description from the page and the image was set explicitly. With no photo, the explicit `undefined` key erased every OpenGraph and Twitter tag (checked in a build: a fixture product without photos emitted none). Collection and category pages had the same repair in Step 2.
+
+**Production baseline before the fix (anonymous, 2026-10-30; 12 real pages: 6 products × EN/JA, including R2715).** All 12: `og:title`, `og:description`, `og:image` and the Twitter title, description, card and image present and equal to the page's title/description/image; **missing** `og:site_name`, `og:type`, `og:locale`, `og:locale:alternate`, `og:url`, and the image alt. One self canonical, three hreflang alternates, one Product and one BreadcrumbList JSON-LD on each. The sitemap lists 906 product URLs (453 slugs × 2); **12 were sampled; they were not all crawled**. The owner's audit separately sampled 21 live pages with the same result.
+
+**The correction.** `lib/product-seo.ts` `productOpenGraph()`:
+- `type: "website"`. Next 15.5.25's OpenGraph types (`opengraph-types.d.ts`) are website, article, book, profile, music.*, video.*; there is no product type and the other values would misdescribe a listing.
+- `siteName: "Cha Jewels"`, `locale` en_US / ja_JP, `alternateLocale` the other one.
+- `url` = the canonical, from `localeAlternates()` (the function that writes the canonical), so they cannot differ.
+- Images: the product's primary photo with the product's name as alt; title and description are not restated (Next derives them from the page, so they still equal `<title>` and the description); no `twitter` key (Twitter follows the OpenGraph block, as before).
+- **No photo** (simulated, no real product is known to lack one): an explicit `openGraph` with no `images` does not inherit the brand image and drops the Twitter card to `summary`, so the fallback names the brand image itself: `${siteUrl}/opengraph-image.png`, 1200×630 PNG, alt "Cha Jewels" (the file and alt the root layout already emits). A photo whose URL is empty or not a string counts as no photo. A product with a photo never gets another image.
+
+**Evidence (local fixtures only; NOT real-Hub, NOT a preview).**
+- Head metadata and JSON-LD diffed over 21 pages, unfixed build vs fix: 13 identical (home, collections, categories, About, blog, layaway); the 8 product pages differ only by added tags (`og:url`, `og:site_name`, `og:locale`, `og:locale:alternate`, `og:type`, `og:image:alt`, and `twitter:image:alt`, which Next derives from the image alt); title, canonical, hreflang and JSON-LD identical. `og:url` equals the canonical on every sampled product in both languages.
+- A photo-less fixture product: before, no OpenGraph or Twitter tag; after, the full set with the brand image and a `summary_large_image` card, English and Japanese.
+- An unknown slug: 404 with the root's tags and no canonical, identical to before.
+- Rendered-HTML checks added to `scripts/check-seo-live.mjs` ("OG-PRODUCT", up to 3 products per language): fix build **438 pass / 0 fail** (389 plus 49 new); the unfixed build fails them.
+- `tests/og-product.test.mjs`: 12 tests (English and Japanese with a photo, several photos, simulated no photo including empty/whitespace/non-string URLs, brand image file size and alt, `og:url` equal to the canonical through the real `localizedMeta` wrapper, alternate locale, invalid language and missing product, source-level guards, BreadcrumbList builder). Unit suite 557/557; restoring the old page code makes the source-level test fail.
+- typecheck, lint (0 errors), build, terms, money, i18n, `check:lastmod`, `check:jp-font` 35/35; `/en/layaway` 200, `/ja/layaway` 404.
+
+**Limitations.** No real-Hub comparison yet: Vercel builds no preview for a feature branch and the develop preview is SSO-protected, so the real products' metadata after the fix has not been seen; the fixture layer's own product photos were used for the with-photo case. Facebook Sharing Debugger and a Messenger share were not run. A real product with no photo is still unobserved. After release the same 12 URLs (and R2715) should be re-read and compared with the baseline above.
+**Status:** IMPLEMENTED — PRODUCTION VERIFICATION PENDING.
+
