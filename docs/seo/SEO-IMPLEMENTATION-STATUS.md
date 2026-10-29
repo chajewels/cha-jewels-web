@@ -439,12 +439,12 @@ PR #429 review fixes (2026-10-29): (A) `/collections` now shows a visible, 44px-
 
 Not claimed: indexing, rich results or ranking effects. Product image entries are covered by unit tests only; the local build runs on fixtures with relative image URLs, so no live image entry was produced. Recheck after deployment against the real Hub.
 
-## Step 2 — Collection and category SEO (Master Plan §33.3): READY FOR QA (2026-10-29; branch `seo/step-2-collection-itemlist-og`; NOT DEPLOYED)
+## Step 2 — Collection and category SEO (Master Plan §33.3): DEPLOYED; SEARCH ENGINE RECRAWL PENDING (2026-10-29; PR #432 → develop `5533801`, released via PR #433 → main `49c0fd6`)
 
 | Item | Status | What changed |
 |---|---|---|
-| ItemList JSON-LD | READY FOR QA | One `ItemList` per collection/category page with at least two pieces: the grid's own `products` array, in its order (sold pieces included, as the grid shows them), each distinct product URL once, positions 1..n, locale-correct canonical URLs. Only `position` and `url` per item: no name, price, availability or rating (each product page carries its own Product markup). No list for an empty or one-piece page. |
-| Hero OpenGraph image | READY FOR QA | The Hub's own `hero_media`, only when an absolute https URL. Bundled placeholders, category-stage product photos and relative or http values are never used; those pages keep today's brand image. OG title/description unchanged; Twitter image follows. |
+| ItemList JSON-LD | DEPLOYED | One `ItemList` per collection/category page with at least two pieces: the grid's own `products` array, in its order (sold pieces included, as the grid shows them), each distinct product URL once, positions 1..n, locale-correct canonical URLs. Only `position` and `url` per item: no name, price, availability or rating (each product page carries its own Product markup). No list for an empty or one-piece page. |
+| Hero OpenGraph image | DEPLOYED | The Hub's own `hero_media`, only when an absolute https URL. Bundled placeholders, category-stage product photos and relative or http values are never used; those pages keep today's brand image. OG title/description unchanged; Twitter image follows. |
 
 Evidence baseline (production, 2026-10-29): 5 of 12 collections have a real Hub `hero_media` (earrings, luxury-bags, luxury-wallet, luxury-watches, other-accessories; images are 0.1-1.8 MB); no category has one yet, so category OG stays the brand image until the owner uploads a hero. Google's carousel rich result supports only Course, Movie, Recipe and Restaurant lists, so this ItemList is valid schema.org markup that describes the page and is NOT expected to produce a rich result. No claim is made about rich results, indexing or ranking.
 
@@ -494,3 +494,12 @@ One legacy behaviour changed and it is **not pre-approved; it needs the owner's 
 - 2026-10-28: Phase 2B closed as DEPLOYED — PRODUCTION VERIFIED (PR #401 / `bd28cc6`; checker 120/0/0; matrix 284/0). X1 resolved. Phase 2C approval package added (map §19). No route, navigation, sitemap, redirect, checkout or Hub change in this closeout.
 - 2026-10-28: Phase 2C implemented locally under the development-and-testing authorization (uncommitted): OD-15 gating completion, OD-7 switcher links, OD-11 Hub-link localization, full locale-aware navigation, share/sign-out/revalidation, 16 new tests. Crawl 0×404 / 0 bare-public; legacy metadata unchanged. Opus review of checkout-actions pending at PR. Not committed, not deployed.
 - 2026-10-29: SEO Step 1 (Master Plan §33.3) implemented (PR #429, develop `c6bec5c`) and released to production via PR #430 (main `2e18bcc`); production-verified, recrawl pending. No redirect, canonical, hreflang, route or Hub change.
+- 2026-10-29: SEO Step 2 (Master Plan §33.3) merged (PR #432, develop `5533801`) and released to production via PR #433 (main `49c0fd6`); production-verified, recrawl pending. No redirect, canonical, hreflang, route, payment or Hub change.
+
+## Step 3 — Performance (Master Plan §33.3): 3a READY FOR QA; 3b and 3c AUDITED (2026-10-29; branch `perf/step-3-measure`; NOT DEPLOYED)
+
+| Item | Status | Note |
+|---|---|---|
+| 3a Japanese heading font after load | READY FOR QA | Noto Serif JP slices (37, 568 KB) no longer compete with the hero during load; mobile `/ja` 77 → 84, LCP 6.6 → 4.4 s (local A/B, 7 runs); CLS 0; English untouched. See `docs/seo/PERF-STEP3-FINDINGS.md`. |
+| 3b Large collection payloads | AUDITED | 1.26 MB raw / 48 KB brotli (Rings); not the measured bottleneck; no change; options in the findings doc. |
+| 3c Root-layout dynamic rendering and caching | AUDITED | Every public page is `private, no-store`; proposal only, high risk, own phase. |
