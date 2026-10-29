@@ -217,3 +217,21 @@ Commits `a51e2b2` (shared `components/site/breadcrumbs.tsx` + pure `lib/breadcru
 | Layaway, canonical, hreflang, sitemap | PASS — `/en/layaway` 200, `/ja/layaway` 404, bare `/layaway` 404; `check-seo-live https://www.chajewelsjp.com` **289 pass / 0 fail / 0 deferred** |
 
 **Exceptions:** none. Phases 3–4 remain SEARCH ENGINE RECRAWL PENDING.
+
+## 9. SEO Step 1 production release (2026-10-29): PR #430 → `main` `2e18bcc`
+
+Diff reviewed before merge: only PR #429's Step 1 files plus docs PRs #427/#428; no Hub, payment, checkout, database, middleware, redirect, canonical, hreflang or secret change. CI green (unit 529/529, typecheck, lint, terms, money, i18n, layaway-ja, `check:lastmod`). Merged as a merge commit (keeps author dates for `check:lastmod`). Production deployment `7407795774` Ready.
+
+**Live production, `https://www.chajewelsjp.com`:**
+- `scripts/check-seo-live.mjs`: **289 pass / 0 fail / 0 deferred**.
+- Sitemap: 200, valid XML, 976 URLs (976 unique), 906 product URLs (453 EN/JA pairs), 0 bare product URLs, 0 `/ja/layaway`, 1 `/en/layaway`, 0 product `lastmod`, 906 image entries (all absolute https, host `pfoicalpzdcmyxzvwyhz.supabase.co`). `/about` 2026-10-01, `/jewelry-guide` 2026-10-27, blog index 2026-10-16 (= its one post). Sold products still listed.
+- 36 sampled products (20 multi-photo; 10 SoldOut): SKU-last title 36/36, H1 still SKU-first 36/36, sitemap image equals `og:image` and is in Product JSON-LD 36/36, canonical self 36/36; no rating, review, shipping, return-policy, origin or manufacturer schema. JA titles are SKU-last too.
+- Titles: Rings/Pearls/Necklaces/Pendants read "X: Jewelry Collection from Tokyo"; Fine Jewelry "Fine Jewelry: Gold, Pearl, Diamond and Gemstone"; Luxury Bags and Preloved Branded Watches unchanged; JA unchanged. Tokusho EN/JA descriptions distinct. Blog lead image alt = article title.
+- `/en/collections` and `/ja/collections`: 5 visible category links. Hidden menu lists are `display:none` and unfocusable. 375/390/1440: no overflow, drawer and both desktop menus open/close, focus returns, breadcrumb tap area 45-46 px, 0 console errors.
+- `/en/layaway` 200, `/ja/layaway` 404, `/layaway` 404; canonical/hreflang correct; robots has no `/already-registered` disallow; `sameAs` is Facebook only; Messenger link present.
+- axe (WCAG 2/2.1 A/AA): `definition-list`/`dlitem` (pre-existing, seen on pre-release production); on product pages Paidy's third-party widget adds `image-alt`/`link-name` (not site code; not part of this release).
+
+**Performance (observable only):** first request after deploy `x-vercel-cache: PRERENDER`, 0.74 s from the QA client; following requests HIT, about 0.3 s; 337,609 bytes (prior baseline 221,727). Vercel function logs, Hub catalog-request duration, Hub payload size and memory were NOT accessible from the QA environment and are UNVERIFIED; no timeout or missing URL was observed.
+
+**Status:** DEPLOYED; SEARCH ENGINE RECRAWL PENDING. Nothing is claimed about indexing, image-search inclusion or ranking.
+
