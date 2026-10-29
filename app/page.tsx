@@ -4,6 +4,7 @@ import { tr } from "@/lib/i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { getLang } from "@/lib/i18n-server";
 import { hub } from "@/lib/hub-api";
+import { contactEmail, follow } from "@/lib/settings";
 import { JsonLd } from "@/components/site/json-ld";
 import { DiamondDivider } from "@/components/home/diamond-divider";
 import { ValuesBento } from "@/components/home/values-bento";
@@ -36,10 +37,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   // deck have moved into their own streamed sections (components/home/
   // sections.tsx) — awaiting all six here meant the slowest Hub read decided
   // when the headline appeared, and one of them could fail the page outright.
-  const [lang, collections, categories] = await Promise.all([
+  const [lang, collections, categories, storeEmail, storeSameAs] = await Promise.all([
     getLang(),
     getCollections().catch(() => []),
     hub.categories().catch(() => []),
+    // Chrome reads for the JewelryStore JSON-LD (Phase 4 §16): the Hub's
+    // contact email and social row, caught like the other chrome reads — a
+    // failed read omits the field, never the page.
+    contactEmail().catch(() => null),
+    follow().then((links) => links.map((l) => l.href), () => [] as string[]),
   ]);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
@@ -61,7 +67,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
 
   return (
     <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
-      <JsonLd type="store" />
+      <JsonLd type="store" email={storeEmail} sameAs={storeSameAs} />
 
       {/* §3 Hero — hero v3 (owner approvals 2026-09-26): the gold film alone
           on slide 1, then one image-led stage per category with up to three

@@ -79,3 +79,40 @@ test("breadcrumb: the builder never adds a crumb the page did not pass (two-leve
   const d = buildJsonLd({ type: "breadcrumb", items: trail.slice(0, 2) }, B, "/en");
   assert.equal(d.itemListElement.length, 2);
 });
+
+// ---------------------------------------------------------------- Phase 4: JewelryStore entity (§16)
+test("store: the legacy key order is untouched and the new fields are appended", () => {
+  const keys = Object.keys(buildJsonLd({ type: "store" }, B, ""));
+  assert.deepEqual(keys.slice(0, 8), ["@context", "@type", "name", "legalName", "url", "address", "areaServed", "priceRange"]);
+  assert.deepEqual(keys.slice(8), ["logo", "telephone"], "email / sameAs only when passed");
+});
+
+test("store: full registered address, the original three keys first", () => {
+  const a = buildJsonLd({ type: "store" }, B, "").address;
+  assert.deepEqual(Object.keys(a), ["@type", "addressLocality", "addressRegion", "addressCountry", "streetAddress", "postalCode"]);
+  assert.equal(a.streetAddress, "6-5-1 Tateishi, Time Mansion 301");
+  assert.equal(a.postalCode, "124-0012");
+  assert.equal(a.addressCountry, "JP");
+});
+
+test("store: logo is the absolute badge URL (never locale-prefixed); telephone is the office line in E.164", async () => {
+  const { COMPANY_PHONE } = await import("@/lib/content/legal");
+  assert.equal(COMPANY_PHONE.office, "03-6657-6129", "the digits the E.164 form is derived from");
+  for (const prefix of ["", "/en", "/ja"]) {
+    const d = buildJsonLd({ type: "store" }, B, prefix);
+    assert.equal(d.logo, `${B}/images/brand/logo-badge-512.webp`, prefix);
+    assert.equal(d.telephone, "+81-3-6657-6129", prefix);
+  }
+});
+
+test("store: email and sameAs come from the Hub only — absent when not passed, mailto: links never become sameAs", () => {
+  const none = buildJsonLd({ type: "store", email: null, sameAs: [] }, B, "");
+  assert.equal("email" in none, false);
+  assert.equal("sameAs" in none, false);
+  const onlyMail = buildJsonLd({ type: "store", sameAs: ["mailto:sales@example.com"] }, B, "");
+  assert.equal("sameAs" in onlyMail, false, "a row of mailto links is no sameAs");
+  const d = buildJsonLd({ type: "store", email: "sales@example.com", sameAs: ["mailto:sales@example.com", "https://www.facebook.com/chajewelsjapan", "https://m.me/chajewelsjapan"] }, B, "/en");
+  assert.equal(d.email, "sales@example.com");
+  assert.deepEqual(d.sameAs, ["https://www.facebook.com/chajewelsjapan", "https://m.me/chajewelsjapan"]);
+  assert.equal("openingHours" in d, false, "customer-service hours are not shop hours");
+});

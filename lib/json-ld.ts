@@ -1,6 +1,6 @@
 import type { Product } from "@/lib/queries/products";
 import { productAvailability } from "@/lib/availability";
-import { COMPANY_NAME } from "@/lib/content/legal";
+import { COMPANY_NAME, COMPANY_PHONE } from "@/lib/content/legal";
 import { allImages, fromPrice } from "@/lib/queries/products";
 import { metalsLabel, productMetals } from "@/lib/metals";
 
@@ -34,8 +34,16 @@ import { metalsLabel, productMetals } from "@/lib/metals";
  */
 export type PostLd = { slug: string; title: string; excerpt: string; date: string; cover: string | null; lang: "ja" | "en" };
 export type Crumb = { name: string; path: string };
+/**
+ * The store's owner-editable contact facts, read by the home page from the
+ * Hub (lib/settings.ts) and passed in: `email` is contactEmail() or null,
+ * `sameAs` the hrefs of the public social row (follow()). Both are omitted from
+ * the output when absent — nothing here is a fallback. Only http(s) hrefs
+ * become `sameAs`: the row also carries mailto: links, which are not profiles.
+ */
+export type StoreLd = { email?: string | null; sameAs?: string[] };
 export type JsonLdProps =
-  | { type: "store" }
+  | ({ type: "store" } & StoreLd)
   | { type: "product"; product: Product }
   | { type: "faq"; items: { q: string; a: string }[] }
   | { type: "post"; post: PostLd }
@@ -43,12 +51,28 @@ export type JsonLdProps =
 
 const pageLanguage = (prefix: string) => (prefix === "/ja" ? "ja-JP" : "en");
 const crumbUrl = (base: string, prefix: string, path: string) => (path === "/" ? `${base}${prefix}` : `${base}${prefix}${path}`);
+/** "03-6657-6129" → "+81-3-6657-6129": the domestic trunk 0 becomes the country code. */
+const e164Jp = (domestic: string) => `+81-${domestic.replace(/^0/, "")}`;
+const isWebUrl = (href: string) => /^https?:\/\//.test(href);
 
 export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en" | "/ja" = ""): object {
   return props.type === "breadcrumb"
     ? { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: props.items.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: crumbUrl(base, prefix, c.path) })) }
     : props.type === "store"
-    ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: `${base}${prefix}`, address: { "@type": "PostalAddress", addressLocality: "Katsushika-ku", addressRegion: "Tokyo", addressCountry: "JP" }, areaServed: ["JP", "PH"], priceRange: "¥¥¥", ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}) }
+    ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: `${base}${prefix}`,
+        // Phase 4 (§16): the full registered address — the same parts
+        // COMPANY_ADDRESS.en prints, appended behind the three original keys so
+        // the legacy output only grows (C0/H0: never reordered).
+        address: { "@type": "PostalAddress", addressLocality: "Katsushika-ku", addressRegion: "Tokyo", addressCountry: "JP", streetAddress: "6-5-1 Tateishi, Time Mansion 301", postalCode: "124-0012" },
+        areaServed: ["JP", "PH"], priceRange: "¥¥¥", ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}),
+        // Phase 4 (§16), appended: the badge logo as an absolute URL (a static
+        // asset, so never locale-prefixed); the office line in E.164 from the one
+        // place the digits live; email and sameAs only when the Hub answered.
+        // No openingHours: the site publishes customer-service hours, not shop
+        // hours, and the two are not the same claim.
+        logo: `${base}/images/brand/logo-badge-512.webp`, telephone: e164Jp(COMPANY_PHONE.office),
+        ...(props.email ? { email: props.email } : {}),
+        ...(props.sameAs?.some(isWebUrl) ? { sameAs: props.sameAs.filter(isWebUrl) } : {}) }
     : props.type === "post"
     ? {
         "@context": "https://schema.org",
