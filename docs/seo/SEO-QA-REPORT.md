@@ -291,3 +291,28 @@ Variance is as large as any difference, so no improvement and no regression is c
 **SEO and functional regression.** `check-seo-live https://www.chajewelsjp.com` **383 pass / 0 fail** (live catalog samples fewer pages than the local-fixture 389); `/en/layaway` 200, `/ja/layaway` 404; `/account` and `/checkout` 307 to login; Product and BreadcrumbList JSON-LD hashes identical to before; ItemList and hero OpenGraph checks inside the checker pass.
 
 **Status:** DEPLOYED. Benefit not confirmed in production lab runs; owner to decide between keeping it (monitor field CLS and Search Console) and reverting PR #436.
+
+## 12. SEO Step 3a final release (2026-10-29): PR #439 → `main` `59ad3b7`
+
+**Scope.** `develop` `284b6dd` → `main` (PR #438 at head `7f68b99`, plus docs PR #437). Runtime: `lib/jp-font-defer.ts` (new), `app/layout.tsx`, `app/globals.css`, `components/site/jp-font-gate.tsx` (comment only); tests `tests/perf-step3-jp-font.test.mjs`, `scripts/check-jp-font-live.mjs` and the `check:jp-font` script; docs. No Hub, payment, cart, checkout, locale-routing, canonical/hreflang, robots, caching or collection-rendering change.
+**Gates.** CI `check` success on the release PR; on the same tree locally: typecheck, lint (0 errors), 545/545 unit tests, build, terms, money, i18n, `check:lastmod`, SEO checker 389/0.
+**Deployment.** `main` `59ad3b7`; Vercel production deployment `7415291347` Ready.
+
+**Production QA (anonymous, fresh contexts).**
+
+| Check | Result |
+|---|---|
+| Scope | PASS — `data-jp-defer` and the gate only on `/ja` (also `/ja/` after its redirect, and `/ja?x=1`); absent on Rings, Fine Jewelry, About, tokusho, a product page and English pages; CSS rule is `html[data-jp-defer]:not([data-jp-font])` |
+| `npm run check:jp-font -- https://www.chajewelsjp.com` | 34 of 35 pass. The one failure: `/ja` at 390 px, CLS 0.00012 (limit in the script 0.0001) |
+| That 0.00012 | One of 8 loads at 390 px: a header element (`DIV.flex items-center gap-1`) moves 3 px sideways at about the load event; 0 of 8 with the gate attribute pre-set; 0 of 30 loads on non-deferred pages (Rings, About, `/en`). The same element showed the same size of shift in earlier production runs before the gate existed (5 of 6 throttled mobile loads). Not proven independent of the gate; negligible; the script threshold is tighter than this measurement noise |
+| Japanese Rings, real Hub titles | PASS — 6 fresh loads at each of 390, 1024, 1440 and 1920 px: 0 layout shifts, heading steady (y=266 at 1920 px), first-row titles at their final wrapping, no overflow, no clipped title. The previous 22 px caption movement (3 of 3 loads at 1920 px before) is absent |
+| Console | no console errors or HTTP errors of 400 or above; aborted Next link-prefetch requests (`?_rsc=`, `net::ERR_ABORTED`) appear when the test context closes |
+| Homepage font loading | PASS — fallback at DOMContentLoaded and at load, Noto Serif JP after load, 3 fonts before load, reduced motion still applies the font |
+| Language switching | PASS (36 of 36 scenarios earlier the same day on production, no change since; `/ja` and `/en` switch checked again on the real-Hub preview) |
+| SEO | `/en/layaway` 200, `/ja/layaway` 404; ItemList, hero OpenGraph, Product and BreadcrumbList checks passed on the preview and the checker; account and checkout redirect to login |
+
+**Lighthouse (production, mobile, 5 runs each, fresh profile, interleaved; before and after the merge, matched settings; NOT a controlled A/B).** `/ja`: score 87 (63–90) → 67 (61–90), LCP 3.6 → 6.5 s; `/ja/collections/rings`: 69 (64–90) → 83 (64–89), LCP 5.9 → 4.4 s. The ranges overlap completely and the home page's code path did not change, so these differences are noise. No improvement or regression is claimed, and no real-user or field data exists.
+
+**Limitations.** Android and Windows fonts untested; the signed-in-Chrome-only preview checks covered 1920 px; real-user Core Web Vitals not observed; the cause of the earlier intermittent 106 px preview movement remains unknown (not reproduced in clean production loads).
+**Status:** DEPLOYED.
+
