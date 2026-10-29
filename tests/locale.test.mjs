@@ -63,22 +63,24 @@ test("localePath swaps an existing prefix rather than stacking one", () => {
   assert.equal(L.localePath("/en/products/x", "en"), "/en/products/x");
 });
 
-test("localePath never prefixes a private, utility, deferred or unknown path", () => {
-  for (const p of ["/cart", "/login", "/account", "/account/orders/1", "/checkout", "/search", "/auth/callback", "/loyalty/join", "/review/tok", "/receipts/verify", "/api/lang", "/layaway", "/nonexistent", "/faq/extra", "/loyalty/join?x=1"]) {
+test("localePath never prefixes a private, utility or unknown path", () => {
+  for (const p of ["/cart", "/login", "/account", "/account/orders/1", "/checkout", "/search", "/auth/callback", "/loyalty/join", "/review/tok", "/receipts/verify", "/api/lang", "/nonexistent", "/faq/extra", "/loyalty/join?x=1"]) {
     assert.equal(L.localePath(p, "en"), p, `${p} must come back unchanged`);
     assert.equal(L.localePath(p, "ja"), p, `${p} must come back unchanged`);
   }
 });
 
-test("there is no way to mint /en/layaway or /ja/layaway (Phase 3 and policy)", () => {
+test("there is no way to mint /ja/layaway (policy); /en/layaway is the one layaway page (Phase 3)", () => {
   for (const p of ["/layaway", "/en/layaway", "/ja/layaway"]) {
-    for (const loc of ["en", "ja"]) {
-      const out = L.localePath(p, loc);
-      assert.ok(out === p, `${p} -> ${out}`);
-      assert.equal(L.siblingPath(p, loc), null);
-    }
-    assert.equal(L.isLocalizable(p), false);
+    assert.equal(L.localePath(p, "ja"), p, `${p} -> ja must come back unchanged`);
+    assert.equal(L.siblingPath(p, "ja"), null, `${p} has no Japanese sibling`);
   }
+  assert.equal(L.localePath("/layaway", "en"), "/en/layaway");
+  assert.equal(L.localePath("/en/layaway", "en"), "/en/layaway");
+  assert.equal(L.localePath("/ja/layaway", "en"), "/ja/layaway", "a Japanese-prefixed layaway path is not a site page in any language: unchanged");
+  assert.equal(L.isLocalizable("/layaway"), true);
+  assert.equal(L.isLocalizable("/en/layaway"), true);
+  assert.equal(L.isLocalizable("/ja/layaway"), false);
 });
 
 test("localePath tolerates a bad locale or a bad input", () => {
@@ -100,10 +102,10 @@ test("siblingPath names the same resource in the other language, or null", () =>
 });
 
 test("isLocalizable: public families yes, everything else no", () => {
-  for (const p of ["/", "/en", "/ja/", "/products/x", "/categories/necklaces", "/collections", "/collections/kihei", "/blog", "/blog/a-post", "/jewelry-guide", "/shopping-guide", "/faq", "/about", "/why-cha-jewels", "/contact", "/affiliations", "/loyalty", "/sale", "/wholesale", "/legal/privacy", "/legal/terms", "/legal/returns", "/legal/tokusho", "/en/legal/tokusho"]) {
+  for (const p of ["/", "/en", "/ja/", "/products/x", "/categories/necklaces", "/collections", "/collections/kihei", "/blog", "/blog/a-post", "/jewelry-guide", "/shopping-guide", "/faq", "/about", "/why-cha-jewels", "/contact", "/affiliations", "/loyalty", "/sale", "/wholesale", "/legal/privacy", "/legal/terms", "/legal/returns", "/legal/tokusho", "/en/legal/tokusho", "/layaway", "/en/layaway"]) {
     assert.equal(L.isLocalizable(p), true, p);
   }
-  for (const p of ["/loyalty/join", "/faq/extra", "/sale/x", "/cart", "/account", "/checkout/complete/1", "/layaway", "/search", "/xx", "/constructor", "/__proto__", "/toString", "/hasOwnProperty", "", "//x"]) {
+  for (const p of ["/loyalty/join", "/faq/extra", "/sale/x", "/cart", "/account", "/checkout/complete/1", "/ja/layaway", "/search", "/xx", "/constructor", "/__proto__", "/toString", "/hasOwnProperty", "", "//x"]) {
     assert.equal(L.isLocalizable(p), false, JSON.stringify(p));
   }
 });
@@ -169,20 +171,18 @@ test("familyOf reports the rule for the family, prefixed or not", () => {
   assert.equal(L.familyOf("/cart"), null);
   assert.equal(L.familyOf("/constructor"), null);
   assert.deepEqual(L.familyOf("/layaway").locales, ["en"], "layaway exists in English only");
-  assert.equal(L.familyOf("/layaway").live, false, "and its locale route is not live");
+  assert.equal(L.familyOf("/layaway").live, true, "and its locale route is live (Phase 3)");
 });
 
-test("the layaway family is English-only and not live in the shipped table", () => {
+test("PHASE 3: the layaway family is English-only AND live in the shipped table; every family is live", () => {
   const rule = L.FAMILY_RULES.get("layaway");
-  assert.deepEqual([...rule.locales], ["en"]);
-  assert.equal(rule.live, false);
-  for (const [name, r] of L.FAMILY_RULES) if (name !== "layaway") assert.equal(r.live, true, `${name} is live`);
+  assert.deepEqual([...rule.locales], ["en"], "never add ja: nothing layaway-related on the Japanese site");
+  assert.equal(rule.live, true);
+  for (const [name, r] of L.FAMILY_RULES) assert.equal(r.live, true, `${name} is live`);
 });
 
-test("FORWARD COMPAT (Phase 3): enabling layaway yields /en/layaway and can never yield /ja/layaway", () => {
-  const families = new Map(L.FAMILY_RULES);
-  families.set("layaway", { ...families.get("layaway"), live: true });
-  const live = L.createLocaleRules(families);
+test("PHASE 3 (shipped table): /layaway localises to /en/layaway only; /ja/layaway can never be minted", () => {
+  const live = L;
   // Enabled: the English route is produced, from either the bare or the prefixed form.
   assert.equal(live.localePath("/layaway", "en"), "/en/layaway");
   assert.equal(live.localePath("/en/layaway", "en"), "/en/layaway");
@@ -194,15 +194,24 @@ test("FORWARD COMPAT (Phase 3): enabling layaway yields /en/layaway and can neve
     assert.equal(live.siblingPath(p, "ja"), null, `${p} has no Japanese sibling`);
   }
   assert.equal(live.isLocalizable("/ja/layaway"), false);
-  // No second implementation: the other families behave exactly as in the shipped table.
-  for (const p of ["/", "/products/x", "/en/legal/tokusho", "/cart", "/loyalty/join", "/nonexistent"]) {
-    for (const loc of ["en", "ja"]) assert.equal(live.localePath(p, loc), L.localePath(p, loc), `${p} ${loc}`);
-  }
+  assert.equal(live.localePath("/en/layaway", "ja"), "/en/layaway");
+  assert.equal(live.siblingPath("/en/layaway", "ja"), null);
+  // The query and fragment travel with the English link (the ?piece= deep link).
+  assert.equal(live.localePath("/layaway?piece=p1#calc", "en"), "/en/layaway?piece=p1#calc");
+  // An author-written bare /layaway link on an English page now lands on the locale page.
+  assert.equal(L.localizeAuthoredHref("/layaway", "en"), "/en/layaway");
+  assert.equal(L.localizeAuthoredHref("/layaway", "ja"), "/layaway", "a Japanese page never gets an English layaway link minted for it");
 });
 
-test("while layaway is not live (Option ii), the bare /layaway stays bare and /ja/layaway is never produced", () => {
-  for (const loc of ["en", "ja"]) assert.equal(L.localePath("/layaway", loc), "/layaway");
-  assert.equal(L.localePath("/en/layaway", "ja"), "/en/layaway");
-  assert.equal(L.siblingPath("/en/layaway", "ja"), null);
+test("ROLLBACK COMPAT: a table with layaway not live behaves as Option ii did (bare stays bare)", () => {
+  const families = new Map(L.FAMILY_RULES);
+  families.set("layaway", { ...families.get("layaway"), live: false });
+  const off = L.createLocaleRules(families);
+  for (const loc of ["en", "ja"]) assert.equal(off.localePath("/layaway", loc), "/layaway");
+  assert.equal(off.siblingPath("/layaway", "en"), null);
+  // No second implementation: the other families behave exactly as in the shipped table.
+  for (const p of ["/", "/products/x", "/en/legal/tokusho", "/cart", "/loyalty/join", "/nonexistent"]) {
+    for (const loc of ["en", "ja"]) assert.equal(off.localePath(p, loc), L.localePath(p, loc), `${p} ${loc}`);
+  }
 });
 

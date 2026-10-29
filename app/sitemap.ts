@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site";
 import { hub } from "@/lib/hub-api";
 import { localePath, type Locale } from "@/lib/locale";
+import { LAYAWAY_LANGS } from "@/lib/layaway-availability";
 import { postLanguages } from "@/lib/posts";
 
 /**
@@ -37,9 +38,10 @@ const ORDER: readonly Locale[] = ["ja", "en"];
  * /collections index has a route but was never listed, and 2D changes the URL
  * form of the entries, not which pages are advertised.
  *
- * /layaway is NOT here, and that is not an oversight: it is English-only and
- * its locale route is Phase 3. Its bare URL 404s in Japanese — the language a
- * crawler is served — so it was never listable either.
+ * /layaway is NOT in this list because `both()` would ask for a Japanese URL
+ * it must never have: the page is English-only. Since Phase 3 it is listed
+ * separately below, at /en/layaway alone. The bare URL 404s in Japanese — the
+ * language a crawler is served — so it was never listable and still is not.
  */
 const STATIC_PAGES: readonly { path: string; changeFrequency: Freq; priority: number }[] = [
   { path: "/sale", changeFrequency: "daily", priority: 0.8 },
@@ -113,6 +115,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: base, changeFrequency: "daily", priority: 1 },
     ...both("/", { changeFrequency: "daily", priority: 1 }),
     ...STATIC_PAGES.flatMap(({ path, ...rest }) => both(path, rest)),
+    // LAYAWAY (Phase 3): listed in every language it is offered in — which is
+    // English alone (LAYAWAY_LANGS, the one gate) — so /en/layaway and nothing
+    // else. `localePath` can only produce the English URL for this family
+    // (lib/locale.ts), so a /ja entry is impossible by construction twice over;
+    // the bare /layaway is cookie-decided and 404s for a crawler, so it is never
+    // listed. Layaway-only posts stay unlisted (a separate decision).
+    ...LAYAWAY_LANGS.map((l) => ({ url: `${base}${localePath("/layaway", l)}`, changeFrequency: "monthly" as const, priority: 0.7 })),
     ...postEntries,
     // Products, categories and collections exist in both languages: their pages
     // decide 200 or 404 on the slug alone, never on the language (OD-9 neutral-
