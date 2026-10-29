@@ -106,12 +106,32 @@ for (const path of PUBLIC) {
   ok(path, `hreflang ${want.join(" / ")} present`, want.every((l) => alternates(r.body).some((a) => a.lang === l)), JSON.stringify(alternates(r.body)));
   const ld = jsonLd(r.body);
   const types = ld.map((d) => d["@type"]);
-  if (path === "/") ok(path, "JSON-LD: JewelryStore", types.includes("JewelryStore"), types.join(","));
+  if (path === "/") {
+    const s = ld.find((d) => d["@type"] === "JewelryStore");
+    ok(path, "JSON-LD: JewelryStore", !!s, types.join(","));
+    // Phase 4 §16: the entity facts, and the address with its street and postcode.
+    ok(path, "JSON-LD: P4 store has logo, telephone, streetAddress, postalCode", !!s?.logo && !!s?.telephone && !!s?.address?.streetAddress && !!s?.address?.postalCode, JSON.stringify(s?.address ?? null));
+    ok(path, "JSON-LD: P4 store declares no openingHours (customer-service hours are not shop hours)", !("openingHours" in (s ?? {})));
+  }
   if (bareOf(path) === product) {
     const p = ld.find((d) => d["@type"] === "Product");
     ok(path, "JSON-LD: Product with name, sku, offer", !!p && !!p.name && !!p.sku && !!p.offers?.priceCurrency && p.offers.price != null, JSON.stringify(p ?? null).slice(0, 120));
     ok(path, "JSON-LD: availability is InStock or SoldOut", ["https://schema.org/InStock", "https://schema.org/SoldOut"].includes(p?.offers?.availability), p?.offers?.availability);
     ok(path, "JSON-LD: no countryOfOrigin invented", !JSON.stringify(ld).includes("countryOfOrigin"));
+    // Phase 4 §6/§7: nothing invented — identifiers never; a rating only with reviews behind it.
+    ok(path, "JSON-LD: P4 no gtin / mpn invented", !/"(gtin|mpn)/.test(JSON.stringify(ld)));
+    ok(path, "JSON-LD: P4 aggregateRating, if present, has a count > 0 and matches the review count shown", !p?.aggregateRating || (p.aggregateRating.reviewCount > 0 && (!p.review || p.review.length <= p.aggregateRating.reviewCount)), JSON.stringify(p?.aggregateRating ?? null));
+    ok(path, "JSON-LD: P4 shippingDetails, if present, is JP-only with a ¥0 or ¥800 rate", !p?.offers?.shippingDetails || (p.offers.shippingDetails.shippingDestination?.addressCountry === "JP" && [0, 800].includes(p.offers.shippingDetails.shippingRate?.value)), JSON.stringify(p?.offers?.shippingDetails?.shippingRate ?? null));
+  }
+  // Phase 4 §8: a BreadcrumbList on every product, collection, category and
+  // post page, every item an absolute URL on this origin, the trail's last
+  // item being the page itself.
+  if ([product, collection, category, post].includes(bareOf(path))) {
+    const bc = ld.find((d) => d["@type"] === "BreadcrumbList");
+    ok(path, "JSON-LD: P4 BreadcrumbList", !!bc, types.join(","));
+    const items = bc?.itemListElement ?? [];
+    ok(path, "JSON-LD: P4 breadcrumb items are absolute URLs on this origin", items.length >= 2 && items.every((i) => typeof i.item === "string" && i.item.startsWith(BASE)), items.map((i) => i.item).join(" | "));
+    ok(path, "JSON-LD: P4 breadcrumb ends at this page", (items.at(-1)?.item ?? "").replace(/\/$/, "") === `${BASE}${path}`.replace(/\/$/, ""), items.at(-1)?.item);
   }
   if (bareOf(path) === post) ok(path, "JSON-LD: BlogPosting", types.includes("BlogPosting"), types.join(","));
   if (bareOf(path) === "/faq") ok(path, "JSON-LD: FAQPage", types.includes("FAQPage"), types.join(","));
