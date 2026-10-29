@@ -110,3 +110,28 @@ Commits `a51e2b2` (shared `components/site/breadcrumbs.tsx` + pure `lib/breadcru
 3. Merge #417 and #418 (docs) in any order.
 4. Release `develop` → `main` as one PR; after deployment: `check-seo-live https://www.chajewelsjp.com`, Rich Results Test on `/en/layaway` (no FAQ rich result expected) and a product URL, Search Console "request indexing" for `/en/layaway` (owner). Status then: SEARCH ENGINE RECRAWL PENDING.
 5. OD-6 (bare `/layaway` 308) only after `/en/layaway` is observed in Search Console, as a separate PR.
+
+## 5. Controlled integration stage (2026-10-29) — owner decisions applied; merge authorization requested
+
+| Item | State |
+|---|---|
+| #416 Phase 3 | Unchanged, already on `develop` head `4dc3c23`; mergeable; marked ready for review. `/ja/layaway` 404 and bare `/layaway` behaviour preserved; Messenger locale fix retained; OD-6 not implemented. **Awaiting explicit owner merge authorization.** |
+| #419 Phase 4 | Rebased on `develop` `4dc3c23` with `aacb81e` (return policy) and `f324135` (shipping) **removed**; `merchantReturnLink` was **not** substituted (its offer-level support is undocumented; R-1 stays open); `lib/content/shopping-guide.ts` untouched. New head: `ecd3b4f` (absence of both fields pinned in `check-seo-live`; report updated). Kept: BreadcrumbList + visible breadcrumbs, JewelryStore fields, X5, aggregateRating/review. Full suite on the rebased head: typecheck 0, lint 0 errors, **unit 502/502**, terms/money/i18n/analytics/cutouts pass, build clean, **`check-seo-live` 277/0/0** at a matched origin; product offer keys `@type, price, priceCurrency, itemCondition, availability, url`. Trial merge with #416: clean. Marked ready for review. **Awaiting explicit owner merge authorization.** |
+| #417, #418 | Docs only; marked ready for their normal documentation merges. |
+
+### Integration QA to run on the `develop` preview (after the authorized merges; cannot run before)
+1. `scripts/check-seo-live.mjs https://<develop preview>` through an authenticated session (SSO) — target 0 unexplained failures.
+2. English layaway: `/en/layaway` 200, self canonical, `en`+`x-default`, one H1, calculator quote on a real piece, picker, FAQ from the Hub; `/ja/layaway` 404; bare `/layaway` 404 without signal; two-tab case.
+3. Japanese restrictions: `/ja`, `/ja/faq`, `/ja/shopping-guide`, `/ja/why-cha-jewels`, a `/ja` product: 0 layaway words/links.
+4. Product and collection navigation: visible crumbs on product / collection / category / post / guides in EN and JA, hrefs equal the BreadcrumbList items.
+5. Canonical, hreflang, sitemap: locale pages self-canonical with `en`/`ja`/`x-default`; `/sitemap.xml` lists `/en/layaway` once, no `/ja/layaway`.
+6. Product JSON-LD with genuine Hub data: a product with approved reviews → `aggregateRating.reviewCount` equals the shown count and one `review` per card; a `/ja/products/…` with Japanese text → `description` is the Japanese text; a product without reviews → no `aggregateRating`; no `gtin`/`mpn`/`countryOfOrigin`/return policy/shipping.
+7. Store block on `/`: `telephone +81-3-6657-6129`, `email` = the Hub's `contact.email`, `sameAs` = the Hub's social hrefs, full address, logo URL resolves.
+8. Checkout/payment: `/checkout?mode=layaway` and `/checkout` gate to `/login`; sign-in test from the branch alias; one layaway quote and one card HOLD page render (no capture); Paidy widget unchanged.
+9. Rich Results Test by URL stays impossible on the SSO preview; run on production after release.
+
+### Exact `develop` → `main` release scope (proposed; not executed)
+- #416 (3 commits: `e186b5f`, `ce1e8c8`, `1592afd`) — `/en/layaway` route, repointed links, sitemap entry, Messenger locale fix, removal of the bare-`/layaway` cookie mitigation.
+- #419 (10 commits after rebase: `07d0e30`, `103b436`, `b7fe6ed`, `456c77f`, `5cbf4ee`, `21d7d91`, `8cbea05`, `ccb53ee`, `0c898aa`, `ecd3b4f`) — BreadcrumbList + visible breadcrumbs, JewelryStore fields, Japanese product descriptions, aggregateRating/review; no return policy, no shipping.
+- #417, #418 — documentation only (no runtime change).
+- Not in scope: OD-6 bare `/layaway` redirect; any return-policy or shipping structured data; Hub data; payment systems; Google accounts; secrets.
