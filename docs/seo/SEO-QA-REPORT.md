@@ -316,9 +316,9 @@ Variance is as large as any difference, so no improvement and no regression is c
 **Limitations.** Android and Windows fonts untested; the signed-in-Chrome-only preview checks covered 1920 px; real-user Core Web Vitals not observed; the cause of the earlier intermittent 106 px preview movement remains unknown (not reproduced in clean production loads).
 **Status:** DEPLOYED.
 
-## 13. OG-PRODUCT product-page OpenGraph (2026-10-30): IMPLEMENTED — PRODUCTION VERIFICATION PENDING
+## 13. OG-PRODUCT product-page OpenGraph (2026-10-30): CLOSED — see §14 for the release and live verification
 
-**PR and commit.** PR #441 `fix/og-product-metadata` → `develop`, code commit `c4791fd`. Open, not merged, not deployed.
+**PR and commit.** PR #441 `fix/og-product-metadata` → `develop`, code commit `c4791fd`. At the time of writing this section: open, not merged, not deployed (since then merged into `develop` and released; see §14).
 
 **Confirmed root cause.** `app/products/[slug]/page.tsx` set `openGraph: img ? { images: [img.url] } : undefined`. Next merges metadata shallowly (Next documentation, *generateMetadata → Merging*: "all `openGraph` fields from the layout are replaced" by a page that sets `openGraph`), so the root block (site name, type, locale pair) was lost; the product's own title, description and image survived because Next derives title and description from the page and the image was set explicitly. With no photo, the explicit `undefined` key erased every OpenGraph and Twitter tag (checked in a build: a fixture product without photos emitted none). Collection and category pages had the same repair in Step 2.
 
@@ -340,5 +340,32 @@ Variance is as large as any difference, so no improvement and no regression is c
 - typecheck, lint (0 errors), build, terms, money, i18n, `check:lastmod`, `check:jp-font` 35/35; `/en/layaway` 200, `/ja/layaway` 404.
 
 **Limitations.** No real-Hub comparison yet: Vercel builds no preview for a feature branch and the develop preview is SSO-protected, so the real products' metadata after the fix has not been seen; the fixture layer's own product photos were used for the with-photo case. Facebook Sharing Debugger and a Messenger share were not run. A real product with no photo is still unobserved. After release the same 12 URLs (and R2715) should be re-read and compared with the baseline above.
-**Status:** IMPLEMENTED — PRODUCTION VERIFICATION PENDING.
+**Status at the time (before release):** IMPLEMENTED — PRODUCTION VERIFICATION PENDING; superseded by §14.
+
+## 14. OG-PRODUCT production release and live verification (2026-10-30): PR #442 → `main` `95189746d` — CLOSED
+
+**Release.** PR #442 `develop` `5f40f6b` → `main`, merge commit `95189746d18ef97a17b5d98dbe2c8a952330ddc0`; Vercel production deployment `7416880444` Ready; `main`'s tree equals `develop`'s. Code: PR #441 (`c4791fd`), plus docs PR #440.
+
+**Branch divergence (explained, not a problem).** Before the release `main` was "10 behind / 7 ahead" of `develop`. The 10 commits only on `main` are the 10 release merge commits (#397, #401, #404, #412, #421, #426, #430, #433, #436, #439): each has two parents, a tree identical to its `develop`-side parent (0 differing lines), and a second parent already in `develop`; `main`'s tree equals `develop` at the merge base `284b6dd`. The 7 commits only on `develop` were this work (#440 and #441 and their commits). No production-only content existed. A dry-run merge (`git merge-tree`) was conflict-free and produced exactly `develop`'s tree. The release used the usual merge-commit PR: no force-push, reset, rebase or cherry-pick.
+
+**Release diff (9 files, no deletions or renames).** Runtime: `app/products/[slug]/page.tsx`, `lib/product-seo.ts`, `scripts/check-seo-live.mjs`, `tests/og-product.test.mjs`. Docs: the Outstanding Issues Register, status tracker, master plan, QA report and the defects file.
+
+**Gates (on the release tree, locally; fixture data).** CI `check` success on the release PR; typecheck, lint (0 errors), 557 of 557 unit tests (12 OG-PRODUCT, 6 Japanese-font), build, terms, money, i18n, `check:lastmod`; SEO checker 438 pass / 0 fail; `check:jp-font` 35 of 35; `/en/layaway` 200, `/ja/layaway` 404.
+
+**The six baseline products (full slugs, from the sitemap and the pre-release capture; 12 URLs = each in `/en/products/…` and `/ja/products/…`):**
+  1. `r2715-ring-k18wg-12-80g-diamond-2-50ct-sz-15-5-preloved`
+  2. `n9140-necklace-tiffany-co-750-3-30g-paloma-picasso-scribble-41cm-preloved`
+  3. `e1j33-earrings-k18-0-60g-star-10mm-stud`
+  4. `n70l3-necklace-sv925-spinel-opal-70cm-3-layers`
+  5. `n3840-necklace-k18-3-80g-diamond-0-70ct-4p-trilogy-40cm-preloved`
+  6. `e2713-earrings-k18-2-70g-ruby-1-38ct-diamond-0-88ct-sunburst-cluster`
+
+**Live verification on production (anonymous, 2026-10-30, after the release).** Against the pre-release capture of the same 12 URLs, **12 of 12 pass all 18 checks**: HTTP 200; title and description unchanged; `og:image` and `twitter:image` identical to before (the original primary photo; no image replaced); exactly one canonical, equal to the page's own absolute URL; the same three hreflang entries; exactly one Product and one BreadcrumbList JSON-LD with content identical to before; new: `og:site_name` Cha Jewels, `og:type` website, `og:locale` / `og:locale:alternate` en_US ↔ ja_JP, `og:url` equal to the canonical and to the absolute locale URL, `og:image:alt` the product's full name (SKU first), `twitter:card` summary_large_image, Twitter title and description equal to the page's. Before the release the same 12 pages lacked `og:site_name`, `og:type`, `og:locale`, `og:locale:alternate`, `og:url` and the image alt.
+**Non-product sample (12 pages: `/en`, `/ja`, English and Japanese collections incl. two with hero images, English and Japanese categories, English and Japanese About, one blog article, `/en/layaway`):** meta tags, canonical and hreflang links, JSON-LD, title and robots identical before and after.
+**Production SEO checker:** **432 pass / 0 fail / 0 deferred** (383 before the release plus 49 new product checks). `/en/layaway` 200, `/ja/layaway` 404; `/account` and `/checkout` redirect (307).
+
+**Social preview (Facebook Sharing Debugger, signed-in owner session, public production URLs, run once per URL).** English and Japanese R2715: neither URL had been shared before (no stale cache); response 200; fetched URL equals the canonical URL; preview shows the product photo, the correct title and description (Japanese in Japanese); parsed properties include `og:url`, `og:type` website, title, description, image, image alt and the Twitter card. One warning on both: the required property `fb:app_id` is missing. With Facebook's crawler user-agent the server returns `og:site_name`, `og:type`, `og:locale`, `og:locale:alternate`, `og:url` and `og:image:alt` all inside `<head>`; the debugger's parsed list simply does not display the site-name and locale entries. `fb:app_id` is absent on every sampled English and Japanese page (see the register's observation); it predates this work and was not changed. A Messenger preview was not run (it would require sending a message). Facebook's own raw-HTML echo view returned an error and was not relied on. The debugger is additional to, not a substitute for, the HTML checks above.
+
+**Limitations.** Twelve product URLs and twelve non-product pages were checked, not all 906 sitemap product URLs. A real product without a photo has never been observed; that case is covered by the simulated tests only. Facebook, Messenger and other platforms may keep older cached previews for URLs shared before; none was observed. The earlier unexplained intermittent 106 px preview movement is unrelated.
+**Status:** OG-PRODUCT CLOSED — DEPLOYED AND VERIFIED LIVE.
 
