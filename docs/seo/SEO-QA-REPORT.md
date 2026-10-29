@@ -260,3 +260,34 @@ Diff reviewed before merge: only PR #429's Step 1 files plus docs PRs #427/#428;
 **Limitations.** Vercel runtime logs were not read (no log access used). Hero PNGs are 1.3–1.8 MB, 4:3, so social previews will crop them; no compression added. Product pages still use `openGraph: undefined` for pieces without a photo (pre-existing, untouched). Google lists no rich result for product ItemLists; none is expected.
 
 **Status:** DEPLOYED; SEARCH ENGINE RECRAWL PENDING. Nothing is claimed about indexing, rich results or ranking.
+
+## 11. SEO Step 3a production release (2026-10-29): PR #436 → `main` `81f9aa0`
+
+**Scope.** `develop` `04bf8c9` → `main` (PR #435 at approved HEAD `a1d4676`, plus docs PR #434). Diff: 8 files — `components/site/jp-font-gate.tsx`, one unlayered rule in `app/globals.css`, `{lang === "ja" && <JpFontGate />}` in `app/layout.tsx`, `tests/perf-step3-jp-font.test.mjs`, docs (the Step 3b/3c proposals are documentation only). No Hub, payment, checkout, cart, session, locale-routing, canonical/hreflang, robots, redirect or collection-rendering change.
+**Gates.** CI `check` success on the release PR; on the same tree locally: typecheck, lint (0 errors), 543/543 unit tests, build, terms, money, i18n, `check:lastmod`, SEO checker 389/0.
+**Deployment.** `main` `81f9aa0`; Vercel production deployment `7413617270` Ready; the live Japanese pages serve the gate and its CSS rule, English pages do not.
+
+**Live QA (anonymous, fresh browser contexts, 375 and 390 px, Slow-4G/4x CPU, 3 loads per page).**
+
+| Check | Result |
+|---|---|
+| Heading font | PASS — fallback (`Noto Serif JP Fallback`) at DOMContentLoaded and at load; Noto Serif JP after load; `/ja` 3 of 39 font requests before load, `/ja/collections/rings` 3 of 18, `/ja/about` 3 of 13; `/en` 4 of 4 (unchanged) |
+| Layout shift on phones | PASS — CLS 0.0000 in 24 of 24 loads; no horizontal scroll, no clipped or invisible headings, 0 console errors |
+| Reduced motion / menu / language | PASS — gate fires, final font applies; mobile menu opens and closes; `/ja/collections` loads |
+| 106 px first-load movement | NOT OBSERVED — 14 fresh 1920 px production loads (8 direct Rings, 6 `/ja` → Rings in one context), heading fixed at y=266 every time. Not testable on the SSO-protected preview in clean contexts; its cause (seen twice in about 8 signed-in-Chrome preview loads) remains unknown |
+| Desktop re-wrap (new finding) | OBSERVED — at 1440 and 1920 px on `/ja/collections/rings`, a first-row product card title re-wraps by one line when Noto Serif JP replaces the fallback after load, moving the caption below it 22 px (`P.pcard-fig`, "K18 · 12.80 g"); CLS 0.0000478 per load, recorded in 14 of 14 loads at 1920 px; none at 1024 px, 390 px or in the 24 phone loads. Gate toggle reproduces it (y 985 ↔ 963). Before the release the same swap happened before first paint, so no shift was recorded |
+| Android / Windows typography | NOT TESTED — only Mac system fonts were available |
+
+**Performance (production, mobile Lighthouse 13.5.0, fresh Chrome profile per run, 5 runs each, interleaved; pre-release run immediately before the merge, post-release run immediately after; matched settings, not a controlled A/B).**
+
+| Page | Score pre → post (range) | LCP | FCP | TBT | CLS |
+|---|---|---|---|---|---|
+| `/ja` | 74 (61–83) → 68 (62–90) | 5.2 → 6.2 s | 2.9 → 3.6 s | 70 → 44 ms | 0 |
+| `/ja/collections/rings` | 90 (69–93) → 90 (64–94) | 3.5 → 3.5 s | 1.7 → 1.7 s | 24 → 54 ms | 0 |
+| `/en` (control) | 85 (71–87) → 85 (71–89) | 4.1 → 4.0 s | 1.8 → 2.0 s | 73 → 81 ms | 0 |
+
+Variance is as large as any difference, so no improvement and no regression is claimed. The gain measured on local builds (`/ja` 77 → 84) was not reproduced here. Observed requests: the 37 Japanese slices (568 KB) start at about 770 ms before and 750 ms after on `/ja` and finish later after (about 1.2 s before, 1.6 s after); the hero poster loads at the same time (about 0.6 s to 0.7 s). No real-user data; no claim about real-user Core Web Vitals.
+
+**SEO and functional regression.** `check-seo-live https://www.chajewelsjp.com` **383 pass / 0 fail** (live catalog samples fewer pages than the local-fixture 389); `/en/layaway` 200, `/ja/layaway` 404; `/account` and `/checkout` 307 to login; Product and BreadcrumbList JSON-LD hashes identical to before; ItemList and hero OpenGraph checks inside the checker pass.
+
+**Status:** DEPLOYED. Benefit not confirmed in production lab runs; owner to decide between keeping it (monitor field CLS and Search Console) and reverting PR #436.
