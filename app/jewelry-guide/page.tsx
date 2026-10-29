@@ -2,9 +2,10 @@ import Image from "next/image";
 import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { pageMeta } from "@/lib/page-meta";
-import { tr, type Lang } from "@/lib/i18n";
+import { dict, tr, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { metalLabel } from "@/lib/metals";
+import { JsonLd } from "@/components/site/json-ld";
 import {
   GUIDE_SECTIONS, RING_SIZES, careStep, clasps, diamond4c, guideIntro, metalSteps, metals, necklaceLength, ringSize, sizeNotes,
   type GuideSectionId, type GuideStep,
@@ -43,6 +44,8 @@ export default async function JewelryGuidePage() {
   const eyebrow = `text-[11px] font-semibold text-gold-dark ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`;
   return (
     <>
+      {/* Home › Jewelry guide (Phase 4): the page's <title>, from the same dict.meta entry pageMeta reads. No visible breadcrumb nav here. */}
+      <JsonLd type="breadcrumb" items={[{ name: t("nav", "home"), path: "/" }, { name: dict.meta.jewelryGuide.title[lang], path: "/jewelry-guide" }]} />
       <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <p className={eyebrow}>{guideIntro.eyebrow[lang]}</p>

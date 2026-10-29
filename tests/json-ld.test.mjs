@@ -48,3 +48,34 @@ test("the FAQ builder is unchanged by a prefix", () => {
   const items = [{ q: "Q?", a: "A." }];
   assert.deepEqual(buildJsonLd({ type: "faq", items }, B, "/en"), buildJsonLd({ type: "faq", items }, B, ""));
 });
+
+// ---------------------------------------------------------------- Phase 4: BreadcrumbList
+const trail = [{ name: "Collections", path: "/collections" }, { name: "Rings", path: "/collections/rings" }, { name: "CJ-1005", path: "/products/solitaire-ring" }];
+
+test("breadcrumb: positions 1..n, names verbatim, absolute URLs without a prefix on a legacy page", () => {
+  const d = buildJsonLd({ type: "breadcrumb", items: trail }, B, "");
+  assert.equal(d["@type"], "BreadcrumbList");
+  assert.deepEqual(d.itemListElement.map((e) => e.position), [1, 2, 3]);
+  assert.deepEqual(d.itemListElement.map((e) => e.name), ["Collections", "Rings", "CJ-1005"]);
+  assert.deepEqual(d.itemListElement.map((e) => e.item), [`${B}/collections`, `${B}/collections/rings`, `${B}/products/solitaire-ring`]);
+  assert.ok(d.itemListElement.every((e) => e["@type"] === "ListItem"));
+});
+
+test("breadcrumb: every URL carries the page's locale prefix", () => {
+  for (const prefix of ["/en", "/ja"]) {
+    const d = buildJsonLd({ type: "breadcrumb", items: trail }, B, prefix);
+    assert.deepEqual(d.itemListElement.map((e) => e.item), [`${B}${prefix}/collections`, `${B}${prefix}/collections/rings`, `${B}${prefix}/products/solitaire-ring`], prefix);
+  }
+});
+
+test("breadcrumb: a path of '/' is the locale home — the bare origin on a legacy page, never a trailing slash", () => {
+  const home = [{ name: "Home", path: "/" }, { name: "Fine Jewelry", path: "/categories/fine-jewelry" }];
+  assert.equal(buildJsonLd({ type: "breadcrumb", items: home }, B, "").itemListElement[0].item, B);
+  assert.equal(buildJsonLd({ type: "breadcrumb", items: home }, B, "/ja").itemListElement[0].item, `${B}/ja`);
+  assert.equal(buildJsonLd({ type: "breadcrumb", items: home }, B, "/en").itemListElement[1].item, `${B}/en/categories/fine-jewelry`);
+});
+
+test("breadcrumb: the builder never adds a crumb the page did not pass (two-level trails stay two)", () => {
+  const d = buildJsonLd({ type: "breadcrumb", items: trail.slice(0, 2) }, B, "/en");
+  assert.equal(d.itemListElement.length, 2);
+});

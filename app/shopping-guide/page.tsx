@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
-import { type Lang } from "@/lib/i18n";
+import { dict, tr, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
+import { JsonLd } from "@/components/site/json-ld";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { ALL_ON, tokushoRowsFor } from "@/lib/content/legal";
 import { guideBlocksFor, shoppingGuide, shoppingGuideIntro, type GuideBlock, type GuideRun } from "@/lib/content/shopping-guide";
@@ -27,6 +28,8 @@ export default async function ShoppingGuidePage() {
 
   return (
     <>
+      {/* Home › Shopping guide (Phase 4): the page's <title>, from the same dict.meta entry pageMeta reads. No visible breadcrumb nav here. */}
+      <JsonLd type="breadcrumb" items={[{ name: tr(lang)("nav", "home"), path: "/" }, { name: dict.meta.shoppingGuide.title[lang], path: "/shopping-guide" }]} />
       <section className="border-b border-hairline py-[clamp(48px,7vw,96px)]">
         <div className="wrap">
           <p className={eyebrow}>{intro.eyebrow[lang]}</p>

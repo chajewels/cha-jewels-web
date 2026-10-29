@@ -130,8 +130,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const col = collectionOf(p, cols);
   const alternatives = buyable ? [] : soldAlternatives(p, all);
   const related = relatedPieces(p, col, all, 4, alternatives);
-  const crumb = col ? { href: localePath(`/collections/${col.slug}`, lang), name: collectionName(col, lang) }
-    : category ? { href: localePath(`/categories/${category.slug}`, lang), name: categoryName(category, lang) } : null;
+  // `path` is the bare route the BreadcrumbList below makes absolute with the
+  // page's own locale prefix (lib/json-ld.ts); `href` is the rendered link.
+  const crumb = col ? { href: localePath(`/collections/${col.slug}`, lang), path: `/collections/${col.slug}`, name: collectionName(col, lang) }
+    : category ? { href: localePath(`/categories/${category.slug}`, lang), path: `/categories/${category.slug}`, name: categoryName(category, lang) } : null;
 
   const spec = [metals.length ? metalsLabel(metals, lang) : null, formatWeight(p.weight_g), variant?.stone?.trim() || null].filter((x): x is string => !!x);
   const ledger: [string, string][] = [
@@ -152,6 +154,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <JsonLd type="product" product={p} />
+      {/* The same trail the <nav> below shows: Collections › [collection or category] › SKU (Phase 4). */}
+      <JsonLd type="breadcrumb" items={[{ name: t("nav", "collections"), path: "/collections" }, ...(crumb ? [{ name: crumb.name, path: crumb.path }] : []), { name: p.sku, path: `/products/${p.slug}` }]} />
       <ProductView sku={p.sku} lang={lang} />
       <ComponentStyle id="fx-pdp" css={CSS} />
       <div className="wrap">

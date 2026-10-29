@@ -24,18 +24,30 @@ import { metalsLabel, productMetals } from "@/lib/metals";
  * relative one is not resolvable by a crawler reading the JSON on its own, and
  * `inLanguage` is stated because the same slug is published per language — a
  * crawler should be told which it was served rather than left to guess.
+ *
+ * `breadcrumb` (Phase 4, master plan §8) is a BreadcrumbList that MIRRORS THE
+ * PAGE'S VISIBLE TRAIL: the caller passes the same names it renders and each
+ * crumb's BARE path ("/collections/rings", never a locale-prefixed href); the
+ * builder makes them absolute with the page's own prefix, so a trail on /en
+ * points at /en pages and a legacy page's at legacy ones. A path of "/" is the
+ * locale home (`${base}${prefix}`, or the bare origin on a legacy page).
  */
 export type PostLd = { slug: string; title: string; excerpt: string; date: string; cover: string | null; lang: "ja" | "en" };
+export type Crumb = { name: string; path: string };
 export type JsonLdProps =
   | { type: "store" }
   | { type: "product"; product: Product }
   | { type: "faq"; items: { q: string; a: string }[] }
-  | { type: "post"; post: PostLd };
+  | { type: "post"; post: PostLd }
+  | { type: "breadcrumb"; items: Crumb[] };
 
 const pageLanguage = (prefix: string) => (prefix === "/ja" ? "ja-JP" : "en");
+const crumbUrl = (base: string, prefix: string, path: string) => (path === "/" ? `${base}${prefix}` : `${base}${prefix}${path}`);
 
 export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en" | "/ja" = ""): object {
-  return props.type === "store"
+  return props.type === "breadcrumb"
+    ? { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: props.items.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: crumbUrl(base, prefix, c.path) })) }
+    : props.type === "store"
     ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: `${base}${prefix}`, address: { "@type": "PostalAddress", addressLocality: "Katsushika-ku", addressRegion: "Tokyo", addressCountry: "JP" }, areaServed: ["JP", "PH"], priceRange: "¥¥¥", ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}) }
     : props.type === "post"
     ? {

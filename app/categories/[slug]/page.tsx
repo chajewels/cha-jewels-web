@@ -10,6 +10,7 @@ import { CategoryStage } from "@/components/catalog/category-stage";
 import { CatalogSection, CollectionHead, CountLine, EmptyCatalog } from "@/components/catalog/catalog-section";
 import { catalogue, collectionsWithProducts, isAvailable, stockedCollections } from "@/lib/catalog-context";
 import { follow } from "@/lib/settings";
+import { JsonLd } from "@/components/site/json-ld";
 
 export const revalidate = 60;
 
@@ -55,6 +56,10 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <>
+      {/* Home › this category (Phase 4). The page draws no breadcrumb nav of
+          its own; a category hangs off the home page's hero deck, not off
+          /collections, so the trail starts at Home. */}
+      <JsonLd type="breadcrumb" items={[{ name: t("nav", "home"), path: "/" }, { name, path: `/categories/${slug}` }]} />
       {/* The owner's Hub photo leads, as on a collection; without one the
           category's own in-stock pieces stand on the hero's dark stage
           (CategoryStage), or its text alone when none is in stock. */}

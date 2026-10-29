@@ -82,6 +82,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   return (
     <article className="py-[clamp(48px,7vw,96px)]">
       <JsonLd type="post" post={{ slug: p.slug, title: p.title, excerpt: p.excerpt, date: p.date, cover: p.cover, lang }} />
+      {/* Blog › this article (Phase 4): the back link below is the trail's first step. */}
+      <JsonLd type="breadcrumb" items={[{ name: t("nav", "blog"), path: "/blog" }, { name: p.title, path: `/blog/${p.slug}` }]} />
       <div className="wrap max-w-[760px]">
         <Link href={localePath("/blog", lang)} className="text-sm text-gold-dark underline underline-offset-4">{t("blog", "back")}</Link>
         {p.cover && (
