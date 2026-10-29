@@ -10,7 +10,7 @@ Scope: the independently confirmed defects and open findings from the October 29
 | BUG-03 | Blog article carries origin wording outside the approved surfaces | **CONFIRMED — owner approval required (Hub content edit)** | §3 below |
 | BUG-06 | `/gold-guide` takes two hops | **CONFIRMED — proposal only (route-change rule)** | §6 below |
 | BUG-07 | `#payments-and-layaway` fragment on the Japanese FAQ | **NOT A BUG** | §7 below |
-| BUG-09 | Google indexing of `/en/layaway`; product rich-result eligibility | **Status SUPERSEDED 2026-10-29: property verified (owner-reported), indexing and baseline PENDING** — historical "BLOCKED" below kept as evidence; see `OUTSTANDING-ISSUES-REGISTER.md` §3 | §9 below |
+| BUG-09 | Google indexing of `/en/layaway`; product rich-result eligibility | **Status SUPERSEDED 2026-10-29, updated 2026-10-30: OPEN — property verified and 3 priority URLs observed indexed; coverage report and performance baseline PENDING** — historical "BLOCKED" below kept as evidence; see `OUTSTANDING-ISSUES-REGISTER.md` §3 | §9 below |
 
 ## BUG-02 — chat link in `sameAs`
 - **Root cause:** `lib/json-ld.ts` accepted every `http(s)` href of the Hub social row (`follow()`); the row holds the Messenger entry point, which is a conversation URL, not an identity page.
@@ -49,6 +49,8 @@ EN ¶12 / JA ¶13 ("Their materials, origins, condition, and available documenta
 
 ## BUG-09 — Google indexing and rich-result eligibility
 > **Status update (2026-10-29, later the same day):** the "Search Console: BLOCKED" finding below described the Google account on the Claude machine and stays as historical evidence. The owner has since reported (not observed by Claude): Domain property verified, sitemap status Success with 976 discovered URLs, and priority indexing requests for `/en`, `/ja` and `/en/layaway` accepted. Indexing itself and the performance baseline are still pending; no page is claimed indexed. Tracked in `docs/seo/OUTSTANDING-ISSUES-REGISTER.md` §3.
+
+> **Status update (2026-10-30):** the first read of the property in Search Console (Domain property `chajewelsjp.com`, via the company Google account; the owner's primary account still has no access) observed: ownership verified; `sitemap.xml` Success with 976 discovered pages; `/en`, `/ja` and `/en/layaway` indexed per Google's stored status; the Page indexing and Performance reports "Processing data" (no counts, **no performance baseline yet**); 8 sampled deeper URLs not yet indexed. The historical "BLOCKED" text below is kept as evidence. BUG-09 stays open. Full report: `docs/seo/SEARCH-CONSOLE-BASELINE-2026-10-30.md`.
 
 - **Search Console: BLOCKED.** The Google account signed in on this machine opens Search Console at its "Welcome / Add a website" screen, i.e. it owns no verified property for `chajewelsjp.com`. No index-coverage or URL-inspection evidence is available to this session (finding X8 stands). The owner must verify the property (or grant access) before any indexing claim can be made.
 - **Rich Results Test by URL on production (2026-10-29 15:40-15:41 JST, pages fetched live by Google):**
