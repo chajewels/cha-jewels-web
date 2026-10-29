@@ -318,7 +318,7 @@ Variance is as large as any difference, so no improvement and no regression is c
 
 ## 13. OG-PRODUCT product-page OpenGraph (2026-10-30): CLOSED — see §14 for the release and live verification
 
-**PR and commit.** PR #441 `fix/og-product-metadata` → `develop`, code commit `c4791fd`. Open, not merged, not deployed.
+**PR and commit.** PR #441 `fix/og-product-metadata` → `develop`, code commit `c4791fd`. At the time of writing this section: open, not merged, not deployed (since then merged into `develop` and released; see §14).
 
 **Confirmed root cause.** `app/products/[slug]/page.tsx` set `openGraph: img ? { images: [img.url] } : undefined`. Next merges metadata shallowly (Next documentation, *generateMetadata → Merging*: "all `openGraph` fields from the layout are replaced" by a page that sets `openGraph`), so the root block (site name, type, locale pair) was lost; the product's own title, description and image survived because Next derives title and description from the page and the image was set explicitly. With no photo, the explicit `undefined` key erased every OpenGraph and Twitter tag (checked in a build: a fixture product without photos emitted none). Collection and category pages had the same repair in Step 2.
 
