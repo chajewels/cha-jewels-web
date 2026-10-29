@@ -192,7 +192,7 @@ Commits `a51e2b2` (shared `components/site/breadcrumbs.tsx` + pure `lib/breadcru
 | 6 | Sitemap | PASS | 976 URLs; `/en/layaway` exactly once; no `/ja/layaway`; no bare non-root URL |
 | 7 | Product breadcrumbs and JSON-LD | PASS | 40 sampled products: 40/40 visible crumb = BreadcrumbList; collection/category/guide crumbs EN+JA match |
 | 8 | Real Hub Japanese descriptions | PASS | N1616 and R2715 `/ja` pages carry the Hub's Japanese text, `inLanguage ja-JP` |
-| 9 | Store identity and social | PASS | `+81-3-6657-6129`, `sales@chajewelsjp.com`, `sameAs` = footer social row (facebook, m.me), postal code 124-0012, street address, logo |
+| 9 | Store identity and social | PASS | `+81-3-6657-6129`, `sales@chajewelsjp.com`, `sameAs` = footer social row (facebook; **m.me removed by BUG-02 — chat links are not profiles**), postal code 124-0012, street address, logo |
 | 10 | No return-policy or shipping structured data; no GTIN/MPN/origin | PASS | 0 hits in 40 products; offer keys `@type, price, priceCurrency, itemCondition, availability, url`; brand only on 14 branded pieces; no `aggregateRating` (no approved product review exists yet) |
 | 11 | Checkout and payment routes | PASS | `/checkout?mode=layaway`, `/checkout`, `/account/layaway` → 307 `/login?next=…`; `/cart` 200; no payment code in the release |
 | 12 | Phase 2 behaviour unchanged | PASS | bare `/faq` → 307 `/ja/faq`; `?lang=en` → `/en/faq`; bare product → 307 locale page; `/gold-guide` 308; `robots.txt` unchanged |

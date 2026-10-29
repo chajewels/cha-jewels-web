@@ -38,8 +38,9 @@ export type Crumb = { name: string; path: string };
  * The store's owner-editable contact facts, read by the home page from the
  * Hub (lib/settings.ts) and passed in: `email` is contactEmail() or null,
  * `sameAs` the hrefs of the public social row (follow()). Both are omitted from
- * the output when absent — nothing here is a fallback. Only http(s) hrefs
- * become `sameAs`: the row also carries mailto: links, which are not profiles.
+ * the output when absent — nothing here is a fallback. Only http(s) PROFILE
+ * hrefs become `sameAs` (`isProfileUrl`): the row also carries mailto: links
+ * and chat entry points (m.me), which are not profiles.
  */
 export type StoreLd = { email?: string | null; sameAs?: string[] };
 /**
@@ -62,7 +63,24 @@ const pageLanguage = (prefix: string) => (prefix === "/ja" ? "ja-JP" : "en");
 const crumbUrl = (base: string, prefix: string, path: string) => (path === "/" ? `${base}${prefix}` : `${base}${prefix}${path}`);
 /** "03-6657-6129" → "+81-3-6657-6129": the domestic trunk 0 becomes the country code. */
 const e164Jp = (domestic: string) => `+81-${domestic.replace(/^0/, "")}`;
-const isWebUrl = (href: string) => /^https?:\/\//.test(href);
+/**
+ * WHICH SOCIAL-ROW LINKS ARE `sameAs` PROFILES (BUG-02, 2026-10-29). schema.org
+ * `sameAs` names a page that unambiguously identifies the business — a social
+ * profile. A CHAT entry point (Messenger `m.me/…`, `messenger.com/t/…`, WhatsApp
+ * `wa.me` / `api.whatsapp.com`, LINE `line.me/ti/…`, Telegram `t.me`, Viber) is a
+ * conversation URL, not an identity page, and Google flags such a `sameAs` as
+ * invalid. Those links stay in the visible footer and the Messenger button;
+ * only this structured-data field drops them. mailto: links were already out.
+ */
+const CHAT_HOSTS = /^(?:www\.)?(?:m\.me|messenger\.com|wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com|line\.me|lin\.ee|t\.me|telegram\.me|viber\.com)$/i;
+export function isProfileUrl(href: string): boolean {
+  if (!/^https?:\/\//i.test(href)) return false;
+  try {
+    return !CHAT_HOSTS.test(new URL(href).hostname);
+  } catch {
+    return false;
+  }
+}
 
 export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en" | "/ja" = ""): object {
   return props.type === "breadcrumb"
@@ -81,7 +99,7 @@ export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en"
         // hours, and the two are not the same claim.
         logo: `${base}/images/brand/logo-badge-512.webp`, telephone: e164Jp(COMPANY_PHONE.office),
         ...(props.email ? { email: props.email } : {}),
-        ...(props.sameAs?.some(isWebUrl) ? { sameAs: props.sameAs.filter(isWebUrl) } : {}) }
+        ...(props.sameAs?.some(isProfileUrl) ? { sameAs: props.sameAs.filter(isProfileUrl) } : {}) }
     : props.type === "post"
     ? {
         "@context": "https://schema.org",
