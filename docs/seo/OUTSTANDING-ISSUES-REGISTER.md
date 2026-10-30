@@ -15,7 +15,7 @@ Five distinct workstreams, tracked here so none is lost or marked done early. Fo
 - **Repository / workstream:** content lives in the Hub (Website → Content, `body_en` / `body_ja` of the article `why-cha-jewels-care-behind-every-piece`). The proposal lives in this repository.
 - **Reference:** `docs/seo/SEO-DEFECTS-2026-10-29.md` §BUG-03 (four sentences, two options).
 - **Existing evidence:** the live article was fetched on 2026-10-29 and carries four sentences with origin wording outside the approved surfaces (`origin-badge.tsx` for a piece whose Hub `origin === "JAPAN"`, or the exact approved clarifier). Option A removes the origin word; Option B replaces the sentence with the approved clarifier. `check:terms` does not scan Hub bodies.
-- **Remaining action:** owner chooses A or B (per sentence if desired); the owner edits the two Hub fields.
+- **Remaining action:** owner chooses A or B (per sentence if desired); the owner edits the two Hub fields. The exact bilingual A/B decision sheet, re-checked against the live article on 2026-10-30, is in `docs/seo/STEP-4-CONTENT-AUDIT.md` §7 (status unchanged: OPEN).
 - **Owner approval:** required. Claude must not edit the published text.
 - **Definition of done:** the owner has approved an option; the live EN and JA article bodies were re-fetched afterwards and contain none of the four sentences; the result is recorded in the defects file with the date.
 
