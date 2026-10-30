@@ -17,7 +17,7 @@ Evidence tags: **[V]** verified read-only on 2026-10-30 (live public page or rep
 | ID | Decision (owner) | Classification | Boundary (what is NOT approved) |
 |---|---|---|---|
 | OD-S4-2 | BUG-03: **Option A** for both paragraphs, EN and JA | APPROVED — PENDING IMPLEMENTATION | Option B not used. The optional Japanese 天然石 → 宝石 change is **not approved**; 天然石 stays. BUG-03 stays OPEN |
-| OD-S4-3 | Four collection texts, as written (Necklaces, Rings, Other Accessories, Pendants) | APPROVED — PENDING IMPLEMENTATION | No resizing promise (the Rings text is the short form); no chain-inclusion promise; no membership change. All other collection refinements (C-03, C-05, C-07, C-08, C-10, C-11) NOT APPROVED |
+| OD-S4-3 | Four collection texts (Necklaces, Rings, Other Accessories, Pendants). **Rings: owner's later Choice 2 supersedes the first approved Rings text (§2.2, §7)** | APPROVED — PENDING IMPLEMENTATION | No resizing promise (neither Rings text contains one); no chain-inclusion promise; no membership change. All other collection refinements (C-03, C-05, C-07, C-08, C-10, C-11) NOT APPROVED |
 | OD-S4-4 | Two category texts, as written (Fine Jewelry, Preloved Jewelry) | APPROVED — PENDING IMPLEMENTATION | No category membership change |
 | OD-S4-5 | Handmade Gemstone Bracelets: leave unchanged | DECIDED — LEAVE UNCHANGED | No change to content, membership, sitemap inclusion or indexing |
 | OD-S4-6 | N1616, 8C100: remove repeated origin wording from EN and JA descriptions | APPROVED — PENDING IMPLEMENTATION for N1616; **CONDITIONAL for 8C100** (see §5, H2: one sentence needs exact replacement wording from the owner) | Origin badges unchanged; Hub `origin` field not modified. Origin-documentation gaps flagged, not filled |
@@ -57,8 +57,8 @@ Hub fields: collections `website_collections.description` / `description_ja` (ro
 |---|---|---|---|
 | `necklaces` (collection) | EN | Chains and necklaces in K18 and platinum, sized for everyday wear. | Gold, platinum and sterling silver chains and necklaces, including pearl and gemstone styles. Each piece lists its metal and length. |
 | | JA | K18とプラチナのチェーン・ネックレス。毎日身につけやすい長さでご用意しています。 | ゴールド、プラチナ、シルバー925のチェーンやネックレス。パールや宝石のデザインもあります。金属と長さは各商品に記載しています。 |
-| `rings` (collection) | EN | Bands, solitaires and stacking rings, resizable on request. | Diamond, gemstone and pearl rings in gold and platinum, new and preloved. |
-| | JA | バンドリング、ソリティア、重ね付けリング。ご希望によりサイズ直しを承ります。 | ダイヤモンド・宝石・パールのリング（新品・中古）。 |
+| `rings` (collection) | EN | Bands, solitaires and stacking rings, resizable on request. | ~~Diamond, gemstone and pearl rings in gold and platinum, new and preloved.~~ **SUPERSEDED, not implemented.** **Final approved:** Explore new and preloved rings, from gold and platinum pieces with diamonds, pearls and gemstones to selected designer jewelry. |
+| | JA | バンドリング、ソリティア、重ね付けリング。ご希望によりサイズ直しを承ります。 | ~~ダイヤモンド・宝石・パールのリング（新品・中古）。~~ **SUPERSEDED, not implemented.** **Final approved:** ダイヤモンド、パール、宝石をあしらったゴールドやプラチナのリングから、ブランドジュエリーまで。新品・中古のリングをご紹介します。 |
 | `other-accessories` (collection) | EN | A curated collection of luxury accessories and distinctive pieces beyond our jewelry, watches, wallets, belts, and bags. | Necklaces, earrings, bracelets and small accessories, new and preloved, including branded pieces. |
 | | JA | ジュエリー、時計、財布、ベルト、バッグ以外の、個性と魅力を備えたラグジュアリーアクセサリーを厳選してご紹介します。 | ネックレス、ピアス、ブレスレットなどのアクセサリー（新品・中古、ブランド品を含む）。 |
 | `pendants` (collection) | EN | Pendant tops and charms, sold on their own or paired with a chain. | Pendant tops in gold and platinum, new and preloved, set with diamonds, pearls and gemstones. |
@@ -196,3 +196,26 @@ Common rules for every batch: the owner personally authorises each batch at the 
 ## 6. Confirmations
 
 No Hub write, no live product edit, no article edit, no name or slug change, no customer or order record change, no payment or checkout change, no migration, no website application-code change, no route, canonical, hreflang, sitemap or robots change, no deployment, no Search Console action, no OD-6, Step 3b or Step 3c. No serial number or supplier-rank value appears in this file, the PR diff or its checks.
+
+---
+
+## 7. Update 2026-10-30 (second pass): final Rings decision and product clarifications
+
+**Decision recorded.** The owner explicitly approved **Choice 2** for the Rings collection description, which supersedes the first approved Rings text. Nothing else in §1–§6 changes.
+
+- Final approved English: "Explore new and preloved rings, from gold and platinum pieces with diamonds, pearls and gemstones to selected designer jewelry."
+- Final approved Japanese: 「ダイヤモンド、パール、宝石をあしらったゴールドやプラチナのリングから、ブランドジュエリーまで。新品・中古のリングをご紹介します。」
+- The earlier Rings text is marked SUPERSEDED in §2.2 and was never implemented. Both texts avoid any resizing promise. Fit check [V, names of the 135 listed rings, read-only]: 12 new and 123 preloved; 15 carry a designer or jeweller brand in the name (Tiffany & Co., Cartier, Bvlgari, Louis Vuitton, Celine), so the collection holds both fine jewelry and designer rings; K18/750 about 70 and platinum about 72 by name; no silver. Length: 127 characters in English, under the 160 limit.
+
+**Read-only QA facts recorded (no product edited or authorised):**
+
+| SKU | Fact | Source tag |
+|---|---|---|
+| N5140 | The owner updated the product name to include "40cm". Length is visible in the English and Japanese page title and in the JSON-LD name; the separate specification table has no size row. Slug and canonical URL unchanged. No further H1 product edit is required. The approved Necklaces text ("Each piece lists its metal and length") remains accurate by product name for all 138 listed pieces | **[V]** live pages 2026-10-30; the edit itself **[O]** |
+| R1866 | "PM" is in the name and, per the owner, the Hub maps PM to platinum | **[O]** — not an independent Hub field read |
+| R2595 | Louis Vuitton Mosaic designer ring; in Preloved Designer Accessories; in stock at review; **material unverified and not inferred** from any other ring | **[V]** category and stock, **[U]** material |
+| R2598 | Louis Vuitton Mosaic designer ring; in Preloved Designer Accessories; sold at the time of review; no material may be assigned without verified evidence | **[V]** category and stock |
+
+No product correction is authorised for any of these four. A sold product does not require a change merely because its name omits a material. Their collection and category memberships are untouched.
+
+**Owner publishing checklist:** [`STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md`](STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md). Status stays: Step 4 AUDITED — OWNER APPROVAL PENDING; BUG-03 OPEN; H1 not implemented. Owner decisions recorded. No Hub implementation authorized or performed.
