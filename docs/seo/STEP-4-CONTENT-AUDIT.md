@@ -1,10 +1,10 @@
 # SEO Step 4 — Hub-managed content audit and owner approval package
 
-**Status: AUDITED — OWNER APPROVAL PENDING. Not implemented.** Audit date 2026-10-30. Read-only: no Hub write, no migration, no website application-code change, no Search Console action, no content edited or published. BUG-03 stays OPEN (needs the owner's A/B decision **and** live verification).
+**Status: AUDITED — OWNER APPROVAL PENDING. Not implemented.** Audit date 2026-10-30. **Correction pass 2026-10-30 (PR #445 follow-up):** the product sample count is corrected (5.2) and the owner's manual condition update for C0853 and W0531 was verified live (P-01, 5.3a). Read-only: no Hub write, no migration, no website application-code change, no Search Console action, no content edited or published. BUG-03 stays OPEN (needs the owner's A/B decision **and** live verification).
 
 **Baselines.** Website `develop` `8c7819a` (PR #444); production `main` `9518974` (PR #442, last verified release). Hub `chajewels/la-tracking` `origin/main` `5092a880` (read through `git show`/`git grep`; the local Hub checkout has uncommitted changes that were not touched). Master Plan §33.3 Step 4.
 
-**Evidence method.** Public pages of `https://www.chajewelsjp.com` fetched anonymously on 2026-10-30 (sitemap, 12 collections × 2 languages, 5 categories × 2 languages, all 453 English product pages, 14 sampled product pages in both languages, the article in both languages); JSON-LD, `<title>`, meta description and H1 were parsed from the rendered HTML. Hub source read from the migrations and `supabase/functions/website/index.ts` on `origin/main`. No customer, order, payment or inventory record was read; no Hub API key was used. Counts below are "as fetched at that time"; the catalogue changes daily.
+**Evidence method.** Public pages of `https://www.chajewelsjp.com` fetched anonymously on 2026-10-30 (sitemap, 12 collections × 2 languages, 5 categories × 2 languages, all 453 English product pages, 13 class-sample product pages in both languages plus 3 evidence extras in both languages and 3 extras in English only (see 5.2), the article in both languages); JSON-LD, `<title>`, meta description and H1 were parsed from the rendered HTML. Hub source read from the migrations and `supabase/functions/website/index.ts` on `origin/main`. No customer, order, payment or inventory record was read; no Hub API key was used. Counts below are "as fetched at that time"; the catalogue changes daily.
 
 **Vocabulary used for every claim.** *Evidenced* (seen in the rendered page/Hub code), *Inferred* (derived by counting names), *UNVERIFIED* (cannot be established from public evidence; the owner must supply the fact).
 
@@ -12,7 +12,7 @@
 
 ## 1. Executive summary
 
-1. **No page is harmful at scale, but one product-data defect is material (P0):** two watches (C0853, W0531) are named `[Preloved]` and have a `-used` slug, yet the Hub condition is New, so the page shows no Preloved badge and Product JSON-LD says `NewCondition`. Owner must confirm the true condition and correct it in the Hub.
+1. **No page is harmful at scale, but one product-data defect is material (P0):** two watches (C0853, W0531) were named `[Preloved]` and had a `-used` slug, yet the Hub condition was New, so the page showed no Preloved badge and Product JSON-LD said `NewCondition`. **Update 2026-10-30:** the owner changed both to Preloved in the Hub and the live pages were re-fetched and verified (P-01 — RESOLVED BY OWNER; VERIFIED LIVE). The original P0 rating is kept as the historical record.
 2. **Collection and category copy is unique and well-formed, but five descriptions disagree with the pieces actually listed** (Necklaces omits that 48% are sterling silver; Rings "resizable on request" is stronger than the Jewelry Guide; Pendants "paired with a chain" has no evidence; Other Accessories says "beyond our jewelry" yet 37 of its 51 pieces are necklaces; Fine Jewelry says "new" yet lists 3 preloved pieces).
 3. **Product descriptions are mostly raw specification strings.** Of 437 non-empty English descriptions, 340 are short spec lines with no sentence, 78 are supplier data sheets (brand/model/serial/rank), 15 are prose; 16 products have none and fall back to a generic code-generated sentence. 395 of 437 meta descriptions are the Hub text verbatim.
 4. **The Hub already has every field this plan needs** (collection/category/product descriptions in EN and JA, article bodies). It has **no** separate SEO title/description fields, and none is needed: the website derives metadata from the descriptions. **No schema change is proposed.**
@@ -49,7 +49,7 @@ Piece counts and mix are from the grid on each page ("available" = in stock; the
 | Handmade Gemstone Bracelets `handmade-gemstone-bracelets` | `/en|ja/collections/handmade-gemstone-bracelets` | 0 / 0 | "Thoughtfully handmade, beautifully personal." | Empty: the page renders "0 pieces" and a way-on to other collections; it is in the sitemap in both languages | C-09, P1 (owner decision) |
 | Luxury Bags `luxury-bags` | `/en|ja/collections/luxury-bags` | 6 / 5 | "…selected for their exceptional craftsmanship, iconic design, and lasting appeal." | 6 of 6 preloved branded; text never says preloved. Superlatives are not factual claims | C-10 (P2), C-11 (P3) |
 | Luxury Wallet `luxury-wallet` | `/en|ja/collections/luxury-wallet` | 27 / 27 | "…refined design, quality craftsmanship, and everyday functionality." | 27 of 27 preloved; includes key cases and a coin purse | C-10 (P2) |
-| Luxury Watches `luxury-watches` | `/en|ja/collections/luxury-watches` | 31 / 31 | "A curated selection of luxury timepieces…" | 29 preloved + 2 with Hub condition New that are named `[Preloved]` (see P-01) | P-01 (P0), C-10 |
+| Luxury Watches `luxury-watches` | `/en|ja/collections/luxury-watches` | 31 / 31 | "A curated selection of luxury timepieces…" | At audit time 29 preloved + 2 with Hub condition New that were named `[Preloved]` (P-01, since corrected by the owner; all 31 cards now show the Preloved badge) | P-01 (P0), C-10 |
 | Necklaces `necklaces` | `/en|ja/collections/necklaces` | 138 / 116 (44 new, 94 preloved) | "Chains and necklaces in K18 and platinum, sized for everyday wear." | Metal in names: sterling silver SV925 **66**, K18 37, 750 14, PT850 10, K10 2, other 9. Silver is the largest group and is not named | C-01, P1 |
 | Other Accessories `other-accessories` | `/en|ja/collections/other-accessories` | 51 / 50 | "…luxury accessories and distinctive pieces beyond our jewelry, watches, wallets, belts, and bags." | **37 of 51 are necklaces** (13 SV925 spinel, 8 K18 white-gold style, 6 Tiffany & Co., others), plus earrings, bracelets, bangles, 3 steel watches, 3 wallets | C-04, P1 |
 | Pearls `pearls` | `/en|ja/collections/pearls` | 63 / 58 (15 new, 48 preloved) | "Akoya and South Sea pearl jewelry selected for its beautiful luster, graceful character, and timeless elegance." | Akoya 43, South Sea 11 (these two cover 54 of 63); also Tahitian 2, freshwater 3, mabe 1 and pearl-accent rings. Largely accurate | C-03, P2 |
@@ -86,7 +86,7 @@ All 10 pages return 200. Titles and descriptions are unique; the description is 
 | Fine Jewelry `fine-jewelry` | 99 / 61 (96 new, 3 preloved) | "Discover new gold, pearl, diamond, and gemstone jewelry…" / 「新作の…」 | 3 preloved pieces listed: R3438 (PT900 ring), N6430 and N7040 (SV925 Akoya strands). Silver and platinum not named | K-01, P1 |
 | Preloved Jewelry `preloved-jewelry` | 194 / 128 | "…Explore unbranded gold, platinum, and gemstone pieces…" | 38 are SV925 silver; R3435 is a Tiffany & Co. ring (branded) inside an "unbranded" category | K-02, P1 |
 | Preloved Branded Jewelry `preloved-branded-jewelry` | 51 / 39 | "…signature designs from celebrated jewelry houses…" | Brand names are misspelled in 4+ product names ("Tiifany"); a few pieces show no brand in the name (N7514, E5750, R1280) — the Hub `brand` field was not readable here | K-03, P2 |
-| Preloved Branded Watches `preloved-watches` | 30 / 30 | "…preloved watches from renowned brands." | 28 preloved + the 2 mis-conditioned watches (P-01). Overlaps 30 of the 31 pieces in the Luxury Watches collection | P-01, K-04 (P3 note) |
+| Preloved Branded Watches `preloved-watches` | 30 / 30 | "…preloved watches from renowned brands." | 28 preloved + the 2 then-mis-conditioned watches (P-01, since corrected). Overlaps 30 of the 31 pieces in the Luxury Watches collection | P-01, K-04 (P3 note) |
 | Preloved Designer Accessories `preloved-designer-accessories` | 48 / 44 | "…designer wallets, cardholders, belts, and small leather treasures." | 24 wallets, 5 bags, 1 belt and also necklaces, earrings, bracelets, bangles | K-05, P3 |
 
 | ID | Pri | Source | Proposed replacement (EN / JA) |
@@ -109,7 +109,16 @@ All 10 pages return 200. Titles and descriptions are unique; the description is 
 
 ### 5.2 Reproducible sample
 
-Rule: for each class, the in-stock product with the alphabetically first SKU (and the stated filter on the English product name/condition); plus the evidence-driven extras. 14 distinct SKUs, all fetched in EN and JA.
+Rule: for each class, the in-stock product with the alphabetically first SKU (and the stated filter on the English product name/condition); plus the evidence-driven extras. **Corrected count (2026-10-30 reconciliation).** The sampling script made 14 picks, but N1616 satisfied two rules ("Necklace, new, non-pearl" and "Heavy chain (Kihei)") and was picked twice, so the rule yields **13 unique class samples**, all fetched in EN and JA by the script (saved output holds 14 rows, 13 unique SKUs). The earlier "14 distinct SKUs" was wrong. Six evidence-driven extras were added to the 13: R2715, C0853 and W0531 were also fetched in JA (visible in the session transcript, not in the saved sample file); 8C100, E8330 and R3883 were read from the English catalogue crawl only, with no JA fetch recorded.
+
+| Group | Unique SKUs | EN | JA |
+|---|---|---|---|
+| Class samples | 13 | 13 | 13 |
+| Extras with JA fetch | 3 (R2715, C0853, W0531) | 3 | 3 |
+| Extras English-only | 3 (8C100, E8330, R3883) | 3 | not fetched |
+| **Individually inspected** | **19** | **19** | **16 (verified minimum)** |
+
+All other products (434 of 453) were covered only by the 453-page English crawl. No duplicate SKU exists among the 19. The JA figure is a verified minimum: the transcript shows no further JA product fetches, but a gap cannot be ruled out beyond that record.
 
 | Class (filter) | SKU | URL path under `/en|ja/products/` |
 |---|---|---|
@@ -134,11 +143,34 @@ Full-catalogue statistics in 5.1 and the findings below come from all 453 pages,
 
 Of the 13 class samples, 12 (all but N1616) have a Hub description that is just the specification string already contained in the name: e.g. AL510 "K18 2.50g Cross Motif Sz# 12". The page's own spec ledger shows metal and weight, so the description adds no new information; the Japanese description is the same string translated. Metal and weight match the name in every sampled product; no discrepancy between name, JSON-LD `material` and displayed metal was found. Karat label in JSON-LD (`material`) is the Hub's text ("K18", "PT900", "750", "Silver 925"); nothing was normalised or inferred.
 
+
+### 5.3a P-01 update: owner correction verified live (2026-10-30)
+
+**Historical finding (kept).** C0853 and W0531: names carried `[Preloved]`, slugs ended `-used`, Hub `condition` was New, Product JSON-LD `itemCondition` was `NewCondition`, no Preloved badge, filter "New", both listed in the Preloved Branded Watches category. Baseline is the audit-day crawl (`itemCondition` and badge read from the same rendered pages).
+
+**Owner action.** The owner manually changed `condition` from New to Preloved for both products in the Hub, after the audit and before this pass. This pass made no Hub write; the change was not repeated or reversed. The owner's exact edit time is not recorded here.
+
+**Live re-fetch, anonymous, 2026-10-30, production `www.chajewelsjp.com`:**
+
+| Check | C0853 EN | C0853 JA | W0531 EN | W0531 JA |
+|---|---|---|---|---|
+| HTTP status, no redirect | 200 | 200 | 200 | 200 |
+| Slug unchanged (`-used`) | yes | yes | yes | yes |
+| `<title>` / H1 with `[Preloved]` (`[プレラブド]` in JA) | unchanged | unchanged | unchanged | unchanged |
+| Product JSON-LD `itemCondition` | `UsedCondition` | `UsedCondition` | `UsedCondition` | `UsedCondition` |
+| Page condition badge | "Preloved" | "プレラブド" | "Preloved" | "プレラブド" |
+| Canonical (own-language URL) | unchanged | unchanged | unchanged | unchanged |
+| hreflang en / ja / x-default | present, unchanged | present, unchanged | present, unchanged | present, unchanged |
+| Meta description, SKU, price, availability, 10 images | identical to audit-day values | same | same | same |
+
+Also: both pieces remain in `/en|ja/collections/luxury-watches` (31 cards, 31 Preloved badges, so both carry the card badge) and in `/en|ja/categories/preloved-watches`. The condition filter on listings reads the same `condition` field as the card badge (`components/catalog/catalog-section.tsx`), so "Preloved" now matches; no interactive filter click was performed. The JSON-LD `name` in JA stays the English Hub name, as it did at audit time (a separate, unchanged behaviour). The page badge text says "authenticated in Japan"; that wording is existing site copy and was not assessed here.
+
+**Result: P-01 — RESOLVED BY OWNER; VERIFIED LIVE.** The original P0 rating stays in the record. The owner decision on the true condition is closed. The related content points that remain open are unchanged: the supplier "Product rank" and serial numbers on these two pages (P-06) are still public.
 ### 5.4 Product findings
 
 | ID | Pri | URL / source | Current | Evidence | Proposed | Notes |
 |---|---|---|---|---|---|---|
-| P-01 | **P0** | `/en|ja/products/c0853-watch-bvlgari-b-zero1-diamond-bezel-quartz-ss-leather-silver-16-5cm-used`, `/en|ja/products/w0531-watch-gucci-g-timeless-chronograph-quartz-ss-black-20cm-used`; Hub `website_products.condition` | Name carries `[Preloved]`, slug ends `-used`, description says "Product rank: B"; Hub condition is New | Page shows no Preloved badge; Product JSON-LD `itemCondition` = `NewCondition`; listed under "New" in the filter; both appear in Preloved Branded Watches | **Owner confirms the real condition**, then sets `condition` in the Hub. No website change | A used item presented as new is the one finding that is materially inaccurate; ten other pieces named `[Used]` already carry the Used condition |
+| P-01 | **P0** (historical; now RESOLVED BY OWNER; VERIFIED LIVE, see 5.3a) | `/en|ja/products/c0853-watch-bvlgari-b-zero1-diamond-bezel-quartz-ss-leather-silver-16-5cm-used`, `/en|ja/products/w0531-watch-gucci-g-timeless-chronograph-quartz-ss-black-20cm-used`; Hub `website_products.condition` | Name carries `[Preloved]`, slug ends `-used`, description says "Product rank: B"; Hub condition is New | Page shows no Preloved badge; Product JSON-LD `itemCondition` = `NewCondition`; listed under "New" in the filter; both appear in Preloved Branded Watches | **Owner confirms the real condition**, then sets `condition` in the Hub. No website change | A used item presented as new is the one finding that is materially inaccurate; ten other pieces named `[Used]` already carry the Used condition |
 | P-02 | P1 | all products, Hub `description_en` / `description_ja` | 340 of 437 descriptions are one-line spec strings | e.g. AL112 "K18 1.45g Heart N' Key Top" | See 5.5 pattern; pilot 10 pieces first | Descriptions add nothing beyond name and ledger |
 | P-03 | P1 | 16 products with an empty description (e.g. N70xx 70 cm layered spinel necklaces, B5575, ESG13, ESH12, R2595) | Fallback "N70LL3 Necklace SV925 Spinel Lapiz Lazuli 70cm 3 Layers at Cha Jewels, Tokyo. Shipping worldwide." | Website `productMetaDescription` fallback begins with the SKU | Add a Hub description; optionally improve the fallback in code (Batch W1) | Fallback is code-generated, not Hub content |
 | P-04 | P1 | N1616, 8C100 | The Hub text itself states a manufacturing origin ("crafted in …", "Made in …") and N1616 lists seven gift occasions | `check:terms` scans code and repo docs, **not Hub data**; both pieces have the Japan origin badge, so data and text agree | **Owner decision:** keep (origin flag and text agree) or move to badge + approved clarifier only. No replacement text is proposed because a new origin sentence needs an owner decision | Policy gray area; not an inaccuracy proven here |
@@ -186,7 +218,7 @@ Illustration built only from the record (not published): B4618 — EN "K18 oval 
 - **Collections have no published flag**: any new row is public immediately and enters the sitemap on the next render. Create nothing without approval.
 
 ### 6.3 Bilingual handling and fallback
-`lib/catalog-i18n.ts` `pick()`: JA page uses the `_ja` field, else English; EN page uses English, else Japanese; never blank. A missing translation therefore silently shows the other language and, for metadata, the other language's text. Product `description_ja` empty = English text on a Japanese page. (No such case was measured in this audit; only the 14 sampled products were compared across languages.)
+`lib/catalog-i18n.ts` `pick()`: JA page uses the `_ja` field, else English; EN page uses English, else Japanese; never blank. A missing translation therefore silently shows the other language and, for metadata, the other language's text. Product `description_ja` empty = English text on a Japanese page. (No such case was measured in this audit; only the 16 products verified in both languages (13 class samples + R2715, C0853, W0531) were compared across languages.)
 
 ### 6.4 Refresh and cache
 The Hub calls `/api/revalidate` with an allow-listed tag (`catalog`, `content`, …) through `notify_website_revalidate()` triggers on products, variants, media, collections, collection-product links and posts. The website also revalidates Hub reads every 60 seconds as a backstop (`lib/hub-api.ts`). **No revalidate trigger on `website_categories` was found in the migrations on Hub `origin/main`**, so a category edit should appear within about 60 seconds rather than instantly (UNVERIFIED in production). Sitemap `lastmod` was deliberately removed from products in Step 1; no content edit changes `lastmod`.
@@ -247,7 +279,7 @@ Easy content edits (Hub only, owner-typed): P-01, P-04, P-05, P-06, P-07, P-08, 
 
 | ID | Pri | Hub field / source | Approval needed | Risk | QA | Rollback |
 |---|---|---|---|---|---|---|
-| P-01 | P0 | `website_products.condition` (C0853, W0531) | Owner confirms true condition | Low; changes badge and JSON-LD only | Re-fetch both URLs: badge present, `itemCondition` UsedCondition, filter | Set the field back |
+| P-01 | P0 | `website_products.condition` (C0853, W0531) | Owner confirms true condition | Low; changes badge and JSON-LD only | Re-fetch both URLs: badge present, `itemCondition` UsedCondition, filter | Done by owner and verified (5.3a). No rollback recommended unless the owner shows that New is the factual condition |
 | C-01, C-02, C-04, C-06 | P1 | collection `description`, `description_ja` | Exact EN+JA text per row | Low; text and meta only | Re-fetch EN+JA, check length ≤ 160, uniqueness across 34 listing pages | Restore previous text (kept in this table) |
 | C-09 | P1 | collection `handmade-gemstone-bracelets` | Decision: leave / add description | None if left | — | — |
 | K-01, K-02 | P1 | category description or membership | Choose text or membership move | Membership moves change grids and ItemList | Check counts and ItemList positions | Re-add to old membership |
@@ -270,7 +302,7 @@ Easy content edits (Hub only, owner-typed): P-01, P-04, P-05, P-06, P-07, P-08, 
 
 ## 10. Owner decisions required
 
-1. **OD-S4-1** P-01: true condition of C0853 and W0531.
+1. **OD-S4-1** P-01: ~~true condition of C0853 and W0531~~ — decided by the owner (Preloved, set in the Hub) and verified live 2026-10-30; closed.
 2. **OD-S4-2** BUG-03: Option A or B, per paragraph (EN and JA together).
 3. **OD-S4-3** Collection texts C-01, C-02, C-04 (move the jewelry out, or rewrite), C-06 (chain policy), then C-03/C-05/C-07/C-10: approve, edit or reject the exact EN/JA strings in §3.
 4. **OD-S4-4** K-01 and K-02: change the description or the membership.
@@ -293,7 +325,7 @@ From `SEARCH-CONSOLE-BASELINE-2026-10-30.md` (owner's Domain property, UI-read, 
 
 | Batch | Content | Where | Gate |
 |---|---|---|---|
-| H1 | P-01, BUG-03 edit, C-01/C-02/C-04/C-06, K-01/K-02 decision | Hub (owner) | Decisions OD-S4-1…5, then live re-fetch |
+| H1 | ~~P-01~~ (done), BUG-03 edit, C-01/C-02/C-04/C-06, K-01/K-02 decision | Hub (owner) | Decisions OD-S4-1…5, then live re-fetch |
 | H2 | 10-piece description pilot, P-03 empty descriptions, P-05, P-07, P-08/P-09 | Hub (owner) | Pilot reviewed; slug test passed |
 | H3 | C-03/C-05/C-07/C-10 refinements | Hub (owner) | After 4 weeks of Search Console data if available |
 | W1 | JA listing titles (C-12), safer description fallback, strip Markdown in meta, cross-links | Website code, own branch and PR | Owner approval; tests below |
@@ -309,7 +341,7 @@ No edit of Hub content, product facts, descriptions or the article; no article o
 
 ## 15. Evidence gaps and limitations
 
-- English pages were crawled in full; Japanese only for the 34 listing pages, the article and 14 sampled products. JA description gaps outside that sample are unmeasured.
+- English pages were crawled in full; Japanese only for the 34 listing pages, the article and 16 individually inspected products (13 class samples + 3 extras). JA description gaps outside that sample are unmeasured.
 - Product `brand`, `origin`, `item_kind` and collection membership beyond what the pages render were not read from the Hub (no API key used). "Branded" status in K-02/K-03 is inferred from names.
 - The sitemap/collection counts are a snapshot; stock changes daily.
 - Revalidation on categories, and whether a name edit regenerates a slug, are UNVERIFIED.
