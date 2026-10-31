@@ -1,0 +1,30 @@
+# Security hardening — batch 1 (website side), 2026-10-31
+
+Source: the owner-requested security investigation of 2026-10-31 (website and Hub, read-only, every finding re-checked in code or the live Hub database). The full list of 34 items, the plan and the tracker live in the owner's Notion page "Cha Jewels — Security Hardening Plan + SEO Master Plan Tracker". This file records what THIS repository's batch changes. The Hub half of the same batch (H-07 save paths and Hub links, H-01 signed proof links) is a separate PR in `chajewels/la-tracking`.
+
+Owner instruction: fix these five first — W-01, W-02, W-03, H-07, H-01. Website parts are below; H-01 is Hub-only.
+
+| ID | Finding (before) | Change (after) | Files | Tests |
+|---|---|---|---|---|
+| W-01 Critical | Next.js 15.5.25: published image-optimizer RCE with SVG (GHSA-2464-fhr4-w9xw), Server Actions DoS (GHSA-p3m5-59mp-jv5r), SSG/ISR cache poisoning | `next` and `eslint-config-next` 15.5.28; non-breaking refresh of sharp 0.35.5 (librsvg CVE), source-map-js 1.2.2, brace-expansion 1.1.21 / 5.0.12 | `package.json`, `package-lock.json` | all gates + production build |
+| W-02 High | Five copies of `startsWith("/") && !startsWith("//")` accepted `/\evil.com`, which browsers resolve to `https://evil.com/`: a crafted sign-in link landed the customer on another site | One validator, `lib/safe-next.ts` (isSitePath, no backslash, max 2048, origin must stay the same); used by `/auth/callback`, `/auth/confirm`, `confirmSignInAction`, the login form, `lib/profile.ts` | `lib/safe-next.ts`, `app/auth/callback/route.ts`, `app/auth/confirm/page.tsx`, `lib/auth-actions.ts`, `components/account/login-form.tsx`, `lib/profile.ts` | `tests/safe-next.test.mjs` |
+| W-03 High | JSON-LD written with `JSON.stringify`, which leaves `<` raw; Hub and customer review text could end the script element | `lib/json-ld-script.ts` `serializeJsonLd()` escapes every `<` as `<` (same JSON value; strings without `<` emit identical bytes). The pure builder `lib/json-ld.ts` is untouched | `lib/json-ld-script.ts`, `components/site/json-ld.tsx` | `tests/json-ld-script.test.mjs` |
+| H-07 High (website side) | The profile step sent `messenger_link` as typed; the Hub shows it to staff as a clickable link, so `javascript:…` would run in a staff session | `lib/profile-messenger-link.ts`: http(s) only, `https://` added when typed without a scheme (the form's hint is `m.me/username`), dotted host, no credentials, ≤ 200 chars; otherwise `messenger_link_invalid`, shown under the field (EN + JA) | `lib/profile-messenger-link.ts`, `lib/profile-actions.ts`, `components/account/complete-profile-form.tsx`, `lib/i18n.ts` | `tests/profile-messenger-link.test.mjs` |
+
+New Japanese copy (owner does not read Japanese — translation): `profile.errMessengerLink` JA 「MessengerのリンクはURL（例：m.me/ユーザー名）でご入力ください。」 = "Please enter your Messenger link as a URL (example: m.me/username)." It matches the English line.
+
+## Verification (this branch, fixtures build)
+- Unit tests 615/615 (601 on `develop` `6dc71df` + 14 new). Run against the OLD call sites (`develop` code with only the new helper files added), 3 of the 14 fail — one per fix: no reader of `next` may keep its own check (W-02), the JsonLd component must use the escaping serializer (W-03), the profile action must send only the checked link (H-07). The other 11 test the new helper modules themselves (the reported `/\evil.com`, a raw `<` from a review, `javascript:` links).
+- `check:terms`, `check:i18n` (+ `check:layaway-ja`), `check:analytics`, `check:money`, `check:cutouts`, `check:lastmod`, `check:contrast`, `typecheck` (0 errors), `lint` (0 errors; the same 12 warnings as `develop`), production `next build` — all pass.
+- Rendered on a local production build: `/auth/callback?next=/\evil.com`, `/\/evil.com`, `//evil.com` → 307 to `/login?…&next=/account`; `/checkout` kept. `/auth/confirm?next=/\evil.com` renders `next=/account`. JSON-LD on `/`, `/en`, `/ja`, `/en/collections/rings`, `/en/products/…`, `/en/faq`, `/en/layaway` parses and contains no raw `<`.
+- `npm audit` after the upgrade: 0 critical, 2 high, 15 moderate (was 1 critical, 5 high).
+
+## Still open (not part of this batch, recorded so nothing is claimed early)
+- `npm audit` high: `postcss` 8.4.31 bundled inside `next` (build-time, our own CSS only; fixed only in Next 16, a major) and `zod` 3 (fixed only in zod 4; the one schema is the wholesale form, no arrays). The 15 moderates are dev-only (eslint chain).
+- Every other item of the 34 (W-04…W-11, H-02…H-21, G-01/G-02, owner checks O-01…O-04) is tracked in the Notion tracker.
+
+## SEO impact
+None intended and none observed. No route, redirect, canonical, hreflang, sitemap, robots, metadata or structured-data VALUE changed. W-03 changes only how the JSON-LD text is escaped inside the script element; parsed data is identical (round-trip tested; rendered pages above). Recorded in `docs/seo/SEO-IMPLEMENTATION-STATUS.md` change log.
+
+## Rollback
+Revert this PR's commits. No data, migration, Hub, environment or configuration change.
