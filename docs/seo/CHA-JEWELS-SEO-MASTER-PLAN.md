@@ -799,6 +799,8 @@ Kihei Tokyo
 
 # 18. Old Domain Migration
 
+> **SUPERSEDED — owner decision 2026-10-31: KEEP `chajewelsjapan.com`, NO REDIRECT.** It is the live Page365 storefront and the Hub's Page365 inventory fetch and invoice import depend on it. The migration below is not to be implemented. See `SEO-IMPLEMENTATION-STATUS.md` D2.
+
 Verify:
 
 ```text
@@ -1608,7 +1610,7 @@ This sequence protects the SEO work already completed while building the next la
 | BUG-02 / BUG-05 / BUG-08 | DEPLOYED (release #426) | #423–#425 merged to develop, then released to main via #426; owner reports live robots.txt and Facebook-only `sameAs` verified |
 | 5–12 | AUDITED / documents and drafts only | No Merchant Center/account integration, content rollout, GBP action or backlink campaign implied |
 
-**Important corrections to earlier master-plan language:** §2.1 previously claimed Search Console was “in use” as a verified fact. The audit found no website verification token, no DNS TXT token, and no verified property in the signed-in Google account; the owner must verify a Domain property, so Google indexing and rankings remain unverified. The old-domain redirect recommendation in §18 is **not authorized**: `chajewelsjapan.com` currently serves a functioning Page365 shop, and redirecting it would disrupt that storefront. Secure an explicit owner decision to keep, replace or migrate it before editing DNS or redirects. The historical recommendations above are superseded by these current gates.
+**Important corrections to earlier master-plan language:** §2.1 previously claimed Search Console was “in use” as a verified fact. The audit found no website verification token, no DNS TXT token, and no verified property in the signed-in Google account; the owner must verify a Domain property, so Google indexing and rankings remain unverified. The old-domain redirect recommendation in §18 is **not authorized**: `chajewelsjapan.com` currently serves a functioning Page365 shop, and redirecting it would disrupt that storefront. Secure an explicit owner decision to keep, replace or migrate it before editing DNS or redirects. **Decided 2026-10-31: KEEP, no redirect.** The historical recommendations above are superseded by these current gates.
 
 ## 33.2 Audit evidence and remaining opportunities
 
@@ -1647,7 +1649,7 @@ The audit records no skipped heading levels, no broken links in the sampled set,
 
 ## 33.4 Explicit exclusions / decisions
 
-- Do not redirect `chajewelsjapan.com` without deciding the fate of its live Page365 shop.
+- Do not redirect `chajewelsjapan.com`: **owner decided 2026-10-31 to KEEP it as the live Page365 shop, no redirect** (the Hub's Page365 inventory fetch and invoice import depend on it). §18 is superseded.
 - Do not create an unapproved Japanese layaway URL, permanent legacy redirect, unsupported shipping/returns markup, review rating, GTIN, manufacturing origin, or made-in-Japan claim.
 - Do not rename existing product slugs merely for cosmetic SEO, enable HSTS `includeSubDomains` without subdomain audit, or schedule a redundant standalone link checker; include periodic link health in Phase 12.
 - **Separate operational context, not a finding of the 20-item SEO audit:** Hub PRs #670, #671 and #672 (Page365 follow and catalog delete, in `chajewels/la-tracking`) are merged in Git and contained in the Hub's `main` as of 2026-10-29 (read-only GitHub state). The owner confirms the Catalog Delete database function and its index were applied on 2026-10-29 at about 14:38 JST; no deletion has been performed (zero recorded; B2200 and 8C100 still present). Status: LIVE — FIRST REAL DELETE PENDING; the first owner-authorised deletion must still be observed and verified, and the apply status of the #672 migration was not stated. Do not conflate this with website SEO releases. See `docs/seo/OUTSTANDING-ISSUES-REGISTER.md` §2.
