@@ -5,7 +5,7 @@ Rev. 1 (2026-10-31) was the scan; this revision records the owner's review: fact
 
 Sources: this repo at `ea469c4` (merged with `origin/develop` `2d7579d`, PR #458 included), `~/Downloads/lumi-re` (read-only), the master prompt, npm registry metadata and tarballs, Next.js and Lenis docs (Context7), live production HTML/headers, Lighthouse 13.6 CLI runs (production and a temporary build of the reference), and browser measurements of every proposed line in the real fonts (§13).
 
-Only two items remain AWAITING OWNER: the copy-fit table (§13) and the short category display names (§14). Everything else is APPROVED or RESOLVED. **P1 does not start until the owner's final OK.**
+**All items are APPROVED or RESOLVED.** The owner approved the copy-fit table (§13) and the short category display names (§14) as proposed on 2026-11-01 ("Approve all recommended"), including the smaller Japanese sizes (headline 56 u, collections heading 56 u / 28 px phone, card titles 44 u, pill strip 100 u) and the wider note widths (9 em EN / 10 em JA, top note 11.5 em). P1 may start on the owner's word.
 
 ---
 
@@ -203,8 +203,8 @@ Lumière reference, real-visitor view (normal UA, preloader on, local `next star
 | D-2 | Corporate number | **RESOLVED** | 法人番号 7011801044120; `CORPORATE_NO` constant in P3; shown in the footer company block. |
 | D-3 | Logo | **APPROVED** | Existing transparent badge `logo-badge-*.webp` + "Cha Jewels" in Instrument Serif in header, preloader, footer; SVG may come later. |
 | D-4 | DESIGN.md vs Lumière | **APPROVED** | Lumière supersedes DESIGN.md's visual rules on this branch: pinned/scrubbed scroll, pill buttons, frosted panels, no orange accent (Orange-means-buy retired on this branch). Product pages and cards 3D-free until originals have models; home featured stage allowed. `DESIGN-LUMIERE.md` in P1, referenced from `CLAUDE.md`. |
-| D-5 | Hero headline placements | **RESOLVED (fact)** | Existing `hero.h1a/h1b`; line breaks per §13 rows 1–2 — final breaks AWAITING OWNER with the table. |
-| D-6 | Philosophy lines | **APPROVED in principle** | Final wording via §13 rows 17–27 (AWAITING OWNER). |
+| D-5 | Hero headline placements | **RESOLVED + APPROVED** | Existing `hero.h1a/h1b`; line breaks per §13 rows 1–2 approved 2026-11-01. |
+| D-6 | Philosophy lines | **APPROVED** | Wording per §13 rows 17–27, approved 2026-11-01. |
 | D-7 | Featured placeholder prices | **APPROVED** | "¥ —" pills, never $; Add to cart disabled while placeholder. |
 | D-8 | Five-card collections | **APPROVED** | Lumière's 2×2 + one full-width fifth card. |
 | D-9 | Preloader | **APPROVED** | Home only, first visit per session, hard cap 4 s; 3D continues behind posters after the curtain. |
@@ -221,10 +221,10 @@ Lumière reference, real-visitor view (normal UA, preloader on, local `next star
 | D-20 | fx primitives | **APPROVED** | Retired at P5; tier medallions kept. |
 | D-21 | Loyalty on home | **APPROVED** | New band added. |
 | D-22 | Spelling guard | **APPROVED** | "jewellery" forbidden in `check:terms` (placeholders file exempt). |
-| — | Copy-fit table (§13) | **AWAITING OWNER** | |
-| — | Short category display names (§14) | **AWAITING OWNER** | |
+| D-23 | Copy-fit table (§13) | **APPROVED** | Every EN/JA line, the four JA size deviations and the three width deviations, as proposed (2026-11-01). |
+| D-24 | Short category display names (§14) | **APPROVED** | As proposed; `CATEGORY_SHORT_NAME` in `lib/content/frame.ts` (P2). |
 
-## 13. Copy-fit table (AWAITING OWNER)
+## 13. Copy-fit table (APPROVED 2026-11-01)
 
 **Method.** Every proposed line was rendered in a headless Chromium at the slot's font and size and measured with `getBoundingClientRect` — Instrument Serif Regular, Manrope Medium and Inter Tight Regular loaded from Lumière's own woff2 files (`document.fonts.check` true). Japanese was measured in the system Mincho because Noto Serif JP did not load from Google in the headless run; every CJK glyph in both faces has a 1 em advance, so the JA widths are the same. Desktop = 1440 px (1 u = 1 px); phone = 375 × 812 (u = 0.6452 px; display fluid size 52.9 px; collections heading 33.6 px; card title 36 px; philosophy 32 px; featured name 28 px). "Measure" is the Lumière slot's real clearance, not its nominal box: e.g. the collections heading box is 377 u but the line may run to the lead column (~1000 u), which Lumière's own "Four Collections." (359 u at 64 u) relies on; the philosophy bottom row is two lines plus a 252 u note in 1067 u, so each line ≤ 407 u. Lumière's own copy is shown as the reference width. All proposals are drawn from existing site copy (`lib/i18n.ts`, `lib/content/about.ts`, `lib/content/frame.ts`); shortenings are marked ✂.
 
@@ -262,9 +262,9 @@ Lumière reference, real-visitor view (normal UA, preloader on, local `next star
 | 30 | Header labels (14 u Manrope uppercase, gap 48 u, left of the centred wordmark) | Shop · Collections · Blog · About | **Collections · Blog · About · Layaway** (D-18) ≈ 420 u | **コレクション · ブログ · ブランドについて · ジュエリーガイド** ≈ 480 u (no uppercase) | ✓ (< 680 u) | n/a (burger) |
 | 31 | Phone menu items (clamp(28px, 8vw, 34px) serif) | 5 links | All existing header/tab links | same | n/a | ✓ |
 
-Owner action: approve each EN/JA line (rows 1–5, 7–12, 17–29) or edit it; approve the four size deviations (JA headline 56 u, JA collections heading 56 u / 28 px phone, JA card title 44 u, JA pill strip 100 u) and the three width deviations (notes 9 / 10 em, top note 11.5 em). Everything marked ✂ is a shortening of existing copy and needs the owner's eye on the JA.
+Owner decision 2026-11-01: every line above, the four size deviations (JA headline 56 u, JA collections heading 56 u / 28 px phone, JA card title 44 u, JA pill strip 100 u) and the three width deviations (notes 9 / 10 em, top note 11.5 em) are APPROVED as proposed. These are the strings P2 puts into `lib/content/lumiere-home.ts`; any later edit is a content change, not a design change.
 
-## 14. Short category display names (AWAITING OWNER)
+## 14. Short category display names (APPROVED 2026-11-01)
 
 Display-only. Hub names, slugs, SEO titles, breadcrumbs and JSON-LD keep the Hub values unchanged.
 
