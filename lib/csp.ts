@@ -136,7 +136,13 @@ export function reportOnlyCsp(opts: CspOptions = {}): string {
   const supabaseWs = supabase ? supabase.replace(/^http/, "ws") : null;
   const d: Directives = [
     ["default-src", "'self'"],
-    ["script-src", "'self'", "'unsafe-inline'", ...(opts.dev ? ["'unsafe-eval'"] : []), ...SQUARE_SCRIPT, ...PAIDY, METRICOOL, ...ADS_SCRIPT, VERCEL_LIVE],
+    // 'wasm-unsafe-eval': the Lumière 3D scenes' Meshopt decoder instantiates
+    // inline WebAssembly (docs/tasks/lumiere-p0-report.md §4). Report-only
+    // pages only; the pay-card policy below never carries it (no 3D there).
+    ["script-src", "'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", ...(opts.dev ? ["'unsafe-eval'"] : []), ...SQUARE_SCRIPT, ...PAIDY, METRICOOL, ...ADS_SCRIPT, VERCEL_LIVE],
+    // The same-origin bundled EXR decode worker (`new Worker(new URL(…, import.meta.url))`),
+    // named explicitly rather than left to the script-src fallback (report §4).
+    ["worker-src", "'self'"],
     ["style-src", "'self'", "'unsafe-inline'", "https:"],
     ["font-src", "'self'", "data:", "https:"],
     ["img-src", "'self'", "data:", "blob:", "https:"],

@@ -1,5 +1,31 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P1: foundation (no visual change)
+
+Recorded for `docs/tasks/lumiere-p0-report.md` §10 and the P1 PR (`redesign/lumiere-p1-foundation` → `redesign/lumiere`). P1 adds the dependencies (three, three-mesh-bvh, lenis, @react-spring/web, spring-text-engine, zustand), the Lumière tokens/BEM/utility CSS (inlined by postcss-import, no page uses the class names yet), the three faces as CSS variables (`preload: false`, never fetched), the animation engine, the Lenis controller mounted in the root layout (public pages only, not under reduced motion) and the react-spring reduced-motion switch. Nothing visual changed on any existing page (pixel diff of /ja, /en, a collection, a product, /cart and /checkout at 1440 and 375: 24/24 identical under reduced motion, 23/24 with motion on; the one difference is the hero sheen's phase on "Lasting value" on /en at 1440).
+
+**Method.** Local production build (`next build` + `next start`, port 3300, fixture mode as in `.env.local`), Lighthouse 13.6.0 CLI, Chrome stable, mobile = `--form-factor=mobile --screenEmulation.mobile --throttling-method=simulate`, desktop = `--preset=desktop`, `--only-categories=performance`, **three runs per URL, median (range)**, one invocation per run, nothing else running. "Before" is the base `redesign/lumiere` at `b0e9d13` built the same way on the same machine, minutes earlier; "after" is this branch. Local numbers are not the production rows of the P0 entry above (no CDN, fixture data, a laptop) — the comparison that matters here is before → after on the same setup.
+
+### Before — `redesign/lumiere` `b0e9d13`, local build
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` mobile | 81 (81–84) | 4.89 s (4.38 s–4.89 s) | 1.52 s (1.52 s–1.52 s) | 33 ms (21 ms–33 ms) | 0.000 (0.000–0.000) | 2.83 s (2.78 s–2.86 s) | 73 ms (66 ms–78 ms) |
+| `/ja` desktop | 99 (99–99) | 0.89 s (0.84 s–0.93 s) | 0.42 s (0.41 s–0.44 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.82 s (0.81 s–1.06 s) | 19 ms (17 ms–33 ms) |
+| `/en` mobile | 82 (82–84) | 4.89 s (4.47 s–4.90 s) | 1.51 s (1.51 s–1.51 s) | 15 ms (8 ms–18 ms) | 0.000 (0.000–0.000) | 1.85 s (1.79 s–1.89 s) | 65 ms (57 ms–68 ms) |
+| `/en` desktop | 99 (99–99) | 0.92 s (0.92 s–0.96 s) | 0.41 s (0.41 s–0.43 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.70 s (0.67 s–0.77 s) | 18 ms (16 ms–18 ms) |
+
+### After — `redesign/lumiere-p1-foundation` (final commit, after the review fix pass), local build
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` mobile | 83 (81–85) | 4.60 s (4.21 s–4.96 s) | 1.66 s (1.66 s–1.66 s) | 27 ms (23 ms–37 ms) | 0.000 (0.000–0.000) | 2.40 s (2.27 s–2.90 s) | 73 ms (69 ms–89 ms) |
+| `/ja` desktop | 99 (98–99) | 0.99 s (0.89 s–1.06 s) | 0.41 s (0.41 s–0.44 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.84 s (0.79 s–0.96 s) | 19 ms (19 ms–24 ms) |
+| `/en` mobile | 81 (80–83) | 5.08 s (4.52 s–5.10 s) | 1.66 s (1.66 s–1.66 s) | 16 ms (8 ms–26 ms) | 0.000 (0.000–0.000) | 2.00 s (1.86 s–2.10 s) | 65 ms (63 ms–71 ms) |
+| `/en` desktop | 99 (99–99) | 0.97 s (0.92 s–1.04 s) | 0.41 s (0.41 s–0.41 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.72 s (0.71 s–0.74 s) | 17 ms (16 ms–19 ms) |
+
+**Reading.** Desktop is unchanged (99 / 99 → 99 / 99; LCP 0.89 / 0.92 → 0.99 / 0.97 s, inside the runs' spread). Mobile `/ja` 81 → 83 and `/en` 82 → 81 are within each other's ranges. The one real delta is bytes: the root layout now mounts the Lenis controller and the react-spring reduced-motion switch — two more requests and **+16 KB of script** on a public page (`/en` mobile run 1: 59 → 61 requests, 229 → 245 KB script, 1152 → 1176 KB total; fonts 4 → 4, so the three Lumière faces are not fetched). Lenis itself is a lazy 17.7 KB chunk loaded from the effect, so `/login`, `/checkout` and `/account` carry none of it. On Lighthouse's simulated Slow 4G those bytes are ~0.2 s on the modelled mobile LCP of `/en`; the observed LCP is unchanged. This is the cost of mounting the scroll engine site-wide before any page uses it (report §3.2, §6), and it is the floor P2–P5 build on: the §10 budget is measured against the production rows of the P0 entry, per route, at P5.
+
 ## 2026-11-01 — Lumière redesign P0: production baseline and Lumière reference (docs only)
 
 Recorded for `docs/tasks/lumiere-p0-report.md` §10 (QA gate 5: real-visitor mobile LCP/INP/CLS no worse than production). Lighthouse 13.6.0 CLI, Chrome stable, `--form-factor=mobile --screenEmulation.mobile --throttling-method=simulate` (Moto G / Slow 4G defaults), `--only-categories=performance`, **three runs per URL, median (range)**. No field data exists yet (Speed Insights is mounted; CrUX empty). PageSpeed Insights API was quota-blocked on 2026-10-31, hence local CLI.

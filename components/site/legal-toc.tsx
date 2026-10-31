@@ -37,7 +37,7 @@ export function LegalToc({ items, label, printLabel }: { items: TocItem[]; label
   }, [items]);
 
   return (
-    <nav aria-label={label} className="sticky top-24 max-h-[calc(100vh-120px)] overflow-auto pb-4 print:hidden">
+    <nav aria-label={label} data-lenis-prevent className="sticky top-24 max-h-[calc(100vh-120px)] overflow-auto pb-4 print:hidden">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{label}</p>
       <ol className="mt-3 border-l border-hairline">
         {items.map((i) => (

@@ -8,6 +8,7 @@ import { DUR, EASE_GLIDE, EASE_SLIDE, ZOOM } from "@/lib/motion";
 import { useReduced } from "@/components/fx/media";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { SIZES, cubic, passthrough, whenDecoded, type GalleryImage } from "@/components/catalog/gallery-shared";
+import { lockScroll } from "@/lib/scroll-lock";
 
 const SLIDE = cubic(EASE_SLIDE);
 const GLIDE = cubic(EASE_GLIDE);
@@ -213,14 +214,16 @@ export function GalleryViewer({ images, name, lang, start, aspect, getRect, onJu
     onClosed();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The page behind does not scroll while the viewer is open.
+  // The page behind does not scroll while the viewer is open: the shared lock
+  // (lib/scroll-lock.ts — body overflow + Lenis stopped), plus the scrollbar's
+  // width as padding so the page does not shift sideways under the viewer.
   useLayoutEffect(() => {
     const html = document.documentElement, body = document.body;
     const bar = window.innerWidth - html.clientWidth;
-    const was = { overflow: html.style.overflow, pad: body.style.paddingRight };
-    html.style.overflow = "hidden";
+    const wasPad = body.style.paddingRight;
+    const releaseScroll = lockScroll({ root: true });
     if (bar > 0) body.style.paddingRight = `${bar}px`;
-    return () => { html.style.overflow = was.overflow; body.style.paddingRight = was.pad; };
+    return () => { releaseScroll(); body.style.paddingRight = wasPad; };
   }, []);
 
   // Keys are heard at the document, not on the dialog: a click on the photo
@@ -402,7 +405,7 @@ export function GalleryViewer({ images, name, lang, start, aspect, getRect, onJu
   if (n > 1) slots.push({ side: 1, k: (idx + 1) % n }, { side: -1, k: (idx - 1 + n) % n });
 
   return createPortal(
-    <div ref={root} role="dialog" aria-modal="true" aria-label={`${t("product", "viewer")} — ${name}`} className="vf-root" tabIndex={-1} style={{ outline: "none" }}>
+    <div ref={root} role="dialog" aria-modal="true" aria-label={`${t("product", "viewer")} — ${name}`} className="vf-root" data-lenis-prevent tabIndex={-1} style={{ outline: "none" }}>
       <ComponentStyle id="fx-viewer" css={CSS} />
       <div ref={backdrop} className="vf-backdrop" />
       <div

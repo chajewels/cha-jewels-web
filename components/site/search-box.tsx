@@ -8,6 +8,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { SalePrice } from "@/components/commerce/sale-price";
 import { markSearchFromBox } from "@/lib/search-origin";
 import { HubImage } from "@/components/media/hub-image";
+import { lockScroll } from "@/lib/scroll-lock";
 
 type Suggestion = { slug: string; sku: string; name: string; price: number | null; full?: number | null; on_sale?: boolean; image: string | null; cutout: string | null; sold: boolean };
 type CollectionHit = { slug: string; name: string };
@@ -147,15 +148,15 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
     const el = document.createElement("div");
     document.body.appendChild(el);
     setHost(el);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // The shared lock: body overflow + Lenis stopped (lib/scroll-lock.ts).
+    const releaseScroll = lockScroll();
     const outside = Array.from(document.body.children).filter((c) => c !== el);
     const hadInert = outside.map((c) => c.hasAttribute("inert"));
     outside.forEach((c) => c.setAttribute("inert", ""));
     const trigger = triggerRef.current;
     return () => {
       outside.forEach((c, i) => { if (!hadInert[i]) c.removeAttribute("inert"); });
-      document.body.style.overflow = previous;
+      releaseScroll();
       el.remove();
       setHost(null);
       trigger?.focus();
@@ -234,7 +235,7 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
   );
 
   const results = (layout: "panel" | "sheet" | "flow") => (
-    <div className={layout === "panel" ? "max-h-[70vh] overflow-y-auto" : ""}>
+    <div data-lenis-prevent={layout === "panel" ? "" : undefined} className={layout === "panel" ? "max-h-[70vh] overflow-y-auto" : ""}>
       {status === "pending" && <p className="px-5 py-4 text-sm text-charcoal/75">{t("search", "searching")}</p>}
       {status === "error" && <p className="px-5 py-4 text-sm text-charcoal-deep">{t("search", "failed")}</p>}
       {status === "ready" && items.length === 0 && collections.length === 0 && (
@@ -360,7 +361,7 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
             </button>
           </div>
           {live}
-          <div className="wrap min-h-0 w-full flex-1 overflow-y-auto pb-10">
+          <div data-lenis-prevent className="wrap min-h-0 w-full flex-1 overflow-y-auto pb-10">
             {open && status !== "idle" && results("sheet")}
           </div>
         </div>,

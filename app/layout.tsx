@@ -28,6 +28,9 @@ import { AdsTags } from "@/components/analytics/ads-tags";
 import { ConsentBanner } from "@/components/site/consent-banner";
 import { BootMarker } from "@/components/fx/boot-marker";
 import { PageEnter } from "@/components/fx/page-enter";
+import { lumiereFontVariables } from "@/app/fonts";
+import { ScrollLayout } from "@/components/lumiere/scroll-layout";
+import { ReducedMotion } from "@/components/lumiere/common/reduced-motion";
 
 /**
  * ONLY THE FACES THAT ACTUALLY RENDER.
@@ -136,7 +139,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // "Application error" page. The site ships EN/JA itself, so the translate
   // attribute here and the `google` meta in generateMetadata() opt out.
   return (
-    <html lang={lang} translate="no" className={`${display.variable} ${sans.variable} ${jp.variable}`} {...(deferJp ? { "data-jp-defer": "" } : {})}>
+    // The three Lumière faces (app/fonts.ts) join the class list as CSS
+    // variables only — no element uses them until P3, and they are not
+    // preloaded, so the existing pages fetch nothing new.
+    <html lang={lang} translate="no" className={`${display.variable} ${sans.variable} ${jp.variable} ${lumiereFontVariables}`} {...(deferJp ? { "data-jp-defer": "" } : {})}>
       {/* The announcement bar's pre-paint script sets a data attribute here
           before React hydrates (components/site/announcement-bar.tsx), which is
           a mismatch React reports. Suppressed on <body> precisely because it
@@ -178,6 +184,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             client navigation (components/fx/boot-marker.tsx). Renders nothing. */}
         <BootMarker />
         <PageEnter />
+        {/* LUMIÈRE P1 (redesign/lumiere): the one Lenis smooth-scroll controller,
+            off on /checkout, /account, /login and /auth and never created under
+            reduced motion (components/lumiere/scroll-layout.tsx, D-13); and the
+            react-spring reduced-motion switch every Lumière spring reads. Both
+            render nothing. */}
+        <ScrollLayout />
+        <ReducedMotion />
         <Header lang={lang} switchTargets={targets} />
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         {/* data-messenger: the Hub's Messenger link, for app/error.tsx — a client

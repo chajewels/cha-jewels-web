@@ -125,6 +125,7 @@ export function MenuStory({ stories, lang, eyebrow, moreLabel, place = "menu", o
       {/* A tap or click completes a typing story; a finished one ignores it. */}
       <div
         onClick={() => setTyping(false)}
+        data-lenis-prevent={scrolls ? "" : undefined}
         className={`mt-4 ${typing ? "cursor-pointer" : ""} ${scrolls ? "max-h-[16rem] overflow-y-auto overscroll-contain pr-2 focus-visible:outline-offset-2" : ""}`}
         tabIndex={scrolls ? 0 : undefined}
       >

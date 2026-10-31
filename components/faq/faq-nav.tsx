@@ -50,7 +50,7 @@ export function FaqNav({ label, items }: { label: string; items: { slug: string;
 
   return (
     <nav aria-label={label} className="fx-faq-nav">
-      <ul ref={list} className="fx-faq-list">
+      <ul ref={list} data-lenis-prevent className="fx-faq-list">
         {items.map((i) => (
           <li key={i.slug}>
             <a href={`#${i.slug}`} aria-current={i.slug === active ? "location" : undefined} onClick={() => setActive(i.slug)}>

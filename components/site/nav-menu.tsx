@@ -159,7 +159,7 @@ export function NavMenu({ label, menuLabel, crawlLinks = [], children }: { label
             // `whitespace-normal` above is not decoration: the nav <ul>
             // carries `whitespace-nowrap` for the link row and every
             // descendant inherits it, so descriptions painted as one line.
-            className="menu-in wrap max-h-[calc(100vh-96px)] overflow-y-auto py-8"
+            data-lenis-prevent className="menu-in wrap max-h-[calc(100vh-96px)] overflow-y-auto py-8"
           >
             {children}
           </div>

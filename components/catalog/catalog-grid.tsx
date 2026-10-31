@@ -3,6 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { DEFAULT_FILTERS, catalogFiltersToSearch, parseCatalogFilters, type CatalogFilters } from "@/lib/catalog-filters";
+import { lockScroll } from "@/lib/scroll-lock";
 
 /**
  * THE COLLECTION / CATEGORY GRID WITH ITS TOOLBAR (step 2 build; comp
@@ -420,7 +421,7 @@ function Drop({ label, ticked, open, onOpen, onClose, children }: {
         <ChevronDown aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
       </button>
       {open && (
-        <div ref={pop} id={panelId} role="group" aria-label={label} className="cg-pop max-h-[min(60vh,360px)] overflow-auto p-1.5">{children}</div>
+        <div ref={pop} id={panelId} role="group" aria-label={label} data-lenis-prevent className="cg-pop max-h-[min(60vh,360px)] overflow-auto p-1.5">{children}</div>
       )}
     </div>
   );
@@ -464,8 +465,8 @@ function Sheet({ labels, count, onClose, onClear, toggle, children }: {
     const back = document.activeElement as HTMLElement | null;
     const el = panel.current;
     el?.querySelector<HTMLElement>("button")?.focus();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // The shared lock: body overflow + Lenis stopped (lib/scroll-lock.ts).
+    const releaseScroll = lockScroll();
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); close.current(); return; }
       if (e.key !== "Tab" || !el) return;
@@ -476,7 +477,7 @@ function Sheet({ labels, count, onClose, onClear, toggle, children }: {
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", key);
-    return () => { document.removeEventListener("keydown", key); document.body.style.overflow = prev; back?.focus({ preventScroll: true }); };
+    return () => { document.removeEventListener("keydown", key); releaseScroll(); back?.focus({ preventScroll: true }); };
   }, []);
   return (
     <div className="cg-sheet" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -487,7 +488,7 @@ function Sheet({ labels, count, onClose, onClear, toggle, children }: {
             <X aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={1.6} />
           </button>
         </div>
-        <div className="overflow-auto px-[clamp(18px,4vw,48px)] pb-4 pt-2">
+        <div data-lenis-prevent className="overflow-auto px-[clamp(18px,4vw,48px)] pb-4 pt-2">
           {children}
           <div className="border-b border-hairline py-2">{toggle}</div>
         </div>

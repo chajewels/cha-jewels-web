@@ -1,0 +1,23 @@
+/* ===========================================================================
+   LUMIÈRE UTILITIES — the reference's `@utility` blocks as Tailwind 3.4
+   `@layer utilities` classes (docs/tasks/lumiere-p0-report.md §2).
+   `snap-strip` is unused in the reference and is not ported.
+   =========================================================================== */
+@layer utilities {
+  /* Full-viewport section height. `dvh` follows `vh` so browsers without dynamic
+     viewport units keep the static fallback. */
+  .min-h-stage {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Safe area, applied as a floor on the page gutter rather than as padding on a
+     wrapper — the hero positions from the viewport edges, so a wrapper would
+     shift the whole composition instead of just the chrome. */
+  .inset-safe {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}

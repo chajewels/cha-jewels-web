@@ -15,6 +15,7 @@ import type { Lang } from "@/lib/i18n";
 import type { Story } from "@/lib/stories";
 import type { TypeVisual } from "@/lib/type-icons";
 import { TypeIconWell } from "@/components/catalog/type-icon";
+import { lockScroll } from "@/lib/scroll-lock";
 
 /** `name` is a ReactNode: the header streams the real one in. See header.tsx. */
 export type DrawerAccount = { name: React.ReactNode; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
@@ -91,8 +92,8 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
     const el = document.createElement("div");
     document.body.appendChild(el);
     setHost(el);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // The shared lock: body overflow + Lenis stopped (lib/scroll-lock.ts).
+    const releaseScroll = lockScroll();
     // `inert` rather than aria-hidden: it takes the page behind out of the
     // accessibility tree AND the tab order AND stops it answering clicks.
     const outside = Array.from(document.body.children).filter((c) => c !== el);
@@ -100,7 +101,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
     outside.forEach((c) => c.setAttribute("inert", ""));
     return () => {
       outside.forEach((c, i) => { if (!hadInert[i]) c.removeAttribute("inert"); });
-      document.body.style.overflow = previous;
+      releaseScroll();
       el.remove();
       setHost(null);
     };
@@ -169,7 +170,7 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
             </button>
           </div>
 
-          <div className="wrap flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-8 pt-4">
+          <div data-lenis-prevent className="wrap flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-8 pt-4">
             <SearchBox lang={lang} variant="drawer" onNavigate={close} />
 
             <div className="mt-4">

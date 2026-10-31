@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { OPTIMIZED_IMAGE_HOSTS } from "./lib/image-hosts";
+
+// LUMIÈRE PLACEHOLDER BELT (docs/tasks/lumiere-p0-report.md §9). A PRODUCTION
+// build (Vercel's VERCEL_ENV=production, i.e. a deploy of `main`) fails here,
+// before webpack starts, while any Lumière placeholder is still referenced or
+// still stored under public/lumiere/placeholder/. Evaluated by `next build`
+// itself, so it does not depend on the Build Command running `prebuild`, and
+// it fails the BUILD rather than a page at runtime (a module imported only by
+// client components is never evaluated during the build, so the registry's
+// own throw alone would surface as a 500). Previews and local builds: no-op.
+if (process.env.VERCEL_ENV === "production" && process.env.NEXT_PHASE === "phase-production-build") {
+  const guard = spawnSync(process.execPath, [path.join(__dirname, "scripts/check-placeholders.mjs"), "--strict"], { stdio: "inherit" });
+  if (guard.status !== 0) throw new Error("next.config: Lumière placeholder content must not ship to production (scripts/check-placeholders.mjs --strict failed).");
+}
 
 const config: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
