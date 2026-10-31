@@ -9,12 +9,13 @@
 // A KNOWN, DOCUMENTED LIMIT of rollback mode: a bare dynamic URL for a resource that does not exist is a 404
 // that still carries those tags (the layout cannot know the resource is missing). This check records it as
 // the documented rollback behaviour; it is why rollback is an emergency switch, not a state to stay in.
-import { resolveOrigins, authorizeCredentials, makeGet, Coverage, validateSitemap } from "./lib/seo-check-core.mjs";
+import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap } from "./lib/seo-check-core.mjs";
 
 const BASE = (process.argv[2] ?? "").replace(/\/$/, "");
 if (!BASE) { console.error("usage: node scripts/check-seo-rollback.mjs <baseUrl of a server started with SEO_LEGACY_REDIRECTS=off>"); process.exit(2); }
 let O, AUTH;
 try { O = resolveOrigins(BASE); AUTH = authorizeCredentials(O.requestOrigin); } catch (e) { console.error(`check-seo-rollback: ${e.message}`); process.exit(2); }
+redactConsole(AUTH);
 const get = makeGet(O.requestOrigin, AUTH);
 const PUB = O.publicOrigin;
 const rows = [];

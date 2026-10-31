@@ -13,7 +13,7 @@
 // Only real <link>/<meta> elements are counted. Next also repeats the metadata
 // inside its RSC payload as escaped JSON, which is not what a crawler reads.
 
-import { resolveOrigins, authorizeCredentials, makeGet, Coverage, validateSitemap } from "./lib/seo-check-core.mjs";
+import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 // BASE is where requests GO. PUBLIC_ORIGIN is what the pages DECLARE (canonical, hreflang, og:url, sitemap):
 // the same for production and a local build, different for a preview, which is requested on its own
@@ -28,8 +28,9 @@ try {
   // printed. Any other combination refuses to run. See scripts/lib/seo-check-core.mjs.
   AUTH = authorizeCredentials(ORIGINS.requestOrigin);
 } catch (e) { console.error(`check-seo-live: ${e.message}`); process.exit(2); }
+redactConsole(AUTH);                       // nothing printed, thrown or rejected can carry a credential
 const PUBLIC_ORIGIN = ORIGINS.publicOrigin;
-const get = makeGet(ORIGINS.requestOrigin, AUTH);
+const get = makeGet(ORIGINS.requestOrigin, AUTH);   // bounded timeout; a network failure is { status: 0, error } (redacted), never a throw
 const stripOrigins = (u) => String(u ?? "").replace(BASE, "").replace(PUBLIC_ORIGIN, "");
 const results = [];
 const record = (status, route, what, detail = "") => results.push({ status, route, what, detail });
@@ -316,7 +317,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
 // A sample of templates and of 404 shapes, NOT a crawl of every URL. (That the 404 page is still the
 // useful one, and everything the DOM shows, is checked by scripts/check-seo-dom.mjs.)
 {
-  const FB_ID = "812262777044447";
+  const FB_ID = M.FB_ID;
   const ogUrls = (html) => [...html.matchAll(/<meta property="og:url" content="([^"]*)"/g)].map((m) => unescapeHtml(m[1]));
   const fbIds = (html) => [...html.matchAll(/<meta property="fb:app_id" content="([^"]*)"/g)].map((m) => m[1]);
   const propAll = (html, name) => [...html.matchAll(new RegExp(`<meta property="${name}" content="([^"]*)"`, "g"))].map((m) => unescapeHtml(m[1]));
@@ -325,10 +326,8 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   const clean404 = (r) => r.status === 404 && /noindex/i.test(robotsMeta(r.body) ?? "") && canonicals(r.body).length === 0 && alternates(r.body).length === 0 && ogUrls(r.body).length === 0 && fbIds(r.body).length <= 1;
   const why404 = (r) => `status ${r.status}, robots=${robotsMeta(r.body)}, canonical=${canonicals(r.body).length}, hreflang=${alternates(r.body).length}, og:url=${ogUrls(r.body).length}, fb:app_id=${fbIds(r.body).length}`;
 
-  const staticTemplates = ["/jewelry-guide", "/shopping-guide", "/faq", "/about", "/legal/tokusho", "/legal/privacy", "/legal/returns", "/legal/terms", "/loyalty", "/sale", "/contact", "/wholesale", "/why-cha-jewels", "/blog", "/collections"];
-  // The /collections index is a real page that the sitemap deliberately never lists (app/sitemap.ts, a
-  // standing sitemap-policy decision this batch does not touch): it must still answer 200 with the tags.
-  const unlistedByPolicy = new Set(["/collections"]);
+  const staticTemplates = M.staticTemplates;
+  const unlistedByPolicy = new Set(M.unlistedByPolicy);   // a real page the sitemap deliberately never lists
   const families = { product, collection, category, post };
 
   cov.expect("sitemap", "a valid sitemap was read", 1);
@@ -339,19 +338,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   cov.expect("layaway", "/en/layaway answers 200 with the tags", 1);
   cov.expect("unavailable-sibling", "an unavailable sibling is a clean 404 and the existing language names no hreflang for it (at least one instance)", 1);
   cov.expect("single-language-posts", "every single-language post in the sitemap has its missing sibling tested", 1, { optional: true });
-  const malformed = ["/products/x/y", "/products/x/y/z", "/collections/x/y", "/collections/x/y/z", "/categories/x/y", "/categories/x/y/z", "/categories", "/blog/x/y", "/blog/x/y/z", "/legal", "/legal/missing", "/legal/missing/deeper", "/legal/privacy/extra", "/faq/x", "/about/x/y", "/jewelry-guide/x", "/shopping-guide/x", "/loyalty/x", "/sale/x", "/wholesale/x", "/layaway/x"];
-  const privateMalformed = ["/cart/zzz", "/search/zzz", "/login/zzz"];
-  const gatedMalformed = ["/account/missing", "/account/orders/1/missing", "/checkout/missing"];
-  const localeForms = ["/products/x/y", "/collections/x/y", "/categories/x/y", "/blog/x/y", "/legal/missing", "/legal/missing/deeper", "/legal", "/faq/x", "/products/x/y/z"];
-  const X = "nonexistent-seo-check-xyz";
-  const missingResources = [`/products/${X}`, `/collections/${X}`, `/categories/${X}`, `/blog/${X}`];
-  const shapes = [
-    `/${X}`, `/${X}/deeper`, `/${X}/deeper/still`, "/foo/bar", "/foo/bar/baz",
-    ...malformed, ...privateMalformed,
-    ...localeForms.flatMap((p) => [`/en${p}`, `/ja${p}`]),
-    ...missingResources, ...missingResources.flatMap((p) => [`/en${p}`, `/ja${p}`]),
-    `/en/${X}`, `/en/${X}/deeper`, `/ja/${X}/deeper`, "/ja/layaway", "/en/cart", "/fr/about", `/fr/${X}/deeper`,
-  ];
+  const shapes = M.notFoundShapes, gatedMalformed = M.gatedDescendants;
   cov.expect("404-shapes", "every 404 shape is a real 404 with no canonical, hreflang or og:url", shapes.length);
   cov.expect("gated-descendants", "malformed descendants of gated private routes redirect to /login", gatedMalformed.length);
   cov.expect("private-pages", "real private pages keep og:url only", 3);
@@ -362,7 +349,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   const checkTemplate = async (path, key) => {
     const r = await get(path);
     cov.hit(key);
-    if (r.status !== 200) { ok(path, "FOUNDATION: a known template answers HTTP 200", false, `got ${r.status}`); return null; }
+    if (r.status !== 200) { ok(path, "FOUNDATION: a known template answers HTTP 200", false, r.error ? `request failed: ${r.error}` : `got ${r.status}`); return null; }
     const h = r.body, self = `${PUBLIC_ORIGIN}${path}`, lang = path.slice(1, 3);
     ok(path, "FOUNDATION: exactly one og:url, equal to the canonical and to the page's own absolute locale URL (no query, no fragment)", ogUrls(h).length === 1 && ogUrls(h)[0] === self && canonicals(h).length === 1 && canonicals(h)[0] === self, `og:url=${ogUrls(h).join("|")} canonical=${canonicals(h).join("|")}`);
     ok(path, "FOUNDATION: exactly one fb:app_id, the approved id", fbIds(h).length === 1 && fbIds(h)[0] === FB_ID, `fb:app_id=${fbIds(h).join("|")}`);
@@ -401,7 +388,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
     ok(`/${existing}${bare}`, `FOUNDATION: the language that exists names no hreflang for the unavailable one (${absent}), and is itself 200`, other.status === 200 && !langs.includes(absent), `status ${other.status}, hreflang=${langs.join(",") || "none"}`);
     cov.hit(key);
   };
-  await checkSibling("/layaway", "en", "ja", "unavailable-sibling");           // never exists, by policy
+  await checkSibling(M.layaway.bare, M.layaway.existing, M.layaway.absent, "unavailable-sibling");   // never exists, by policy
   await checkTemplate("/en/layaway", "layaway");
   const postLangs = new Map();
   for (const p of paths) { const m = p.match(/^\/(en|ja)(\/blog\/.+)$/); if (m) postLangs.set(m[2], [...(postLangs.get(m[2]) ?? []), m[1]]); }
@@ -422,7 +409,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   }
 
   // 4. real private/utility pages keep og:url only
-  for (const path of ["/cart", "/search", "/login"]) {
+  for (const path of M.privatePages) {
     const r = await get(path);
     cov.hit("private-pages");
     if (r.status !== 200) { ok(path, "FOUNDATION: a private page answers 200", false, `got ${r.status}`); continue; }
@@ -431,8 +418,8 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   }
 
   // 5. query handling: the identity never follows the query
-  for (const path of ["/en/faq", "/ja/faq"]) {
-    const r = await get(`${path}?utm_source=seo-check&lang=${path.startsWith("/en") ? "ja" : "en"}&ref=a%23b`);
+  for (const { path, query } of M.queryCases) {
+    const r = await get(`${path}${query}`);
     cov.hit("query-handling");
     if (r.status !== 200) { ok(path, "FOUNDATION: a page with a query answers 200", false, `got ${r.status}`); continue; }
     ok(`${path}?utm_source=…`, "FOUNDATION: og:url and the canonical stay the bare locale URL when the request carries a query", ogUrls(r.body).length === 1 && ogUrls(r.body)[0] === `${PUBLIC_ORIGIN}${path}` && canonicals(r.body)[0] === `${PUBLIC_ORIGIN}${path}`, `og:url=${ogUrls(r.body).join("|")} canonical=${canonicals(r.body).join("|")}`);
