@@ -13,6 +13,10 @@ Storefront (Next.js 15 App Router, TS strict, Tailwind 3.4, shadcn/ui in `compon
 - `main` = production (Vercel). Work on `develop` or feature branches into `develop`; PR `develop`→`main`; never push to `main`.
 - Before starting: `git fetch` + `gh pr list --state all --limit 20` — if the work exists, stop and report. One session = one worktree; copy `.env.local` by hand, never commit it.
 
+## Delivery rule (owner, 2026-10-31; details: CLAUDE-DETAILS.md "Delivery rule")
+- Deliver each agreed priority/phase end to end in ONE batch and ONE reviewable PR. No fragmenting into single findings, single-word changes, or small documentation PRs split away from the batch they record. A documentation-only PR is fine when documentation IS the agreed priority (an audit, a decision record, a register the owner asked for).
+- Before coding: complete the requirements/dependency/conflict scan and bundle every blocker and owner decision into one report. After scope is authorized: implement code, tests, documentation and verification together, then return the complete diff, tests, acceptance evidence and limitations at once. QA returns one consolidated correction batch. Production approval gates and other sessions' work are preserved.
+
 ## Non-negotiable (details: CLAUDE-DETAILS.md "Non-negotiable business rules")
 - **Money:** every customer-facing figure comes from the Hub. Never compute layaway, points, percentages, deposits or currency conversion in the browser or Next.js (`hub.layawayQuote`; no `toPhp`/`phpRate`/hardcoded rate). Guard: `check:money`.
 - **No layaway on the Japanese site**, anywhere, via `layawayOffered(lang)` only. Guard: `check:layaway-ja`.

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOpenGraph } from "@/lib/og-meta";
 
 /**
  * SEO STEP 2 (Master Plan §33.3): the two pure decisions behind a collection /
@@ -63,10 +64,7 @@ export function listingOpenGraph(heroMedia: string | null | undefined, name: str
   const url = heroOgImage(heroMedia);
   if (!url) return undefined;
   return {
-    type: "website",
-    siteName: "Cha Jewels",
-    locale: lang === "ja" ? "ja_JP" : "en_US",
-    alternateLocale: [lang === "ja" ? "en_US" : "ja_JP"],
+    ...siteOpenGraph(lang),
     images: [{ url, alt: name }],
   };
 }

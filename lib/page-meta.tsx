@@ -4,8 +4,8 @@ import { dict, LANG_PARAM, PATH_HEADER, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { siteUrl } from "@/lib/site";
-import { emitsCanonical } from "@/lib/seo-policy";
-import { localeOf } from "@/lib/locale";
+import { seoLinkPlan } from "@/lib/seo-policy";
+import { legacyRedirectsEnabled } from "@/lib/legacy-redirect";
 
 type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, string> };
 
@@ -49,39 +49,34 @@ type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, strin
  */
 export async function SeoLinks() {
   const path = (await headers()).get(PATH_HEADER);
-  if (!path || !path.startsWith("/")) return null;
-  // THE LOCALE TREE CARRIES ITS OWN METADATA (Phase 2B). /en/* and /ja/* pages
-  // declare canonical, hreflang and x-default through `generateMetadata`
-  // (lib/locale-meta.ts), and a locale 404 must emit nothing — which also
-  // closes finding X1 for that tree. Legacy paths are untouched (C0/H0).
-  if (localeOf(path)) return null;
+  if (!path) return null;
+  // WHAT MAY BE SAID ABOUT THIS PATH is decided by one pure rule
+  // (lib/seo-policy.ts seoLinkPlan, unit-tested): nothing under a locale prefix
+  // (the locale tree declares its own metadata, and a locale 404 says nothing —
+  // finding X1), nothing for an unknown path (a 404 has no canonical to name),
+  // og:url alone for a private route, everything for a public family. Legacy
+  // paths are otherwise untouched (C0/H0).
+  const plan = seoLinkPlan(path, legacyRedirectsEnabled(process.env.SEO_LEGACY_REDIRECTS));
+  if (!plan) return null;
 
   const base = siteUrl();
   const self = `${base}${path === "/" ? "/" : path.replace(/\/+$/, "")}`;
-  // A noindex page (lib/seo-policy.ts) names no canonical and no language
-  // alternates: there is nothing to consolidate onto a page that should not be
-  // found. og:url and fb:app_id stay: they describe a share, not an index entry.
-  const indexable = emitsCanonical(path);
   return (
     <>
-      {indexable && <link rel="canonical" href={self} />}
+      {plan.canonical && <link rel="canonical" href={self} />}
       {/* og:url is the link's identity for Facebook and Messenger: without it
           the scraper falls back to whatever URL was pasted (with ?lang, utm_*
           and the like), so one page becomes several previews and a cached one
           can miss the image. Owner request 2026-10-01. Same value as the
           canonical, for the same reason. */}
-      <meta property="og:url" content={self} />
-      {/* The owner's Facebook App ("Test", developers.facebook.com, owner
-          2026-10-01). Only ties shares of this site to that app for Facebook's
-          Insights and clears the Sharing Debugger's "missing fb:app_id"
-          warning; it changes nothing in how a link previews. An App ID is
-          public by design (it is in every Facebook SDK call). */}
-      <meta property="fb:app_id" content="812262777044447" />
+      {plan.ogUrl && <meta property="og:url" content={self} />}
+      {/* fb:app_id is no longer rendered here: the root layout's metadata emits
+          it once for every page, locale tree included (lib/og-meta.ts). */}
       {/* ja is the site default and needs no parameter. en carries the one the
           middleware honours, so the URL resolves for a crawler that sends no
           Accept-Language — which is most of them. x-default points at the
           default language for anyone we have not matched. */}
-      {indexable && (
+      {plan.alternates && (
         <>
           <link rel="alternate" hrefLang="ja" href={self} />
           <link rel="alternate" hrefLang="en" href={`${self}?${LANG_PARAM}=en`} />

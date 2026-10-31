@@ -1,6 +1,6 @@
 # Step 4 — H1 owner publishing checklist (seven Hub records)
 
-**Owner decisions recorded. No Hub implementation authorized or performed.** This file is a checklist for the owner. Claude does not edit, save or publish Hub content. Step 4 stays AUDITED — OWNER APPROVAL PENDING; BUG-03 stays OPEN until the article change is verified live in English and Japanese. Prepared 2026-10-30.
+**Owner decisions recorded. No Hub implementation authorized or performed.** This file is a checklist for the owner. Claude does not edit, save or publish Hub content. Step 4 stays AUDITED — OWNER APPROVAL PENDING. The article (§1) was moved out of SEO scope by the owner on 2026-10-31 (PR #450: a brand-rule content task, no material SEO impact); the owner's Option A decision and the exact edit below are unchanged, and its live check stays in §8 as a content task. Prepared 2026-10-30.
 
 The wording below is copied character for character from [`STEP-4-OWNER-APPROVAL-RECORD.md`](STEP-4-OWNER-APPROVAL-RECORD.md) §2 and §7 (Rings: the owner's Choice 2). The owner retains final control of editing, saving and publishing. If you change any word, tell me before publishing so the record matches.
 
@@ -106,7 +106,7 @@ Steps: (1) back up both full bodies; (2) make the four deletions; (3) check that
 
 ## 8. After you publish (what I will check, 14 pages)
 
-Tell me which records you saved and when. For the article (EN, JA), the four collections (EN, JA) and the two categories (EN, JA) I will check: HTTP 200 and no redirect; the approved text on each page; article paragraphs, the image and links intact and the two old origin phrases gone in both languages; meta descriptions equal the approved text; canonical and hreflang unchanged; product counts and membership unchanged; no new origin or metal claim; no product data change. **BUG-03 stays OPEN until the article is verified live in both languages.**
+Tell me which records you saved and when. For the article (EN, JA), the four collections (EN, JA) and the two categories (EN, JA) I will check: HTTP 200 and no redirect; the approved text on each page; article paragraphs, the image and links intact and the two old origin phrases gone in both languages; meta descriptions equal the approved text; canonical and hreflang unchanged; product counts and membership unchanged; no new origin or metal claim; no product data change. The article check is reported as a CONTENT task (not an SEO status item, per PR #450): it passes only when both language bodies are verified live. The approved footer clarifier appears on every page and is not part of the article body.
 
 ## 9. Facts recorded alongside (no product change authorised)
 

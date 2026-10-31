@@ -2,7 +2,7 @@
 
 **Owner decisions recorded. No Hub implementation authorized or performed.**
 
-Status: **Step 4 remains AUDITED — OWNER APPROVAL PENDING** (approved items are recorded below; none is implemented, verified or deployed). **BUG-03 remains OPEN.** Recorded 2026-10-30. Documentation only: no Hub write, no product or article edit, no website-code change, no migration, no Search Console action.
+Status: **Step 4 remains AUDITED — OWNER APPROVAL PENDING** (approved items are recorded below; none is implemented, verified or deployed). **BUG-03 was moved out of SEO scope by the owner on 2026-10-31 (PR #450); its Option A decision below stands as a separate content task.** Recorded 2026-10-30. Documentation only: no Hub write, no product or article edit, no website-code change, no migration, no Search Console action.
 
 **Source of the decisions.** The owner's explicit choices, relayed in a message in this session after the owner reviewed [`STEP-4-OWNER-DECISIONS.md`](STEP-4-OWNER-DECISIONS.md) (PR #446, merge `c345878`). Where this record disagrees with a proposal there, this record controls. The audit ([`STEP-4-CONTENT-AUDIT.md`](STEP-4-CONTENT-AUDIT.md), PR #445) and the original decision package are unchanged historical evidence.
 
@@ -146,7 +146,7 @@ Common rules for every batch: the owner personally authorises each batch at the 
 - **Rollback:** paste the "Current" strings from §2 (article, collections, categories).
 - **QA:** EN and JA pages of the article (the two sentences changed, nothing else), the 4 collections and 2 categories (description in the header and `<meta name="description">`; unique across the 34 listing pages; counts unchanged; ItemList unchanged); check that the approved Japanese text for the article keeps 天然石.
 - **Stop conditions:** any text differs from the recorded current text (drift) — stop and re-review; any edit alters product counts; any extra change appears in the article body.
-- **Closure:** BUG-03 closes only after the live EN and JA re-fetch shows the old origin wording gone, and is recorded dated in `SEO-DEFECTS-2026-10-29.md`.
+- **Closure (content task, since PR #450):** the article edit is complete only after the live EN and JA re-fetch shows the old origin wording gone, recorded dated in `SEO-DEFECTS-2026-10-29.md`. It is no longer an SEO blocker or status item.
 
 ### H2 — N1616 and 8C100 repeated-origin text
 - **Scope / fields:** `website_products.description_en` / `description_ja` for N1616 and 8C100. Badges and `origin` untouched.
@@ -218,4 +218,4 @@ No Hub write, no live product edit, no article edit, no name or slug change, no 
 
 No product correction is authorised for any of these four. A sold product does not require a change merely because its name omits a material. Their collection and category memberships are untouched.
 
-**Owner publishing checklist:** [`STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md`](STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md). Status stays: Step 4 AUDITED — OWNER APPROVAL PENDING; BUG-03 OPEN; H1 not implemented. Owner decisions recorded. No Hub implementation authorized or performed.
+**Owner publishing checklist:** [`STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md`](STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md). Status stays: Step 4 AUDITED — OWNER APPROVAL PENDING; BUG-03 moved out of SEO scope (owner, 2026-10-31); H1 not implemented. Owner decisions recorded. No Hub implementation authorized or performed.
