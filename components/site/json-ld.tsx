@@ -3,6 +3,7 @@ import { siteUrl } from "@/lib/site";
 import { PATH_HEADER } from "@/lib/i18n";
 import { localeOf } from "@/lib/locale";
 import { buildJsonLd, type JsonLdProps } from "@/lib/json-ld";
+import { serializeJsonLd } from "@/lib/json-ld-script";
 
 /**
  * Renders the page's JSON-LD. The data itself comes from the pure builder in
@@ -17,5 +18,5 @@ export async function JsonLd(props: JsonLdProps) {
   const path = (await headers()).get(PATH_HEADER);
   const locale = path ? localeOf(path) : null;
   const data = buildJsonLd(props, siteUrl(), locale ? (`/${locale}` as "/en" | "/ja") : "");
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />;
 }
