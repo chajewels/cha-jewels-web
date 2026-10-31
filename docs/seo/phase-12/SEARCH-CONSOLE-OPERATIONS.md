@@ -15,7 +15,7 @@
 | Who has Owner/Full access; whether Claude Code is ever given a read-only export (CSV files dropped into a folder) | Owner decision OD-SC-1 |
 | Property for the old domain `chajewelsjapan.com` (to watch its traffic fall once D2 redirects) | UNKNOWN |
 | Merchant Center account (Phase 5) and GBP (Phase 10) for the monthly review | UNKNOWN (X8) |
-| Analytics (GA4 or the site's tracking — baseline §11 says "do not disturb") for commercial metrics | Browser tracking in code (verified 2026-10-31): Vercel Web Analytics custom events plus consent-gated Meta Pixel and Google Ads tags; no GA4 tag found. Orders and revenue live only in the Hub. Which dashboard the owner reads is UNVERIFIED |
+| Analytics (GA4 or the site's tracking — baseline §11 says "do not disturb") for commercial metrics | Browser tracking in code (verified 2026-10-31): Vercel Web Analytics custom events plus consent-gated Meta Pixel and Google Ads tags; no GA4 tag found. The Hub is authoritative for orders and payments. Consent-gated advertising tags receive purchase-labelled values after order, draft or plan creation; those events do not establish confirmed payment or realized revenue. Organic purchase/revenue attribution is not implemented. Whether any dashboard (Vercel, Meta, Google Ads) actually receives and displays these events is UNVERIFIED |
 
 ## 2. Weekly export (plan §19)
 

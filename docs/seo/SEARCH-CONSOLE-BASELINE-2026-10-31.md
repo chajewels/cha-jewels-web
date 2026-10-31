@@ -50,7 +50,9 @@ Filters used (from `Filters.csv` [X]): Search type = Web (text-based); Date = La
 - **Disclosed queries are branded; undisclosed queries are unknown.** The two listed queries both contain the brand name. They account for 2 of the 5 impressions and none of the 1 click. The other 3 impressions and the click belong to queries Google did not disclose; nothing is known about them, and they are not assumed to be branded or non-brand.
 - **No non-brand visibility is demonstrated by this sample.**
 - **These are initial observations, not meaningful performance results.** Five impressions on one day cannot support a trend, a ranking claim or a comparison.
-- **The 2026-10-28 data cannot evaluate later deployments.** It predates the 2026-10-29 releases (Step 2, Step 3a and its follow-up, OG-PRODUCT per the register), the 2026-10-29 sitemap submission, and Step 4. No effect of any of them can be read from it.
+- **The 2026-10-28 data cannot evaluate later deployments.** It predates every release below, the 2026-10-29 sitemap submission, and Step 4. No effect of any of them can be read from it.
+  - **Releases merged on 29 October (JST):** Step 2 (PR #433, 20:47), Step 3a (PR #436, 22:31) and the Step 3a follow-up (PR #439, 23:38).
+  - **OG-PRODUCT, a separate release:** PR #442, merged 30 October 00:39 JST.
 - **Property totals and page totals are kept separate.** The property total is 5 impressions; the four page rows add up to 7; the two query rows add up to 2; the country rows and the device rows each add up to 5. The country and device rows reproduce the property average position of 3.4 when weighted by impressions; the page rows do not (they weight to about 4.6). **This is an unexplained aggregation difference, not a confirmed defect, and the cause is not determined.** No correction is applied and neither number is adjusted to match the other.
 - No indexed-page claim is made from Performance. Appearing for a query is not evidence that a given URL is indexed beyond the three priority URLs recorded on 2026-10-30.
 
