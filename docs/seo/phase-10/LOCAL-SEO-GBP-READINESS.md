@@ -125,7 +125,7 @@ For each surface: record the exact Name, Address, Phone, Website, hours shown; m
 | Tokyo Katsushika Central Rotary Club listing (if public) | |
 | Payment providers' merchant pages (Square, Paidy): legal name and URL | |
 | 国税庁 invoice registration lookup (T7011801044120): name must match the registered name | |
-| Old domain `chajewelsjapan.com` (D2 BLOCKED): any listing still pointing there | |
+| Old domain `chajewelsjapan.com` (D2: kept as the live Page365 shop, no redirect, owner 2026-10-31): business listings should point to `www.chajewelsjp.com` | |
 | Apple Maps / Yahoo! Japan / Bing Places entries (search the phone number) | |
 | Website: `/contact`, `/legal/tokusho`, receipts header, JSON-LD | MATCH by construction, except G1/G2 |
 

@@ -1,7 +1,7 @@
 # Phase 11 — Backlinks and authority: documented opportunities
 
 **Status:** AUDITED (documentation only). No outreach was sent, no listing was created, no partner was contacted. Nothing in this file is a commitment by or to any third party.
-**Date:** 2026-10-29 · **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` PHASE 11, §29 "Authority" · **Related:** D2 (old-domain redirect, BLOCKED), Phase 10 §2 (published memberships)
+**Date:** 2026-10-29 · **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` PHASE 11, §29 "Authority" · **Related:** D2 (old domain: owner decided KEEP, no redirect, 2026-10-31), Phase 10 §2 (published memberships)
 
 ---
 
@@ -18,7 +18,7 @@
 
 | Asset | State | Action (owner) |
 |---|---|---|
-| Old domain `chajewelsjapan.com` | D2: redirect to `www.chajewelsjp.com` is **BLOCKED — external DNS/host configuration** (status doc). Any link the old domain earned is lost until it 301s. | Resolve D2 at the registrar/host. This is the single highest-value "backlink" task: it recovers existing equity rather than earning new. |
+| Old domain `chajewelsjapan.com` | D2 decided 2026-10-31: the owner keeps it as the live Page365 shop; **no redirect** (the Hub's Page365 inventory fetch and invoice import depend on it). | Optional: a link to `https://www.chajewelsjp.com/` in the Page365 shop's own about text (owner, in Page365). |
 | `agreement.chajewelsjp.com` (layaway and card agreements) | Own subdomain. | Ensure it links back to `www.chajewelsjp.com` in its footer (if it has one) and is not indexable for customer-specific pages. Verify; UNVERIFIED here. |
 | Facebook page / Messenger `m.me/chajewelsjapan` | Published channel. | Website field = `https://www.chajewelsjp.com/`; About text uses the §3 NAP set from Phase 10. |
 | Tokyo Chamber of Commerce and Industry membership (joined 2026.03, published on `/about`) | Real membership. | Check whether members get a public directory entry with a website field; if so, complete it. |
@@ -68,7 +68,7 @@ Search results used for the examples above (titles as returned; relevance and cu
 | OD-AUTH-1 | Who speaks for the company in interviews and community pitches (founder; staff). |
 | OD-AUTH-2 | Whether the company wants Filipino-community-press coverage (it names the founder and the business publicly). |
 | OD-AUTH-3 | Budget for real sponsorships (events), if any — with the `sponsored` rule above. |
-| OD-AUTH-4 | Priority: D2 old-domain redirect first (recovers existing links) — confirm who can change DNS/host for `chajewelsjapan.com`. |
+| OD-AUTH-4 | WITHDRAWN 2026-10-31: owner decided to keep `chajewelsjapan.com` as the live Page365 shop (no redirect). |
 
 ## 7. Documentation used
 
