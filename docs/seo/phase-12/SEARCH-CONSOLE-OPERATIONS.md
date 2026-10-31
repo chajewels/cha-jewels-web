@@ -15,7 +15,7 @@
 | Who has Owner/Full access; whether Claude Code is ever given a read-only export (CSV files dropped into a folder) | Owner decision OD-SC-1 |
 | Property for the old domain `chajewelsjapan.com` (to watch its traffic fall once D2 redirects) | UNKNOWN |
 | Merchant Center account (Phase 5) and GBP (Phase 10) for the monthly review | UNKNOWN (X8) |
-| Analytics (GA4 or the site's tracking — baseline §11 says "do not disturb") for commercial metrics | UNVERIFIED which tool and who reads it |
+| Analytics (GA4 or the site's tracking — baseline §11 says "do not disturb") for commercial metrics | Browser tracking in code (verified 2026-10-31): Vercel Web Analytics custom events plus consent-gated Meta Pixel and Google Ads tags; no GA4 tag found. The Hub is authoritative for orders and payments. Consent-gated advertising tags receive purchase-labelled values after order, draft or plan creation; those events do not establish confirmed payment or realized revenue. Organic purchase/revenue attribution is not implemented. Whether any dashboard (Vercel, Meta, Google Ads) actually receives and displays these events is UNVERIFIED |
 
 ## 2. Weekly export (plan §19)
 
@@ -90,7 +90,7 @@ English words anchored at the start (plan §20 "queries beginning with"); Japane
 | Product indexing | Pages export filtered `/products/`; Enhancements → Product snippets / Merchant listings | Count of product URLs with impressions; valid/invalid items |
 | Merchant Center health (Phase 5, once live) | Merchant Center Diagnostics | Active / disapproved / pending counts; top disapproval reasons |
 | Rich results | Enhancements reports (Product, FAQ, Breadcrumb when Phase 4 adds it) | Valid / warning / error counts |
-| Organic revenue / conversion | Analytics tool (UNVERIFIED which) | Organic sessions, add-to-cart, checkout start, orders, layaway starts (plan §29) — only if the tool reports them |
+| Organic revenue / conversion | Vercel Web Analytics (events) and the Hub (orders); no organic-source join exists in code | Organic sessions, add-to-cart, checkout start, orders, layaway starts (plan §29) — only if the tool reports them |
 | Backlink growth | Search Console Links export | Top linking sites count vs last month |
 | Local (Phase 10, if a profile exists) | GBP Performance | Views, calls, website clicks — OBSERVED only |
 
