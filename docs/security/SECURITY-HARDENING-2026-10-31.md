@@ -29,6 +29,9 @@ None intended and none observed. No route, redirect, canonical, hreflang, sitema
 ## Rollback
 Revert this PR's commits. No data, migration, Hub, environment or configuration change.
 
+## Release blocker for W-01 / W-02 / W-03 (2026-10-31)
+The three website fixes are on `develop` but reach production only with the next website release, which also ships the SEO foundation (#452) and was blocked by React #418. Its cause is found and a fix is proposed on `fix/react-418-hydration-replay` (`docs/seo/SEO-QA-REPORT.md` §15, "React #418 — cause found"). The `website` Hub edge function (H-07's server-side save check) is held until the same release, because the live storefront cannot yet show `messenger_link_invalid`. The build-time React patch must be removed when Next is upgraded (W-12's Next 16 phase).
+
 ## Correction batch (independent review, 2026-10-31)
 No blocker found. Website items applied: the Messenger link is stored in canonical form (`url.href`, both repos together); the `\u003c` escape text restored in this doc and in `lib/json-ld-script.ts`; the W-01 row lists the two dev/build-time lock moves; `supabase/contracts/api.md` records `422 messenger_link_invalid` on `POST /auth/customer`.
 

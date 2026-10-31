@@ -37,5 +37,19 @@ const config: NextConfig = {
   async redirects() {
     return [{ source: "/gold-guide", destination: "/jewelry-guide#metals", permanent: true }];
   },
+  // React #418 (the SEO record's hydration error): Next 15's bundled React
+  // 19.2 replays a suspended element during hydration without rewinding the
+  // hydration cursor (react/react#37584, fixed in react-dom 19.3.0). This
+  // loader copies React 19.3's own fix into the bundled react-dom client, and
+  // FAILS the build if it cannot find the exact place — never a silent no-op.
+  // A React that already has the fix is left unchanged. Remove when Next is
+  // upgraded (scripts/react-hydration-replay-fix.cjs explains).
+  webpack(webpackConfig) {
+    webpackConfig.module.rules.push({
+      test: /[\\/]next[\\/]dist[\\/]compiled[\\/]react-dom(?:-experimental)?[\\/]cjs[\\/]react-dom-client\.(?:production|development)\.js$/,
+      use: [{ loader: path.join(__dirname, "scripts/react-hydration-replay-fix.cjs") }],
+    });
+    return webpackConfig;
+  },
 };
 export default config;
