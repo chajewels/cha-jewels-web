@@ -240,6 +240,50 @@
 }
 
 /* ---------------------------------------------------------------------------
+   CHA JEWELS — JAPANESE DISPLAY SIZES (docs/tasks/lumiere-p0-report.md §5.8,
+   §13, owner-approved 2026-11-01). Instrument Serif has no Japanese glyphs, so
+   on `/ja` the display face is Noto Serif JP 500 (`--font-jp`, the site's
+   existing heading face) with Latin fragments still falling to Instrument
+   Serif; a Mincho at the Latin sizes overflowed the measured slots, so the
+   four sizes the table names step down: hero headline 56 u (EN 82), the
+   collections heading 56 u (EN 64; 28 px on a phone), the card titles 44 u
+   (EN 48), the card index 14 px on a phone. Scoped to the Lumière home and
+   to `lang="ja"`, so nothing else moves.
+   --------------------------------------------------------------------------- */
+html:lang(ja) .lumiere-home {
+  /* Tier 2 directly, not Tier 1: a `--type-x: var(--raw-x)` binding on :root
+     resolves at :root, so a Tier 1 override on a descendant never reaches the
+     utility. The bands below restate each at the same breakpoints the
+     reference's own ramps use. */
+  --type-display: calc(56 * var(--raw-unit-design));
+  --type-display-leading: calc(61.6 * var(--raw-unit-design)); /* 56 x 1.1 (§5.7: leading ≥ 1.1) */
+  --type-collections-heading: calc(56 * var(--raw-unit-design));
+  --type-collections-heading-leading: calc(61.6 * var(--raw-unit-design));
+  --type-card-title: calc(44 * var(--raw-unit-design));
+  --type-card-title-leading: calc(48.4 * var(--raw-unit-design));
+}
+
+@media (max-width: 1439.98px) {
+  html:lang(ja) .lumiere-home {
+    --type-display: clamp(2.25rem, 9vw, calc(56 * var(--raw-unit-design)));
+    --type-display-leading: calc(1.1 * clamp(2.25rem, 9vw, calc(56 * var(--raw-unit-design))));
+    --type-collections-heading: clamp(28px, calc(28px + 28 * (100vw - 320px) / 1120), 56px);
+    --type-collections-heading-leading: calc(1.1 * clamp(28px, calc(28px + 28 * (100vw - 320px) / 1120), 56px));
+    --type-card-title: clamp(28px, calc(28px + 16 * (100vw - 320px) / 1120), 44px);
+    --type-card-title-leading: calc(1.1 * clamp(28px, calc(28px + 16 * (100vw - 320px) / 1120), 44px));
+  }
+}
+
+@media (max-width: 767.98px) {
+  html:lang(ja) .lumiere-home {
+    --type-display: clamp(2rem, min(9.2vw, 4.4vh), 36px);
+    --type-display-leading: calc(1.1 * clamp(2rem, min(9.2vw, 4.4vh), 36px));
+    --type-card-index: 14px;
+    --type-card-index-leading: 15.4px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    RESPONSIVE — everything below 1440 only.
 
    The desktop composition is one long chain hanging off `--raw-unit-design`:

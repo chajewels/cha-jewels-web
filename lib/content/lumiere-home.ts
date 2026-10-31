@@ -1,0 +1,322 @@
+/**
+ * THE LUMIÈRE HOME'S COPY AND SLOTS (P2; docs/tasks/lumiere-p0-report.md §13
+ * copy-fit table and §14 short category names, both APPROVED 2026-11-01).
+ *
+ * Every line below is one of the rows the owner approved, drawn from existing
+ * site copy (`lib/i18n.ts`, `lib/content/about.ts`, `lib/content/frame.ts`)
+ * and shortened only where the table marks ✂. Line breaks are the table's:
+ * the engine sets a heading one line per entry, never wrapping, so the breaks
+ * are stated here rather than arrived at. Italic runs are the reference's
+ * typography (an italic capital opening a word) and exist in English only —
+ * `runsFor` strips them for Japanese (§5.2), and `LINES` below writes none.
+ *
+ * Photographs, models and the featured names are Lumière's own placeholders
+ * (lib/lumiere/placeholders.ts, D-16) until the Hub swap; the data shape is the
+ * one a Hub payload will fill. Business text is never a placeholder.
+ *
+ * Changing a string here is a content change, not a design change (§13).
+ */
+import type { Lang } from "@/lib/i18n";
+import { dict } from "@/lib/i18n";
+import { CATEGORY_BLURB } from "@/lib/content/frame";
+import { aboutCopy } from "@/lib/content/about";
+import type { TextRun } from "@/lib/lumiere/text-runs";
+import {
+  COLLECTION_PHOTOS,
+  FEATURED_PIECES,
+  HERO_CARDS,
+  PENDANT,
+  PHILOSOPHY,
+  type PlaceholderAsset,
+  type PlaceholderPiece,
+} from "@/lib/lumiere/placeholders";
+
+const plain = (text: string): TextRun[] => [{ text }];
+/** "Timeless" → an italic "T" and the rest roman, as the reference opens its lines. */
+const cap = (text: string): TextRun[] => [{ text: text.charAt(0), italic: true }, { text: text.slice(1) }];
+/** Several words, each opening on an italic capital ("explore collections" in the reference). */
+const caps = (...words: string[]): TextRun[] =>
+  words.flatMap((word, i) => [
+    { text: word.charAt(0), italic: true },
+    { text: word.slice(1) + (i < words.length - 1 ? " " : "") },
+  ]);
+
+/* ---------------------------------------------------------------- categories (§14) */
+
+export interface LumiereCategory {
+  slug: string;
+  /** Pill label in the hero index (≤ 65 u). */
+  pill: string;
+  /** Card title in the collections block (with its full stop). */
+  title: TextRun[];
+  /** The card's index line: the existing eyebrow, never a number (D-24, secondhand-dealer rule). */
+  index: string;
+  /** The card note, `CATEGORY_BLURB`, as the two lines the table measured. */
+  note: string[];
+}
+
+const EYEBROW: Record<string, keyof typeof dict.home> = {
+  "fine-jewelry": "heroCallerFine",
+  "preloved-jewelry": "heroPrelovedEyebrow",
+  "preloved-branded-jewelry": "heroCallerBranded",
+  "preloved-watches": "heroCallerWatches",
+  "preloved-designer-accessories": "heroCallerAccessories",
+};
+
+export const CATEGORY_SHORT_NAME: Record<string, Record<Lang, { pill: string; title: string }>> = {
+  "fine-jewelry": { en: { pill: "New", title: "New Jewelry." }, ja: { pill: "新品", title: "新品ジュエリー。" } },
+  "preloved-jewelry": { en: { pill: "Preloved", title: "Preloved Jewelry." }, ja: { pill: "プレラブド", title: "プレラブド。" } },
+  "preloved-branded-jewelry": { en: { pill: "Branded", title: "Branded Jewelry." }, ja: { pill: "ブランド", title: "ブランド品。" } },
+  "preloved-watches": { en: { pill: "Watches", title: "Watches." }, ja: { pill: "ウォッチ", title: "ウォッチ。" } },
+  "preloved-designer-accessories": { en: { pill: "Accessories", title: "Designer Accessories." }, ja: { pill: "小物", title: "デザイナー小物。" } },
+};
+
+/** The note's two lines, as §13 row 11 measured them. */
+const NOTE_LINES: Record<string, Record<Lang, string[]>> = {
+  "fine-jewelry": { en: ["New gold, pearl", "and diamond"], ja: ["新作のゴールド・", "パール・ダイヤモンド"] },
+  "preloved-jewelry": { en: ["Unbranded gold", "and platinum"], ja: ["ノンブランドの", "ゴールド・プラチナ"] },
+  "preloved-branded-jewelry": { en: ["Signature pieces", "from jewelry houses"], ja: ["ジュエリーハウスの", "シグネチャー"] },
+  "preloved-watches": { en: ["Selected branded", "watches"], ja: ["厳選したブランド", "ウォッチ"] },
+  "preloved-designer-accessories": { en: ["Wallets, card", "cases, belts"], ja: ["財布、カード", "ケース、ベルト"] },
+};
+
+/** The five Hub categories in the hero's and the collections' order. */
+export const CATEGORY_ORDER = [
+  "fine-jewelry",
+  "preloved-jewelry",
+  "preloved-branded-jewelry",
+  "preloved-watches",
+  "preloved-designer-accessories",
+] as const;
+
+export const lumiereCategories = (lang: Lang): LumiereCategory[] =>
+  CATEGORY_ORDER.map((slug) => {
+    const short = CATEGORY_SHORT_NAME[slug][lang];
+    const noteLines = NOTE_LINES[slug][lang];
+    // The two-line split is a measured break; the joined text must still be
+    // CATEGORY_BLURB, so a blurb edit cannot drift from its lines unnoticed.
+    const joined = noteLines.join(lang === "ja" ? "" : " ");
+    const blurb = CATEGORY_BLURB[slug][lang];
+    return {
+      slug,
+      pill: short.pill,
+      title: lang === "en" ? cap(short.title) : plain(short.title),
+      index: dict.home[EYEBROW[slug]][lang],
+      note: joined === blurb ? noteLines : [blurb],
+    };
+  });
+
+/* ---------------------------------------------------------------- hero (§13 rows 1–7) */
+
+export interface HeroCardSlot {
+  position: number;
+  image: PlaceholderAsset;
+  /** Object-position for the cover crop (the reference's). */
+  objectPosition?: string;
+}
+
+export interface LumiereHeroContent {
+  headline: TextRun[][];
+  headlinePhoto: TextRun[][];
+  /** The standfirst: one line that wraps in English (`wrap` mode); named lines in Japanese (§5.3). */
+  tagline: TextRun[][];
+  taglinePhoto: TextRun[][];
+  /** Whether the standfirst may wrap in the engine's row (EN only). */
+  taglineWraps: boolean;
+  cta: { runs: TextRun[]; href: string };
+  scrollLabel: string;
+  categories: { label: string; href: string }[];
+  /** The category strip's width in design units: 85 for EN, 100 for JA (row 7). */
+  categoryStripWidth: number;
+  cards: HeroCardSlot[];
+  frame3: PlaceholderAsset;
+  pendant: typeof PENDANT;
+}
+
+const HERO: Record<Lang, Pick<LumiereHeroContent, "headline" | "headlinePhoto" | "tagline" | "taglinePhoto" | "taglineWraps" | "scrollLabel">> = {
+  en: {
+    // hero.h1a / h1b, three named lines each (rows 1–2)
+    headline: [cap("Timeless"), plain("beauty"), plain("to wear.")],
+    headlinePhoto: [cap("Lasting"), plain("value"), plain("to pass on.")],
+    // ✂ hero.lede (row 3) and ✂ home.valuesP (row 4)
+    tagline: [plain("Every piece chosen for quality, elegance and enduring worth.")],
+    taglinePhoto: [plain("Beauty beyond trends, careful workmanship, quality you can trust.")],
+    taglineWraps: true,
+    scrollLabel: "scroll",
+  },
+  ja: {
+    headline: [plain("身につける、"), plain("時を超える"), plain("美しさ。")],
+    // ✂ the comma after 受け継がれる (row 2)
+    headlinePhoto: [plain("受け継がれる"), plain("確かな価値。")],
+    tagline: [plain("品質、気品、変わらない価値。"), plain("その基準で選んだジュエリー。")],
+    taglinePhoto: [plain("流行を超える美しさ。"), plain("丁寧な仕立て。"), plain("信頼できる品質。")],
+    taglineWraps: false,
+    scrollLabel: "スクロール",
+  },
+};
+
+/** The reference's crops for the eight cards (its `heroCards`); card 8 is the frame-3 photograph. */
+const CARD_CROPS: Record<number, string> = { 4: "center bottom", 6: "center bottom" };
+
+export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, collectionsHref: string): LumiereHeroContent => {
+  const cta = dict.hero.cta1[lang];
+  return {
+    ...HERO[lang],
+    // row 5: EN opens two words on italic capitals as the reference's CTA does; JA plain
+    cta: { runs: lang === "en" ? caps(...cta.toLowerCase().split(" ")) : plain(cta), href: collectionsHref },
+    categories: lumiereCategories(lang).map((c) => ({ label: c.pill, href: categoryHref(c.slug) })),
+    categoryStripWidth: lang === "ja" ? 100 : 85,
+    cards: HERO_CARDS.map((image, i) => ({ position: i + 1, image, objectPosition: CARD_CROPS[i + 1] })),
+    frame3: HERO_CARDS[7],
+    pendant: PENDANT,
+  };
+};
+
+/* ---------------------------------------------------------------- collections (§13 rows 8–12) */
+
+export interface LumiereCollectionCard {
+  category: LumiereCategory;
+  href: string;
+  image: PlaceholderAsset & { position: string; positionMobile: string; scale: number; scaleMobile: number; aimMobile: number };
+  /** Figma's measure for the note, in design units: 9 em = 126 u (EN), 10 em = 140 u (JA). */
+  noteWidth: number;
+  width: "narrow" | "wide" | "full";
+}
+
+export interface LumiereCollectionsContent {
+  heading: TextRun[][];
+  lead: string;
+  cta: TextRun[];
+  cards: LumiereCollectionCard[];
+}
+
+const COLLECTIONS: Record<Lang, Pick<LumiereCollectionsContent, "heading" | "lead">> = {
+  en: {
+    // home.colsEyebrow (category wording, FIX 5) + ✂ hero.lede
+    heading: [caps("Shop", "by", "Category."), caps("Carefully", "Selected.")],
+    // home.colsP, second sentence (FIX 3)
+    lead: "Every listing shows weight, purity and stones.",
+  },
+  ja: {
+    heading: [plain("カテゴリーから選ぶ。"), plain("厳選したジュエリー。")],
+    lead: "すべての商品に重量・純度・石の情報を表示しています。",
+  },
+};
+
+/** The reference's four plates and crops, assigned to the five cards; the fifth, full-width card takes the widest plate. */
+const COLLECTION_IMAGES = [
+  { ...COLLECTION_PHOTOS.rings, position: "50% 100%", positionMobile: "13% 50%", scale: 1, scaleMobile: 1.4, aimMobile: 1 },
+  { ...COLLECTION_PHOTOS.necklaces, position: "50% 50%", positionMobile: "30% 50%", scale: 1, scaleMobile: 1.35, aimMobile: -1 },
+  { ...COLLECTION_PHOTOS.earrings, position: "0% 34.4%", positionMobile: "0% 50%", scale: 1.02, scaleMobile: 1, aimMobile: 0 },
+  { ...COLLECTION_PHOTOS.bracelets, position: "43.8% 97.5%", positionMobile: "100% 50%", scale: 1.029, scaleMobile: 1, aimMobile: 0 },
+  { ...COLLECTION_PHOTOS.necklaces, position: "50% 40%", positionMobile: "30% 50%", scale: 1, scaleMobile: 1.2, aimMobile: 0 },
+] as const;
+
+const COLLECTION_WIDTHS = ["narrow", "wide", "wide", "narrow", "full"] as const;
+
+export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => string): LumiereCollectionsContent => ({
+  ...COLLECTIONS[lang],
+  // row 12: home.colsLink
+  cta: lang === "en" ? caps(...dict.home.colsLink[lang].toLowerCase().split(" ")) : plain(dict.home.colsLink[lang]),
+  cards: lumiereCategories(lang).map((category, i) => ({
+    category,
+    href: categoryHref(category.slug),
+    image: COLLECTION_IMAGES[i],
+    noteWidth: lang === "ja" ? 140 : 126,
+    width: COLLECTION_WIDTHS[i],
+  })),
+});
+
+/* ---------------------------------------------------------------- featured (§13 rows 13–16, D-7) */
+
+export interface LumiereFeaturedContent {
+  pieces: (PlaceholderPiece & { nameRuns: TextRun[] })[];
+  cta: string;
+  scrollCue: string;
+  /** The dots' screen-reader label, with `{n}` and `{total}` to fill (a template, so it can cross into the client). */
+  ringLabel: string;
+}
+
+const FEATURED: Record<Lang, { scrollCue: string; ring: string }> = {
+  en: { scrollCue: "Scroll to explore", ring: "Ring {n} of {total}" },
+  ja: { scrollCue: "スクロールして見る", ring: "リング {n} / {total}" },
+};
+
+export const lumiereFeatured = (lang: Lang): LumiereFeaturedContent => ({
+  // Placeholder names stay Latin in both languages (row 13); the italic capital is EN only.
+  pieces: FEATURED_PIECES.map((piece) => ({ ...piece, nameRuns: lang === "en" ? cap(`${piece.name}.`) : plain(`${piece.name}.`) })),
+  cta: dict.cart.add[lang],
+  scrollCue: FEATURED[lang].scrollCue,
+  ringLabel: FEATURED[lang].ring,
+});
+
+/* ---------------------------------------------------------------- philosophy (§13 rows 17–27) */
+
+export interface LumierePhilosophyContent {
+  lines: Record<"jewelry" | "quite" | "shapes" | "longer" | "look" | "keep", TextRun[]>;
+  notes: { top: string[]; left: string[]; right: string[]; bottom: string[] };
+  cta: { label: string; href: string };
+  backdrop: { wide: PlaceholderAsset; narrow: PlaceholderAsset };
+  photo: PlaceholderAsset;
+}
+
+const PHILOSOPHY_LINES: Record<Lang, LumierePhilosophyContent["lines"]> = {
+  en: {
+    // the four values of home.valuesP (FIX 4), italic capitals as the reference's rows
+    jewelry: caps("Beauty", "Beyond"),
+    quite: cap("Trends."),
+    shapes: caps("Value", "You", "Can", "Understand."),
+    longer: cap("Careful"),
+    look: cap("Workmanship."),
+    keep: caps("Quality", "You", "Can", "Trust."),
+  },
+  ja: {
+    jewelry: plain("流行を超える"),
+    quite: plain("美しさ。"),
+    // two runs, so a centred line splits at the 。 — never mid-word (§5.3)
+    shapes: [{ text: "分かりやすい" }, { text: "価値。" }],
+    longer: plain("丁寧な"),
+    look: plain("仕立て。"),
+    keep: [{ text: "信頼できる" }, { text: "品質。" }],
+  },
+};
+
+const PHILOSOPHY_NOTES: Record<Lang, LumierePhilosophyContent["notes"]> = {
+  en: {
+    top: ["Real materials.", "Clear details."],
+    left: ["authenticated", "in Japan"],
+    right: ["every listing", "shows weight"],
+    bottom: ["selected for authenticity,", "quality and lasting value"],
+  },
+  ja: {
+    top: ["確かな素材。", "明確な情報。"],
+    left: ["日本で", "真贋鑑定済み"],
+    right: ["すべての商品に", "重量を表示"],
+    bottom: ["真贋と品質、永く続く価値に", "目を配って選んでいます。"],
+  },
+};
+
+export const lumierePhilosophy = (lang: Lang, aboutHref: string): LumierePhilosophyContent => ({
+  lines: PHILOSOPHY_LINES[lang],
+  notes: PHILOSOPHY_NOTES[lang],
+  // row 27: navMenu.about → /about
+  cta: { label: dict.navMenu.about[lang], href: aboutHref },
+  backdrop: { wide: PHILOSOPHY.backdrop, narrow: PHILOSOPHY.backdropNarrow },
+  photo: PHILOSOPHY.hand,
+});
+
+/** The sources every philosophy row is drawn from, for the tests: rows 23 and 26 are ✂ about.closing. */
+export const PHILOSOPHY_SOURCES = (lang: Lang) => ({
+  closing: aboutCopy[lang].closing,
+  valuesP: dict.home.valuesP[lang],
+  eyebrow: dict.home.heroPrelovedEyebrow[lang],
+  colsP: dict.home.colsP[lang],
+});
+
+/* ---------------------------------------------------------------- chrome strings on home */
+
+export const LUMIERE_HOME_STRINGS: Record<Lang, { loading: string; collectionsIndex: string; menuTitle: string; accountTitle: string; corporateNo: string; legalNotice: string }> = {
+  en: { loading: "Loading", collectionsIndex: "Collections", menuTitle: "Menu", accountTitle: "Account", corporateNo: "Corporate number", legalNotice: "Legal notice" },
+  // §13 row 29: the Japanese footer label fits in full (特定商取引法に基づく表記, 168 u); only the English is shortened.
+  ja: { loading: "読み込み中", collectionsIndex: "コレクション", menuTitle: "メニュー", accountTitle: "マイアカウント", corporateNo: "法人番号", legalNotice: "特定商取引法に基づく表記" },
+};

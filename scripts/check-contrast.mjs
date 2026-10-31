@@ -19,6 +19,19 @@ const C = {
   tintA: "#EFEFEB", tintB: "#EBEBE8",
 };
 
+// LUMIÈRE (redesign/lumiere, P2; DESIGN-LUMIERE.md "Palette", report §15.2).
+// The home's flat pairs. The Tier 1 literals live in app/lumiere/tokens.css,
+// so these are checked against that file rather than tailwind.config.ts.
+const LUMIERE = {
+  "lm-surface": "#f4f0ec", "lm-content": "#000000", "lm-white": "#ffffff", "lm-black": "#000000",
+  "lm-border-muted": "#cfcfd0", "lm-ink": "#1c1c1c",
+};
+Object.assign(C, LUMIERE);
+const tokens = readFileSync(new URL("../app/lumiere/tokens.css", import.meta.url), "utf8").toLowerCase();
+for (const [name, hex] of Object.entries(LUMIERE)) {
+  if (!tokens.includes(hex.toLowerCase())) { console.error(`check-contrast: ${name} ${hex} is not in app/lumiere/tokens.css — table is stale`); process.exit(1); }
+}
+
 // Guard: the table above must agree with tailwind.config.ts.
 const cfg = readFileSync(new URL("../tailwind.config.ts", import.meta.url), "utf8");
 // Not spelled out in the config: `white` is Tailwind's own, and the two tints
@@ -27,7 +40,7 @@ const cfg = readFileSync(new URL("../tailwind.config.ts", import.meta.url), "utf
 // values, recorded here because that is what the text actually sits on.
 const TAILWIND_BUILTIN = new Set(["white", "tintA", "tintB"]);
 for (const [name, hex] of Object.entries(C)) {
-  if (TAILWIND_BUILTIN.has(name)) continue;
+  if (TAILWIND_BUILTIN.has(name) || name in LUMIERE) continue;
   if (!cfg.toLowerCase().includes(hex.toLowerCase())) { console.error(`check-contrast: ${name} ${hex} is not in tailwind.config.ts — table is stale`); process.exit(1); }
 }
 
@@ -53,6 +66,20 @@ for (const bg of DARK) for (const a of [1, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55
 for (const a of [1, 0.85, 0.8, 0.75, 0.72, 0.7, 0.65]) add(`chalk/${a * 100} text`, "chalk", "charcoal-mid", TEXT, a);
 // Gold text and gold rules — kept exactly as today.
 for (const bg of [...DARK, "charcoal-mid"]) { add("gold-pale text", "gold-pale", bg, TEXT); add("gold border", "gold", bg, NONTEXT); add("gold-pale focus ring", "gold-pale", bg, NONTEXT); }
+// LUMIÈRE HOME (P2). Type on the paper and on the black stage/footer, and the
+// footer's dim role at the two alphas the reference sets (0.5 at 1440 = 5.3:1,
+// the reference's own D-017 figure; 0.55 below). The category pills' hairline
+// stroke (#cfcfd0 on #f4f0ec, 1.68:1) is decorative — the pill's own black
+// label is what identifies the link — so it is not a row; the white type over
+// the collection and featured photographs needs the image-sampled rows §15.2
+// asks for and is measured in the browser in the P2 QA, not here.
+add("lumiere: content on surface (hero, collections, featured paper)", "lm-content", "lm-surface", TEXT);
+add("lumiere: ink index-active on surface (lit category pill)", "lm-ink", "lm-surface", TEXT);
+add("lumiere: white type on the black stage / footer", "lm-white", "lm-black", TEXT);
+add("lumiere: footer dim white/50 on black", "lm-white", "lm-black", TEXT, 0.5);
+add("lumiere: footer dim white/55 on black (below 1440)", "lm-white", "lm-black", TEXT, 0.55);
+add("lumiere: footer rule white/20 on black (non-text, decorative hairline — recorded, not gated)", "lm-white", "lm-black", 1, 0.2);
+add("lumiere: preloader count white/30 on black (decorative percentage; the rule carries the progress)", "lm-white", "lm-black", 1, 0.3);
 // Muted labels on the LIGHT surfaces, added 2026-09-21 with the Company nav
 // and /contact. Both shipped at an alpha that measured under 4.5 and axe caught
 // it: charcoal/55 is 3.16 on chalk, and the menu panel's charcoal/50 is 2.85 on

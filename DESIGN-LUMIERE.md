@@ -50,5 +50,7 @@ Lumière's photographs, models and featured names are interim (D-16). They live 
 | Phase | Status |
 |---|---|
 | P0 scan & report | DONE (PR #459) |
-| P1 foundation (deps, assets, fonts, tokens, engine, Lenis, common components, CSP, guards, this file) | this PR — existing pages render exactly as before |
-| P2 home · P3 chrome · P4 inner pages · P5 polish/performance | NOT STARTED |
+| P1 foundation (deps, assets, fonts, tokens, engine, Lenis, common components, CSP, guards, this file) | DONE (PR #461) — existing pages render exactly as before |
+| P2 home — A: the Lumière sections, header and footer on home, preloader, both scenes | IMPLEMENTING (`redesign/lumiere-p2-home`) |
+| P2 home — B: new arrivals ring, stories stack, EN layaway band + calculator, loyalty band (GetLayers references) | BLOCKED on the GetLayers MCP authorisation |
+| P3 chrome · P4 inner pages · P5 polish/performance | NOT STARTED |

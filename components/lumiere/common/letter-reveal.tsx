@@ -92,7 +92,7 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 
 const toChildren = (runs: readonly TextRun[]) =>
   runs.flatMap((run, index) => {
-    const text = run.text.replace(/ /g, " ");
+    const text = run.text.replace(/ /g, "\u00A0");
     const className = run.italic ? "italic" : undefined;
     if (isSimple(text)) return [<span key={index} className={className}>{text}</span>];
     const pieces: { text: string; node: boolean }[] = [];

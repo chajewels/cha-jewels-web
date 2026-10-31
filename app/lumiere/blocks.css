@@ -97,6 +97,19 @@
     width: calc(788 * var(--raw-unit-design));
   }
 
+  /* CHA JEWELS (D-8, report §8): a fifth card on a third row, the full width
+     of the two above it — `wide + gap + narrow` = 1360 at the design width —
+     and the section grows by one row and one gap (1134 + 425 + 12). Every
+     other rule the card carries is the reference's, so the fifth behaves as
+     its siblings at every breakpoint; the width rules below restate it. */
+  .collections__card--full {
+    width: calc(1360 * var(--raw-unit-design));
+  }
+
+  .collections--five {
+    height: calc(1571 * var(--raw-unit-design));
+  }
+
   /* Parallax frame (collection-card.tsx): taller than the card by
      `--photo-room` at each end, so the photograph can slide inside the card's
      window without showing an edge. The card's own overflow clips it.
@@ -385,7 +398,8 @@
       aspect-ratio: 560 / 425;
     }
 
-    .collections__card--wide {
+    .collections__card--wide,
+    .collections__card--full {
       width: auto;
       flex: 1 1 57.4%;
     }
@@ -454,7 +468,8 @@
     }
 
     .collections__card--narrow,
-    .collections__card--wide {
+    .collections__card--wide,
+    .collections__card--full {
       flex: 1 1 calc(50% - var(--coll-gap) / 2);
       aspect-ratio: 560 / 425;
     }
@@ -525,7 +540,8 @@
     }
 
     .collections__card--narrow,
-    .collections__card--wide {
+    .collections__card--wide,
+    .collections__card--full {
       flex: none;
       width: 100%;
       aspect-ratio: 4 / 3;
@@ -2617,5 +2633,215 @@
 
   .footer__meta--social .footer__dot {
     color: #fff;
+  }
+
+  /* =========================================================================
+     CHA JEWELS FOOTER (P2; components/lumiere/footer/footer-section.tsx).
+     The reference's footer is a 320-unit placed frame with three link
+     columns and an e-mail line. This site's carries more — the mark as badge
+     + name, four columns (the company block is the fourth), the Hub tagline
+     over the field, the payment marks beside the social row — so the frame
+     becomes a flowing grid at every width: the same type, the same colours,
+     the same rows (mark and invitation, the lists, the small print), with
+     room for what it holds. Every selector below is scoped to `.footer--cha`.
+     ========================================================================= */
+  .footer.footer--cha {
+    position: relative;
+    inset: auto;
+    display: grid;
+    height: auto;
+    min-height: calc(320 * var(--raw-unit-design));
+    padding-block: calc(40 * var(--raw-unit-design)) calc(32 * var(--raw-unit-design));
+    padding-inline: var(--site-footer-gutter);
+    grid-template-areas:
+      "logo    subscribe"
+      "columns columns"
+      "rule    rule"
+      "rights  legal"
+      "social  social";
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    row-gap: calc(40 * var(--raw-unit-design));
+    column-gap: calc(48 * var(--raw-unit-design));
+  }
+
+  .footer--cha .footer__logo,
+  .footer--cha .footer__columns,
+  .footer--cha .footer__subscribe,
+  .footer--cha .footer__rights,
+  .footer--cha .footer__meta,
+  .footer--cha .footer__rule {
+    position: static;
+    inset: auto;
+    margin: 0;
+    width: auto;
+    max-width: none;
+  }
+
+  /* The mark: the badge (white through the same filter the preloader uses)
+     and the name in Instrument Serif at the wordmark size (D-3). */
+  .footer--cha .footer__logo {
+    grid-area: logo;
+    display: flex;
+    align-items: center;
+    gap: calc(10 * var(--raw-unit-design));
+    height: calc(40 * var(--raw-unit-design));
+    overflow: visible;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .footer--cha .footer__badge {
+    display: block;
+    width: auto;
+    height: 100%;
+    filter: brightness(0) invert(1);
+  }
+
+  .footer--cha .footer__wordmark {
+    font-size: calc(28 * var(--raw-unit-design));
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .footer--cha .footer__columns {
+    grid-area: columns;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(50 * var(--raw-unit-design));
+    align-items: start;
+  }
+
+  .footer--cha .footer__company .footer__column-title {
+    text-transform: none;
+    white-space: normal;
+    color: #fff;
+  }
+
+  .footer--cha .footer__company-line {
+    color: var(--site-footer-dim);
+    font-size: calc(12 * var(--raw-unit-design));
+    line-height: 1.45;
+    padding-block: 3px;
+  }
+
+  .footer--cha .footer__link {
+    white-space: normal;
+  }
+
+  .footer--cha .footer__link--button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .footer--cha .footer__subscribe {
+    grid-area: subscribe;
+    display: flex;
+    flex-direction: column;
+    gap: calc(16 * var(--raw-unit-design));
+    width: calc(331 * var(--raw-unit-design));
+    justify-self: end;
+  }
+
+  .footer--cha .footer__note--tagline {
+    color: #fff;
+    white-space: pre-line;
+  }
+
+  .footer--cha .footer__field-form {
+    position: relative;
+  }
+
+  .footer--cha .footer__message {
+    margin-top: calc(10 * var(--raw-unit-design));
+    color: #fff;
+    font-size: calc(12 * var(--raw-unit-design));
+    line-height: 1.4;
+  }
+
+  .footer--cha .footer__rule {
+    grid-area: rule;
+    display: block;
+    height: 1px;
+    background: var(--site-footer-rule);
+  }
+
+  .footer--cha .footer__rights {
+    grid-area: rights;
+    white-space: normal;
+  }
+
+  .footer--cha .footer__meta--legal {
+    grid-area: legal;
+    justify-self: end;
+  }
+
+  .footer--cha .footer__meta--social {
+    grid-area: social;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(16 * var(--raw-unit-design));
+    justify-self: stretch;
+  }
+
+  .footer--cha .footer__meta--social-list {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(12 * var(--raw-unit-design));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .footer--cha .footer__marks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(8 * var(--raw-unit-design));
+  }
+
+  @media (max-width: 1439.98px) {
+    .footer.footer--cha {
+      --site-footer-gutter: clamp(20px, calc(20px + 20 * (100vw - 375px) / 1064), 40px);
+      padding-block: 40px 32px;
+      row-gap: 32px;
+      column-gap: 32px;
+      font-size: 14px;
+      line-height: 11.2px;
+    }
+    .footer--cha .footer__logo { height: 40px; gap: 10px; }
+    .footer--cha .footer__wordmark { font-size: 24px; }
+    .footer--cha .footer__columns { gap: 32px 24px; }
+    .footer--cha .footer__company-line,
+    .footer--cha .footer__message { font-size: 12px; }
+    .footer--cha .footer__subscribe { width: min(331px, 100%); gap: 16px; }
+  }
+
+  @media (max-width: 1023.98px) {
+    .footer--cha .footer__columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 767.98px) {
+    .footer.footer--cha {
+      grid-template-areas:
+        "logo"
+        "subscribe"
+        "columns"
+        "rule"
+        "rights"
+        "legal"
+        "social";
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .footer--cha .footer__subscribe { justify-self: stretch; width: 100%; }
+    .footer--cha .footer__columns { grid-template-columns: minmax(0, 1fr); }
+    .footer--cha .footer__meta--legal { justify-self: start; }
+    .footer--cha .footer__meta--social { flex-direction: column; align-items: flex-start; }
   }
 }

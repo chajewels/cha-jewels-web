@@ -31,6 +31,7 @@ import { PageEnter } from "@/components/fx/page-enter";
 import { lumiereFontVariables } from "@/app/fonts";
 import { ScrollLayout } from "@/components/lumiere/scroll-layout";
 import { ReducedMotion } from "@/components/lumiere/common/reduced-motion";
+import { isHomePath } from "@/lib/lumiere/home-path";
 
 /**
  * ONLY THE FACES THAT ACTUALLY RENDER.
@@ -102,6 +103,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [lang, h] = await Promise.all([getLang(), headers()]);
   const deferJp = deferJpFont(lang, h.get(PATH_HEADER));
   const t = tr(lang);
+  // LUMIÈRE P2: the home page (/, /en, /ja) renders the Lumière chrome itself —
+  // the header inside the pinned hero, the footer as the last block
+  // (components/lumiere/home/home-view.tsx) — so the site header and footer
+  // step aside there. Every other page keeps them until P3 puts the Lumière
+  // chrome site-wide. The announcement bar, tab bar, Messenger button and
+  // consent banner stay on every page.
+  const lumiereHome = isHomePath(h.get(PATH_HEADER));
   // `announcement()` answers null for inactive, empty-in-this-language and
   // expired alike. CAUGHT, because the bar is chrome and this is the root
   // layout: an unreachable Hub must cost the strip, not every page on the site.
@@ -191,12 +199,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             render nothing. */}
         <ScrollLayout />
         <ReducedMotion />
-        <Header lang={lang} switchTargets={targets} />
+        {!lumiereHome && <Header lang={lang} switchTargets={targets} />}
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         {/* data-messenger: the Hub's Messenger link, for app/error.tsx — a client
             error boundary that cannot read the Hub itself. */}
         <main id="main" data-messenger={messenger ?? undefined}>{children}</main>
-        <Footer lang={lang} switchTargets={targets} />
+        {!lumiereHome && <Footer lang={lang} switchTargets={targets} />}
         <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
         {/* Last in the document, so no page chrome paints over it. */}
         {/* The cookie banner: asks once, and again from "Cookie settings" in the footer. */}

@@ -123,6 +123,14 @@ export const SECONDHAND_PERMIT_NO = "307762418064";
 export const INVOICE_REG_NO = "T7011801044120";
 
 /**
+ * The corporate number (法人番号), owner decision D-2 (2026-11-01,
+ * docs/tasks/lumiere-p0-report.md §1a): the invoice registration number above
+ * is "T" + this number. Shown in the footer's company block (JA 法人番号 /
+ * EN "Corporate number") next to the invoice registration and the permit.
+ */
+export const CORPORATE_NO = "7011801044120";
+
+/**
  * The registered address, factored out for the same reason COMPANY_NAME is:
  * it is an identifier, and every surface that prints it must print the same
  * characters. The tokusho row below is the statutory disclosure and reads from

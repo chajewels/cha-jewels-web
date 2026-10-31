@@ -1,0 +1,164 @@
+// Lumière P2 — the home's copy and slots (lib/content/lumiere-home.ts) against
+// the approved copy-fit table (docs/tasks/lumiere-p0-report.md §13) and the
+// short category names (§14), in both languages; and the root layout's
+// home-path switch.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+
+const {
+  CATEGORY_ORDER,
+  CATEGORY_SHORT_NAME,
+  lumiereCategories,
+  lumiereHero,
+  lumiereCollections,
+  lumiereFeatured,
+  lumierePhilosophy,
+  PHILOSOPHY_SOURCES,
+  LUMIERE_HOME_STRINGS,
+} = await import("@/lib/content/lumiere-home");
+const { CATEGORY_BLURB } = await import("@/lib/content/frame");
+const { dict } = await import("@/lib/i18n");
+const { isHomePath } = await import("@/lib/lumiere/home-path");
+
+const text = (runs) => runs.map((r) => r.text).join("");
+const href = (slug) => `/en/categories/${slug}`;
+
+test("five categories, in the Hub's order, with the §14 pill and card names", () => {
+  assert.deepEqual([...CATEGORY_ORDER], ["fine-jewelry", "preloved-jewelry", "preloved-branded-jewelry", "preloved-watches", "preloved-designer-accessories"]);
+  const en = lumiereCategories("en"), ja = lumiereCategories("ja");
+  assert.equal(en.length, 5);
+  assert.deepEqual(en.map((c) => c.pill), ["New", "Preloved", "Branded", "Watches", "Accessories"]);
+  assert.deepEqual(ja.map((c) => c.pill), ["新品", "プレラブド", "ブランド", "ウォッチ", "小物"]);
+  assert.deepEqual(en.map((c) => text(c.title)), ["New Jewelry.", "Preloved Jewelry.", "Branded Jewelry.", "Watches.", "Designer Accessories."]);
+  assert.deepEqual(ja.map((c) => text(c.title)), ["新品ジュエリー。", "プレラブド。", "ブランド品。", "ウォッチ。", "デザイナー小物。"]);
+  for (const slug of CATEGORY_ORDER) assert.ok(CATEGORY_SHORT_NAME[slug].en.pill.length <= 11, slug);
+});
+
+test("D-24: every card's index line is the existing eyebrow, never a number; the four preloved cards say preloved", () => {
+  for (const lang of ["en", "ja"]) {
+    const cards = lumiereCategories(lang);
+    assert.equal(cards[0].index, dict.home.heroCallerFine[lang]);
+    assert.equal(cards[1].index, dict.home.heroPrelovedEyebrow[lang]);
+    assert.equal(cards[2].index, dict.home.heroCallerBranded[lang]);
+    assert.equal(cards[3].index, dict.home.heroCallerWatches[lang]);
+    assert.equal(cards[4].index, dict.home.heroCallerAccessories[lang]);
+    for (const c of cards) assert.ok(!/^\d+$/.test(c.index), "no numeric index");
+    for (const c of cards.slice(1)) assert.match(c.index, lang === "en" ? /Preloved/ : /プレラブド/);
+  }
+});
+
+test("the card notes are CATEGORY_BLURB, split into the two measured lines", () => {
+  for (const lang of ["en", "ja"]) {
+    for (const c of lumiereCategories(lang)) {
+      assert.equal(c.note.join(lang === "ja" ? "" : " "), CATEGORY_BLURB[c.slug][lang], `${c.slug} ${lang}`);
+      assert.equal(c.note.length, 2, "two lines (row 11)");
+    }
+  }
+});
+
+test("hero copy is hero.h1a / h1b broken into the approved lines; the CTA is hero.cta1; five pills with category links", () => {
+  const en = lumiereHero("en", href, "/en/collections");
+  assert.equal(en.headline.map(text).join(" "), dict.hero.h1a.en, "the three lines are hero.h1a");
+  assert.equal(en.headlinePhoto.map(text).join(" "), dict.hero.h1b.en, "the three lines are hero.h1b");
+  assert.deepEqual(en.headline.map(text), ["Timeless", "beauty", "to wear."]);
+  assert.deepEqual(en.headlinePhoto.map(text), ["Lasting", "value", "to pass on."]);
+  assert.equal(en.headline.flat()[0].italic, true, "the italic capital opens the English line");
+  assert.equal(text(en.cta.runs).toLowerCase(), dict.hero.cta1.en.toLowerCase());
+  assert.equal(en.cta.href, "/en/collections");
+  assert.equal(en.categories.length, 5);
+  assert.deepEqual(en.categories.map((c) => c.href), CATEGORY_ORDER.map(href));
+  assert.equal(en.categoryStripWidth, 85);
+  assert.equal(en.taglineWraps, true);
+  assert.equal(en.cards.length, 8);
+  assert.ok(en.frame3.src.endsWith("card-08.webp"));
+
+  const ja = lumiereHero("ja", (s) => `/ja/categories/${s}`, "/ja/collections");
+  assert.deepEqual(ja.headline.map(text), ["身につける、", "時を超える", "美しさ。"]);
+  assert.equal(ja.headline.map(text).join(""), dict.hero.h1a.ja);
+  assert.deepEqual(ja.headlinePhoto.map(text), ["受け継がれる", "確かな価値。"], "✂ the comma after 受け継がれる");
+  assert.equal(text(ja.cta.runs), dict.hero.cta1.ja);
+  assert.equal(ja.categoryStripWidth, 100, "§13 row 7: the JA strip is 100 u");
+  assert.equal(ja.taglineWraps, false, "JA taglines are named lines (§5.3)");
+  assert.equal(ja.tagline.length, 2);
+  assert.equal(ja.taglinePhoto.length, 3);
+  for (const run of [...ja.headline, ...ja.headlinePhoto, ...ja.tagline, ...ja.taglinePhoto, ja.cta.runs].flat()) assert.ok(!run.italic, "no italic in Japanese");
+});
+
+test("collections: the §13 heading and lead, five cards with the fifth full-width (D-8), notes at 9 / 10 em", () => {
+  const en = lumiereCollections("en", href);
+  assert.deepEqual(en.heading.map(text), ["Shop by Category.", "Carefully Selected."]);
+  assert.equal(en.lead, "Every listing shows weight, purity and stones.");
+  assert.ok(dict.home.colsP.en.includes(en.lead), "FIX 3: the lead is colsP's second sentence");
+  assert.equal(text(en.cta).toLowerCase(), dict.home.colsLink.en.toLowerCase());
+  assert.deepEqual(en.cards.map((c) => c.width), ["narrow", "wide", "wide", "narrow", "full"]);
+  assert.deepEqual(en.cards.map((c) => c.noteWidth), [126, 126, 126, 126, 126]);
+  assert.deepEqual(en.cards.map((c) => c.href), CATEGORY_ORDER.map(href));
+  for (const c of en.cards) assert.ok(c.image.src.startsWith("/lumiere/placeholder/collections/"), c.image.src);
+  const ja = lumiereCollections("ja", href);
+  assert.deepEqual(ja.heading.map(text), ["カテゴリーから選ぶ。", "厳選したジュエリー。"]);
+  assert.equal(ja.cards[0].noteWidth, 140);
+  assert.equal(text(ja.cta), dict.home.colsLink.ja);
+});
+
+test("featured: five placeholder pieces, the price is '¥ —' and never a figure (D-7), the CTA is cart.add", () => {
+  for (const lang of ["en", "ja"]) {
+    const f = lumiereFeatured(lang);
+    assert.equal(f.pieces.length, 5);
+    for (const p of f.pieces) {
+      assert.equal(p.placeholder, true);
+      assert.equal(p.price, "¥ —");
+      assert.ok(!/\d/.test(p.price), "no digits in a placeholder price");
+      assert.ok(!/\$/.test(p.price), "never dollars");
+      assert.ok(p.model.src.endsWith(".glb") && p.poster.src.endsWith(".webp") && p.photo.src.endsWith(".webp"));
+    }
+    assert.equal(f.cta, dict.cart.add[lang]);
+    assert.ok(f.ringLabel.includes("{n}") && f.ringLabel.includes("{total}"), "a template, never a function (client boundary)");
+  }
+  assert.equal(text(lumiereFeatured("en").pieces[0].nameRuns), "Trinity.");
+  assert.equal(lumiereFeatured("en").pieces[0].nameRuns[0].italic, true);
+  assert.equal(lumiereFeatured("ja").pieces[0].nameRuns.some((r) => r.italic), false);
+});
+
+test("philosophy: the four values of home.valuesP (FIX 4), notes from about.closing / the eyebrow / colsP, 'About us' → /about", () => {
+  for (const lang of ["en", "ja"]) {
+    const p = lumierePhilosophy(lang, `/${lang}/about`);
+    const src = PHILOSOPHY_SOURCES(lang);
+    const lines = Object.values(p.lines).map(text).join(" ");
+    // every display row is a fragment of valuesP (case-insensitive, punctuation aside)
+    for (const row of Object.values(p.lines)) {
+      const plain = text(row).replace(/[.。]/g, "").toLowerCase();
+      assert.ok(src.valuesP.toLowerCase().includes(plain), `${lang}: "${text(row)}" is in valuesP`);
+    }
+    assert.ok(lines.length > 0);
+    // the notes draw from about.closing[1] (top), the preloved eyebrow (left), colsP (right), about.closing[0] (bottom)
+    const closingWords = src.closing.join(" ");
+    for (const line of p.notes.top) assert.ok(closingWords.includes(line.replace(/[.。]$/, "")), `${lang} top note "${line}"`);
+    assert.equal(p.cta.label, dict.navMenu.about[lang]);
+    assert.equal(p.cta.href, `/${lang}/about`);
+    assert.ok(p.backdrop.wide.src.endsWith("backdrop-frame.jpg") && p.backdrop.narrow.src.endsWith("backdrop-frame-412.jpg"));
+    if (lang === "ja") {
+      assert.equal(p.lines.shapes.length, 2, "a centred JA line is two runs so it splits at the 。");
+      assert.ok(Object.values(p.lines).flat().every((r) => !r.italic));
+    }
+  }
+});
+
+test("no British spelling and no origin claim in the home copy; strings exist in both languages", () => {
+  for (const lang of ["en", "ja"]) {
+    // Copy only — the placeholder assets' own alt text is the reference's and exempt (D-22, lib/lumiere/placeholders.ts).
+    const hero = lumiereHero(lang, href, "/x"), cols = lumiereCollections(lang, href), phil = lumierePhilosophy(lang, "/x");
+    const all = JSON.stringify([
+      hero.headline, hero.headlinePhoto, hero.tagline, hero.taglinePhoto, hero.cta.runs, hero.scrollLabel, hero.categories.map((c) => c.label),
+      cols.heading, cols.lead, cols.cta, cols.cards.map((c) => [c.category.title, c.category.index, c.category.note]),
+      phil.lines, phil.notes, phil.cta.label, LUMIERE_HOME_STRINGS[lang],
+    ]);
+    assert.ok(!/jeweller/i.test(all), "D-22");
+    assert.ok(!/made in japan|日本製/i.test(all), "origin only via origin-badge");
+    for (const v of Object.values(LUMIERE_HOME_STRINGS[lang])) assert.ok(v.length > 0);
+  }
+});
+
+test("isHomePath: /, /en, /ja (trailing slash, query ignored) and nothing else", () => {
+  for (const p of ["/", "/en", "/ja", "/en/", "/ja/", "/?lang=en", "/en?x=1", "/ja#top"]) assert.equal(isHomePath(p), true, p);
+  for (const p of ["/en/collections", "/about", "/english", "/japan", "/cart", "", null, undefined, "/en/about"]) assert.equal(isHomePath(p), false, String(p));
+});
