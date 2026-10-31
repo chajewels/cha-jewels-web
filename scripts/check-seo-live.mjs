@@ -446,4 +446,4 @@ for (const r of results) console.log(`${r.status.padEnd(8)} ${r.route.padEnd(w)}
 const n = (s) => results.filter((r) => r.status === s).length;
 console.log(`\ncoverage inventory (requests to ${BASE}; canonical origin expected ${PUBLIC_ORIGIN}):\n${cov.inventory()}`);
 console.log(`\n${BASE}: ${n("PASS")} pass, ${n("FAIL")} fail, ${n("DEFERRED")} deferred`);
-process.exit(n("FAIL") ? 1 : 0);
+process.exitCode = n("FAIL") ? 1 : 0;      // not process.exit(): a long report written to a pipe must be flushed first

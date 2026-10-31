@@ -176,6 +176,7 @@ test("validateSitemap rejects every way a sitemap can be unusable", () => {
 });
 
 // ------------------------------------------------------------------ the real checker against controlled fake sites
+const tail = (out) => `... output tail:\n${out.slice(-1800)}`;
 const run = (args, env) => new Promise((resolve) => {
   const p = spawn(process.execPath, [join(process.cwd(), "scripts/check-seo-live.mjs"), ...args], { env: { PATH: process.env.PATH, ...env }, cwd: process.cwd() });
   let out = ""; p.stdout.on("data", (d) => (out += d)); p.stderr.on("data", (d) => (out += d));
@@ -197,13 +198,13 @@ test("the raw checker FAILS CLOSED on an unusable sitemap, reporting expected, c
   const site = await fakeSite(3);                    // far too few URLs
   try {
     const r = await run([site.url], {});
-    assert.equal(r.code, 1, "an unusable sitemap fails the run");
+    assert.equal(r.code, 1, `an unusable sitemap fails the run (exit ${r.code})\n${tail(r.out)}`);
     assert.match(r.out, /valid: status 200, XML, a urlset, enough URLs/);
     assert.match(r.out, /only 3 URL/);
-    assert.match(r.out, /coverage missing: sitemap/);
-    assert.match(r.out, /coverage missing: dynamic-both-languages/);
-    assert.match(r.out, /coverage inventory/);
-    assert.match(r.out, /expected\s+checked\s+missing\s+skipped/);
+    assert.match(r.out, /coverage missing: sitemap/, tail(r.out));
+    assert.match(r.out, /coverage missing: dynamic-both-languages/, tail(r.out));
+    assert.match(r.out, /coverage inventory/, tail(r.out));
+    assert.match(r.out, /expected\s+checked\s+missing\s+skipped/, tail(r.out));
   } finally { await site.close(); }
 });
 

@@ -68,4 +68,4 @@ for (const r of rows) console.log(`${r.s.padEnd(5)} ${r.route.padEnd(w)}  ${r.wh
 console.log(`\ncoverage inventory:\n${cov.inventory()}`);
 const fails = rows.filter((r) => r.s === "FAIL").length, deferred = rows.filter((r) => r.s === "DEFERRED").length;
 console.log(`\n${BASE} (rollback mode): ${rows.length - fails - deferred} pass, ${fails} fail, ${deferred} deferred (documented, owner-tracked)`);
-process.exit(fails ? 1 : 0);
+process.exitCode = fails ? 1 : 0;      // not process.exit(): a long report written to a pipe must be flushed first

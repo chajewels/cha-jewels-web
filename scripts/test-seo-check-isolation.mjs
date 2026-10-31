@@ -132,4 +132,4 @@ async function fakeFamilylessSite(n = 30) {
 
 check("the sentinel appears nowhere in this script's own output", !out.join("\n").includes(SENTINEL));
 log(`\n${failures.length ? `FAILED: ${failures.length} check(s)` : "all credential-isolation and fail-closed checks passed"}`);
-process.exit(failures.length ? 1 : 0);
+process.exitCode = failures.length ? 1 : 0;
