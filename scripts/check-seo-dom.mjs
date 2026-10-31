@@ -37,9 +37,10 @@
 //     ... 404" line for a document this checker EXPECTED to be a 404 (exact URL), and, only while this checker
 //     is itself navigating, a same-origin Next link prefetch (`RSC: 1`), Server Action call or <video>/<audio>
 //     media stream cancelled by that navigation. Anything else fails.
-//  "Settled" = bounded readiness (max 10 s): document complete, the EXPECTED path reached, nothing in flight,
-//  and the metadata VALUES (canonical href, og:url, hreflang pairs, fb:app_id, robots, og:locale, title, h1)
-//  unchanged for 600 ms. A page that never settles is a FAIL, not a pass.
+//  "Settled" = bounded readiness (max 10 s): document complete, the EXPECTED path reached, nothing of the current
+//  navigation in flight (streaming media, websocket and eventsource requests excepted), and the metadata VALUES
+//  (canonical href, og:url, hreflang pairs, fb:app_id, robots, og:locale, title, h1) unchanged for 600 ms. A page
+//  that never settles is a FAIL that names what blocked it, not a pass.
 import { chromium } from "@playwright/test";
 import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, describeFailure, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
@@ -109,22 +110,27 @@ const signature = () => {
   return JSON.stringify({ ready: document.readyState, path: location.pathname, canonical: q('link[rel="canonical"]'), og: q('meta[property="og:url"]'), hreflang: [...document.querySelectorAll('link[rel="alternate"][hreflang]')].map((e) => `${e.getAttribute("hreflang")}=${e.getAttribute("href")}`), fb: q('meta[property="fb:app_id"]'), robots: q('meta[name="robots"]'), loc: q('meta[property="og:locale"]'), title: document.title, h1: document.querySelector("h1")?.textContent?.trim() ?? null });
 };
 
-// bounded readiness: complete, the EXPECTED path, nothing in flight, and the signature unchanged for `stableMs`
+// bounded readiness: complete, the EXPECTED path, nothing of the CURRENT navigation in flight, and the signature
+// unchanged for `stableMs`. In-flight tracking is reset at every navigation this checker starts (a request from an
+// earlier document is irrelevant to the page under test) and ignores streaming resource types that legitimately stay
+// open (media, websocket, eventsource); a failure names what blocked it.
+const STREAMING = new Set(["media", "websocket", "eventsource"]);
+const blocking = (page) => [...(page.__inflight ?? [])].filter((r) => !STREAMING.has(r.resourceType()));
 async function settle(page, { expectPath, stableMs = 600 }) {
   const t0 = Date.now();
-  const inflight = page.__inflight;
-  let last = null, since = 0;
+  let last = null, since = 0, changes = 0;
   while (Date.now() - t0 < SETTLE_MS) {
     const sig = await page.evaluate(signature).catch(() => null);
     const s = sig ? JSON.parse(sig) : null;
-    if (s && s.ready === "complete" && s.path === expectPath && (!inflight || inflight.size === 0)) {
+    if (s && s.ready === "complete" && s.path === expectPath && blocking(page).length === 0) {
       if (sig === last) { if (Date.now() - since >= stableMs) return { settled: true, ms: Date.now() - t0, path: s.path }; }
-      else { last = sig; since = Date.now(); }
+      else { if (last !== null) changes++; last = sig; since = Date.now(); }
     } else last = null;
     await page.waitForTimeout(100);
   }
   const s = await page.evaluate(signature).then((x) => JSON.parse(x)).catch(() => null);
-  return { settled: false, ms: Date.now() - t0, path: s?.path ?? "(unreadable)" };
+  const open = blocking(page);
+  return { settled: false, ms: Date.now() - t0, path: s?.path ?? "(unreadable)", why: `ready=${s?.ready ?? "?"} path=${s?.path ?? "?"} expected=${expectPath} inflight=${open.length}${open.length ? ` [${[...new Set(open.map((r) => `${r.resourceType()} ${new URL(r.url()).pathname}`))].slice(0, 4).join(", ")}]` : ""} signatureChanges=${changes}` };
 }
 
 for (const [ctxName, opts] of contexts) {
@@ -171,6 +177,7 @@ for (const [ctxName, opts] of contexts) {
     const url = `${ORIGINS.requestOrigin}${path}`;
     if (expect404) expected404.add(url);
     navigating = true;
+    page.__inflight.clear();                              // only the navigation about to start counts
     let r = null, err = null;
     try { r = await page.goto(url, { waitUntil: "load", timeout: SETTLE_MS * 3 }); } catch (e) { err = describeFailure(e, AUTH); }
     const s = err ? { settled: false, ms: 0, path: "(navigation failed)" } : await settle(page, { expectPath: expectPath ?? path.split("?")[0] });
@@ -178,7 +185,7 @@ for (const [ctxName, opts] of contexts) {
     if (err) errors.push({ kind: "navigation-failed", route: path, text: err });
     return { status: err ? 0 : r.status(), finalUrl: page.url(), s, err };
   };
-  const settledOk = (label, s) => ok(ctxName, label, `the page settled on the expected path within ${SETTLE_MS / 1000} s (bounded readiness)`, s.settled, `did not settle in ${s.ms} ms (path ${s.path})`);
+  const settledOk = (label, s) => ok(ctxName, label, `the page settled on the expected path within ${SETTLE_MS / 1000} s (bounded readiness)`, s.settled, `did not settle in ${s.ms} ms: ${s.why ?? `path ${s.path}`}`);
   const dom = () => page.evaluate(readDom).catch(() => ({ ogUrl: [], canonical: [], hreflangs: [], fb: [], robots: [], loc: [], locAlt: [], ogImage: 0, h1: null, wayOn: false, search: false, pieces: 0 }));
 
   const checkTemplate = async (path, key) => {
@@ -267,6 +274,7 @@ for (const [ctxName, opts] of contexts) {
   await page.evaluate(() => { window.__sameDocument = true; }).catch(() => {});
   for (const href of M.navTargets) {
     navigating = true;
+    page.__inflight.clear();
     const clicked = await page.evaluate((h) => { const a = [...document.querySelectorAll("a[href]")].find((x) => x.getAttribute("href") === h); a?.click(); return !!a; }, href).catch(() => false);
     const s = await settle(page, { expectPath: href });
     navigating = false;
