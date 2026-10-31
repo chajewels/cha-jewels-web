@@ -114,6 +114,8 @@ function inline(text: string, lang?: Lang): string {
     // An escaped character in the URL is the character itself (`/k18\_ring`
     // means `/k18_ring`); it is checked and written as that character.
     const href = restore(heldHref);
+    // A hard line break cannot sit inside a URL: not a link, the text stays.
+    if (href.includes(BREAK)) return whole;
     const rawSafe = safeHref(href);
     // OD-11: an unprefixed eligible internal public path is localized at render
     // time; an author's explicit /en/ or /ja/ is kept as written (lib/locale.ts).
@@ -126,9 +128,9 @@ function inline(text: string, lang?: Lang): string {
   });
 
   out = emphasis(out);
-  // Hard breaks last, so nothing above had to step around a <br />.
-  out = out.split(BREAK).join("<br />");
-  return restore(out);
+  // Hard breaks last — after everything held is put back, so a break inside
+  // link text becomes a <br /> too and no BREAK placeholder reaches the page.
+  return restore(out).split(BREAK).join("<br />");
 }
 
 

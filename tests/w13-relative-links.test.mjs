@@ -38,6 +38,13 @@ test("an escaped character inside a link is the character itself, and no placeho
   const html = renderMarkdown("[a\\*b](https://x.com/a\\_b) and \\*plain\\*", "en");
   assert.equal(/[\u0000\u0001]/.test(html), false, html);
   assert.match(html, /<a href="https:\/\/x\.com\/a_b">a\*b<\/a> and \*plain\*/);
+  // A hard line break inside link text or a URL leaves no placeholder either.
+  for (const md of ["[a\\\nb](/x)", "[t](https://x\\\ny)", "line one\\\nline two"]) {
+    const out = renderMarkdown(md, "en");
+    assert.equal(/[\u0000\u0001]/.test(out), false, JSON.stringify(out));
+  }
+  assert.match(renderMarkdown("[a\\\nb](/x)", "en"), /<a href="\/x">a<br \/>b<\/a>/);
+  assert.doesNotMatch(renderMarkdown("[t](https://x\\\ny)", "en"), /<a /);
   // An escaped backslash restored into a relative link is still refused.
   assert.equal(href("[t](/\\\\evil.com)"), null);
 });
