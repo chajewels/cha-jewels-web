@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const core = await import(join(process.cwd(), "scripts/lib/seo-check-core.mjs"));
-const { resolveOrigins, authorizeCredentials, credentialHeadersFor, redact, describeFailure, makeGet, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, sitemapWellFormedness, FOUNDATION_MATRIX, CREDENTIAL_HEADER, SET_COOKIE_HEADER } = core;
+const { resolveOrigins, authorizeCredentials, credentialHeadersFor, redact, describeFailure, makeGet, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, sitemapWellFormedness, xmlBalance, FOUNDATION_MATRIX, CREDENTIAL_HEADER, SET_COOKIE_HEADER, MIN_CREDENTIAL_LENGTH } = core;
 
 const SENTINEL = `SENTINEL-${Math.random().toString(36).slice(2)}-do-not-leak`;
 const COOKIE_SENTINEL = `COOKIE-${Math.random().toString(36).slice(2)}-do-not-leak`;
@@ -76,6 +76,35 @@ test("no authorization error ever contains the secret; redact() removes the secr
   assert.match(describeFailure(to, auth), /timeout/);
 });
 
+test("redaction: every accepted credential is removed whatever its length, longest first, and BEFORE truncation (no partial credential survives a cut)", () => {
+  const auth = authFor("https://p.vercel.app");
+  const short = "abcdefgh";                                   // exactly the minimum length
+  const longer = `${SENTINEL}-tail-${COOKIE_SENTINEL}`;       // contains two other credentials
+  auth.secrets.push(COOKIE_SENTINEL, short, longer);
+  const out = redact(`a ${longer} b ${SENTINEL} c ${COOKIE_SENTINEL} d ${short} e`, auth);
+  for (const v of [SENTINEL, COOKIE_SENTINEL, short]) assert.ok(!out.includes(v), v);
+  assert.equal(out, "a [redacted] b [redacted] c [redacted] d [redacted] e", "the longest value is removed whole, not as pieces around the shorter ones");
+  // truncation boundary: a credential straddling the 300-character cut of describeFailure must not leak a prefix
+  const pad = "x".repeat(300 - 10);
+  const d = describeFailure(new Error(`${pad}${SENTINEL} after`), auth);
+  assert.ok(d.length <= 300);
+  for (let i = 0; i + 6 <= SENTINEL.length; i++) assert.ok(!d.includes(SENTINEL.slice(i, i + 6)), `a 6-character piece of the secret survived the cut: ${SENTINEL.slice(i, i + 6)}`);
+  const e2 = new Error("boom"); e2.cause = { code: `${pad}${COOKIE_SENTINEL}` };
+  const d2 = describeFailure(e2, auth);
+  for (let i = 0; i + 6 <= COOKIE_SENTINEL.length; i++) assert.ok(!d2.includes(COOKIE_SENTINEL.slice(i, i + 6)), "the cause is redacted before it is joined and cut");
+});
+
+test("short credentials are refused before use (secret and bypass cookie), with no value in the message, so nothing accepted is ever un-redactable", async () => {
+  const tooShort = "abc1234";
+  assert.equal(tooShort.length, MIN_CREDENTIAL_LENGTH - 1);
+  assert.throws(() => authorizeCredentials("https://p.vercel.app", { VERCEL_AUTOMATION_BYPASS_SECRET: tooShort, SEO_CHECK_BYPASS_ORIGIN: "https://p.vercel.app" }), (e) => { assert.match(e.message, /shorter than 8/); assert.ok(!e.message.includes(tooShort)); return true; });
+  assert.equal(authorizeCredentials("https://p.vercel.app", { VERCEL_AUTOMATION_BYPASS_SECRET: "abc12345", SEO_CHECK_BYPASS_ORIGIN: "https://p.vercel.app" }).enabled, true, "exactly the minimum is accepted");
+  const A = await origin({ "/": (req, res) => { res.writeHead(307, { location: "/", "set-cookie": `_fake_bypass=${tooShort}; Path=/` }); res.end(); } });
+  try {
+    await assert.rejects(() => bootstrapBrowserCredentials(authFor(A.url)), (e) => { assert.match(e.message, /shorter than 8/); assert.ok(!e.message.includes(tooShort)); return true; });
+  } finally { await A.close(); }
+});
+
 // ------------------------------------------------------------------ exact-origin header (raw checker)
 test("the credential header is added for the exact authorized origin and for nothing else", () => {
   const auth = authFor("https://p.vercel.app");
@@ -136,7 +165,7 @@ test("bootstrapBrowserCredentials: ONE request with the secret and x-vercel-set-
     "/": (req, res) => {
       if (req.headers[CREDENTIAL_HEADER] === SENTINEL && req.headers[SET_COOKIE_HEADER] === "true") {
         bootstrapRequests++;
-        res.writeHead(307, { location: "/", "set-cookie": [`_fake_bypass=${COOKIE_SENTINEL}; Domain=evil.example; Path=/admin; HttpOnly; SameSite=Lax`, "other=1; Path=/"] });
+        res.writeHead(307, { location: "/", "set-cookie": [`_fake_bypass=${COOKIE_SENTINEL}; Domain=evil.example; Path=/admin; HttpOnly; SameSite=Lax`, "other=long-enough-1; Path=/"] });
         return res.end();
       }
       res.writeHead(401, { "content-type": "text/html" }); res.end("gated");
@@ -150,7 +179,7 @@ test("bootstrapBrowserCredentials: ONE request with the secret and x-vercel-set-
     assert.deepEqual(cookies.map((c) => ({ name: c.name, domain: c.domain, path: c.path, secure: c.secure, httpOnly: c.httpOnly, sameSite: c.sameSite })), [
       { name: "_fake_bypass", domain: "127.0.0.1", path: "/", secure: false, httpOnly: true, sameSite: "Lax" },
       { name: "other", domain: "127.0.0.1", path: "/", secure: false, httpOnly: false, sameSite: "Lax" },
-    ], "the server's Domain and Path attributes are ignored: pinned to the authorized host, path /");
+    ], "the server's Domain and Path attributes are ignored: scoped to the authorized host (host-only), path /");
     assert.equal(cookies[0].value, COOKIE_SENTINEL);
     assert.ok(auth.secrets.includes(COOKIE_SENTINEL), "the cookie value is now a credential redact() removes");
     assert.ok(!redact(`cookie ${COOKIE_SENTINEL}`, auth).includes(COOKIE_SENTINEL));
@@ -229,10 +258,22 @@ test("validateSitemap rejects every way a sitemap can be unusable, malformed XML
   assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/a</loc><loc>https://www.chajewelsjp.com/en/b</loc></url></urlset>` }), /has 2 <loc>/);
   assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/a?x=1&y=2</loc></url></urlset>` }), /unescaped &/);
   assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/a<b></loc></url></urlset>` }), /markup inside <loc>/);
-  assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/a</loc></urlset>` }), /opening\(s\) but/);
+  assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/a</loc></urlset>` }), /mismatched closing tag <\/urlset> \(open: <url>\)/);
   assert.match(bad({ body: `<urlset>${urls(25)}<loc>https://www.chajewelsjp.com/en/stray</loc></urlset>` }), /unexpected content between <url>/);
   assert.match(bad({ body: `garbage<urlset>${urls(25)}</urlset>` }), /does not start with <urlset>/);
   assert.deepEqual(sitemapWellFormedness(`﻿<?xml version="1.0" encoding="UTF-8"?>\n<!-- c -->\n<urlset>${urls(2)}</urlset>\n`), [], "BOM, declaration, comment and trailing newline are fine");
+  // malformed XML: unclosed or mismatched nested elements and malformed attributes
+  assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/i</loc><image:image><image:loc>https://cdn.test/a.jpg</image:loc></url></urlset>` }), /mismatched closing tag <\/url> \(open: <image:image>\)/);
+  assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/a</url></loc></urlset>` }), /mismatched closing tag/);
+  assert.match(bad({ body: `<urlset>${urls(25)}<url foo=bar><loc>https://www.chajewelsjp.com/en/a</loc></url></urlset>` }), /malformed tag/);
+  assert.match(bad({ body: `<urlset>${urls(25)}<url hidden><loc>https://www.chajewelsjp.com/en/a</loc></url></urlset>` }), /malformed tag/);
+  assert.match(bad({ body: `<urlset>${urls(25)}<url><loc>https://www.chajewelsjp.com/en/a</loc>< /url></urlset>` }), /malformed tag or stray/);
+  assert.match(bad({ body: `<urlset>${urls(25)}<video:video><video:title>t</video:video></urlset>` }), /mismatched closing tag <\/video:video> \(open: <video:title>\)/);
+  // valid sitemap extensions are preserved
+  const ext = `<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">${urls(25)}<url><loc>https://www.chajewelsjp.com/en/x</loc><lastmod>2026-10-31</lastmod><xhtml:link rel="alternate" hreflang="ja" href="https://www.chajewelsjp.com/ja/x"/><image:image><image:loc>https://cdn.test/a.jpg</image:loc><image:title>A &amp; B</image:title></image:image><video:video><video:thumbnail_loc>https://cdn.test/t.jpg</video:thumbnail_loc><video:title>T</video:title></video:video></url></urlset>`;
+  assert.deepEqual(validateSitemap({ ...good, body: ext }, opts).problems, [], "image, video and xhtml:link extensions, self-closing elements and entities pass");
+  assert.deepEqual(xmlBalance(`<a><b x="1" y='2'/><c>t</c></a>`), []);
+  assert.deepEqual(xmlBalance(`<a><![CDATA[ <not a tag> ]]><!-- <x> --></a>`), []);
 });
 
 // ------------------------------------------------------------------ the route matrix and checker parity

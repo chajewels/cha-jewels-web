@@ -3,9 +3,13 @@
 // every rule in CI.
 //
 // The rules that live here so the checkers cannot drift apart:
-//  1. CREDENTIALS reach one exact, explicitly authorized origin and nowhere else, and no failure path can
-//     print them: every outbound message goes through `redact()`, every request has a bounded timeout and a
-//     caught failure, and the browser never sees the secret at all (it gets a cookie pinned to the host).
+//  1. CREDENTIALS. The HEADER (raw checker, and the one bootstrap request) is authorized for one EXACT origin
+//     (scheme, host and port) and sent nowhere else. The BROWSER never sees the secret; it gets the bypass
+//     COOKIE, which is HOST-SCOPED by the browser's own rules: every port of that host receives it, no
+//     subdomain and no parent domain does. That is the contract, no more. No failure path can print a
+//     credential: every outbound message goes through `redact()` BEFORE any truncation, every request has a
+//     bounded timeout and a caught failure, and a credential shorter than MIN_CREDENTIAL_LENGTH is rejected
+//     before use so that every accepted credential is redactable.
 //  2. COVERAGE fails closed: every requirement states what is expected; anything not actually checked is
 //     reported as missing and fails the run. Skips are listed with their reason.
 //  3. The SITEMAP is validated (status, type, well-formed XML, size, duplicates, origin) before anything is
@@ -38,6 +42,8 @@ export function resolveOrigins(base, env = process.env) {
 export const CREDENTIAL_HEADER = "x-vercel-protection-bypass";
 export const SET_COOKIE_HEADER = "x-vercel-set-bypass-cookie";
 export const REQUEST_TIMEOUT_MS = 30000;
+/** A credential shorter than this is refused before use: redacting a very short value by substring would blank ordinary text, so it is not accepted at all. */
+export const MIN_CREDENTIAL_LENGTH = 8;
 
 /**
  * Decide, once, whether and where a preview-bypass secret may be used. With no secret: no credentials.
@@ -48,6 +54,7 @@ export const REQUEST_TIMEOUT_MS = 30000;
 export function authorizeCredentials(requestOrigin, env = process.env) {
   const secret = env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
   if (!secret) return { enabled: false, secrets: [] };
+  if (secret.length < MIN_CREDENTIAL_LENGTH) throw new Error(`the preview secret is shorter than ${MIN_CREDENTIAL_LENGTH} characters and is not accepted; refusing to run`);
   const authorized = env.SEO_CHECK_BYPASS_ORIGIN?.trim();
   if (!authorized) throw new Error("a preview secret was supplied but SEO_CHECK_BYPASS_ORIGIN (the one exact origin allowed to receive it) is not set; refusing to run");
   let a;
@@ -56,6 +63,7 @@ export function authorizeCredentials(requestOrigin, env = process.env) {
   if (a.origin !== requestOrigin) throw new Error(`the secret is authorized for ${a.origin} but the checked origin is ${requestOrigin}; refusing to run`);
   if (a.protocol !== "https:" && !isLoopback(a.hostname)) throw new Error("the secret may only be sent over https (or to a loopback test origin); refusing to run");
   // `secrets` is every value redact() must remove: the secret now, the bypass cookie values once obtained.
+  // `origin` is exact (header); `host` is what the browser cookie will be scoped to (every port of it).
   return { enabled: true, origin: a.origin, host: a.hostname, secure: a.protocol === "https:", header: CREDENTIAL_HEADER, secret, secrets: [secret] };
 }
 
@@ -68,23 +76,25 @@ export function credentialHeadersFor(auth, url) {
 }
 
 /**
- * Remove every credential (the secret and any bypass cookie value) from a string. Used on EVERY line the
- * checkers print and on every error message they build, so a reflected header, an echoing error page, a
- * Location header or a thrown exception can never carry a credential into stdout, stderr or a report.
- * Values shorter than 8 characters are not redacted by substring (they would blank ordinary text); the
- * authorization step rejects nothing on length, so such a secret is simply never used in a message.
+ * Remove EVERY accepted credential (the secret and every bypass cookie value, whatever their length: values
+ * shorter than MIN_CREDENTIAL_LENGTH were refused before use) from a string, longest first so a credential that
+ * contains another is removed whole. Used on EVERY line the checkers print and on every error message they
+ * build, and always BEFORE any truncation or other transformation, so a reflected header, an echoing error
+ * page, a Location header, a thrown exception or a cut-off line can never carry a credential or a piece of
+ * one into stdout, stderr or a report.
  */
 export function redact(text, auth) {
   let s = String(text);
-  for (const v of auth?.secrets ?? []) if (v && v.length >= 8) s = s.split(v).join("[redacted]");
+  const values = [...new Set((auth?.secrets ?? []).filter((v) => typeof v === "string" && v.length > 0))].sort((a, b) => b.length - a.length);
+  for (const v of values) s = s.split(v).join("[redacted]");
   return s;
 }
 
-/** Turn any thrown value into a short, redacted, single-line diagnostic (no stack, no headers, no body). */
+/** Turn any thrown value into a short, redacted, single-line diagnostic (no stack, no headers, no body). Redaction happens first; the cut comes last. */
 export function describeFailure(err, auth) {
-  const cause = err?.cause?.code || err?.cause?.message || "";
-  const msg = err?.name === "TimeoutError" || err?.name === "AbortError" ? "timeout" : (err?.message ?? String(err));
-  return redact(`${msg}${cause && !msg.includes(cause) ? ` (${cause})` : ""}`.replace(/\s+/g, " ").slice(0, 300), auth);
+  const cause = redact(err?.cause?.code || err?.cause?.message || "", auth);
+  const msg = redact(err?.name === "TimeoutError" || err?.name === "AbortError" ? "timeout" : (err?.message ?? String(err)), auth);
+  return `${msg}${cause && !msg.includes(cause) ? ` (${cause})` : ""}`.replace(/\s+/g, " ").slice(0, 300);
 }
 
 /** Route console output through redact() so nothing printed can carry a credential. Idempotent. */
@@ -123,7 +133,7 @@ export function makeGet(requestOrigin, auth, { timeoutMs = REQUEST_TIMEOUT_MS } 
 }
 
 /**
- * BROWSER CREDENTIALS: a cookie pinned to the authorized host, never a header.
+ * BROWSER CREDENTIALS: a cookie scoped to the authorized HOST, never a header.
  *
  * Vercel's documented in-browser form of Protection Bypass for Automation: one request that carries the
  * secret AND `x-vercel-set-bypass-cookie: true` is answered with a redirect whose Set-Cookie carries the
@@ -133,8 +143,10 @@ export function makeGet(requestOrigin, auth, { timeoutMs = REQUEST_TIMEOUT_MS } 
  * Why this and not request interception: Playwright cannot intercept the hops of a redirect, so a header
  * added per request either misses the hops (an SSO-gated preview then fails on them) or has to collapse the
  * redirect inside the router, which changes what the browser does. A cookie is carried by the browser itself:
- * redirects, subresources and client navigations behave exactly as they do for a signed-in person, and the
- * browser's own host scoping keeps the cookie off every other origin. The secret itself is never given to
+ * redirects, subresources and client navigations behave exactly as they do for a signed-in person. Scope, by
+ * the browser's own rules and no more: the cookie goes to EVERY PORT of the authorized host (a port-only
+ * difference is not isolated), to NO subdomain of it and to NO parent domain, and to no other host; the
+ * harness proves each of these. The secret itself is never given to
  * the browser; it is used by ONE Node request here, to the exact authorized origin, with no redirect
  * followed and a bounded timeout. Fails closed: no Set-Cookie, a failure, or an unexpected status means no
  * credentialed browser run at all (an error is thrown; its message is redacted). The cookie values become
@@ -158,9 +170,11 @@ export async function bootstrapBrowserCredentials(auth, { timeoutMs = REQUEST_TI
     if (eq <= 0) continue;
     const name = pair.slice(0, eq).trim(), value = pair.slice(eq + 1).trim();
     if (!name || !value) continue;
+    if (value.length < MIN_CREDENTIAL_LENGTH) throw new Error(`the authorized origin set a bypass cookie value shorter than ${MIN_CREDENTIAL_LENGTH} characters, which is not accepted; refusing credentialed browser checks`);
     const a = Object.fromEntries(attrs.map((x) => { const [k, ...v] = x.trim().split("="); return [k.toLowerCase(), v.join("=")]; }));
-    // Pinned to the authorized HOST and path "/": the server's Domain attribute is deliberately ignored, so a
-    // cookie can never be widened to a parent domain or another host. SameSite as the server said, default Lax.
+    // Scoped to the authorized HOST (host-only: no leading dot, so no subdomain receives it) and path "/": the
+    // server's Domain attribute is deliberately ignored, so a cookie can never be widened to a parent domain.
+    // Ports are not part of cookie scope; nothing here changes that. SameSite as the server said, default Lax.
     const sameSite = /^none$/i.test(a.samesite ?? "") ? "None" : /^strict$/i.test(a.samesite ?? "") ? "Strict" : "Lax";
     cookies.push({ name, value, domain: auth.host, path: "/", httpOnly: "httponly" in a, secure: auth.secure, sameSite });
     auth.secrets.push(value);
@@ -210,20 +224,47 @@ export class Coverage {
 
 // ------------------------------------------------------------------ sitemap validation
 /**
- * Minimal well-formedness check for a URL sitemap, with no XML dependency: a single <urlset> root that is
- * closed; <url> elements that nest nothing and close; exactly one non-empty <loc> per <url>, with no raw
- * markup or unescaped ampersand inside it; no <loc> outside a <url>; nothing but whitespace between <url>
- * elements. Namespaced children such as <image:image> inside a <url> are allowed. Returns problems.
+ * Tag balance and attribute syntax for a small XML document, with no XML dependency: every element that is
+ * opened is closed by the matching name in order (nested extension elements such as <image:image> and
+ * <video:video> included), self-closing elements are fine, every attribute is name="value" or name='value',
+ * and no `<` appears where it is not a tag. Comments, the XML declaration and CDATA sections are skipped.
+ * Returns problems (at most 8). This is not a full XML parser: entities and DTDs are not interpreted.
+ */
+export function xmlBalance(text) {
+  const problems = [];
+  const src = String(text ?? "").replace(/^﻿/, "").replace(/<!--[\s\S]*?-->/g, "").replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "").replace(/<\?[\s\S]*?\?>/g, "");
+  const NAME = "[A-Za-z_][\\w.:-]*";
+  const tag = new RegExp(`<(\\/?)(${NAME})((?:\\s+${NAME}\\s*=\\s*(?:"[^"<]*"|'[^'<]*'))*)\\s*(\\/?)>|<`, "g");
+  const stack = [];
+  let m;
+  while ((m = tag.exec(src)) && problems.length < 8) {
+    if (m[0] === "<") { problems.push(`malformed tag or stray "<" at offset ${m.index}: ${src.slice(m.index, m.index + 30)}`); continue; }
+    const [, close, name, , selfClose] = m;
+    if (close) {
+      if (!stack.length) problems.push(`stray closing tag </${name}>`);
+      else if (stack[stack.length - 1] !== name) problems.push(`mismatched closing tag </${name}> (open: <${stack[stack.length - 1]}>)`);
+      else stack.pop();
+    } else if (!selfClose) stack.push(name);
+  }
+  if (stack.length) problems.push(`unclosed element(s): ${stack.slice(-3).map((n) => `<${n}>`).join(" ")}`);
+  return problems.slice(0, 8);
+}
+
+/**
+ * Well-formedness of a URL sitemap: the document is balanced XML (`xmlBalance`: closed and correctly nested
+ * elements, well-formed attributes, no stray markup); a single <urlset> root; <url> elements that do not nest
+ * another <url>; exactly one non-empty <loc> per <url>, with no raw markup or unescaped ampersand inside it;
+ * nothing but whitespace between <url> elements. Sitemap extensions (image, video, xhtml:link, news) inside a
+ * <url> are valid and preserved. Returns problems.
  */
 export function sitemapWellFormedness(body) {
   const problems = [];
   const text = String(body ?? "").replace(/^﻿/, "");
+  problems.push(...xmlBalance(text));
   const stripped = text.replace(/^\s*<\?xml[^>]*\?>\s*/, "").replace(/<!--[\s\S]*?-->/g, "").trim();
   if (!/^<urlset[\s>]/.test(stripped)) problems.push("the document does not start with <urlset>");
   if (!/<\/urlset>\s*$/.test(stripped)) problems.push("the document does not end with </urlset> (truncated or malformed)");
   const inner = stripped.replace(/^<urlset[^>]*>/, "").replace(/<\/urlset>\s*$/, "");
-  const opens = (inner.match(/<url(?=[\s>])/g) ?? []).length, closes = (inner.match(/<\/url>/g) ?? []).length;
-  if (opens !== closes) problems.push(`${opens} <url> opening(s) but ${closes} closing(s)`);
   const blocks = [...inner.matchAll(/<url(?:\s[^>]*)?>([\s\S]*?)<\/url>/g)];
   const between = inner.replace(/<url(?:\s[^>]*)?>[\s\S]*?<\/url>/g, "").trim();
   if (between) problems.push(`unexpected content between <url> elements: ${between.slice(0, 40)}`);
@@ -238,7 +279,7 @@ export function sitemapWellFormedness(body) {
       if (/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/.test(l)) problems.push(`<url> #${i + 1} has an unescaped & in <loc>`);
     }
   });
-  return problems.slice(0, 8);
+  return [...new Set(problems)].slice(0, 8);
 }
 
 /**

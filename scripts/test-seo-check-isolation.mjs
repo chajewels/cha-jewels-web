@@ -3,9 +3,11 @@
 // browser's own redirect behaviour is preserved. Usage: node scripts/test-seo-check-isolation.mjs
 // (loopback only; a FAKE sentinel secret and a FAKE sentinel cookie; nothing real is used or needed).
 //
-// Two controlled loopback ORIGINS ON DIFFERENT HOSTS stand in for "the authorized preview" (A, 127.0.0.1) and
-// "any other host" (B, localhost). Different hosts matter: a browser scopes cookies by host, not port, so this
-// is the isolation the real preview relies on. A is GATED like a protected preview: it answers 401 unless the
+// Two controlled loopback ORIGINS ON DIFFERENT HOSTS stand in for "the authorized preview" (A, localhost) and
+// "any other host" (B, 127.0.0.1). A browser scopes a cookie by HOST, not by port: the harness therefore also
+// proves the exact contract with a third server on the same IP: the same host on ANOTHER PORT does receive the
+// cookie (a port-only difference is not isolated; stated, not hidden), a SUBDOMAIN (sub.localhost) does not,
+// another host does not, and the header is exact-origin. A is GATED like a protected preview: it answers 401 unless the
 // request carries the bypass cookie, or is the one bootstrap request that carries the secret header and
 // x-vercel-set-bypass-cookie (answered, as Vercel documents, with a redirect that sets the cookie). The page on
 // A pulls an image, a script, a stylesheet, an iframe and a fetch() from B; A redirects out to B (one hop and
@@ -49,7 +51,7 @@ async function site(host, handler) {
 /** B: the other host. `aRef.origin` is whichever A is active. */
 const aRef = { origin: null };
 async function otherOrigin() {
-  return site("localhost", (req, res) => {
+  return site("127.0.0.1", (req, res) => {
     const path = req.url.split("?")[0];
     if (path === "/redirect-back") { res.writeHead(302, { location: `${aRef.origin}/ok` }); return res.end(); }
     const types = { "/pixel.gif": "image/gif", "/s.js": "text/javascript", "/s.css": "text/css", "/api": "application/json", "/frame": "text/html", "/landing": "text/html" };
@@ -60,7 +62,7 @@ async function otherOrigin() {
 /** A: the authorized origin, gated or open. */
 async function authorizedOrigin(B, { gated }) {
   let self;
-  self = await site("127.0.0.1", (req, res) => {
+  self = await site("localhost", (req, res) => {
     const path = req.url.split("?")[0];
     if (req.headers[CREDENTIAL_HEADER] === SENTINEL && req.headers[SET_COOKIE_HEADER] === "true") { res.writeHead(307, { location: "/", "set-cookie": `_fake_bypass=${COOKIE_SENTINEL}; Path=/; HttpOnly; SameSite=Lax` }); return res.end(); }
     if (gated && !String(req.headers.cookie ?? "").includes(`_fake_bypass=${COOKIE_SENTINEL}`)) { res.writeHead(401, { "content-type": "text/html" }); return res.end("<html><body>gated</body></html>"); }
@@ -115,7 +117,7 @@ try {
   const cookies = await bootstrapBrowserCredentials(auth);
   const bootstrapSeen = Agated.seen.length;
   check("bootstrap: exactly ONE Node request carried the secret header, to the authorized origin, and the redirect it answered with was not followed", bootstrapSeen === 1 && hasHeader(Agated.seen[0]) && Agated.seen[0].headers[SET_COOKIE_HEADER] === "true", `requests ${bootstrapSeen}`);
-  check("bootstrap: the cookie is pinned to the authorized host and path /, and its value is now a redacted credential", cookies.length === 1 && cookies[0].domain === "127.0.0.1" && cookies[0].path === "/" && auth.secrets.includes(COOKIE_SENTINEL));
+  check("bootstrap: the cookie is scoped to the authorized host (host-only) and path /, and its value is now a redacted credential", cookies.length === 1 && cookies[0].domain === "localhost" && cookies[0].path === "/" && auth.secrets.includes(COOKIE_SENTINEL));
   ctx = await browser.newContext({ viewport: { width: 800, height: 600 } });
   await installBrowserCredentials(ctx, cookies);
   const cred = await drive(ctx, Agated, B);
@@ -132,7 +134,21 @@ try {
   check("the browser sent the secret HEADER to nobody (it never had it): zero browser requests to A or B carry it", aAfter.every((s) => !hasHeader(s)) && B.seen.every((s) => !hasHeader(s)));
   const bPaths = new Set(B.seen.map((s) => s.url.split("?")[0]));
   check("the other origin DID receive its stylesheet, script, image, iframe, fetch, the one-hop and two-hop landings and the redirect-back request (the test really exercised them)", ["/s.css", "/s.js", "/pixel.gif", "/frame", "/api", "/landing", "/redirect-back"].every((p) => bPaths.has(p)) && B.seen.length >= bPlain - 1, `B saw ${[...bPaths].join(", ")} (${B.seen.length} requests; plain run ${bPlain})`);
-  check("ISOLATION: the other origin received the cookie on NONE of its requests and the secret on none", B.seen.length > 0 && B.seen.filter(leaks).length === 0, `leaking: ${B.seen.filter(leaks).map((s) => s.url).join(", ")}`);
+  check("ISOLATION: the other host received the cookie on NONE of its requests and the secret on none", B.seen.length > 0 && B.seen.filter(leaks).length === 0, `leaking: ${B.seen.filter(leaks).map((s) => s.url).join(", ")}`);
+
+  // ---- 2b. the exact cookie contract: same host on another port, a subdomain, and the header's exact-origin rule
+  const C = await site("127.0.0.1", (req, res) => { res.writeHead(200, { "content-type": "text/html" }); res.end("<html><body>C</body></html>"); });   // reachable as localhost:pC and sub.localhost:pC
+  ctx = await browser.newContext({ viewport: { width: 800, height: 600 } });
+  await installBrowserCredentials(ctx, cookies);
+  const pg = await ctx.newPage();
+  await pg.goto(`http://localhost:${C.port}/same-host-other-port`, { waitUntil: "load" }).catch(() => {});
+  await pg.goto(`http://sub.localhost:${C.port}/subdomain`, { waitUntil: "load" }).catch(() => {});
+  await ctx.close();
+  const samePort = C.seen.filter((s) => s.url.startsWith("/same-host-other-port")), sub = C.seen.filter((s) => s.url.startsWith("/subdomain"));
+  check("COOKIE SCOPE, stated limit: the same host on ANOTHER PORT does receive the cookie (a port-only difference is not isolated; a Vercel preview host has one port)", samePort.length > 0 && samePort.every(hasCookie), `requests ${samePort.length}, with cookie ${samePort.filter(hasCookie).length}`);
+  check("COOKIE SCOPE: a SUBDOMAIN of the authorized host receives the cookie on none of its requests (host-only cookie)", sub.length > 0 && sub.every((s) => !hasCookie(s)), `requests ${sub.length} (host ${sub[0]?.headers.host}), with cookie ${sub.filter(hasCookie).length}`);
+  check("the header is exact-origin: no request to the same host on another port or to the subdomain carried it", C.seen.every((s) => !hasHeader(s)));
+  await C.close();
 
   // ---- 3. CONTROL: the old context-wide header behaviour MUST be detected as leaking
   B.seen.length = 0;
