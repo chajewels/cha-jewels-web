@@ -88,6 +88,19 @@ function safeHref(href: string): string | null {
 function inline(text: string, lang?: Lang): string {
   const slots: string[] = [];
   const hold = (html: string) => `${SLOT}${slots.push(html) - 1}${SLOT}`;
+  // A held link can contain held escapes (`[a\_b](/x\_y)`), so restoring is
+  // repeated until no slot is left — a single pass used to leave the NUL
+  // placeholder inside the page (and inside the href). Every pass replaces
+  // slots with earlier-held text, so it ends.
+  const slotRe = new RegExp(`${SLOT}(\\d+)${SLOT}`, "g");
+  const restore = (s: string): string => {
+    let prev: string;
+    do {
+      prev = s;
+      s = s.replace(slotRe, (_, i: string) => slots[Number(i)]);
+    } while (s !== prev);
+    return s;
+  };
 
   // A BACKSLASH ESCAPE IS HELD FIRST, before any rule can read the character it
   // was written to hide: `\*` must reach the page as an asterisk no emphasis
@@ -97,7 +110,10 @@ function inline(text: string, lang?: Lang): string {
   // The href pattern allows ONE level of balanced parentheses, so a Wikipedia
   // URL survives and `javascript:alert(1)` is captured whole and refused whole
   // rather than leaving its closing bracket stranded in the sentence.
-  out = out.replace(/\[([^\]\n]*)\]\(([^()\s]*(?:\([^()\s]*\)[^()\s]*)*)\)/g, (whole, label: string, href: string) => {
+  out = out.replace(/\[([^\]\n]*)\]\(([^()\s]*(?:\([^()\s]*\)[^()\s]*)*)\)/g, (whole, label: string, heldHref: string) => {
+    // An escaped character in the URL is the character itself (`/k18\_ring`
+    // means `/k18_ring`); it is checked and written as that character.
+    const href = restore(heldHref);
     const rawSafe = safeHref(href);
     // OD-11: an unprefixed eligible internal public path is localized at render
     // time; an author's explicit /en/ or /ja/ is kept as written (lib/locale.ts).
@@ -112,7 +128,7 @@ function inline(text: string, lang?: Lang): string {
   out = emphasis(out);
   // Hard breaks last, so nothing above had to step around a <br />.
   out = out.split(BREAK).join("<br />");
-  return out.replace(new RegExp(`${SLOT}(\\d+)${SLOT}`, "g"), (_, i: string) => slots[Number(i)]);
+  return restore(out);
 }
 
 

@@ -31,3 +31,14 @@ test("site settings links use the same site-path check", () => {
   assert.match(s, /if \(href\.startsWith\("\/"\)\) return allowRelative && isSitePath\(href\) \? href : null;/);
   assert.doesNotMatch(s, /startsWith\("\/"\) && !href\.startsWith\("\/\/"\)/);
 });
+
+test("an escaped character inside a link is the character itself, and no placeholder reaches the page", () => {
+  assert.equal(href("[t](/products/k18\\_ring)"), "/en/products/k18_ring");
+  assert.equal(href("[t](https://x.com/a\\_b)"), "https://x.com/a_b");
+  const html = renderMarkdown("[a\\*b](https://x.com/a\\_b) and \\*plain\\*", "en");
+  assert.equal(/[\u0000\u0001]/.test(html), false, html);
+  assert.match(html, /<a href="https:\/\/x\.com\/a_b">a\*b<\/a> and \*plain\*/);
+  // An escaped backslash restored into a relative link is still refused.
+  assert.equal(href("[t](/\\\\evil.com)"), null);
+});
+
