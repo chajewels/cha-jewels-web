@@ -107,6 +107,10 @@ const CAMERA_DEPTH = 40;
 const isMesh = (object: Object3D): object is Mesh =>
   (object as Mesh).isMesh === true;
 
+/** Lets the browser paint (and handle input) between steps of the build. */
+const yieldTask = (): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, 0));
+
 export class PendantScene {
   private readonly renderer: WebGLRenderer;
   private readonly scene = new Scene();
@@ -170,6 +174,10 @@ export class PendantScene {
       loader.loadAsync(PENDANT_MODEL_URL),
       loadHdriCube(this.renderer, STUDIO_HDRI_URL, this.budget.gemCubeSize),
     ]);
+    // The build is split into tasks the way the rings' is (report §10 step 3):
+    // the decode and the studio above, the gem materials and BVHs below, the
+    // compile last — so the browser paints and takes input between them.
+    await yieldTask();
     this.hdri = hdri;
     const model = gltf.scene;
     model.updateMatrixWorld(true);
@@ -212,6 +220,7 @@ export class PendantScene {
     replaced.forEach((material) => material.dispose());
 
     this.pivot.add(model);
+    await yieldTask();
     // Shaders and buffers are compiled and uploaded here, before the canvas is
     // shown — nothing may compile mid-scroll (optimize-3d-scene §3).
     await this.renderer.compileAsync(this.scene, this.camera);

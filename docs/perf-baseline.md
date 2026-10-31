@@ -1,5 +1,24 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P2 (part A): the Lumière home, real-visitor view
+
+Recorded for `docs/tasks/lumiere-p0-report.md` §10 and the P2 branch `redesign/lumiere-p2-home`. The home page (`/`, `/en`, `/ja`) is now the Lumière home: preloader (once per session, 4 s cap), the pinned hero with the card ring and the 3D emerald pendant, the five-card collections block, the featured stage with the five 3D rings, the philosophy block, and the Lumière header and footer. Part B (the existing secondary sections re-skinned from the GetLayers references) is not in this measurement.
+
+**Method.** Local production build (`next build` + `next start`, port 3300, fixture mode), Lighthouse 13.6.0 CLI, **a normal Chrome user agent** (`--emulated-user-agent`, no "Lighthouse" token — the real-visitor view: preloader and both scenes on; there is no robot view on this site), mobile = `--form-factor=mobile --screenEmulation.mobile --throttling-method=simulate`, desktop = `--preset=desktop`, three runs per URL, median (range), one invocation per run, nothing else running. Comparable with the P1 rows above (same machine, same method, same day) and, as a lab proxy only, with the production rows of the P0 entry.
+
+### `redesign/lumiere-p2-home` (part A, final build), real-visitor view
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` mobile | 73 (73–75) | 5.74 s (5.17 s–5.87 s) | 1.66 s (1.66 s–1.67 s) | 189 ms (170 ms–278 ms) | 0.001 (0.001–0.001) | 3.91 s (3.44 s–4.06 s) | 195 ms (195 ms–237 ms) |
+| `/ja` desktop | 96 (96–99) | 1.27 s (0.88 s–1.34 s) | 0.41 s (0.41 s–0.41 s) | 0 ms (0 ms–1 ms) | 0.000 (0.000–0.000) | 1.08 s (1.06 s–1.15 s) | 48 ms (44 ms–51 ms) |
+| `/en` mobile | 74 (73–76) | 6.10 s (5.37 s–6.70 s) | 1.66 s (1.66 s–1.66 s) | 160 ms (155 ms–162 ms) | 0.001 (0.000–0.001) | 3.48 s (3.37 s–3.64 s) | 287 ms (284 ms–290 ms) |
+| `/en` desktop | 97 (96–99) | 1.24 s (0.81 s–1.30 s) | 0.41 s (0.41 s–0.41 s) | 10 ms (10 ms–12 ms) | 0.000 (0.000–0.000) | 1.01 s (0.99 s–1.01 s) | 70 ms (69 ms–73 ms) |
+
+**Reading, against the P1 rows (same method, same day): mobile `/ja` 83 → 73, `/en` 81 → 74; desktop 99 → 96 / 97.** The home is a different page now, and the bytes say so (`/en` mobile run 1, before → after): 59 → 75 requests, 1152 → 1492 KB total, script 229 → 468 KB, images 126 → 199 KB. The modelled mobile LCP is the compact pendant poster (5.7–6.1 s on simulated Slow 4G, against the old hero poster's 4.9 s); TBT is 160–189 ms (hydration of the hero, the collections, the featured and the philosophy leaves, then the pendant build — now in yielded tasks after the webfonts — and the rings under the curtain); max-potential FID 195–287 ms. CLS stays at 0.001. Desktop LCP is 1.2–1.3 s with 0–10 ms TBT.
+
+This is below the production bar of the P0 entry on mobile (81–82) and matches the reference's own real-visitor profile (72 / LCP 5.9 s / TBT 255 ms) closely, which is where the plan expected the port to start (report §10). The route is **flagged**: the P5 gate is the production rows, per route, and the remaining steps of §10 are the fix plan — (1) the hero and pendant posters at a smaller first size for phones (`sizes`/`deviceSizes` tuned, AVIF), (2) the hero's below-the-fold sections as lazy client islands so the first hydration carries the hero alone (TBT), (3) the preloader's 4 s cap measured from first paint rather than hydration, (4) `three` split so the pendant's chunk arrives after LCP, and (5) the font faces preloaded for the home only once a self-hosted `@font-face` replaces `next/font/local` for the display faces. Part B adds sections below the fold and must not move these rows further.
+
 ## 2026-11-01 — Lumière redesign P1: foundation (no visual change)
 
 Recorded for `docs/tasks/lumiere-p0-report.md` §10 and the P1 PR (`redesign/lumiere-p1-foundation` → `redesign/lumiere`). P1 adds the dependencies (three, three-mesh-bvh, lenis, @react-spring/web, spring-text-engine, zustand), the Lumière tokens/BEM/utility CSS (inlined by postcss-import, no page uses the class names yet), the three faces as CSS variables (`preload: false`, never fetched), the animation engine, the Lenis controller mounted in the root layout (public pages only, not under reduced motion) and the react-spring reduced-motion switch. Nothing visual changed on any existing page (pixel diff of /ja, /en, a collection, a product, /cart and /checkout at 1440 and 375: 24/24 identical under reduced motion, 23/24 with motion on; the one difference is the hero sheen's phase on "Lasting value" on /en at 1440).

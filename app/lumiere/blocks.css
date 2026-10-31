@@ -10,7 +10,15 @@
    paraphrases it (check:terms, D-22 — British spelling is forbidden in Cha
    files). No declaration differs from the reference.
    =========================================================================== */
-@layer components {
+/* NOT inside Tailwind's `@layer components` (the reference's placement):
+   Tailwind 3 treats a components-layer class like a utility and emits it only
+   when its name appears literally in a scanned file — `collections__card--${width}`
+   in a template literal was purged and every card rendered 0 px wide. Plain
+   CSS instead, inlined before `@tailwind base`: a BEM class (0,1,0) still beats
+   preflight's element rules, and a single-class utility written later in the
+   stylesheet still beats a single-class BEM rule, as Tailwind 4's layer order
+   gave the reference. Only a compound BEM selector now outranks a utility on
+   the same element, which the ported markup does not rely on. */
   /* ===========================================================================
      COLLECTIONS — layout.
 
@@ -2717,6 +2725,17 @@
     color: #fff;
   }
 
+  /* The reference lays its LAST column's four links out as a 2×2 grid on a
+     phone (`.footer__column:last-child .footer__list`); here the last column
+     is the company block, whose lines read downwards. */
+  .footer.footer--cha .footer__company .footer__list {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    column-gap: 0;
+  }
+
   .footer--cha .footer__company-line {
     color: var(--site-footer-dim);
     font-size: calc(12 * var(--raw-unit-design));
@@ -2844,4 +2863,3 @@
     .footer--cha .footer__meta--legal { justify-self: start; }
     .footer--cha .footer__meta--social { flex-direction: column; align-items: flex-start; }
   }
-}

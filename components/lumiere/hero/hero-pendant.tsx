@@ -100,7 +100,13 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
     let isDisposed = false;
     let isInView = true;
 
-    import("@/lib/scene/pendant/pendant-scene")
+    // After the webfonts (the curtain's first wait, report §10 step 3): the
+    // build then follows the type and the hero's images instead of sharing
+    // the first tasks with them. Still under the curtain — the preloader waits
+    // on this scene's gate, capped.
+    document.fonts.ready
+      .catch(() => undefined)
+      .then(() => import("@/lib/scene/pendant/pendant-scene"))
       .then(({ PendantScene: Scene }) =>
         Scene.create(canvas, budget, isAnimated),
       )
