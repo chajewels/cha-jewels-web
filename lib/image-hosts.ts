@@ -68,7 +68,11 @@ function isSvg(pathname: string): boolean {
 export function isOptimizableImage(src: string | null | undefined): boolean {
   if (!src) return false;
   // Local, from /public. Not `//`, which is a remote URL wearing a local coat.
-  if (src.startsWith("/") && !src.startsWith("//")) {
+  // W-13: "/\host/x.png" is a remote URL to a browser too, so a backslash or
+  // control character never counts as local. (Self-contained on purpose:
+  // next.config.ts imports this file, so it takes no path-alias imports.)
+  if (src.startsWith("/")) {
+    if (src.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(src)) return false;
     return !isSvg(src.split(/[?#]/)[0]);
   }
 

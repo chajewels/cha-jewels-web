@@ -1,4 +1,4 @@
-import { localizeAuthoredHref } from "@/lib/locale";
+import { isSitePath, localizeAuthoredHref } from "@/lib/locale";
 import type { Lang } from "@/lib/i18n";
 /**
  * A SMALL MARKDOWN RENDERER FOR POST BODIES, AND NOTHING ELSE.
@@ -70,7 +70,9 @@ function escapeHtml(text: string): string {
 function safeHref(href: string): string | null {
   const value = href.trim();
   if (!value) return null;
-  if (value.startsWith("/") && !value.startsWith("//")) return value;
+  // W-13 (security 2026-10-31): a relative link must be a real site path —
+  // "/\evil.com" is read by browsers as another site (same check as sign-in).
+  if (value.startsWith("/")) return isSitePath(value.replace(/&amp;/g, "&")) ? value : null;
   return /^(https?:|mailto:)/i.test(value.replace(/&amp;/g, "&")) ? value : null;
 }
 

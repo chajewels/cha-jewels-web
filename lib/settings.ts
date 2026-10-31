@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { hub } from "@/lib/hub-api";
+import { isSitePath } from "@/lib/locale";
 import type { Lang } from "@/lib/i18n";
 import type { SettingsAnnouncement, SettingsSocialLink, SiteSettings, SocialKey, SocialLink } from "@/lib/types";
 
@@ -39,7 +40,8 @@ function safeHref(value: unknown, { allowRelative = false } = {}): string | null
   if (typeof value !== "string") return null;
   const href = value.trim();
   if (!href) return null;
-  if (href.startsWith("/") && !href.startsWith("//")) return allowRelative ? href : null;
+  // W-13: "/\evil.com" opens another site in a browser; only a real site path.
+  if (href.startsWith("/")) return allowRelative && isSitePath(href) ? href : null;
   return /^(https?:|mailto:)/i.test(href) ? href : null;
 }
 
