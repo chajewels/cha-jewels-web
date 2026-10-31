@@ -1,21 +1,22 @@
 # Outstanding issues register (2026-10-29)
 
-Five distinct workstreams, tracked here so none is lost or marked done early. Four workstreams remain open. OG-PRODUCT was closed on 2026-10-30 after successful production verification. Historical findings and completion evidence are preserved below. Status vocabulary is the SEO governance one (NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE) plus OWNER APPROVAL PENDING, LIVE, IMPLEMENTED, CONFIRMED DEFECT and CLOSED. Each item says what evidence exists, what is owner-reported rather than observed, and what "done" means.
+Five distinct workstreams, tracked here so none is lost or marked done early. Three workstreams remain open for SEO. OG-PRODUCT was closed on 2026-10-30 after successful production verification. BUG-03 was moved out of SEO scope by the owner on 2026-10-31 (no material SEO impact; kept as a separate content/brand-rule task). Historical findings and completion evidence are preserved below. Status vocabulary is the SEO governance one (NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE) plus OWNER APPROVAL PENDING, LIVE, IMPLEMENTED, CONFIRMED DEFECT and CLOSED. Each item says what evidence exists, what is owner-reported rather than observed, and what "done" means.
 
 | # | Item | Repository / workstream | Status |
 |---|---|---|---|
-| 1 | BUG-03 article wording | Hub article content (website repo holds the proposal) | OPEN — owner A/B article wording decision pending |
+| 1 | BUG-03 article wording | Hub article content (website repo holds the proposal) | CLOSED FOR SEO — MOVED OUT OF SEO SCOPE (owner, 2026-10-31): no material SEO impact; tracked as a separate content/brand-rule task (owner decided Option A, OD-S4-2; Hub edit pending) |
 | 2 | HUB-CATALOG catalog delete of unused products | Hub repository `chajewels/la-tracking` | LIVE — FIRST REAL DELETE PENDING |
 | 3 | BUG-09 Search Console | Google Search Console (owner account) | OPEN — property verified and 3 priority URLs observed indexed (2026-10-30); coverage report still processing (2026-10-31); first Performance export taken (1 day, 5 impressions: initial observation only, not a baseline); `portal.`/`paymenthub.` impressions open as an owner investigation (`SEARCH-CONSOLE-BASELINE-2026-10-31.md`) |
 | 4 | BUG-06 `/gold-guide` redirect chain | Website repository, routing | OPEN — deferred until owner-approved redirect work |
 | 5 | OG-PRODUCT product-page sharing metadata | Website repository, metadata | CLOSED — DEPLOYED AND VERIFIED LIVE (2026-10-30) |
 
 ## 1. BUG-03 — article wording A/B
-- **Current status:** OPEN — owner A/B article wording decision pending (confirmed defect). Nothing has been edited.
+- **Moved out of SEO scope (owner, 2026-10-31):** the four sentences are a brand-rule/accuracy matter (origin wording only via the origin badge or the approved clarifier, CLAUDE.md "Terminology"), not a ranking factor, and nothing in the SEO plan depends on them. They are no longer an SEO blocker or an SEO status item; the edit stays a separate content task for the owner (Option A decided, OD-S4-2; exact edit in `STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md` §1). Watches stop reporting it as an SEO item. The record below is kept for history.
+- **Current status:** OPEN — owner decided **Option A** for both paragraphs, EN and JA (OD-S4-2, 2026-10-30, `STEP-4-OWNER-APPROVAL-RECORD.md`); exact edits in `STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md` §1. Not yet published: the live English and Japanese article still carry the origin wording (re-fetched 2026-10-31). Nothing has been edited by Claude.
 - **Repository / workstream:** content lives in the Hub (Website → Content, `body_en` / `body_ja` of the article `why-cha-jewels-care-behind-every-piece`). The proposal lives in this repository.
 - **Reference:** `docs/seo/SEO-DEFECTS-2026-10-29.md` §BUG-03 (four sentences, two options).
 - **Existing evidence:** the live article was fetched on 2026-10-29 and carries four sentences with origin wording outside the approved surfaces (`origin-badge.tsx` for a piece whose Hub `origin === "JAPAN"`, or the exact approved clarifier). Option A removes the origin word; Option B replaces the sentence with the approved clarifier. `check:terms` does not scan Hub bodies.
-- **Remaining action:** owner chooses A or B (per sentence if desired); the owner edits the two Hub fields. The exact bilingual A/B decision sheet, re-checked against the live article on 2026-10-30, is in `docs/seo/STEP-4-CONTENT-AUDIT.md` §7 (status unchanged: OPEN).
+- **Remaining action:** the owner applies Option A in the two Hub fields (checklist §1); then the live EN and JA article are re-fetched and the result recorded. (Historical: the A/B choice was made 2026-10-30.) The exact bilingual A/B decision sheet, re-checked against the live article on 2026-10-30, is in `docs/seo/STEP-4-CONTENT-AUDIT.md` §7 (status unchanged: OPEN).
 - **Owner approval:** required. Claude must not edit the published text.
 - **Definition of done:** the owner has approved an option; the live EN and JA article bodies were re-fetched afterwards and contain none of the four sentences; the result is recorded in the defects file with the date.
 
