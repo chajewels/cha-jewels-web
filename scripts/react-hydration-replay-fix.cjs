@@ -15,7 +15,8 @@
  * header compared with the logo <a> inside it (development build, 2026-10-31),
  * intermittently, on any page — the SEO record's "React #418".
  *
- * The fix is React 19.3.0's own five lines, copied from its published
+ * The fix is React 19.3.0's own statement block (eight formatted lines
+ * upstream), copied from its published
  * cjs/react-dom-client.*.js (replaySuspendedUnitOfWork / replayBeginWork,
  * `case 5:` after resetHooksOnUnwind): if the replayed fiber is the current
  * hydration parent, step back to its host parent and point the cursor at the

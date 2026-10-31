@@ -180,7 +180,7 @@ Owners: *Owner* answers decisions and account questions; *Site* (Claude Code) wr
 
 The baseline comparison (the error exists on `develop`) does not lift condition (a) by itself; it only establishes that this PR did not introduce it.
 
-**Update 2026-10-31 (QA §15, "React #418 — cause found"):** the cause of condition (a) is identified — React's hydration replay does not rewind the cursor (react/react#37584, fixed in react-dom 19.3.0) — and a fix is on `fix/react-418-hydration-replay` (React 19.3's own lines applied to Next 15's bundled react-dom by a build-time loader): matched hunt 20/1,008 unfixed vs 0/984 fixed; DOM checker 683/0. Condition (a) is **not yet verified on the release candidate**; condition (b) unchanged. Status stays BLOCKED until both verify. If (a) verifies on the candidate, OD-F1 is no longer needed.
+**Update 2026-10-31 (QA §15, "React #418 — cause found"):** the cause of condition (a) is identified — React's hydration replay does not rewind the cursor (react/react#37584, fixed in react-dom 19.3.0) — and a fix is on `fix/react-418-hydration-replay` (React 19.3's own fix applied to Next 15's bundled react-dom by a build-time loader): matched hunt 20/1,008 unfixed vs 0/984 fixed; DOM checker 683/0. Condition (a) is **not yet verified on the release candidate**; condition (b) unchanged. Status stays BLOCKED until both verify. OD-F1 stays in force until the owner decides D1 (adopt the fix — PR #457's closeout list); it is retired only after (a) verifies on the re-accepted candidate.
 
 ## 6. Batch ownership (one owner per item)
 
