@@ -5,8 +5,10 @@ on:
     branches: [main, develop]
   # Both bases: a step's work arrives as feature -> develop, and develop -> main
   # is the release PR. Filtering to main alone left feature PRs unchecked.
+  # redesign/**: the Lumière integration branch and its phase PRs (D-17,
+  # docs/tasks/lumiere-p0-report.md §9.4) get every check too.
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, 'redesign/**']
 
 jobs:
   check:
@@ -54,6 +56,15 @@ jobs:
       # their content file, committed in lib/page-lastmod.generated.ts. Editing
       # either file without regenerating fails here (SEO Step 1, Master Plan 33.3e).
       - run: npm run check:lastmod
+
+      # Lumière placeholder content (lib/lumiere/placeholders.ts,
+      # public/lumiere/placeholder/**) never reaches the live site: lenient
+      # (count) on a redesign/** base, STRICT on a PR into develop or main
+      # (D-17). The production build runs the same strict check in `prebuild`.
+      - run: npm run check:placeholders
+        if: github.base_ref != 'develop' && github.base_ref != 'main'
+      - run: npm run check:placeholders -- --strict
+        if: github.base_ref == 'develop' || github.base_ref == 'main'
 
       # H2 (Paidy QC 2026-10-09): the unit tests — Paidy flow, card, CSP,
       # order display, site time — were never run on a push; a regression

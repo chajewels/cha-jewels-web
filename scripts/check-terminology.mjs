@@ -48,6 +48,20 @@ const originExempt = [
 ];
 const withoutExempt = (line) => originExempt.reduce((l, phrase) => l.split(phrase).join(" "), line);
 
+// SPELLING (owner decision D-22, 2026-11-01, docs/tasks/lumiere-p0-report.md
+// §11.7): this site writes American English — "jewelry", never "jewellery".
+// Checked in the Cha copy files, i.e. everything under app/, components/ and
+// lib/ (code, content, CSS), not in docs/ (which quotes the Lumière reference
+// verbatim). The one exemption is the Lumière placeholder registry
+// (lib/lumiere/placeholders.ts), which carries the reference's own alt text
+// until the placeholders leave (§9).
+const spelling = /jeweller(?:y|ies|ed|s)?\b/i;
+const spellingScope = (rel) => /^(?:app|components|lib)\//.test(rel);
+const spellingExempt = new Set(["lib/lumiere/placeholders.ts"]);
+// Self-test: the rule still catches the spelling and still lets "jewelry" through.
+for (const s of ["Crafted jewellery for everyday rituals", "Fine Jewellery", "our jewellers"]) if (!spelling.test(s)) { console.error(`check-terminology no longer catches: ${s}`); process.exit(1); }
+for (const s of ["Fine Jewelry", "jewelry-guide", "Jewelers of America"]) if (spelling.test(s)) { console.error(`check-terminology wrongly flags: ${s}`); process.exit(1); }
+
 const skip = new Set(["node_modules", ".next", ".git"]);
 let hits = 0;
 function walk(dir) {
@@ -60,6 +74,7 @@ function walk(dir) {
     const lines = readFileSync(p, "utf8").split("\n");
     lines.forEach((line, i) => {
       for (const re of forbidden) if (re.test(line)) { hits++; console.error(`${p}:${i + 1}: forbidden term -> ${line.trim()}`); }
+      if (spellingScope(rel) && !spellingExempt.has(rel) && spelling.test(line)) { hits++; console.error(`${p}:${i + 1}: British spelling (write "jewelry", D-22) -> ${line.trim()}`); }
       const exempt = originAllowed.has(rel) || (rel === "lib/i18n.ts" && i18nOriginKeys.test(line));
       if (!exempt) {
         const rest = withoutExempt(line);

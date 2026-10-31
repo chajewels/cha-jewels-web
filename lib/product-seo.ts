@@ -19,7 +19,7 @@ export { BRAND_OG_IMAGE };
  *
  * TYPE. "website", the value the whole site already declares. Next's installed
  * OpenGraph types (15.5) have no product type, and "article"/"book"/"profile"
- * would say something untrue about a jewellery listing.
+ * would say something untrue about a jewelry listing.
  *
  * og:title and og:description are NOT restated: Next derives them from the page's
  * own <title> and description (they stay equal to those, as before). Twitter's

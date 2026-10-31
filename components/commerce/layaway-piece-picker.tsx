@@ -11,6 +11,7 @@ import { StageBand } from "@/components/site/stage-band";
 import { tr, type Lang } from "@/lib/i18n";
 import { filterPieces, type PickerPiece } from "@/lib/layaway-picker";
 import { formatMoney } from "@/lib/utils";
+import { lockScroll } from "@/lib/scroll-lock";
 
 /**
  * /layaway CHOSEN PIECE + PICKER (owner decisions 2026-10-18).
@@ -115,15 +116,15 @@ function PickerButton({ lang, pieces, chosen, open, onOpen, onClose, onChoose }:
     const el = document.createElement("div");
     document.body.appendChild(el);
     setHost(el);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // The shared lock: body overflow + Lenis stopped (lib/scroll-lock.ts).
+    const releaseScroll = lockScroll();
     const outside = Array.from(document.body.children).filter((c) => c !== el);
     const hadInert = outside.map((c) => c.hasAttribute("inert"));
     outside.forEach((c) => c.setAttribute("inert", ""));
     const trigger = triggerRef.current;
     return () => {
       outside.forEach((c, i) => { if (!hadInert[i]) c.removeAttribute("inert"); });
-      document.body.style.overflow = previous;
+      releaseScroll();
       el.remove();
       setHost(null);
       setQ("");
@@ -172,7 +173,7 @@ function PickerButton({ lang, pieces, chosen, open, onOpen, onClose, onChoose }:
             {/* Always mounted, so the empty message is announced when it appears. */}
             <div aria-live="polite">{shown.length === 0 && <p className="px-4 pb-6 pt-2 text-sm text-charcoal">{t("layawayPage", "pickerNone")}</p>}</div>
             {shown.length > 0 && (
-              <ul className="min-h-0 flex-1 overflow-y-auto border-t border-hairline pb-2">
+              <ul data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto border-t border-hairline pb-2">
                 {shown.map((p) => (
                   <li key={p.slug} className="border-b border-hairline last:border-b-0">
                     <button

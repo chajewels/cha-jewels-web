@@ -99,7 +99,7 @@ export default async function JewelryGuidePage() {
             </ul>
           </div>
           <div className="min-w-0">
-            <div data-ring-table className="max-h-[min(80vh,760px)] overflow-auto border border-hairline bg-white" tabIndex={0} role="region" aria-labelledby="jg-ring-caption">
+            <div data-ring-table data-lenis-prevent className="max-h-[min(80vh,760px)] overflow-auto border border-hairline bg-white" tabIndex={0} role="region" aria-labelledby="jg-ring-caption">
               <table className="w-full border-collapse text-[15px] [font-variant-numeric:lining-nums_tabular-nums]">
                 <caption id="jg-ring-caption" className="border-b border-hairline px-4 py-3 text-left text-sm font-semibold text-charcoal-deep">{ringSize.caption[lang]}</caption>
                 <thead className="sticky top-0 bg-chalk text-left text-xs text-charcoal/80">

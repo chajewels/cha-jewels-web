@@ -70,6 +70,23 @@ test("the report-only policy is broad: inline allowed, the site's known hosts li
   assert.deepEqual(d["report-uri"], ["/api/csp-report"]);
 });
 
+// Lumière P1 (docs/tasks/lumiere-p0-report.md §4): the 3D scenes need inline
+// WebAssembly (Meshopt) and a same-origin module worker (EXR decode) — on the
+// report-only policy ONLY. The enforced pay-card policy is untouched.
+test("Lumière: report-only allows 'wasm-unsafe-eval' and names worker-src 'self'", () => {
+  const d = directives(reportOnlyCsp({}));
+  assert.ok(d["script-src"].includes("'wasm-unsafe-eval'"), "wasm-unsafe-eval in report-only script-src");
+  assert.deepEqual(d["worker-src"], ["'self'"], "worker-src 'self' in report-only");
+});
+
+test("Lumière: the pay-card policy never gains 'wasm-unsafe-eval' or a worker-src", () => {
+  const d = directives(payCardCsp(newNonce(), {}));
+  assert.ok(!d["script-src"].includes("'wasm-unsafe-eval'"), "no wasm on the card page");
+  assert.equal(d["worker-src"], undefined, "no worker-src on the card page");
+  const dev = directives(payCardCsp(newNonce(), { dev: true }));
+  assert.ok(!dev["script-src"].includes("'wasm-unsafe-eval'"));
+});
+
 test("violation reports: both formats, path only, never a query string", () => {
   const legacy = readCspViolations({ "csp-report": { "blocked-uri": "https://evil.example/x.js?token=abc", "violated-directive": "script-src-elem", "document-uri": "https://www.chajewelsjp.com/account/orders/123/pay-card?signed=1" } });
   assert.deepEqual(legacy, [{ blocked: "https://evil.example/x.js", directive: "script-src-elem", document: "/account/orders/123/pay-card" }]);

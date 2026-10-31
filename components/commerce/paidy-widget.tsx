@@ -38,7 +38,7 @@ export function PaidyWidget({ amountJpy, lang, className = "" }: { amountJpy: nu
   if (!attrs) return null;
   const t = tr(lang);
   return (
-    <div className={className} data-testid="paidy-widget">
+    <div className={className} data-testid="paidy-widget" data-lenis-prevent>
       <div {...attrs} />
       <p className="mt-1 text-[12px] leading-snug text-charcoal/70 [:lang(ja)_&]:text-[12px]" data-testid="paidy-widget-note">
         {t("paidy", "widgetNote")}

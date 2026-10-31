@@ -76,7 +76,7 @@ export function LegalFrame({
             <span>{COMPANY_NAME_DISPLAY[lang]}</span>
           </p>
           <nav aria-label={t("legalPage", "pages")} className="mt-[30px] print:hidden">
-            <ul className="-mx-4 flex overflow-x-auto border-b border-rule [mask-image:linear-gradient(90deg,#000_88%,transparent)] [scrollbar-width:none] lg:mx-0 lg:[mask-image:none]">
+            <ul data-lenis-prevent className="-mx-4 flex overflow-x-auto border-b border-rule [mask-image:linear-gradient(90deg,#000_88%,transparent)] [scrollbar-width:none] lg:mx-0 lg:[mask-image:none]">
               {PAGES.map((p) => (
                 <li key={p.key} className="flex-none">
                   <Link

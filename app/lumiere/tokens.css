@@ -1,0 +1,640 @@
+/* ===========================================================================
+   LUMIÈRE TOKENS — ported verbatim from the Lumière reference
+   (~/Downloads/lumi-re src/app/globals.css, Tier 1 + Tier 2 + every
+   responsive band), P1 of docs/tasks/lumiere-redesign.md; translation
+   table in docs/tasks/lumiere-p0-report.md §2.
+
+   What is NOT here, and why:
+   - the `@theme inline` bindings → tailwind.config.ts `theme.extend`
+     (Tailwind 3.4 has no CSS-first theme);
+   - `--spacing: var(--step)` → the prefixed `u-*` spacing scale in
+     tailwind.config.ts (`left-u-40` = 40 design units), because Tailwind 3
+     cannot rebind the global spacing step without moving every existing page;
+   - the rem grid (`html { font-size: …vw }`) — not ported (D-11);
+   - the `prefers-color-scheme: dark` override — dropped, light only (D-12);
+   - `body { background; color }` — the existing pages keep their own body
+     styles until P3; nothing in this file paints anything by itself.
+   `@utility` blocks live in app/lumiere/utilities.css, the BEM blocks in
+   app/lumiere/blocks.css. All three are inlined into app/globals.css by
+   postcss-import, so `@layer` works as it does in the reference.
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   TIER 1 — PRIMITIVES  (`--raw-*`)
+   Raw literal values. The only tier allowed to contain a hex/px/ms literal.
+   Never referenced in markup, never bound into @theme. Rename freely.
+   Grammar: --raw-<category>-<name>[-<shade>]
+   See obsidian/frontend/design-system.md → "Token naming convention".
+   --------------------------------------------------------------------------- */
+:root {
+  --raw-color-white: #ffffff;
+  --raw-color-neutral-100: #ededed;
+  --raw-color-neutral-900: #171717;
+  --raw-color-neutral-950: #0a0a0a;
+
+  --raw-duration-fast: 150ms;
+  --raw-duration-normal: 250ms;
+
+  /* --- Hero palette -------------------------------------------------------
+     Read off Figma "Get Layers" frames 1006:155 / 1074:444 / 1074:501.
+     The file defines NO Figma Variables, so there are no upstream names to
+     mirror — these are ours. See decisions-log.md ADR-0018. */
+  --raw-color-bone-50: #f9f7f4;
+  --raw-color-bone-100: #f4f0ec;
+  --raw-color-grey-300: #cfcfd0;
+  --raw-color-ink-900: #1c1c1c;
+  --raw-color-black: #000000;
+
+  /* --- Design unit --------------------------------------------------------
+     One Figma pixel at the 1440-wide design width. Everything in the hero is
+     a multiple of this, so the composition stays proportional to the viewport
+     at 1440 / 1920 / 2560 alike (the rem grid damps scale-up by coef 0.6666,
+     which would break that). See decisions-log.md ADR-0019. */
+  --raw-unit-design: calc(100vw / 1440);
+
+  /* Centre of the card ring. Figma centres it on the frame at 1440; the compact
+     block moves it down and the pendant hangs from the same figure. */
+  --ring-top: 50%;
+
+  /* Top of the headline. Desktop overrides it with an `lg:` class that centres
+     the block beside the ring; below that it hangs from the top edge. */
+  --headline-top: calc(150 * var(--raw-unit-design));
+
+  /* How much larger the collections index stands than the unit alone would make
+     it. One at the design width and above; the band below raises it. MUST match
+     `CATEGORY_SCALE` in hero.config.ts — the strip's travel is computed there
+     from the same figure, and a disagreement slides the lit pill out of its
+     window. */
+  --hero-category-scale: 1;
+
+  /* The three items in the bottom band, measured from the bottom edge. Kept as
+     properties rather than responsive classes because they have to agree with
+     each other across breakpoints — an ordering surprise between an arbitrary
+     value and a variant would put one of the three on its own line. */
+  --footer-tagline-bottom: calc(29.2 * var(--raw-unit-design));
+  --footer-cta-bottom: calc(38.5 * var(--raw-unit-design));
+  --footer-cue-bottom: calc(40 * var(--raw-unit-design));
+  --footer-tagline-width: calc(340 * var(--raw-unit-design));
+
+  /* Wordmark box. Artwork, so it is sized rather than set — the phone overrides
+     both against its own Figma frame. */
+  --wordmark-width: calc(79.07 * var(--raw-unit-design));
+  --wordmark-height: calc(40 * var(--raw-unit-design));
+
+  /* Pendant framing. On desktop the whole artwork shows and hangs from the
+     chain's proportion; below 1024 only the pendant is kept and it centres on
+     the ring. */
+  --pendant-width: calc(421 * var(--raw-unit-design));
+  --pendant-height: calc(556 * var(--raw-unit-design));
+  --pendant-top: calc(50% - 426 * var(--raw-unit-design));
+  --pendant-shift: 0;
+  /* How the 3D pendant frames itself in that box, as plain fractions (read by
+     script, so no calc): the halo's centre sits 426 / 556 down it and the halo
+     spans 136 / 421 of its width — the oval size the artwork always had. The
+     poster renders use the same two numbers. */
+  --pendant-oval-centre: 0.766187;
+  --pendant-oval-span: 0.323040;
+
+  /* Viewing distance for the card ring's cursor tilt (HERO_TILT). On the unit,
+     so the depth of the turn reads the same at every viewport width. */
+  --hero-tilt-perspective: calc(1600 * var(--raw-unit-design));
+
+  /* Where frame 3's photograph is cropped from. Figma anchors it to the top of
+     the plate; on a phone the card is a third wider than the screen and that
+     same anchor slices between the fingers instead of holding the hand. */
+  --frame3-crop: center 0%;
+
+  /* Headline size is pinned separately from the unit below 1440: a display
+     serif loses legibility far faster than the rest of the composition, so it
+     stops tracking the viewport before everything else does. */
+  --raw-text-display-fluid: clamp(2.25rem, 13vw, calc(82 * var(--raw-unit-design)));
+
+  /* Figma px -> design units. Type sizes and their line-heights are paired:
+     Figma stores leading as a multiplier, resolved to px here per the brief. */
+  --raw-text-display: calc(82 * var(--raw-unit-design));
+  --raw-text-display-leading: calc(73.8 * var(--raw-unit-design)); /* 82 x 0.9 */
+  --raw-text-wordmark: calc(28 * var(--raw-unit-design));
+  --raw-text-wordmark-leading: calc(22.4 * var(--raw-unit-design)); /* x 0.8 */
+  /* Figma sets 20/26. Dialled back 2 by request; the 1.3 ratio is preserved. */
+  --raw-text-body: calc(18 * var(--raw-unit-design));
+  --raw-text-body-leading: calc(23.4 * var(--raw-unit-design)); /* x 1.3 */
+  --raw-text-utility: calc(16 * var(--raw-unit-design));
+  --raw-text-utility-leading: calc(12.8 * var(--raw-unit-design)); /* x 0.8 */
+  --raw-text-nav: calc(14 * var(--raw-unit-design));
+  --raw-text-nav-leading: calc(11.2 * var(--raw-unit-design)); /* x 0.8 */
+  --raw-text-caption: calc(13 * var(--raw-unit-design));
+  --raw-text-caption-leading: calc(10.4 * var(--raw-unit-design)); /* x 0.8 */
+  --raw-text-micro: calc(7 * var(--raw-unit-design));
+  --raw-text-micro-leading: calc(5.6 * var(--raw-unit-design)); /* x 0.8 */
+
+  /* Figma letter-spacing is in px; converted to em per the brief. */
+  --raw-tracking-micro: 0.04em; /* 0.28px / 7px */
+  --raw-tracking-utility: 0.03em; /* 0.48px / 16px */
+
+  --raw-radius-card: calc(32 * var(--raw-unit-design));
+  /* The large photo cards — the collections grid and the featured panels.
+     The hero card's 32 read too round at that size; asked for a third
+     smaller, so 32 / 1.5. */
+  --raw-radius-panel: calc(21.3333 * var(--raw-unit-design));
+  --raw-radius-pill: calc(8 * var(--raw-unit-design));
+
+  /* --- Collections block --------------------------------------------------
+     Read off "Hero 5 (Collections)" — 1443:7 and 1509:157. Leadings are the
+     Figma multiplier already resolved against the size, per the brief; the
+     tracking is its 0.48px converted against the 16 it sits on. */
+  --raw-text-collections-heading: calc(64 * var(--raw-unit-design));
+  --raw-text-collections-heading-leading: calc(57.6 * var(--raw-unit-design));
+  --raw-text-collections-lead: calc(16 * var(--raw-unit-design));
+  --raw-text-collections-lead-leading: calc(20.8 * var(--raw-unit-design));
+  --raw-text-card-label: calc(32 * var(--raw-unit-design));
+  --raw-text-card-label-leading: calc(28.8 * var(--raw-unit-design));
+  --raw-text-card-title: calc(48 * var(--raw-unit-design));
+  --raw-text-card-title-leading: calc(43.2 * var(--raw-unit-design));
+  --raw-text-card-index: calc(18 * var(--raw-unit-design));
+  --raw-text-card-index-leading: calc(16.2 * var(--raw-unit-design));
+  --raw-text-card-note: calc(14 * var(--raw-unit-design));
+  --raw-text-card-note-leading: calc(14 * var(--raw-unit-design));
+  --raw-text-card-cta: calc(16 * var(--raw-unit-design));
+  --raw-text-card-cta-leading: calc(12.8 * var(--raw-unit-design));
+  --raw-tracking-card-cta: 0.03em; /* 0.48px / 16px */
+
+  /* 400 in, 500 out, on the brief's curve. */
+  --raw-duration-hover-in: 400ms;
+  --raw-duration-hover-out: 500ms;
+  --raw-ease-hover: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   TIER 2 — SEMANTIC  (role names, no namespace prefix)
+   Purpose, not appearance. Always `var(--raw-*)` — never a literal.
+   This is the themeable layer: dark mode overrides happen HERE, which is why
+   these are separate from the @theme bindings below (see the note there).
+   Grammar: --<role>[-<variant>][-<state>]
+   --------------------------------------------------------------------------- */
+:root {
+  --background: var(--raw-color-white);
+  --foreground: var(--raw-color-neutral-900);
+
+  --duration-fast: var(--raw-duration-fast);
+  --duration-normal: var(--raw-duration-normal);
+
+  /* Hero roles. `-inverse` is what frame 3 flips to once the photo covers the
+     screen; the hero interpolates between the two, it never toggles. */
+  --surface: var(--raw-color-bone-100);
+  --content: var(--raw-color-black);
+  --content-inverse: var(--raw-color-white);
+  --border-muted: var(--raw-color-grey-300);
+  --index-active: var(--raw-color-ink-900);
+  --index-active-inverse: var(--raw-color-bone-50);
+
+  /* Radii and gutters carry a `corner-`/`gutter-` role prefix so they don't
+     collide with the `--radius-*` / `--spacing-*` Tailwind bindings below. */
+  --corner-card: var(--raw-radius-card);
+  --corner-panel: var(--raw-radius-panel);
+  --corner-pill: var(--raw-radius-pill);
+
+  /* Base step for every spacing utility. Setting it to one design unit makes
+     `top-26` / `w-350` / `gap-48` read as the Figma value directly. */
+  --step: var(--raw-unit-design);
+
+  --type-display: var(--raw-text-display);
+  --type-display-leading: var(--raw-text-display-leading);
+  --type-wordmark: var(--raw-text-wordmark);
+  --type-wordmark-leading: var(--raw-text-wordmark-leading);
+  --type-body: var(--raw-text-body);
+  --type-body-leading: var(--raw-text-body-leading);
+  --type-utility: var(--raw-text-utility);
+  --type-utility-leading: var(--raw-text-utility-leading);
+  --type-nav: var(--raw-text-nav);
+  --type-nav-leading: var(--raw-text-nav-leading);
+  --type-caption: var(--raw-text-caption);
+  --type-caption-leading: var(--raw-text-caption-leading);
+  --type-micro: var(--raw-text-micro);
+  --type-micro-leading: var(--raw-text-micro-leading);
+
+  --track-micro: var(--raw-tracking-micro);
+  --track-utility: var(--raw-tracking-utility);
+
+  /* Collections block. */
+  --type-collections-heading: var(--raw-text-collections-heading);
+  --type-collections-heading-leading: var(
+    --raw-text-collections-heading-leading
+  );
+  --type-collections-lead: var(--raw-text-collections-lead);
+  --type-collections-lead-leading: var(--raw-text-collections-lead-leading);
+  --type-card-label: var(--raw-text-card-label);
+  --type-card-label-leading: var(--raw-text-card-label-leading);
+  --type-card-title: var(--raw-text-card-title);
+  --type-card-title-leading: var(--raw-text-card-title-leading);
+  --type-card-index: var(--raw-text-card-index);
+  --type-card-index-leading: var(--raw-text-card-index-leading);
+  --type-card-note: var(--raw-text-card-note);
+  --type-card-note-leading: var(--raw-text-card-note-leading);
+  --type-card-cta: var(--raw-text-card-cta);
+  --type-card-cta-leading: var(--raw-text-card-cta-leading);
+  --track-card-cta: var(--raw-tracking-card-cta);
+
+  --duration-hover-in: var(--raw-duration-hover-in);
+  --duration-hover-out: var(--raw-duration-hover-out);
+  --ease-hover-role: var(--raw-ease-hover);
+}
+
+/* ---------------------------------------------------------------------------
+   RESPONSIVE — everything below 1440 only.
+
+   The desktop composition is one long chain hanging off `--raw-unit-design`:
+   type, gutters, the ring's radius, the cards. Left alone it keeps scaling with
+   the viewport, so at 375 the whole hero renders at 26% — intact but unusable.
+   Giving the unit a floor is therefore the entire adaptation in one line; the
+   rules that follow only re-flow what a narrow screen cannot hold.
+
+   The `max()` is a no-op at 1440 and above (the unit is already 1px there), but
+   the media query keeps the promise explicit: not one desktop value changes.
+   --------------------------------------------------------------------------- */
+@media (max-width: 1439.98px) {
+  :root {
+    /* Unchanged from desktop down to the crossover below. Stated explicitly so
+       the two rules read as one ramp. */
+    --raw-unit-design: calc(100vw / 1440);
+
+    /* The display serif steps off the unit and onto its own ramp: 32px at 320,
+       reaching the Figma 82 as the viewport approaches 1440. */
+    --type-display: var(--raw-text-display-fluid);
+    --type-display-leading: calc(0.95 * var(--raw-text-display-fluid));
+
+    /* Floors for the small roles. Below 1024 the unit stops tracking the
+       viewport, so 18 design units land at 13px — correct against Figma and too
+       small to read on a phone. The ceiling is still the Figma size, so nothing
+       grows past what the design asks for. */
+    /* Applied to the Tier 1 values, not the semantic ones above them: the
+       `@theme inline` bindings resolve the semantic token when the utility is
+       generated, so overriding it here never reaches the rendered class. The
+       raw value is the one still read at runtime. */
+    --raw-text-body: max(16px, calc(18 * var(--raw-unit-design)));
+    --raw-text-body-leading: max(21px, calc(23.4 * var(--raw-unit-design)));
+    --raw-text-nav: max(13px, calc(14 * var(--raw-unit-design)));
+    --raw-text-nav-leading: max(13px, calc(11.2 * var(--raw-unit-design)));
+    --raw-text-utility: max(14px, calc(16 * var(--raw-unit-design)));
+    --raw-text-utility-leading: max(14px, calc(12.8 * var(--raw-unit-design)));
+    --raw-text-caption: max(12px, calc(13 * var(--raw-unit-design)));
+    --raw-text-caption-leading: max(12px, calc(10.4 * var(--raw-unit-design)));
+  }
+}
+
+/* The floor, as a flat value rather than `max()`.
+   `calc(105.398 * max(0.6452px, …))` looks reasonable and is not: multiplying a
+   number by a nested `max()` is dropped, and every card that reads its width
+   this way collapses to zero.
+
+   929 is where the two rules meet: `100vw / 1440` passes 0.6452 at exactly that
+   width, so the ramp hands over to the floor without a step.
+
+   It read 1036.8 for a long time, which was right when the floor was 0.72 and
+   was never moved when the floor became 0.6452. The 13px of window between 1024
+   and 1036.8 that survived — the rest of the stale band is covered by the
+   tablet rule below — held the unit at the phone's 0.6452 while the desktop
+   layout was up and `unitPxFor` was already returning 0.7153, so the cards came
+   out a tenth too small for the ring they sit on and the pendant swamped them.
+   To put it back, this number is the only thing to change. */
+@media (max-width: 929px) {
+  :root {
+    --raw-unit-design: 0.6452px;
+
+    /* Radii keep their desktop pixels. Everything else shrinks with the unit,
+       but a corner that shrinks with it reads as a different, sharper shape —
+       so these are pinned to the Figma values outright. */
+    --raw-radius-card: 32px;
+    --raw-radius-panel: 21.3333px;
+    --raw-radius-pill: 8px;
+
+    /* Tablet only — the phone block below overrides it. The boost that band
+       carries opens up enough overflow inside the card for the crop to be a
+       fine adjustment rather than the whole vertical lever. */
+    --frame3-crop: center 6%;
+
+    /* Centre of the ring. Figma's phone frame (1577:125, 390x800) puts it at
+       453 down — 56.6% — and the pendant hangs from the same figure below. They
+       are one measurement: drift between them and the chain stops coming out of
+       the middle of the cards.
+
+       A custom property rather than a `max-lg:` class on purpose. Written as a
+       Tailwind variant it sat at the end of a template literal, right against
+       the `${`, and the scanner took `top-[57%]` out of the middle of the token
+       and never emitted the variant at all — so the rule silently did not exist
+       and the ring stayed at 50% while the pendant sat 72px lower. */
+    --ring-top: 57%;
+
+    /* The compact necklace box — originally sized for `pendant-compact.png`
+       (1024x1536, the same piece drawn with a far longer chain than the desktop
+       file carried), now the frame the 3D pendant and its compact poster use.
+
+       Sized off the design unit, in the same shape of rule as desktop above,
+       and for the same reason: the pendant has to hold its size against the
+       cards, and the cards ride the unit. Sizing it off the viewport height
+       instead — which is what made the chain reach the top edge exactly — left
+       it at 49px against a 94px card, a quarter of the weight it has on
+       desktop.
+
+       1243.4 is the artwork width that puts the oval at 136 units across, which
+       is what desktop's oval measures. 1865.1 follows from the 1024:1536
+       aspect, and 1603.5 is where the oval's centre falls down that height —
+       rows 1248-1393 of 1536, or 0.8597, measured off the alpha channel.
+
+       The chain now overshoots the top edge rather than meeting it, and is cut
+       off by the stage. That is the right way round: reaching the top is a
+       floor, not a target, and a chain that runs off the top reads as
+       continuing past it. At the crop the two strands stand 223 units apart —
+       comfortably inside the narrowest screen this rule covers.
+
+       These MUST match PENDANT_COMPACT in hero.config.ts. */
+    --pendant-width: calc(1243.4 * var(--raw-unit-design));
+    --pendant-height: calc(1865.1 * var(--raw-unit-design));
+    --pendant-top: calc(var(--ring-top) - 1603.5 * var(--raw-unit-design));
+    --pendant-shift: 0;
+    /* 3D framing for this box: centre 1603.5 / 1865.1 down, halo 136 / 1243.4
+       of the width. */
+    --pendant-oval-centre: 0.859740;
+    --pendant-oval-span: 0.109378;
+    /* The old compact photograph drew its oval 6.7 units left of centre and was
+       nudged back; the 3D pendant and its poster are centred on the axis. */
+    --pendant-nudge-x: 0px;
+  }
+}
+
+/* Below the desktop breakpoint the standfirst and the CTA stop sharing a line —
+   there is no room for both beside each other — and stack against the same left
+   gutter, standfirst above. */
+/* The collections index is a strip of small type pinned to the right edge, and
+   below the design width it is the first thing in the composition to stop
+   reading: at 1280 its 16 resolves to 14.2, against a headline of 73. The rest
+   of the hero is fitted between neighbours and cannot grow; this has empty
+   margin on both sides and can.
+
+   Unlayered and next to the other root bands, not inside `@layer components`:
+   the default sits on a bare `:root`, and an unlayered declaration beats a
+   layered one whatever the specificity — put in the layer, this did nothing.
+
+   The band stops a hundredth short of 1440, so the design width keeps Figma's
+   figure. Below 1024 the strip is not rendered at all — the nav is
+   `hidden lg:block` — so the two verified frames under that width never see it
+   either. */
+@media (min-width: 1024px) and (max-width: 1439.98px) {
+  :root {
+    --hero-category-scale: 1.35;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  :root {
+    --footer-tagline-bottom: calc(104 * var(--raw-unit-design));
+  }
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    /* Frame 3's crop, lower than the tablet's. The photograph is taller than
+       the card by a fifth, so the percentage picks which band of it shows: less
+       means more of the top, which reads as the picture sitting lower. Split
+       from the shared value above because the phone's card is a different shape
+       and lands the hand higher in the frame. */
+    --frame3-crop: center 8%;
+
+    /* A ceiling on the unit for short phones, the same guard the tablet has.
+       The floor above is a width measure and nothing in it knows how tall the
+       screen is, so the ring keeps its 342 on a 667-tall phone where headline,
+       ring and standfirst together want 687 — and the headline ends up inside
+       the ring.
+
+       1258.5 is exactly where 100svh crosses 0.6452 at 812, so every phone from
+       that height up is untouched: 812, 844, 852, 896 all keep the floor. Below
+       it the whole composition steps down together, which is the one move that
+       keeps the three parts clear of each other.
+
+       MUST match `unitPxFor` in hero-geometry.ts. */
+    --raw-unit-design: min(0.6452px, calc(100svh / 1258.5));
+
+    /* Figma's 0.9 is set for 82px. At a third of that the lines close up and
+       the ascenders touch, so the leading opens out on phones. */
+    --type-display-leading: calc(1.05 * var(--raw-text-display-fluid));
+
+    /* The standfirst comes up off the 16px floor. That floor is a legibility
+       minimum, not a size — held against a headline this large it reads as fine
+       print. The 1.3 ratio Figma sets is preserved.
+
+       The measure widens with it, and by more than the type grew: at 340 units
+       the larger size ran to a third line, and the standfirst was asked to be
+       two. Nothing sits beside it on a phone — the CTA is stacked underneath —
+       so the width is free. */
+    --raw-text-body: max(18px, calc(18 * var(--raw-unit-design)));
+    --raw-text-body-leading: max(23.4px, calc(23.4 * var(--raw-unit-design)));
+    --footer-tagline-width: calc(460 * var(--raw-unit-design));
+
+    /* 28px of daylight between the standfirst's last line and the cap of the
+       explore link, held at every phone width. Measured to the cap and from the
+       baseline, not between the two boxes: both carry leading the eye does not
+       see.
+
+       The lift is not a constant because the gap is not. The unit is pinned
+       down here, so the standfirst sits still, while the link's type is read
+       off Figma's 390-wide frame and grows with the viewport — and the link is
+       anchored to the bottom edge, so its taller cap eats upward into exactly
+       this gap. The gap therefore falls off linearly as the screen widens: 28.1
+       at 375, 25.6 at 430 on a fixed offset.
+
+       Hence the term in the link's own size, which cancels that fall. The two
+       coefficients are read off those two widths, and because the link's size
+       is itself exactly linear in the viewport, a line through two points is
+       the whole function rather than an approximation of it — 320 lands on 28
+       as well, and it was not used to fit.
+
+       Lifting the standfirst rather than dropping the link, because the link
+       sits 24.8 off the bottom edge and that is its tap clearance. */
+    --footer-tagline-bottom: calc(
+      109.2 * var(--raw-unit-design) + 1.12569 * var(--type-utility) - 17.448px
+    );
+
+    /* ---------------------------------------------------------------------
+       The rest of the phone's sizes come off Figma's own phone frame —
+       1577:125, 390 wide — rather than off the design unit.
+
+       The unit is pinned at 0.6452 down here, and it is pinned for the ring:
+       530 units of card spread have to land on the 342 Figma draws. Type read
+       through that same pin comes out at two-thirds of what the phone frame
+       specifies, and the floors that caught it were legibility minimums, not
+       sizes — which is why the composition read as a large headline over fine
+       print with a shrunken wordmark.
+
+       `100vw / 390` is that frame's own unit. Each value keeps a floor so a
+       320-wide phone does not fall below what the floor was protecting.
+       --------------------------------------------------------------------- */
+
+    /* Figma sets 55 on the phone, and 14.1vw is that against a 390 frame.
+       The ceiling is the phone frame's own 55 rather than the desktop 82 read
+       through the unit — that expression resolves to 52.9 here, and was quietly
+       holding the headline three points under the drawn size even at the very
+       390 it was drawn for.
+
+       The height term is a brake, not a size. The ring below is pinned to the
+       unit and shrinks only once the guard above bites, so a headline growing
+       on width alone closes the gap to it. 6.6vh is slack at 812 — width wins
+       there and the target size is untouched — and takes over on short
+       phones. */
+    --raw-text-display-fluid: clamp(2.25rem, min(14.1vw, 6.6vh), 55px);
+
+    /* 16 in the phone frame, on the collections link. */
+    --raw-text-utility: max(14px, calc(16 * 100vw / 390));
+    --raw-text-utility-leading: max(11.2px, calc(12.8 * 100vw / 390));
+
+    /* Not in the phone frame — the cart is ours. Held level with the link above
+       so the two pieces of chrome read as one size. */
+    --raw-text-nav: max(14px, calc(14 * 100vw / 390));
+    --raw-text-nav-leading: max(11.2px, calc(11.2 * 100vw / 390));
+
+    /* 79.07 x 40 in the phone frame. Through the unit it came out at 51 x 26,
+       two-thirds of the drawn size, and the wordmark sat smaller than the cart
+       label beside it. */
+    --wordmark-width: max(64px, calc(79.07 * 100vw / 390));
+    --wordmark-height: max(32.4px, calc(40 * 100vw / 390));
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   TABLET — 768 up to the desktop breakpoint.
+
+   Everything above treats this band as a wide phone: the unit sits on the phone
+   floor, so a composition drawn for 1440 renders at 0.65 in the middle of a
+   768-wide screen and the ring comes out the size of a coaster with a hand's
+   width of dead space above it. This block gives the band a canvas of its own —
+   850 wide, 1150 tall, whichever runs out first — and every measure in the hero
+   follows, because they are all multiples of the same unit.
+
+   Placed last so it wins over both blocks above at equal specificity. Nothing
+   here can reach 1024 and up, and nothing can reach a phone.
+   --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   A phone turned on its side, under 500 tall.
+
+   The hero's unit answers to the height as well as the width, so a 375-tall
+   screen scales the whole composition to a third and every gap in it closes at
+   once: measured at 667x375, the cart label ends at 44 and the headline's first
+   line starts at 47 — three pixels, where the same pair stands 23 apart in
+   portrait. The two read as one column of text.
+
+   Only the headline moves, and only below 768. The cart sits at the top left in
+   that band and directly over the headline; from 768 up it is at the top right
+   and the two never meet, so that band is left alone. Eight and not more: the
+   gap above opens to 10 and the one down to the ring closes to 16, which is as
+   even as this height allows.
+
+   None of the three verified frames can enter here — 375x667 and 768x1024 are
+   portrait, and 1440x900 is 400 too tall.
+   --------------------------------------------------------------------------- */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 767.98px) {
+  :root {
+    --headline-top: calc(150 * var(--raw-unit-design) + 8px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  :root {
+    /* MUST match `TABLET` in hero.config.ts. `min()` and not `max()`: the
+       height is a ceiling for short windows, and the pair is a plain two-term
+       comparison, which survives being multiplied out — unlike the nested
+       `max()` the phone floor had to be flattened for. */
+    --raw-unit-design: min(calc(100vw / 850), calc(100vh / 1150));
+
+    /* Radii come back onto the unit here. Pinned at 32 they were a phone
+       measure held against cards half again as large, and the corners read
+       tighter than the rest of the composition. */
+    --raw-radius-card: calc(32 * var(--raw-unit-design));
+    --raw-radius-pill: calc(8 * var(--raw-unit-design));
+
+    /* The headline moves up: at this size it is nearly twice the height it was,
+       and left where it hung it closed the gap to the ring to nothing. */
+    --headline-top: calc(112 * var(--raw-unit-design));
+
+    /* One baseline for all three items in the bottom band. The CTA carries a
+       rule under it — 0.7 of a unit, 8 above — so the two texts beside it drop
+       by that much to line up with its text rather than with its box. */
+    --footer-tagline-bottom: calc(47.2 * var(--raw-unit-design));
+    --footer-cue-bottom: calc(47.2 * var(--raw-unit-design));
+
+    /* The standfirst gives up some measure. At the phone's 340 it runs to
+       within 13px of the scroll cue on a 768 screen — legal, and it reads as a
+       collision. */
+    --footer-tagline-width: calc(305 * var(--raw-unit-design));
+
+    /* The small roles step up from the phone's sizes — 16px body under a 73px
+       headline is a phone proportion held at tablet scale. The floors stay,
+       though, and they are the tablet's own: the unit is height-capped here, so
+       a short window can drive it back down to 0.67 and the ceiling alone would
+       put the scroll cue at 9px. */
+    --raw-text-body: max(16px, calc(20 * var(--raw-unit-design)));
+    --raw-text-body-leading: max(21px, calc(26 * var(--raw-unit-design)));
+    --raw-text-utility: max(14px, calc(18 * var(--raw-unit-design)));
+    --raw-text-utility-leading: max(14px, calc(14.4 * var(--raw-unit-design)));
+    --raw-text-nav: max(13px, calc(15 * var(--raw-unit-design)));
+    --raw-text-nav-leading: max(13px, calc(12 * var(--raw-unit-design)));
+    --raw-text-caption: max(12px, calc(14 * var(--raw-unit-design)));
+    --raw-text-caption-leading: max(12px, calc(11.2 * var(--raw-unit-design)));
+  }
+}
+
+/* Collections type below 1440.
+
+   The hero's text rides the design unit, because the hero is one composition
+   that shrinks whole. The collections block reflows instead, so its text has to
+   be sized independently of the unit or a phone would get 12px serif capitals.
+   Each ramp is linear between 320 and 1440 and clamped at both ends, and each
+   one lands exactly on its Figma figure at 1440 — the seam is invisible.
+
+   Unlayered on purpose: these override the base `:root` tokens, and a rule
+   inside `@layer components` would lose to them however specific it was. */
+@media (max-width: 1439.98px) {
+  :root {
+    /* Leadings stay multipliers of their own size, so the ratios Figma sets —
+       0.9 on the serif, 1.3 on the standfirst — hold at every width. */
+    --raw-text-collections-heading: clamp(
+      32px,
+      calc(32px + 32 * (100vw - 320px) / 1120),
+      64px
+    );
+    --raw-text-collections-heading-leading: calc(
+      0.9 * var(--raw-text-collections-heading)
+    );
+    --raw-text-collections-lead: clamp(
+      14px,
+      calc(14px + 2 * (100vw - 320px) / 1120),
+      16px
+    );
+    --raw-text-collections-lead-leading: calc(
+      1.3 * var(--raw-text-collections-lead)
+    );
+    --raw-text-card-title: clamp(
+      30px,
+      calc(30px + 18 * (100vw - 320px) / 1120),
+      48px
+    );
+    --raw-text-card-title-leading: calc(0.9 * var(--raw-text-card-title));
+    --raw-text-card-note: clamp(
+      13px,
+      calc(13px + 1 * (100vw - 320px) / 1120),
+      14px
+    );
+    --raw-text-card-note-leading: var(--raw-text-card-note);
+    --raw-text-card-index: clamp(
+      16px,
+      calc(16px + 2 * (100vw - 320px) / 1120),
+      18px
+    );
+    --raw-text-card-index-leading: calc(0.9 * var(--raw-text-card-index));
+    /* Never below 13. The tracking is a proportion of the size, so it follows
+       on its own and does not need its own ramp. */
+    --raw-text-card-cta: clamp(
+      13px,
+      calc(13px + 3 * (100vw - 320px) / 1120),
+      16px
+    );
+    --raw-text-card-cta-leading: calc(0.8 * var(--raw-text-card-cta));
+  }
+}

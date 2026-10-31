@@ -1,0 +1,2621 @@
+/* ===========================================================================
+   LUMIÈRE BLOCKS — the reference's BEM component CSS (collections, featured,
+   philosophy, footer), ported verbatim from ~/Downloads/lumi-re
+   src/app/globals.css lines 794–3402 (P1; docs/tasks/lumiere-p0-report.md
+   §2 "plain BEM that ports verbatim"). Inside Tailwind's components layer, as
+   in the reference, so a utility on the same element still wins.
+   Nothing on the existing pages carries these class names, so this file
+   renders nothing until P2 mounts the Lumière sections.
+   The one edit: a comment that quoted the reference's own headline copy now
+   paraphrases it (check:terms, D-22 — British spelling is forbidden in Cha
+   files). No declaration differs from the reference.
+   =========================================================================== */
+@layer components {
+  /* ===========================================================================
+     COLLECTIONS — layout.
+
+     Absolutely placed against the 1440x1134 frame, exactly as Figma draws it.
+     Every value here is design units, so this is the desktop and only the
+     desktop; the breakpoints further down restate it in flow.
+
+     It lives in CSS rather than inline style for one reason: an inline value
+     outranks every media query, so a block written inline cannot be adapted
+     without `!important` on each override.
+     =========================================================================== */
+  .collections {
+    /* The page gutter, taken from the hero rather than restated: 40 design
+       units is what `left-40` resolves to there, and both blocks read the same
+       unit. The safe area is a floor, never a replacement — on a phone without
+       a notch `env()` is 0 and would wipe the gutter out. */
+    --coll-gutter: max(
+      calc(40 * var(--raw-unit-design)),
+      env(safe-area-inset-left)
+    );
+    --coll-gutter-right: max(
+      calc(40 * var(--raw-unit-design)),
+      env(safe-area-inset-right)
+    );
+    --coll-gap: calc(12 * var(--raw-unit-design));
+    --coll-pad: calc(24 * var(--raw-unit-design));
+    height: calc(1134 * var(--raw-unit-design));
+  }
+
+  .collections__heading {
+    position: absolute;
+    z-index: 10;
+    left: var(--coll-gutter);
+    top: calc(64 * var(--raw-unit-design));
+    width: calc(377 * var(--raw-unit-design));
+  }
+
+  .collections__lead {
+    position: absolute;
+    z-index: 10;
+    right: var(--coll-gutter-right);
+    top: calc(135 * var(--raw-unit-design));
+    width: calc(275 * var(--raw-unit-design));
+    text-align: right;
+  }
+
+  .collections__grid {
+    position: absolute;
+    z-index: 10;
+    left: var(--coll-gutter);
+    top: calc(208 * var(--raw-unit-design));
+    display: flex;
+    flex-direction: column;
+    gap: var(--coll-gap);
+  }
+
+  .collections__row {
+    display: flex;
+    gap: var(--coll-gap);
+    align-items: stretch;
+  }
+
+  .collections__card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    /* The large-card corner, shared with the featured panels. `overflow` clips
+       the photograph, its parallax frame and the hover scrim to it. */
+    border-radius: var(--corner-panel);
+    /* The entrance (collection-card.tsx) writes `--card-shown` from 0 to 1
+       when the card is seen; until then the card is not drawn. */
+    opacity: var(--card-shown, 0);
+    height: calc(425 * var(--raw-unit-design));
+    /* Read by the hover rules below, so the travel stays with the geometry. */
+    --label-rise: calc(174.5 * var(--raw-unit-design));
+    --label-scale: 0.6666666667;
+  }
+
+  .collections__card--narrow {
+    width: calc(560 * var(--raw-unit-design));
+  }
+
+  .collections__card--wide {
+    width: calc(788 * var(--raw-unit-design));
+  }
+
+  /* Parallax frame (collection-card.tsx): taller than the card by
+     `--photo-room` at each end, so the photograph can slide inside the card's
+     window without showing an edge. The card's own overflow clips it.
+     `display: block` matters — the frame is a span. */
+  .collections__photo-frame {
+    position: absolute;
+    top: calc(var(--photo-room, 0%) * -1);
+    right: 0;
+    bottom: calc(var(--photo-room, 0%) * -1);
+    left: 0;
+    display: block;
+    will-change: transform;
+  }
+
+  .collections__photo {
+    object-fit: cover;
+    object-position: var(--card-crop);
+    scale: var(--card-zoom);
+  }
+
+  .collections__body {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--coll-pad);
+    color: var(--content-inverse);
+    /* Above the scrim the tablet range lays over the photograph. Both are
+       positioned children of the card, so without this the scrim — being the
+       last thing in the box — would paint over the type it exists to rescue. */
+    z-index: 1;
+  }
+
+  .collections__index {
+    display: block;
+    width: 100%;
+  }
+
+  .collections__middle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .collections__note {
+    display: block;
+    width: var(--note-w);
+    text-align: right;
+  }
+
+  .collections__cta {
+    display: flex;
+    width: fit-content;
+    flex-direction: column;
+    gap: calc(8 * var(--raw-unit-design));
+    /* The link is decoration inside a card that is itself the target, but the
+       row is only 12 tall — this lifts the reachable area to 44 without moving
+       a pixel of it. */
+    position: relative;
+  }
+
+  .collections__cta::after {
+    content: "";
+    position: absolute;
+    inset: calc((44px - 100%) / -2) 0;
+    min-height: 44px;
+  }
+
+  .collections__cta-row {
+    display: flex;
+    align-items: center;
+    gap: calc(12 * var(--raw-unit-design));
+  }
+
+  .collections__rule {
+    width: 100%;
+    overflow: hidden;
+    height: calc(1 * var(--raw-unit-design));
+  }
+
+  /* ---------------------------------------------------------------------------
+     Collections cards — the two Figma states, 1443:7 at rest and 1509:157 on
+     hover, and the difference between them is the whole of this rule.
+
+     The resting state is the base, unconditionally: index, note and explore
+     link hidden, label scaled down and sitting on the bottom padding. A device
+     without a pointer never sees anything else, which is why the `:hover` half
+     lives behind the query rather than the whole block.
+
+     Only `opacity` and `transform` move. The asymmetry the brief asks for —
+     400 in, 500 out — is the usual pairing: the leaving duration belongs on the
+     resting state, because that is the transition that runs on the way out.
+     --------------------------------------------------------------------------- */
+  .collections [data-card-reveal] {
+    opacity: 0;
+    transition: opacity var(--duration-hover-out) var(--ease-hover-role);
+  }
+
+  .collections [data-card-label] {
+    transform: translateY(var(--label-rise)) scale(var(--label-scale));
+    transition: transform var(--duration-hover-out) var(--ease-hover-role);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .collections [data-collection-card]:hover [data-card-reveal],
+    .collections [data-collection-card]:focus-visible [data-card-reveal] {
+      opacity: 1;
+      transition-duration: var(--duration-hover-in);
+    }
+
+    .collections [data-collection-card]:hover [data-card-label],
+    .collections [data-collection-card]:focus-visible [data-card-label] {
+      transform: none;
+      transition-duration: var(--duration-hover-in);
+    }
+  }
+
+  /* Keyboard users get the hover state too, and on any device — reaching a card
+     by tab is a deliberate act, unlike a pointer passing over one. */
+  .collections [data-collection-card]:focus-visible [data-card-reveal] {
+    opacity: 1;
+    transition-duration: var(--duration-hover-in);
+  }
+
+  .collections [data-collection-card]:focus-visible [data-card-label] {
+    transform: none;
+    transition-duration: var(--duration-hover-in);
+  }
+
+  /* Touch: the revealed state is the only state, and at every width. A tablet
+     at 900 is as much a touch device as a phone at 380, and on both the number,
+     the note and the way in have nothing to summon them — leaving them hidden
+     there hides most of the block's content outright.
+
+     Keyed on the input, not the viewport, which is the whole point: a
+     touchscreen laptop and a tablet with a trackpad both report `hover: hover`
+     and `pointer: fine`, so neither condition holds and both keep the desktop
+     behaviour. Width goes on deciding the arrangement, never the visibility.
+
+     After the `:hover` block on purpose. The two can both match — a stylus
+     reports `hover: hover` with `pointer: coarse` — and when they do, the
+     permanent state is the one that should hold. */
+  @media (hover: none), (pointer: coarse) {
+    .collections [data-card-reveal] {
+      opacity: 1;
+    }
+
+    .collections [data-card-label] {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collections [data-card-reveal],
+    .collections [data-card-label] {
+      transition-duration: 0ms;
+    }
+  }
+
+  /* ===========================================================================
+     COLLECTIONS — adaptation.
+
+     Every rule below is bounded on both sides, so 1440 and up never sees any of
+     it. The type ramps land exactly on the desktop figure at 1440, so the seam
+     between the last adaptive pixel and the first desktop one is invisible.
+     =========================================================================== */
+  @media (max-width: 1439.98px) {
+    /* Out of the absolute frame and into flow: the block's height stops being a
+       Figma number and becomes whatever its contents need. Two areas — a header
+       band and the grid — which is all the arrangement that changes. */
+    .collections {
+      --coll-gap: 12px;
+      --coll-pad: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "heading lead" "grid grid";
+      align-items: start;
+      height: auto;
+      padding: calc(64 * var(--raw-unit-design)) var(--coll-gutter-right)
+        calc(64 * var(--raw-unit-design)) var(--coll-gutter);
+      row-gap: calc(40 * var(--raw-unit-design));
+    }
+
+    .collections__heading,
+    .collections__lead,
+    .collections__grid {
+      position: static;
+      inset: auto;
+    }
+
+    .collections__heading {
+      grid-area: heading;
+      width: auto;
+      max-width: 100%;
+    }
+
+    /* The standfirst hangs from the bottom of the headline: its closing line and
+       "Endless Stories." run along one baseline, and its opening line rises
+       between the headline's two.
+
+       `last baseline` rather than `flex-end`, which would reach the same place
+       here only by way of the cap trim — trimming to the cap ends each margin
+       box on its last baseline, so bottom-aligning the boxes happens to
+       bottom-align the type. True today, and silently untrue the moment either
+       of them stops being trimmed. This states the thing itself. The grid keeps
+       `start` for everything else. */
+    .collections__heading,
+    .collections__lead {
+      align-self: last baseline;
+    }
+
+    .collections__lead {
+      grid-area: lead;
+      width: clamp(220px, 26vw, 275px);
+      /* No vertical offset of its own: the alignment above places it. The fixed
+         71 design units this once carried were Figma's figure at 1440 and
+         drifted everywhere else — 1.8px low at 768, 22px high at 1024. */
+      /* The last line must not be one orphaned word. Keeping the final two
+         together is the typographic fix; a narrower measure would only move the
+         problem. */
+      text-wrap: pretty;
+    }
+
+    .collections__grid {
+      grid-area: grid;
+      width: 100%;
+    }
+
+    .collections__card {
+      height: auto;
+      align-self: stretch;
+      /* The card becomes its own size container so the label's travel can be a
+         proportion of it. At 1440 that proportion is 174.5 of the 377 the body
+         box is tall; below 1440 the card reflows and the type no longer follows
+         the design unit, so a fixed travel would drop the label out of the
+         card. The coefficient reproduces Figma exactly at the seam. */
+      container-type: size;
+      --label-rise: calc(
+        0.46286 * (100cqh - 2 * var(--coll-pad))
+      );
+    }
+
+    /* Both in `em`, so the link's internal spacing stays proportionate to its
+       own text once that text stops riding the design unit. */
+    .collections__cta {
+      gap: 0.5em;
+    }
+
+    .collections__cta-row {
+      gap: 0.75em;
+    }
+
+    /* A hairline that rounds to nothing is a hairline that disappears. */
+    .collections__rule {
+      height: max(1px, calc(1 * var(--raw-unit-design)));
+    }
+
+    /* `space-between` puts whatever is left over between the name and its line,
+       which is generous until the line runs long and then is nothing at all. A
+       gap is the floor under that: below 1440 the name is drawn at full size
+       even at rest on touch, so the two are much closer to meeting. */
+    .collections__middle {
+      gap: 16px;
+      /* The note is centred on the name's optical height: its first line's cap
+         sits below the name's cap by exactly as much as its last line's
+         baseline sits above the name's, so two small lines are inset evenly
+         inside one large one.
+
+         `center` does that on its own here, and it is the cap trim that makes
+         it true. Trimming leaves each margin box running from the first line's
+         cap to the last line's baseline — the optical block and nothing else —
+         so centring the boxes centres the type. Without the trim this would be
+         centring line boxes, half-leading and all, and would miss. */
+      align-items: center;
+    }
+
+
+    /* The row's height comes from the narrow card, which is the one carrying a
+       ratio; the wide one stretches to meet it. Giving both their own ratio
+       makes the row ragged, because Figma's two cards are not the same shape. */
+    .collections__card--narrow {
+      width: auto;
+      flex: 1 1 41.5%;
+      aspect-ratio: 560 / 425;
+    }
+
+    .collections__card--wide {
+      width: auto;
+      flex: 1 1 57.4%;
+    }
+  }
+
+  /* A scrim between the photograph and the type, over the tablet range — the
+     band where every card shows its full contents at rest on touch, so white
+     type sits on whatever the picture happens to be doing underneath.
+
+     On all four cards, never one. Bracelets is the pale one and is the reason
+     this exists, but darkening only that card would make it visibly the odd one
+     out, which reads as a mistake rather than as a fix.
+
+     The bottom ramp reaches three quarters of the way up rather than half:
+     stopping at 55% left the name and its note — which sit at the middle, not
+     the bottom — on 0.04, which is nothing. Carried to 75% they stand on 0.21,
+     and the explore link below them on 0.44. */
+  @media (min-width: 768px) and (max-width: 1439.98px) {
+    .collections__card {
+      /* Named rather than inlined into the gradient: these four are the whole
+         of the treatment, and they are worth being able to read off — and to
+         check against — in one place. */
+      --scrim-foot: 0.5;
+      --scrim-foot-end: 75%;
+      --scrim-head: 0.25;
+      --scrim-head-end: 20%;
+    }
+
+    .collections__card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          to top,
+          rgb(0 0 0 / var(--scrim-foot)) 0%,
+          rgb(0 0 0 / 0) var(--scrim-foot-end)
+        ),
+        linear-gradient(
+          to bottom,
+          rgb(0 0 0 / var(--scrim-head)) 0%,
+          rgb(0 0 0 / 0) var(--scrim-head-end)
+        );
+    }
+  }
+
+  /* Portrait tablet: the asymmetry between the two card widths stops reading as
+     composition and starts reading as a mistake, so the columns even up. The
+     header band keeps Figma's arrangement — headline left, standfirst ranged
+     right — because that opposition is what holds the top of the block
+     together, and stacking the two flattened it. */
+  @media (min-width: 768px) and (max-width: 1023.98px) {
+    /* An explicit channel between the two, so the standfirst clearing the
+       headline is structural rather than a happy accident of this copy. */
+    .collections {
+      column-gap: calc(40 * var(--raw-unit-design));
+    }
+
+    /* Its own measure here rather than the range's `clamp(220px, 26vw, 275px)`,
+       whose floor left the standfirst three lines deep against a two-line
+       headline. Wide enough for two, and the headline column still keeps more
+       room than its longest line needs. */
+    .collections__lead {
+      width: clamp(280px, 39vw, 300px);
+    }
+
+    .collections__card--narrow,
+    .collections__card--wide {
+      flex: 1 1 calc(50% - var(--coll-gap) / 2);
+      aspect-ratio: 560 / 425;
+    }
+
+    /* 26 at rest against the 37.2 the ramp gives here. */
+    .collections__card {
+      --label-scale: 0.699;
+    }
+  }
+
+  /* Phone: one column. What is shown is settled above, by input rather than by
+     width; this band only decides the arrangement. */
+  @media (max-width: 767.98px) {
+    .collections {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "heading" "lead" "grid";
+      --coll-pad: 20px;
+
+      /* The two distances in the header, as daylight rather than as property
+         values — the cap trim pulls both boxes inward, so a gap set to 24 shows
+         about 17. Each is the wanted space plus the trims that eat into it: the
+         headline's bottom trim is 0.0875 of its size, the standfirst's is
+         0.26875 of its own, top and bottom alike. */
+      --phone-head-gap: 24px;
+      --phone-grid-gap: 28px;
+      --heading-trim: calc(0.0875 * var(--type-collections-heading));
+      --lead-trim: calc(0.26875 * var(--type-collections-lead));
+
+      row-gap: calc(
+        var(--phone-head-gap) + var(--heading-trim) + var(--lead-trim)
+      );
+
+      /* Card type, set here on the block rather than in `:root` so it reaches
+         nothing but this block at this width. The leadings keep the ratios the
+         tokens use elsewhere — 0.9 on the serif, 1.0 on the note.
+
+         Both tiers are restated, and both are needed: the utility reads the
+         semantic name, and the semantic name is resolved against `:root` where
+         it is declared, so overriding only the primitive underneath it here
+         would change nothing. */
+      --raw-text-card-title-phone: 36px;
+      --raw-text-card-title-phone-leading: 32.4px;
+      --raw-text-card-note-phone: 12px;
+      --raw-text-card-note-phone-leading: 12px;
+      --type-card-title: var(--raw-text-card-title-phone);
+      --type-card-title-leading: var(--raw-text-card-title-phone-leading);
+      --type-card-note: var(--raw-text-card-note-phone);
+      --type-card-note-leading: var(--raw-text-card-note-phone-leading);
+    }
+
+    .collections__lead {
+      width: 100%;
+      padding-top: 0;
+      text-align: left;
+      justify-self: start;
+    }
+
+    /* What the row gap above already spends, subtracted — the two distances
+       stay independent, so widening the header pair does not push the cards. */
+    .collections__grid {
+      margin-top: calc(
+        var(--phone-grid-gap) - var(--phone-head-gap) - var(--heading-trim)
+      );
+    }
+
+    .collections__row {
+      flex-direction: column;
+    }
+
+    .collections__card--narrow,
+    .collections__card--wide {
+      flex: none;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+    }
+
+    /* A landscape window on a landscape plate crops far less than the upright
+       one did, so every crop is aimed again from scratch — and horizontally is
+       all `object-position` can do here, because each plate is wider than 4:3
+       and `cover` therefore fits the height exactly.
+
+       The zoom is what buys vertical travel, and `aim` spends it: the bracket
+       is exactly how far the picture can move before an edge shows, so ±1 is
+       the most that is available and never more. Both are per card. */
+    .collections__photo {
+      object-position: var(--card-crop-mobile);
+      scale: var(--card-zoom-mobile);
+      translate: 0
+        calc(var(--card-aim-mobile) * (50% - 50% / var(--card-zoom-mobile)));
+    }
+
+    /* Three tiers on a card this size, and the middle one goes. The note is the
+       only thing here that repeats what the picture already says, and the name
+       reads better alone. Tablet and desktop keep it. */
+    .collections__note {
+      display: none;
+    }
+
+    /* Rows rather than `space-between`, which centres the name on the gap
+       between the other two and so lands it wherever their heights happen to
+       leave it. A 1fr above and a 1fr below centre it on the card itself. */
+    .collections__body {
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      justify-items: start;
+    }
+
+    .collections__index {
+      align-self: start;
+    }
+
+    .collections__middle {
+      align-self: center;
+    }
+
+    .collections__cta {
+      align-self: end;
+    }
+  }
+
+  /* ===========================================================================
+     FEATURED PIECE — Get Layers "Hero 5 (Featured Pieces)", 1443:53.
+
+     Every token this block needs is declared on the block, not in `:root`: the
+     colours are its own and nothing else on the page asks for them. What it
+     does inherit is the page's measure — the same 40 gutter and 1360 container
+     the hero and the collections block are built on, read through the same
+     design unit so all three scale together.
+     =========================================================================== */
+  .featured {
+    /* The stage is the dark theme: a black panel, so the rings' metal and
+       stones carry the light, with the cue, the four marks and the dots turned
+       to light warm tones over it. The pill tokens belong to the photograph
+       panel and stay as they were. */
+    --raw-color-featured-panel: var(--raw-color-black);
+    --raw-color-featured-cue: rgb(255 255 255 / 0.12);
+    --raw-color-featured-cue-ink: #ece7df;
+    /* The photo panel's pills: a white plate with black type, frosted over
+       whichever photograph is behind it — the photographs change with the
+       ring, and a frosted plate reads on all of them. */
+    --raw-color-featured-pill: rgb(255 255 255 / 0.72);
+    --raw-color-featured-pill-hover: rgb(255 255 255 / 0.92);
+    --raw-color-featured-pill-ink: var(--raw-color-black);
+    --featured-pill-blur: calc(14 * var(--raw-unit-design));
+    /* The photo panel's shade: alpha at the edge and where it has faded out. */
+    --featured-shade-foot: 0.62;
+    --featured-shade-foot-end: 50%;
+    --featured-shade-head: 0.32;
+    --featured-shade-head-end: 28%;
+    --raw-color-featured-mark: #c9b994;
+
+    --featured-gutter: calc(40 * var(--raw-unit-design));
+    --featured-seam: calc(12 * var(--raw-unit-design));
+    --featured-panel: calc(674 * var(--raw-unit-design));
+    --featured-pad-y: calc(48 * var(--raw-unit-design));
+    --featured-radius: calc(100 * var(--raw-unit-design));
+
+    position: relative;
+    /* The whole window, so the gutter is measured from the screen's edges on
+       all four sides. At 800 units the block was shorter than any window
+       taller than 1440:800 and sat centred in it — 90 above and below against
+       40 at the sides on a 1440x900 screen. */
+    height: 100svh;
+  }
+
+  /* The section is pinned inside a frame one viewport tall, and that frame
+     centres what it holds — so a section taller than the frame hangs out of it
+     at both ends, and the top end paints over the collections block above.
+     Measured before this: 50px of overhang at 1440x700, 94 at 1600x700.
+
+     The block's own unit answers to the shorter axis, the same shape the hero
+     uses. Declared here, on the block, not on :root.
+
+     From 1024 and not from 1440: the two panels stand side by side over that
+     whole range now, and side by side the layout is driven by the unit, so the
+     unit is what has to know about a short window. Below 1024 the panels stack
+     and the frame sets the height directly, so nothing there needs talking down
+     into fitting. */
+  @media (min-width: 1024px) {
+    .featured {
+      --raw-unit-design: min(100vw / 1440, 100svh / 800);
+    }
+  }
+
+  /* The same gutter on all four sides of the block, and the panels share what
+     is left. It used to be Figma's fixed 1360x736 hung off the top-left
+     corner: on any window wider than 1440:800 the unit is height-bound, so the
+     block came out narrower than the screen and every spare pixel landed on
+     the right — and with the panels flush to the top, the 64 under them was
+     the only space at either end. */
+  .featured__panels {
+    position: absolute;
+    z-index: 10;
+    inset: var(--featured-gutter);
+    display: flex;
+    /* Figma's 12 between the panels (1360 less two 674s). */
+    gap: var(--featured-seam);
+  }
+
+  .featured__panel {
+    position: relative;
+    display: flex;
+    /* Exactly half of what the seam leaves, fixed. Not a growing basis of 0: a
+       border-box can't go below its padding, so the photo panel's 228-wide side
+       padding was added on top of its share and it came out nearly twice the
+       stage. Nor a shrinking 50%: shrink is weighted by the content box, which
+       the padding makes smaller, so the two still came out 7px apart. */
+    flex: 0 0 calc((100% - var(--featured-seam)) / 2);
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    /* Clips the photograph, its parallax frame and the rings' canvas to the
+       large-card corner the collections grid uses. */
+    overflow: hidden;
+    border-radius: var(--corner-panel);
+    padding-block: var(--featured-pad-y);
+  }
+
+  /* The panel takes the window's shape now (Figma's 674x736 at 1440x800), and
+     the photograph covers it from the centre. */
+  .featured__panel--photo {
+    /* Name at the top, price and materials at the bottom — Figma's 545 between
+       them is simply what a 736-tall panel leaves. */
+    justify-content: space-between;
+    padding-inline: calc(228 * var(--raw-unit-design));
+    /* White type over a darkening gradient (`.featured__photo-frame::after`):
+       the rings' photographs are pale — sand, limestone, a cream wall — so the
+       gradient is what the type reads against. The pills carry their own
+       white plate and black type. */
+    color: var(--content-inverse);
+  }
+
+  .featured__photo-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    /* The entry scales the picture, not the panel: the type over it must not
+       move with it. */
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
+  /* The shade the white type reads against, over every photograph and under
+     the type: deep at the foot, where the pills and materials sit, and a
+     lighter one under the name at the head. A pseudo-element of the frame, so
+     it fades in with the entry and stays out of the parallax and the wipe. */
+  .featured__photo-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        to top,
+        rgb(0 0 0 / var(--featured-shade-foot)) 0%,
+        rgb(0 0 0 / 0) var(--featured-shade-foot-end)
+      ),
+      linear-gradient(
+        to bottom,
+        rgb(0 0 0 / var(--featured-shade-head)) 0%,
+        rgb(0 0 0 / 0) var(--featured-shade-head-end)
+      );
+  }
+
+  /* The parallax frame — taller than the panel by the drift at each end, so
+     the slide never shows an edge. The amount, `PHOTO_PARALLAX`, comes in
+     inline as `--photo-room`. */
+  .featured__photo-drift {
+    position: absolute;
+    top: calc(var(--photo-room, 0%) * -1);
+    right: 0;
+    bottom: calc(var(--photo-room, 0%) * -1);
+    left: 0;
+    will-change: transform;
+  }
+
+  /* One per ring, stacked in strip order. The rise is a soft-edged
+     `mask-image` set from the strip (featured-stage.tsx); the zoom sits on its
+     own inner layer so the edge stays put while the picture settles under it. */
+  .featured__photo-layer,
+  .featured__photo-zoom {
+    position: absolute;
+    inset: 0;
+  }
+
+  .featured__photo-zoom {
+    transform-origin: 50% 100%;
+  }
+
+  .featured__photo {
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .featured__title,
+  .featured__meta {
+    position: relative;
+    z-index: 1;
+  }
+
+  .featured__title {
+    font-size: calc(40 * var(--raw-unit-design));
+    line-height: calc(36 * var(--raw-unit-design));
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .featured__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(20 * var(--raw-unit-design));
+  }
+
+  .featured__pills {
+    display: flex;
+    align-items: stretch;
+    gap: calc(4 * var(--raw-unit-design));
+    /* The entry's rise is stated in `em`; without a size here that `em` would
+       inherit from the page and the travel would not scale with the block. */
+    font-size: calc(16 * var(--raw-unit-design));
+  }
+
+  .featured__pill {
+    display: flex;
+    align-items: center;
+    gap: calc(6 * var(--raw-unit-design));
+    padding: calc(10 * var(--raw-unit-design)) calc(12 * var(--raw-unit-design));
+    border-radius: var(--featured-radius);
+    background: var(--raw-color-featured-pill);
+    color: var(--raw-color-featured-pill-ink);
+    -webkit-backdrop-filter: blur(var(--featured-pill-blur));
+    backdrop-filter: blur(var(--featured-pill-blur));
+    /* Manrope in the file; Inter Tight Medium carries it here rather than a
+       third family arriving for two pills.
+
+       The family comes from the font's own variable, not from `--font-tight`:
+       that name lives in `@theme inline`, and Tailwind folds such keys straight
+       into the utilities it builds without ever emitting the property, so
+       reading it from plain CSS gets nothing. The cue read it too and only
+       looked right because it also carries the `font-tight` class. */
+    font-family: var(--font-inter-tight);
+    font-size: calc(16 * var(--raw-unit-design));
+    font-weight: 500;
+    line-height: calc(12.8 * var(--raw-unit-design));
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .featured__pill--cta {
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-hover-role);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .featured__pill--cta:hover {
+      background: var(--raw-color-featured-pill-hover);
+    }
+  }
+
+  .featured__pill--cta:focus-visible {
+    background: var(--raw-color-featured-pill-hover);
+  }
+
+  /* The gap moves off the pill and onto this row: the roll now sits between
+     them, and a gap on the pill would space the mask instead of the contents. */
+  .featured__pill-row {
+    display: flex;
+    align-items: center;
+    gap: calc(6 * var(--raw-unit-design));
+  }
+
+  .featured__pill-icon {
+    display: block;
+    width: calc(13 * var(--raw-unit-design));
+    height: calc(13 * var(--raw-unit-design));
+    flex: none;
+  }
+
+  .featured__materials {
+    display: flex;
+    align-items: center;
+    gap: calc(12 * var(--raw-unit-design));
+    font-size: calc(18 * var(--raw-unit-design));
+    line-height: calc(18 * var(--raw-unit-design));
+    white-space: nowrap;
+  }
+
+  .featured__material {
+    display: flex;
+    align-items: center;
+    gap: calc(12 * var(--raw-unit-design));
+  }
+
+  /* One ring's materials. The rows share a grid cell (FadeSwap), so the line
+     holds the widest of them and the block never shifts as they change. */
+  .featured__materials-row {
+    display: flex;
+    align-items: center;
+    gap: calc(12 * var(--raw-unit-design));
+  }
+
+  .featured__material-dot {
+    display: block;
+    width: calc(4 * var(--raw-unit-design));
+    height: calc(4 * var(--raw-unit-design));
+    flex: none;
+  }
+
+  /* --- The stage ---------------------------------------------------------- */
+
+  .featured__panel--stage {
+    justify-content: space-between;
+    background: var(--raw-color-featured-panel);
+  }
+
+  .featured__cue {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: calc(6 * var(--raw-unit-design));
+    padding: calc(10 * var(--raw-unit-design));
+    border-radius: var(--featured-radius);
+    background: var(--raw-color-featured-cue);
+    color: var(--raw-color-featured-cue-ink);
+    /* See the pill: `--font-tight` is a theme key, not a property. */
+    font-family: var(--font-inter-tight);
+    font-size: calc(13 * var(--raw-unit-design));
+    font-weight: 500;
+    line-height: calc(10.4 * var(--raw-unit-design));
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .featured__cue-icon {
+    display: block;
+    width: calc(10 * var(--raw-unit-design));
+    height: calc(10 * var(--raw-unit-design));
+    flex: none;
+  }
+
+  /* The field the four marks stand at the corners of. Figma's 314x316, centred
+     on the panel — Figma's 180 / 210 offsets put it exactly there in a 674x736
+     panel, and centring keeps it there now the panel takes the window's shape. */
+  .featured__crosses {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: calc(-158 * var(--raw-unit-design));
+    margin-left: calc(-157 * var(--raw-unit-design));
+    display: block;
+    width: calc(314 * var(--raw-unit-design));
+    height: calc(316 * var(--raw-unit-design));
+    color: var(--raw-color-featured-mark);
+  }
+
+  /* Each mark keeps its own 17 and sits flush in its corner: 297 + 17 is the
+     field's 314 across, 299 + 17 its 316 down. Sized from the block's unit
+     rather than from the field, so a field stretched to a wider panel does not
+     drag the glyph out with it. */
+  .featured__cross {
+    position: absolute;
+    display: block;
+    width: calc(17 * var(--raw-unit-design));
+    height: calc(17 * var(--raw-unit-design));
+  }
+
+  .featured__cross--tl {
+    top: 0;
+    left: 0;
+  }
+
+  .featured__cross--tr {
+    top: 0;
+    right: 0;
+  }
+
+  .featured__cross--bl {
+    bottom: 0;
+    left: 0;
+  }
+
+  .featured__cross--br {
+    bottom: 0;
+    right: 0;
+  }
+
+  /* Every view is laid out in the centre slot's box and reaches the sides by
+     transform alone, so nothing here animates a width or a height. The two
+     slots' centres sit half a pixel apart vertically in Figma — 367.5 against
+     368 — which the slot transforms carry rather than the layout. */
+  .featured__rings {
+    position: absolute;
+    inset: 0;
+  }
+
+  .featured__ring {
+    position: absolute;
+    /* Centred on the panel — what Figma's 367.5 was in a 736-tall panel — so it
+       stays centred now the panel's height follows the window. */
+    top: 50%;
+    left: 50%;
+    width: calc(245 * var(--raw-unit-design));
+    height: calc(265 * var(--raw-unit-design));
+    margin-top: calc(-132.5 * var(--raw-unit-design));
+    margin-left: calc(-122.5 * var(--raw-unit-design));
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
+  /* The centre slot's box, never moved: the 3D layer measures it. */
+  .featured__ring--anchor {
+    visibility: hidden;
+    pointer-events: none;
+    will-change: auto;
+  }
+
+  /* One canvas over the whole stage for the 3D rings (featured-rings.tsx). */
+  .featured__rings-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .featured__ring[data-slot="centre"] {
+    opacity: 1;
+    transform: translate3d(calc(0.5 * var(--raw-unit-design)), 0, 0) scale(1);
+  }
+
+  .featured__ring[data-slot="right"] {
+    opacity: 0.15;
+    transform: translate3d(
+        calc(226 * var(--raw-unit-design)),
+        calc(0.5 * var(--raw-unit-design)),
+        0
+      )
+      scale(0.4467);
+  }
+
+  .featured__ring[data-slot="left"] {
+    opacity: 0.15;
+    transform: translate3d(
+        calc(-226 * var(--raw-unit-design)),
+        calc(0.5 * var(--raw-unit-design)),
+        0
+      )
+      scale(0.4467);
+  }
+
+  /* `contain`, not `cover`: these are cut-out rings on transparency, and the
+     zoom that squares up one plate's wider margin is part of the picture. */
+  .featured__ring-plate {
+    object-fit: contain;
+  }
+
+  .featured__indicator {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    /* The 24 px buttons are 18 taller than the 6 px marks: give the row back
+       9 px each side, so the marks sit on the line they were drawn on. */
+    margin-block: -9px;
+  }
+
+  /* Each mark is 6 across inside a 24 px button: the buttons sit edge to edge,
+     24 px apart (the owner's call, 2026-10-30 — 10 px apart they failed
+     target-size, A11y 96). A wider padded ::after did not count: the audit
+     measures the button's own box. */
+  .featured__dot {
+    position: relative;
+    display: grid;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    place-items: center;
+  }
+
+  .featured__dot-mark {
+    display: block;
+    width: calc(6 * var(--raw-unit-design));
+    height: calc(6 * var(--raw-unit-design));
+    border-radius: 50%;
+    background: var(--raw-color-featured-mark);
+  }
+
+  /* ===========================================================================
+     FEATURED PIECE — adaptation.
+
+     Below 1440 the block stops reading the design unit and measures itself.
+     That is the whole of the change: the unit is the hero's, and below 1440
+     the hero redefines it for its own composition — 100vw/850 on a tablet, a
+     hard pin on a phone — so a block that kept reading it would follow a
+     logic that has nothing to do with its own. Percentages of its own
+     container, `aspect-ratio` for height, `clamp()` for type.
+
+     The gutter is the exception, and deliberately: it is inherited from the
+     hero and the collections block so all three keep one left edge.
+     =========================================================================== */
+  @media (max-width: 1023.98px) {
+    /* Below 1024 the panels stop standing side by side and stack — the
+       photograph above, the stage under it.
+
+       The threshold is 1024 and not the design width: down to there the two
+       panels have the room to stand together, and the arrangement Figma draws
+       is the point of the block — a ring shown beside its own photograph. The
+       whole composition is written in the design unit, so it simply comes down
+       with the viewport rather than being re-laid out.
+
+       The height is not left to follow the width here. The section is pinned
+       inside a frame one viewport tall, and that frame centres what it holds,
+       so anything taller hangs out at both ends and the top end paints over the
+       collections block. So the section IS the frame, inset by the grid's own
+       gutter top, sides and bottom, and the two panels divide what is left
+       between them. */
+    .featured {
+      height: 100svh;
+      padding-block: var(--featured-gutter);
+    }
+
+    .featured__panels {
+      position: static;
+      flex-direction: column;
+      width: auto;
+      height: 100%;
+      gap: var(--featured-gutter);
+      margin-inline: var(--featured-gutter);
+    }
+
+    /* Stacked, the panels are no longer Figma's 674/736 portraits — they are
+       whatever the frame leaves them, shared equally. */
+    .featured__panel {
+      width: 100%;
+      height: auto;
+      flex: 1 1 0;
+      min-height: 0;
+      padding-block: 4%;
+    }
+
+    .featured__panel--photo {
+      padding-inline: 8%;
+    }
+
+    /* The panel is flat now, so a ring measured against its width would be
+       taller than the panel holds. It comes off the height instead, and centres
+       on auto margins rather than on percentage ones — those resolve against
+       width, both of them. */
+    .featured__ring {
+      inset: 0;
+      width: auto;
+      height: 62%;
+      aspect-ratio: 245 / 265;
+      margin: auto;
+    }
+
+    .featured__crosses {
+      top: 28.5%;
+      left: 26.7%;
+      width: 46.6%;
+      height: auto;
+      margin: 0;
+      aspect-ratio: 314 / 316;
+    }
+
+    /* Type comes off the unit and onto its own ramp, 375 to 1440. */
+    .featured__title {
+      font-size: clamp(28px, calc(28px + 12 * (100vw - 375px) / 1065), 40px);
+      line-height: 0.9;
+    }
+
+    .featured__pill,
+    .featured__pills {
+      font-size: clamp(14px, calc(14px + 2 * (100vw - 375px) / 1065), 16px);
+    }
+
+    .featured__pill {
+      padding: 0.625em 0.75em;
+      /* Nothing here is allowed under the thumb's own size. */
+      min-height: 44px;
+      line-height: 0.8;
+    }
+
+    .featured__materials {
+      font-size: clamp(14px, calc(14px + 4 * (100vw - 375px) / 1065), 18px);
+      line-height: 1;
+      /* Three names and two dots may take two lines on a narrow screen. */
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .featured__materials-row {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .featured__cue {
+      font-size: clamp(11px, calc(11px + 2 * (100vw - 375px) / 1065), 13px);
+      padding: 0.77em;
+      line-height: 0.8;
+    }
+
+    .featured__cue-icon {
+      width: 0.77em;
+      height: 0.77em;
+    }
+
+    .featured__pill-icon {
+      width: 0.8125em;
+      height: 0.8125em;
+    }
+
+    .featured__pill-row {
+      gap: 0.375em;
+    }
+
+    .featured__material-dot {
+      width: 0.222em;
+      height: 0.222em;
+    }
+
+    .featured__dot-mark {
+      width: 6px;
+      height: 6px;
+    }
+  }
+
+  /* Portrait tablet: the panel is wide and shallow, and both the ring and the
+     crosses were still being measured against a shape it no longer has. The
+     ring came to a third of the panel's height on a panel twice as wide as it
+     is tall, and read small; the crosses, placed at 28.5% down and 26.7% across
+     and sized off the width, sat 135 below the panel's centre and hung 118 past
+     its bottom edge.
+
+     Both come off the height now and centre on the panel. The frame keeps
+     Figma's own proportion — 316 of crosses around 265 of ring, so 1.1925 — and
+     93% is what that ratio allows before the crosses meet the panel's edges. */
+  @media (min-width: 768px) and (max-width: 1023.98px) {
+    .featured .featured__ring {
+      height: 78%;
+    }
+
+    /* 62 rather than the 93 the ring's own proportion asks for: at 93 the four
+       marks stand off near the panel's edges and read as a border around the
+       panel instead of a frame around the ring. Pulled in until they belong to
+       the ring — the field comes to about 1.4 of the ring's ink, against 2.1 at
+       the design width, because the panel here is far wider than it is tall. */
+    .featured .featured__crosses {
+      inset: 0;
+      width: auto;
+      height: 62%;
+      aspect-ratio: 314 / 316;
+      margin: auto;
+    }
+
+    /* The pills carry Figma's 12 of side padding, which at this size leaves the
+       label all but touching the edge. Widened, and the pair given daylight
+       between them; both in em, so they hold their relation to the type. */
+    .featured__pill {
+      padding-inline: 1em;
+    }
+
+    .featured__pills {
+      gap: 0.4em;
+    }
+  }
+
+  /* Phone: the same stack, only tighter inside. The width caps that used to
+     stand here are gone — the frame sets the height directly now, so nothing
+     has to be talked down into fitting it. */
+  @media (max-width: 767.98px) {
+    .featured__panel {
+      padding-block: 5%;
+    }
+
+    .featured__panel--photo {
+      padding-inline: 6%;
+    }
+
+    /* The pills read as ovals here. The 44 a thumb needs was being taken by the
+       pill itself, so the daylight above the caps ran to 16.7 against 10.5 at
+       the sides — half again as much air above as beside. The shape goes back
+       to its own padding, and the target grows past the pill instead of the
+       pill growing to meet the target. The price is a span, not a control, and
+       needs no target at all. */
+    /* A step down in size: the whole pill, not just its height, so the shape
+       holds. 12 at 375 rising to the 14 the tablet band starts from, and the
+       padding stays in em so it follows. */
+    .featured__pill,
+    .featured__pills {
+      font-size: clamp(12px, calc(12px + 2 * (100vw - 375px) / 393), 14px);
+    }
+
+    .featured__pill {
+      min-height: 0;
+      padding: 0.8em 0.86em;
+    }
+
+    /* Figma's 4 comes to 2.6 at this size, and two dark pills that close read as
+       one shape with a scratch down it. Stated in em so it holds its relation
+       to the type rather than to the frame. */
+    .featured__pills {
+      gap: 0.4em;
+    }
+
+    .featured__pill--cta {
+      position: relative;
+    }
+
+    /* The thumb's 44, whatever the pill itself comes to: a percentage on the
+       block insets resolves against the pill's own height, so this is exactly
+       half the shortfall, and it follows the pill if the size changes again. */
+    .featured__pill--cta::after {
+      content: "";
+      position: absolute;
+      inset-block: calc((100% - 44px) / 2);
+      inset-inline: 0;
+    }
+  }
+
+  /* ===========================================================================
+     Block 4 — Philosophy, 1443:61.
+
+     Desktop only for now. Every number is Figma's at 1440, read through the
+     same design unit the three blocks above use, so above the design width the
+     whole thing scales rather than stretches.
+
+     The four groups sit against the section rather than inside the card:
+     Figma's wrapper is a `display: contents` node, which draws no box, so its
+     children resolve against the frame — and the card is one of those children,
+     not their parent.
+     =========================================================================== */
+  .philosophy {
+    --raw-color-philosophy-card: #e4dcd1;
+    --raw-color-philosophy-pill: rgb(42 33 27 / 0.8);
+    --raw-color-philosophy-pill-hover: rgb(42 33 27 / 0.95);
+
+    --philosophy-gutter: calc(40 * var(--raw-unit-design));
+    --philosophy-radius: calc(100 * var(--raw-unit-design));
+    /* Figma states the text edge against the frame — 8.33% of it and 67 more,
+       which is 186.95. The groups hang off the card now, so it is the same edge
+       stated from the card's own left: 186.95 less the card's 154.5. */
+    --philosophy-text-left: calc(32.45 * var(--raw-unit-design));
+
+    position: relative;
+    overflow: hidden;
+    height: calc(800 * var(--raw-unit-design));
+    background: #fff;
+    color: #000;
+    font-family: var(--font-instrument-serif);
+  }
+
+  /* Below the design width the block keeps its own unit, read off the width
+     alone. The shared one turns dual-axis under 1024 — it is the hero's, and
+     the hero has to fit a viewport in both directions — so it stops shrinking
+     with the width and the card came out 1007 wide inside 768, hanging off both
+     edges. Here the frame is a poster: it only ever has to fit across. */
+  @media (max-width: 1439.98px) {
+    .philosophy {
+      --raw-unit-design: calc(100vw / 1440);
+    }
+  }
+
+  /* Below the design width the poster becomes a column.
+
+     Three things in a row stop fitting well before 1024, and shrinking the type
+     to make them fit only makes it unreadable — so the card stops being a fixed
+     frame with everything placed inside it and becomes what it always was in
+     flow: a stack, centred, in the reading order the sentence already has.
+
+     The type comes off the unit here entirely. On the unit the display would be
+     16.7 at 375; on its own ramp it is 28 there and Figma's 64 by 1439, so the
+     step up to the poster at 1440 is a change of arrangement, not of size. */
+  @media (max-width: 1023.98px) {
+    .philosophy {
+      --philosophy-gutter: clamp(16px, calc(16px + 24 * (100vw - 375px) / 1064), 40px);
+      --philosophy-gap: clamp(20px, calc(20px + 20 * (100vw - 375px) / 1064), 40px);
+
+      /* Where the card's outer edge stands. Its own, rather than the gutter it
+         used to borrow, because the gutter is also the section's vertical
+         rhythm and the card's inner padding — and those are measured and must
+         not move when the edge does. */
+      --philosophy-inset: var(--philosophy-gutter);
+
+      height: auto;
+      padding-block: var(--philosophy-gutter);
+    }
+
+    .philosophy .philosophy__card {
+      position: static;
+      display: flex;
+      width: calc(100% - 2 * var(--philosophy-inset));
+      height: auto;
+      flex-direction: column;
+      align-items: center;
+      margin-inline: auto;
+      padding: var(--philosophy-gap) var(--philosophy-gutter);
+      gap: var(--philosophy-gap);
+    }
+
+    .philosophy .philosophy__top,
+    .philosophy .philosophy__shapes,
+    .philosophy .philosophy__middle,
+    .philosophy .philosophy__bottom {
+      position: static;
+      width: 100%;
+      margin: 0;
+      transform: none;
+    }
+
+    .philosophy .philosophy__top,
+    .philosophy .philosophy__middle,
+    .philosophy .philosophy__bottom,
+    .philosophy .philosophy__bottom-row {
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--philosophy-gap);
+    }
+
+    .philosophy .philosophy__display {
+      width: 100%;
+      font-size: clamp(32px, calc(32px + 52 * (100vw - 375px) / 1064), 84px);
+      line-height: 0.9;
+      text-align: center;
+    }
+
+    .philosophy .philosophy__note,
+    .philosophy .philosophy__note-line {
+      width: auto;
+      font-size: clamp(12px, calc(12px + 6 * (100vw - 375px) / 1064), 18px);
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .philosophy .philosophy__aside--left,
+    .philosophy .philosophy__aside--right {
+      width: auto;
+      text-align: center;
+    }
+
+    /* The photograph keeps Figma's shape and takes the width it is given. */
+    /* The frame clips here. The entry brings the photograph in six per cent
+       large and settles it, and in the column that overshoot leaves the frame
+       just as the heading above is still on its way up — measured at the peak,
+       they crossed by 1.3 at 768 and by 12.3 at 1024, and the photograph paints
+       over the text. Clipped, the same zoom is seen inside a frame that does
+       not move, which is the effect anyway. */
+    .philosophy .philosophy__frame {
+      width: 70%;
+      height: auto;
+      aspect-ratio: 291 / 329;
+      overflow: hidden;
+    }
+
+    /* A ceiling on the picture, from 1024 up to the design width.
+   
+       Below 1440 the frame is a share of the card and the card is a share of the
+       screen, so the photograph has nothing to stop it: measured, 453 wide at
+       768, 634 at 1024, 895 at 1439 — where it stands 1012 tall and the section
+       runs to 1566 against a screen of 900. One picture then fills the whole
+       view and the block reads as a wall rather than as a poster with a picture
+       in it. At 1440 the same photograph is 291 wide.
+
+       The cap is on the width and not the height: the box carries the file's
+       aspect ratio, so a height limit would squat the box and re-crop the
+       photograph inside it, while a width limit takes the height with it and
+       the crop is the one Figma states.
+
+       480 and not the 291 of the design width: the two are different
+       arrangements, and matching the poster's figure here would make the
+       picture shrink as the screen grows — it is 453 at 768, just below this.
+       So the growth stops rather than reverses.
+
+       The band starts at 1024 and not at 768, and the doubled class is not
+       decoration: 768x1024 and 375x667 are hand-verified frames that no rule
+       here may reach, and the band above overlaps this one. */
+
+    /* Centred on the picture by auto margins rather than by a translate: the
+       entry writes its own transform on this element, and the two would fight. */
+    /* The same button as the block above: measured there at 768 it is 138.6 by
+       44 on a 14.74 type, and this one was 99.6 by 28.9 on 11.74. Two pills of
+       the same kind on one page should not be two sizes, so the ramp, the pads
+       and the thumb's 44 are the ones that block already carries. */
+    .philosophy .philosophy__cta {
+      inset: 0;
+      width: fit-content;
+      height: fit-content;
+      min-height: 44px;
+      margin: auto;
+      padding: 0.625em 1em;
+      font-size: clamp(14px, calc(14px + 2 * (100vw - 375px) / 1065), 16px);
+      line-height: 0.8;
+      gap: 0.375em;
+    }
+
+    .philosophy .philosophy__cta-icon {
+      width: 0.8125em;
+      height: 0.8125em;
+    }
+
+    /* The thumb's 44 without the pill having to be it: the percentage on the
+       block insets resolves against the pill's own height, so the target takes
+       exactly the shortfall. Same shape as the one in the block above. */
+    .philosophy .philosophy__cta::after {
+      content: "";
+      position: absolute;
+      inset-block: calc((100% - 44px) / 2);
+      inset-inline: 0;
+    }
+
+    /* Two blocks of text with the photograph between them, rather than eleven
+       pieces in a ladder.
+
+       Stacked, the file's arrangement falls apart as reading: the note lands
+       between the two halves of one sentence, and the same two phrases appear
+       twice within a few centimetres. So each sentence closes up — its halves
+       sit as two lines of one line-height — the note follows it instead of
+       splitting it, and the pair beside the photograph goes: the note under the
+       last line says those exact words already, and at this distance a second
+       telling reads as a fault rather than as an echo. Nothing is lost; the
+       block says what it said.
+
+         the reference's first philosophy pair (its line 1 / line 2).
+         Some pieces blend in. Ours don't always try to.
+         We Like Unusual Shapes
+         rough edges, unexpected details
+         [ the photograph ]
+         and things that get better
+         The Longer You / Look At Them.
+         the kind of details that become more interesting the longer you look
+         Keep It Interesting. */
+    .philosophy .philosophy__top,
+    .philosophy .philosophy__bottom-row {
+      gap: 0;
+    }
+
+    /* The two halves of a sentence set as its own leading. Trimmed to the cap,
+       a line's box is 0.725em, so stacked with no gap the caps sit 0.725 apart
+       where Figma's leading asks for 0.9 — the difference, and no more.
+
+       A general sibling, not an adjacent one: the note stands between the two
+       halves in the markup and only moves aside on `order`, so `+` matches
+       nothing here. And padding rather than margin: the cap trim is written
+       inline from the component, and an inline `margin-block` beats any rule in
+       the sheet — padding is the space the trim does not already own. */
+    .philosophy .philosophy__display ~ .philosophy__display {
+      padding-top: 0.175em;
+    }
+
+    .philosophy .philosophy__note--top,
+    .philosophy .philosophy__note--bottom {
+      order: 1;
+      margin-top: var(--philosophy-gap);
+    }
+
+    /* What a column has no room for. Every one of these says again what a
+       heading has already said — across the design width they sit apart and
+       read as one thought spread out, but stacked they queue up and the block
+       turns into a list of phrases. Three nodes are left: the claim, the
+       picture, the conclusion. All four are still there at 1440. */
+    .philosophy .philosophy__note--bottom,
+    .philosophy .philosophy__note--top,
+    .philosophy .philosophy__shapes,
+    .philosophy .philosophy__aside,
+    .philosophy .philosophy__keep {
+      display: none;
+    }
+
+    /* The caption reads as one line, not as two: the sentence already ends in a
+       full stop, so the two runs only need a word space between them. */
+    .philosophy .philosophy__note--top {
+      width: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.3em;
+    }
+  }
+
+  /* Phone: the button steps down with the one in the block above rather than
+     holding the tablet's size — same ramp, same pads, and the thumb's 44 taken
+     by the target rather than by the pill. */
+  @media (max-width: 767.98px) {
+    .philosophy .philosophy__cta {
+      min-height: 0;
+      padding: 0.8em 0.86em;
+      font-size: clamp(12px, calc(12px + 2 * (100vw - 375px) / 393), 14px);
+    }
+  }
+
+  /* Tablet, 768 and up: the column gets a rhythm instead of one even gap.
+
+     Stacked on a single interval everything reads as a list — a caption sits as
+     far from the sentence it belongs to as from the next one, and the eye has
+     no way to tell which it goes with. So the interval says it: 16 inside a
+     group, 48 between them. The captions beside the photograph are groups with
+     it in the same way, one above and one below.
+
+     The same on a phone: with three nodes instead of eleven the column is short
+     enough to carry the wide interval. */
+  @media (max-width: 1023.98px) {
+    .philosophy .philosophy__card {
+      gap: 0;
+    }
+
+    /* Every figure below carries the cap trim back with it. The trim is a
+       negative block margin of 0.0875em written inline from the component, on
+       each text piece and on both its sides, so two neighbours eat 0.175em out
+       of whatever stands between them. Adding it back makes the number mean the
+       daylight between capitals, which is what it is for.
+
+       On the headings it is `padding`, not `margin`: the trim is inline, and an
+       inline margin beats any rule in the sheet.
+
+       The whole numbers are not 16 and 48 exactly because the piece above is
+       sometimes a note and sometimes a heading, and their trims differ. They
+       are what measures 16 and 48 between capitals — checked at 768 and at
+       1024, where they agree within a pixel. */
+    /* Both headings belong to the picture, not to the edges of the frame. The
+       inside of the group is a third of what is outside it — measured, 32
+       against 96 — so the three read as one thing standing in the middle of the
+       card rather than as three things spaced evenly down it. */
+    .philosophy .philosophy__middle,
+    .philosophy .philosophy__bottom {
+      margin-top: 37px;
+    }
+
+    /* 96 from the section's edge to the capitals, held across the band rather
+       than only at one width: the section's own gutter grows from 16 to 40
+       along it, and the cap trim grows with the type, so both are taken out of
+       the figure. The card is given the heading's size so that `em` here means
+       the heading's trim and not the root's. */
+    .philosophy .philosophy__card {
+      font-size: clamp(32px, calc(32px + 52 * (100vw - 375px) / 1064), 84px);
+      padding-block: calc(96px - var(--philosophy-gutter) + 0.0875em);
+    }
+
+    /* The closing line is not a fourth node — it is the full stop on the third,
+       so it stands nearer to the sentence it ends than the nodes stand apart. */
+    .philosophy .philosophy__bottom {
+      gap: calc(39px + 0.175em);
+    }
+  }
+
+  .philosophy__backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  /* The fill is taller than the frame and lifted: 221.02% against the 800, with
+     85.08% of it above the top edge. The zoom sits on this wrapper so the
+     entry's scale cannot fight the crop's own numbers. */
+  .philosophy__backdrop-frame {
+    position: absolute;
+    top: -85.08%;
+    left: 0;
+    width: 100%;
+    height: 221.02%;
+    transform-origin: center;
+    will-change: transform;
+  }
+
+  /* `fill`, not `cover`: Figma sizes this image to the frame outright, and the
+     frame is 0.81 wide against the plate's 1.8. Covering it would crop away
+     four fifths of the width and leave a hard zoom on one link of the chain;
+     stretched, the whole frame shows, and the frame is a blur — the distortion
+     has nothing to sit on. */
+  .philosophy__backdrop-plate {
+    object-fit: fill;
+  }
+
+  .philosophy__card {
+    position: absolute;
+    top: calc(55 * var(--raw-unit-design));
+    left: 50%;
+    width: calc(1131 * var(--raw-unit-design));
+    height: calc(689 * var(--raw-unit-design));
+    margin-left: calc(-565.5 * var(--raw-unit-design));
+    /* `clip`, not `hidden`: a hidden box can still be scrolled — focusing the
+       story link or any `scrollIntoView` inside it slid the card's content
+       180px up within its own frame, leaving a bare band at the foot. */
+    overflow: clip;
+    /* The large-card corner the collections and featured blocks share. */
+    border-radius: var(--corner-panel);
+    background: var(--raw-color-philosophy-card);
+    will-change: transform, opacity;
+  }
+
+  .philosophy__card-grain {
+    z-index: 0;
+    object-fit: cover;
+  }
+
+  .philosophy__display {
+    position: relative;
+    z-index: 1;
+    font-size: calc(64 * var(--raw-unit-design));
+    line-height: calc(57.6 * var(--raw-unit-design));
+    white-space: nowrap;
+  }
+
+  /* The size is stated on the column, not only on its lines: the widths below
+     are in em, and without it they would resolve against the root's 16 rather
+     than against the note's own type. */
+  .philosophy__note {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(4 * var(--raw-unit-design));
+    font-family: var(--font-inter-tight);
+    font-size: calc(18 * var(--raw-unit-design));
+    will-change: transform, opacity;
+  }
+
+  .philosophy__note-line {
+    font-family: var(--font-inter-tight);
+    font-size: calc(18 * var(--raw-unit-design));
+    line-height: calc(18 * var(--raw-unit-design));
+    text-align: center;
+  }
+
+  .philosophy__note-line--right {
+    text-align: right;
+  }
+
+  .philosophy__top {
+    position: absolute;
+    top: calc(32 * var(--raw-unit-design));
+    left: var(--philosophy-text-left);
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: calc(55 * var(--raw-unit-design));
+  }
+
+  /* In em of the note's own type rather than in design units: 188 against 18
+     is 10.44em, and stated that way the box holds the same words whatever size
+     the type ends up at. */
+  .philosophy__note--top {
+    width: 10.4444em;
+  }
+
+  .philosophy__shapes {
+    position: absolute;
+    top: calc(102 * var(--raw-unit-design));
+    left: calc(304.5 * var(--raw-unit-design));
+  }
+
+  .philosophy__middle {
+    position: absolute;
+    top: calc(180 * var(--raw-unit-design));
+    left: 50%;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: calc(24 * var(--raw-unit-design));
+    transform: translateX(-50%);
+  }
+
+  .philosophy__aside {
+    width: 8.3889em;
+    flex: none;
+    will-change: transform, opacity;
+  }
+
+  .philosophy__aside--left {
+    text-align: right;
+  }
+
+  /* The same width as the left aside. The row is centred as a whole, so with
+     Figma's narrower 6.83em here the photograph sat 14 units right of the
+     card's centre; matched, the photograph is dead centre and each note stands
+     the same 24 off it — this one still set from its left edge. */
+  .philosophy__aside--right {
+    width: 8.3889em;
+    text-align: left;
+  }
+
+  /* The photograph's box, and the pill's ground. It does not clip: the pill
+     sits well inside it, and the crop is the plate's own business. */
+  .philosophy__frame {
+    position: relative;
+    width: calc(291 * var(--raw-unit-design));
+    height: calc(329 * var(--raw-unit-design));
+    flex: none;
+    /* For the column below 1024, where the frame itself clips the entrance's
+       zoom; at the poster width the photograph below does the clipping. */
+    border-radius: var(--corner-panel);
+  }
+
+  .philosophy__photo {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--corner-panel);
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
+  /* Figma's crop inside that box. The file mirrors the fill, but the plate in
+     the project is already the mirrored one — applying it again turned the hand
+     the wrong way, earring on the right instead of the left. */
+  .philosophy__photo-plate {
+    top: -1.56%;
+    left: -0.6%;
+    width: 115.12%;
+    height: 121.32%;
+    object-fit: cover;
+  }
+
+  .philosophy__cta {
+    position: absolute;
+    /* 266 from the row's left edge is 91 from the photograph's, which is where
+       it is stated now that it hangs off the frame. */
+    top: calc(148 * var(--raw-unit-design));
+    left: calc(91 * var(--raw-unit-design));
+    display: flex;
+    align-items: center;
+    padding: calc(10 * var(--raw-unit-design));
+    border-radius: var(--philosophy-radius);
+    background: var(--raw-color-philosophy-pill);
+    color: #fff;
+    /* Manrope in the file; Inter Tight Medium carries it here, the same
+       substitution the block above makes, and from the font's own variable —
+       `--font-tight` is a theme key and never becomes a property. */
+    font-family: var(--font-inter-tight);
+    font-size: calc(13 * var(--raw-unit-design));
+    font-weight: 500;
+    line-height: calc(10.4 * var(--raw-unit-design));
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-hover-role);
+    will-change: transform, opacity;
+  }
+
+  @media (hover: hover) {
+    .philosophy__cta:hover {
+      background: var(--raw-color-philosophy-pill-hover);
+    }
+  }
+
+  .philosophy__cta:focus-visible {
+    outline: 2px solid var(--raw-color-philosophy-pill-hover);
+    outline-offset: 2px;
+  }
+
+  .philosophy__cta-row {
+    display: flex;
+    align-items: center;
+    gap: calc(6 * var(--raw-unit-design));
+  }
+
+  .philosophy__cta-icon {
+    display: block;
+    width: calc(12 * var(--raw-unit-design));
+    height: calc(12 * var(--raw-unit-design));
+    flex: none;
+  }
+
+  .philosophy__bottom {
+    position: absolute;
+    top: calc(541 * var(--raw-unit-design));
+    left: var(--philosophy-text-left);
+    z-index: 1;
+    display: flex;
+    width: calc(1067 * var(--raw-unit-design));
+    flex-direction: column;
+    align-items: center;
+    gap: calc(24 * var(--raw-unit-design));
+  }
+
+  .philosophy__bottom-row {
+    display: flex;
+    width: 100%;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .philosophy__note--bottom {
+    width: 14em;
+  }
+
+  /* Figma sets the first of these two lines to hold on one line and the box to
+     252 all the same, so the line runs wider than its box and hangs out both
+     sides. Kept: the row has the slack for it, and the second line is what the
+     box is measured against. */
+  .philosophy__note--bottom .philosophy__note-line:first-child {
+    white-space: nowrap;
+  }
+
+  .philosophy__keep {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* The two notes stand on the card's centre line — the photograph's — rather
+     than wherever their row put them. In the rows each sat between two words of
+     unequal width, so the top one landed 14 left of the photograph and the
+     bottom one 33 right of it.
+
+     Both rows start at the text edge, so the card's centre inside them is its
+     half-width less that edge: 565.5 − 32.45. Each note is taken out of its row
+     and centred there by its own width (em of its type), with its foot on the
+     row's foot, where `align-items: flex-end` had put it. The words do not move:
+     the bottom row is `space-between`, so its two words keep their ends; in the
+     top row the second word takes the note's 188 and the gap's 55 as a margin.
+
+     The poster arrangement only: below 1024 the notes are not shown. */
+  @media (min-width: 1024px) {
+    .philosophy {
+      --philosophy-note-centre: calc(533.05 * var(--raw-unit-design));
+    }
+
+    .philosophy__note--top,
+    .philosophy__note--bottom {
+      position: absolute;
+      bottom: 0;
+    }
+
+    .philosophy__note--top {
+      left: calc(var(--philosophy-note-centre) - 5.2222em);
+    }
+
+    .philosophy__note--top + .philosophy__display {
+      margin-left: calc(243 * var(--raw-unit-design));
+    }
+
+    .philosophy__bottom-row {
+      position: relative;
+    }
+
+    .philosophy__note--bottom {
+      left: calc(var(--philosophy-note-centre) - 7em);
+    }
+  }
+
+  /* ===========================================================================
+     Footer — 1556:753, 1440 x 320.
+
+     Desktop only for now. Three columns meet the page's own: the wordmark on
+     the gutter's 40, the links at a quarter and 23 more, the subscription at
+     three quarters less 11 — Figma states the last two as those sums, and they
+     are kept that way so the file can be read against the code.
+
+     The variables are `site-footer` rather than `footer`: the hero's own foot
+     already owns the shorter prefix.
+     =========================================================================== */
+  .footer {
+    /* Black, to match the featured stage — Figma's #272116 brown before. */
+    --site-footer-ground: var(--raw-color-black);
+    /* 50 %, not the frame's 40 %: 40 % on black is 3.65:1, under AA (4.5) for
+       the 14 px links and the note — 50 % is 5.3:1 (D-017: a text role, not a recolour) */
+    --site-footer-dim: rgb(255 255 255 / 0.5);
+    --site-footer-rule: rgb(255 255 255 / 0.2);
+    --site-footer-gutter: calc(40 * var(--raw-unit-design));
+    /* A thumb's target, in real pixels — it answers to a hand, not to a frame. */
+    --site-footer-tap: 44px;
+    --site-footer-icon: calc(12 * var(--raw-unit-design));
+
+    position: relative;
+    height: calc(320 * var(--raw-unit-design));
+    background: var(--site-footer-ground);
+    color: #fff;
+    font-family: var(--font-manrope);
+    font-size: calc(14 * var(--raw-unit-design));
+    font-weight: 500;
+    line-height: calc(11.2 * var(--raw-unit-design));
+  }
+
+  /* Below the design width the footer stops being a placed frame and becomes a
+     grid. Two reasons it cannot simply scale: the shared unit turns dual-axis
+     under 1024 — it is the hero's, and it stops shrinking with the width, so
+     the subscription hung 93 past the right edge at 768 and 113 at 375 — and
+     the type, which is 14 by the file, would come to 7 at a phone.
+
+     So the type comes off the unit and stays at its own size. This is chrome,
+     not a poster: it has nothing to keep in proportion with, and the numbers
+     the file gives are already the smallest that read.
+
+     The rows are the reading: the mark and the invitation, then what the shop
+     holds, then the small print. */
+  @media (max-width: 1439.98px) {
+    .footer {
+      --site-footer-gutter: clamp(20px, calc(20px + 20 * (100vw - 375px) / 1064), 40px);
+      --site-footer-icon: 12px;
+
+      display: grid;
+      height: auto;
+      padding-inline: var(--site-footer-gutter);
+      column-gap: 24px;
+      font-size: 14px;
+      line-height: 11.2px;
+      grid-template-areas:
+        "logo    .       subscribe"
+        "columns columns columns"
+        "rights  legal   social";
+      grid-template-columns: auto 1fr auto;
+      row-gap: 40px;
+    }
+
+    .footer .footer__logo,
+    .footer .footer__columns,
+    .footer .footer__subscribe,
+    .footer .footer__rights,
+    .footer .footer__meta {
+      position: static;
+      inset: auto;
+    }
+
+    /* Relative, not static: the plate inside is absolutely placed and carries
+       the crop in percentages, so it has to resolve against this box. Left
+       static it resolved against the section and the wordmark filled it. */
+    .footer .footer__logo {
+      position: relative;
+      width: 79.07px;
+      height: 40px;
+      grid-area: logo;
+    }
+
+    .footer .footer__columns {
+      gap: 50px;
+      grid-area: columns;
+    }
+
+    .footer .footer__subscribe {
+      width: 331px;
+      max-width: 100%;
+      grid-area: subscribe;
+    }
+
+    .footer .footer__rights {
+      grid-area: rights;
+    }
+
+    .footer .footer__meta--legal {
+      grid-area: legal;
+      justify-self: center;
+    }
+
+    .footer .footer__meta--social {
+      grid-area: social;
+      justify-self: end;
+    }
+
+    /* The note comes up to the size of the links it stands beside. Size and
+       leading grow together, by the same factor, so the cap trim written inline
+       from the component — which is an em and therefore a ratio — still lands
+       its capitals on the top of the box, and the note still starts on the line
+       the three headings start on.
+
+       The colour comes up with it: white at 0.4 over this ground is 3.7 to 1,
+       and the threshold for text this size is 4.5. At 0.55 it is 5.8. Held to
+       the design's 0.4 the note was the smallest thing on the page and the
+       faintest at once. */
+    .footer.footer {
+      --site-footer-dim: rgb(255 255 255 / 0.55);
+    }
+
+    .footer .footer__note {
+      font-size: 14px;
+      line-height: 16.8px;
+    }
+
+    .footer .footer__dot {
+      width: 4px;
+      height: 4px;
+    }
+
+    .footer .footer__meta,
+    .footer .footer__meta-item {
+      gap: 12px;
+    }
+
+    .footer .footer__column {
+      gap: 16px;
+    }
+
+    .footer .footer__list {
+      gap: 0; /* the 24 px link rows carry the spacing (.footer__link) */
+    }
+
+    .footer .footer__field {
+      padding-bottom: 10px;
+    }
+  }
+
+  /* A narrow tablet reads in two zones on the left and one on the right: the
+     mark with the shop's own list under it, and the invitation beside them. Set
+     as three rows down the whole width, the right half stood empty from the
+     field to the floor and the footer fell into halves.
+
+     The intervals are set one by one rather than by a single row gap — 48 under
+     the mark, 56 before the small print, 12 between its two lines — and each
+     carries back the cap trim of the text it meets, which is 0.602 a side at
+     14 on 11.2. */
+  @media (min-width: 768px) and (max-width: 1439.98px) {
+    .footer {
+      grid-template-areas:
+        "logo    logo    logo    logo"
+        "columns columns columns subscribe"
+        "rule    rule    rule    rule"
+        "rights  rights  social  social"
+        "legal   legal   legal   legal";
+      padding-block: 40px;
+      grid-template-columns: repeat(3, max-content) minmax(0, 1fr);
+      column-gap: 48px;
+      row-gap: 0;
+    }
+
+    /* The invitation is the fourth column of the lists' own grid, not a block
+       set beside them — which is why it stands in the section's tracks rather
+       than in a width of its own, and takes the same offset as the lists.
+
+       The same offset and not a corrected one: each piece of type carries a cap
+       trim that already pulls its capitals onto the top of its own box, so two
+       boxes started together start their capitals together — however far apart
+       the two leadings are. */
+    .footer .footer__subscribe {
+      width: auto;
+      margin-top: 48px;
+    }
+
+    /* A ceiling on the invitation, and it is only needed as the band widens.
+
+       The fourth track is the one that takes what the three lists leave, and at
+       768 that is 253 — a sensible column. At 1280 it is 585 and the field runs
+       half the page, with the note sitting on one line above a hand's width of
+       nothing: the rule under the input is the widest line in the block and it
+       reads as the block's subject, which it is not.
+
+       331 is the design width's own figure for this column. Capped there and
+       set to the right edge, the slack collects in one gap between the lists
+       and the invitation instead of stretching the invitation — which is the
+       shape 1440 has, where the lists start at 383 and the column at 1069. The
+       note then takes the two lines it takes at 768, so the field has less
+       empty column to fall through.
+
+       Above 1024 only: at 768 the track is already narrower than this and the
+       cap would do nothing but sit in the sheet. */
+    /* From 1024 up the footer takes the design width's own arrangement: the mark
+       on the left, the three lists starting a quarter across, the invitation on
+       the right, and the small print on one line under all three rather than in
+       a stack of its own.
+
+       The arrangement and not the type. The design width sets the footer in
+       design units, which is right there and wrong here — 14 of type resolves to
+       12.4 at 1280 and to 10 at 1024, and the lists stop reading. So the frame
+       is Figma's and the type stays at 14, which is what the frame was drawn
+       around anyway: at 1440 the unit is 1 and the two are the same thing.
+
+       The rule goes: it exists to close a stack, and there is no stack here.
+
+       Below 1024 none of this applies — the lists need the full measure there,
+       and 768x1024 is a verified frame. */
+    @media (min-width: 1024px) {
+      .footer.footer {
+        grid-template-areas:
+          "logo   columns subscribe"
+          "rights legal   social";
+        /* A quarter across plus Figma's own 23, so the lists start where they
+           start at the design width. */
+        grid-template-columns:
+          calc(25% + 23 * var(--raw-unit-design))
+          max-content
+          minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+        height: 320px;
+        column-gap: 0;
+      }
+
+      .footer.footer .footer__rule {
+        display: none;
+      }
+
+      .footer.footer .footer__logo,
+      .footer.footer .footer__columns,
+      .footer.footer .footer__subscribe {
+        margin-top: 0;
+      }
+
+      /* The field sits under its note, as it does at the design width. The
+         band below drops it to the floor of the row so its rule lands on
+         the line the lists end on — that is a stacked-column idea and has
+         no work to do here. */
+      .footer.footer .footer__field {
+        margin-top: 0;
+      }
+
+      .footer.footer .footer__subscribe {
+        /* The invitation keeps its share of the measure rather than its figure.
+           331 is the design width's own number, and at 1440 it is a quarter of
+           the 1360 the block is laid out in — but held at 331 down the band it
+           becomes a third of the 960 there is at 1024, and the field starts to
+           read as the subject of the footer instead of the last thing in it.
+           So the ramp gives back the same quarter at the narrow end and lands
+           on Figma's figure by the design width. */
+        max-width: clamp(
+          235px,
+          calc(235px + 96 * (100vw - 1024px) / 416),
+          331px
+        );
+        justify-self: end;
+        align-self: start;
+      }
+
+      /* Out of the subgrid and back into a row of its own.
+
+         The band below hands the lists the section's three left tracks, which
+         is what makes them one measure with the invitation there. Here the
+         three sit inside a single track, and a subgrid spanning one track lays
+         its children down that track — measured, the three lists stacked and
+         the nav came out 368 tall inside a 320 footer. The design width has
+         them as a flex row on Figma's own 50, which is what this restores. */
+      .footer.footer .footer__columns {
+        display: flex;
+        width: auto;
+        grid-template-columns: none;
+        column-gap: calc(50 * var(--raw-unit-design));
+      }
+
+      /* The three parts of the last line sit on the floor of the row they
+         share, so they read as one line however tall the block above them is. */
+      .footer.footer .footer__rights,
+      .footer.footer .footer__meta--legal,
+      .footer.footer .footer__meta--social {
+        align-self: end;
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      .footer.footer .footer__meta--legal {
+        justify-self: start;
+      }
+
+      .footer.footer .footer__meta--social {
+        justify-self: end;
+      }
+    }
+
+    /* The field falls to the floor of the row, which the lists set — so its rule
+       comes out on the line the last link ends on, however many lines the note
+       above it happens to take. Held to the note it floated at whatever height
+       the wrap left it. */
+    .footer .footer__field {
+      margin-top: auto;
+    }
+
+    /* The lists carry no grid of their own — they borrow the section's three
+       left tracks, so list, list, list and invitation are four columns on one
+       measure rather than two grids guessing at each other. */
+    .footer .footer__columns {
+      display: grid;
+      width: 100%;
+      grid-template-columns: subgrid;
+
+      /* The same gutter as the section's, said again: a subgrid keeps its own
+         gap when it has one, and this one inherited 50 units from the design
+         width. Two different gutters made the tracks come out 7 short of the
+         lists standing in them. */
+      column-gap: 48px;
+    }
+
+    /* A flat 48 and no trim added back: each piece of type already carries a
+       trim that seats its capitals on the top of its own box, so this measures
+       from the mark's edge to the capitals as it stands. */
+    .footer .footer__columns {
+      margin-top: 48px;
+    }
+
+    .footer .footer__rule {
+      display: block;
+      height: 1px;
+      margin-top: 49px;
+      background: var(--site-footer-rule);
+      grid-area: rule;
+    }
+
+    /* The copyright takes it as padding: its cap trim is written inline from
+       the component, and an inline margin beats any rule in the sheet — set as
+       a margin it did not move at all while the social line beside it did. */
+    .footer .footer__rights {
+      padding-top: 26px;
+    }
+
+    .footer .footer__meta--social {
+      margin-top: 26px;
+    }
+
+    /* The documents are not a second line of the copyright — they are the other
+       kind of thing on this row — so they stand off it by the same 24 the row
+       stands off the rule, rather than by the 12 that would read as a wrap. */
+    .footer .footer__meta--legal {
+      margin-top: 29px;
+    }
+
+    /* Held to the top of their rows: stretched, the copyright filled the row
+       and the social line stopped sitting level with it. */
+    .footer .footer__rights,
+    .footer .footer__meta--legal,
+    .footer .footer__meta--social {
+      align-self: start;
+      justify-self: start;
+    }
+
+    .footer .footer__meta--social {
+      justify-self: end;
+    }
+  }
+
+  /* On a tablet the card's edge answers to the same 40 units as the cards in
+     blocks 2 and 3, so the three stack flush down the page. Its own clamp put
+     it 10.7 outside them at 768 and 2.2 inside them at 1024 — the three ran on
+     three different measures and the misalignment read as sloppiness.
+
+     Two bands, because the 40 is not the same 40 in both. Between 768 and 1023
+     the root's unit is the hero's, and the hero's answers to the height as well
+     as the width; this block scopes that away for its own sake — the poster
+     only has to fit across — so the expression is written out here rather than
+     read from the variable, which is shadowed. From 1024 up the two agree and
+     the variable says it.
+
+     The doubled class rather than a later rule: the phone band below overlaps
+     these, and adaptive rules here never lean on source order. */
+  @media (min-width: 768px) and (max-width: 1023.98px) {
+    .philosophy.philosophy {
+      --philosophy-inset: calc(40 * min(100vw / 850, 100vh / 1150));
+    }
+  }
+
+  @media (min-width: 1024px) and (max-width: 1439.98px) {
+    .philosophy.philosophy {
+      --philosophy-inset: calc(40 * var(--raw-unit-design));
+    }
+  }
+
+  /* Phone: one column, and the small print gathered at the foot in the order
+     it is read — the two places to follow, then the two documents, then the
+     line that closes the page.
+
+     The lists go two across rather than three: at 375 the third column left
+     "Shipping & Returns" all but touching the edge. */
+  @media (max-width: 767.98px) {
+    .footer {
+      grid-template-areas:
+        "logo"
+        "columns"
+        "subscribe"
+        "social"
+        "rule"
+        "legal"
+        "rights";
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 0;
+      padding-top: 32px;
+
+      /* The floor is the side wall laid down: the same daylight under the last
+         line as beside it. The four is what the copyright's descender hangs
+         below its own box — the cap trim lifts the box clear of it — so the
+         padding carries it and leaves the ink standing off by the gutter. */
+      padding-bottom: calc(var(--site-footer-gutter) + 4px);
+    }
+
+    /* Three quarters of the mark. Held at full size it took the top of the
+       screen for itself; taken down to half it read as a caption rather than as
+       the signature on the page. */
+    .footer .footer__logo {
+      width: 60px;
+      height: 30.36px;
+    }
+
+    /* Three lists into two columns leave a cell empty, and the empty one landed
+       beside the longest list — a torn corner rather than a block. So the third
+       takes the whole width and lays its own links two across: the group closes
+       into a rectangle, and nothing has to be cut or reordered to do it.
+
+       It is the third and not another because it is the one with the long
+       names — beside a half-width column they were the thing that read as
+       cramped. */
+    .footer .footer__column:last-child {
+      grid-column: 1 / -1;
+    }
+
+    /* Down then across, not across then down: the two lists beside it are read
+       downwards, and a row-flowed grid would have put the second name at the
+       top of the right column while the eye went on to the third at the left. */
+    .footer .footer__column:last-child .footer__list {
+      display: grid;
+      grid-auto-flow: column;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, auto);
+      column-gap: 24px;
+    }
+
+    /* The mark is its own group, so the lists stand off it by the same 48 that
+       separates every other pair of groups down this column. */
+    .footer .footer__columns {
+      display: grid;
+      margin-top: 49px;
+      column-gap: 24px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 32px;
+    }
+
+    /* The column is read as four things, not as seven evenly spaced ones, so
+       the intervals say which is which: 48 of daylight where one group ends and
+       the next begins — lists, then the invitation, then the two places to
+       follow — and 24 inside a group, between the note and the field it belongs
+       to. All of it measured off the ink and not off the property, since the
+       block above ends variously in a descender, an underline or a cap. */
+    .footer .footer__subscribe {
+      width: auto;
+      margin-top: 50px;
+      gap: 24px;
+    }
+
+    .footer .footer__meta--social {
+      margin-top: calc(48px + 0.602px);
+    }
+
+    .footer .footer__rule {
+      display: block;
+      height: 1px;
+      margin-top: 34px;
+      background: var(--site-footer-rule);
+      grid-area: rule;
+    }
+
+    .footer .footer__meta--legal {
+      margin-top: 24px;
+    }
+
+    /* Padding, not margin: the copyright carries its cap trim inline from the
+       component, and an inline margin beats any rule in the sheet. */
+    .footer .footer__rights {
+      padding-top: 30px;
+    }
+
+    .footer .footer__meta--legal,
+    .footer .footer__meta--social {
+      justify-self: start;
+    }
+
+    /* Exactly 16: under it iOS zooms the page when the field takes focus. */
+    .footer .footer__input {
+      font-size: 16px;
+    }
+  }
+
+  .footer__rule {
+    display: none;
+  }
+
+  .footer__logo {
+    position: absolute;
+    top: calc(40 * var(--raw-unit-design));
+    left: var(--site-footer-gutter);
+    display: block;
+    width: calc(79.07 * var(--raw-unit-design));
+    height: calc(40 * var(--raw-unit-design));
+    overflow: hidden;
+  }
+
+  /* Figma paints a white rectangle through an alpha mask cut from this very
+     PNG. The plate is already in the project — its mark almost black on a clear
+     field — so the colour comes from a filter over it rather than from a second
+     copy of the asset. The hero's header inverts the same plate the same way. */
+  .footer__mark {
+    position: absolute;
+    max-width: none;
+    filter: brightness(0) invert(1);
+  }
+
+  /* Each group is nudged by the trim of the text that starts it, so the letters
+     land on the y the file states rather than the box does. For 14 on 11.2 that
+     is (11.2 - 0.714 x 14) / 2 = 0.602; for the 12 on 1.2 it is 2.916. */
+  .footer__columns {
+    position: absolute;
+    top: calc(40.602 * var(--raw-unit-design));
+    left: calc(25% + 23 * var(--raw-unit-design));
+    display: flex;
+    align-items: flex-start;
+    gap: calc(50 * var(--raw-unit-design));
+  }
+
+  .footer__column {
+    display: flex;
+    flex-direction: column;
+    gap: calc(16 * var(--raw-unit-design));
+  }
+
+  .footer__column-title {
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .footer__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    gap: 0; /* the 24 px link rows carry the spacing (.footer__link) */
+    list-style: none;
+  }
+
+  /* Block, and it matters: the cap trim is a negative block margin, and those
+     do not apply to a non-replaced inline box at all — left inline, every link
+     kept its full 11.2 line and the lists came out 3.4 short of the file. */
+  /* Each link is at least 24 px tall, in px (it never scales below), and the
+     list's gap is folded into it: a 24 px row pitch instead of ~20. Under 24 the
+     rows failed target-size (11 px boxes, 20 px apart) — wanderlust/herbier-blanc. */
+  .footer__link {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    /* No cap trim on the 24 px rows: its negative block margin overlapped each
+       row 0.6 px into the next ("partially obscured", 22.8 px). The text is
+       centred in the row instead. */
+    margin-block: 0 !important;
+    color: var(--site-footer-dim);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 200ms var(--ease-hover-role);
+  }
+
+  .footer__link--bright {
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  @media (hover: hover) {
+    .footer__link:hover {
+      color: #fff;
+    }
+  }
+
+  .footer__link:focus-visible {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .footer__subscribe {
+    position: absolute;
+    top: calc(42.916 * var(--raw-unit-design));
+    left: calc(75% - 11 * var(--raw-unit-design));
+    display: flex;
+    width: calc(331 * var(--raw-unit-design));
+    flex-direction: column;
+    gap: calc(24 * var(--raw-unit-design));
+  }
+
+  .footer__note {
+    color: var(--site-footer-dim);
+    font-size: calc(12 * var(--raw-unit-design));
+    line-height: calc(14.4 * var(--raw-unit-design));
+  }
+
+  .footer__field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: calc(10 * var(--raw-unit-design));
+    border-bottom: 1px solid #fff;
+  }
+
+  /* The file's white line is already at full strength, so focus cannot make it
+     brighter — it doubles it instead, which reads the same way and costs no
+     layout. */
+  .footer__field:focus-within {
+    box-shadow: 0 1px 0 0 #fff;
+  }
+
+  .footer__input {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    text-transform: uppercase;
+    outline: none;
+  }
+
+  .footer__input::placeholder {
+    color: #fff;
+    opacity: 1;
+  }
+
+  /* The glyph stays the file's 12; the target around it is a real 44, taken
+     back out with the same negative margin so the row keeps its height. */
+  .footer__submit {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    padding: calc((var(--site-footer-tap) - var(--site-footer-icon)) / 2);
+    margin: calc((var(--site-footer-tap) - var(--site-footer-icon)) / -2);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .footer__arrow {
+    display: block;
+    width: var(--site-footer-icon);
+    height: var(--site-footer-icon);
+    transform: rotate(90deg);
+  }
+
+  .footer__submit:focus-visible {
+    outline: 1px solid #fff;
+    outline-offset: -14px;
+  }
+
+  .footer__rights {
+    position: absolute;
+    top: calc(286.602 * var(--raw-unit-design));
+    left: var(--site-footer-gutter);
+    white-space: nowrap;
+  }
+
+  .footer__meta {
+    position: absolute;
+    top: calc(286.602 * var(--raw-unit-design));
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    gap: calc(12 * var(--raw-unit-design));
+    list-style: none;
+  }
+
+  .footer__meta--legal {
+    left: calc(25% + 23 * var(--raw-unit-design));
+  }
+
+  .footer__meta--social {
+    left: calc(75% - 11 * var(--raw-unit-design));
+  }
+
+  .footer__meta-item {
+    display: flex;
+    align-items: center;
+    gap: calc(12 * var(--raw-unit-design));
+  }
+
+  /* One mark, two contexts: it takes the colour of the row it stands in. */
+  .footer__dot {
+    display: block;
+    width: calc(4 * var(--raw-unit-design));
+    height: calc(4 * var(--raw-unit-design));
+    flex: none;
+    color: var(--site-footer-dim);
+  }
+
+  .footer__meta--social .footer__dot {
+    color: #fff;
+  }
+}
