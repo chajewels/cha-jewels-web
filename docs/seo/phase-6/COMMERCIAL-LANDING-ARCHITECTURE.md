@@ -219,6 +219,16 @@ Storefront follow-up (a later implementation PR, not this one): read the new fie
 
 ---
 
+## 6b. Added scope — `llms.txt` (owner decision, 2026-10-31)
+
+`llms.txt` is now part of the Phase 6 batch. Status: NOT STARTED. Full scope, limits and tests: master plan PHASE 6 add-on.
+
+- Built after the Phase 6 URLs and titles are final, so its links match the theme pages in §3.
+- Unofficial; Google Search does not use it; no ranking effect. Low priority inside the batch.
+- Same regression checks as §5, plus: 200 `text/plain`, every link 200 and indexable.
+
+---
+
 ## 7. Sources used
 
 - Production sitemap and page fetches, 2026-10-29: `https://www.chajewelsjp.com/sitemap.xml`; `/en/products/n1616-…`, `/en/products/8c100-…`, `/en/products/r7813-…`; each collection/category/wholesale URL listed in §3; `/en/layaway`, `/layaway`, `/en/guides`, `/en/collections/kihei` (all 404).
