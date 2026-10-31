@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { siteUrl } from "@/lib/site";
+import { localeOpenGraph } from "@/lib/og-meta";
 import { isLocale, type Locale } from "@/lib/locale";
 
 /**
@@ -39,21 +40,33 @@ export function localeAlternates(lang: Locale, barePath: string, eligible: Eligi
  * `generateMetadata` for a locale wrapper page: the legacy page's own metadata
  * (title, description, OpenGraph images — `getLang()` is URL-authoritative, so
  * the legacy function already answers in the URL's language) plus the locale
- * alternates above. An ineligible or invalid language returns {} — the page
- * itself 404s, and a 404 must say nothing (X1).
+ * alternates above, plus og:url. An ineligible or invalid language returns {} —
+ * the page itself 404s, and a 404 must say nothing (X1): no canonical, no
+ * hreflang, no og:url.
+ *
+ * og:url is the canonical just computed, so the two are one value by
+ * construction; it never carries a query or fragment because the canonical is
+ * built from the route's path parameters only. The block is assembled by
+ * `localeOpenGraph` (lib/og-meta.ts), which keeps whatever OpenGraph the legacy
+ * page set (product, post, listing hero) and, for a page that set none, keeps
+ * the brand image it used to inherit (taken from `parent`, exactly as resolved).
  */
 export function localizedMeta<P extends Record<string, string>>(
   pathOf: (params: P) => string,
   base?: (args: { params: Promise<P> }) => Metadata | Promise<Metadata>,
   eligibleOf?: (params: P) => EligibleLangs | Promise<EligibleLangs>,
 ) {
-  return async function generateMetadata(args: { params: Promise<P & { lang: string }> }): Promise<Metadata> {
+  return async function generateMetadata(args: { params: Promise<P & { lang: string }> }, parent: ResolvingMetadata): Promise<Metadata> {
     const params = await args.params;
     const lang = params.lang;
     if (!isLocale(lang)) return {};
     const eligible = eligibleOf ? await eligibleOf(params) : BOTH;
     if (!eligible[lang]) return {};
     const own = base ? await base(args) : {};
-    return { ...own, ...localeAlternates(lang, pathOf(params), eligible) };
+    const alt = localeAlternates(lang, pathOf(params), eligible);
+    const url = String(alt.alternates?.canonical);
+    // Next always passes `parent`; a bare unit-test call may not, which only costs the inherited image (the brand image is named instead).
+    const inherited = parent ? (await parent).openGraph : null;
+    return { ...own, ...alt, openGraph: localeOpenGraph({ own: own.openGraph, parent: inherited, lang, url }) };
   };
 }

@@ -40,8 +40,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // attaches only at the root segment: an article without a cover has to name
   // it, or it would preview with no image at all.
   //
-  // No `url`: <SeoLinks /> (lib/page-meta.tsx) already renders og:url on every
-  // page with the canonical's value, and a second one here would duplicate it.
+  // No `url` here: on the legacy path <SeoLinks /> (lib/page-meta.tsx) renders
+  // og:url with the canonical's value, and on the locale tree localizedMeta
+  // (lib/locale-meta.ts) adds it from the canonical. Setting it here too would
+  // duplicate it on the legacy path.
   return {
     title: p.title,
     description,

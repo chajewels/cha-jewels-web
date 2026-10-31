@@ -285,6 +285,68 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   }
 }
 
+// ---------------------------------------------------------------- FOUNDATION: og:url, 404 hygiene, fb:app_id
+// SEO foundation batch. Reads the RENDERED HTML the way a link scraper and a crawler do.
+//  1. Every successful public locale template: exactly one og:url, equal to the canonical,
+//     no query or fragment, exactly one fb:app_id (the approved id, emitted once by the root
+//     layout), the site-wide OpenGraph fields and an og:image present.
+//  2. Every 404 (unknown single/multi-segment, localized, missing resource, missing language
+//     sibling, /ja/layaway): real 404, noindex, NO canonical, hreflang or og:url, at most one fb:app_id.
+//     (That the 404 page is still the useful one is checked in a browser: its UI streams in after the first HTML.)
+//  3. Private/utility routes: og:url only (no canonical, no alternates), one fb:app_id.
+//  4. Query handling and no duplicate tags anywhere.
+// A sample of templates and of 404 shapes, NOT a crawl of every URL.
+{
+  const FB_ID = "812262777044447";
+  const count = (html, re) => (html.match(re) ?? []).length;
+  const ogUrls = (html) => [...html.matchAll(/<meta property="og:url" content="([^"]*)"/g)].map((m) => unescapeHtml(m[1]));
+  const fbIds = (html) => [...html.matchAll(/<meta property="fb:app_id" content="([^"]*)"/g)].map((m) => m[1]);
+  const prop = (html, name) => { const m = html.match(new RegExp(`<meta property="${name}" content="([^"]*)"`)); return m ? unescapeHtml(m[1]) : null; };
+
+  // 1. successful locale templates, both languages
+  const templates = [...new Set([product, collection, category, post, "/jewelry-guide", "/shopping-guide", "/faq", "/about", "/legal/tokusho", "/legal/privacy", "/loyalty", "/sale", "/contact", "/wholesale", "/why-cha-jewels", "/blog", "/collections"].filter(Boolean))];
+  const localePaths = ["/ja", "/en", ...templates.flatMap((t) => [`/ja${t}`, `/en${t}`]), "/en/layaway"];
+  let sampled = 0;
+  for (const path of localePaths) {
+    const r = await get(path);
+    if (r.status === 404) {
+      // A resource that does not exist in this language (an English-only post): a clean 404.
+      ok(path, "FOUNDATION: a missing language sibling is a clean 404 (noindex; no canonical, hreflang or og:url)", /noindex/i.test(robotsMeta(r.body) ?? "") && canonicals(r.body).length === 0 && alternates(r.body).length === 0 && ogUrls(r.body).length === 0, `robots=${robotsMeta(r.body)} canon=${canonicals(r.body).length} og:url=${ogUrls(r.body).length}`);
+      continue;
+    }
+    if (r.status !== 200) { ok(path, "FOUNDATION: template answers 200", false, `got ${r.status}`); continue; }
+    sampled++;
+    const h = r.body, self = `${BASE}${path}`, lang = path.slice(1, 3);
+    ok(path, "FOUNDATION: exactly one og:url, equal to the canonical and to the page's own absolute locale URL (no query, no fragment)", ogUrls(h).length === 1 && ogUrls(h)[0] === self && canonicals(h).length === 1 && canonicals(h)[0] === self, `og:url=${ogUrls(h).join("|")} canonical=${canonicals(h).join("|")}`);
+    ok(path, "FOUNDATION: exactly one fb:app_id, the approved id", fbIds(h).length === 1 && fbIds(h)[0] === FB_ID, `fb:app_id=${fbIds(h).join("|")}`);
+    ok(path, "FOUNDATION: og:site_name, og:type and the locale pair are present, and an og:image", prop(h, "og:site_name") === "Cha Jewels" && !!prop(h, "og:type") && prop(h, "og:locale") === (lang === "ja" ? "ja_JP" : "en_US") && !!prop(h, "og:image"), `site=${prop(h, "og:site_name")} type=${prop(h, "og:type")} locale=${prop(h, "og:locale")} image=${prop(h, "og:image")}`);
+  }
+  ok("(sample)", "FOUNDATION: the template sample is not empty", sampled >= 20, `only ${sampled} successful pages sampled`);
+
+  // 2. every 404 shape
+  const MISSING = "nonexistent-seo-check-xyz";
+  const notFounds = [`/${MISSING}`, `/${MISSING}/deeper`, `/${MISSING}/deeper/still`, `/en/${MISSING}`, `/en/${MISSING}/deeper`, `/ja/${MISSING}/deeper`, `/en/products/${MISSING}`, `/ja/products/${MISSING}`, `/en/collections/${MISSING}`, `/ja/categories/${MISSING}`, `/en/blog/${MISSING}`, `/ja/blog/${MISSING}`, `/en/legal/${MISSING}`, "/ja/layaway", "/en/cart", "/fr/about"];
+  for (const path of notFounds) {
+    const r = await get(path);
+    ok(path, "FOUNDATION: a real 404 with noindex, and no canonical, hreflang or og:url", r.status === 404 && /noindex/i.test(robotsMeta(r.body) ?? "") && canonicals(r.body).length === 0 && alternates(r.body).length === 0 && ogUrls(r.body).length === 0 && fbIds(r.body).length <= 1, `status ${r.status}, robots=${robotsMeta(r.body)}, canonical=${canonicals(r.body).length}, hreflang=${alternates(r.body).length}, og:url=${ogUrls(r.body).length}, fb:app_id=${fbIds(r.body).length}`);
+  }
+
+  // 3. private/utility routes keep og:url only
+  for (const path of ["/cart", "/search", "/login"]) {
+    const r = await get(path);
+    if (r.status !== 200) { record("DEFERRED", path, "FOUNDATION: private route renders", `got ${r.status}`); continue; }
+    const h = r.body;
+    ok(path, "FOUNDATION: a private route says noindex, names no canonical or alternates, keeps one og:url and one fb:app_id", /noindex/i.test(robotsMeta(h) ?? "") && canonicals(h).length === 0 && alternates(h).length === 0 && ogUrls(h).length === 1 && ogUrls(h)[0] === `${BASE}${path}` && fbIds(h).length === 1, `robots=${robotsMeta(h)} canon=${canonicals(h).length} hreflang=${alternates(h).length} og:url=${ogUrls(h).join("|")} fb=${fbIds(h).length}`);
+  }
+
+  // 4. query handling: the identity never follows the query
+  for (const path of ["/en/faq", "/ja/faq"]) {
+    const r = await get(`${path}?utm_source=seo-check&lang=${path.startsWith("/en") ? "ja" : "en"}&ref=a%23b`);
+    if (r.status !== 200) { ok(path, "FOUNDATION: a page with a query answers 200", false, `got ${r.status}`); continue; }
+    ok(`${path}?utm_source=…`, "FOUNDATION: og:url and the canonical stay the bare locale URL when the request carries a query", ogUrls(r.body).length === 1 && ogUrls(r.body)[0] === `${BASE}${path}` && canonicals(r.body)[0] === `${BASE}${path}`, `og:url=${ogUrls(r.body).join("|")} canonical=${canonicals(r.body).join("|")}`);
+  }
+}
+
 // ---------------------------------------------------------------- report
 const w = Math.max(...results.map((r) => r.route.length));
 for (const r of results) console.log(`${r.status.padEnd(8)} ${r.route.padEnd(w)}  ${r.what}${r.detail ? `  [${r.detail}]` : ""}`);

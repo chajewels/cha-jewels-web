@@ -7,7 +7,7 @@ Scope: the independently confirmed defects and open findings from the October 29
 | BUG-02 | Messenger chat link (`m.me/chajewelsjapan`) emitted as JewelryStore `sameAs` | **FIXED LOCALLY → READY FOR QA** | PR #423 `fix/bug-02-sameas-chat-links` |
 | BUG-05 | `/already-registered` both disallowed in robots.txt and `noindex` in the page | **FIXED LOCALLY → READY FOR QA** | PR #424 `fix/bug-05-robots-already-registered` |
 | BUG-08 | `SEO-IMPLEMENTATION-STATUS.md` opening still read "nothing merged or deployed" | **FIXED LOCALLY → READY FOR QA** | PR #425 `docs/bug-08-seo-status` (this file is in the same PR) |
-| BUG-03 | Blog article carries origin wording outside the approved surfaces | **CONFIRMED — owner approval required (Hub content edit)** | §3 below |
+| BUG-03 | Blog article carries origin wording outside the approved surfaces | **CONFIRMED — MOVED OUT OF SEO SCOPE (owner, 2026-10-31, PR #450); separate content task, Option A decided, Hub edit owner-operated** | §3 below |
 | BUG-06 | `/gold-guide` takes two hops | **CONFIRMED — proposal only (route-change rule)** | §6 below |
 | BUG-07 | `#payments-and-layaway` fragment on the Japanese FAQ | **NOT A BUG** | §7 below |
 | BUG-09 | Google indexing of `/en/layaway`; product rich-result eligibility | **Status SUPERSEDED 2026-10-29, updated 2026-10-30: OPEN — property verified and 3 priority URLs observed indexed; coverage report and performance baseline PENDING** — historical "BLOCKED" below kept as evidence; see `OUTSTANDING-ISSUES-REGISTER.md` §3 | §9 below |

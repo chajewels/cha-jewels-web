@@ -8,6 +8,7 @@ import { FlashNotice } from "@/components/site/flash-notice";
 import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
 import { SeoLinks } from "@/lib/page-meta";
+import { FACEBOOK_APP_ID, siteOpenGraph } from "@/lib/og-meta";
 import { indexingFor } from "@/lib/seo-policy";
 import { localePath, localizeAuthoredHref } from "@/lib/locale";
 import { switchTargets } from "@/lib/locale-nav";
@@ -62,7 +63,11 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(siteUrl()),
     title: { default: dict.meta.site.title[lang], template: "%s | Cha Jewels" },
     description: dict.meta.site.description[lang],
-    openGraph: { type: "website", siteName: "Cha Jewels", locale: lang === "ja" ? "ja_JP" : "en_US", alternateLocale: [lang === "ja" ? "en_US" : "ja_JP"] },
+    openGraph: siteOpenGraph(lang),
+    // fb:app_id, once, for every page (legacy and locale alike): the approved App
+    // ID, restored on the locale tree where <SeoLinks /> emits nothing. It lives
+    // here and nowhere else (lib/og-meta.ts), so no page can carry two.
+    facebook: { appId: FACEBOOK_APP_ID },
     // NO `alternates` here. A literal one is inherited by every page in the
     // app, which is how every URL on this site came to declare itself the home
     // page. The canonical and hreflang links are rendered per request by

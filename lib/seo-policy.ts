@@ -90,6 +90,36 @@ export function emitsCanonical(pathname: string): boolean {
  */
 export type PathClass = { kind: "private" | "public" | "unknown"; locale: Locale | null; path: string };
 
+/**
+ * WHAT <SeoLinks /> MAY RENDER FOR A REQUEST PATH (SEO foundation batch).
+ *
+ * <SeoLinks /> lives in the root layout, which also renders around a 404, so it
+ * must decide from the path alone and must never describe a page that does not
+ * exist. Until this rule it rendered a canonical, three hreflang links and an
+ * og:url for ANY unprefixed path, including an unknown multi-segment one such as
+ * "/foo/bar" (a real 404 with noindex): it named a URL that has no page as the
+ * canonical of itself. Now:
+ *  - a locale-prefixed path: null — the locale tree declares its own metadata
+ *    (lib/locale-meta.ts), and a locale 404 says nothing;
+ *  - an unknown path (no site family, not private): null — nothing to describe;
+ *  - a private/utility route: og:url only, no canonical, no alternates (the page
+ *    says noindex; the og:url describes a share, not an index entry);
+ *  - a public family: canonical, og:url and the language alternates.
+ * A public FAMILY can still name a resource that does not exist ("/products/x"):
+ * those requests reach a page that calls notFound(), and the legacy redirect
+ * layer answers them before this runs, so this rule is about structure only.
+ * Returns null for anything that is not a site path.
+ */
+export type SeoLinkPlan = { canonical: boolean; ogUrl: boolean; alternates: boolean };
+
+export function seoLinkPlan(pathname: string): SeoLinkPlan | null {
+  if (!isSitePath(pathname) || localeOf(pathname)) return null;
+  const { kind } = classifyPath(pathname);
+  if (kind === "unknown") return null;
+  if (kind === "private") return { canonical: false, ogUrl: true, alternates: false };
+  return { canonical: true, ogUrl: true, alternates: true };
+}
+
 export function classifyPath(input: string): PathClass {
   if (!isSitePath(input)) return { kind: "unknown", locale: null, path: input };
   const locale = localeOf(input);

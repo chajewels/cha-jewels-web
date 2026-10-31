@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { localeAlternates } from "@/lib/locale-meta";
 import { siteUrl } from "@/lib/site";
+import { BRAND_OG_IMAGE, siteOpenGraph } from "@/lib/og-meta";
 import type { Lang } from "@/lib/i18n";
+
+export { BRAND_OG_IMAGE };
 
 /**
  * OG-PRODUCT (docs/seo/OUTSTANDING-ISSUES-REGISTER.md §5): a product page's
@@ -38,9 +41,6 @@ export function productCanonicalUrl(lang: Lang, slug: string): string {
   return String(localeAlternates(lang, `/products/${slug}`).alternates?.canonical);
 }
 
-/** The approved brand share image (app/opengraph-image.png, 1200x630, alt in app/opengraph-image.alt.txt). */
-export const BRAND_OG_IMAGE = { path: "/opengraph-image.png", width: 1200, height: 630, type: "image/png", alt: "Cha Jewels" } as const;
-
 /** The product's primary photo URL when it is a usable string, else null. */
 export function productOgImageUrl(image: { url?: unknown } | null | undefined): string | null {
   const url = typeof image?.url === "string" ? image.url.trim() : "";
@@ -50,10 +50,7 @@ export function productOgImageUrl(image: { url?: unknown } | null | undefined): 
 export function productOpenGraph(args: { name: string; lang: Lang; slug: string; imageUrl: string | null }): NonNullable<Metadata["openGraph"]> {
   const { name, lang, slug, imageUrl } = args;
   return {
-    type: "website",
-    siteName: "Cha Jewels",
-    locale: lang === "ja" ? "ja_JP" : "en_US",
-    alternateLocale: [lang === "ja" ? "en_US" : "ja_JP"],
+    ...siteOpenGraph(lang),
     url: productCanonicalUrl(lang, slug),
     images: imageUrl
       ? [{ url: imageUrl, alt: name }]
