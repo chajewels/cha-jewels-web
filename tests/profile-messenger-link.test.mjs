@@ -24,6 +24,8 @@ test("ordinary links are kept; a link typed without a scheme gets https://", () 
     ["https://www.messenger.com/t/ana", "https://www.messenger.com/t/ana"],
   ];
   for (const [input, value] of cases) assert.deepEqual(normalizeMessengerLink(input), { ok: true, value }, input);
+  // The stored (canonical) form is what is measured: 80 "é" become 480 characters.
+  assert.deepEqual(normalizeMessengerLink("m.me/" + "\u00e9".repeat(80)), { ok: false });
 });
 
 test("anything that is not an http(s) web address is refused", () => {

@@ -45,5 +45,6 @@ export function normalizeMessengerLink(raw: unknown): MessengerLinkResult {
   if (url.protocol !== "https:" && url.protocol !== "http:") return { ok: false };
   if (url.username || url.password) return { ok: false };
   if (!url.hostname.includes(".") || url.hostname.startsWith(".") || url.hostname.endsWith(".")) return { ok: false };
+  if (url.href.length > MESSENGER_LINK_MAX) return { ok: false };
   return { ok: true, value: url.href };
 }
