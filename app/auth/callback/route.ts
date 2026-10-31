@@ -8,6 +8,7 @@ import { CART_COOKIE, CART_COOKIE_OPTIONS, readCart, serializeCart } from "@/lib
 import { mergeSavedCart } from "@/lib/cart-sync";
 import { sameLines } from "@/lib/cart-merge";
 import { getLang } from "@/lib/i18n-server";
+import { safeNext } from "@/lib/safe-next";
 
 /**
  * Completes the email sign-in link, then links the auth user to their customer
@@ -31,8 +32,8 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const q = url.searchParams;
   const rawNext = q.get("next") ?? "/account";
-  // Relative-only, so a crafted link cannot bounce the customer off-site.
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/account";
+  // Same-site path only (lib/safe-next.ts), so a crafted link cannot bounce the customer off-site.
+  const next = safeNext(rawNext);
   const toLogin = (error: string) =>
     NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error)}&next=${encodeURIComponent(next)}`, url.origin));
 

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { pageMeta } from "@/lib/page-meta";
 import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
+import { safeNext } from "@/lib/safe-next";
 import { ConfirmSignIn } from "@/components/account/confirm-sign-in";
 import { AboutLogoVideo } from "@/components/fx/about-logo-video";
 
@@ -23,7 +24,7 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
   const tokenHash = one(q.token_hash).trim();
   const type = one(q.type).trim();
   const rawNext = one(q.next) || "/account";
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/account";
+  const next = safeNext(rawNext);
   if (!tokenHash || !type) redirect(`/login?error=missing_code&next=${encodeURIComponent(next)}`);
 
   // The logo film heads this page too (owner decision 2026-10-01): the sign

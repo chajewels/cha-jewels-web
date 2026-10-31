@@ -1,5 +1,6 @@
 import "server-only";
 import { HubError } from "@/lib/hub-api";
+import { safeNext as safeNextPath } from "@/lib/safe-next";
 
 /**
  * "Complete your profile" and "already registered" — the two answers the Hub
@@ -29,12 +30,12 @@ export const PROFILE_PATH = "/account/complete-profile";
 export const REGISTERED_PATH = "/already-registered";
 
 /**
- * `next` validated exactly as /auth/callback validates it: relative only, so a
- * crafted link cannot bounce the customer off-site.
+ * `next` validated exactly as /auth/callback validates it: the shared
+ * same-site check in lib/safe-next.ts, so a crafted link cannot bounce the
+ * customer off-site.
  */
 export function safeNext(raw: string | null | undefined, fallback = "/account"): string {
-  const v = raw ?? "";
-  return v.startsWith("/") && !v.startsWith("//") ? v : fallback;
+  return safeNextPath(raw, fallback);
 }
 
 /**

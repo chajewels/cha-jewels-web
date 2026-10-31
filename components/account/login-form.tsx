@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { localePath } from "@/lib/locale";
+import { safeNext as toSafeNext } from "@/lib/safe-next";
 import { useSearchParams } from "next/navigation";
 import { dict, type Lang } from "@/lib/i18n";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -45,7 +46,7 @@ export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string |
   // never allowed to send the customer off-site. Computed ONCE and used by the
   // first send and every resend — a resend that dropped it would sign someone
   // in and land them on /account instead of the checkout they came from.
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+  const safeNext = toSafeNext(next);
 
   // One interval, counting down, cleared on unmount. A second link cannot be
   // asked for while it runs, which is what stops a frustrated customer sending

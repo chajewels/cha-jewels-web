@@ -9,6 +9,7 @@ import { readCart, writeCart } from "@/lib/cart";
 import { mergeSavedCart } from "@/lib/cart-sync";
 import { sameLines } from "@/lib/cart-merge";
 import { getLang } from "@/lib/i18n-server";
+import { safeNext } from "@/lib/safe-next";
 
 /**
  * Completes an email sign-in link ON CLICK, not on load.
@@ -30,8 +31,8 @@ export async function confirmSignInAction(formData: FormData): Promise<void> {
   const tokenHash = String(formData.get("token_hash") ?? "").trim();
   const type = String(formData.get("type") ?? "").trim();
   const rawNext = String(formData.get("next") ?? "/account");
-  // Relative-only, so a crafted link cannot bounce the customer off-site.
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/account";
+  // Same-site path only (lib/safe-next.ts), so a crafted link cannot bounce the customer off-site.
+  const next = safeNext(rawNext);
   const toLogin = (error: string) => `/login?error=${encodeURIComponent(error)}&next=${encodeURIComponent(next)}`;
 
   if (!tokenHash || !OTP_TYPES.has(type)) redirect(toLogin("missing_code"));
