@@ -1257,6 +1257,25 @@ wholesale gold jewelry Japan
 
 Perform keyword validation before final URLs and titles are chosen.
 
+### Phase 6 add-on — `llms.txt` (site summary for AI assistants)
+
+Added to Phase 6 by owner decision, 2026-10-31. Status: **NOT STARTED** (no `llms.txt` exists in `public/` or `app/` on `develop`).
+
+What it is: one plain-text file at `https://www.chajewelsjp.com/llms.txt` with a short description of Cha Jewels and links to the main public pages (collections, categories, wholesale, layaway on the English site, guides once approved, contact, policies). AI assistants that look for this file can find the main pages quickly.
+
+Limits, stated plainly:
+- It is an unofficial proposal (llmstxt.org), not a web standard.
+- Google Search does not use it. It has no effect on Google ranking or indexing.
+- Few AI crawlers request it today. Expect a small benefit at most.
+
+Rules:
+- Build it inside the Phase 6 batch, after the Phase 6 URLs and titles are final, so its links match the commercial landing pages.
+- Static file. No product list, prices, stock, points or any figure (those change and come from the Hub).
+- Only public pages that are in the sitemap. No account, cart, checkout, API or Hub URLs. No private or customer data.
+- Wording follows "Terminology" (`check:terms` passes). Japanese pages, if listed, never link to layaway.
+- Does not change robots.txt, the sitemap, canonicals or hreflang.
+- Test: the URL returns 200 with `text/plain`; every link in it returns 200 and is indexable; `check:terms`, `check:money` and `check:i18n` pass.
+
 ---
 
 ## PHASE 7 — Kihei Topical Authority
@@ -1299,6 +1318,8 @@ Expand only when evidence supports expansion.
 Verify and optimize Google Business Profile.
 
 Align business identity across the web.
+
+**Owner decision OD-GBP-1, 2026-10-31: No.** Customers are not received at the office address (Time Mansion 301), and no Business Profile exists. Cha Jewels is **not eligible** for a Business Profile; do not create one. The Business Profile part of this phase is **CLOSED — NOT ELIGIBLE**. Local and brand signals come from the site's own entity JSON-LD (Phase 4), Merchant Center business information (Phase 5) and consistent citations (Phase 11). Revisit only if customers start being received in person.
 
 ---
 

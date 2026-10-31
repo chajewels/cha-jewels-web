@@ -1,6 +1,6 @@
 # Phase 10 — Local SEO and Google Business Profile readiness
 
-**Status:** AUDITED (documentation only). No Google Business Profile was created, claimed, edited or looked up; no page was changed.
+**Status:** AUDITED (documentation only). No Google Business Profile was created, claimed, edited or looked up; no page was changed. **Update 2026-10-31: OD-GBP-1 answered No — not eligible, do not create a profile (see §4).**
 **Date:** 2026-10-29 · **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` §16, §17, PHASE 10 · **Findings carried in:** X8 (GBP status UNKNOWN), X9 (wording)
 
 ---
@@ -86,6 +86,10 @@ Applied to Cha Jewels (published facts only):
 | **Online-only** | If customers never visit: **no eligible Business Profile**. | Local visibility then comes from the website's own entity signals (Phase 4: complete `JewelryStore`/`Organization` JSON-LD with address, phones, `sameAs`), Merchant Center business information (Phase 5), and consistent citations (Phase 11). The master plan's local targets ("jewelry store Tokyo", "gold shop Katsushika", "jewelry store near me") depend on a Maps listing and would mostly be **out of reach**; "Kihei Tokyo" / "K18 jewelry Tokyo" remain organic-search targets. |
 
 **Decision required (OD-GBP-1):** "Can a customer visit Time Mansion 301 during stated hours, by appointment, and be received by staff?" Yes → storefront profile (if not already existing). No → do not create a profile; a profile that misrepresents a non-visitable office risks suspension under the guideline above.
+
+**Answer (owner, 2026-10-31): No.** Customers are not received at this office address, and no Business Profile exists. Result: the online-only row above applies. Cha Jewels is **not eligible**; **do not create a profile**. §5 does not apply. Revisit only if customers start being received in person.
+
+Follow-up for review (no change made here): the site's `JewelryStore` JSON-LD describes a physical store type. Check in the next structured-data batch whether it should stay, or whether `OnlineStore`/`Organization` fits the online-only model better. `JewelryStore` JSON-LD is a protected asset (CLAUDE.md SEO governance §4), so any change needs its own audit.
 
 If a profile **already exists** (X8), the owner's first job is to read what it says (address shown? category? hours? who manages it?) and bring it to §3 — or hide/remove it if the business is not eligible.
 
