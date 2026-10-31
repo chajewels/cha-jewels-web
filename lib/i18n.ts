@@ -1818,6 +1818,7 @@ export const dict = {
     submitting: { ja: "登録中…", en: "Saving…" },
     errFullName: { ja: "お名前をご入力ください。", en: "Please enter your full name." },
     errCountry: { ja: "国をお選びください。", en: "Please select your country." },
+    errMessengerLink: { ja: "MessengerのリンクはURL（例：m.me/ユーザー名）でご入力ください。", en: "Please enter your Messenger link as a web address, for example m.me/username." },
     errSignedOut: { ja: "セッションの有効期限が切れました。お手数ですが、もう一度サインインしてください。", en: "Your session has ended. Please sign in again." },
     errFailed: { ja: "お客様情報を登録できませんでした。恐れ入りますが、もう一度お試しください。", en: "We could not save your details. Please try again." },
     ref: { ja: "参照番号: {id}", en: "Ref: {id}" },
