@@ -15,7 +15,18 @@ Caveat on the first batch: the four production URLs and the Lumière reference r
 | `/en/collections/rings` | 83 (77–87) | 4.40 s (3.82–5.56) | 2.11 s (2.05–2.18) | 52 ms (33–69) | 0.000 | 2.4 s (2.3–2.9) | 101 ms (83–112) |
 | `/en/products/p2926-pendant-pt900-2-0g-ruby-diamond-0-14ct-preloved` | 86 (84–87) | 3.94 s (3.83–4.16) | 1.83 s (1.82–1.87) | 39 ms (14–47) | 0.000 | 2.6 s (2.5–3.6) | 82 ms (79–89) |
 
-This is the bar the redesign must meet per route on the real-visitor view (preloader and 3D on). It is a lab proxy; the P5 gate re-measures the same four URLs the same way, plus Speed Insights INP once the preview has traffic.
+This is the bar the redesign must meet per route on the real-visitor view (preloader and 3D on).
+
+### Production — desktop (`--preset=desktop`), median (range), 3 runs, measured alone (2026-11-01, later the same day)
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` | 97 (95–97) | 0.92 s (0.91–1.01) | 0.58 s (0.56–0.61) | 0 ms (0–6) | 0.000 | 1.5 s (1.4–2.0) | 34 ms (25–63) |
+| `/en` | 98 (97–98) | 0.91 s (0.91–0.98) | 0.57 s (0.56–0.65) | 0 ms | 0.000 | 1.3 s (1.2–1.4) | 34 ms (27–107) |
+| `/en/collections/rings` | 99 | 0.93 s (0.87–0.94) | 0.56 s (0.54–0.57) | 0 ms | 0.000 | 0.8 s (0.8–0.9) | 19 ms (16–23) |
+| `/en/products/p2926-pendant-pt900-…` | 99 (98–99) | 0.89 s (0.88–0.93) | 0.55 s (0.55–0.57) | 0 ms | 0.015 (0.014–0.015) | 0.8 s (0.7–1.2) | 16 ms (16–23) |
+
+The desktop bar is high: LCP under a second, no blocking time, CLS 0 (the product page's 0.015 is the only non-zero value and comes from the gallery). The Lumière reference desktop run (92 / 1.40 s / 128 ms, below) is already behind it, so the P5 gate is not a mobile-only concern. It is a lab proxy; the P5 gate re-measures the same four URLs the same way, plus Speed Insights INP once the preview has traffic.
 
 ### Lumière reference (`~/Downloads/lumi-re`, copied to `/tmp/lumi-re-ref`, `npm install && next build && next start`, port 3100; deleted after)
 

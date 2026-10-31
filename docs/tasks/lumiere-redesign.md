@@ -96,7 +96,7 @@ All re-skinned to the Lumière tokens: one style for the whole site. Motion mech
 - 2026-10-31 Owner: whole Lumière design + animation on every page; nothing removed from existing site; Lumière images for now, Hub/originals later; existing home sections all come along; all GetLayers recommendations in; Claude Code implements, Claude chat specs and QAs.
 - 2026-10-31 Claude: keep Next 15 / Tailwind 3.4 per repo lock; drop robot-view; calculator EN-only per layaway rule.
 - 2026-11-01 Owner (P0 review, `docs/tasks/lumiere-p0-report.md` §12): D-1/D-2 resolved (registered name as in code; 法人番号 7011801044120); D-3, D-4, D-7 … D-22 approved as recorded there; sync rule §10 added.
-- 2026-11-01 Owner: "Approve all recommended" — copy-fit table (report §13, D-23) and short category display names (report §14, D-24) approved as proposed, including the smaller Japanese sizes and the wider note widths. P0 closed; P1 may start.
+- 2026-11-01 Owner: "Approve all recommended" — the reviewer's five fixes (preloved eyebrow as every card's index line; "New" / 新品 for fine-jewelry; collections lead from `colsP`'s second sentence; philosophy block = the four values of `valuesP`; heading "Shop by Category."), plus the rest of the copy-fit table (report §13, D-23) and the short category display names (report §14, D-24) as proposed, including the smaller Japanese sizes and the wider card-note widths. Recorded correctly after commit `a7640a6` had carried the pre-review wording. P0 closed; P1 may start.
 
 ## 10. Sync rule (owner, 2026-11-01)
 
