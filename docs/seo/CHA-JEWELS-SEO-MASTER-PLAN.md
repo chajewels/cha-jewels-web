@@ -1259,7 +1259,7 @@ Perform keyword validation before final URLs and titles are chosen.
 
 ### Phase 6 add-on — `llms.txt` (site summary for AI assistants)
 
-Added to Phase 6 by owner decision, 2026-10-31. Status: **NOT STARTED** (no `llms.txt` exists in `public/` or `app/` on `develop`).
+Added to Phase 6 by owner decision, 2026-10-31. Status: **IMPLEMENTED 2026-11-01 — READY FOR QA** (`app/llms.txt/route.ts` + `lib/llms-txt.ts`, branch `seo/master-plan-completion`; built on the existing public URLs, follows the sitemap source if Phase 6 adds pages; not released).
 
 What it is: one plain-text file at `https://www.chajewelsjp.com/llms.txt` with a short description of Cha Jewels and links to the main public pages (collections, categories, wholesale, layaway on the English site, guides once approved, contact, policies). AI assistants that look for this file can find the main pages quickly.
 
@@ -1629,7 +1629,7 @@ This sequence protects the SEO work already completed while building the next la
 | 3, English layaway | DEPLOYED on production in #421 | `/en/layaway` 200; `/ja/layaway` absent; Search Console recrawl pending |
 | 4, Structured data | DEPLOYED on production in #421 | Breadcrumbs + JewelryStore; no merchant shipping/returns by owner decision; rating only when genuine approved review exists |
 | BUG-02 / BUG-05 / BUG-08 | DEPLOYED (release #426) | #423–#425 merged to develop, then released to main via #426; owner reports live robots.txt and Facebook-only `sameAs` verified |
-| 5–12 | AUDITED / documents and drafts only | No Merchant Center/account integration, content rollout, GBP action or backlink campaign implied |
+| 5–12 | AUDITED / documents and drafts; **2026-11-01:** Phase 5 feed builder implemented (route gated), Phase 6 `llms.txt` READY FOR QA, Phase 12 report helper and attribution design written — see `SEO-REQUIREMENTS-MATRIX-2026-11-01.md` | No Merchant Center/account integration, content rollout, GBP action or backlink campaign implied |
 
 **Important corrections to earlier master-plan language:** §2.1 previously claimed Search Console was “in use” as a verified fact. The audit found no website verification token, no DNS TXT token, and no verified property in the signed-in Google account; the owner must verify a Domain property, so Google indexing and rankings remain unverified. The old-domain redirect recommendation in §18 is **not authorized**: `chajewelsjapan.com` currently serves a functioning Page365 shop, and redirecting it would disrupt that storefront. Secure an explicit owner decision to keep, replace or migrate it before editing DNS or redirects. **Decided 2026-10-31: KEEP, no redirect.** The historical recommendations above are superseded by these current gates.
 

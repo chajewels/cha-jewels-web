@@ -1,6 +1,6 @@
 # Phase 5 — Google Merchant Center readiness
 
-**Status:** AUDITED (documentation only). Nothing under `app/`, `components/`, `lib/`, `scripts/`, `tests/` or `supabase/` was changed by this document. No Merchant Center account was touched, created or inspected.
+**Status:** AUDITED; **builder IMPLEMENTED 2026-11-01** (`lib/merchant-feed.ts` + tests; no route, no account change) — see `MERCHANT-FEED-IMPLEMENTATION-PROPOSAL.md` for the route code, the MC-G1..G13 dispositions and the owner package. No Merchant Center account was touched, created or inspected.
 **Date:** 2026-10-29 · **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` §15 and PHASE 5 · **Findings carried in:** X8, X10, D3 (`docs/seo/SEO-IMPLEMENTATION-STATUS.md`)
 **Prerequisite phases:** Phase 2 (locale URLs, DEPLOYED, recrawl pending) is the only hard dependency: a feed needs a stable, self-canonical landing page per product, which `/en/products/<slug>` and `/ja/products/<slug>` now are. Phase 4 (structured data) is not a dependency but reduces price/availability mismatch warnings (see §7).
 
@@ -72,7 +72,7 @@ Rules the architecture inherits from CLAUDE.md:
 
 **Recommendation: Option B (storefront route), with the pure item builder in `lib/merchant-feed.ts` and the route under `app/api/`.** Reasons, in order: it reuses the exact availability, locale-URL, price and origin rules the product page uses (one definition, no second source); the Website API is already the privacy boundary; the cache-bust path already exists; and it is testable in this repo under the existing guards (`check:money`, `check:terms`). Option A stays the fallback if the owner prefers the Hub to own all outbound data, or if a later need (per-variant `updated_at`, product-level GTIN if ever recorded) is not in the Website API — then Claude drafts the contract in §10 and Lovable builds it.
 
-**Not recommended:** Merchant Center's "automatic feed from your website" / website crawl. It would read today's Product JSON-LD, which uses `description_en` on both locales (X5, Phase 4) and has no `gtin`/`mpn`/`shippingDetails`; it is also opaque to review. Automatic item updates **from** structured data (price/availability corrections) are a Merchant Center setting the owner may turn on later; it is documented on Google's product-data page as optional (fetched 2026-10-29).
+**Not recommended:** Merchant Center's "automatic feed from your website" / website crawl. It would read today's Product JSON-LD, which carries no `gtin`/`mpn`/`shippingDetails` and is opaque to review. (Corrected 2026-11-01, MC-G2: the earlier claim that the JSON-LD "uses `description_en` on both locales (X5)" was stale — `lib/json-ld.ts` uses `description_ja` on `/ja` when the Hub has it; X5 closed in Phase 4.) Automatic item updates **from** structured data (price/availability corrections) are a Merchant Center setting the owner may turn on later; it is documented on Google's product-data page as optional (fetched 2026-10-29).
 
 Either option is **IMPLEMENTING only after**: X8 answered (§1), OD-MC-1..3 (§8) decided, and the route approved.
 

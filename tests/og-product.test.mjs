@@ -21,7 +21,7 @@ test("English product with a photo: the product's own image and alt, plus every 
   assert.equal(og.siteName, "Cha Jewels");
   assert.equal(og.locale, "en_US");
   assert.deepEqual(og.alternateLocale, ["ja_JP"]);
-  assert.equal(og.url, `${BASE}/en/products/${SLUG}`);
+  assert.equal(og.url, undefined, "R-37: og:url is the locale wrapper's, not this block's (see the wrapper test below)");
   assert.deepEqual(og.images, [{ url: PHOTO, alt: "Ring K18WG" }]);
 });
 
@@ -29,7 +29,7 @@ test("Japanese product with a photo: Japanese locale first, English as the alter
   const og = productOpenGraph({ name: "リング K18WG", lang: "ja", slug: SLUG, imageUrl: PHOTO });
   assert.equal(og.locale, "ja_JP");
   assert.deepEqual(og.alternateLocale, ["en_US"]);
-  assert.equal(og.url, `${BASE}/ja/products/${SLUG}`);
+  assert.equal(og.url, undefined);
   assert.deepEqual(og.images, [{ url: PHOTO, alt: "リング K18WG" }]);
 });
 
@@ -49,7 +49,7 @@ test("simulated product WITHOUT a photo: the full site fields and the brand imag
     const og = productOpenGraph({ name: "Ring", lang: "en", slug: "s", imageUrl });
     assert.equal(og.siteName, "Cha Jewels");
     assert.equal(og.type, "website");
-    assert.equal(og.url, `${BASE}/en/products/s`);
+    assert.equal(og.url, undefined, "R-37: the locale wrapper adds og:url");
     assert.equal(og.images.length, 1);
     const img = og.images[0];
     assert.equal(img.url, `${BASE}${BRAND_OG_IMAGE.path}`);

@@ -42,7 +42,7 @@
 //  (canonical href, og:url, hreflang pairs, fb:app_id, robots, og:locale, title, h1) unchanged for 600 ms. A page
 //  that never settles is a FAIL that names what blocked it, not a pass.
 import { chromium } from "@playwright/test";
-import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, describeFailure, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
+import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, describeFailure, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, llmsTxtProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 const BASE = (process.argv[2] ?? "https://www.chajewelsjp.com").replace(/\/$/, "");
 let ORIGINS, AUTH;
@@ -90,6 +90,7 @@ cov.expect("gated-descendants", "malformed descendants of gated private routes l
 cov.expect("private-pages", "real private pages keep og:url only (per context)", M.privatePages.length * C);
 cov.expect("query-handling", "og:url and the canonical ignore the request query (per context)", M.queryCases.length * C);
 cov.expect("client-navigation", "client-side navigations keep one og:url (per context)", M.navTargets.length * C);
+cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page, fetched with the browser context's own credentials (per context)", 1 * C);
 if (smv.problems.length === 0) cov.hit("sitemap");
 
 const browser = await chromium.launch();
@@ -282,6 +283,18 @@ for (const [ctxName, opts] of contexts) {
     settledOk(`/en/faq -> ${href}`, s);
     const d = await page.evaluate(() => ({ same: window.__sameDocument === true, path: location.pathname, ...(() => { const q = (x) => [...document.querySelectorAll(x)].map((e) => e.getAttribute("content") ?? e.getAttribute("href")); return { ogUrl: q('meta[property="og:url"]'), canonical: q('link[rel="canonical"]'), fb: q('meta[property="fb:app_id"]') }; })() })).catch(() => ({ same: false, path: "(unreadable)", ogUrl: [], canonical: [], fb: [] }));
     ok(ctxName, `/en/faq -> ${href}`, "client-side navigation: same document, one og:url and canonical for the new page, one fb:app_id", clicked && d.same && d.path === href && d.ogUrl.length === 1 && d.ogUrl[0] === `${PUBLIC_ORIGIN}${href}` && d.canonical[0] === `${PUBLIC_ORIGIN}${href}` && d.fb.length === 1, JSON.stringify({ clicked, ...d }));
+  }
+
+  // 6. llms.txt: the browser context's own request (same cookies as its pages), judged by the shared rule.
+  {
+    let r;
+    try {
+      const res = await context.request.get(`${ORIGINS.requestOrigin}/llms.txt`, { maxRedirects: 0, timeout: SETTLE_MS });
+      r = { status: res.status(), contentType: res.headers()["content-type"] ?? null, body: await res.text() };
+    } catch (e) { r = { status: 0, contentType: null, body: "", error: describeFailure(e, AUTH) }; }
+    cov.hit("llms-txt");
+    const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
+    ok(ctxName, "/llms.txt", "200 text/plain; every link is a public sitemap page on the public origin; no product, private or Japanese-layaway link; no figure", problems.length === 0, r.error ? `request failed: ${r.error}` : problems.join("; "));
   }
 
   ok(ctxName, "(errors)", `no console error, page error (hydration included), unexpected HTTP status, failed request or failed navigation on any page above (not counted: ${expected404Logged} console line(s) for documents this checker expected to be 404; ${abortedPrefetches} RSC prefetch(es), ${abortedActions} Server Action call(s) and ${abortedMedia} media stream(s) cancelled by this checker's own navigation)`, errors.length === 0, JSON.stringify(errors));

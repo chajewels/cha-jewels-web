@@ -13,7 +13,7 @@
 // Only real <link>/<meta> elements are counted. Next also repeats the metadata
 // inside its RSC payload as escaped JSON, which is not what a crawler reads.
 
-import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
+import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, llmsTxtProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 // BASE is where requests GO. PUBLIC_ORIGIN is what the pages DECLARE (canonical, hreflang, og:url, sitemap):
 // the same for production and a local build, different for a preview, which is requested on its own
@@ -343,6 +343,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   cov.expect("gated-descendants", "malformed descendants of gated private routes redirect to /login", gatedMalformed.length);
   cov.expect("private-pages", "real private pages keep og:url only", 3);
   cov.expect("query-handling", "og:url and the canonical ignore the request query", 2);
+  cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page (no product, private, Japanese-layaway or figure)", 1);
   if (smv.problems.length === 0) cov.hit("sitemap");
 
   // 1. known templates. A template that is not 200 is a FAIL; a known static template missing from the sitemap is a FAIL.
@@ -415,6 +416,14 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
     if (r.status !== 200) { ok(path, "FOUNDATION: a private page answers 200", false, `got ${r.status}`); continue; }
     const h = r.body;
     ok(path, "FOUNDATION: a private route says noindex, names no canonical or alternates, keeps one og:url and one fb:app_id", /noindex/i.test(robotsMeta(h) ?? "") && canonicals(h).length === 0 && alternates(h).length === 0 && ogUrls(h).length === 1 && ogUrls(h)[0] === `${PUBLIC_ORIGIN}${path}` && fbIds(h).length === 1, `robots=${robotsMeta(h)} canon=${canonicals(h).length} hreflang=${alternates(h).length} og:url=${ogUrls(h).join("|")} fb=${fbIds(h).length}`);
+  }
+
+  // 6. llms.txt (Master Plan PHASE 6 add-on): the shared rule in scripts/lib/seo-check-core.mjs
+  {
+    const r = await get("/llms.txt");
+    cov.hit("llms-txt");
+    const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
+    ok("/llms.txt", "LLMS: 200 text/plain; every link is a public sitemap page on the public origin; no product, private or Japanese-layaway link; no figure", problems.length === 0, r.error ? `request failed: ${r.error}` : problems.join("; "));
   }
 
   // 5. query handling: the identity never follows the query

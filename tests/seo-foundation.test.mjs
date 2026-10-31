@@ -66,13 +66,13 @@ test("a block that left out site-wide fields gets them restated (a page-level bl
   assert.equal(og.url, `${B}/ja/collections/rings`);
 });
 
-test("product sharing is unchanged: same block, same url, a single og:url value", async () => {
+test("product sharing is unchanged on the locale pages: same block, og:url = the canonical, a single og:url value; the product block itself names no url (R-37, closed 2026-11-01)", async () => {
   const slug = "r2715-ring";
   const own = productOpenGraph({ name: "Ring", lang: "en", slug, imageUrl: "https://x.test/p.jpg" });
-  assert.equal(own.url, `${B}/en/products/${slug}`);
+  assert.equal(own.url, undefined, "the bare product page in rollback mode must carry only <SeoLinks />'s og:url");
   const gen = localizedMeta((p) => `/products/${p.slug}`, async () => ({ title: "T", openGraph: own }));
   const m = await gen({ params: params({ lang: "en", slug }) }, PARENT);
-  assert.deepEqual(m.openGraph, { ...siteOpenGraph("en"), ...own, url: own.url });
+  assert.deepEqual(m.openGraph, { ...siteOpenGraph("en"), ...own, url: `${B}/en/products/${slug}` });
   assert.equal(m.openGraph.url, m.alternates.canonical);
   assert.deepEqual(m.openGraph.images, [{ url: "https://x.test/p.jpg", alt: "Ring" }]);
 });

@@ -221,7 +221,7 @@ Storefront follow-up (a later implementation PR, not this one): read the new fie
 
 ## 6b. Added scope — `llms.txt` (owner decision, 2026-10-31)
 
-`llms.txt` is now part of the Phase 6 batch. Status: NOT STARTED. Full scope, limits and tests: master plan PHASE 6 add-on.
+`llms.txt` is now part of the Phase 6 batch. Status: **IMPLEMENTED 2026-11-01 — READY FOR QA** (`app/llms.txt/route.ts`, `lib/llms-txt.ts`; checked by both SEO checkers; 4 unit tests). Built on the existing public URLs because no Phase 6 route exists yet (OD-P6-6 recommends none); the file reads the same static list and Hub rows as the sitemap, so any approved Phase 6 page appears in it automatically. Full scope, limits and tests: master plan PHASE 6 add-on.
 
 - Built after the Phase 6 URLs and titles are final, so its links match the theme pages in §3.
 - Unofficial; Google Search does not use it; no ranking effect. Low priority inside the batch.

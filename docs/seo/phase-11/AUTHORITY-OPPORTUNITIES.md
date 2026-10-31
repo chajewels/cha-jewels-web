@@ -78,3 +78,35 @@ Search results used for the examples above (titles as returned; relevance and cu
 - One WebSearch (2026-10-29) for Filipino-community publications and organisations in Japan; results listed in §3 as unverified candidates.
 
 **UNVERIFIED:** every candidate's current status, editorial policy and fit; whether TCCI/Rotary publish member directories; `agreement.chajewelsjp.com` footer/indexing; any existing backlink profile (no export exists).
+
+## 8. Execution materials (added 2026-11-01; nothing sent, nobody contacted)
+
+Drafts the owner can use verbatim or edit. Every claim below is already published on the site (`/en/about`, `/en/affiliations`, `/en/legal/tokusho`, `/en/shopping-guide`); nothing new is asserted. Wording follows X9.
+
+### 8.1 Short company boilerplate (EN) — for directories, member listings, interview bios
+> Cha Jewels Co., Ltd. is a Tokyo-based jewelry company founded by Cynthia Nera Largo. It began in 2021 as live selling for the Filipino community in Japan and was incorporated in 2024 in Tateishi, Katsushika-ku. Cha Jewels sells K18 gold, platinum, Akoya pearl and diamond jewelry and authenticated preloved branded pieces, in English and Japanese, and ships from Tokyo worldwide. It holds a secondhand dealer permit from the Tokyo Metropolitan Public Safety Commission (No. 307762418064) and is a member of the Tokyo Chamber of Commerce and Industry. Website: https://www.chajewelsjp.com/
+
+### 8.2 Short company boilerplate (JA)
+> Ｃｈａ　Ｊｅｗｅｌｓ株式会社は東京都葛飾区立石を拠点とするジュエリー会社です。2021年に在日フィリピン人コミュニティ向けのライブ販売として始まり、2024年に法人化しました。K18ゴールド、プラチナ、あこや真珠、ダイヤモンドのジュエリーと、日本で真贋鑑定済みの中古ブランド品を日本語と英語で販売し、東京から世界中へ発送しています。古物商許可（東京都公安委員会 第307762418064号）。東京商工会議所会員。ウェブサイト: https://www.chajewelsjp.com/
+
+### 8.3 Pitch draft — Filipino-community publication (founder story; OD-AUTH-1/2 required before sending)
+Subject: A Filipino-founded jewelry company in Tokyo — story idea
+
+> Hello [editor name],
+> I am Cynthia Largo, founder of Cha Jewels, a jewelry company in Katsushika, Tokyo. We started in 2021 selling live to kababayan here in Japan and became a Japanese company in 2024. I would be glad to tell your readers how a small Filipino-founded business is run in Tokyo: the secondhand dealer permit, how every preloved piece is authenticated and its hallmark checked in Japan, and how we sell in both languages. Happy to send photographs and to answer questions in English or Tagalog.
+> Cha Jewels Co., Ltd. · https://www.chajewelsjp.com/en/about
+
+Rules: no request for a link; an editorial mention or link is theirs to decide; no payment; follow-up once after two weeks, then stop.
+
+### 8.4 Membership-directory check script (TCCI, Rotary) — owner, 10 minutes each
+1. Sign in to the member portal; find "member directory" / "会員検索".
+2. If the entry is public and has a website field: set `https://www.chajewelsjp.com/`, the §8.2 boilerplate, the §3 NAP strings from the Phase 10 document.
+3. Record: date, URL of the entry, whether the link is followed (view source: `rel="nofollow"`?), in the log below.
+
+### 8.5 Tracking log (template; fill only with real events)
+
+| Date | Site / organisation | URL of the mention | Link type (follow / nofollow / sponsored / ugc / none) | Destination page | How it happened | Status |
+|---|---|---|---|---|---|---|
+| — | — | — | — | — | — | — |
+
+Monthly: Search Console → Links → "Top linking sites" export filed with the Phase 12 report; branded-query impressions from `scripts/gsc-report.mjs` (§4.3). No referring-domain number is written anywhere without one of those exports.

@@ -25,8 +25,13 @@ export { BRAND_OG_IMAGE };
  * own <title> and description (they stay equal to those, as before). Twitter's
  * title, description and image follow from this block, as before.
  *
- * URL. og:url is the page's canonical, taken from the same function that writes
- * the canonical (localeAlternates), so the two cannot differ.
+ * URL. og:url is NOT set here (register R-37, closed 2026-11-01). The locale
+ * wrapper (lib/locale-meta.ts localizedMeta → localeOpenGraph) adds og:url from
+ * the canonical it writes, so on /en and /ja product pages the two are one
+ * value by construction, exactly as before. The bare legacy page renders only
+ * in rollback mode (SEO_LEGACY_REDIRECTS=off), where <SeoLinks /> already emits
+ * the bare og:url; setting a locale URL here as well gave that page TWO og:url
+ * values. `productCanonicalUrl` stays for callers that need the canonical.
  *
  * NO PHOTO. Checked in a build: an explicit `openGraph` block with no `images`
  * key does NOT get the brand image (the file-based app/opengraph-image.png only
@@ -49,9 +54,9 @@ export function productOgImageUrl(image: { url?: unknown } | null | undefined): 
 
 export function productOpenGraph(args: { name: string; lang: Lang; slug: string; imageUrl: string | null }): NonNullable<Metadata["openGraph"]> {
   const { name, lang, slug, imageUrl } = args;
+  void slug; // the URL is the locale wrapper's (see above); the slug stays in the signature for the callers and the tests
   return {
     ...siteOpenGraph(lang),
-    url: productCanonicalUrl(lang, slug),
     images: imageUrl
       ? [{ url: imageUrl, alt: name }]
       : [{ url: `${siteUrl()}${BRAND_OG_IMAGE.path}`, width: BRAND_OG_IMAGE.width, height: BRAND_OG_IMAGE.height, type: BRAND_OG_IMAGE.type, alt: BRAND_OG_IMAGE.alt }],

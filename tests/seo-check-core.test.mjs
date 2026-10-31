@@ -377,3 +377,30 @@ test("credentials end to end: refusal makes NO request; with an authorized loopb
     assert.ok(!r.err.includes(SENTINEL), `stderr carries the secret:\n${r.err.slice(-800)}`);
   } finally { await A.close(); await site.close(); }
 });
+
+// ------------------------------------------------------------------ llms.txt rule (Master Plan PHASE 6 add-on)
+test("llmsTxtProblems: accepts a text/plain Markdown file whose every link is a public sitemap page; rejects the wrong status or type, a non-sitemap, product, private or Japanese-layaway link, a figure, a duplicate", () => {
+  const { llmsTxtProblems } = core;
+  const O = "https://www.chajewelsjp.com";
+  const pages = ["/en", "/ja", "/en/faq", "/ja/faq", "/en/layaway", "/en/collections/rings", "/ja/collections/rings", "/en/about", "/ja/about", "/en/blog", "/ja/blog", "/en/products/p1"];
+  const good = `# Cha Jewels\n\n> summary\n\n## English pages\n\n- [Home](${O}/en)\n- [FAQ](${O}/en/faq)\n- [Layaway](${O}/en/layaway)\n- [Rings](${O}/en/collections/rings)\n- [About](${O}/en/about)\n- [Blog](${O}/en/blog)\n\n## 日本語ページ\n\n- [ホーム](${O}/ja)\n- [FAQ](${O}/ja/faq)\n- [リング](${O}/ja/collections/rings)\n- [About](${O}/ja/about)\n- [ブログ](${O}/ja/blog)\n`;
+  const okRes = { status: 200, contentType: "text/plain; charset=utf-8", body: good };
+  assert.deepEqual(llmsTxtProblems(okRes, { publicOrigin: O, sitemapPaths: pages }), []);
+  assert.match(llmsTxtProblems({ ...okRes, status: 404 }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /status 404/);
+  assert.match(llmsTxtProblems({ ...okRes, contentType: "text/html" }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /content-type text\/html/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace(`${O}/en/about`, `${O}/en/nowhere`) }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /not a sitemap page: \/en\/nowhere/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace(`${O}/en/about`, `${O}/en/products/p1`) }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /product URL listed/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace(`${O}/en/about`, `${O}/cart`) }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /not a sitemap page: \/cart/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace(`${O}/ja/about`, `${O}/ja/layaway`) }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /layaway link outside the English page|Japanese section mentions layaway/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace(`${O}/en/about`, "https://other.example/en/about") }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /off the public origin/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace("> summary", "> from ¥8,000") }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /price, currency or percentage/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace(`[About](${O}/en/about)`, `[About](${O}/en/faq)`) }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /appears twice/);
+  assert.match(llmsTxtProblems({ ...okRes, body: good.replace(`${O}/en/about`, `${O}/en/about?x=1`) }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /query or fragment/);
+  assert.match(llmsTxtProblems({ status: 0, contentType: null, body: "" }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /status 0/);
+});
+
+test("both checkers judge /llms.txt by the shared rule and declare the llms-txt coverage key (parity)", () => {
+  const live = src("scripts/check-seo-live.mjs"), dom = src("scripts/check-seo-dom.mjs");
+  for (const s of [live, dom]) { assert.match(s, /llmsTxtProblems\(/); assert.match(s, /cov\.expect\("llms-txt"/); assert.match(s, /cov\.hit\("llms-txt"\)/); }
+  assert.match(dom, /context\.request\.get\(`\$\{ORIGINS\.requestOrigin\}\/llms\.txt`/, "the DOM checker fetches with the browser context's own credentials, never a header");
+});
