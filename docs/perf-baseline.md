@@ -1,5 +1,53 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P0: production baseline and Lumière reference (docs only)
+
+Recorded for `docs/tasks/lumiere-p0-report.md` §10 (QA gate 5: real-visitor mobile LCP/INP/CLS no worse than production). Lighthouse 13.6.0 CLI, Chrome stable, `--form-factor=mobile --screenEmulation.mobile --throttling-method=simulate` (Moto G / Slow 4G defaults), `--only-categories=performance`, **three runs per URL, median (range)**. No field data exists yet (Speed Insights is mounted; CrUX empty). PageSpeed Insights API was quota-blocked on 2026-10-31, hence local CLI.
+
+Caveat on the first batch: the four production URLs and the Lumière reference ran **concurrently** on the same machine for runs 1–3 of `/ja` and `/en`; those two first runs (`/ja` 42, TBT 1266 ms; `/en` 57, TBT 1207 ms) are CPU-contention outliers and are shown in the range but the medians stand. The product page and the Lumière reference rerun (runs 4–6) were measured alone.
+
+### Production `https://chajewelsjp.com` — mobile, median (range)
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` (home, JA) | 81 (42–82) | 4.31 s (4.25–8.36) | 1.94 s (1.94–2.31) | 45 ms (21–1266) | 0.000 | 4.6 s (4.3–6.7) | 89 ms (89–735) |
+| `/en` (home, EN) | 82 (57–83) | 4.29 s (4.26–4.31) | 1.97 s (1.97–2.13) | 91 ms (64–1207) | 0.000 | 4.0 s (3.6–4.4) | 115 ms (93–1038) |
+| `/en/collections/rings` | 83 (77–87) | 4.40 s (3.82–5.56) | 2.11 s (2.05–2.18) | 52 ms (33–69) | 0.000 | 2.4 s (2.3–2.9) | 101 ms (83–112) |
+| `/en/products/p2926-pendant-pt900-2-0g-ruby-diamond-0-14ct-preloved` | 86 (84–87) | 3.94 s (3.83–4.16) | 1.83 s (1.82–1.87) | 39 ms (14–47) | 0.000 | 2.6 s (2.5–3.6) | 82 ms (79–89) |
+
+This is the bar the redesign must meet per route on the real-visitor view (preloader and 3D on).
+
+### Production — desktop (`--preset=desktop`), median (range), 3 runs, measured alone (2026-11-01, later the same day)
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` | 97 (95–97) | 0.92 s (0.91–1.01) | 0.58 s (0.56–0.61) | 0 ms (0–6) | 0.000 | 1.5 s (1.4–2.0) | 34 ms (25–63) |
+| `/en` | 98 (97–98) | 0.91 s (0.91–0.98) | 0.57 s (0.56–0.65) | 0 ms | 0.000 | 1.3 s (1.2–1.4) | 34 ms (27–107) |
+| `/en/collections/rings` | 99 | 0.93 s (0.87–0.94) | 0.56 s (0.54–0.57) | 0 ms | 0.000 | 0.8 s (0.8–0.9) | 19 ms (16–23) |
+| `/en/products/p2926-pendant-pt900-…` | 99 (98–99) | 0.89 s (0.88–0.93) | 0.55 s (0.55–0.57) | 0 ms | 0.015 (0.014–0.015) | 0.8 s (0.7–1.2) | 16 ms (16–23) |
+
+The desktop bar is high: LCP under a second, no blocking time, CLS 0 (the product page's 0.015 is the only non-zero value and comes from the gallery). The Lumière reference desktop run (92 / 1.40 s / 128 ms, below) is already behind it, so the P5 gate is not a mobile-only concern. It is a lab proxy; the P5 gate re-measures the same four URLs the same way, plus Speed Insights INP once the preview has traffic.
+
+### Lumière reference (`~/Downloads/lumi-re`, copied to `/tmp/lumi-re-ref`, `npm install && next build && next start`, port 3100; deleted after)
+
+Measured with a **normal browser user agent** (`--emulated-user-agent` set to a Chrome 130 Android / macOS string, no "Lighthouse" token) so Lumière's bot proxy served the real page: the HTML contained the preloader (`role="status"`), and a control fetch with a `Chrome-Lighthouse` UA returned `x-robot-view` instead. Localhost on simulated Slow 4G; the server is `next start` with the image optimizer active.
+
+| View | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| Mobile (runs 4–6, isolated) | 72 (72–73) | 5.94 s (5.94–6.09) | 0.91 s | 255 ms (233–257) | 0.000 | 3.5 s (3.4–4.0) | 288 ms (280–303) |
+| Mobile (runs 1–3, contended) | 59 (39–72) | 6.02 s (5.57–6.52) | 0.91 s | 686 ms (257–4391) | 0.000 | 4.8 s (3.6–8.9) | 307 ms (307–2035) |
+| Desktop (`--preset=desktop`, contended) | 92 (74–95) | 1.40 s (0.64–1.44) | 0.25 s | 128 ms (8–393) | 0.000 | 2.1 s (1.3–2.6) | 304 ms (65–341) |
+
+Reading: Lumière's vault reports mobile 85–87 / LCP 2.15 s, measured on its own setup; here, with the curtain up and the heavy PNG masters served through the optimizer, the modelled mobile LCP is 5.9 s and the TBT 255 ms (the 310 ms max-potential-FID the owner named is reproduced at 280–303 ms). Observed (unthrottled) LCP was 60 ms because the first paint is the preloader itself; the modelled LCP is the hero imagery under Slow 4G. Heaviest requests in the isolated mobile run: `/env/hotel-room.exr` 185 KB, `card-08.png` via the optimizer at `w=768&q=95` 169 KB (the LCP candidate once the curtain lifts — this is the "hero photo at q95" item), the main chunk 128 KB, `InterTight_Regular` 102 KB (unsubsetted), `ring-04.glb` 90 KB, `pendant-emerald.glb` 60 KB. CLS is 0 on every run. Consequence for the port, already in the report: re-encode the 28 MB of PNG masters (card-08 2.65 MB, logo.png 2.42 MB, paper.png 1.96 MB), subset Inter Tight, keep the session-once preloader, and split the pendant build so the real-visitor numbers reach the production bar above.
+
+Command used (one URL per invocation):
+```
+npx lighthouse <url> --only-categories=performance --form-factor=mobile --screenEmulation.mobile \
+  --throttling-method=simulate --quiet --output=json --output-path=<file> \
+  --chrome-flags="--headless=new --no-sandbox" --chrome-path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+# reference only: --emulated-user-agent="<normal Chrome UA>"   # or Lumière's proxy serves the robot view
+```
+
 ## 2026-10-29 — SEO Step 3a on production (PR #436, main `81f9aa0`)
 
 Matched production runs (5 each, fresh profile, interleaved, before and after the merge): `/ja` 74 → 68 (ranges 61–83 and 62–90), `/ja/collections/rings` 90 → 90, `/en` 85 → 85. Within noise; the local-build gain (77 → 84) was not reproduced. Details and the desktop re-wrap finding: `docs/seo/SEO-QA-REPORT.md` §11.
