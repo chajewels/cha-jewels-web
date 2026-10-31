@@ -53,15 +53,29 @@ html.lenis,
 html.lenis body {
   height: auto;
 }
-.lenis:not(.lenis-autoToggle).lenis-stopped {
-  overflow: clip;
-}
+/* Lenis ships `.lenis.lenis-stopped { overflow: clip }` on the root too. Not
+   here: the dialogs lock the body (or, the gallery viewer, the root) exactly
+   as they did before Lenis, and clipping the root would take the desktop
+   scrollbar away and shift the page under the search sheet. A stopped Lenis
+   ignores the wheel on its own. */
 .lenis [data-lenis-prevent],
 .lenis [data-lenis-prevent-wheel],
 .lenis [data-lenis-prevent-touch],
 .lenis [data-lenis-prevent-vertical],
 .lenis [data-lenis-prevent-horizontal] {
   overscroll-behavior: contain;
+}
+/* Horizontal strips (thumbnail rail, filter chips, legal tabs): Lenis keeps
+   its hands off their horizontal gestures, a vertical swipe or wheel over
+   them still moves the page, and nothing is contained on the vertical axis. */
+.lenis [data-lenis-prevent-horizontal] {
+  overscroll-behavior: contain auto;
+}
+/* The Lumière preloader (components/lumiere/common/preloader.tsx) is shown
+   once per session: its own pre-paint script marks the root when this tab
+   has already seen it, so a repeat visit never paints the black gate. */
+html[data-lumiere-preloaded] [data-lumiere-preloader] {
+  display: none;
 }
 .lenis.lenis-smooth iframe {
   pointer-events: none;

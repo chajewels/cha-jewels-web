@@ -24,7 +24,7 @@
  * — never raw files, which were fetched twice.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { animated, useSpring } from "@react-spring/web";
 
@@ -78,7 +78,20 @@ const markSeen = (): void => {
   } catch {
     /* private mode: the curtain simply shows again next time */
   }
+  document.documentElement.setAttribute(PRELOADER_SEEN_ATTR, "");
 };
+
+/** Root attribute set before first paint when this tab has seen the curtain (app/globals.css hides the gate). */
+export const PRELOADER_SEEN_ATTR = "data-lumiere-preloaded";
+
+/**
+ * Runs during HTML parsing, before anything paints: a repeat visit in this
+ * tab never shows the black gate, not even for a frame. The same decision the
+ * effect below makes, taken earlier. (Server HTML only — React does not run
+ * an inline script it renders on the client; on a client navigation the
+ * attribute is already on the root from `markSeen`.)
+ */
+const PREPAINT_SCRIPT = `try{if(sessionStorage.getItem(${JSON.stringify(PRELOADER_SEEN_KEY)})==="1")document.documentElement.setAttribute(${JSON.stringify(PRELOADER_SEEN_ATTR)},"")}catch(e){}`;
 
 export interface PreloaderProps {
   /** The screen-reader label; the caller passes the `lib/i18n` string. */
@@ -100,6 +113,11 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
   // Decided in an effect, never during render: the server cannot read
   // sessionStorage, and a render-time read would mismatch the HTML.
   const [skipped, setSkipped] = useState<boolean | null>(null);
+  // The lock is released when the curtain lifts (below), not only on
+  // cleanup: rendering `null` does not unmount a component — it stays alive
+  // with its effects intact — so relying on cleanup would leave the page
+  // locked for good. Idempotent, so the cleanup may call it again.
+  const releaseLock = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     if (preloaderSeen()) {
@@ -108,12 +126,12 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
       return;
     }
     setSkipped(false);
-    markSeen();
   }, []);
 
   useEffect(() => {
     if (skipped !== false) return;
     const release = lockScroll();
+    releaseLock.current = release;
 
     let settled = 0;
     let isCancelled = false;
@@ -123,9 +141,12 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
     // real glyph metrics) + every registered scene gate
     const total = images.length + 1 + gates.length;
 
+    // Once the cap has fired the bar stays at 100 %: a late `settle` must not
+    // pull it back down during the fade.
+    let capped = false;
     const settle = () => {
       settled += 1;
-      if (!isCancelled) setProgress(Math.min(1, settled / total));
+      if (!isCancelled && !capped) setProgress(Math.min(1, settled / total));
     };
 
     document.fonts.ready.then(settle).catch(settle);
@@ -148,6 +169,7 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
     });
     // THE HARD CAP (D-9): at 4 s everything still pending counts as landed.
     const cap = setTimeout(() => {
+      capped = true;
       [...pending].forEach(done);
       if (!isCancelled) setProgress(1);
     }, PRELOADER_CAP_MS);
@@ -165,6 +187,12 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
 
   useEffect(() => {
     if (!hasLoaded) return;
+    // Released here, the moment the curtain starts to lift (see `releaseLock`).
+    releaseLock.current();
+    // Marked seen once the curtain has actually been shown through to the
+    // lift — not at mount, where React's development double-mount would read
+    // the key it had just set and never show the gate in `next dev`.
+    markSeen();
 
     // The hero's entrance is announced part-way through the fade rather than at
     // the top of it. Announced any earlier and the gate is still opaque over
@@ -202,6 +230,9 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
   if (skipped || isRemoved) return null;
 
   return (
+    <>
+      {/* Pre-paint: hides the gate on a repeat visit before the first frame. */}
+      <script dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }} />
     <animated.div
       // Not `aria-hidden`: a screen reader should be told the page is busy
       // rather than handed a silent, empty document.
@@ -209,6 +240,7 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
       aria-live="polite"
       aria-label={label}
       data-testid="lumiere-preloader"
+      data-lumiere-preloader=""
       // Black, with the mark, rule and count in white — the dark theme the
       // featured stage and the footer use. The gate fades straight from black
       // to the hero's cream.
@@ -216,9 +248,6 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
       style={{
         opacity: exit.opacity,
         pointerEvents: hasLoaded ? "none" : "auto",
-        // Until the client has decided, the gate is drawn but still, so a
-        // first paint never flashes the page under it.
-        visibility: skipped === null ? "visible" : undefined,
       }}
     >
       <div
@@ -260,5 +289,6 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
         </span>
       </div>
     </animated.div>
+    </>
   );
 };

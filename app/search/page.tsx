@@ -79,7 +79,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
       {hasQuery && total > 0 && (
         <>
-          <nav aria-label={t("support", "filters")} data-lenis-prevent className="-mx-[clamp(18px,4vw,48px)] overflow-x-auto px-[clamp(18px,4vw,48px)] py-4 [scrollbar-width:none] sm:pb-6">
+          <nav aria-label={t("support", "filters")} data-lenis-prevent-horizontal className="-mx-[clamp(18px,4vw,48px)] overflow-x-auto px-[clamp(18px,4vw,48px)] py-4 [scrollbar-width:none] sm:pb-6">
             <ul className="flex gap-2">
               <li><ChipLink href={base} on={!stockOnly}>{t("support", "all")} <span className="cj-fig text-[11.5px] opacity-80">{total}</span></ChipLink></li>
               <li><ChipLink href={`${base}&stock=1`} on={stockOnly}>{t("support", "inStock")} <span className="cj-fig text-[11.5px] opacity-80">{inStockCount}</span></ChipLink></li>

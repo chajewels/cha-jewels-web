@@ -25,7 +25,18 @@ import { useScroll } from "@/lib/lumiere/scroll-store";
 let depth = 0;
 let previous: { body: string; html: string } | null = null;
 
-export const lockScroll = (): (() => void) => {
+export interface ScrollLockOptions {
+  /**
+   * Also set `overflow: hidden` on `<html>`. The gallery viewer locks the root
+   * (its scrollbar-width padding assumes the root scrollbar is gone); the
+   * drawers and sheets lock the body, as they always did. Note `html` carries
+   * `overflow-x: clip`, so a body `overflow: hidden` does not propagate to the
+   * viewport — each dialog keeps the exact element it locked before P1.
+   */
+  root?: boolean;
+}
+
+export const lockScroll = ({ root = false }: ScrollLockOptions = {}): (() => void) => {
   if (typeof document === "undefined") return () => undefined;
   depth += 1;
   if (depth === 1) {
@@ -33,6 +44,7 @@ export const lockScroll = (): (() => void) => {
     document.body.style.overflow = "hidden";
     useScroll.getState().stop();
   }
+  if (root) document.documentElement.style.overflow = "hidden";
   let released = false;
   return () => {
     if (released) return;

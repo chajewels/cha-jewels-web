@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { runsFor, letterUnits, runLength, isSimple, centreSplitIndex } = await import("@/lib/lumiere/text-runs");
+const { runsFor, letterUnits, runLength, isSimple, isAstral, engineLetters, graphemeCount, centreSplitIndex } = await import("@/lib/lumiere/text-runs");
 const { cssNumber, designUnit } = await import("@/lib/lumiere/design-unit");
 
 test("runsFor strips italic from every Japanese run and leaves English as given", () => {
@@ -17,14 +17,22 @@ test("runsFor strips italic from every Japanese run and leaves English as given"
   assert.notEqual(en[0], lines[0], "a copy, not the caller's arrays");
 });
 
-test("letters are graphemes: CJK counts per character, a surrogate pair is one letter, a space counts", () => {
+test("letters are counted as the engine counts them; a grapheme beyond the BMP travels as an uncounted node", () => {
   assert.equal(runLength({ text: "身につける、" }), 6);
-  assert.deepEqual(letterUnits("𠮷野家"), ["𠮷", "野", "家"]);
-  assert.equal("𠮷野家".length, 4, "the engine's own split would have made four");
-  assert.equal(runLength({ text: "to wear." }), 8);
+  assert.equal(runLength({ text: "to wear." }), 8, "spaces count");
+  assert.deepEqual(letterUnits("𠮷野家"), ["𠮷", "野", "家"], "graphemes, not code units");
+  assert.equal("𠮷野家".length, 4, "the engine's split('') would have made four letters, two of them broken halves");
+  assert.equal(isAstral("𠮷"), true);
+  assert.equal(isAstral("野"), false);
+  assert.equal(engineLetters("𠮷"), 0, "a node token: present, not revealed, not counted");
+  assert.equal(engineLetters("野"), 1);
+  assert.equal(runLength({ text: "𠮷野家" }), 2, "the engine will count the two BMP letters");
+  assert.equal(graphemeCount({ text: "𠮷野家" }), 3);
   assert.equal(isSimple("Timeless"), true);
-  assert.equal(isSimple("身につける"), true, "BMP kana and kanji are one code unit each — the engine's split is exact");
+  assert.equal(isSimple("身につける"), true, "BMP kana and kanji: the engine's split is exact, one span");
   assert.equal(isSimple("𠮷野家"), false);
+  // a combining mark is a letter of its own, exactly as in the reference
+  assert.equal(runLength({ text: "e\u0301" }), 2);
 });
 
 test("a centred English line splits at the letter midpoint, as the reference does", () => {

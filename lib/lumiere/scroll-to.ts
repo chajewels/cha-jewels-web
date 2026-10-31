@@ -12,9 +12,12 @@
 import { useScroll } from "@/lib/lumiere/scroll-store";
 
 /**
- * The sticky header's height, so a target lands below it — the same 76px
+ * The sticky header's height for the NATIVE fallback only: the same 76px
  * `scroll-padding-top` the stylesheet gives the browser, read live from
- * `--hdr-h` when HeaderShell has published it.
+ * `--hdr-h` when HeaderShell has published it. Lenis needs no help here — its
+ * `scrollTo(element)` already subtracts the root's `scroll-padding-top` and
+ * the target's `scroll-margin-top` (lenis.mjs, `scrollTo`), so adding the
+ * header again would land every anchor twice as far down.
  */
 export const headerOffset = (): number => {
   if (typeof document === "undefined") return 0;
@@ -35,14 +38,16 @@ export const scrollTo = (target: string | number | HTMLElement, { immediate = fa
   if (typeof target === "string" && !el) return;
   const lenis = useScroll.getState().lenis;
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const elementOffset = el ? -headerOffset() + offset : offset;
 
   if (lenis && !reduced) {
-    if (el) lenis.scrollTo(el, { offset: elementOffset, immediate });
-    else lenis.scrollTo(Number(target) || 0, { offset, immediate });
+    // Lenis applies scroll-padding-top and scroll-margin-top itself.
+    lenis.scrollTo(el ?? (Number(target) || 0), { offset, immediate });
     return;
   }
-  const top = el ? el.getBoundingClientRect().top + window.scrollY + elementOffset : (Number(target) || 0) + offset;
+  // Native: the browser's `window.scrollTo` applies neither, so the header
+  // offset and the target's scroll-margin are applied here.
+  const margin = el ? parseFloat(getComputedStyle(el).scrollMarginTop) || 0 : 0;
+  const top = el ? el.getBoundingClientRect().top + window.scrollY - headerOffset() - margin + offset : (Number(target) || 0) + offset;
   window.scrollTo({ top, behavior: immediate || reduced ? "instant" : "smooth" });
 };
 
@@ -53,8 +58,13 @@ export const scrollTo = (target: string | number | HTMLElement, { immediate = fa
 export const focusAnchorTarget = (el: HTMLElement): void => {
   const focusable = el.matches("a[href], button, input, select, textarea, [tabindex]");
   if (!focusable) {
+    // A temporary programmatic focus target, as the browser's own sequential
+    // focus start point: no ring (`<main>` would otherwise be outlined whole),
+    // and the attribute leaves with the focus.
     el.setAttribute("tabindex", "-1");
-    el.addEventListener("blur", () => el.removeAttribute("tabindex"), { once: true });
+    const outline = el.style.outline;
+    el.style.outline = "none";
+    el.addEventListener("blur", () => { el.removeAttribute("tabindex"); el.style.outline = outline; }, { once: true });
   }
   el.focus({ preventScroll: true });
 };

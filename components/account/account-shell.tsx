@@ -85,7 +85,7 @@ export function AccountShell({ lang, current, eyebrow, title, headAside, back, c
         </nav>
 
         <div className="min-w-0">
-          <nav aria-label={t("accountMenu", "menu")} data-lenis-prevent className="print-hide -mx-[clamp(18px,4vw,48px)] mb-5 flex gap-2 overflow-x-auto px-[clamp(18px,4vw,48px)] pb-1 lg:hidden">
+          <nav aria-label={t("accountMenu", "menu")} data-lenis-prevent-horizontal className="print-hide -mx-[clamp(18px,4vw,48px)] mb-5 flex gap-2 overflow-x-auto px-[clamp(18px,4vw,48px)] pb-1 lg:hidden">
             {items.map((it) => {
               const on = it.key === current;
               return (

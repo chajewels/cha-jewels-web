@@ -37,7 +37,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import Lenis from "lenis";
+import type Lenis from "lenis";
 
 import { subscribeToTicker } from "@/lib/animation/ticker";
 import { lenisAllowed } from "@/lib/lumiere/lenis-paths";
@@ -53,9 +53,10 @@ export const LENIS_OPTIONS = {
   wheelMultiplier: 0.65,
   // The shared ticker drives `raf`; Lenis must not start a loop of its own.
   autoRaf: false,
-  // Reduced motion is handled by not creating the instance at all; left on as
-  // a second belt should the media query flip between render and effect.
-  respectReducedMotion: true,
+  // A click on an internal link while a smoothed scroll is still settling
+  // stops the inertia, so Next's scroll-to-top on the new page is not
+  // overwritten by the old target a frame later.
+  stopInertiaOnNavigate: true,
 } as const;
 
 export function ScrollLayout() {
@@ -68,10 +69,21 @@ export function ScrollLayout() {
 
   useEffect(() => {
     if (!enabled) return;
-    const lenis = new Lenis(LENIS_OPTIONS);
-    useScroll.getState().setLenis(lenis);
-    if (!useScroll.getState().isEnableScroll) lenis.stop();
-    const unsubscribe = subscribeToTicker((time) => lenis.raf(time), everyFrame);
+    // Loaded here, not at the top of the module: the controller sits in the
+    // root layout, and a static import would put the library in the first
+    // load of every page, /checkout and /account included, where no instance
+    // is ever created. The effect may be cleaned up before the import lands.
+    let cancelled = false;
+    let lenis: Lenis | null = null;
+    let unsubscribe: (() => void) | null = null;
+    import("lenis").then(({ default: LenisCtor }) => {
+      if (cancelled) return;
+      lenis = new LenisCtor(LENIS_OPTIONS);
+      useScroll.getState().setLenis(lenis);
+      if (!useScroll.getState().isEnableScroll) lenis.stop();
+      const instance = lenis;
+      unsubscribe = subscribeToTicker((time) => instance.raf(time), everyFrame);
+    });
 
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -84,21 +96,33 @@ export function ScrollLayout() {
       const target = document.getElementById(id);
       if (!target) return;
       event.preventDefault();
-      history.pushState(null, "", url.hash);
+      // The history entry the browser would have made (no duplicate when the
+      // hash is already there), and the `hashchange` listeners it would have
+      // told (components/faq/faq-nav.tsx follows the hash this way).
+      if (location.hash !== url.hash) history.pushState(null, "", url.hash);
+      else history.replaceState(null, "", url.hash);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
       scrollTo(target);
       focusAnchorTarget(target);
     };
     document.addEventListener("click", onClick);
 
     return () => {
+      cancelled = true;
       document.removeEventListener("click", onClick);
       // Unsubscribe before destroying — otherwise the ticker keeps calling
       // `raf` on a destroyed instance after unmount/HMR.
-      unsubscribe();
-      lenis.destroy();
-      if (useScroll.getState().lenis === lenis) useScroll.getState().setLenis(null);
+      unsubscribe?.();
+      lenis?.destroy();
+      if (lenis && useScroll.getState().lenis === lenis) useScroll.getState().setLenis(null);
     };
   }, [enabled]);
+
+  // A route change re-measures the document: the new page has its own height,
+  // and Next has already placed the scroll (top, or the restored position).
+  useEffect(() => {
+    useScroll.getState().lenis?.resize();
+  }, [pathname]);
 
   // The store's flag → the instance, so a dialog's scroll lock stops the
   // smoothing as well as the native scroll (lib/scroll-lock.ts).

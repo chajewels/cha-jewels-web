@@ -221,7 +221,7 @@ export function GalleryViewer({ images, name, lang, start, aspect, getRect, onJu
     const html = document.documentElement, body = document.body;
     const bar = window.innerWidth - html.clientWidth;
     const wasPad = body.style.paddingRight;
-    const releaseScroll = lockScroll();
+    const releaseScroll = lockScroll({ root: true });
     if (bar > 0) body.style.paddingRight = `${bar}px`;
     return () => { releaseScroll(); body.style.paddingRight = wasPad; };
   }, []);

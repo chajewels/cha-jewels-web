@@ -6,9 +6,10 @@
  *  - the engine is `spring-text-engine` directly (the reference's robot-form
  *    wrapper is not ported);
  *  - `TextRun` comes from lib/lumiere/text-runs.ts, with its Japanese path:
- *    letters are counted as graphemes, a run with a surrogate pair is handed
- *    to the engine one grapheme per span so no pair comes apart, and a `centre`
- *    line in Japanese splits at a run boundary (the 。), never mid-word;
+ *    a grapheme beyond the BMP is handed to the engine as a static node so no
+ *    surrogate pair comes apart (letters are counted as the engine counts
+ *    them), and a `centre` line in Japanese splits at a run boundary (the 。),
+ *    never mid-word;
  *  - the `!` important modifier is Tailwind 3.4's prefix form (`!block`).
  */
 
@@ -17,7 +18,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import TextEngine from "spring-text-engine";
 
 import type { Lang } from "@/lib/i18n";
-import { centreSplitIndex, isSimple, letterUnits, runLength, type TextRun } from "@/lib/lumiere/text-runs";
+import { centreSplitIndex, isAstral, isSimple, letterUnits, runLength, type TextRun } from "@/lib/lumiere/text-runs";
 
 export type { TextRun };
 
@@ -59,8 +60,9 @@ export type LetterDirection = "forward" | "backward" | "centre";
 /**
  * Letters in a line, as the engine counts them. Every space is handed over as
  * a no-break space (see `toChildren`), which the engine treats as a letter, so
- * spaces count — this is the number that lines up with its stagger. Counted in
- * graphemes, which is what `toChildren` hands the engine.
+ * spaces count — this is the number that lines up with its stagger. A grapheme
+ * beyond the BMP travels as an uncounted node (see `toChildren`), so it is not
+ * counted here either (`runLength`).
  */
 export const letterCount = (runs: readonly TextRun[]): number =>
   runs.reduce((total, run) => total + runLength(run), 0);
@@ -76,24 +78,42 @@ export const letterCount = (runs: readonly TextRun[]): number =>
  * on: each run stays one word, and the spaces are real glyphs at the face's own
  * width (see the container below).
  *
- * A run whose text holds a surrogate pair goes in one span per grapheme: the
- * engine splits letters by UTF-16 code unit, and a pair would be drawn as two
- * broken glyphs. The spans sit inline in the `!block` container, so nothing
- * about their layout changes; only the letter boundaries do.
+ * A run whose text holds a grapheme beyond the BMP (a surrogate pair in
+ * UTF-16 — the engine splits a span's text with `split("")` and would draw the
+ * two halves as two broken glyphs) is handed over in pieces: the BMP stretches
+ * as ordinary text spans, and each astral grapheme as a span with NO children
+ * (its glyph written through `dangerouslySetInnerHTML`). The engine finds no
+ * words in a childless element and keeps it as a static "node" token: the
+ * glyph is drawn whole, simply present rather than revealed, and not counted —
+ * which is what `runLength` counts too, so the staggers stay aligned. The
+ * spans sit inline in the `!block` container, so nothing about layout changes.
  */
+const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 const toChildren = (runs: readonly TextRun[]) =>
   runs.flatMap((run, index) => {
     const text = run.text.replace(/ /g, " ");
     const className = run.italic ? "italic" : undefined;
     if (isSimple(text)) return [<span key={index} className={className}>{text}</span>];
-    return letterUnits(text).map((unit, i) => (
-      <span key={`${index}-${i}`} className={className}>{unit}</span>
-    ));
+    const pieces: { text: string; node: boolean }[] = [];
+    for (const unit of letterUnits(text)) {
+      const last = pieces[pieces.length - 1];
+      if (isAstral(unit)) pieces.push({ text: unit, node: true });
+      else if (last && !last.node) last.text += unit;
+      else pieces.push({ text: unit, node: false });
+    }
+    return pieces.map((piece, i) =>
+      piece.node ? (
+        <span key={`${index}-${i}`} className={className} dangerouslySetInnerHTML={{ __html: escapeHtml(piece.text) }} />
+      ) : (
+        <span key={`${index}-${i}`} className={className}>{piece.text}</span>
+      ),
+    );
   });
 
 const plainText = (runs: readonly TextRun[]) => runs.map((run) => run.text).join("");
 
-/** Splits runs at a letter (grapheme) index, keeping each side's faces. */
+/** Splits runs at a grapheme index (the index space of `centreSplitIndex`), keeping each side's faces. */
 const splitRuns = (runs: readonly TextRun[], at: number): [TextRun[], TextRun[]] => {
   const left: TextRun[] = [];
   const right: TextRun[] = [];

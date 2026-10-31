@@ -62,9 +62,9 @@ jobs:
       # (count) on a redesign/** base, STRICT on a PR into develop or main
       # (D-17). The production build runs the same strict check in `prebuild`.
       - run: npm run check:placeholders
-        if: github.base_ref != 'develop' && github.base_ref != 'main'
+        if: github.event_name == 'pull_request' && github.base_ref != 'develop' && github.base_ref != 'main'
       - run: npm run check:placeholders -- --strict
-        if: github.base_ref == 'develop' || github.base_ref == 'main'
+        if: github.event_name == 'push' || github.base_ref == 'develop' || github.base_ref == 'main'
 
       # H2 (Paidy QC 2026-10-09): the unit tests — Paidy flow, card, CSP,
       # order display, site time — were never run on a push; a regression

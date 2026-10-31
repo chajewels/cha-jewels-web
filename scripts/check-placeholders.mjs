@@ -6,7 +6,9 @@
 // lib/lumiere/placeholders.ts and stored under public/lumiere/placeholder/**.
 // None of it may reach the live site. This script finds every reference:
 //
-//   - an import of lib/lumiere/placeholders (by path or by the `@/` alias),
+//   - an import of lib/lumiere/placeholders (every specifier is resolved
+//     relative to its file: `./placeholders`, `../lumiere/placeholders.ts`,
+//     the `@/` alias, dynamic import(), require(), re-exports),
 //   - the literal path `/lumiere/placeholder/` in source or in a public file,
 //   - and, in strict mode, the placeholder directory itself still holding files
 //
@@ -21,45 +23,69 @@
 // Self-tests first (MUST_CATCH / MUST_PASS, as scripts/check-money.mjs): a
 // pattern edited into uselessness fails here instead of passing silently.
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 
 const ROOTS = ["app", "components", "lib", "public"];
 const PLACEHOLDER_DIR = "public/lumiere/placeholder";
 const EXEMPT = new Set(["lib/lumiere/placeholders.ts"]);
 const EXT = /\.(ts|tsx|js|mjs|css|json|svg)$/;
 
+const REGISTRY = "lib/lumiere/placeholders";
+// Every module specifier a line can carry: static import/export … from "x",
+// bare import "x", dynamic import("x"), require("x"). Resolved below relative
+// to the importing file (or the `@/` alias = repo root), extension dropped,
+// and compared with the registry's path — so `./placeholders` from inside
+// lib/lumiere, `../lumiere/placeholders.ts` or `@/lib/lumiere/placeholders`
+// are all the same reference. A template-literal dynamic import that names
+// the registry is a hit outright.
+const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+)["']([^"'\n]+)["']/g;
+const TEMPLATE_IMPORT = /\bimport\s*\(\s*`[^`]*placeholders[^`]*`/;
+const resolvesToRegistry = (spec, fromRel) => {
+  if (!spec.startsWith(".") && !spec.startsWith("@/")) return false;
+  const base = spec.startsWith("@/") ? spec.slice(2) : join(dirname(fromRel), spec);
+  const norm = relative(".", resolve(base)).split("\\").join("/").replace(/\.(?:ts|tsx|js|mjs)$/, "");
+  return norm === REGISTRY;
+};
+const importsRegistry = (line, fromRel) => {
+  if (TEMPLATE_IMPORT.test(line)) return true;
+  for (const m of line.matchAll(SPECIFIER)) if (resolvesToRegistry(m[1], fromRel)) return true;
+  return false;
+};
 const RULES = [
-  { name: "imports the placeholder registry", re: /from\s+["'](?:@\/|\.{1,2}\/(?:\.\.\/)*)lib\/lumiere\/placeholders["']|import\(\s*["'](?:@\/|\.{1,2}\/(?:\.\.\/)*)lib\/lumiere\/placeholders["']\s*\)|require\(\s*["'][^"']*lib\/lumiere\/placeholders["']\s*\)/ },
-  { name: "names a placeholder asset path", re: /\/lumiere\/placeholder\// },
+  { name: "imports the placeholder registry", test: (line, rel) => importsRegistry(line, rel) },
+  { name: "names a placeholder asset path", test: (line) => /\/lumiere\/placeholder\//.test(line) },
 ];
 
+// [line, path of the file the line is in]
 const MUST_CATCH = [
-  'import { HERO_CARDS } from "@/lib/lumiere/placeholders";',
-  "import { FEATURED_PIECES } from '../../lib/lumiere/placeholders';",
-  'const mod = await import("@/lib/lumiere/placeholders");',
-  'src="/lumiere/placeholder/hero/card-08.webp"',
-  "url('/lumiere/placeholder/philosophy/backdrop-frame.jpg')",
-  'const PENDANT_URL = "/lumiere/placeholder/models/pendant-emerald.glb";',
+  ['import { HERO_CARDS } from "@/lib/lumiere/placeholders";', "components/lumiere/hero/x.tsx"],
+  ["import { FEATURED_PIECES } from '../../lib/lumiere/placeholders';", "components/lumiere/featured.tsx"],
+  ["import { FEATURED_PIECES } from '../../../lib/lumiere/placeholders';", "components/lumiere/featured/x.tsx"],
+  ['import { PENDANT } from "./placeholders";', "lib/lumiere/home-content.ts"],
+  ['export { FEATURED_PIECES } from "../lumiere/placeholders.ts";', "lib/content/x.ts"],
+  ['const mod = await import("@/lib/lumiere/placeholders");', "app/page.tsx"],
+  ['const mod = await import(`@/lib/lumiere/${"placeholders"}`);', "app/page.tsx"],
+  ['const r = require("../../lib/lumiere/placeholders.js");', "components/a/b.tsx"],
+  ['src="/lumiere/placeholder/hero/card-08.webp"', "components/x.tsx"],
+  ["url('/lumiere/placeholder/philosophy/backdrop-frame.jpg')", "app/lumiere/x.css"],
+  ['const PENDANT_URL = "/lumiere/placeholder/models/pendant-emerald.glb";', "lib/x.ts"],
 ];
 const MUST_PASS = [
-  'import { paperTexture } from "@/lib/lumiere/shared";',
-  'src="/lumiere/shared/paper.webp"',
-  'src="/lumiere/shared/env/hotel-room.exr"',
-  'import { lenisAllowed } from "@/lib/lumiere/lenis-paths";',
-  "// placeholders are registered in lib/lumiere/placeholders.ts (prose, no import)",
-  'const PLACEHOLDER_ROOT = "/lumiere/placeholder/"; // only in the registry, which is exempt',
+  ['import { paperTexture } from "@/lib/lumiere/shared";', "components/x.tsx"],
+  ['src="/lumiere/shared/paper.webp"', "components/x.tsx"],
+  ['src="/lumiere/shared/env/hotel-room.exr"', "lib/scene/x.ts"],
+  ['import { lenisAllowed } from "@/lib/lumiere/lenis-paths";', "components/x.tsx"],
+  ['import { useScroll } from "./scroll-store";', "lib/lumiere/scroll-to.ts"],
+  ['import placeholders from "@/lib/content/placeholders";', "components/x.tsx"],
 ];
 
 const strict = process.argv.includes("--strict") || process.env.VERCEL_ENV === "production";
 let failed = 0;
 const fail = (msg) => { failed++; console.error(`✗ ${msg}`); };
-const hits = (line) => RULES.filter((r) => r.re.test(line));
+const hits = (line, rel) => RULES.filter((r) => r.test(line, rel));
 
-for (const s of MUST_CATCH) if (!hits(s).length) fail(`check-placeholders no longer catches: ${s}`);
-// MUST_PASS lines that are prose or the registry's own constant are allowed to
-// match the path rule only when they would be exempt or comments; the first
-// four must match nothing at all.
-for (const s of MUST_PASS.slice(0, 4)) for (const r of hits(s)) fail(`check-placeholders wrongly flags (${r.name}): ${s}`);
+for (const [s, rel] of MUST_CATCH) if (!hits(s, rel).length) fail(`check-placeholders no longer catches (${rel}): ${s}`);
+for (const [s, rel] of MUST_PASS) for (const r of hits(s, rel)) fail(`check-placeholders wrongly flags (${r.name}, ${rel}): ${s}`);
 if (failed) { console.error(`\ncheck:placeholders self-test failed (${failed}).`); process.exit(1); }
 
 // Comments are blanked (newlines kept) before matching — prose about the
@@ -88,7 +114,7 @@ for (const file of files) {
   if (EXEMPT.has(rel) || rel.startsWith(`${PLACEHOLDER_DIR}/`)) continue;
   scanned++;
   stripComments(readFileSync(file, "utf8")).split("\n").forEach((line, i) => {
-    for (const r of hits(line)) references.push({ rel, line: i + 1, rule: r.name, text: line.trim() });
+    for (const r of hits(line, rel)) references.push({ rel, line: i + 1, rule: r.name, text: line.trim() });
   });
 }
 

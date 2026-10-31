@@ -15,16 +15,16 @@ Recorded for `docs/tasks/lumiere-p0-report.md` §10 and the P1 PR (`redesign/lum
 | `/en` mobile | 82 (82–84) | 4.89 s (4.47 s–4.90 s) | 1.51 s (1.51 s–1.51 s) | 15 ms (8 ms–18 ms) | 0.000 (0.000–0.000) | 1.85 s (1.79 s–1.89 s) | 65 ms (57 ms–68 ms) |
 | `/en` desktop | 99 (99–99) | 0.92 s (0.92 s–0.96 s) | 0.41 s (0.41 s–0.43 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.70 s (0.67 s–0.77 s) | 18 ms (16 ms–18 ms) |
 
-### After — `redesign/lumiere-p1-foundation`, local build
+### After — `redesign/lumiere-p1-foundation` (final commit, after the review fix pass), local build
 
 | Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
 |---|---|---|---|---|---|---|---|
-| `/ja` mobile | 82 (60–82) | 4.68 s (4.68 s–4.71 s) | 1.66 s (1.66 s–1.66 s) | 51 ms (23 ms–1001 ms) | 0.000 (0.000–0.000) | 2.93 s (2.46 s–3.15 s) | 103 ms (88 ms–840 ms) |
-| `/ja` desktop | 99 (99–99) | 0.89 s (0.84 s–0.99 s) | 0.41 s (0.41 s–0.41 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.87 s (0.86 s–0.88 s) | 22 ms (21 ms–25 ms) |
-| `/en` mobile | 80 (80–83) | 5.07 s (4.60 s–5.08 s) | 1.66 s (1.66 s–1.66 s) | 29 ms (29 ms–32 ms) | 0.000 (0.000–0.000) | 2.05 s (1.92 s–2.20 s) | 75 ms (74 ms–77 ms) |
-| `/en` desktop | 98 (98–99) | 1.01 s (1.00 s–1.07 s) | 0.41 s (0.41 s–0.41 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.74 s (0.72 s–0.74 s) | 18 ms (17 ms–19 ms) |
+| `/ja` mobile | 83 (81–85) | 4.60 s (4.21 s–4.96 s) | 1.66 s (1.66 s–1.66 s) | 27 ms (23 ms–37 ms) | 0.000 (0.000–0.000) | 2.40 s (2.27 s–2.90 s) | 73 ms (69 ms–89 ms) |
+| `/ja` desktop | 99 (98–99) | 0.99 s (0.89 s–1.06 s) | 0.41 s (0.41 s–0.44 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.84 s (0.79 s–0.96 s) | 19 ms (19 ms–24 ms) |
+| `/en` mobile | 81 (80–83) | 5.08 s (4.52 s–5.10 s) | 1.66 s (1.66 s–1.66 s) | 16 ms (8 ms–26 ms) | 0.000 (0.000–0.000) | 2.00 s (1.86 s–2.10 s) | 65 ms (63 ms–71 ms) |
+| `/en` desktop | 99 (99–99) | 0.97 s (0.92 s–1.04 s) | 0.41 s (0.41 s–0.41 s) | 0 ms (0 ms–0 ms) | 0.000 (0.000–0.000) | 0.72 s (0.71 s–0.74 s) | 17 ms (16 ms–19 ms) |
 
-**Reading.** Desktop is unchanged (99 / 99 → 99 / 98; LCP 0.89 / 0.92 → 0.89 / 1.01 s, within the runs' spread). Mobile `/ja` 81 → 82 and `/en` 82 → 80 are within the ranges (the `/ja` after run 1 is a CPU-contention outlier at TBT 1001 ms, like the two in the P0 batch). The one real delta is bytes: the root layout now ships the Lenis controller and the react-spring reduced-motion switch, one more request and **+15 KB of script** on every page (`/en` mobile run 1: 59 → 60 requests, 229 → 244 KB script, 1152 → 1174 KB total; fonts 4 → 4, so the three Lumière faces are not fetched). On Lighthouse's simulated Slow 4G that is the ~0.2 s on the modelled mobile LCP of `/en`; the observed LCP is unchanged. This is the cost of mounting the scroll engine site-wide before any page uses it (report §3.2, §6), and it is the floor P2–P5 build on: the §10 budget is measured against the production rows of the P0 entry, per route, at P5.
+**Reading.** Desktop is unchanged (99 / 99 → 99 / 99; LCP 0.89 / 0.92 → 0.99 / 0.97 s, inside the runs' spread). Mobile `/ja` 81 → 83 and `/en` 82 → 81 are within each other's ranges. The one real delta is bytes: the root layout now mounts the Lenis controller and the react-spring reduced-motion switch — two more requests and **+16 KB of script** on a public page (`/en` mobile run 1: 59 → 61 requests, 229 → 245 KB script, 1152 → 1176 KB total; fonts 4 → 4, so the three Lumière faces are not fetched). Lenis itself is a lazy 17.7 KB chunk loaded from the effect, so `/login`, `/checkout` and `/account` carry none of it. On Lighthouse's simulated Slow 4G those bytes are ~0.2 s on the modelled mobile LCP of `/en`; the observed LCP is unchanged. This is the cost of mounting the scroll engine site-wide before any page uses it (report §3.2, §6), and it is the floor P2–P5 build on: the §10 budget is measured against the production rows of the P0 entry, per route, at P5.
 
 ## 2026-11-01 — Lumière redesign P0: production baseline and Lumière reference (docs only)
 

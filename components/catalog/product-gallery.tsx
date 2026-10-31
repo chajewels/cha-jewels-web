@@ -509,7 +509,7 @@ export function ProductGallery({ items, name, lang, badge }: { items: GalleryIte
       </div>
       {n > 1 && (
         <div ref={thumbs} role="tablist" aria-label={t("product", "gallery")}
-          data-lenis-prevent className="fx-rail mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+          data-lenis-prevent-horizontal className="fx-rail mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
           {images.map((m, k) => (
             <button
               key={m.src + k}
