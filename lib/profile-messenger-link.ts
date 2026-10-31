@@ -16,7 +16,9 @@
  *    added, exactly as a person typing it means;
  *  - the result must parse as a URL with a dotted host and no user/password,
  *    contain no whitespace or control character, and be at most 200 characters.
- * Anything else is refused (`ok: false`), never silently changed or dropped.
+ * Anything else is refused (`ok: false`), never silently dropped. A valid
+ * link is stored in the parsed URL's canonical form (url.href), e.g.
+ * "https:m.me/x" → "https://m.me/x".
  * Pure and dependency-free (client-safe).
  */
 export const MESSENGER_LINK_MAX = 200;
@@ -43,5 +45,5 @@ export function normalizeMessengerLink(raw: unknown): MessengerLinkResult {
   if (url.protocol !== "https:" && url.protocol !== "http:") return { ok: false };
   if (url.username || url.password) return { ok: false };
   if (!url.hostname.includes(".") || url.hostname.startsWith(".") || url.hostname.endsWith(".")) return { ok: false };
-  return { ok: true, value: candidate };
+  return { ok: true, value: url.href };
 }

@@ -18,7 +18,8 @@ test("ordinary links are kept; a link typed without a scheme gets https://", () 
     ["www.facebook.com/ana.cruz", "https://www.facebook.com/ana.cruz"],
     ["facebook.com/profile.php?id=1000123", "https://facebook.com/profile.php?id=1000123"],
     ["https://m.me/ana.cruz", "https://m.me/ana.cruz"],
-    ["HTTPS://m.me/AnaCruz", "HTTPS://m.me/AnaCruz"],
+    ["HTTPS://m.me/AnaCruz", "https://m.me/AnaCruz"],
+    ["https:m.me/ana", "https://m.me/ana"],
     ["http://m.me/ana", "http://m.me/ana"],
     ["https://www.messenger.com/t/ana", "https://www.messenger.com/t/ana"],
   ];

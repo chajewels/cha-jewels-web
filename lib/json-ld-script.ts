@@ -9,7 +9,7 @@
  * site-wide CSP is report-only outside the pay-card page, so nothing else
  * stops it.
  *
- * Every "<" becomes the JSON escape <. That is the same JSON value, so
+ * Every "<" becomes the JSON escape \u003c. That is the same JSON value, so
  * Google and every JSON parser read identical data (JSON.parse round-trips
  * exactly); only the raw bytes of the few strings that contain "<" change.
  * Nothing else is altered, so ordinary pages emit the same bytes as before.
