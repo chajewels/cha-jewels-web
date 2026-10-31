@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { completeProfileAction } from "@/lib/profile-actions";
 import { COUNTRIES, type LocationType } from "@/lib/countries";
 import { tr, type Lang } from "@/lib/i18n";
+import { normalizeMessengerLink } from "@/lib/profile-messenger-link";
 import { Button } from "@/components/ui/button";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
 
@@ -29,7 +30,7 @@ export function CompleteProfileForm({ lang, email, next }: { lang: Lang; email: 
   const [facebookName, setFacebookName] = useState("");
   const [messengerLink, setMessengerLink] = useState("");
   const [mobile, setMobile] = useState("");
-  const [fieldError, setFieldError] = useState<{ fullName?: string; country?: string }>({});
+  const [fieldError, setFieldError] = useState<{ fullName?: string; country?: string; messengerLink?: string }>({});
   const [error, setError] = useState<string | null>(null);
 
   const errorCopy = (code: string, requestId?: string | null) => {
@@ -46,17 +47,19 @@ export function CompleteProfileForm({ lang, email, next }: { lang: Lang; email: 
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     setError(null);
-    const errs: { fullName?: string; country?: string } = {};
+    const errs: { fullName?: string; country?: string; messengerLink?: string } = {};
     if (!fullName.trim()) errs.fullName = t("profile", "errFullName");
     if (locationType === "international" && !country) errs.country = t("profile", "errCountry");
+    if (!normalizeMessengerLink(messengerLink).ok) errs.messengerLink = t("profile", "errMessengerLink");
     setFieldError(errs);
-    if (errs.fullName || errs.country) return;
+    if (errs.fullName || errs.country || errs.messengerLink) return;
     start(async () => {
       const res = await completeProfileAction(form);
       // Reached only on failure: success and already-registered redirect.
       if (res && !res.ok) {
         if (res.code === "full_name_required") setFieldError({ fullName: t("profile", "errFullName") });
         else if (res.code === "country_required") setFieldError({ country: t("profile", "errCountry") });
+        else if (res.code === "messenger_link_invalid") setFieldError({ messengerLink: t("profile", "errMessengerLink") });
         else setError(errorCopy(res.code, res.requestId));
       }
     });
@@ -126,7 +129,8 @@ export function CompleteProfileForm({ lang, email, next }: { lang: Lang; email: 
 
       <label className={label}>
         {t("profile", "messengerLink")} {opt}
-        <input name="messenger_link" value={messengerLink} onChange={(e) => setMessengerLink(e.target.value)} placeholder="m.me/username" maxLength={200} className={field} />
+        <input name="messenger_link" value={messengerLink} onChange={(e) => setMessengerLink(e.target.value)} placeholder="m.me/username" maxLength={200} className={field} aria-invalid={fieldError.messengerLink ? true : undefined} aria-describedby={fieldError.messengerLink ? "cp-messenger-err" : undefined} />
+        {fieldError.messengerLink && <span id="cp-messenger-err" className={`mt-1 block text-xs ${errorLight}`}>{fieldError.messengerLink}</span>}
       </label>
 
       <label className={label}>

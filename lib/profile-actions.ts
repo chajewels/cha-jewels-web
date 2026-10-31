@@ -9,6 +9,7 @@ import type { ActionResult } from "@/lib/checkout-actions";
 import type { HubProfileInput } from "@/lib/types";
 import { CART_REMINDER_TEXT_VERSION } from "@/lib/cart-reminders";
 import { getLang } from "@/lib/i18n-server";
+import { normalizeMessengerLink } from "@/lib/profile-messenger-link";
 
 /**
  * Submits the "Complete your profile" step to the Hub (POST /auth/customer).
@@ -53,7 +54,10 @@ export async function completeProfileAction(form: FormData): Promise<ActionResul
   if (!location) return { ok: false, code: "country_required" };
 
   const facebookName = str(form, "facebook_name");
-  const messengerLink = str(form, "messenger_link");
+  // H-07: only an http(s) link reaches the Hub (lib/profile-messenger-link.ts; the Hub re-checks).
+  const messenger = normalizeMessengerLink(str(form, "messenger_link"));
+  if (!messenger.ok) return { ok: false, code: "messenger_link_invalid" };
+  const messengerLink = messenger.value;
   const mobileNumber = str(form, "mobile_number");
   const profile: HubProfileInput = {
     full_name: fullName,
