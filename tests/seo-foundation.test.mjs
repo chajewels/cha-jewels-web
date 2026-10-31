@@ -15,6 +15,7 @@ const { localeOpenGraph, siteOpenGraph, FACEBOOK_APP_ID, BRAND_OG_IMAGE } = awai
 const { localizedMeta, localeAlternates } = await import("@/lib/locale-meta");
 const { seoLinkPlan, routeShapeOf, isDynamicPublicRoute, ROUTE_SHAPES, indexingFor, isNoindexPath } = await import("@/lib/seo-policy");
 const { productOpenGraph } = await import("@/lib/product-seo");
+const { legacyRedirectsEnabled } = await import("@/lib/legacy-redirect");
 const { listingOpenGraph } = await import("@/lib/listing-seo");
 const B = "https://www.chajewelsjp.com";
 const read = (f) => readFileSync(join(process.cwd(), f), "utf8");
@@ -235,6 +236,19 @@ test("while the legacy redirects are ON a bare dynamic public URL says nothing (
 test("<SeoLinks /> passes the legacy-redirect switch to the plan", () => {
   const src = read("lib/page-meta.tsx");
   assert.match(src, /seoLinkPlan\(path, legacyRedirectsEnabled\(process\.env\.SEO_LEGACY_REDIRECTS\)\)/);
+});
+
+test("the SEO_LEGACY_REDIRECTS switch drives the tag decision end to end, for every value it can take", () => {
+  // The exact expression <SeoLinks /> uses: seoLinkPlan(path, legacyRedirectsEnabled(process.env.SEO_LEGACY_REDIRECTS)).
+  const cases = [[undefined, null], ["", null], ["on", null], ["ON", null], ["0", null], ["false", null], ["no", null], ["off", PUBLIC_PLAN], ["OFF", PUBLIC_PLAN], [" Off ", PUBLIC_PLAN]];
+  for (const [value, expected] of cases) {
+    for (const path of ["/products/x", "/collections/rings", "/categories/fine-jewelry", "/blog/a-post"]) {
+      assert.deepEqual(seoLinkPlan(path, legacyRedirectsEnabled(value)), expected, `${JSON.stringify(value)} ${path}`);
+    }
+    // static public pages and private routes do not depend on the switch
+    assert.deepEqual(seoLinkPlan("/faq", legacyRedirectsEnabled(value)), PUBLIC_PLAN, `${JSON.stringify(value)} /faq`);
+    assert.deepEqual(seoLinkPlan("/cart", legacyRedirectsEnabled(value)), PRIVATE_PLAN, `${JSON.stringify(value)} /cart`);
+  }
 });
 
 // ---------------------------------------------------------------- Facebook app id
