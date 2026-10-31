@@ -63,6 +63,10 @@ export function localizedMeta<P extends Record<string, string>>(
     const eligible = eligibleOf ? await eligibleOf(params) : BOTH;
     if (!eligible[lang]) return {};
     const own = base ? await base(args) : {};
+    // A page that has its own metadata function but got no title back has no resource behind it
+    // (the legacy product, collection and category functions return {} for a missing slug). It
+    // 404s, and a browser still applies this metadata to the DOM, so it must say nothing.
+    if (base && !own.title) return {};
     const alt = localeAlternates(lang, pathOf(params), eligible);
     const url = String(alt.alternates?.canonical);
     // Next always passes `parent`; a bare unit-test call may not, which only costs the inherited image (the brand image is named instead).

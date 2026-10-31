@@ -5,6 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { siteUrl } from "@/lib/site";
 import { seoLinkPlan } from "@/lib/seo-policy";
+import { legacyRedirectsEnabled } from "@/lib/legacy-redirect";
 
 type MetaEntry = { title: Record<Lang, string>; description?: Record<Lang, string> };
 
@@ -55,7 +56,7 @@ export async function SeoLinks() {
   // finding X1), nothing for an unknown path (a 404 has no canonical to name),
   // og:url alone for a private route, everything for a public family. Legacy
   // paths are otherwise untouched (C0/H0).
-  const plan = seoLinkPlan(path);
+  const plan = seoLinkPlan(path, legacyRedirectsEnabled(process.env.SEO_LEGACY_REDIRECTS));
   if (!plan) return null;
 
   const base = siteUrl();

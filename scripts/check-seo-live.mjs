@@ -7,7 +7,8 @@
 // It states the INTENDED policy for each kind of route (lib/seo-policy.ts, the
 // Phase 1 route matrix in docs/seo/SEO-BASELINE.md) and reports PASS / FAIL.
 // DEFERRED marks a known gap that belongs to a later phase; it does not fail
-// the run. Exit code 1 only when a FAIL is reported.
+// the run. Exit code 1 only when a FAIL is reported. Set VERCEL_AUTOMATION_BYPASS_SECRET to run
+// against a preview behind Vercel SSO (see the "develop-preview acceptance gate" in docs/seo/SEO-QA-REPORT.md §15).
 //
 // Only real <link>/<meta> elements are counted. Next also repeats the metadata
 // inside its RSC payload as escaped JSON, which is not what a crawler reads.
@@ -17,8 +18,13 @@ const results = [];
 const record = (status, route, what, detail = "") => results.push({ status, route, what, detail });
 const ok = (route, what, cond, detail = "") => record(cond ? "PASS" : "FAIL", route, what, cond ? "" : detail);
 
+// OPTIONAL: a Vercel "Protection Bypass for Automation" secret, for a preview deployment behind Vercel SSO
+// (the develop preview). Read from the environment, sent only as the documented request header, never printed.
+// Unset (the default, and for production and local runs) the requests are exactly what they were.
+const BYPASS = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+
 async function get(path) {
-  const res = await fetch(`${BASE}${path}`, { redirect: "manual", headers: { "user-agent": "cha-seo-check/1" } });
+  const res = await fetch(`${BASE}${path}`, { redirect: "manual", headers: { "user-agent": "cha-seo-check/1", ...(BYPASS ? { "x-vercel-protection-bypass": BYPASS } : {}) } });
   const body = res.status >= 300 && res.status < 400 ? "" : await res.text();
   return { status: res.status, location: res.headers.get("location"), xrobots: res.headers.get("x-robots-tag"), cache: res.headers.get("cache-control"), body };
 }
@@ -287,54 +293,103 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
 
 // ---------------------------------------------------------------- FOUNDATION: og:url, 404 hygiene, fb:app_id
 // SEO foundation batch. Reads the RENDERED HTML the way a link scraper and a crawler do.
-//  1. Every successful public locale template: exactly one og:url, equal to the canonical,
-//     no query or fragment, exactly one fb:app_id (the approved id, emitted once by the root
-//     layout), the site-wide OpenGraph fields and an og:image present.
-//  2. Every 404 (unknown single/multi-segment, localized, missing resource, missing language
-//     sibling, /ja/layaway): real 404, noindex, NO canonical, hreflang or og:url, at most one fb:app_id.
-//     (That the 404 page is still the useful one is checked in a browser: its UI streams in after the first HTML.)
-//  3. Private/utility routes: og:url only (no canonical, no alternates), one fb:app_id.
+//  1. Every known public locale template: HTTP 200 (always required), exactly one og:url equal to
+//     the canonical, no query or fragment, exactly one fb:app_id (the approved id, emitted once by
+//     the root layout), the site-wide OpenGraph fields including BOTH the primary and the alternate
+//     og:locale, and an og:image. A language is allowed to be absent ONLY when that is established
+//     explicitly: the sitemap does not list it (or it is /ja/layaway, which never exists) AND the
+//     language that does exist names no hreflang for it. Anything else that is not a 200 is a FAIL.
+//  2. Every 404 shape: real 404, noindex, NO canonical, hreflang or og:url, at most one fb:app_id.
+//     Shapes: unknown single- and multi-segment paths; malformed children of EVERY public family
+//     (/products/x/y, /collections/x/y, /categories/x/y, /blog/x/y, /legal/missing[/deeper], deeper
+//     descendants, family roots that are not pages); malformed children of private routes; the same
+//     in /en and /ja form; missing resources (one real shape, nothing behind it) bare and localized;
+//     missing language siblings; /ja/layaway; invalid locales.
+//  3. Private/utility pages: og:url only (no canonical, no alternates), one fb:app_id.
 //  4. Query handling and no duplicate tags anywhere.
-// A sample of templates and of 404 shapes, NOT a crawl of every URL.
+// A sample of templates and of 404 shapes, NOT a crawl of every URL. (That the 404 page is still the
+// useful one is checked in a browser: its UI streams in after the first HTML.)
 {
   const FB_ID = "812262777044447";
-  const count = (html, re) => (html.match(re) ?? []).length;
   const ogUrls = (html) => [...html.matchAll(/<meta property="og:url" content="([^"]*)"/g)].map((m) => unescapeHtml(m[1]));
   const fbIds = (html) => [...html.matchAll(/<meta property="fb:app_id" content="([^"]*)"/g)].map((m) => m[1]);
-  const prop = (html, name) => { const m = html.match(new RegExp(`<meta property="${name}" content="([^"]*)"`)); return m ? unescapeHtml(m[1]) : null; };
+  const propAll = (html, name) => [...html.matchAll(new RegExp(`<meta property="${name}" content="([^"]*)"`, "g"))].map((m) => unescapeHtml(m[1]));
+  const prop = (html, name) => propAll(html, name)[0] ?? null;
+  const inSitemap = (p) => paths.includes(p);
+  const clean404 = (r) => r.status === 404 && /noindex/i.test(robotsMeta(r.body) ?? "") && canonicals(r.body).length === 0 && alternates(r.body).length === 0 && ogUrls(r.body).length === 0 && fbIds(r.body).length <= 1;
+  const why404 = (r) => `status ${r.status}, robots=${robotsMeta(r.body)}, canonical=${canonicals(r.body).length}, hreflang=${alternates(r.body).length}, og:url=${ogUrls(r.body).length}, fb:app_id=${fbIds(r.body).length}`;
 
-  // 1. successful locale templates, both languages
-  const templates = [...new Set([product, collection, category, post, "/jewelry-guide", "/shopping-guide", "/faq", "/about", "/legal/tokusho", "/legal/privacy", "/loyalty", "/sale", "/contact", "/wholesale", "/why-cha-jewels", "/blog", "/collections"].filter(Boolean))];
-  const localePaths = ["/ja", "/en", ...templates.flatMap((t) => [`/ja${t}`, `/en${t}`]), "/en/layaway"];
+  // 1. known templates, both languages. Static pages are in the sitemap in both languages; if one is
+  // not, that is a FAIL (a known template silently missing), not a pass.
+  const staticTemplates = ["/jewelry-guide", "/shopping-guide", "/faq", "/about", "/legal/tokusho", "/legal/privacy", "/legal/returns", "/legal/terms", "/loyalty", "/sale", "/contact", "/wholesale", "/why-cha-jewels", "/blog", "/collections"];
+  const dynamicTemplates = [product, collection, category, post].filter(Boolean);
   let sampled = 0;
-  for (const path of localePaths) {
+  const checkTemplate = async (path) => {
     const r = await get(path);
-    if (r.status === 404) {
-      // A resource that does not exist in this language (an English-only post): a clean 404.
-      ok(path, "FOUNDATION: a missing language sibling is a clean 404 (noindex; no canonical, hreflang or og:url)", /noindex/i.test(robotsMeta(r.body) ?? "") && canonicals(r.body).length === 0 && alternates(r.body).length === 0 && ogUrls(r.body).length === 0, `robots=${robotsMeta(r.body)} canon=${canonicals(r.body).length} og:url=${ogUrls(r.body).length}`);
-      continue;
-    }
-    if (r.status !== 200) { ok(path, "FOUNDATION: template answers 200", false, `got ${r.status}`); continue; }
+    if (r.status !== 200) { ok(path, "FOUNDATION: a known template answers HTTP 200", false, `got ${r.status}`); return; }
     sampled++;
     const h = r.body, self = `${BASE}${path}`, lang = path.slice(1, 3);
     ok(path, "FOUNDATION: exactly one og:url, equal to the canonical and to the page's own absolute locale URL (no query, no fragment)", ogUrls(h).length === 1 && ogUrls(h)[0] === self && canonicals(h).length === 1 && canonicals(h)[0] === self, `og:url=${ogUrls(h).join("|")} canonical=${canonicals(h).join("|")}`);
     ok(path, "FOUNDATION: exactly one fb:app_id, the approved id", fbIds(h).length === 1 && fbIds(h)[0] === FB_ID, `fb:app_id=${fbIds(h).join("|")}`);
-    ok(path, "FOUNDATION: og:site_name, og:type and the locale pair are present, and an og:image", prop(h, "og:site_name") === "Cha Jewels" && !!prop(h, "og:type") && prop(h, "og:locale") === (lang === "ja" ? "ja_JP" : "en_US") && !!prop(h, "og:image"), `site=${prop(h, "og:site_name")} type=${prop(h, "og:type")} locale=${prop(h, "og:locale")} image=${prop(h, "og:image")}`);
+    const primary = lang === "ja" ? "ja_JP" : "en_US", alt = lang === "ja" ? "en_US" : "ja_JP";
+    ok(path, "FOUNDATION: og:site_name, og:type, the primary og:locale AND the alternate og:locale are present, and an og:image", prop(h, "og:site_name") === "Cha Jewels" && !!prop(h, "og:type") && propAll(h, "og:locale").length === 1 && prop(h, "og:locale") === primary && propAll(h, "og:locale:alternate").length === 1 && prop(h, "og:locale:alternate") === alt && !!prop(h, "og:image"), `site=${prop(h, "og:site_name")} type=${prop(h, "og:type")} locale=${propAll(h, "og:locale")} alternate=${propAll(h, "og:locale:alternate")} image=${prop(h, "og:image")}`);
+  };
+  for (const root of ["/ja", "/en"]) await checkTemplate(root);
+  // The /collections index is a real page that the sitemap deliberately never lists (app/sitemap.ts, a
+  // standing sitemap-policy decision this batch does not touch): it must still answer 200 with the tags.
+  const unlistedByPolicy = new Set(["/collections"]);
+  for (const t of staticTemplates) {
+    for (const l of ["ja", "en"]) {
+      if (!unlistedByPolicy.has(t)) ok(`/${l}${t}`, "FOUNDATION: a known static template is listed in the sitemap in this language", inSitemap(`/${l}${t}`), "not in the sitemap");
+      await checkTemplate(`/${l}${t}`);
+    }
   }
-  ok("(sample)", "FOUNDATION: the template sample is not empty", sampled >= 20, `only ${sampled} successful pages sampled`);
+  for (const bare of dynamicTemplates) {
+    const listed = ["ja", "en"].filter((l) => inSitemap(`/${l}${bare}`));
+    ok(bare, "FOUNDATION: a sampled dynamic template exists in at least one language", listed.length > 0, "not in the sitemap in either language");
+    for (const l of listed) await checkTemplate(`/${l}${bare}`);
+    for (const l of ["ja", "en"].filter((x) => !listed.includes(x))) {
+      // Ineligible BY THE SITEMAP: it must be a clean 404, and the language that does exist must not name it.
+      const r = await get(`/${l}${bare}`);
+      ok(`/${l}${bare}`, "FOUNDATION: a language the sitemap does not list is a clean 404 (noindex; no canonical, hreflang or og:url)", clean404(r), why404(r));
+      const other = listed[0] && (await get(`/${listed[0]}${bare}`));
+      ok(`/${listed[0]}${bare}`, "FOUNDATION: the language that exists names no hreflang for the absent one (ineligibility is explicit on both sides)", !!other && other.status === 200 && !alternates(other.body).some((a) => a.lang === l), `hreflang=${other ? alternates(other.body).map((a) => a.lang).join(",") : "none"}`);
+    }
+  }
+  // EN-only by policy: the Japanese layaway page never exists.
+  { const r = await get("/ja/layaway"); ok("/ja/layaway", "FOUNDATION: /ja/layaway is a clean 404 (never exists, by policy)", clean404(r), why404(r)); }
+  await checkTemplate("/en/layaway");
+  ok("(sample)", "FOUNDATION: the template sample is large enough", sampled >= 24, `only ${sampled} successful template pages sampled`);
 
   // 2. every 404 shape
-  const MISSING = "nonexistent-seo-check-xyz";
-  const notFounds = [`/${MISSING}`, `/${MISSING}/deeper`, `/${MISSING}/deeper/still`, `/en/${MISSING}`, `/en/${MISSING}/deeper`, `/ja/${MISSING}/deeper`, `/en/products/${MISSING}`, `/ja/products/${MISSING}`, `/en/collections/${MISSING}`, `/ja/categories/${MISSING}`, `/en/blog/${MISSING}`, `/ja/blog/${MISSING}`, `/en/legal/${MISSING}`, "/ja/layaway", "/en/cart", "/fr/about"];
-  for (const path of notFounds) {
+  const X = "nonexistent-seo-check-xyz";
+  const malformed = ["/products/x/y", "/products/x/y/z", "/collections/x/y", "/collections/x/y/z", "/categories/x/y", "/categories/x/y/z", "/categories", "/blog/x/y", "/blog/x/y/z", "/legal", "/legal/missing", "/legal/missing/deeper", "/legal/privacy/extra", "/faq/x", "/about/x/y", "/jewelry-guide/x", "/shopping-guide/x", "/loyalty/x", "/sale/x", "/wholesale/x", "/layaway/x"];
+  const privateMalformed = ["/cart/zzz", "/search/zzz", "/login/zzz"];
+  // Gated private routes (middleware) send an anonymous visitor to /login and never render at all, so a malformed descendant is a redirect, not a page.
+  const gatedMalformed = ["/account/missing", "/account/orders/1/missing", "/checkout/missing"];
+  const localeForms = ["/products/x/y", "/collections/x/y", "/categories/x/y", "/blog/x/y", "/legal/missing", "/legal/missing/deeper", "/legal", "/faq/x", "/products/x/y/z"];
+  const missingResources = [`/products/${X}`, `/collections/${X}`, `/categories/${X}`, `/blog/${X}`];
+  const shapes = [
+    `/${X}`, `/${X}/deeper`, `/${X}/deeper/still`, "/foo/bar", "/foo/bar/baz",
+    ...malformed, ...privateMalformed,
+    ...localeForms.flatMap((p) => [`/en${p}`, `/ja${p}`]),
+    ...missingResources, ...missingResources.flatMap((p) => [`/en${p}`, `/ja${p}`]),
+    `/en/${X}`, `/en/${X}/deeper`, `/ja/${X}/deeper`, "/ja/layaway", "/en/cart", "/fr/about", `/fr/${X}/deeper`,
+  ];
+  for (const path of shapes) {
     const r = await get(path);
-    ok(path, "FOUNDATION: a real 404 with noindex, and no canonical, hreflang or og:url", r.status === 404 && /noindex/i.test(robotsMeta(r.body) ?? "") && canonicals(r.body).length === 0 && alternates(r.body).length === 0 && ogUrls(r.body).length === 0 && fbIds(r.body).length <= 1, `status ${r.status}, robots=${robotsMeta(r.body)}, canonical=${canonicals(r.body).length}, hreflang=${alternates(r.body).length}, og:url=${ogUrls(r.body).length}, fb:app_id=${fbIds(r.body).length}`);
+    ok(path, "FOUNDATION: a real 404 with noindex, and no canonical, hreflang or og:url", clean404(r), why404(r));
   }
 
-  // 3. private/utility routes keep og:url only
+  for (const path of gatedMalformed) {
+    const r = await get(path);
+    ok(path, "FOUNDATION: a malformed descendant of a gated private route redirects an anonymous visitor to /login and renders nothing", r.status >= 300 && r.status < 400 && /\/login/.test(r.location ?? "") && ogUrls(r.body).length === 0 && canonicals(r.body).length === 0, `got ${r.status} ${r.location ?? ""}`);
+  }
+
+  // 3. real private/utility pages keep og:url only
   for (const path of ["/cart", "/search", "/login"]) {
     const r = await get(path);
-    if (r.status !== 200) { record("DEFERRED", path, "FOUNDATION: private route renders", `got ${r.status}`); continue; }
+    if (r.status !== 200) { ok(path, "FOUNDATION: a private page answers 200", false, `got ${r.status}`); continue; }
     const h = r.body;
     ok(path, "FOUNDATION: a private route says noindex, names no canonical or alternates, keeps one og:url and one fb:app_id", /noindex/i.test(robotsMeta(h) ?? "") && canonicals(h).length === 0 && alternates(h).length === 0 && ogUrls(h).length === 1 && ogUrls(h)[0] === `${BASE}${path}` && fbIds(h).length === 1, `robots=${robotsMeta(h)} canon=${canonicals(h).length} hreflang=${alternates(h).length} og:url=${ogUrls(h).join("|")} fb=${fbIds(h).length}`);
   }

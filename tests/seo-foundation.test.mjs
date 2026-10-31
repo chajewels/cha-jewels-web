@@ -13,7 +13,7 @@ import { join, relative } from "node:path";
 process.env.NEXT_PUBLIC_SITE_URL = "https://www.chajewelsjp.com";
 const { localeOpenGraph, siteOpenGraph, FACEBOOK_APP_ID, BRAND_OG_IMAGE } = await import("@/lib/og-meta");
 const { localizedMeta, localeAlternates } = await import("@/lib/locale-meta");
-const { seoLinkPlan, indexingFor, isNoindexPath } = await import("@/lib/seo-policy");
+const { seoLinkPlan, routeShapeOf, isDynamicPublicRoute, ROUTE_SHAPES, indexingFor, isNoindexPath } = await import("@/lib/seo-policy");
 const { productOpenGraph } = await import("@/lib/product-seo");
 const { listingOpenGraph } = await import("@/lib/listing-seo");
 const B = "https://www.chajewelsjp.com";
@@ -85,7 +85,7 @@ test("a listing hero block keeps its image and alt, and gains og:url", async () 
 });
 
 test("og:url never carries a query or a fragment, for any path parameters a route can produce", async () => {
-  const gen = localizedMeta((p) => `/blog/${p.slug}`, async () => ({}));
+  const gen = localizedMeta((p) => `/blog/${p.slug}`, async () => ({ title: "T" }));
   for (const slug of ["what-k18-means", "a%20b", "k18-gold-faq"]) {
     for (const lang of ["en", "ja"]) {
       const m = await gen({ params: params({ lang, slug }) }, PARENT);
@@ -125,31 +125,66 @@ test("EVERY locale page goes through localizedMeta, so no template can skip og:u
 });
 
 // ---------------------------------------------------------------- unknown multi-segment 404s
-test("seoLinkPlan: an unknown path (single or multi-segment) names nothing — the 404 of /foo/bar carries no canonical, hreflang or og:url", () => {
-  for (const p of ["/foo/bar", "/foo/bar/baz", "/foo", "/zzz", "/wp-admin/setup.php", "/.env", "/jewelry-guide/extra", "/faq/x/y", "/not-a-family/products/x"]) {
-    assert.equal(seoLinkPlan(p), null, `${p} must say nothing`);
-  }
+const PUBLIC_PLAN = { canonical: true, ogUrl: true, alternates: true };
+const PRIVATE_PLAN = { canonical: false, ogUrl: true, alternates: false };
+
+test("seoLinkPlan: a path that is not the exact shape of a real page names NOTHING (the 404s of /foo/bar, /products/x/y, /legal/missing, …)", () => {
+  const malformed = [
+    // unknown paths
+    "/foo/bar", "/foo/bar/baz", "/foo", "/zzz", "/wp-admin/setup.php", "/.env", "/not-a-family/products/x",
+    // the paths independent QA reproduced on the previous head
+    "/products/x/y", "/collections/x/y", "/categories/x/y", "/blog/x/y", "/legal/missing", "/legal/missing/deeper",
+    // more descendants of every public family, exact and children-shaped alike
+    "/products/x/y/z", "/collections/x/y/z", "/categories/x/y/z", "/blog/x/y/z", "/legal", "/legal/", "/legal/privacy/extra", "/legal/tokusho/x",
+    "/categories", "/faq/x", "/faq/x/y", "/about/x", "/about/x/y", "/jewelry-guide/x", "/shopping-guide/x", "/loyalty/x", "/loyalty/x/y",
+    "/sale/x", "/wholesale/x", "/why-cha-jewels/x", "/contact/x", "/affiliations/x", "/layaway/x", "/layaway/x/y", "/blog/x/y/z/w",
+    // descendants of private routes that are not real pages
+    "/cart/zzz", "/cart/zzz/yyy", "/search/zzz", "/login/zzz", "/account/missing", "/account/orders/1/missing", "/checkout/missing",
+    "/checkout/complete", "/review", "/review/tok/extra", "/receipts", "/receipts/verify/x", "/newsletter/unsubscribe/x", "/auth/zzz",
+  ];
+  for (const p of malformed) assert.equal(seoLinkPlan(p), null, `${p} must say nothing`);
+  for (const p of malformed) assert.equal(routeShapeOf(p), null, `${p} has no real route shape`);
 });
 
-test("seoLinkPlan: a children-shaped family is public BY STRUCTURE (its missing resources 404 in the page itself and emit nothing there)", () => {
-  for (const p of ["/products/x/y", "/collections/a/b", "/legal"]) assert.deepEqual(seoLinkPlan(p), { canonical: true, ogUrl: true, alternates: true }, p);
+test("seoLinkPlan: every known valid public page keeps its canonical, og:url and alternates (single dynamic segment only)", () => {
+  const valid = ["/", "/about", "/affiliations", "/blog", "/blog/some-post", "/categories/fine-jewelry", "/collections", "/collections/rings", "/contact", "/faq",
+    "/jewelry-guide", "/layaway", "/legal/privacy", "/legal/returns", "/legal/terms", "/legal/tokusho", "/loyalty", "/products/r2715-ring", "/sale", "/shopping-guide", "/wholesale", "/why-cha-jewels",
+    "/legal/tokusho/", "/products/a%20b"];
+  for (const p of valid) assert.deepEqual(seoLinkPlan(p), PUBLIC_PLAN, p);
+});
+
+test("the route-shape table equals the page routes in app/ (a new, renamed or removed route cannot drift out of it)", () => {
+  const found = [];
+  const walk = (dir, rel) => {
+    for (const n of readdirSync(dir)) {
+      const full = join(dir, n);
+      if (statSync(full).isDirectory()) { if (rel === "" && n === "[lang]") continue; walk(full, `${rel}/${n}`); }
+      else if (n === "page.tsx") found.push(rel === "" ? "/" : rel.replace(/\[([^\]]+)\]/g, ":$1"));
+    }
+  };
+  walk(join(process.cwd(), "app"), "");
+  // Dynamic segment NAMES are not significant: compare by shape.
+  const shape = (r) => r.replace(/:[^/]+/g, ":");
+  const have = [...ROUTE_SHAPES.public, ...ROUTE_SHAPES.private].map(shape).sort();
+  assert.deepEqual(have, found.map(shape).sort(), "update ROUTE_SHAPES in lib/seo-policy.ts to match the page routes under app/");
+  assert.equal(new Set(have).size, have.length, "no route is listed twice");
 });
 
 test("seoLinkPlan: locale-prefixed paths are never described by <SeoLinks /> (the locale tree owns its metadata)", () => {
-  for (const p of ["/en", "/ja", "/en/faq", "/ja/products/x", "/en/foo/bar", "/ja/foo/bar", "/en/layaway", "/ja/layaway", "/en/cart", "/fr/about"]) assert.equal(seoLinkPlan(p), null, p);
+  for (const p of ["/en", "/ja", "/en/faq", "/ja/products/x", "/en/foo/bar", "/ja/foo/bar", "/en/layaway", "/ja/layaway", "/en/cart", "/fr/about",
+    "/en/products/x/y", "/ja/products/x/y", "/en/collections/x/y", "/en/categories/x/y", "/en/blog/x/y", "/ja/blog/x/y", "/en/legal/missing", "/ja/legal/missing/deeper"]) assert.equal(seoLinkPlan(p), null, p);
 });
 
-test("seoLinkPlan: private and utility routes keep og:url only — no canonical, no alternates (unchanged policy)", () => {
-  for (const p of ["/cart", "/login", "/search", "/account", "/account/orders/1", "/checkout", "/checkout/complete/9", "/auth/confirm", "/review/tok", "/receipts/verify", "/loyalty/join", "/already-registered", "/newsletter/unsubscribe", "/cart-reminders/unsubscribe"]) {
-    assert.deepEqual(seoLinkPlan(p), { canonical: false, ogUrl: true, alternates: false }, p);
+test("seoLinkPlan: real private and utility pages keep og:url only — no canonical, no alternates (unchanged policy), dynamic ones included", () => {
+  for (const p of ["/cart", "/login", "/search", "/account", "/account/addresses", "/account/layaway/7", "/account/orders/1", "/account/orders/1/pay-card", "/checkout", "/checkout/complete/9", "/checkout/complete/d/9", "/auth/confirm", "/review/tok", "/receipts/verify", "/loyalty/join", "/already-registered", "/newsletter/unsubscribe", "/cart-reminders/unsubscribe"]) {
+    assert.deepEqual(seoLinkPlan(p), PRIVATE_PLAN, p);
     assert.ok(isNoindexPath(p), p);
   }
 });
 
-test("seoLinkPlan: a public family on a legacy path keeps its canonical, og:url and alternates", () => {
-  for (const p of ["/", "/about", "/faq", "/products/r2715", "/collections/rings", "/blog/post", "/legal/privacy", "/layaway", "/jewelry-guide", "/loyalty"]) {
-    assert.deepEqual(seoLinkPlan(p), { canonical: true, ogUrl: true, alternates: true }, p);
-  }
+test("the robots directive still covers every DESCENDANT of a private prefix (only the og:url rule became exact)", () => {
+  for (const p of ["/cart/zzz", "/account/orders/1/missing", "/search/x", "/checkout/missing", "/review/tok/extra"]) assert.ok(isNoindexPath(p), p);
+  assert.deepEqual(indexingFor("/account/missing"), { index: false, follow: false });
 });
 
 test("seoLinkPlan: not a site path (empty, relative, protocol-relative, backslash) says nothing", () => {
@@ -164,12 +199,42 @@ test("the robots directive of every private path is exactly what it was", () => 
 
 test("<SeoLinks /> is driven by the plan and no longer hard-codes the Facebook id or an unconditional og:url", () => {
   const src = read("lib/page-meta.tsx");
-  assert.match(src, /seoLinkPlan\(path\)/);
+  assert.match(src, /seoLinkPlan\(path, /);
   assert.doesNotMatch(src, /fb:app_id" content=/, "the id is not rendered here any more");
   assert.doesNotMatch(src, /812262777044447/);
   assert.match(src, /plan\.ogUrl &&/);
   assert.match(src, /plan\.canonical &&/);
   assert.match(src, /plan\.alternates &&/);
+});
+
+test("a missing resource describes NOTHING: the legacy metadata function returns no title, so no canonical, hreflang or og:url (a browser DOM applies metadata even when the page 404s)", async () => {
+  // The legacy product, collection and category generateMetadata return {} for a slug that does not exist.
+  const missing = localizedMeta((p) => `/products/${p.slug}`, async () => ({}));
+  for (const lang of ["en", "ja"]) assert.deepEqual(await missing({ params: params({ lang, slug: "nonexistent" }) }, PARENT), {}, lang);
+  const present = localizedMeta((p) => `/products/${p.slug}`, async () => ({ title: "Ring" }));
+  const m = await present({ params: params({ lang: "en", slug: "real" }) }, PARENT);
+  assert.equal(m.alternates.canonical, `${B}/en/products/real`);
+  assert.equal(m.openGraph.url, m.alternates.canonical);
+});
+
+test("while the legacy redirects are ON a bare dynamic public URL says nothing (it only ever 404s or 307s); OFF keeps today's tags; static pages and private routes are unchanged", () => {
+  for (const p of ["/products/x", "/collections/rings", "/categories/fine-jewelry", "/blog/a-post"]) {
+    assert.equal(isDynamicPublicRoute(p), true, p);
+    assert.equal(seoLinkPlan(p, true), null, `${p} with redirects on`);
+    assert.deepEqual(seoLinkPlan(p, false), PUBLIC_PLAN, `${p} with redirects off (rollback)`);
+    assert.deepEqual(seoLinkPlan(p), PUBLIC_PLAN, `${p} default argument keeps the previous behaviour`);
+  }
+  for (const p of ["/", "/faq", "/about", "/legal/tokusho", "/layaway", "/collections", "/blog"]) {
+    assert.equal(isDynamicPublicRoute(p), false, p);
+    assert.deepEqual(seoLinkPlan(p, true), PUBLIC_PLAN, p);
+  }
+  for (const p of ["/cart", "/account/orders/1", "/review/tok"]) assert.deepEqual(seoLinkPlan(p, true), PRIVATE_PLAN, p);
+  assert.equal(isDynamicPublicRoute("/en/products/x"), false, "a locale path is not this rule's business");
+});
+
+test("<SeoLinks /> passes the legacy-redirect switch to the plan", () => {
+  const src = read("lib/page-meta.tsx");
+  assert.match(src, /seoLinkPlan\(path, legacyRedirectsEnabled\(process\.env\.SEO_LEGACY_REDIRECTS\)\)/);
 });
 
 // ---------------------------------------------------------------- Facebook app id
