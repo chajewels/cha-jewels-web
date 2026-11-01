@@ -76,7 +76,8 @@ test("A2 (correction) — the account navigation cannot leave the screen: a grid
   assert.match(shell, /className="iac-chips print-hide mb-5 flex flex-wrap gap-2 lg:hidden"/, "chips wrap — nothing scrolls out of sight");
   assert.ok(!/iac-chips[^"]*overflow-x-auto/.test(shell));
   assert.match(shell, /className="iac-side print-hide hidden lg:block"/);
-  assert.match(read("components/lumiere/scroll-layout.tsx"), /classList\.remove\("lenis", "lenis-smooth", "lenis-scrolling", "lenis-stopped"\)/);
+  assert.match(read("components/lumiere/scroll-layout.tsx"), /const LENIS_CLASSES = \["lenis", "lenis-smooth", "lenis-scrolling", "lenis-stopped"/);
+  assert.match(read("components/lumiere/scroll-layout.tsx"), /stripLenisClasses\(\);/);
   assert.match(read("scripts/check-account-nav.mjs"), /\[1440, 1\.1\], \[1440, 1\.25\], \[1440, 1\.5\]/, "the check covers browser zoom 110/125/150 % on a 1440 window");
 });
 

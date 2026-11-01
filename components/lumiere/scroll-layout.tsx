@@ -59,6 +59,21 @@ export const LENIS_OPTIONS = {
   stopInertiaOnNavigate: true,
 } as const;
 
+const LENIS_CLASSES = ["lenis", "lenis-smooth", "lenis-scrolling", "lenis-stopped", "lenis-locked", "lenis-autoToggle"];
+/** A destroyed Lenis can still write its root classes once more (an animation frame already queued). Strip them now and for a moment after, so a route where Lenis is off never carries them. */
+let stopStripping: (() => void) | null = null;
+function stripLenisClasses() {
+  const root = document.documentElement;
+  stopStripping?.();
+  const strip = () => { if (LENIS_CLASSES.some((c) => root.classList.contains(c))) root.classList.remove(...LENIS_CLASSES); };
+  strip();
+  const observer = new MutationObserver(strip);
+  observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+  const timer = window.setTimeout(() => { stopStripping = null; observer.disconnect(); strip(); }, 800);
+  // A new instance (the reader went back to a page where Lenis runs) ends the sweep at once, so its classes are never stripped.
+  stopStripping = () => { stopStripping = null; window.clearTimeout(timer); observer.disconnect(); };
+}
+
 export function ScrollLayout() {
   const pathname = usePathname();
   const reduced = useReduced();
@@ -78,6 +93,7 @@ export function ScrollLayout() {
     let unsubscribe: (() => void) | null = null;
     import("lenis").then(({ default: LenisCtor }) => {
       if (cancelled) return;
+      stopStripping?.();
       lenis = new LenisCtor(LENIS_OPTIONS);
       useScroll.getState().setLenis(lenis);
       if (!useScroll.getState().isEnableScroll) lenis.stop();
@@ -115,7 +131,7 @@ export function ScrollLayout() {
       unsubscribe?.();
       lenis?.destroy();
       // destroy() leaves the root classes behind when it lands mid-scroll (found P4b: a stale `lenis` on <html> after a soft navigation into /account)
-      document.documentElement.classList.remove("lenis", "lenis-smooth", "lenis-scrolling", "lenis-stopped");
+      stripLenisClasses();
       if (lenis && useScroll.getState().lenis === lenis) useScroll.getState().setLenis(null);
     };
   }, [enabled]);
