@@ -62,9 +62,14 @@ export const validSlugRows = (v: unknown): boolean => Array.isArray(v) && v.ever
  */
 export const validPostRows = (v: unknown): boolean =>
   Array.isArray(v) && v.every((r) => isObj(r) && typeof r.slug === "string" && optStr(r.updated_at) && optStr(r.published_at) && optBool(r.layaway_only) && optBool(r.published));
-/** One post detail: an object whose language fields are strings or null. (A 404 never reaches here: hub.post turns it into null.) */
+/**
+ * One post detail (contract: `GET /content/posts/:slug` returns a `Post`, whose `slug` is a required string —
+ * supabase/contracts/api.md, lib/types.ts HubPost): an object with a NON-EMPTY string slug whose language fields
+ * are strings or null. `{}` or an object without a slug is a malformed response, never "no languages".
+ * (A 404 never reaches here: hub.post turns it into null, the semantic absence.)
+ */
 export const validPostDetail = (v: unknown): boolean =>
-  isObj(v) && optStr(v.title_en) && optStr(v.body_en) && optStr(v.title_ja) && optStr(v.body_ja) && optBool(v.layaway_only);
+  isObj(v) && slugRow(v) && optStr(v.title_en) && optStr(v.body_en) && optStr(v.title_ja) && optStr(v.body_ja) && optBool(v.layaway_only);
 
 /** A retry cannot help a definite client error (401, 403, 400…) — but can help 408, 429 and everything else. */
 function retryable(e: unknown): boolean {

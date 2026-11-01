@@ -178,7 +178,7 @@ for (const [key, cases] of Object.entries(MALFORMED)) {
     await assert.rejects(strict(), (e) => names(e)?.includes(FAMILY[key]));
   }));
 }
-for (const [label, detail] of [["an array", []], ["a string", "html"], ["wrong field type", { slug: "a-post", title_en: 5, body_en: "b" }], ["non-boolean layaway_only", { slug: "a-post", title_en: "T", body_en: "b", layaway_only: "x" }]]) {
+for (const [label, detail] of [["an array", []], ["a string", "html"], ["an empty object {}", {}], ["an object without a slug", { title_en: "T", body_en: "b", title_ja: "題", body_ja: "本" }], ["an object with a blank slug", { slug: "  ", title_en: "T", body_en: "b" }], ["an object with a non-string slug", { slug: 7, title_en: "T", body_en: "b" }], ["wrong field type", { slug: "a-post", title_en: 5, body_en: "b" }], ["non-boolean layaway_only", { slug: "a-post", title_en: "T", body_en: "b", layaway_only: "x" }]]) {
   test(`strict: a post-detail response that is ${label} fails the read (never "no such language")`, async () => {
     stub({ post: async (slug) => (slug === "a-post" ? detail : null) });
     await assert.rejects(strict(), (e) => names(e)?.includes("post-language:a-post"));
@@ -237,4 +237,17 @@ test("healthy old (develop c6d7cd9) vs new sitemap output is identical: urls, la
   assert.deepEqual(newOut, oldOut);
   assert.ok(newOut.some((e) => e.images?.length), "images are part of the comparison");
   assert.ok(newOut.some((e) => e.lastModified), "lastmod is part of the comparison");
+});
+
+test("post detail: {} / missing slug fail as SitemapUnavailable (not 'no languages'); semantic 404 and null-language records still pass", async () => {
+  for (const bad of [{}, { title_en: "T", body_en: "b" }]) {
+    stub({ post: async (slug) => (slug === "a-post" ? bad : null) });
+    await assert.rejects(strict(), (e) => e instanceof R.SitemapUnavailable && e.families.includes("post-language:a-post"));
+  }
+  stub({ post: async (slug) => (slug === "a-post" ? { slug: "a-post", title_en: "T", body_en: "b", title_ja: null, body_ja: null } : null) });
+  const d = await strict();
+  assert.deepEqual(d.langs.get("a-post"), { en: true, ja: false }, "valid record with null language fields");
+  assert.deepEqual(d.langs.get("en-only"), { en: false, ja: false }, "404 -> successful absence");
+  stub({ posts: async () => [], post: async () => { throw new Error("must not be called"); } });
+  assert.deepEqual((await strict()).posts, [], "legitimate empty list");
 });
