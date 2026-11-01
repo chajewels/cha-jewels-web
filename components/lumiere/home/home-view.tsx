@@ -29,6 +29,7 @@ import { LoyaltySection } from "@/components/lumiere/loyalty/loyalty-section";
 import { RecentlyViewed } from "@/components/catalog/recently-viewed";
 import { SectionBoundary } from "@/components/home/section-boundary";
 import { lumiereRecentlyViewedTitle } from "@/lib/content/lumiere-home";
+import { homeHubSlots } from "@/lib/lumiere/home-hub";
 
 /**
  * THE LUMIÈRE HOME (P2; docs/tasks/lumiere-redesign.md §6, report §7 home row).
@@ -59,7 +60,8 @@ export const LumiereHome = async ({ lang, switchTargets, demo = false }: { lang:
   // for the menu — built by the one builder the site header uses on every
   // other page (components/lumiere/site/chrome-data.tsx, P3), so the two can
   // never disagree.
-  const { chrome } = await buildChrome({ lang, switchTargets, demo });
+  // The chrome and the Hub's image/piece slots are independent reads: one wait, not two (the slots fall back to the placeholders on any failure).
+  const [{ chrome }, slots] = await Promise.all([buildChrome({ lang, switchTargets, demo }), homeHubSlots(lang)]);
 
   return (
     <div className="lumiere-home bg-surface text-content">
@@ -73,7 +75,7 @@ export const LumiereHome = async ({ lang, switchTargets, demo = false }: { lang:
       <Preloader label={strings.loading} />
       <WarmBelowFold />
       <AssetBanner />
-      <HeroSection lang={lang} content={lumiereHero(lang, categoryHref, L("/collections"))} chrome={chrome} />
+      <HeroSection lang={lang} content={lumiereHero(lang, categoryHref, L("/collections"), slots)} chrome={chrome} />
 
       {/* PROGRESSIVE HYDRATION (report §10, TBT). Every block under the hero
           sits in its own Suspense boundary. The server output is unchanged
@@ -83,10 +85,10 @@ export const LumiereHome = async ({ lang, switchTargets, demo = false }: { lang:
           of part A (210–240 ms on a 4× phone) becomes several short ones, and
           the preloader's lift, which waits on the first commit, comes sooner. */}
       <Suspense fallback={null}>
-        <CollectionsSection content={lumiereCollections(lang, categoryHref)} />
+        <CollectionsSection content={lumiereCollections(lang, categoryHref, slots)} />
       </Suspense>
       <Suspense fallback={null}>
-        <FeaturedSection content={lumiereFeatured(lang)} />
+        <FeaturedSection content={lumiereFeatured(lang, slots)} />
       </Suspense>
       <Suspense fallback={null}>
         <PhilosophySection lang={lang} content={lumierePhilosophy(lang, L("/about"))} />

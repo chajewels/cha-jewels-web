@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
+import { isOptimizableImage } from "@/lib/image-hosts";
+
+/** components/fx/cart-bump.tsx's CART_ADDED, spelled here so the stage does not import that module (a test pins the two equal). */
+const CART_ADDED = "cj:cart-added";
 import { animated, type SpringValue } from "@react-spring/web";
 
 import { FadeSwap, TextSwap } from "@/components/lumiere/common/text-swap";
@@ -117,6 +121,28 @@ export const FeaturedStage = () => {
   // The button rolls the way the nav links do — same helper, so the character
   // is the same by construction rather than by resemblance.
   const { hovered, handlers } = useHover();
+  // ADD TO CART for a REAL piece (P5): the product page's own Server Action and analytics event, one piece at a time.
+  // A placeholder keeps the drawn-but-disabled pill (D-7). The result is announced, never assumed: only after the
+  // action returns does the label change, and a failed add throws before it does.
+  const [pending, startAdd] = useTransition();
+  const [addedSlug, setAddedSlug] = useState<string | null>(null);
+  const buy = activePiece.buy;
+  const onAdd = () => {
+    if (!buy || pending) return;
+    startAdd(async () => {
+      // Loaded on the click, not with the home: the action, the analytics module and the consent/ads code it pulls in cost the
+      // first load (TBT) for a button most visitors never press.
+      const [{ addToCart }, { trackAddToCart }] = await Promise.all([import("@/lib/cart-actions"), import("@/lib/analytics")]);
+      await addToCart(buy.variantId, buy.slug, 1);
+      setAddedSlug(buy.slug);
+      window.dispatchEvent(new Event(CART_ADDED));
+      trackAddToCart(buy.sku, content.lang);
+    });
+  };
+  const justAdded = !!buy && addedSlug === buy.slug;
+  // A real piece carries the Hub's own name ("R3341 Ring K18WG 16.20g Diamond 3.82ct …"): never shortened (the product page
+  // prints it whole), so a long name wraps inside the panel at a smaller size instead of running off it.
+  const longTitle = featuredPieces.some((piece) => piece.name.length > 16);
 
   return (
     <section
@@ -207,6 +233,7 @@ export const FeaturedStage = () => {
                     <Image
                       src={piece.photo.src}
                       alt={piece.photo.alt}
+                      unoptimized={!isOptimizableImage(piece.photo.src)}
                       fill
                       sizes="47vw"
                       priority={index === 0}
@@ -226,14 +253,21 @@ export const FeaturedStage = () => {
           </h2>
           <div
             aria-hidden="true"
-            className="featured__title font-serif"
+            className={`featured__title font-serif${longTitle ? " featured__title--long" : ""}`}
             style={capTrimSerif(TYPE.title.size, TYPE.title.leading)}
           >
-            <TextSwap
-              versions={featuredPieces.map((piece) => [piece.nameRuns])}
-              active={active}
-              first={{ ready: true, delay: 0 }}
-            />
+            {longTitle ? (
+              // A real piece's long Hub name: plain wrapped text that cross-fades. The per-letter engine measures and
+              // splits every word, which for names like "R3341 Ring K18WG 16.20g Diamond 3.82ct …" cost ~45 ms of blocking
+              // time at hydration (P5, measured) for a reveal nobody can read at that length.
+              <FadeSwap items={featuredPieces.map((piece, index) => <span key={index}>{piece.name}.</span>)} active={active} />
+            ) : (
+              <TextSwap
+                versions={featuredPieces.map((piece) => [piece.nameRuns])}
+                active={active}
+                first={{ ready: true, delay: 0 }}
+              />
+            )}
           </div>
 
           <div className="featured__meta">
@@ -251,9 +285,10 @@ export const FeaturedStage = () => {
               <button
                 type="button"
                 className="featured__pill featured__pill--cta"
-                disabled={activePiece.placeholder}
-                aria-disabled={activePiece.placeholder}
+                disabled={activePiece.placeholder || !buy || pending}
+                aria-disabled={activePiece.placeholder || !buy}
                 data-analytics="featured-add-to-cart"
+                onClick={onAdd}
                 {...handlers}
               >
                 {/* Bag and words inside one roll, so they leave and arrive
@@ -264,11 +299,12 @@ export const FeaturedStage = () => {
                       <CartIcon />
                     </span>
                     <span style={sans(TYPE.pill.size, TYPE.pill.leading)}>
-                      {content.cta}
+                      {justAdded ? content.added : content.cta}
                     </span>
                   </span>
                 </HoverRoll>
               </button>
+              <span className="sr-only" role="status" aria-live="polite">{justAdded ? content.added : ""}</span>
               <span className="featured__pill">
                 <FadeSwap
                   items={featuredPieces.map((piece, index) => (

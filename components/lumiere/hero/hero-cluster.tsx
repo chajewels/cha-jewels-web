@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Image from "next/image";
+import { isOptimizableImage } from "@/lib/image-hosts";
 import { animated, easings, to, useSpring } from "@react-spring/web";
 
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
@@ -284,6 +285,7 @@ export const HeroCluster = () => {
               <Image
                 src={card.image.src}
                 alt={card.image.alt}
+                unoptimized={!isOptimizableImage(card.image.src)}
                 fill
                 // The hero card grows to the whole screen; every other card is
                 // drawn at CARD.width design units — 7.3vw at 1440 and above,

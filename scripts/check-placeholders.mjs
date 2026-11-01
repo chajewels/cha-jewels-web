@@ -129,6 +129,43 @@ const walkAssets = (dir) => {
 };
 walkAssets(PLACEHOLDER_DIR);
 
+
+// WHICH PLACEHOLDERS REMAIN, AND WHY (P5, owner 2026-11-01: "must report exactly which placeholders remain and why").
+// Every file under public/lumiere/placeholder/ belongs to exactly ONE row below; a file that matches none fails the
+// check, so this table cannot drift from the directory. `hub` = a Hub source is wired and the placeholder is only the
+// fallback while the Hub has nothing (lib/lumiere/home-hub.ts); `none` = the Hub has no source today and one is only
+// DRAFTED (docs/tasks/lumiere-hub-slots.md) — nothing is invented.
+const MANIFEST = [
+  { re: /^hero\/card-0[1-7]\.webp$/, slot: "hero card ring, cards 1–7", status: "hub", why: "real pieces from the Hub's hero deck (lib/hero-deck.ts); the placeholder shows only while the Hub returns fewer than seven available pieces" },
+  { re: /^hero\/card-08\.webp$/, slot: "hero frame-3 photograph (a hand wearing a ring)", status: "none", why: "no Hub field for a hero lifestyle photograph" },
+  { re: /^hero\/pendant-emerald(-compact)?\.webp$/, slot: "hero pendant poster", status: "none", why: "no Hub source for the hero pendant (3D model) or its poster" },
+  { re: /^models\/pendant-emerald\.glb$/, slot: "hero pendant 3D model", status: "none", why: "no Hub source for 3D models" },
+  { re: /^collections\/(rings|necklaces|earrings|bracelets)\.webp$/, slot: "collections cards (and the four why-panel photographs)", status: "hub", why: "collections cards take the Hub category photograph (hero_media) when it has one; the four why/value panels have no Hub source and still draw these" },
+  { re: /^featured\/photo-ring-0[1-5]\.webp$/, slot: "featured left-panel photographs", status: "hub", why: "the Hub's featured pieces (name, price, metals, photograph, Add to cart); the placeholder shows only for a slot the Hub cannot fill" },
+  { re: /^featured\/ring-0[1-5]\.webp$/, slot: "featured ring posters (the right stage)", status: "none", why: "no Hub source for the 3D ring posters" },
+  { re: /^models\/rings\/ring-0[1-5]\.glb$/, slot: "featured ring 3D models", status: "none", why: "no Hub source for 3D models" },
+  { re: /^philosophy\//, slot: "philosophy backdrop plates and the hand photograph", status: "none", why: "no Hub source for editorial photographs" },
+];
+const manifestRows = () => {
+  const rows = MANIFEST.map((m) => ({ ...m, files: [] }));
+  const orphans = [];
+  for (const a of assets) {
+    const rel = a.slice(PLACEHOLDER_DIR.length + 1);
+    const row = rows.find((r) => r.re.test(rel));
+    if (row) row.files.push(rel); else orphans.push(rel);
+  }
+  return { rows, orphans };
+};
+const printManifest = () => {
+  const { rows, orphans } = manifestRows();
+  console.log("\nPlaceholders that remain, and why (docs/tasks/lumiere-hub-slots.md):");
+  for (const r of rows) if (r.files.length) console.log(`  [${r.status === "hub" ? "fallback of a Hub slot" : "NO Hub source"}] ${r.slot} — ${r.files.length} file(s): ${r.why}`);
+  const hub = rows.filter((r) => r.status === "hub").reduce((n, r) => n + r.files.length, 0);
+  const none = rows.filter((r) => r.status === "none").reduce((n, r) => n + r.files.length, 0);
+  console.log(`  total ${assets.length}: ${hub} are fallbacks of slots the Hub fills, ${none} have no Hub source today${orphans.length ? `, ${orphans.length} UNCLASSIFIED` : ""}.`);
+  return orphans;
+};
+
 const referencedFiles = new Set(references.map((r) => r.rel));
 const summary = `${references.length} reference(s) in ${referencedFiles.size} file(s), ${assets.length} placeholder asset(s) under ${PLACEHOLDER_DIR}/ (${scanned} files scanned)`;
 
@@ -136,10 +173,13 @@ if (strict) {
   for (const r of references) fail(`${r.rel}:${r.line} — ${r.rule}\n    ${r.text}\n    Lumière placeholder content may not ship to production (lib/lumiere/placeholders.ts; report §9).`);
   if (assets.length) fail(`${PLACEHOLDER_DIR}/ still holds ${assets.length} file(s), e.g. ${assets.slice(0, 3).join(", ")} — delete the directory with the last placeholder.`);
   if (failed) {
+    printManifest();
     console.error(`\ncheck:placeholders FAILED (strict: ${process.env.VERCEL_ENV === "production" ? "VERCEL_ENV=production" : "--strict"}) — ${summary}.`);
     process.exit(1);
   }
   console.log(`check:placeholders OK (strict) — no placeholder reference and no placeholder asset (${MUST_CATCH.length} regressions caught).`);
 } else {
-  console.log(`check:placeholders OK (lenient) — ${summary}; strict on VERCEL_ENV=production or --strict (${MUST_CATCH.length} regressions caught, ${MUST_PASS.length} innocents passed).`);
+  const orphans = printManifest();
+  if (orphans.length) { console.error(`\ncheck:placeholders FAILED — ${orphans.length} placeholder file(s) are not in the manifest (scripts/check-placeholders.mjs MANIFEST): ${orphans.slice(0, 4).join(", ")}`); process.exit(1); }
+  console.log(`\ncheck:placeholders OK (lenient) — ${summary}; strict on VERCEL_ENV=production or --strict (${MUST_CATCH.length} regressions caught, ${MUST_PASS.length} innocents passed).`);
 }
