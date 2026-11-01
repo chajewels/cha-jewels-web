@@ -311,6 +311,62 @@ export function validateSitemap(res, { publicOrigin, minUrls = 20 } = {}) {
   return { problems: [...new Set(problems)], locs, paths };
 }
 
+// ------------------------------------------------------------------ llms.txt (Master Plan PHASE 6 add-on)
+/**
+ * What /llms.txt must be (owner rules, 2026-10-31): HTTP 200, text/plain, a Markdown document whose EVERY link
+ * is a public page the sitemap lists on the public origin (so each is a 200, indexable page), no product URL,
+ * no private route, no Japanese layaway link, and no figure (price, percentage, currency). Shared by the raw and
+ * the DOM checker so the two cannot drift; unit-tested in tests/seo-check-core.test.mjs.
+ */
+export function llmsTxtProblems({ status, contentType, body }, { publicOrigin, sitemapPaths }) {
+  const problems = [];
+  if (status !== 200) problems.push(`status ${status}`);
+  if (!/^text\/plain\b/i.test(contentType ?? "")) problems.push(`content-type ${contentType ?? "none"}`);
+  const text = String(body ?? "");
+  if (!/^# \S/.test(text)) problems.push("does not start with a Markdown H1");
+  const links = [...text.matchAll(/\]\((https?:[^)\s]+)\)/g)].map((m) => m[1]);
+  if (links.length < 10) problems.push(`only ${links.length} link(s)`);
+  const listed = new Set(sitemapPaths ?? []);
+  for (const l of links) {
+    let u;
+    try { u = new URL(l); } catch { problems.push(`not a URL: ${l}`); continue; }
+    if (u.origin !== publicOrigin) { problems.push(`link off the public origin: ${l}`); continue; }
+    if (u.search || u.hash) problems.push(`link carries a query or fragment: ${l}`);
+    if (!listed.has(u.pathname)) problems.push(`link is not a sitemap page: ${u.pathname}`);
+    if (/\/products\//.test(u.pathname)) problems.push(`product URL listed: ${u.pathname}`);
+    if (u.pathname === "/ja/layaway" || u.pathname === "/layaway") problems.push(`layaway link outside the English page: ${u.pathname}`);
+  }
+  if (new Set(links).size !== links.length) problems.push("a link appears twice");
+  const jaSection = text.split(/^## /m).find((part) => /^日本語/.test(part)) ?? "";
+  if (/layaway|分割予約|レイアウェイ/.test(jaSection)) problems.push("the Japanese section mentions layaway");
+  if (/[¥₱$]|\d+%|\bJPY\b|\bPHP\b/.test(text)) problems.push("a price, currency or percentage appears");
+  return [...new Set(problems)];
+}
+
+/** The links /llms.txt advertises, in document order (Markdown `[label](https://…)` only). */
+export const llmsTxtLinks = (body) => [...String(body ?? "").matchAll(/\]\((https?:[^)\s]+)\)/g)].map((m) => m[1]);
+
+/**
+ * The recorded contract (master plan PHASE 6 add-on, "Test"): EVERY link in /llms.txt "returns 200 and is indexable".
+ * Sitemap membership is a listing, not an acceptance: this rule judges the FETCHED response of each link — 200,
+ * an HTML document, no noindex in the X-Robots-Tag header or the robots meta, exactly one canonical and it is the
+ * link itself (the page is its own indexable version). Shared by the raw and the DOM checker; unit-tested.
+ */
+export function llmsLinkProblems(link, res) {
+  const problems = [];
+  if (res?.error) problems.push(`request failed: ${res.error}`);
+  if (res?.status !== 200) problems.push(`status ${res?.status ?? "none"}`);
+  if (!/^text\/html\b/i.test(res?.contentType ?? "")) problems.push(`content-type ${res?.contentType ?? "none"}`);
+  if (/noindex/i.test(res?.xrobots ?? "")) problems.push(`x-robots-tag ${res.xrobots}`);
+  const html = String(res?.body ?? "");
+  const robots = (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
+  if (/noindex/i.test(robots ?? "")) problems.push(`robots meta ${robots}`);
+  const canon = [...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1]);
+  if (canon.length !== 1) problems.push(`${canon.length} canonical(s)`);
+  else if (canon[0] !== link) problems.push(`canonical ${canon[0]} is not the link itself`);
+  return problems;
+}
+
 // ------------------------------------------------------------------ the one route matrix
 /**
  * The FOUNDATION route matrix, shared by the raw-HTML and the live-DOM checker so the two cannot drift.

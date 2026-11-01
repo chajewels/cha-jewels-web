@@ -13,7 +13,8 @@
 // Only real <link>/<meta> elements are counted. Next also repeats the metadata
 // inside its RSC payload as escaped JSON, which is not what a crawler reads.
 
-import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
+import { existsSync } from "node:fs";
+import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, llmsTxtProblems, llmsTxtLinks, llmsLinkProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 // BASE is where requests GO. PUBLIC_ORIGIN is what the pages DECLARE (canonical, hreflang, og:url, sitemap):
 // the same for production and a local build, different for a preview, which is requested on its own
@@ -36,6 +37,11 @@ const results = [];
 const record = (status, route, what, detail = "") => results.push({ status, route, what, detail });
 const ok = (route, what, cond, detail = "") => record(cond ? "PASS" : "FAIL", route, what, cond ? "" : detail);
 const cov = new Coverage();
+// /llms.txt is DEFERRED to the Phase 6 batch under the owner's approved requirements of 2026-10-31 ("static file",
+// "after the Phase 6 URLs and titles are final"; record docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md). No decision is
+// pending: the route returns with the Phase 6 batch. While the route file is absent, a 404 is the expected state and the
+// two llms rows are optional (skipped with that reason); the moment the route exists they are required.
+const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
 
 const robotsMeta = (html) => (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
 const canonicals = (html) => [...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1]);
@@ -343,6 +349,8 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   cov.expect("gated-descendants", "malformed descendants of gated private routes redirect to /login", gatedMalformed.length);
   cov.expect("private-pages", "real private pages keep og:url only", 3);
   cov.expect("query-handling", "og:url and the canonical ignore the request query", 2);
+  cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page (no product, private, Japanese-layaway or figure)", 1, { optional: !LLMS_ROUTE_PRESENT });
+  cov.expect("llms-links", "every link /llms.txt advertises is FETCHED and answers 200 text/html, no noindex (header or meta) and one self canonical — the recorded contract, not sitemap membership (one row per link)", 30, { optional: !LLMS_ROUTE_PRESENT });
   if (smv.problems.length === 0) cov.hit("sitemap");
 
   // 1. known templates. A template that is not 200 is a FAIL; a known static template missing from the sitemap is a FAIL.
@@ -415,6 +423,30 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
     if (r.status !== 200) { ok(path, "FOUNDATION: a private page answers 200", false, `got ${r.status}`); continue; }
     const h = r.body;
     ok(path, "FOUNDATION: a private route says noindex, names no canonical or alternates, keeps one og:url and one fb:app_id", /noindex/i.test(robotsMeta(h) ?? "") && canonicals(h).length === 0 && alternates(h).length === 0 && ogUrls(h).length === 1 && ogUrls(h)[0] === `${PUBLIC_ORIGIN}${path}` && fbIds(h).length === 1, `robots=${robotsMeta(h)} canon=${canonicals(h).length} hreflang=${alternates(h).length} og:url=${ogUrls(h).join("|")} fb=${fbIds(h).length}`);
+  }
+
+  // 6. llms.txt (Master Plan PHASE 6 add-on): the shared rule in scripts/lib/seo-check-core.mjs
+  {
+    const r = await get("/llms.txt");
+    if (!LLMS_ROUTE_PRESENT && r.status === 404) {
+      cov.skip("llms-txt", "route deferred to the Phase 6 batch under the approved requirements of 2026-10-31 (record OD-LLMS-1; not an open decision): /llms.txt answers 404 as expected while app/llms.txt/route.ts is absent");
+      cov.skip("llms-links", "route deferred to the Phase 6 batch under the approved requirements of 2026-10-31 (record OD-LLMS-1; not an open decision): no file to read links from");
+      ok("/llms.txt", "LLMS: route deferred to the Phase 6 batch (approved requirements; record OD-LLMS-1) — 404 recorded as the expected state, not judged", true, "");
+    } else {
+    cov.hit("llms-txt");
+    const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
+    ok("/llms.txt", "LLMS: 200 text/plain; every link is a public sitemap page on the public origin; no product, private or Japanese-layaway link; no figure", problems.length === 0, r.error ? `request failed: ${r.error}` : problems.join("; "));
+    // Each advertised link, fetched: the contract says "every link returns 200 and is indexable". A link off the
+    // public origin is already a failure above and is not fetched (the checker never leaves its origin).
+    for (const link of [...new Set(llmsTxtLinks(r.body))]) {
+      let u; try { u = new URL(link); } catch { continue; }
+      if (u.origin !== PUBLIC_ORIGIN) continue;
+      const lr = await get(u.pathname);
+      cov.hit("llms-links");
+      const lp = llmsLinkProblems(link, lr);
+      ok(u.pathname, "LLMS-LINK: advertised in /llms.txt → fetched 200 text/html, no noindex, one self canonical", lp.length === 0, lp.join("; "));
+    }
+    }
   }
 
   // 5. query handling: the identity never follows the query

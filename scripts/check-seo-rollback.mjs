@@ -48,12 +48,9 @@ for (const [i, bare] of [...staticPaths, ...dynamic].entries()) {
   const what = "rollback: the bare URL renders (200, not a redirect) with canonical, hreflang, og:url and one fb:app_id";
   const detail = `status ${r.status} location=${r.location} canonical=${canon(r.body)} og:url=${ogu(r.body)} hreflang=${alts(r.body).length} fb=${fb(r.body)}`;
   const base = r.status === 200 && canon(r.body).join() === self && alts(r.body).length === 3 && fb(r.body) === 1;
-  if (base && ogu(r.body).join() === self) ok(bare, what, true);
-  else if (base && /^\/products\//.test(bare) && ogu(r.body).length === 2 && ogu(r.body)[0] === self && /^\/(ja|en)\/products\//.test(new URL(ogu(r.body)[1]).pathname)) {
-    // KNOWN, PRE-EXISTING (since OG-PRODUCT #441, on develop too), ROLLBACK-ONLY: the product block's og:url is the locale URL while
-    // <SeoLinks /> adds the bare one, so a bare product page carries TWO og:url values. Default mode never renders it. Register R-37.
-    rows.push({ s: "DEFERRED", route: bare, what: `${what} - known duplicate og:url (bare + locale) on a bare product page in rollback mode, register R-37`, detail: "" });
-  } else ok(bare, what, false, detail);
+  // R-37 (closed 2026-11-01): a bare product page carries exactly ONE og:url, the bare one from <SeoLinks />; the product
+  // OpenGraph block no longer names the locale URL (lib/product-seo.ts). The DEFERRED branch that accepted the duplicate is gone.
+  ok(bare, what, base && ogu(r.body).join() === self, detail);
 }
 {
   const r = await get("/products/nonexistent-seo-check-xyz");

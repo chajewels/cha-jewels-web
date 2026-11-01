@@ -1,7 +1,7 @@
 import type { Product } from "@/lib/queries/products";
-import { productAvailability } from "@/lib/availability";
+import { variantAvailability } from "@/lib/availability";
 import { COMPANY_NAME, COMPANY_PHONE } from "@/lib/content/legal";
-import { allImages, fromPrice } from "@/lib/queries/products";
+import { allImages } from "@/lib/queries/products";
 import { metalsLabel, productMetals } from "@/lib/metals";
 
 /**
@@ -68,6 +68,8 @@ export type JsonLdProps =
   | { type: "breadcrumb"; items: Crumb[] }
   | { type: "itemlist"; slugs: string[] };
 
+/** The variant the product page renders: the first one (app/products/[slug]/page.tsx), or null for a product with none. */
+export const displayedVariant = (p: Pick<Product, "product_variants">) => p.product_variants?.[0] ?? null;
 const pageLanguage = (prefix: string) => (prefix === "/ja" ? "ja-JP" : "en");
 const crumbUrl = (base: string, prefix: string, path: string) => (path === "/" ? `${base}${prefix}` : `${base}${prefix}${path}`);
 /** "03-6657-6129" → "+81-3-6657-6129": the domestic trunk 0 becomes the country code. */
@@ -137,12 +139,24 @@ export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en"
         // A brand only when the Hub says the piece is branded. No countryOfOrigin
         // is ever emitted here — origin is a per-piece badge, not structured data.
         brand: props.product.origin === "BRAND" && props.product.brand?.trim() ? { "@type": "Brand", name: props.product.brand.trim() } : undefined,
-        offers: { "@type": "Offer", price: fromPrice(props.product) ?? undefined, priceCurrency: "JPY",
+        // THE OFFER IS THE ONE THE PAGE SHOWS (structured-data review, 2026-11-01;
+        // CLAUDE.md governance §11: structured data reflects visible content).
+        // The product page renders exactly one variant, `product_variants[0]`
+        // (app/products/[slug]/page.tsx: its price, its stock state, its size
+        // and stone), so the Offer describes that variant: its price (the Hub's
+        // `price_jpy`, the sale price while on sale — the figure printed in the
+        // price band) and its availability through the SAME `variantAvailability`
+        // call the buy buttons use. It used to be the LOWEST variant price with
+        // the WHOLE product's availability, which could name a price and a
+        // state the page does not show on a multi-variant piece. No arithmetic,
+        // no fallback figure: a product with no variant has no price (the page
+        // shows it as sold) and says SoldOut.
+        offers: { "@type": "Offer", price: displayedVariant(props.product)?.price_jpy ?? undefined, priceCurrency: "JPY",
           // Absent condition is New — matches ConditionBadge, which only renders for Preloved.
           itemCondition: props.product.condition === "Preloved" ? "https://schema.org/UsedCondition" : "https://schema.org/NewCondition",
           // The same status the page shows (lib/availability.ts): in stock, or
           // SoldOut. There is no held/BackOrder state (owner decision 2026-09-23).
-          availability: productAvailability(props.product) === "available" ? "https://schema.org/InStock" : "https://schema.org/SoldOut", url: `${base}${prefix}/products/${props.product.slug}` },
+          availability: variantAvailability(displayedVariant(props.product), props.product.status) === "available" ? "https://schema.org/InStock" : "https://schema.org/SoldOut", url: `${base}${prefix}/products/${props.product.slug}` },
         ...(prefix ? { inLanguage: pageLanguage(prefix) } : {}),
         // Phase 4 (§7): only what the page shows. The Hub's count and average
         // (the figures ReviewSummary prints), and one Review per card rendered.

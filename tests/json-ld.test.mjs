@@ -180,3 +180,37 @@ test("the Product never invents identifiers or origin: no gtin, mpn or countryOf
   const s = JSON.stringify(buildJsonLd({ type: "product", product: bilingual, rating: { count: 7, average: 4.6, reviews: shown } }, B, "/ja"));
   for (const k of ["gtin", "mpn", "countryOfOrigin"]) assert.equal(s.includes(k), false, k);
 });
+
+// ---------------------------------------------------------------- structured-data review (2026-11-01): the Offer is the one the page shows
+test("offer: the price and availability are the DISPLAYED variant's (product_variants[0]), the same the page renders — not the lowest price, not any variant's stock", () => {
+  const multi = { ...product, product_variants: [
+    { id: "first", price_jpy: 150000, stock_qty: 0, product_media: [] },
+    { id: "cheaper", price_jpy: 90000, stock_qty: 3, product_media: [] },
+  ] };
+  const d = buildJsonLd({ type: "product", product: multi }, B, "/en");
+  assert.equal(d.offers.price, 150000, "the displayed variant's price (the old builder said 90000)");
+  assert.equal(d.offers.availability, "https://schema.org/SoldOut", "the displayed variant is out of stock (the old builder said InStock because another variant had stock)");
+  const inStock = { ...multi, product_variants: [{ id: "first", price_jpy: 150000, stock_qty: 1, product_media: [] }, multi.product_variants[1]] };
+  assert.equal(buildJsonLd({ type: "product", product: inStock }, B, "/en").offers.availability, "https://schema.org/InStock");
+});
+
+test("offer: on a sale the price is the Hub's sale price (price_jpy), the figure printed in the price band; no variant → no price and SoldOut; archived → SoldOut", () => {
+  const sale = { ...product, product_variants: [{ id: "v", price_jpy: 99000, full_price_jpy: 120000, on_sale: true, stock_qty: 1, product_media: [] }] };
+  assert.equal(buildJsonLd({ type: "product", product: sale }, B, "/en").offers.price, 99000);
+  const none = { ...product, product_variants: [] };
+  const d = buildJsonLd({ type: "product", product: none }, B, "/en");
+  assert.equal(d.offers.price, undefined);
+  assert.equal(d.offers.availability, "https://schema.org/SoldOut");
+  const archived = { ...product, status: "archived", product_variants: [{ id: "v", price_jpy: 10000, stock_qty: 5, product_media: [] }] };
+  assert.equal(buildJsonLd({ type: "product", product: archived }, B, "/en").offers.availability, "https://schema.org/SoldOut");
+});
+
+test("offer: the builder and the page read the same variant rule (source guard)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const page = readFileSync(new URL("../app/products/[slug]/page.tsx", import.meta.url), "utf8");
+  const ld = readFileSync(new URL("../lib/json-ld.ts", import.meta.url), "utf8");
+  assert.match(page, /const variant = p\.product_variants\[0\];/, "the page renders the first variant");
+  assert.match(ld, /displayedVariant\(props\.product\)\?\.price_jpy/);
+  assert.match(ld, /variantAvailability\(displayedVariant\(props\.product\), props\.product\.status\)/);
+  assert.doesNotMatch(ld, /fromPrice\(|productAvailability\(/, "the lowest-price and whole-product rules are gone from the Product offer");
+});

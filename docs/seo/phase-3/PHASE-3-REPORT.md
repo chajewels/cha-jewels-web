@@ -1,6 +1,8 @@
 # SEO Phase 3 — Layaway indexing (`/en/layaway`)
 
 **Status:** READY FOR QA (implemented and locally verified on a production build; not merged, not deployed; nothing is claimed indexed).
+
+> **Record label (2026-11-01 reconciliation):** this is the implementation report as of 2026-10-29. The phase was later released: `/en/layaway` is DEPLOYED and OBSERVED IN SEARCH CONSOLE (2026-10-30) per `SEO-IMPLEMENTATION-STATUS.md` and the register (R-12). Nothing below is edited.
 **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` §12 and "PHASE 3"; `docs/seo/SEO-MIGRATION-MAP.md` §6 (layaway rule), §9 F (the Option ii link exception this phase ends), OD-6, OD-7.
 **Branch:** `seo/phase-3-layaway-indexing` (from `develop` `4dc3c23`).
 **Prerequisites in production (Phase 2 handoff, STATUS.md):** locale routes, localized navigation, localized sitemap, temporary 307s, `gateLang`/OD-15. All present in `main` `7aac136`.

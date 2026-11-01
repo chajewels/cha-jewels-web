@@ -1,0 +1,253 @@
+# SEO master plan — requirements-to-delivery matrix (2026-11-01)
+
+**Batch:** SEO master-plan completion, branch `seo/master-plan-completion` (worktree `../cha-jewels-web-seo-complete`), PR #462, base `develop` `47ffc77` (= PR #460 merged; production `main` `9518974`). **Heads, dated:** `d0b3b5f` (first delivery, 2026-11-01), `1b654f7` (correction batch, 2026-11-01), the reconciliation batch (this revision, 2026-11-01; SHA in the PR). **Authority:** this matrix is the single requirements-to-delivery record; §K maps all 36 SEO documents (plus the two inventory appendices and the two records added on 2026-11-01) to its rows, §L lists what is not mapped and every contradiction found, with its resolution. **Scope:** every phase, priority, §33.3 step, requirement and outstanding issue of `CHA-JEWELS-SEO-MASTER-PLAN.md`, reconciled against the source tree, production and the records on 2026-11-01. One row per requirement; the register `SEO-REQUIREMENTS-REGISTER.md` keeps the long form (R-xx ids are its rows).
+
+**Status words:** NOT STARTED · AUDITED · IMPLEMENTING · BLOCKED · READY FOR QA · VERIFIED · DEPLOYED · SEARCH ENGINE RECRAWL PENDING · OBSERVED IN SEARCH CONSOLE · CLOSED · OWNER DECISION PENDING. **Kind:** *source* (this repository), *content* (Hub text, owner-operated), *external* (owner, Google, third parties). **Evidence tags:** [V] verified by the method named on 2026-11-01; [O] owner-reported; [U] unverified.
+
+**Preflight facts [V 2026-11-01]:** no open PR; `develop` `47ffc77` carries #452 (foundation), #455/#456 (security batch 1), #458 (React #418 fix) and #460 (loader hardening + records); `main` `9518974` (OG-PRODUCT release) has none of them; the develop preview is SSO-gated (302) and no automation bypass secret or Hub API key exists in this session (`.env.local` fixtures mode); the live sitemap lists 976 URLs (453 products × 2, 12 collections × 2, 5 categories × 2, 1 post × 2, statics, `/en/layaway`, `/`), 906 image entries, 8 `lastmod`; the four Step 4 collection descriptions and the two category descriptions are still the pre-approval text live; the Notion connector is unauthenticated (manifest instead: `NOTION-SEO-UPDATE-MANIFEST-2026-11-01.md`).
+
+**Correction batch (2026-11-01, review of `d0b3b5f`, same PR #462):** (1) Search Console helper: malformed metrics refused instead of zeroed, absent terms ABSENT not zero, property totals separated from disclosed-row sums, hosts classified (only `https://www.chajewelsjp.com` is a site page), export selection and comparison context validated, no unobserved finding prefilled — 11 tests, 8 failing on `d0b3b5f`. (2) Merchant builder: identifiers are evidence from an explicit rule (with no rule the feed is empty), unknown status/condition/slug/duplicates are recorded exclusions, reconciliation is exact membership, the Website API's completeness limit is stated (OD-MC-12); the route stays PROPOSED — 12 tests, 4 failing on `d0b3b5f`. (3) `llms.txt`: the recorded contract "every link returns 200 and is indexable" is now checked by FETCHING every advertised link in both checkers (`llms-links` rows), not by sitemap membership — 2 core tests failing on `d0b3b5f`. (4) R-30/R-31 guide and trust reviews performed (`GUIDE-TRUST-CONTENT-REVIEW-2026-11-01.md`, OD-CT-1..6); R-19 product-video inventory kept UNKNOWN; statuses reconciled below. (5) Attribution design: consent classification withdrawn and stated as undecided (default consent-gated), metrics defined exactly, two marked NOT MEASURABLE. (6) How the exact head obtains a deployment: runbook §2 step 2 (a bypass secret opens a deployment, it does not create one; Vercel builds only `develop` and `main`). Results on the corrected head: QA §17.
+
+**Reconciliation batch (2026-11-01, review of `1b654f7`, same PR #462):** (1) §K/§L added: every SEO document inventoried (`…-INVENTORY-A.md`, `…-INVENTORY-B.md`: 1,064 rows, 486 without an ID of their own), R-13, R-16, R-34, R-35 given explicit rows, aliases for every ID family, unmapped items counted, 24 contradictions resolved or labelled. (2) Search Console helper: comparison needs a recorded, matching export context (`context.json`: property, search type, filters) — unknown or mismatched = NOT COMPARABLE; impossible calendar dates and malformed CSV structure refused; 15 tests, 7 failing on `1b654f7`. (3) `llms.txt`: the route is withdrawn — the recorded "static file" and "after Phase 6" rules stand; the route is DEFERRED to the Phase 6 batch (record OD-LLMS-1 with the exact code; no new approval requested); checkers skip the two rows with the reason while the route is absent. (4) Merchant identifiers: one two-axis policy (brand evidence vs GTIN/MPN evidence) in builder, proposal, readiness and register; OD-MC-4 recommendation revised to Google's stated path; route still gated; unknown excluded; 12 tests. (5) Attribution: personal-data status qualified once and used consistently; GA4 presented as an option (B1 creation event not recommended, B2 Hub-confirmed server event) without prescription; nothing approved. (6) Summaries reconciled with dated labels; Notion manifest maps by title with visible-ID limits stated. (7) PR #463 checked read-only: merged into `redesign/lumiere` (not `develop`); integration dependency recorded (A-3). Results: QA §18.
+
+## A. Foundation and final technical acceptance
+
+| Ref | Requirement | Current state | Remaining | Owner / kind | Evidence |
+|---|---|---|---|---|---|
+| R-01 | Baseline checker at 0 fail | Dated, by head (local fixtures build unless stated): `d0b3b5f` raw 671/0, DOM 685/0; `1b654f7` raw 728/0 (57 `llms-links` rows), DOM 799/0 (114 rows); **reconciliation head: raw 671/0 with the two llms rows skipped as "route gated", DOM 685/0 (0 hydration), rollback 10/0/0** [V]; production `main` `9518974` on the reconciliation head: 556/109 = exactly the pre-#452 FOUNDATION rows [V] | re-run on the pinned candidate and after release | source | `SEO-QA-REPORT.md` §16–§18 |
+| R-06 / R-15 | 404 hygiene, og:url, fb:app_id (foundation batch) | Merged in `develop` (#452) and re-verified on this head; **not released** | release of `develop` → `main` (owner); post-release production run | source | QA §15, §16 |
+| A-1 | Redirect status codes and chains, canonical/hreflang/og:url consistency, robots meta and x-robots-tag, cache no-store on 307s, language routing without cookies, sitemap validity/eligibility/duplicates/origin, raw HTML vs hydrated DOM, readiness and failed-request accounting, desktop and actual 375 px, client navigation, missing resources | All covered by the two checkers on the local build of the reconciliation head (QA §18) [V]. **On a deployment: NOT RUN** — no deployment of this head exists (Vercel builds only `develop` and `main`; the PR's Vercel comment: "1 Skipped Deployment — Ignored") and no bypass secret is in the environment | a deployment of the exact head per runbook §2 step 2, then one credentialed run; if `develop` has moved, the candidate is a different tree: pin and verify it (A-3) | source + owner (deployment, access) | §18 |
+| A-2 | Real-Hub data acceptance on a deployment | BLOCKED (two external facts): no deployment of this head can exist before the owner merges or deploys it (runbook §2 step 2), and no `VERCEL_AUTOMATION_BYPASS_SECRET` or `HUB_API_KEY` is in the session. The owner-approved equivalent method was last run on `2e83545` (`PREVIEW-ACCEPTANCE-2026-10-31.md` §6); `47ffc77` is a new runtime | owner: deployment (O-2a) then the secret in the environment once per candidate (never in chat), or re-approval of the equivalent method | external | Owner actions O-1, O-2 |
+| A-3 | Integration dependency on concurrent work | **Recorded 2026-11-01 (read-only check):** PR #463 ("P2 — the home page in the full Lumière design") is MERGED into `redesign/lumiere`, not into `develop`; `redesign/lumiere` is 18 commits ahead of `develop` and rewrites `app/page.tsx`, `app/layout.tsx`, `lib/hub-api.ts` (fixtures), `lib/content/legal.ts`, and one comment line of `lib/product-seo.ts` (the only file both branches touch; no semantic overlap). `develop` is still `47ffc77`. **Rule:** exact-head acceptance of this PR is acceptance of this tree only; when `develop` changes before or after the SEO merge, the deployed candidate is pinned (SHA, `dpl_…`, asset hash), its commit list recorded (`git log --oneline 47ffc77..<candidate>`), and both checkers re-run on it — earlier runtime results are never carried forward | owner sequences the merges; Site re-runs on the candidate | external + source | runbook §2 step 2 |
+| R-37 | Rollback-mode duplicate og:url on a bare product page | **CLOSED in this batch**: the product OpenGraph block no longer names a URL; the locale wrapper adds og:url from the canonical (identical output on `/en` and `/ja`); rollback checker **10/0/0 deferred** [V] | release | source | `lib/product-seo.ts`, `scripts/check-seo-rollback.mjs` |
+| D1 (React #418) | Hydration error | Fix merged (#458, #460) and 0 events on this head's local DOM run [V]; **not verified on a deployment** | verify on the pinned candidate, then retire OD-F1 | source + owner | acceptance record §6.9 |
+
+**Gate boundaries (closeout 2026-11-01).** (1) **#462 integration and preview gates — the only gates this PR waits on:** O-2a a deployment of the exact head (or a pinned candidate per A-3), O-1 access for the fixed checkers, the credentialed run of both checkers with real data (A-1/A-2, incl. phone-375 and the 36-URL comparison), the hydration matched protocol (D1), then O-2b the release approval. (2) **Future-phase decisions gate later batches, not this PR:** OD-P6-1..10, OD-MC-1..12 (incl. the identifier rule), OD-ATTR-1..5, OD-CT-1..6, OD-SD-1, OD-SC-1..4 and the export context (O-16), OD-AUTH-1..3, the redirect stage OD-1/3/4/6 (O-7), Step 3b/3c scoping (O-10), Phase 9/11 options (O-11). (3) **Outside SEO acceptance:** the historical login, Messenger-validation and security-hardening work (preview-acceptance D5/D6, the W-xx/H-xx security cards, the Hub items BUG-01/BUG-04) has its own records and owners; SEO acceptance neither verifies nor waives it. It shares the `develop` candidate, which is why A-3 pins and re-verifies any candidate that contains other work. (4) **`llms.txt`:** deferred under the approved requirements; not a gate and not an open decision.
+
+## B. Crawlability, indexing and URL governance
+
+| Ref | Requirement | Current state | Remaining | Owner / kind |
+|---|---|---|---|---|
+| R-05 | robots.txt and private/utility noindex | DEPLOYED; live robots matches policy [V] | signed-in renders of `/account`, `/checkout`, `/loyalty/join` (X6) — manual, owner test account | source (done) / external |
+| R-07 | Sitemap coverage and truthful `lastmod` | DEPLOYED; 976 URLs, 8 `lastmod` by design (no deploy-time proxy) [V] | none; `lastmod` only if the Hub supplies a content-modified timestamp | source (done) |
+| R-08 / R-09 | Locale routes, canonical, reciprocal hreflang | DEPLOYED, re-verified [V] | none | source (done) |
+| R-10 / R-11 / BUG-06 | Permanent redirects (308 promotion), root `/` vs `/ja` duplicate (OD-3), `?lang=`, bare `/layaway` (OD-6), `/gold-guide` two hops | OWNER DECISION PENDING; gated on populated Search Console Pages data (processing) | owner decision, then a dedicated high-risk branch with the redirect matrix test | external then source |
+| R-12 | `/en/layaway` indexable; `/ja/layaway` never | DEPLOYED; OBSERVED IN SEARCH CONSOLE (2026-10-30) [V earlier]. History: `phase-3/PHASE-3-REPORT.md` (2026-10-29) and `phase-9` briefs still read "READY FOR QA / PR #416" and `INTERNAL-LINKING-MAP.md` "PROPOSED" — dated snapshots superseded by the release record in `SEO-IMPLEMENTATION-STATUS.md`; not edited | none | done |
+| B-1 | Valid, missing, unavailable-language and malformed routes | 132 404 shapes × 2 contexts clean on this head [V] | release | source (done) |
+| X10 / OD-MC-9 | Sold-product sitemap and feed policy | KEEP (D3); feed sends `out_of_stock` by design | per-product review needs Search Console page data (not yet populated) | owner decision later |
+| R-36 / GSC-09 | `portal.` and `paymenthub.` subdomains crawlable | OWNER DECISION PENDING (Hub / Firebase workstream, not this repository) | owner policy | external |
+| R-35 | Old domain `chajewelsjapan.com` (plan §18) | **CLOSED** — owner decision KEEP as the live Page365 shop, no redirect (PR #451, 2026-10-31); plan §18 superseded; Gate 0 "old domain" closed. Acceptance: nothing to implement | none | closed |
+
+## C. Structured data and sharing
+
+| Ref | Requirement | Current state | Remaining | Owner / kind |
+|---|---|---|---|---|
+| R-17 | JewelryStore, Product, BreadcrumbList, FAQPage, BlogPosting, ItemList | DEPLOYED; live samples re-read [V 2026-11-01]. History: `phase-4/PHASE-4-REPORT.md` reads "READY FOR QA" as of its date (2026-10-29); superseded by the release record; not edited | — | done |
+| C-1 | **Product Offer = visible content** (price, availability, variant) | **Verified code-level defect, fixed in this batch:** the Offer named the lowest variant price and the whole product's stock while the page renders `product_variants[0]`; now the Offer is the displayed variant's price (sale price while on sale) and availability through the page's own `variantAvailability` rule. Tests fail against the old builder. Prevalence of multi-variant pieces in the live catalog: [U] (needs the Hub API) | release; SEARCH ENGINE RECRAWL PENDING after | source |
+| C-2 | Deferred JewelryStore / OnlineStore / Organization type review | **AUDITED in this batch** (`phase-4/STRUCTURED-DATA-REVIEW-2026-11-01.md` §1): Google recommends `OnlineStore` for an ecommerce site and reserves `LocalBusiness` subtypes for a physical store; the office receives no customers (OD-GBP-1 = No). Recommendation prepared; **no change made** (protected asset; owner decision OD-SD-1) | owner decision; then a one-line builder change with tests | source after decision |
+| C-3 | aggregateRating / review | Builder emits only approved, visible reviews; no approved product review exists yet [V] | none | done |
+| C-4 | shippingDetails / hasMerchantReturnPolicy | Not emitted by owner decision (R-1/S-1); unchanged | revisit only with Merchant Center (MC-G13) | owner |
+| R-14 / R-15 | OG/Twitter identity, actual shared images | Products DEPLOYED (#441); locale tree in `develop` (#452) | release | source (done) |
+| R-13 | Titles and descriptions (Step 1; plan §5, §6) | DEPLOYED, production-verified (Step 1 release). Open parts, explicit: homepage title/description TESTING direction NOT STARTED (plan §5 "Recommended testing direction"); `/` vs `/ja` duplicate belongs to R-10 (OD-3). Acceptance: one title per page; a recorded A/B or sequential test only when Search Console data exists | owner chooses the testing direction after the Search Console reads (R-03); no change now | owner / source later |
+| R-19 | Video metadata and eligibility | **ASSESSED for the three inventoried site videos** (hero film, About logo film, artisan tile: decorative loops, not eligible; review §3). **Product-video inventory UNKNOWN** — count and content unreadable without the Hub API; not assessed, not closed | read-only API count and a per-video look when a key is available; `VideoObject` only if a video is a page's main watchable content | source (open, Hub access) |
+| R-18 | Image SEO (Hub alt/captions) | PARTIAL: image sitemap 906 entries; alt from Hub `product_media.alt` where present | Hub image fields: owner decision with R-26 | content |
+| R-16 | Listing SEO (Step 2: collection/category ItemList, hero OpenGraph, listing descriptions) | DEPLOYED (Step 2 release); the foundation batch added only `og:url` to those pages (in `develop`, not released). Acceptance: every listing carries ItemList and one og:url = canonical (checker rows pass on this head) | release of `develop` → `main`; listing TEXT changes are R-23 (Step 4) | source (done) |
+| C-5 | EN/JA template consistency | Checker parity on every template in both languages [V] | — | done |
+
+## D. Performance and Core Web Vitals
+
+| Ref | Requirement | Current state | Remaining | Owner / kind |
+|---|---|---|---|---|
+| R-21 | Step 3a (Japanese heading font) | DEPLOYED; no production gain confirmed | — | done |
+| R-22 | Steps 3b (large listings) and 3c (root-layout caching) | AUDITED; **no owner scoping** (gate: scoping + measured need) | owner scopes; then a dedicated branch with matched before/after mobile runs | owner then source |
+| D-1 | Reproducible lab baseline for before/after | Lighthouse 13.6 mobile single runs on four production pages taken 2026-11-01 (QA §16 table); lab only, single run, not field data | repeat as the "before" of any approved step; 3 runs median | source (done) |
+| D-2 | Real-user measurement readiness | Vercel Speed Insights mounted (`SpeedInsightsProvider`) [V]; Search Console Core Web Vitals report still processing [V earlier] | owner reads CWV in Search Console on the planned dates | external |
+| D-3 | Responsive image sizing and priority, fonts, hydration, third-party loading | Covered by Steps 1 and 3a; no new defect found by the DOM checker (0 failed requests, 0 console errors) | — | done |
+
+## E. Collections, categories, products and content
+
+| Ref | Requirement | Current state | Remaining | Owner / kind |
+|---|---|---|---|---|
+| R-23 | Step 4 Hub-managed content (OD-S4-3/4 texts, OD-S4-6/7/9, pilot) | AUDITED — OWNER APPROVAL PENDING; **live re-check 2026-11-01: none of the six listing texts applied** (necklaces, rings, other-accessories, pendants, preloved-jewelry, fine-jewelry still show the old descriptions) [V] | owner publishes per `STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md` (complete package: fields, backups, steps, verification, rollback); Site verifies after | content |
+| R-24 | BUG-03 article wording | Out of SEO scope (owner); not applied [V earlier] | owner | content |
+| R-26 | Phase 6 commercial landing pages and Hub SEO fields | AUDITED; OD-P6-1..9 pending (no `kihei`/`diamonds` collection; Hub SEO fields a draft) | owner decisions; Hub implements fields; Site renders in a later batch | external / content / source later |
+| R-26 add-on | **`llms.txt`** | **Builder IMPLEMENTED (`lib/llms-txt.ts`, shared static list `lib/sitemap-pages.ts`, 4 tests); route WITHDRAWN and DEFERRED to the Phase 6 batch under the approved requirements (owner, 2026-10-31: "static file", "after the Phase 6 URLs and titles are final") — no owner decision pending.** History by head: `d0b3b5f` route + `llms-txt` checker row (raw 671/0); `1b654f7` + `llms-links` rows fetching every advertised link (raw 57 rows, DOM 114 rows, all pass on the fixtures build); withdrawn at `b70f5e0` because those rules were not met and a documented deviation is not approval. The checkers keep both rules and skip them with the reason "route deferred" while `app/llms.txt/route.ts` is absent. Acceptance (Phase 6 batch): 200 `text/plain`; every link fetched 200 and indexable; guards pass; the static-file vs Hub-links tension settled in that batch's design | Phase 6 batch (OD-P6-1..10); nothing before it | source, later |
+| R-27 / R-28 | Kihei and K18 pillars and clusters | AUDITED, drafts only; route family `/en/guides/*` needs OD-P6-5 + editorial approval | owner approvals; then implement the family in a dedicated batch | external then source |
+| R-29 | Filipino / Taglish | AUDITED; options open (Taglish Hub posts recommended, no route) | owner chooses after Search Console evidence (R9 rule) | external |
+| R-30 | Jewelry and shopping guides (plan §9) | **AUDITED 2026-11-01** (`GUIDE-TRUST-CONTENT-REVIEW-2026-11-01.md` §1): terminology PASS for every guarded rule; four un-guarded near-misses recorded (T-2 "sourced in Japan" phrasing, T-3 categorical "certified diamond", T-5 unsourced platinum claim, un-sourced or mismatched figures in the shopping guide). Acceptance: guide copy follows the terminology rules — met for the guarded rules | OD-CT-1..4 (owner wording; no copy changed); plan §9 supporting pages belong to Phase 6 (OD-P6-5) | content (owner) |
+| R-31 | Authenticity and trust content (plan §24) | **AUDITED 2026-11-01** (review §2): no fabricated review, rating or count (Hub data only); every claim traced to an owner-published fact or marked [U]; two universal claims and the "preloved watches" mention exceed the repository evidence; the six §24 trust pages do not exist. Acceptance: trust claims match evidence; no fabricated reviews — met for fabrication, open on OD-CT-5/6 | OD-CT-5, OD-CT-6; §24 pages with Phase 6 | content (owner) |
+| R-32 | Question-query strategy and content-quality rule (plan §20, §25) | A method, not a deliverable: the §4 regexes and R1–R10 are operational in `scripts/gsc-report.mjs` (corrected; context-validated). Acceptance: content briefs cite a query source | sources chosen when Search Console query data exists (R-03) | method (done) |
+| R-20 / E-1 | Internal links, breadcrumbs, navigation discoverability; product reverse-linking block | Step 1 DEPLOYED. The reverse-linking "Learn more" block (`phase-6/INTERNAL-LINKING-MAP.md` §3) is **proposed copy** and is not shipped: owner approval of the link texts (OD-P6-10, proposed in the approval list) | owner approves wording; Site implements with a test per condition | content then source |
+| E-2 | Approved origin clarifier and placements | Footer tagline (Hub) unchanged; 8C100 description still carries a made-in-country phrase (OD-S4-6 conditional item) [V] | owner (Hub text) | content |
+
+## F. Merchant Center and feed (Phase 5)
+
+| Ref | Requirement | Current state | Remaining | Owner / kind |
+|---|---|---|---|---|
+| R-25 | Feed implementation | **Pure builder implemented and corrected** (`lib/merchant-feed.ts`, 12 tests): one item per product = the displayed variant; identifiers only from an explicit `IdentifierRule` (none exists → every piece `identifier_unknown`, feed empty); unknown status/condition/slug and duplicate rows recorded as exclusions; exact-membership `reconcile()` with an optional authoritative total. **No route** (OD-MC-7 not given); the route code in `phase-5/MERCHANT-FEED-IMPLEMENTATION-PROPOSAL.md` §3 is PROPOSED, not behaviour that exists | owner: X8, OD-MC-1..11 incl. the identifier rule, OD-MC-12 (Hub total); then the route lands with the builder (one small batch) | source (builder done) / external |
+| MC-G1 | Feed URL naming disagreement | Resolved in the proposal: `/api/merchant-feed/route.ts` serving `/api/merchant-feed` with `?lang=ja\|en` (one URL form, one route folder); OD-MC-7 confirms | owner confirms | external |
+| MC-G2 | Stale X5 sentence in the readiness doc | **Corrected in this batch** (readiness §3) | — | done |
+| MC-G3 | Account state, image-host crawl, `free_shipping_threshold`, category map | Account: [U] (X8). Image host: the Hub's Supabase public storage `pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/…` [V from live JSON-LD]; its robots policy [U]. Category map: 12 live collection slugs read [V]; jewelry ones mapped, non-jewelry left unmapped by design | owner: X8; Site: first-fetch Diagnostics | external |
+| MC-G4 | Stale counts | Re-read 2026-11-01: 453 products in the sitemap (906 URLs); sold count [U] (needs the Hub API) | re-read at implementation with the API | source |
+| MC-G5 | Sold-piece rule vs D3/X10 | `out_of_stock` while D3 stands (builder) | restate if D3 changes | owner |
+| MC-G6 | `item_type` sent by production? | [U] in this session (no Hub API key); the builder maps `item_type === "Watch"` and the `preloved-watches` category to 201 either way | read-only API check when a key is available | source |
+| MC-G7 | Identifier evidence per class | **Two-axis policy, reconciled across builder, proposal, readiness and register (Google help pages read 2026-11-01):** BRAND evidence = the Hub's `brand` (always wins) or the owner's rule (store name for own-made pieces, OD-MC-4 revised: "omit" withdrawn); CODE evidence (GTIN/MPN) exists nowhere in the API and comes only from the rule (OD-MC-11). Unknown on either axis → excluded; no brand + no code → `identifier_exists=no`; brand + codes → both; conflicts excluded. Built-in rule = UNDECIDED → feed empty. Acceptance: a test per piece class once the rule exists | owner rule (OD-MC-11) and brand decision (OD-MC-4); then the rule as code | external then source |
+| MC-G8 | Variant / price / landing-page agreement | **Closed by design:** one item per product describing `product_variants[0]`, the variant the page renders (same rule as the corrected JSON-LD Offer); test proves it | per-variant mode only after a variant-selectable page (owner) | done |
+| MC-G9 | Freshness | Proposal: daily fetch 03:00 JST + the route's 60 s catalog cache; a sold piece is `out_of_stock` within one fetch; owner states the acceptable maximum age (OD-MC-8) | owner | external |
+| MC-G10 | Full-catalog retrieval | **PARTIAL:** `reconcile()` enforces exact membership between two reads of the Website API (items + exclusions = slug list; nothing missing, extra, repeated or blank; no slugless row). **Not authoritative:** both reads share one table and one `limit=5000`, so a truncated read would agree with itself; the API exposes no total | **OD-MC-12** (Hub work item): a total count on the catalog read; `reconcile` already accepts `authoritativeTotal` | source (partial) + Hub |
+| MC-G11 | Fetch failures | Proposal: 503 on any Hub failure or reconciliation problem, never an empty 200; cache only a complete feed (route code in the proposal, unit-testable with a mocked Hub) | route | source later |
+| MC-G12 | Feed URL under `/api` (robots Disallow) | Google's crawl guidance page could not be read in this session (help id 404); recorded [U]; proposal keeps `/api/merchant-feed` and verifies on the first Merchant Center fetch, with the allow-list change as the fallback | first fetch | external + source |
+| MC-G13 | Shipping and returns agreement | Published text re-read [V]: Japan ¥800 under ¥8,000 of pieces, free from ¥8,000 (`lib/content/shopping-guide.ts`); no change-of-mind returns, defects within five days (`lib/content/legal.ts`). The proposal's account-side package quotes exactly these; outside-Japan rates unpublished → no non-JP target | owner enters settings | external |
+| F-1 | Account-side submission and setup | Complete owner package in the proposal §5 (what to enter, in what order, how to verify, how to roll back) | owner | external |
+
+## G. Remaining content and growth phases
+
+| Phase | Current state | Remaining | Owner / kind |
+|---|---|---|---|
+| 6 landing pages | AUDITED; `llms.txt` READY FOR QA (above) | OD-P6-1..9 | external |
+| 7 Kihei | DRAFT | OD-P6-5 + editorial approval | external |
+| 8 K18 | DRAFT | same | external |
+| 9 Filipino | AUDITED; `description_tl` rendered nowhere (unchanged, needs a decision) | owner option after R9 evidence | external |
+| 10 Local / Business Profile | CLOSED — NOT ELIGIBLE (OD-GBP-1 = No); entity signals via Phase 4/5/11 | — | closed |
+| 11 Backlinks | AUDITED; execution materials added in this batch (`phase-11/AUTHORITY-OPPORTUNITIES.md` §8: pitch drafts and a tracking log template); no outreach sent | OD-AUTH-1..3; owner sends | external |
+| R-34 (= Phase 11 row above, explicit) | Authority and backlinks | AUDITED; execution materials in `phase-11/AUTHORITY-OPPORTUNITIES.md` §8 (pitch drafts, directory script, tracking log template); nothing sent, nothing purchased. Acceptance: each listing/link recorded with date and evidence | OD-AUTH-1..3; owner sends | external |
+
+## H. Search Console and measurement
+
+| Ref | Requirement | Current state | Remaining | Owner / kind |
+|---|---|---|---|---|
+| R-02 / BUG-09 | Property, sitemap, priority URLs | Verified; 3 URLs OBSERVED IN SEARCH CONSOLE (2026-10-30); coverage processing (2026-10-31) | **next read ~5 Nov and ~12 Nov (owner-run, read-only); not re-read today by design** (one day since the last read, report still processing) | external |
+| R-03 | Weekly operations and the report helper | **`scripts/gsc-report.mjs` written and corrected in this PR** (11 tests on synthetic fixtures, which are not observations): Search Console's own CSV names and headers (fail loudly on a mismatch; the exact header names stay UNVERIFIED until the first real export), malformed metrics refused, absent terms ABSENT not zero, property totals (Chart) separated from disclosed-row sums, host-aware page classification, validated export selection and comparison context, R1–R10 on export rows only | owner: OD-SC-1..4; first real run on the next export | source (done) / external |
+| H-1 | Branded vs disclosed non-brand vs undisclosed | Recorded in the 2026-10-31 baseline; the helper separates brand (§4.3) from the rest and never labels undisclosed rows | — | done |
+| R-04 | Organic purchase/revenue attribution | **Design written and corrected** (`phase-12/ORGANIC-ATTRIBUTION-DESIGN.md`): first-touch source class joined to Hub-confirmed payments; metrics defined exactly in §2 (paid orders only, per currency, refunds netted as the Hub records them, layaway as starts, repeat within 365 days); organic add-to-cart and checkout start marked NOT MEASURABLE without a further tracking change (OD-ATTR-5); the consent classification is UNDECIDED and stated as the owner's/counsel's call, default consent-gated (OD-ATTR-3) | owner decisions OD-ATTR-1..5 before any tracking, Hub or policy change | external then source + Hub |
+| H-2 | Analytics docs vs implementation | Reconciled: Vercel events, consent-gated Meta/Google Ads tags, no GA4, no source capture [V]; order creation ≠ payment (Hub authoritative) | — | done |
+
+## I. Operations and documentation
+
+| Ref | Requirement | Current state | Remaining |
+|---|---|---|---|
+| I-1 | Monitoring and regression checks | Two checkers + rollback checker + unit suite (652) + 7 guards; `SEO-OPERATIONS-RUNBOOK.md` written in this batch (cadence, commands, acceptance criteria) | run per cadence |
+| I-2 | Release and rollback checklist | Runbook §2–3 (exact commands, pin the deployment, post-release checks, revert order) | owner release |
+| I-3 | Temporary implementation removal criteria | Runbook §4: React #418 loader (remove when Next bundles react-dom ≥ 19.3; test turns red), `SEO_LEGACY_REDIRECTS` kill switch (remove at the 308 promotion), the root `/` sitemap exception (OD-3), the `single-language-posts` optional coverage | as each criterion is met |
+| I-4 | Documentation consistency | Register, status, QA report, outstanding issues, readiness docs, master plan status lines updated in this batch | — |
+| I-5 | Notion SEO records | Connector unauthenticated → `NOTION-SEO-UPDATE-MANIFEST-2026-11-01.md` for Codex | Codex applies |
+
+## J. Consolidated owner / external actions (the ONE list)
+
+Decisions and actions that only the owner (or an external party) can take. Nothing below is unfinished implementation; each is gated on the named person.
+
+| # | Decision / action | What it unblocks | Recommendation |
+|---|---|---|---|
+| O-1 | Access for the fixed checkers on a deployment of the exact head: set `VERCEL_AUTOMATION_BYPASS_SECRET` in the session environment (never in chat) for the pinned deployment, or re-approve the equivalent method. A secret opens a deployment; it does not create one (see O-2a) | A-1/A-2 exact-deployment acceptance incl. phone-375 and real-data `llms-links` rows | supply once per candidate |
+| O-2 | (a) **Create the deployment of this head:** approve merging PR #462 into `develop` while `develop` is still `47ffc77` (then the merge commit's tree equals the head's tree; proof command in runbook §2 step 2), or run `vercel deploy` of the checked-out head under the owner's login, or enable branch builds in the project settings; (b) after O-1 passes on that deployment, approve the release `develop` → `main` | everything READY FOR QA above; retires OD-F1 if #418 verifies on the candidate | (a) merge now, (b) release after the credentialed run |
+| O-3 | OD-SD-1: keep `JewelryStore` or change the entity type to `OnlineStore` (review §1) | C-2 | `OnlineStore` (Google's recommendation for an ecommerce site without a visitable store) |
+| O-4 | Step 4: publish the six listing texts per the checklist; confirm 8C100 wording, OD-S4-7, OD-S4-9, the pilot | R-23 | publish |
+| O-5 | Merchant Center: answer X8 (account, verification, free listings); decide OD-MC-1..10; approve the route (OD-MC-7); **write the identifier rule per piece class (OD-MC-11) — without it the feed has no items**; confirm the shipping rate card and returns text (MC-G13, and the guide figures flagged in OD-CT-4) | Phase 5 route batch | JA-first, Option B route, account-level shipping |
+| O-6 | Phase 6: OD-P6-1..9 (Kihei/diamonds collections, watches primary URL, Hub SEO fields, `/en/guides/*` family, no `/shop/*`, layaway guides deferred, Search Console query export, wholesale title) and OD-P6-10 (product "Learn more" link texts) | Phases 6–8 implementation | approve the field draft and the guides family |
+| O-7 | Redirect stage: OD-1/3/4/6 (308 promotion, root, bare `/layaway`, `/gold-guide` one hop) once Search Console Pages data is populated | R-10/R-11/BUG-06 | decide after the 12 Nov read |
+| O-8 | Search Console: OD-SC-1..4 (who exports, where reports live, API access later, thresholds); run the ~5 Nov and ~12 Nov reads; no indexing requests | R-03, R-02 | owner exports weekly; Site runs `scripts/gsc-report.mjs` |
+| O-9 | Organic attribution: OD-ATTR-1..5 (design §6), including the consent decision with counsel (OD-ATTR-3) and whether add-to-cart / checkout-start metrics are wanted at all (OD-ATTR-5) | R-04 | decide the consent classification first; default consent-gated |
+| O-10 | Performance: scope Steps 3b/3c or defer (R-22) | D | defer until field data exists |
+| O-11 | Phase 9 option (Taglish Hub posts vs none) after R9 evidence; Phase 11 OD-AUTH-1..3; subdomain policy (R-36) | G, R-36 | as recorded |
+| O-12 | Notion: Codex applies the manifest (corrected rows included) | I-5 | — |
+| O-13 | Hub work item (Lovable): a total count on the catalog read (OD-MC-12) so the feed's completeness can be authoritative | MC-G10 | request with the Phase 5 route batch |
+| O-14 | Content wording decisions from the guide/trust review: OD-CT-1..6 (`GUIDE-TRUST-CONTENT-REVIEW-2026-11-01.md` §5); no copy changes until decided | R-30, R-31 | decide with the Step 4 publication |
+| O-15 | *(withdrawn as an action, closeout 2026-11-01)* `llms.txt` is DEFERRED to the Phase 6 batch under the approved requirements of 2026-10-31 (record `phase-6/LLMS-TXT-DECISION-2026-11-01.md`); no decision is requested and none is pending. Open owner actions: O-1..O-14, O-16 (15 items) | — | none |
+| O-16 | Search Console export procedure: the exporter writes `context.json` (property, search type, filters, date range) beside every CSV export folder so that reports can be compared (OD-SC-1 extended; `phase-12/SEARCH-CONSOLE-OPERATIONS.md` §2/§7) | R-03 | adopt with the next export |
+
+## K. Source-to-matrix mapping (every SEO Markdown document, 2026-11-01)
+
+Row-level inventory: `SEO-REQUIREMENTS-MATRIX-2026-11-01-INVENTORY-A.md` (18 documents, 593 rows, 215 without an ID of their own) and `…-INVENTORY-B.md` (18 documents, 471 rows, 271 without an ID). **Role:** *authority* (defines requirements or decisions), *record* (dated evidence; superseded parts labelled, never rewritten), *working* (operational, maintained), *draft* (content awaiting approval). "Covered by" names the matrix rows that carry each document's actionable items; a row-less item is counted in §L.
+
+| # | Document | Role / date | IDs it defines or carries | Covered by (matrix rows) |
+|---|---|---|---|---|
+| 1 | `CHA-JEWELS-SEO-MASTER-PLAN.md` | authority (plan; status lines maintained) | Phases 0–12, §33.3 Steps 1–5, Gate 0, P0–P3, Phase 6 add-on `llms.txt`, OD-GBP-1 | every section; §G phases; R-26 add-on (deferred) |
+| 2 | `SEO-REQUIREMENTS-REGISTER.md` | authority (long-form register) | R-01…R-37, MC-G1…G13, §1 decisions, §4 gaps, §5 release status | all R-xx rows; §F; A-1/A-2 |
+| 3 | `SEO-IMPLEMENTATION-STATUS.md` | working (dated change log and phase table) | D1–D4 (status meanings), X1–X10, Phase 2A–2E, Steps, BUG-02/05/08 release, OD-7/OD-11 implemented | §A, §B, §D, §E; X5/X6/X10 rows; §L aliases |
+| 4 | `SEO-QA-REPORT.md` | record + working (§1–§18) | QA checks 1.1–3.7, R-1/R-2/R-3 (return policy), S-1…S-5 (shipping), C-1…C-4 (QA §6), D-1 (previews), P3-1…P3-8, P4-1…P4-6, OD-F1, §16–§18 results | C-4; R-12; R-17; A-1; D1; §L aliases |
+| 5 | `SEO-BASELINE.md` | record (2026-10-28/29 baseline; §17 decisions) | D2 (old domain; superseded, labelled), baseline findings | R-01, R-35 |
+| 6 | `SEO-MIGRATION-MAP.md` | authority (locale architecture) + record | OD-1…OD-15, Gates A–K, route families R1–R21, E1–E15, F1–F5, K1–K14, C0/H0, N1–N4, L1–L3, B1/B2 | R-08/R-09, R-10/R-11 (OD-1/3/4/6), R-12 (OD-6/7), B-1; §L aliases |
+| 7 | `SEO-DEFECTS-2026-10-29.md` | record (labelled) | BUG-02, BUG-05, BUG-07, BUG-08 (released #426); BUG-01/04 (Hub, referenced) | R-05, R-06; §L |
+| 8 | `OUTSTANDING-ISSUES-REGISTER.md` | working | BUG-03, BUG-06, BUG-09, HUB-CATALOG, HUB-S1/S2 | R-24, R-10/R-11, R-02; §L |
+| 9 | `PERF-STEP3-FINDINGS.md` | record (labelled) | Step 3a/3b/3c proposals | R-21, R-22, D-1..D-3 |
+| 10 | `PREVIEW-ACCEPTANCE-2026-10-31.md` | record (candidate `2e83545`/`6dc71df`) | D1–D7 (acceptance meanings; collide with status D1–D4), §6.9 release decision | A-1, A-2, D1 (React #418), I-5 |
+| 11 | `SEARCH-CONSOLE-BASELINE-2026-10-30.md` | record | three URLs OBSERVED, GSC-01…GSC-09 | R-02, R-36/GSC-09 |
+| 12 | `SEARCH-CONSOLE-BASELINE-2026-10-31.md` | record | first export (28 Oct), processing state | R-02, R-03, H-1 |
+| 13 | `SEO-OPERATIONS-RUNBOOK.md` | working | §1 cadence, §2 release (step 2 deployment, integration dependency), §3 rollback, §4 removal criteria, §5 measurement | I-1…I-3, A-3 |
+| 14 | `STEP-4-CONTENT-AUDIT.md` | record + draft | A-01…A-03, C-01…C-12, K-01…K-05, P-01…P-15, W1, H1–H5 (§12 definition), OD-S4-1…10 | R-23, E-2 |
+| 15 | `STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md` | working (owner package) | H1 batch items, §8 verification | R-23 (O-4) |
+| 16 | `STEP-4-OWNER-APPROVAL-RECORD.md` | authority (owner decisions 2026-10-30) | OD-S4-1…OD-S4-10, H1–H5 (§4 definition — authoritative over #14 §12), Pilot | R-23, R-24, E-2 |
+| 17 | `STEP-4-OWNER-DECISIONS.md` | record (decision proposals) | OD-S4-x proposals | R-23 |
+| 18 | `GUIDE-TRUST-CONTENT-REVIEW-2026-11-01.md` | record (review 2026-11-01) | T-1…T-5, C-1…C-10 (review ids), OD-CT-1…OD-CT-6 | R-30, R-31 (O-14) |
+| 19 | `SEO-REQUIREMENTS-MATRIX-2026-11-01.md` | authority (this document) | A-1…I-5, O-1…O-16 | — |
+| 20 | `NOTION-SEO-UPDATE-MANIFEST-2026-11-01.md` | working (tracker hand-off) | card rows (by title) | I-5 (O-12) |
+| 21 | `phase-3/PHASE-3-REPORT.md` | record (labelled) | P3-1…P3-5 (route approval, link fix) | R-12 |
+| 22 | `phase-4/PHASE-4-REPORT.md` | record (labelled) | Phase 4 items (BreadcrumbList etc.), BUG-02 `sameAs` rule | R-17, C-2, C-3 |
+| 23 | `phase-4/STRUCTURED-DATA-REVIEW-2026-11-01.md` | record (review 2026-11-01) | OD-SD-1; Offer correction; video assessment (product inventory UNKNOWN) | C-1, C-2, R-19 |
+| 24 | `phase-5/MERCHANT-CENTER-READINESS.md` | authority (readiness; rows revised 2026-11-01) | X8, OD-MC-1…OD-MC-12, field rules, monitoring | R-25, MC-G1…G13, F-1 |
+| 25 | `phase-5/MERCHANT-FEED-IMPLEMENTATION-PROPOSAL.md` | working (proposal; route PROPOSED) | MC-G dispositions, exclusion list, owner package | R-25, MC-G7, MC-G10, MC-G11 |
+| 26 | `phase-6/COMMERCIAL-LANDING-ARCHITECTURE.md` | authority (Phase 6 design) | OD-P6-1…OD-P6-9, §6b llms.txt | R-26, R-26 add-on |
+| 27 | `phase-6/INTERNAL-LINKING-MAP.md` | authority (linking) + record | X3 (layaway node; superseded label), reverse-linking block (OD-P6-10) | R-20/E-1 |
+| 28 | `phase-6/LLMS-TXT-DECISION-2026-11-01.md` | record (deferral label OD-LLMS-1; no decision pending) | withdrawn route code; the design point for the Phase 6 batch | R-26 add-on |
+| 29 | `phase-7/KIHEI-CLUSTER-PLAN.md` | draft | cluster items (no ids) | R-27 |
+| 30 | `phase-7/KIHEI-PILLAR-DRAFT.md` | draft | pillar copy (no ids) | R-27 |
+| 31 | `phase-8/K18-CLUSTER-PLAN.md` | draft | cluster items (no ids) | R-28 |
+| 32 | `phase-8/K18-PILLAR-DRAFT.md` | draft | pillar copy (no ids) | R-28 |
+| 33 | `phase-9/FILIPINO-CONTENT-BRIEFS.md` | draft | B1…B8 briefs | R-29 |
+| 34 | `phase-10/LOCAL-SEO-GBP-READINESS.md` | record (CLOSED part + AUDITED part, labelled) | G1…G5, OD-GBP-1 | 10 Local; C-2 (G1 → OD-SD-1); §L (G2, G4, G5) |
+| 35 | `phase-11/AUTHORITY-OPPORTUNITIES.md` | working (execution materials) | OD-AUTH-1…OD-AUTH-4 (4 withdrawn), §8 materials | R-34 / 11 Backlinks |
+| 36 | `phase-12/ORGANIC-ATTRIBUTION-DESIGN.md` | authority (design; nothing approved) | OD-ATTR-1…OD-ATTR-5, metric definitions | R-04 |
+| 37 | `phase-12/SEARCH-CONSOLE-OPERATIONS.md` | working (operations) | OD-SC-1…OD-SC-4, rules R1–R10, regexes §4, §7 helper | R-03, R-32, H-1 (O-8, O-16) |
+| 38–39 | `…-INVENTORY-A.md`, `…-INVENTORY-B.md` | evidence appendices (2026-11-01) | — | §K, §L |
+
+## L. Unmapped items, aliases and contradictions (honest accounting)
+
+**L.1 Counts.** 1,064 inventory rows; 578 carry an ID; 486 carry none (narrative requirements, checklist lines, draft copy). **These counts are evidence of mapping coverage, never of implementation: a mapped row is neither done nor accepted by being mapped; its state is the state word on its matrix row.** Every row maps to a parent document in §K and through it to a matrix row, but **486 items are not individually actionable rows of this matrix** — they are the sentences of plans, drafts, baselines and checklists whose actionable form is the parent R-xx / OD-* / MC-G row. They are not declared done, closed or zero; they stay in their documents and are reached through §K.
+
+**L.2 ID families that have no row of their own (aliases).**
+
+| Family | Where defined | Alias → matrix row(s) | Individually actionable? |
+|---|---|---|---|
+| X1…X10 (status-doc deferred findings) | status doc | X1 → R-06 (resolved); X2 → R-08/R-09 (closed by Phase 2); X3 → R-12; X4 → C-3 (done in 2B); X5, X6, X8, X10 → their rows above; X7 (branch-alias protection assumed equal) → A-2 (owner confirms in Vercel settings; **open, no row before this revision**); X9 → wording rule (guards) | X7 yes (owner) |
+| D1–D4 (status meanings) vs D1–D7 (preview acceptance) | status doc; acceptance record | status D1 terms wording → guards; D2 old domain → R-35; D3 sold products → X10/OD-MC-9; D4 two 308 hops (http apex) → leave (owner, cosmetic). Acceptance D1 React #418 → D1 row; D2 catalog retry, D3 375 px, D4 fixed checkers, D5, D6 → A-1/A-2; D7 Notion → I-5. **ID collision recorded**: the two D-series are distinct | D4 (status) owner; others covered |
+| OD-1…OD-15 (migration map) | migration map | OD-1, OD-3, OD-4, OD-6 → R-10/R-11 (O-7); OD-2, OD-8, OD-9, OD-10, OD-12, OD-13, OD-14, OD-15 approved/resolved → R-08/R-09 done; OD-5 merged into OD-1; OD-7, OD-11 implemented (Phase 2C) → R-12 / R-20 | covered |
+| Gates A–K, route families R1–R21, E1–E15, F1–F5, K1–K14, C0/H0, N1–N4, L1–L3 (migration map) | migration map | Phase 2 architecture, DEPLOYED → R-08/R-09, B-1; F2 (single-language posts, no invented sibling) → R-07/sitemap `single-language-posts` optional coverage | covered (architecture) |
+| GSC-01…GSC-09 | Search Console baseline 10-30 | GSC-09 → R-36 row; GSC-01…08 → R-02 (property, sitemap, priority URLs, processing) | covered |
+| Step 4 item ids (A-01…, C-01…C-12, K-01…K-05, P-01…P-15, W1, H1–H5, OD-S4-1…10) | Step 4 audit and approval record | → R-23 (O-4) and E-2; **H2/H3 definitions differ between the audit §12 and the approval record §4 — the approval record (later, owner-signed) is authoritative; the audit is labelled a snapshot** | per the H1 checklist (owner) |
+| P3-1…P3-8, P4-1…P4-6, QA 1.1–3.7, S-1…S-5, R-1…R-3, C-1…C-4 (QA report) | QA report | P3-* → R-12; P4-* → R-17; S-1/R-1 (shipping/return encoding removed, rate card and return policy open with the owner) → C-4; C-1…C-4 → checker rows A-1. **ID collisions recorded:** R-1/S-1 (QA) vs R-01 (register) vs R1 (GSC rule) vs S-1 (QA §6 check); C-1…C-4 (QA) vs C-01… (Step 4) vs C-1…C-10 (guide review) | C-4 owner (rate card, return policy) |
+| G1…G5 (GBP readiness) | phase-10 doc | G1 → C-2/OD-SD-1 (fields now emitted; labelled); G3 → OD-GBP-1 (closed); **G2 (email drift: legal pages hard-code `sales@chajewelsjp.com`, `/contact` reads the Hub) — UNVERIFIED, owner confirms both equal; no row before this revision → owner action under O-14 scope (content facts)**; **G4 (registered-name form vs certificate) — pending, owner compliance; recorded under O-14**; G5 (every external listing uses `www.chajewelsjp.com`) → R-34 execution materials | G2, G4 yes (owner) |
+| B1…B8 (Filipino briefs) | phase-9 | → R-29 (one row; the briefs are not individually approved) | after R9 evidence |
+| T-1…T-5, C-1…C-10 (guide review) | guide/trust review | → R-30, R-31 via OD-CT-1…6 | O-14 |
+| R1–R10 (Search Console rules), §4 regexes | ops doc | → R-03, R-32 (operational in the helper) | covered |
+| HUB-S1, HUB-S2, HUB-CATALOG, BUG-01, BUG-04, W-xx, H-xx | outstanding issues; security records | Hub / security workstreams — out of this scope by instruction; recorded, not mapped | no (out of scope) |
+| OD-AUTH-4 | phase-11 | withdrawn (PR #451) with R-35 | closed |
+| TEST-900080, OG-PRODUCT | status doc | released (#441); R-14/R-15 | closed |
+
+**L.3 Contradictions found by the inventory and their resolution (24).**
+
+| # | Contradiction | Resolution in this revision |
+|---|---|---|
+| 1 | R-12 `/en/layaway`: Phase 3 report, Phase 9 briefs, internal-linking map (X3) and Phase 6 architecture read READY FOR QA / PROPOSED / 404 as of 2026-10-29; status, register and matrix say DEPLOYED, OBSERVED IN SEARCH CONSOLE | dated snapshots; label added to the Phase 3 report; matrix R-12 carries the history line; the others are left as dated records |
+| 2 | R-17 / Phase 4: report says READY FOR QA; status/matrix say DEPLOYED | label added to the Phase 4 report |
+| 3 | R-01 numbers: 671/0 (`d0b3b5f`) vs 728/0 (`1b654f7`) vs 671/0 with skips (reconciliation head) | all three kept, by head and date, in R-01 and QA §16–§18 |
+| 4 | Phase 10 status word: GBP readiness header AUDITED vs matrix/manifest CLOSED — NOT ELIGIBLE | header now states both parts: Business Profile CLOSED — NOT ELIGIBLE; identity alignment AUDITED |
+| 5 | G1: readiness says the entity lacks address/phone/email/sameAs/logo; Phase 4 report and the structured-data review say they are emitted live | label on G1 (baseline of 2026-10-29; superseded); open part is the entity type (OD-SD-1) |
+| 6 | Search Console property: MC readiness §1 UNKNOWN (X8) vs ops doc EXISTS, verified | label on the readiness row; X8 now means the Merchant Center account only |
+| 7 | Feed granularity: readiness §4 one item per variant with `item_group_id` vs proposal/matrix one item per product | readiness rows superseded and labelled (MC-G8) |
+| 8 | Identifiers: readiness §4 `identifier_exists=no` on every item vs proposal (rule-driven, no default) | readiness rows rewritten to the two-axis policy; register MC-G7, proposal and builder agree |
+| 9 | Feed URL: readiness `/api/merchant-feed.xml` vs proposal `/api/merchant-feed?lang=` | readiness labelled; proposal form stands (OD-MC-7 confirms) |
+| 10 | Product Offer price: readiness §6 lowest variant vs review §2 displayed variant | readiness labelled (superseded by the correction in PR #462) |
+| 11 | BUG-02/05/08: defects record READY FOR QA vs status DEPLOYED (#426) | label on the defects record |
+| 12 | D2 old domain: baseline BLOCKED — EXTERNAL vs register CLOSED — KEEP, no redirect | label on the baseline row |
+| 13 | Step 3a: PERF findings READY FOR QA / not deployed vs status DEPLOYED | label on the findings record |
+| 14 | `llms.txt`: register §1/§2 NOT STARTED vs R-26/status/plan IMPLEMENTED — READY FOR QA | resolved substantively: the route is withdrawn and deferred to the Phase 6 batch under the approved requirements (record OD-LLMS-1, no new approval); §1 rule row, §2 table, R-26, status, plan and Phase 6 §6b now agree (builder implemented; route deferred) |
+| 15 | OD-ATTR count: status 1..4 vs register/QA 1..5 | status corrected to 1..5 |
+| 16 | R-19 video: status "ASSESSED (none)" vs register/QA "product inventory UNKNOWN, not closed" | status corrected |
+| 17 | OD-7/OD-11: migration map "still open" vs status implemented (Phase 2C) | label on the migration-map line |
+| 18 | OD-1/OD-4/OD-12: migration map "still open" line vs its own approved headings | same label: OD-4/OD-12 approved for the 307 / HTML-only stage; OD-1 and OD-6 remain pending (R-10/R-11) |
+| 19 | Step 4 batch ids H2/H3: audit §12 vs approval record §4 | approval record authoritative (later, owner-signed); recorded in L.2 |
+| 20 | Release word: register "BLOCKED, not waived" vs acceptance/QA "HOLD" | relation defined in the register §5 and QA §18: BLOCKED = the release decision for the candidate; HOLD = this batch adds no blocker and removes none |
+| 21 | BUG-03: outstanding issues table "CLOSED FOR SEO" vs its §1 "OPEN" | both true, left as written: closed for SEO scope, open as a content task (R-24) |
+| 22 | Status Phase 2B "X1 RESOLVED" vs Phase 1 row "404 cleanup READY FOR QA" | the Phase 1 row refers to the foundation batch (R-06, in `develop`, not released); X1 (original 404 finding) is resolved; no edit |
+| 23 | Manifest foundation card 728/0 vs matrix 671/0 | both dated by head; manifest row now carries the reconciliation head's numbers with history |
+| 24 | OD-MC-4 recommendation "omit brand" (readiness) vs Google's text read 2026-11-01 (store name + MPN for merchant-makers) | readiness OD-MC-4 revised ("omit" withdrawn; owner decides); register MC-G7 and proposal carry the same recommendation |
