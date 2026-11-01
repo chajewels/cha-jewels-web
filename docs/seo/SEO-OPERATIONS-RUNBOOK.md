@@ -29,7 +29,7 @@ Acceptance criteria per route family are the checkers' own rows (FOUNDATION, OG-
 3. *(SEO gate boundary: steps 2–4 are the only gates this batch waits on; login, Messenger and security work in the same candidate has its own records and is neither verified nor waived here.)* Credentialed run of both checkers on that deployment (§1 row 4; `VERCEL_AUTOMATION_BYPASS_SECRET` + `SEO_CHECK_BYPASS_ORIGIN` set in the environment for that deployment, never in chat) + the 36-URL real-data metadata comparison against production (only the intended diffs). Both checkers now also fetch every link `/llms.txt` advertises (`llms-links` rows): on real data that is the first time the collection and category links are verified as 200 and indexable.
 4. Hydration: `(errors)` rows pass on the deployment; OD-F1 retired only then.
 5. Owner approves `develop` → `main`; merge; wait for Vercel Ready; record the production deployment id.
-6. Post-release: raw checker on production 0 fail; Sharing Debugger; Rich Results Test; `/llms.txt` 200 text/plain; `/sitemap.xml` count unchanged (976 ± real catalog change); Search Console: SEARCH ENGINE RECRAWL PENDING.
+6. Post-release: raw checker on production 0 fail; Sharing Debugger; Rich Results Test; `/llms.txt` 200 text/plain; `/sitemap.xml` count unchanged (976 ± real catalog change) — **read it once right after the deployment is Ready and again 2 minutes later: a first read after a deploy has served a truncated 46-URL sitemap (QA §22); a short count is re-read, not accepted**; Search Console: SEARCH ENGINE RECRAWL PENDING.
 7. Update `SEO-IMPLEMENTATION-STATUS.md` (change log + rows), `SEO-QA-REPORT.md` (release section), the register and the Notion SEO cards.
 
 ## 3. Rollback
