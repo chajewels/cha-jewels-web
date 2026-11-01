@@ -32,7 +32,7 @@ export function PaymentDecisionNotice({ lang, kind, decision, currency }: {
     : t("orders", "decisionMethodTransfer");
   const message = decision.message?.trim() ? decision.message : null;
   return (
-    <div role="status" className="mb-6 border border-gold-dark bg-white p-5 sm:p-6" data-testid="payment-decision-notice" data-kind={kind}>
+    <div role="status" className="mb-6 iac-plate iac-plate--note p-5 sm:p-6" data-testid="payment-decision-notice" data-kind={kind}>
       <p className="font-display text-lg leading-snug text-charcoal-deep">
         {kind === "rejected"
           ? t("orders", "decisionRejected", { method, amount: formatMoney(Number(decision.amount), currency), date: formatSiteDate(decision.decided_at, lang) })

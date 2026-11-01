@@ -74,11 +74,11 @@ export function CompleteProfileForm({ lang, email, next }: { lang: Lang; email: 
   const opt = <span className="text-[11px]">{t("profile", "optional")}</span>;
 
   return (
-    <form onSubmit={onSubmit} noValidate className="mt-8 grid gap-5 border border-hairline bg-white p-5 sm:grid-cols-2 sm:p-6">
+    <form onSubmit={onSubmit} noValidate className="iac-form grid gap-5 iac-plate p-5 sm:grid-cols-2 sm:p-8">
       <input type="hidden" name="next" value={next} />
       <p className="text-xs text-charcoal/70 sm:col-span-2">{t("profile", "requiredNote")}</p>
 
-      {error && <p role="alert" className={`${alertLight} p-4 text-sm sm:col-span-2`}>{error}</p>}
+      {error && <p role="alert" className={`${alertLight} iac-alert p-4 text-sm sm:col-span-2`}>{error}</p>}
 
       <label className={`${label} sm:col-span-2`}>
         {t("profile", "fullName")} {req}

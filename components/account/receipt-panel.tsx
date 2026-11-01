@@ -67,10 +67,10 @@ export function ReceiptPanel({ lang, receipt, issuedLabel, totalLabel, orderHref
   }
 
   return (
-    <section className="print-hide mt-6 border border-hairline bg-white p-5 sm:p-6" aria-labelledby={`receipt-${receipt.id}`} data-testid="receipt-panel">
+    <section className="print-hide mt-6 iac-plate p-5 sm:p-6" aria-labelledby={`receipt-${receipt.id}`} data-testid="receipt-panel">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <H id={`receipt-${receipt.id}`} className="font-display text-[22px] text-charcoal-deep">{t("receipts", "panelH")}</H>
-        <span className={`inline-flex items-center gap-2 border px-3 py-1 text-xs ${issued ? "border-gold-dark text-gold-dark" : "border-charcoal/40 text-charcoal/75"}`} data-testid="receipt-status">
+        <span className={`inline-flex items-center gap-2 rounded-pill border px-3 py-1 text-xs ${issued ? "border-gold-dark text-gold-dark" : "border-charcoal/40 text-charcoal/75"}`} data-testid="receipt-status">
           {t("receipts", issued ? "statusIssued" : "statusCancelled")}
         </span>
       </div>
@@ -92,8 +92,8 @@ export function ReceiptPanel({ lang, receipt, issuedLabel, totalLabel, orderHref
         <p className="mt-4 text-sm text-charcoal/80" data-testid="receipt-cancelled-note">{t("receipts", "cancelledNote")}</p>
       ) : (
         <>
-          {error && <p role="alert" className={`mt-4 ${alertLight} p-3 text-sm`}>{error}</p>}
-          {done && !error && <p role="status" className="mt-4 border border-gold-dark px-3 py-2 text-sm text-gold-dark">{t("receipts", "saved")}</p>}
+          {error && <p role="alert" className={`mt-4 ${alertLight} iac-alert p-3 text-sm`}>{error}</p>}
+          {done && !error && <p role="status" className="iac-alert mt-4 border border-gold-dark px-3 py-2 text-sm text-gold-dark">{t("receipts", "saved")}</p>}
 
           <form action={save} className="mt-5 grid gap-4 border-t border-hairline pt-5 sm:grid-cols-2">
             <input type="hidden" name="receipt_id" value={receipt.id} />
@@ -120,7 +120,7 @@ export function ReceiptPanel({ lang, receipt, issuedLabel, totalLabel, orderHref
               <legend className="text-sm text-charcoal/70">{t("receipts", "language")}</legend>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(["ja", "en"] as const).map((l) => (
-                  <label key={l} className={`inline-flex min-h-11 cursor-pointer items-center gap-2 border px-4 text-sm ${pdfLang === l ? "border-gold-dark text-charcoal-deep" : "border-charcoal/30 text-charcoal/80"}`}>
+                  <label key={l} className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill border px-4 text-sm ${pdfLang === l ? "border-gold-dark text-charcoal-deep" : "border-charcoal/30 text-charcoal/80"}`}>
                     <input type="radio" name={`pdf-lang-${receipt.id}`} value={l} checked={pdfLang === l} onChange={() => setPdfLang(l)} className="accent-[#2a2724]" />
                     {t("receipts", l === "ja" ? "langJa" : "langEn")}
                   </label>
@@ -139,7 +139,7 @@ export function ReceiptPanel({ lang, receipt, issuedLabel, totalLabel, orderHref
               <a
                 href={receiptPdfHref(receipt.id, pdfLang)}
                 onClick={() => setDownloads((n) => n + 1)}
-                className="mt-3 inline-flex h-11 items-center justify-center gap-2 bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]"
+                className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-pill bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]"
                 data-testid="receipt-download"
               >
                 <FileDown aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />

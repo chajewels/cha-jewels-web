@@ -6,7 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { REGISTERED_PATH, isAlreadyRegistered, isNotLinked, profileNext, profileUrl } from "@/lib/profile";
 import { CompleteProfileForm } from "@/components/account/complete-profile-form";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const generateMetadata = () => pageMeta("completeProfile");
 export const dynamic = "force-dynamic";
@@ -65,12 +65,13 @@ export default async function CompleteProfilePage({ searchParams }: { searchPara
   if (outcome === "registered") redirect(REGISTERED_PATH);
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[760px]">
-        <h1 className="text-[clamp(32px,4.4vw,56px)]"><Reveal>{t("profile", "h1")}</Reveal></h1>
-        <p className="mt-4 max-w-[58ch] text-charcoal">{t("profile", "lede")}</p>
-        <CompleteProfileForm lang={lang} email={auth.user.email ?? ""} next={next} />
-      </div>
-    </section>
+    <div className="iac-shell">
+      <PageHead title={t("profile", "h1")} lead={t("profile", "lede")} />
+      <PageSection>
+        <div className="iac-solo lm-rise">
+          <CompleteProfileForm lang={lang} email={auth.user.email ?? ""} next={next} />
+        </div>
+      </PageSection>
+    </div>
   );
 }

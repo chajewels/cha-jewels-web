@@ -5,7 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { EndSessionOnMount } from "@/components/account/end-session-on-mount";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const generateMetadata = () => pageMeta("registered");
 export const dynamic = "force-dynamic";
@@ -24,16 +24,16 @@ export default async function AlreadyRegisteredPage() {
   const lang = await getLang();
   const t = tr(lang);
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[720px]">
-        <h1 className="text-[clamp(32px,4.4vw,56px)]"><Reveal>{t("profile", "registeredH")}</Reveal></h1>
-        <div role="status" className="mt-8 border border-hairline bg-white p-6">
+    <div className="iac-shell">
+      <PageHead title={t("profile", "registeredH")} />
+      <PageSection>
+        <div role="status" className="iac-solo iac-plate iac-sheet lm-rise">
           <p className="text-charcoal-deep">{t("profile", "registeredP")}</p>
           <p className="mt-3 text-sm text-charcoal/70">{t("profile", "registeredSignedOut")}</p>
           <Button asChild className="mt-6"><Link href={localePath("/contact", lang)}>{t("profile", "contactCta")}</Link></Button>
         </div>
         <EndSessionOnMount />
-      </div>
-    </section>
+      </PageSection>
+    </div>
   );
 }

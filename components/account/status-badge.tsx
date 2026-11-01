@@ -30,8 +30,8 @@ const dot: Record<Tone, string> = {
 
 export function StatusBadge({ tone, text }: { tone: Tone; text: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 border px-3 py-1 text-xs ${toneClass(tone)}`}>
-      <i aria-hidden="true" className={`h-1.5 w-1.5 rotate-45 ${dot[tone]}`} />
+    <span className={`inline-flex items-center gap-2 rounded-pill border px-3 py-1 text-xs ${toneClass(tone)}`}>
+      <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dot[tone]}`} />
       {text}
     </span>
   );

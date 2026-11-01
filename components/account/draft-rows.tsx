@@ -34,7 +34,7 @@ function DraftGroup({ drafts, lang, heading }: { drafts: HubDraft[]; lang: Lang;
   return (
     <div className="mt-10">
       <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-charcoal/70">{t("draft", heading)}</h2>
-      <ul className="rule-grid grid gap-px" data-testid="draft-rows">
+      <ul className="iac-stack" data-testid="draft-rows">
         {drafts.map((d) => {
           const badge = d.status === "to_confirm"
             ? { tone: "pending" as const, text: t("draft", "statusWaiting") }
@@ -42,7 +42,7 @@ function DraftGroup({ drafts, lang, heading }: { drafts: HubDraft[]; lang: Lang;
             ? { tone: "dead" as const, text: t("draft", "statusDeclined") }
             : { tone: "dead" as const, text: t("draft", "statusExpired") };
           return (
-            <li key={d.id} className="flex flex-wrap items-center justify-between gap-4 bg-white p-5">
+            <li key={d.id} className="flex flex-wrap items-center justify-between gap-4 iac-plate p-5">
               <div>
                 <p className="font-mono text-gold-dark">{d.web_reference}</p>
                 <p className="mt-1 text-xs text-charcoal/70">{t("orders", "placed")} {siteDay(d.created_at)}</p>

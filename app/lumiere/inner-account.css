@@ -1,0 +1,96 @@
+/* ===========================================================================
+   LUMIÈRE INNER PAGES — inner-account (P4b). Contract: docs/tasks/lumiere-p4b-inner-pages.md.
+   The account frame, its plates, the ledger, the order timeline, the sign-in
+   plate, the one-off pages and the 404 / error. Prefix `iac-`. Tokens from
+   inner.css (--lm-*) and nav.css (--nav-*); no orange; print rules live in
+   globals.css (print-hide, print-invoice) and are not touched here.
+   =========================================================================== */
+
+/* The frame ------------------------------------------------------------------- */
+.iac-shell { background: var(--lm-bone); padding-bottom: clamp(56px, 8vw, 112px); }
+.iac-head { padding-bottom: clamp(20px, 3vw, 40px); }
+.iac-h1 { font-size: clamp(34px, 4.8vw, 68px); overflow-wrap: anywhere; }
+html:lang(ja) .iac-h1 { font-size: clamp(26px, 3.6vw, 48px); }
+.iac-back { display: inline-flex; align-items: center; min-height: 44px; margin: 0 0 6px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--lm-rule); background: var(--lm-sheet); font-size: 13px; font-weight: 600; color: var(--nav-ink); transition: border-color 300ms var(--lm-ease), color 300ms var(--lm-ease); }
+@media (hover: hover) { .iac-back:hover { border-color: var(--nav-gold-deep); color: var(--nav-gold-deep); } }
+.iac-frame { display: grid; align-items: start; gap: clamp(20px, 3vw, 40px); }
+@media (min-width: 1024px) { .iac-frame { grid-template-columns: 252px minmax(0, 1fr); } }
+.iac-main { min-width: 0; }
+
+/* The side list: one white plate, pill rows, the current page on bone */
+.iac-side { position: sticky; top: 96px; padding: 10px; background: var(--lm-sheet); border: 1px solid var(--lm-rule); border-radius: var(--lm-plate-radius); }
+.iac-side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.iac-side .iac-side__link { border-radius: 999px; }
+.iac-side .iac-side__link[aria-current="page"] { background: var(--lm-bone); padding-left: 28px; }
+.iac-side .iac-side__link[aria-current="page"]::before { left: 12px; top: 50%; bottom: auto; height: 18px; transform: translateY(-50%); border-radius: 3px; }
+@media (hover: hover) { .iac-side .iac-side__link:not([aria-current="page"]):hover { background: var(--lm-bone); } }
+
+/* Plates ---------------------------------------------------------------------- */
+.iac-plate { background: var(--lm-sheet); border: 1px solid var(--lm-rule); border-radius: var(--lm-plate-radius); }
+.iac-plate--note { border-color: var(--nav-gold-deep); }
+.iac-alert { border-radius: 16px; }
+.iac-tile { transition: transform 520ms var(--lm-ease), box-shadow 520ms var(--lm-ease); }
+@media (hover: hover) { .iac-tile:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgb(0 0 0 / 0.08); } }
+.iac-stack { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.iac-stack > li { transition: transform 520ms var(--lm-ease), box-shadow 520ms var(--lm-ease); }
+@media (hover: hover) { .iac-stack > li:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgb(0 0 0 / 0.07); } }
+
+/* The black plates: level and points, the layaway plan card, the portal, the review piece */
+.iac-ink { background: #000; color: #fff; border-radius: 28px; overflow: hidden; }
+.iac-ink .cj-slab-rule { display: none; }
+
+/* Payment due: a white plate with a brass edge on top */
+.iac-due { box-shadow: inset 0 3px 0 var(--nav-gold); }
+
+/* Shared commerce pieces, rounded only inside the account frame */
+.iac-shell .aspect-square.bg-chalk { border-radius: 16px; }
+.iac-shell div[class*="border-gold-dark/45"] { border-radius: 18px; }
+.iac-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea) { border-radius: 14px; }
+.iac-form :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea) { border-radius: 14px; }
+
+/* The orders ledger: a plate with a sticky header row (still a table) --------------- */
+.iac-ledger { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--lm-sheet); border: 1px solid var(--lm-rule); border-radius: var(--lm-plate-radius); }
+.iac-ledger thead th { position: sticky; top: 72px; z-index: 1; background: var(--lm-sheet); border-bottom: 1px solid var(--lm-rule); }
+.iac-ledger thead th:first-child { border-top-left-radius: var(--lm-plate-radius); }
+.iac-ledger thead th:last-child { border-top-right-radius: var(--lm-plate-radius); }
+.iac-ledger tbody tr:last-child td { border-bottom: 0; }
+.iac-ledger tbody tr { border-bottom: 0; }
+.iac-ledger tbody td { border-bottom: 1px solid var(--lm-rule); }
+@media (max-width: 639px) {
+  .iac-ledger tbody td { border-bottom: 0; }
+  .iac-ledger tbody tr { border-bottom: 1px solid var(--lm-rule); }
+  .iac-ledger tbody tr:last-child { border-bottom: 0; }
+}
+@media (hover: hover) { .iac-ledger tbody tr:hover { background: color-mix(in srgb, var(--lm-bone) 55%, #fff); } }
+
+/* The order timeline: numbered circles on a plate, a brass bar under each step done --- */
+.iac-progress { list-style: none; margin-left: 0; padding: 16px 16px 24px; gap: 4px; background: var(--lm-sheet); border: 1px solid var(--lm-rule); border-radius: var(--lm-plate-radius); }
+@media (min-width: 640px) { .iac-progress { padding: 20px 22px 28px; } }
+.iac-progress__step { padding-bottom: 0; }
+.iac-progress__n { display: inline-grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 999px; border: 1px solid var(--lm-rule); background: var(--lm-sheet); }
+.iac-progress__n[data-done] { border-color: var(--nav-gold-deep); }
+.iac-progress__n[data-now] { background: var(--lm-ink); border-color: var(--lm-ink); color: #fff; }
+.iac-progress__bar { position: absolute; left: 0; right: 6px; bottom: -14px; height: 3px; border-radius: 3px; background: var(--lm-rule); }
+.iac-progress__bar[data-done] { background: var(--nav-gold-deep); }
+
+/* Sign-in: a bone ground, a white plate and a black plate side by side ------------------ */
+.iac-login { background: var(--lm-bone); padding: clamp(20px, 3vw, 40px) 0 clamp(40px, 6vw, 88px); }
+.iac-login__grid { display: grid; gap: clamp(14px, 2vw, 24px); }
+@media (min-width: 1024px) { .iac-login__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.iac-login__form { display: flex; flex-direction: column; justify-content: center; padding: clamp(24px, 4vw, 64px); border-radius: 32px; background: var(--lm-sheet); border: 1px solid var(--lm-rule); }
+.iac-login__stage { border-radius: 32px; overflow: hidden; }
+
+/* One-off pages (confirm, already registered, unsubscribe, verify, review) ---------------- */
+.iac-solo { max-width: 760px; }
+.iac-sheet { padding: clamp(22px, 3vw, 40px); }
+.iac-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--nav-ink); font-size: 14px; font-weight: 600; color: var(--nav-ink-deep); transition: background 300ms var(--lm-ease), color 300ms var(--lm-ease); }
+@media (hover: hover) { .iac-link:hover { background: var(--nav-ink); color: #fff; } }
+
+/* 404 and error: one large display line, pill actions ------------------------------------- */
+.iac-oops { background: var(--lm-bone); padding: clamp(56px, 10vw, 160px) 0 clamp(40px, 6vw, 96px); text-align: center; }
+.iac-oops__code { margin: 0 0 clamp(8px, 2vw, 24px); font-family: var(--lm-font-display); font-size: clamp(96px, 22vw, 320px); line-height: 0.9; letter-spacing: -0.02em; color: transparent; -webkit-text-stroke: 1.5px var(--lm-ink); }
+.iac-oops .lm-h1 { margin-inline: auto; max-width: 22ch; }
+.iac-oops__lead { margin: clamp(16px, 2vw, 24px) auto 0; max-width: 52ch; font-size: clamp(16px, 1.35vw, 19px); line-height: 1.65; color: var(--nav-ink); }
+.iac-oops__acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: clamp(24px, 3vw, 40px); }
+.iac-oops__search { margin: 24px auto 0; width: 100%; max-width: 420px; }
+

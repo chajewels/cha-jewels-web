@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { type Lang } from "@/lib/i18n-core";
 import { social as socialDict } from "@/lib/i18n/sections/social";
 import { support as supportDict } from "@/lib/i18n/sections/support";
-import { EmptyStage, MessengerCta } from "@/components/site/support-stage";
+import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { MessengerCta } from "@/components/site/support-stage";
 
 /**
  * THE ERROR PAGE (build step 6, new; comp page-comps/supporting "error").
@@ -29,17 +31,15 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
 
   const s = supportDict;
   return (
-    <EmptyStage title={s.errorH[lang]} lede={s.errorP[lang]}>
-      <div className="mt-7 flex flex-wrap justify-center gap-3">
-        <button
-          type="button"
-          onClick={() => reset()}
-          className="btn-press inline-flex min-h-12 items-center justify-center rounded-sm border border-chalk/55 px-6 py-3 text-[15px] font-medium text-chalk hover:border-chalk"
-        >
-          {s.retry[lang]}
-        </button>
-        {messenger && <MessengerCta href={messenger} label={socialDict.messengerButton[lang]} />}
+    <section className="iac-oops">
+      <div className="wrap">
+        <h1 className="lm-h1"><Reveal>{s.errorH[lang]}</Reveal></h1>
+        <p className="iac-oops__lead">{s.errorP[lang]}</p>
+        <div className="iac-oops__acts">
+          <Button type="button" onClick={() => reset()}>{s.retry[lang]}</Button>
+          {messenger && <MessengerCta href={messenger} label={socialDict.messengerButton[lang]} />}
+        </div>
       </div>
-    </EmptyStage>
+    </section>
   );
 }

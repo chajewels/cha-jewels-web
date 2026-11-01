@@ -46,11 +46,11 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: Pro
     <AccountShell lang={lang} current="receipts" eyebrow={t("accountMenu", "receipts")} title={t("receipts", "h1")}>
       <p className="mb-6 max-w-[62ch] text-[15px] leading-relaxed text-charcoal-deep">{t("receipts", "lede")}</p>
 
-      {errorCode && <p role="alert" className={`mb-6 ${alertLight} p-4 text-sm`} data-testid="receipt-download-error">{t("receipts", receiptErrorKey(errorCode), { max: String(ADDRESSEE_MAX) })}</p>}
-      {failed && <p className={`mb-6 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>}
+      {errorCode && <p role="alert" className={`mb-6 ${alertLight} iac-alert p-4 text-sm`} data-testid="receipt-download-error">{t("receipts", receiptErrorKey(errorCode), { max: String(ADDRESSEE_MAX) })}</p>}
+      {failed && <p className={`mb-6 ${alertLight} iac-alert p-5 text-sm`}>{t("account", "unavailable")}</p>}
 
       {!failed && receipts.length === 0 && (
-        <p className="border border-hairline bg-white p-5 text-charcoal-deep" data-testid="receipts-empty">{t("receipts", "empty")}</p>
+        <p className="iac-plate p-5 text-charcoal-deep" data-testid="receipts-empty">{t("receipts", "empty")}</p>
       )}
 
       {receipts.map((r) => (

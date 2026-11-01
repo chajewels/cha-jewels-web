@@ -19,7 +19,7 @@ export function OrderProgress({ lang, stage, stage3Key = "stagePayment", stage4K
   // Cash on delivery swaps steps 3–5 (shipped → pay on delivery → payment received): orderDisplay decides.
   const stages = [t("orders", "stageReserved"), t("orders", "stageConfirmed"), t("orders", stage3Key), t("orders", stage4Key), t("orders", stage5Key)];
   return (
-    <ol aria-label={t("orders", "progress")} className="mb-6 grid grid-cols-5 border-t border-hairline">
+    <ol aria-label={t("orders", "progress")} className="iac-progress mb-6 grid grid-cols-5">
       {stages.map((s, i) => {
         const n = i + 1;
         const { done, now, label } = progressStep(n, stage, inProgress);
@@ -28,13 +28,13 @@ export function OrderProgress({ lang, stage, stage3Key = "stagePayment", stage4K
             key={s}
             aria-current={now ? "step" : undefined}
             className={cn(
-              "relative flex flex-col gap-1 pr-1 pt-3 text-[11px] font-medium leading-snug sm:flex-row sm:items-baseline sm:gap-2.5 sm:pr-3 sm:pt-4 sm:text-[13px]",
+              "iac-progress__step relative flex flex-col items-start gap-1.5 pr-1 text-[11px] font-medium leading-snug sm:flex-row sm:items-center sm:gap-2.5 sm:pr-3 sm:text-[13px]",
               now ? "text-charcoal-deep" : done ? "text-charcoal/80" : "text-charcoal/70",
             )}
           >
-            <span aria-hidden="true" className={cn("absolute -top-px left-0 right-0 h-0.5", done ? "bg-gold-dark" : "bg-transparent")} />
+            <span aria-hidden="true" className="iac-progress__bar" data-done={done ? "" : undefined} />
             <span className="sr-only">{label ? t("orders", label, { stage: s }) : s}</span>
-            <span aria-hidden="true" className={cn("cj-fig font-display text-[17px] leading-none sm:text-[20px]", done ? "text-gold-dark" : "text-charcoal/70")}>
+            <span aria-hidden="true" className={cn("iac-progress__n cj-fig font-display text-[15px] leading-none sm:text-[17px]", done ? "text-gold-dark" : "text-charcoal/70")} data-now={now ? "" : undefined} data-done={done ? "" : undefined}>
               {done ? <Check className="inline h-4 w-4" strokeWidth={2} /> : n}
             </span>
             <span aria-hidden="true">{s}</span>

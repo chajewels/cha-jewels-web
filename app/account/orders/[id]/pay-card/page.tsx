@@ -88,7 +88,7 @@ export default async function PayCardPage({ params, searchParams }: {
   if ((await headers()).get(CSP_FAILSAFE_HEADER) === "1") {
     return (
       <AccountShell lang={lang} current="orders" eyebrow={t("card", "eyebrow")} title={t("card", "title")} back={{ href: orderPath, label: t("card", "backToOrder"), native: true }}>
-        <p className="max-w-[640px] border border-hairline bg-white p-5 text-[15px] leading-relaxed text-charcoal-deep" role="status" data-testid="card-failsafe">{t("card", "failsafe")}</p>
+        <p className="max-w-[640px] iac-plate p-5 text-[15px] leading-relaxed text-charcoal-deep" role="status" data-testid="card-failsafe">{t("card", "failsafe")}</p>
       </AccountShell>
     );
   }
@@ -130,7 +130,7 @@ export default async function PayCardPage({ params, searchParams }: {
     return (
       <AccountShell lang={lang} current="orders" eyebrow={eyebrow} title={title} back={back}>
         <FullReloadLinks />
-        <div className="max-w-[640px] border border-hairline bg-white p-5 sm:p-7" data-testid="card-gate" data-gate={gate}>
+        <div className="max-w-[640px] iac-plate p-5 sm:p-7" data-testid="card-gate" data-gate={gate}>
           {gate !== "unverified" && signUrl ? (
             <>
               <p className="text-[15px] leading-relaxed text-charcoal/85">{lede}</p>
@@ -139,15 +139,15 @@ export default async function PayCardPage({ params, searchParams }: {
                 <dd className="cj-fig font-display text-[26px] leading-tight text-charcoal-deep">{amountLabel}</dd>
               </dl>
               <div className="mt-6 flex flex-wrap gap-3">
-                <a href={signUrl} className="inline-flex h-12 items-center justify-center bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]" data-testid="card-sign">{t("card", "signButton")}</a>
-                <a href={`${orderPath}/pay-card?signed=1`} className="inline-flex h-12 items-center justify-center border border-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-charcoal-deep transition hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</a>
+                <a href={signUrl} className="inline-flex h-12 items-center justify-center rounded-pill bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]" data-testid="card-sign">{t("card", "signButton")}</a>
+                <a href={`${orderPath}/pay-card?signed=1`} className="inline-flex h-12 items-center justify-center rounded-pill border border-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-charcoal-deep transition hover:bg-gold-pale/40 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</a>
               </div>
             </>
           ) : (
             <>
               <p className="text-[15px] leading-relaxed text-charcoal/85" role="status">{t("card", "unverified")}</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <a href={`${orderPath}/pay-card`} className="inline-flex h-12 items-center justify-center bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</a>
+                <a href={`${orderPath}/pay-card`} className="inline-flex h-12 items-center justify-center rounded-pill bg-charcoal-deep px-6 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "signedCheck")}</a>
                 <Button asChild variant="outline"><Link href={localePath("/contact", lang)}>{t("navMenu", "contact")}</Link></Button>
               </div>
             </>

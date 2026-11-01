@@ -95,10 +95,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
 
   return (
     <AccountShell lang={lang} current="orders" eyebrow={t("accountMenu", "orders")} title={t("orders", "h1")}>
-      {failed && <p className={`mb-6 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>}
+      {failed && <p className={`mb-6 ${alertLight} iac-alert p-5 text-sm`}>{t("account", "unavailable")}</p>}
 
       {!failed && rows.length === 0 && (
-        <p className="border border-hairline bg-white p-5 text-charcoal-deep">
+        <p className="iac-plate p-5 text-charcoal-deep">
           {t("orders", "empty")}{" "}
           <Link href={localePath("/collections", lang)} className="text-gold-dark underline underline-offset-4">{t("draft", "shop")}</Link>
         </p>
@@ -122,7 +122,7 @@ function Ledger({ rows, lang }: { rows: Row[]; lang: Lang }) {
   const t = tr(lang);
   const th = "px-[18px] py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]";
   return (
-    <table className="w-full border-collapse border border-hairline bg-white text-sm">
+    <table className="iac-ledger w-full text-sm">
       <thead className="max-sm:hidden">
         <tr className="border-b border-hairline">
           <th className={th}><span className="sr-only">{t("orders", "items")}</span></th>

@@ -47,23 +47,24 @@ export default async function LoginPage() {
   ];
 
   return (
-    <section className="grid lg:min-h-[640px] lg:grid-cols-2">
-      <div className="flex flex-col justify-center px-[clamp(18px,4vw,48px)] pb-7 pt-8 sm:py-12 lg:px-16 lg:py-[72px]">
-        <div className="w-full max-w-[520px] lg:ml-auto lg:mr-0 xl:mr-8">
-          <AboutLogoVideo alt={t("about", "logoAlt")} sizes="176px" className="mb-6 w-[144px] rounded-sm sm:w-[176px]" />
+    <section className="iac-login iac-form">
+      <div className="wrap iac-login__grid">
+      <div className="iac-login__form lm-rise">
+        <div className="w-full max-w-[520px]">
+          <AboutLogoVideo alt={t("about", "logoAlt")} sizes="176px" className="mb-6 w-[144px] rounded-[22px] sm:w-[176px]" />
           <LoginForm lang={lang} messenger={messenger} />
         </div>
       </div>
-      <aside aria-label={t("account", "holdsH")} className="band-dark relative flex flex-col justify-between gap-6 overflow-hidden bg-charcoal-deep px-[clamp(18px,4vw,48px)] py-7 text-chalk sm:py-10 lg:p-14">
+      <aside aria-label={t("account", "holdsH")} className="band-dark iac-login__stage lm-rise relative flex flex-col justify-between gap-6 bg-charcoal-deep p-6 text-chalk sm:p-10 lg:p-14">
         <div aria-hidden="true" className="cs-pool" />
         <div className="relative">
           <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-pale before:h-px before:w-7 before:bg-gold [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{t("account", "holdsH")}</p>
           <div className="mt-4"><SignInStage pieces={pieces} /></div>
         </div>
         <div className="relative">
-          <ul className="border-t border-chalk/20">
+          <ul className="grid gap-2">
             {perks.map(({ icon: Icon, text }) => (
-              <li key={text} className="grid grid-cols-[22px_minmax(0,1fr)] gap-3 border-b border-chalk/20 py-3 text-sm text-chalk/90">
+              <li key={text} className="grid grid-cols-[22px_minmax(0,1fr)] items-center gap-3 rounded-pill border border-chalk/20 px-4 py-2.5 text-sm text-chalk/90">
                 <Icon aria-hidden="true" className="h-5 w-5 text-gold-pale" strokeWidth={1.5} />
                 <span>{text}</span>
               </li>
@@ -72,6 +73,7 @@ export default async function LoginPage() {
           <p className="mt-4 text-[13px] leading-relaxed text-chalk/75">{t("footer", "secondhandPermit")}</p>
         </div>
       </aside>
+      </div>
     </section>
   );
 }

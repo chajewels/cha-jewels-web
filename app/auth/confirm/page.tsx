@@ -5,7 +5,7 @@ import { tr } from "@/lib/i18n";
 import { safeNext } from "@/lib/safe-next";
 import { ConfirmSignIn } from "@/components/account/confirm-sign-in";
 import { AboutLogoVideo } from "@/components/fx/about-logo-video";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const generateMetadata = () => pageMeta("login");
 export const dynamic = "force-dynamic";
@@ -32,15 +32,14 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
   // turns to face the customer as she arrives, then holds; the button is
   // hers to press whenever she likes — the film never delays the sign-in.
   return (
-    <section className="py-[clamp(40px,6vw,88px)]">
-      <div className="wrap grid max-w-[880px] items-center gap-8 sm:grid-cols-[minmax(0,300px)_minmax(0,1fr)] sm:gap-12">
-        <AboutLogoVideo alt={t("about", "logoAlt")} sizes="(min-width: 640px) 300px, 100vw" className="w-full max-w-[300px] rounded-sm" />
-        <div className="max-w-[46ch]">
-          <h1 className="text-[clamp(32px,4.4vw,56px)]"><Reveal>{t("account", "confirmH")}</Reveal></h1>
-          <p className="mt-4 text-charcoal">{t("account", "confirmP")}</p>
+    <div className="iac-shell">
+      <PageHead title={t("account", "confirmH")} lead={t("account", "confirmP")} />
+      <PageSection>
+        <div className="iac-plate iac-sheet lm-rise grid max-w-[880px] items-center gap-8 sm:grid-cols-[minmax(0,260px)_minmax(0,1fr)] sm:gap-12">
+          <AboutLogoVideo alt={t("about", "logoAlt")} sizes="(min-width: 640px) 260px, 100vw" className="w-full max-w-[260px] rounded-[22px]" />
           <ConfirmSignIn tokenHash={tokenHash} type={type} next={next} lang={lang} />
         </div>
-      </div>
-    </section>
+      </PageSection>
+    </div>
   );
 }

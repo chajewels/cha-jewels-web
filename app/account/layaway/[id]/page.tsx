@@ -164,13 +164,13 @@ export default async function LayawayPlanPage({ params, searchParams }: {
           term and currency, and the Hub's figures — plan total, paid so far,
           and what is left, labelled by remainingLabel so a closed plan never
           calls its balance "still to pay". Nothing here is computed. */}
-      <section aria-label={t("plans", "total")} className="band-dark relative mb-6 bg-charcoal-deep p-5 text-chalk outline outline-1 -outline-offset-1 outline-gold/35 sm:p-[26px]">
+      <section aria-label={t("plans", "total")} className="band-dark iac-ink relative mb-6 p-5 text-chalk sm:p-[26px]">
         <span aria-hidden="true" className="cj-slab-rule" />
         <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_auto]">
           <div className={first?.image_url ? "grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[104px_minmax(0,1fr)]" : ""}>
             {/* No photo on the line (a Hub-arranged plan): no empty frame. */}
             {first?.image_url && (
-              <span className="relative block aspect-square overflow-hidden bg-white outline outline-1 -outline-offset-1 outline-gold/35">
+              <span className="relative block aspect-square overflow-hidden rounded-[16px] bg-white">
                 <HubImage src={first.image_url} alt={firstName ?? ""} fill sizes="104px" className="object-contain" />
               </span>
             )}
@@ -259,7 +259,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
       {/* What this state means, in one sentence. Closed plans get no
           encouragement here — see planNote. */}
       {note && !reserved && (
-        <p className="mb-6 border border-hairline bg-white p-4 text-sm text-charcoal-deep">{note}</p>
+        <p className="mb-6 iac-plate p-4 text-sm text-charcoal-deep">{note}</p>
       )}
 
       {/* Straight off the checkout, before any deposit exists. */}
@@ -272,14 +272,14 @@ export default async function LayawayPlanPage({ params, searchParams }: {
       )}
 
       {items.length === 0 && (
-        <p className="mb-6 border border-hairline bg-white p-5 text-sm leading-relaxed text-charcoal/80">{t("plans", "arrangedWithUs")}</p>
+        <p className="mb-6 iac-plate p-5 text-sm leading-relaxed text-charcoal/80">{t("plans", "arrangedWithUs")}</p>
       )}
 
       {/* Every piece on the plan, when there is more than the one on the card. */}
       {items.length > 1 && (
-        <ul className="rule-grid mb-6 grid gap-px border border-hairline">
+        <ul className="iac-stack mb-6">
           {items.map((line) => (
-            <li key={line.id} className="bg-white p-4 text-sm">
+            <li key={line.id} className="iac-plate p-4 text-sm">
               <p className="text-charcoal-deep">{orderLineTitle(line, lang)}</p>
               <p className="mt-1 text-xs text-charcoal/75">
                 {line.sku ? `SKU ${line.sku}` : ""}{line.quantity > 1 ? ` · × ${line.quantity}` : ""}
@@ -289,7 +289,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
         </ul>
       )}
 
-      <section className="border border-hairline bg-white p-5 sm:p-6">
+      <section className="iac-plate p-5 sm:p-6">
         <h2 className="font-display text-[22px] text-charcoal-deep">{t("plans", "schedule")}</h2>
         {/* The Hub re-dates every row to the confirmation day, so the dates
             shown before then are not the ones the customer will pay on. */}
@@ -327,7 +327,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
       </section>
 
       {pendingSubs.length > 0 && (
-        <div className="mt-6 border border-gold-dark bg-white p-5">
+        <div className="mt-6 iac-plate iac-plate--note p-5">
           <h2 className="font-display text-lg text-charcoal-deep">{t("plans", "pending")}</h2>
           <ul className="mt-3 space-y-1 text-sm text-charcoal/80">
             {pendingSubs.map((sub) => (
@@ -343,7 +343,7 @@ export default async function LayawayPlanPage({ params, searchParams }: {
       )}
 
       {payments.length > 0 && (
-        <section className="mt-6 border border-hairline bg-white p-5 sm:p-6">
+        <section className="mt-6 iac-plate p-5 sm:p-6">
           <h2 className="font-display text-[22px] text-charcoal-deep">{t("plans", "payments")}</h2>
           <ul className="mt-3">
             {payments.map((p) => (
@@ -384,8 +384,8 @@ const TH = "pb-2.5 pr-3 text-left text-[11px] font-semibold uppercase tracking-[
 /** The status on the dark plan card: the badge's wording and dot, in the slab's colours. */
 function StatusBadgeDark({ tone, text }: { tone: Tone; text: string }) {
   return (
-    <span className="inline-flex items-center gap-2 border border-gold/50 px-3 py-1 text-xs text-chalk">
-      <i aria-hidden="true" className={`h-1.5 w-1.5 rotate-45 ${tone === "good" ? "bg-gold-pale" : tone === "pending" ? "bg-gold" : "border border-chalk/70"}`} />
+    <span className="inline-flex items-center gap-2 rounded-pill border border-gold/50 px-3 py-1 text-xs text-chalk">
+      <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${tone === "good" ? "bg-gold-pale" : tone === "pending" ? "bg-gold" : "border border-chalk/70"}`} />
       {text}
     </span>
   );

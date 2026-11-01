@@ -25,7 +25,7 @@ export function ServiceRequestRow({ request, lang, showTarget = false }: { reque
   const linked = showTarget ? serviceRequestHref(request) : null;
   const target = linked?.kind === "plan" && !layawayOffered(lang) ? null : linked;
   return (
-    <li className="bg-white p-5 text-sm">
+    <li className="iac-plate p-5 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-charcoal-deep">
