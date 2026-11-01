@@ -163,3 +163,78 @@ test("source guard: no essential read is swallowed into an empty result on the s
   const strictPart = data.slice(data.indexOf("const cancel"));
   assert.ok(!/\.catch\(\s*\(\)\s*=>/.test(strictPart), "strict path must not swallow a read");
 });
+
+// ---------- DP-15 correction batch: row-level validation ----------
+const MALFORMED = {
+  collections: [[{ name: "no slug" }], [{ slug: 5 }], [{ slug: "  " }], [null], ["kihei"]],
+  categories: [[{ slug: null }], [{ slug: {} }], [{}]],
+  productSlugs: [[{ slug: 12 }], [{ updated_at: "2026-10-01" }], [[]]],
+  posts: [[{ title: "no slug" }], [{ slug: 3 }], [{ slug: "ok", updated_at: 20261001 }], [{ slug: "ok", layaway_only: "yes" }], [{ slug: "ok", published: "no" }]],
+};
+const FAMILY = { collections: "collections", categories: "categories", productSlugs: "product-slugs", posts: "posts" };
+for (const [key, cases] of Object.entries(MALFORMED)) {
+  cases.forEach((bad, i) => test(`strict: malformed ${key} row #${i} is a failed read, not data`, async () => {
+    stub({ [key]: async () => bad });
+    await assert.rejects(strict(), (e) => names(e)?.includes(FAMILY[key]));
+  }));
+}
+for (const [label, detail] of [["an array", []], ["a string", "html"], ["wrong field type", { slug: "a-post", title_en: 5, body_en: "b" }], ["non-boolean layaway_only", { slug: "a-post", title_en: "T", body_en: "b", layaway_only: "x" }]]) {
+  test(`strict: a post-detail response that is ${label} fails the read (never "no such language")`, async () => {
+    stub({ post: async (slug) => (slug === "a-post" ? detail : null) });
+    await assert.rejects(strict(), (e) => names(e)?.includes("post-language:a-post"));
+  });
+}
+test("legitimate shapes pass: empty lists, blank post slug row (filtered later), null language fields, semantic 404", async () => {
+  stub({
+    collections: async () => [], categories: async () => [], productSlugs: async () => [],
+    posts: async () => [{ slug: "  ", published_at: "2026-09-04" }, { slug: "en-only", published_at: null, updated_at: undefined }],
+    post: async (slug) => (slug === "en-only" ? { slug, title_en: "T", body_en: "b", title_ja: null, body_ja: null } : null),
+  });
+  const d = await strict();
+  assert.deepEqual(d.langs.get("en-only"), { en: true, ja: false });
+});
+
+// ---------- exact eligible URL sets, incl. language eligibility ----------
+const EXACT_FULL = {
+  "both": { slug: "both", title_en: "T", body_en: "b", title_ja: "題", body_ja: "本" },
+  "en-only": { slug: "en-only", title_en: "T", body_en: "b", title_ja: null, body_ja: null },
+  "ja-only": { slug: "ja-only", title_en: null, body_en: null, title_ja: "題", body_ja: "本" },
+  "ja-title-no-body": { slug: "ja-title-no-body", title_en: "T", body_en: "b", title_ja: "題", body_ja: "  " },
+  "lay-post": { slug: "lay-post", title_en: "T", body_en: "b", layaway_only: true },
+};
+const exactStub = () => stub({
+  collections: async () => [{ slug: "c1" }, { slug: "c2" }],
+  categories: async () => [{ slug: "k1" }],
+  productSlugs: async () => [{ slug: "p1", updated_at: "x" }, { slug: "p1", updated_at: "x" }, { slug: "p2", updated_at: "y" }],
+  posts: async () => [
+    { slug: "both", published_at: "2026-09-01", updated_at: "2026-09-05" }, { slug: "en-only", published_at: "2026-09-06" },
+    { slug: "ja-only", published_at: "2026-09-07" }, { slug: "ja-title-no-body", published_at: "2026-09-08" },
+    { slug: "lay-post", published_at: "2026-09-02", layaway_only: true }, { slug: "draft", published_at: "2026-09-03", published: false },
+  ],
+  post: async (slug) => EXACT_FULL[slug] ?? null,
+  allProducts: async () => [{ slug: "p1", product_variants: [{ product_media: [{ url: "https://img.example.com/p1.jpg", sort: 0 }] }] }],
+});
+const dynamic = (u) => { const p = new URL(u).pathname; return /^\/(ja|en)\/(collections|categories|products|blog)\/[^/]+$/.test(p) ? p : null; };
+
+test("exact eligible dynamic URL set (language eligibility included), no extras and no omissions", async () => {
+  exactStub();
+  const got = (await sitemap_with_strict_env()).map((e) => dynamic(e.url)).filter(Boolean).sort();
+  const want = [
+    "/ja/collections/c1", "/en/collections/c1", "/ja/collections/c2", "/en/collections/c2",
+    "/ja/categories/k1", "/en/categories/k1",
+    "/ja/products/p1", "/en/products/p1", "/ja/products/p2", "/en/products/p2",
+    "/ja/blog/both", "/en/blog/both", "/en/blog/en-only", "/ja/blog/ja-only", "/en/blog/ja-title-no-body",
+  ].sort();
+  assert.deepEqual(got, want);
+});
+
+test("healthy old (develop c6d7cd9) vs new sitemap output is identical: urls, lastmod, images, frequency, priority", async () => {
+  exactStub();
+  const { default: legacy } = await import("./fixtures/legacy-sitemap.ts");
+  const oldOut = await legacy();
+  const newOut = await sitemap_with_strict_env();
+  // Order IS compared (no normalization needed: both are produced in the same order).
+  assert.deepEqual(newOut, oldOut);
+  assert.ok(newOut.some((e) => e.images?.length), "images are part of the comparison");
+  assert.ok(newOut.some((e) => e.lastModified), "lastmod is part of the comparison");
+});

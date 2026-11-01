@@ -2,7 +2,7 @@ import { hub } from "@/lib/hub-api";
 import { PREVIEW_FIXTURES } from "@/lib/fixtures-mode";
 import { postLanguages, postLanguagesStrict } from "@/lib/posts";
 import {
-  DEFAULT_TIMING, LOOKUP_WAVE, SitemapUnavailable, essential, inWaves, strictSitemap, type Timing,
+  DEFAULT_TIMING, LOOKUP_WAVE, SitemapUnavailable, essential, inWaves, strictSitemap, validPostRows, validSlugRows, type Timing,
 } from "@/lib/sitemap-reads";
 
 /** How long the OPTIONAL product-photo read may take before the sitemap goes out without image tags. */
@@ -70,10 +70,10 @@ export async function gatherSitemapData(opts: { strict?: boolean; timing?: Timin
   try {
     const catalogP = optionalCatalog();
     const [cols, cats, prods, posts] = await Promise.all([
-      guard("collections", (signal) => hub.collections({ signal })),
-      guard("categories", (signal) => hub.categories({ signal })),
-      guard("product-slugs", (signal) => hub.productSlugs({ signal })),
-      guard("posts", (signal) => hub.posts(undefined, { signal })),
+      guard("collections", (signal) => hub.collections({ signal }), validSlugRows),
+      guard("categories", (signal) => hub.categories({ signal }), validSlugRows),
+      guard("product-slugs", (signal) => hub.productSlugs({ signal }), validSlugRows),
+      guard("posts", (signal) => hub.posts(undefined, { signal }), validPostRows),
     ]);
     const langs = new Map<string, Langs>();
     if (posts && !ctl.signal.aborted) {

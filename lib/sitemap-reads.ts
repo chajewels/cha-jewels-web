@@ -45,6 +45,27 @@ export function anySignal(signals: AbortSignal[]): AbortSignal {
   return c.signal;
 }
 
+/**
+ * RESPONSE VALIDATION (DP-15). A 200 whose rows lack the fields the sitemap
+ * reads is a failed read, not data. Legitimately empty lists pass. Only the
+ * fields app/sitemap.ts and lib/posts.ts actually use are checked.
+ */
+const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+const optStr = (v: unknown) => v === undefined || v === null || typeof v === "string";
+const optBool = (v: unknown) => v === undefined || v === null || typeof v === "boolean";
+const slugRow = (r: unknown) => isObj(r) && typeof r.slug === "string" && r.slug.trim() !== "";
+/** collections, categories, product slugs: a non-empty string slug on every row. */
+export const validSlugRows = (v: unknown): boolean => Array.isArray(v) && v.every(slugRow);
+/**
+ * Posts list: a string slug on every row (a blank one is filtered later, as
+ * before), optional string dates, optional booleans.
+ */
+export const validPostRows = (v: unknown): boolean =>
+  Array.isArray(v) && v.every((r) => isObj(r) && typeof r.slug === "string" && optStr(r.updated_at) && optStr(r.published_at) && optBool(r.layaway_only) && optBool(r.published));
+/** One post detail: an object whose language fields are strings or null. (A 404 never reaches here: hub.post turns it into null.) */
+export const validPostDetail = (v: unknown): boolean =>
+  isObj(v) && optStr(v.title_en) && optStr(v.body_en) && optStr(v.title_ja) && optStr(v.body_ja) && optBool(v.layaway_only);
+
 /** A retry cannot help a definite client error (401, 403, 400…) — but can help 408, 429 and everything else. */
 function retryable(e: unknown): boolean {
   const status = (e as { status?: unknown })?.status;

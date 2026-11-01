@@ -1,0 +1,62 @@
+{
+  "at": "2026-11-01T12:21:02.359Z",
+  "elapsed_s": 556,
+  "aborted": null,
+  "missing": [],
+  "failed": [
+    "E4",
+    "R:failure-reached",
+    "R:continuity",
+    "V:recovery"
+  ],
+  "results": {
+    "E1": {
+      "ok": true,
+      "note": "exit 0; exact set equal; image tag true"
+    },
+    "E2:collections": {
+      "ok": true,
+      "note": "exit 1; named true; upstream 503 reached 5x"
+    },
+    "E2:categories": {
+      "ok": true,
+      "note": "exit 1; named true; upstream 503 reached 6x"
+    },
+    "E2:product-slugs": {
+      "ok": true,
+      "note": "exit 1; named true; upstream 503 reached 3x"
+    },
+    "E2:posts": {
+      "ok": true,
+      "note": "exit 1; named true; upstream 503 reached 1x"
+    },
+    "E2w": {
+      "ok": true,
+      "note": "OBSERVATION warm cache: exit 0; sitemap = last good rows (exact set equal to v1)"
+    },
+    "E3": {
+      "ok": true,
+      "note": "exit 0; exact set equal; image tags false; image 503 reached 4x"
+    },
+    "E4": {
+      "ok": false,
+      "note": "exit 1; SitemapUnavailable naming collections: false"
+    },
+    "R0": {
+      "ok": true,
+      "note": "status 200; exact set equal to v1; image true"
+    },
+    "R:failure-reached": {
+      "ok": false,
+      "note": "upstream 503s served during the failure window: {\"collections\":0,\"categories\":0,\"product-slugs\":0,\"posts\":0} (an intended failure that was not reached would make the next check meaningless)"
+    },
+    "R:continuity": {
+      "ok": false,
+      "note": "CONTINUITY evidence only (retained old output, not recovery): [[200,\"STALE\",15],[200,\"HIT\",0],[200,\"HIT\",0]]"
+    },
+    "V:recovery": {
+      "ok": false,
+      "note": "NOT reflected within 300 s: missing [\"/en/blog/exp-en-only\",\"/en/blog/exp-post\",\"/en/categories/necklaces\",\"/en/collections/exp-new-col\",\"/en/collections/kihei\",\"/en/collections/pearls\",\"/en/products/exp-new-4\",\"/en/products/exp-pearl-3\",\"/en/products/exp-ring-1\",\"/ja/blog/exp-post\",\"/ja/categories/necklaces\",\"/ja/collections/exp-new-col\",\"/ja/collections/kihei\",\"/ja/collections/pearls\",\"/ja/products/exp-new-4\",\"/ja/products/exp-pearl-3\",\"/ja/products/exp-ring-1\"] extra []"
+    }
+  }
+}

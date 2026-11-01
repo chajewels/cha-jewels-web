@@ -63,5 +63,5 @@ Acceptance criteria per route family are the checkers' own rows (FOUNDATION, OG-
 ## 6. Sitemap reliability (DP-15, matrix §S.10) — operations
 - A Hub read failure now fails the build (`SitemapUnavailable` naming the family) or, at runtime, leaves the last good output serving (local result R1; Vercel behaviour UNVERIFIED until P2). A Hub incident can therefore delay a deploy: retry the deploy after the Hub recovers, or revert the DP-15 commit to restore the tolerant behaviour.
 - Log lines: `sitemap-images-unavailable` (optional image read failed; sitemap served without image tags), `sitemap-fixture-mode` (fixtures or unconfigured non-production Hub; never acceptance evidence).
-- Local proof: `node scripts/sitemap-experiments/run.mjs E1,E2,E3` then `R` (stub Hub; bounded 15 minutes; clears the fetch cache for cold builds).
+- Local proof: `node scripts/sitemap-experiments/run.mjs` (all 12 required experiments or it fails; stub Hub on 3141 and `next start` on 3140, refused if occupied; stops only what it started; about 5 minutes; evidence in `docs/seo/evidence/dp15/`).
 - The post-release two-read check in §5 stays as detection; a short read after DP-15 is a new defect to investigate, not something to clear with a later read.
