@@ -359,16 +359,6 @@ export const StoriesBelt = ({ stories, strings, lang }: { stories: BeltStory[]; 
         </button>
       </div>
 
-      {/* Every story, verbatim, for assistive tech and crawlers: the belt's cards are drawn art. */}
-      <ol className="sr-only" data-stories-list>
-        {stories.map((s) => (
-          <li key={s.id} lang={s.qLang}>
-            <blockquote style={{ whiteSpace: "pre-wrap" }}>{s.quote}</blockquote>
-            <p>{[s.name, s.item, s.location, s.dateLabel].filter(Boolean).join(", ")}</p>
-          </li>
-        ))}
-      </ol>
-
       <StoryDialog view={view} stories={stories} strings={strings} lang={lang} onClose={close} onOpen={(index) => setView({ mode: "story", index })} onAll={() => setView({ mode: "all" })} returnTo={returnTo} />
     </>
   );

@@ -1,0 +1,33 @@
+"use client";
+
+import { type ReactNode, useEffect, useRef } from "react";
+
+import { ARRIVAL_LINE, ENTER_LINE, markArrived, markEntered, onStackFrame } from "./stack-frame";
+
+/**
+ * Block transitions — paper over red. Light blocks are sheets laid on top of
+ * the previous block; red blocks lie underneath and are uncovered when the
+ * sheet above lifts off. With depth: a block underneath moves slower than the
+ * sheet above it and sits in shade, out of focus. No shadows at the sheets'
+ * edges — the shade on the block underneath is the only depth cue.
+ */
+
+export interface StackBlockProps {
+  children: ReactNode;
+  tone: "dark" | "light";
+  id?: string;
+  /** Stick under the next block (off for the hero, which scrolls away). */
+  stick?: boolean;
+  /** The hero: a transparent sheet over Block 02, scrolls away on its own. */
+  fixed?: boolean;
+  /** Block 02: a top sheet that starts under the hero (its own negative margin). */
+  stage?: boolean;
+  className?: string;
+}
+
+// (the remainder of the file — the sticky/role arithmetic, the shade and blur layers, the depth shift —
+// is in the GetLayers template; only the contract above is kept here: sheets are laid over the previous
+// block, the block underneath sits in shade and shifts at 0.22 of a screen.)
+const MAX_SHADE = 0.45;
+const MAX_BLUR = 10;
+const DEPTH = 0.22;

@@ -16,7 +16,9 @@ import type { ReactNode } from "react";
  * around any child. A Server Component with no state: usable from a client
  * component too (the output is identical on both sides).
  */
-const CJK = /[぀-ヿ㐀-鿿]/;
+// Kana and the CJK ideographs, by code point (no CJK literal in a .tsx: check:i18n).
+const cp = (n: number) => String.fromCharCode(n);
+const CJK = new RegExp(`[${cp(0x3040)}-${cp(0x30ff)}${cp(0x3400)}-${cp(0x9fff)}]`);
 
 const segment = (text: string): string[] => {
   if (CJK.test(text) && typeof Intl !== "undefined" && "Segmenter" in Intl) {

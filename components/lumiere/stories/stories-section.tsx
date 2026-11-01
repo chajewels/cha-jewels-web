@@ -5,7 +5,8 @@ import { lumiereStories } from "@/lib/content/lumiere-home";
 import { graphemes } from "@/lib/story-timing";
 import { ReviewSummary } from "@/components/reviews/review-list";
 
-import { StoriesBelt, type BeltStory } from "./stories-belt";
+import type { BeltStory } from "./stories-belt";
+import { StoriesBeltIsland } from "./stories-belt-island";
 
 /**
  * CUSTOMER STORIES — the Slider Slipstream reference (docs/design-refs/
@@ -76,7 +77,18 @@ export const StoriesSection = async ({ lang }: { lang: Lang }) => {
           </div>
         )}
       </div>
-      <StoriesBelt stories={belt} strings={strings} lang={lang} />
+      <StoriesBeltIsland stories={belt} strings={strings} lang={lang} />
+
+      {/* Every story, verbatim, for assistive tech and crawlers: the belt's cards are drawn art
+          (and the belt itself arrives as the band nears the viewport). */}
+      <ol className="sr-only" data-stories-list>
+        {belt.map((s) => (
+          <li key={s.id} lang={s.qLang}>
+            <blockquote style={{ whiteSpace: "pre-wrap" }}>{s.quote}</blockquote>
+            <p>{[s.name, s.item, s.location, s.dateLabel].filter(Boolean).join(", ")}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 };

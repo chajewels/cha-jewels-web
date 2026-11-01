@@ -1,5 +1,29 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P4: every inner page in the Lumière design
+
+Local production build, fixture mode, Lighthouse 13.6, normal Chrome UA, three runs, median (range); `simulate` = the method of record (mobile Slow 4G / 4× CPU modelled, desktop preset), `applied` = `--throttling-method=devtools`. Production rows are the same-day P2b measurements above.
+
+| Page | Method | Production | P3 | **P4** |
+|---|---|---|---|---|
+| `/ja` mobile | simulate | 82 · LCP 4.24 s · TBT 56 ms | 80 · 4.89 s · 130 ms | **83 (81–83) · 4.45 s · 116 ms** |
+| `/en` mobile | simulate | 81 · LCP 4.38 s · TBT 78 ms | 80 · 4.90 s · 159 ms | **79 (68–82) · 4.98 s · 163 ms** |
+| `/ja` / `/en` desktop | simulate | 97 / 98 | 98 / 98 | **98 / 98** (LCP 1.01 / 1.15 s) |
+| `/en/collections/rings` mobile / desktop | simulate | 83 · 4.40 s / 99 | 88 · 3.93 s / 100 | **86 · 4.15 s · TBT 6 ms / 99 · 0.86 s** |
+| a product page, mobile / desktop | simulate | 86 · 3.94 s / 99 | (P3 measured a 404 page here — see below) | **83 · 4.59 s · TBT 22 ms / 99 · 0.94 s** |
+| `/cart` mobile / desktop | simulate | not recorded | not measured | **88 · 3.92 s · TBT 7 ms / 99 · 0.83 s** |
+| `/ja` mobile | applied | 55 · LCP 5.06 s | 78 · 2.33 s · TBT 520 ms | **76 · 2.45 s · TBT 557 ms** |
+| `/en` mobile | applied | 59 · LCP 4.77 s | 70 · 2.52 s · TBT 808 ms | **69 · 2.50 s · TBT 836 ms** |
+| collection / cart mobile | applied | not recorded | not measured | **90 · 2.36 s / 86 · 3.10 s** |
+| product page mobile | applied | not recorded | not measured | **65 · 6.68 s** — see the note |
+
+**Reading.**
+- *The home did not regress.* The first build of the stories belt put its engine and dialog in the home's hydration (English TBT 159 → 262 ms, 76); the belt is now a lazy island (`stories-belt-island.tsx`: its chunk arrives as the band nears; the verbatim story list stays in the server HTML), and the home is back at P3's level — Japanese 83 (the bar), English 79 against 81 (TBT 163 ms, in line with P3's 159; the run range 68–82 is one noisy run). Home first load 197 kB gz (194 at P3).
+- *Inner pages* now carry the Lumière header and footer and the redesigned bodies at the same or better cost than production's rows: the collection page (the Halden cards) 86 · 4.15 s against production's 83 · 4.40 s.
+- *The product page's applied LCP (6.68 s) is the cookie bar's text, not the piece.* The fixture product has an SVG placeholder photograph, which the browser does not count as an image paint, so the largest contentful paint on that page falls to the bar's paragraph, which mounts after hydration (3.1 s on a 4× phone in a direct observation; the product page's client work is the longest of the inner pages). A Hub photograph is a WebP and is the LCP at ~2 s on the collection page (observed: 1.5 s). A 700 ms idle bound on the bar was tried and did not move it (hydration, not the idle wait, sets the time) and was reverted. Unverified on production data; to be re-measured on the branch preview, where the Hub's photographs are real.
+- *Correction to the P3 entry:* the P3 "product page" row (86 · LCP 4.14 s) was measured on `/en/products/double-sided-diamond-pendant`, which is not a fixture slug — it was the not-found page. The product row above is a real fixture product (`kihei-chain-50-cm`).
+- *Mobile simulate on the English home is still under the P1 bar (81, LCP 4.3 s)*; the cause and closers are unchanged from the P2b entry (the curtain's lift is bound by hydration; a static hero shell or PPR is the framework-level answer).
+
 ## 2026-11-01 — Lumière redesign P3: the chrome on every page and the home fixes
 
 | Page | Method | Production | P2b (2.5 s cap) | **P3** |
