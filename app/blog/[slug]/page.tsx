@@ -10,6 +10,7 @@ import { CommentsSection } from "@/components/blog/comments-section";
 import { ShareBar } from "@/components/blog/share-bar";
 import { postShareUrl } from "@/lib/share";
 import { siteUrl } from "@/lib/site";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * EVERY SLUG THE HUB KNOWS, AND NEITHER LANGUAGE'S RULES. A param list says
@@ -104,7 +105,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <time dateTime={p.date} className="mt-6 block text-xs text-charcoal/70">
           {new Date(p.date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
         </time>
-        <h1 className="mt-2 text-[clamp(32px,4.5vw,64px)]">{p.title}</h1>
+        <h1 className="mt-2 text-[clamp(32px,4.5vw,64px)]"><Reveal>{p.title}</Reveal></h1>
         {/* The body is rendered HTML from lib/markdown.ts, which escapes its
             input before parsing it — there is no path from a post body to a
             tag. `.post-body` in globals.css is what styles the elements it

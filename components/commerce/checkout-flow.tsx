@@ -35,6 +35,7 @@ import { paidy612Active } from "@/lib/paidy-widget";
 import { methodWhyKey } from "@/lib/checkout-method-why";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/analytics";
 import { purchaseFromPayResult } from "@/lib/ads";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -657,7 +658,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       <div ref={topRef} className="wrap scroll-mt-24 pt-6 sm:pt-12">
         <div className="mb-6 sm:mb-8">
           <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{t("checkout", mode === "layaway" ? "eyebrow" : "eyebrowOrder")}</p>
-          <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
+          <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]"><Reveal>{t("checkout", "h1")}</Reveal></h1>
         </div>
         <Stepper steps={steps} current={stepperAt} label={t("checkout", "stepsLabel")} stepOf={(n, label) => t("checkout", "stepOf", { n: String(n), label })} />
 

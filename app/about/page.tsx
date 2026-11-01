@@ -9,6 +9,7 @@ import { aboutCopy } from "@/lib/content/about";
 import { catalogue } from "@/lib/catalog-context";
 import { Eyebrow } from "@/components/site/support-stage";
 import { DarkBand, H_DISPLAY, H_HEAD, H_TITLE, LEDE, LEDE_DARK, Label, Proof, ProofCells, SEC, SEC_S, StageBand, specExample } from "@/components/site/brand-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("about");
 
@@ -47,7 +48,7 @@ export default async function About() {
         <div className={`wrap ${SEC} grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
           <div className="max-w-[760px]">
             <Eyebrow dark rule>{t("home", "heroSince")}</Eyebrow>
-            <h1 className={`mt-[18px] text-gold-pale ${H_DISPLAY}`}>{c.h1}</h1>
+            <h1 className={`mt-[18px] text-gold-pale ${H_DISPLAY}`}><Reveal>{c.h1}</Reveal></h1>
             <p className={`mt-[18px] ${LEDE_DARK}`}>{c.intro}</p>
           </div>
           <Image

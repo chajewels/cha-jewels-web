@@ -10,6 +10,7 @@ import { formatSiteDate } from "@/lib/site-time";
 import { formatMoney } from "@/lib/utils";
 import { alertLight, inputLight } from "@/lib/form-classes";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function ReceiptVerifyPage({ searchParams }: { searchParams
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[760px]">
         <p className={eyebrow}>Cha Jewels</p>
-        <h1 className="mt-3 font-display text-[clamp(32px,4.5vw,56px)] leading-tight text-charcoal-deep">{t("receipts", "verifyH1")}</h1>
+        <h1 className="mt-3 font-display text-[clamp(32px,4.5vw,56px)] leading-tight text-charcoal-deep"><Reveal>{t("receipts", "verifyH1")}</Reveal></h1>
         <p className="mt-4 max-w-[58ch] text-charcoal">{t("receipts", "verifyLede")}</p>
 
         <form method="get" action="/receipts/verify" className="mt-8 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">

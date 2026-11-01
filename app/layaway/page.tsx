@@ -19,6 +19,7 @@ import { cardImage } from "@/lib/product-media";
 import { productName } from "@/lib/catalog-i18n";
 import { isFigure } from "@/lib/utils";
 import { initialPieceSlug, type PickerPiece } from "@/lib/layaway-picker";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("layaway");
 
@@ -128,7 +129,7 @@ export default async function LayawayPage({ searchParams }: { searchParams: Prom
       <StageBand>
         <div className={`wrap ${SEC}`}>
           <Eyebrow dark rule>{t("home", "layPill")}</Eyebrow>
-          <h1 className={`gilt mt-4 max-w-[22ch] ${H_DISPLAY}`}>{t("layawayPage", "h1")}</h1>
+          <h1 className={`gilt mt-4 max-w-[22ch] ${H_DISPLAY}`}><Reveal>{t("layawayPage", "h1")}</Reveal></h1>
           <p className={`mt-[18px] ${LEDE_DARK}`}>{t("home", "layP")}</p>
           {/* The three steps, joined by a gold line: across from sm, down the
               discs on a phone. */}

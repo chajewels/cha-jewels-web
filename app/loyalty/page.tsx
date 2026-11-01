@@ -11,6 +11,7 @@ import { TierLadder } from "@/components/fx/tier-ladder";
 import { TierIcon } from "@/components/fx/tier-icon";
 import { Eyebrow } from "@/components/site/support-stage";
 import { DarkBand, H_DISPLAY, H_HEAD, H_TITLE, LEDE_DARK, Label, SEC, SEC_S, StageBand } from "@/components/site/brand-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 export const generateMetadata = () => pageMeta("loyalty");
 export const revalidate = 300;
 
@@ -47,7 +48,7 @@ export default async function LoyaltyPage() {
         <div className={`wrap ${SEC} grid items-end gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
           <div>
             <Eyebrow dark rule>{t("nav", "loyalty")}</Eyebrow>
-            <h1 className={`gilt mt-4 ${H_DISPLAY}`}>{t("loyalty", "h1")}</h1>
+            <h1 className={`gilt mt-4 ${H_DISPLAY}`}><Reveal>{t("loyalty", "h1")}</Reveal></h1>
             <p className={`mt-[18px] ${LEDE_DARK}`}>{t("loyalty", "lede")}</p>
             <div className="mt-7"><Link href={localePath("/loyalty/join", lang)} className={JOIN_ON_DARK}>{t("loyalty", "join")}</Link></div>
           </div>

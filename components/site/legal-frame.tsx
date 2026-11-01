@@ -5,6 +5,7 @@ import { tr } from "@/lib/i18n";
 import { type Lang } from "@/lib/i18n-core";
 import { COMPANY_NAME_DISPLAY, tokusho } from "@/lib/content/legal";
 import { LegalToc, LegalTocPhone, PrintLink, type TocItem } from "@/components/site/legal-toc";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export type LegalPageKey = "terms" | "privacy" | "returns" | "tokusho";
 
@@ -70,7 +71,7 @@ export function LegalFrame({
             {t("footer", "legal")}
           </p>
           <h1 className="mt-3.5 max-w-[22ch] text-[clamp(32px,4.4vw,58px)] leading-[1.08] text-gold-pale print:text-charcoal-deep [:lang(ja)_&]:max-w-none [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:leading-[1.4] [:lang(ja)_&]:[word-break:auto-phrase]">
-            {title}
+            <Reveal>{title}</Reveal>
           </h1>
           <p className="mt-[18px] flex flex-wrap gap-x-7 gap-y-2 text-[13px] text-chalk/80 print:text-charcoal">
             <span className="cj-fig">{updated}</span>

@@ -8,6 +8,7 @@ import { contactEmail, follow } from "@/lib/settings";
 import { SocialIcons } from "@/components/site/social-icons";
 import { ContactForm } from "@/components/site/contact-form";
 import { Eyebrow, MessengerCta } from "@/components/site/support-stage";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("contact");
 
@@ -61,7 +62,7 @@ export default async function Contact() {
     <section className="bg-chalk pb-[clamp(56px,7vw,96px)] pt-[clamp(40px,6vw,88px)] text-charcoal">
       <div className="wrap">
         <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
-        <h1 className="mt-3.5 text-[clamp(34px,4.6vw,60px)] leading-[1.08] text-charcoal-deep [:lang(ja)_&]:text-[clamp(28px,3.4vw,44px)] [:lang(ja)_&]:leading-[1.35]">{t("contact", "h1Panel")}</h1>
+        <h1 className="mt-3.5 text-[clamp(34px,4.6vw,60px)] leading-[1.08] text-charcoal-deep [:lang(ja)_&]:text-[clamp(28px,3.4vw,44px)] [:lang(ja)_&]:leading-[1.35]"><Reveal>{t("contact", "h1Panel")}</Reveal></h1>
         <p className="mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-charcoal/85 [:lang(ja)_&]:text-[15.5px]">{t("contact", "panelLede")}</p>
 
         <div className="mt-10 grid items-start gap-7 lg:grid-cols-2 lg:gap-10">

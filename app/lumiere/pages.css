@@ -418,3 +418,74 @@ html:lang(ja) .lw__step-title { font-weight: 500; font-size: 21px; line-height: 
   .lw__visual { width: 48px; height: 48px; }
   .lw__visual svg { width: 30px; height: 30px; }
 }
+
+/* --------------------------------------------------------------------------
+   THE HEADING REVEAL (components/lumiere/common/reveal-text.tsx): each word
+   resolves out of a blur. A view timeline where supported (the heading is at
+   rest when already on screen); a quick time-based entrance elsewhere. Reduced
+   motion removes the animation entirely (the base rule), leaving the text.
+   -------------------------------------------------------------------------- */
+.lm-w { display: inline-block; }
+@keyframes lm-word {
+  from { opacity: 0.35; filter: blur(0.28em); transform: translateY(0.14em); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+@supports (animation-timeline: view()) {
+  .lm-w {
+    animation: lm-word linear both;
+    animation-timeline: view();
+    animation-range: entry calc(var(--i, 0) * 2.5%) entry calc(52% + var(--i, 0) * 2.5%);
+  }
+}
+@supports not (animation-timeline: view()) {
+  .lm-w { animation: lm-word 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 55ms); }
+}
+
+/* --------------------------------------------------------------------------
+   THE PRODUCT PAGE'S SHEETS (P4; Herbier Blanc's paper over paper,
+   docs/design-refs/herbier-blanc/): each block below the piece is a sheet
+   laid over the one before it — a rounded top, a soft upward shadow, and on
+   entry a short rise out of the one beneath (a view timeline where supported;
+   plain stacked sections elsewhere, and under reduced motion). No 3D.
+   -------------------------------------------------------------------------- */
+.pdp-sheets { position: relative; isolation: isolate; }
+.pdp-sheet {
+  position: relative;
+  margin-top: -28px;
+  border-radius: 32px 32px 0 0;
+  box-shadow: 0 -18px 40px -22px rgb(0 0 0 / 0.28);
+  overflow: clip;
+}
+.pdp-sheet:first-child { margin-top: 0; }
+.pdp-sheet--white { background: #fff; }
+.pdp-sheet--bone { background: #ebe6df; }
+.pdp-sheet--last { padding-bottom: 0; }
+@supports (animation-timeline: view()) {
+  @keyframes pdp-lift { from { transform: translateY(56px); } to { transform: none; } }
+  .pdp-sheet { animation: pdp-lift linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+}
+/* Cards on a sheet: the white sheet's plates take the bone ground. */
+.pdp-sheet--white .pcard-plate { background: #f1ece6; }
+
+/* The lean (components/catalog/lean-card.tsx; Brewns, mechanics only). */
+.lean { transform: perspective(900px) rotateX(var(--lean-x, 0deg)) rotateY(var(--lean-y, 0deg)) translateZ(var(--lean-z, 0px)); transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1); will-change: transform; }
+@media (prefers-reduced-motion: reduce), (hover: none) { .lean { transform: none; transition: none; } }
+
+/* The envelope (components/catalog/certificate-envelope.tsx) — only rendered when the Hub carries a certificate. */
+.pdp-envelope { position: relative; width: min(420px, 100%); height: 300px; margin: 0 auto; perspective: 1200px; }
+.pdp-envelope__back { position: absolute; inset: 40px 0 0; border-radius: 6px; background: #d9d1c4; box-shadow: 0 30px 60px -26px rgb(0 0 0 / 0.5); }
+.pdp-envelope__letter { position: absolute; left: 6%; right: 6%; top: 0; bottom: 36px; padding: 22px 24px; border-radius: 4px; background: #fff; box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.35); transform: translateY(0); }
+.pdp-envelope__title { margin: 0 0 12px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6; }
+.pdp-envelope__letter dl { margin: 0; display: grid; gap: 10px; }
+.pdp-envelope__letter dt { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+.pdp-envelope__letter dd { margin: 2px 0 0; font-size: 24px; line-height: 1.15; }
+.pdp-envelope__front { position: absolute; left: 0; right: 0; bottom: 0; height: 190px; border-radius: 0 0 6px 6px; background: linear-gradient(160deg, #e6dfd3, #d4ccbd); clip-path: polygon(0 18%, 50% 52%, 100% 18%, 100% 100%, 0 100%); }
+.pdp-envelope__flap { position: absolute; left: 0; right: 0; top: 40px; height: 120px; background: linear-gradient(170deg, #efe9de, #d9d1c4); clip-path: polygon(0 0, 100% 0, 50% 100%); transform-origin: top; transform: rotateX(180deg); }
+@supports (animation-timeline: view()) {
+  @keyframes pdp-flap { from { transform: rotateX(0deg); } to { transform: rotateX(180deg); } }
+  @keyframes pdp-letter { from { transform: translateY(64px); } to { transform: translateY(0); } }
+  .pdp-envelope__flap { animation: pdp-flap linear both; animation-timeline: view(); animation-range: entry 20% cover 45%; }
+  .pdp-envelope__letter { animation: pdp-letter linear both; animation-timeline: view(); animation-range: entry 40% cover 55%; }
+}
+/* A sheet's own bottom padding clears the 28px the next sheet lifts over it. */
+.pdp-sheet:not(.pdp-sheet--last) { padding-bottom: 28px; }

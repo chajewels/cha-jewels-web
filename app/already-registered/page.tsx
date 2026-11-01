@@ -5,6 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { tr } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { EndSessionOnMount } from "@/components/account/end-session-on-mount";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("registered");
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ export default async function AlreadyRegisteredPage() {
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[720px]">
-        <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("profile", "registeredH")}</h1>
+        <h1 className="text-[clamp(32px,4.4vw,56px)]"><Reveal>{t("profile", "registeredH")}</Reveal></h1>
         <div role="status" className="mt-8 border border-hairline bg-white p-6">
           <p className="text-charcoal-deep">{t("profile", "registeredP")}</p>
           <p className="mt-3 text-sm text-charcoal/70">{t("profile", "registeredSignedOut")}</p>

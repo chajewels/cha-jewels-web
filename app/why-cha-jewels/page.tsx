@@ -16,6 +16,7 @@ import { formatYenPeso, isFigure } from "@/lib/utils";
 import type { Category } from "@/lib/types";
 import { Eyebrow } from "@/components/site/support-stage";
 import { DarkBand, H_DISPLAY, H_TITLE, LEDE, Proof, ProofCells, ProofRow, SEC_S, specExample } from "@/components/site/brand-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("why");
 
@@ -112,7 +113,7 @@ export default async function WhyChaJewels() {
         <div className="wrap grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16">
           <div>
             <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
-            <h1 className={`mt-4 text-charcoal-deep ${H_DISPLAY}`}>{t("why", "h1")}</h1>
+            <h1 className={`mt-4 text-charcoal-deep ${H_DISPLAY}`}><Reveal>{t("why", "h1")}</Reveal></h1>
             <p className={`mt-[22px] font-display text-gold-dark ${H_TITLE}`}>{t("why", "sub")}</p>
             <p className={`mt-[18px] ${LEDE}`}>{t("why", "intro")}</p>
           </div>

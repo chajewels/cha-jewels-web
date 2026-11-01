@@ -2,6 +2,7 @@ import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { HubImage } from "@/components/media/hub-image";
 import type { HeroPiece } from "@/lib/hero-deck";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * THE CATEGORY BANNER WHEN THE HUB HAS NO CATEGORY PHOTO (owner rule
@@ -72,7 +73,7 @@ export function CategoryStage({ pieces, eyebrow, title, description, count, lang
       )}
       <div className="cs-copy">
         <p className="cs-eyebrow">{eyebrow}</p>
-        <h1 className="cs-title">{title}</h1>
+        <h1 className="cs-title"><Reveal>{title}</Reveal></h1>
         {description && <p className="cs-desc">{description}</p>}
         {count && <div className="mt-4">{count}</div>}
       </div>

@@ -9,6 +9,7 @@ import { hub } from "@/lib/hub-api";
 import { typeVisual } from "@/lib/type-icons";
 import { TypeIconWell } from "@/components/catalog/type-icon";
 import { HubImage } from "@/components/media/hub-image";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 export const generateMetadata = () => pageMeta("collections");
 export const revalidate = 60;
 export default async function CollectionsIndex() {
@@ -17,7 +18,7 @@ export default async function CollectionsIndex() {
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap">
-        <h1 className="text-[clamp(36px,5.5vw,80px)]">{t("nav", "collections")}</h1>
+        <h1 className="text-[clamp(36px,5.5vw,80px)]"><Reveal>{t("nav", "collections")}</Reveal></h1>
         <div className="rule-grid mt-12 grid grid-cols-2 lg:grid-cols-3">
           {collections.map((c) => (
             <Link key={c.id} href={localePath(`/collections/${c.slug}`, lang)} className="flex min-h-[200px] flex-col bg-white hover:underline underline-offset-8">

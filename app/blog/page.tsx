@@ -7,6 +7,7 @@ import { merge } from "@/lib/posts";
 import type { PostType } from "@/lib/types";
 import { Emblem } from "@/components/fx/emblem";
 import { ComponentStyle } from "@/components/fx/component-style";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("blog");
 
@@ -49,7 +50,7 @@ export default async function Blog({ searchParams }: { searchParams: Promise<{ t
         <ComponentStyle id="fx-titled" css={TITLE_CSS} />
         <div className="fx-titled">
           <Emblem name={type === "news" ? "news" : "blog"} sm={96} lg={128} />
-          <h1 className="text-[clamp(36px,5.5vw,80px)]">{type === "news" ? t("navMenu", "news") : t("blog", "h1")}</h1>
+          <h1 className="text-[clamp(36px,5.5vw,80px)]"><Reveal>{type === "news" ? t("navMenu", "news") : t("blog", "h1")}</Reveal></h1>
         </div>
         {type && (
           <p className="mt-4">

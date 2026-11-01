@@ -42,6 +42,10 @@ import type { Product } from "@/lib/types";
 import { hub } from "@/lib/hub-api";
 import { showable } from "@/lib/reviews";
 import { ReviewGrid, ReviewSummary } from "@/components/reviews/review-list";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { certificateOf } from "@/lib/certificate";
+import { CertificateEnvelope } from "@/components/catalog/certificate-envelope";
+import { LeanCard } from "@/components/catalog/lean-card";
 
 export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -134,6 +138,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const col = collectionOf(p, cols);
   const alternatives = buyable ? [] : soldAlternatives(p, all);
   const related = relatedPieces(p, col, all, 4, alternatives);
+  // Only what the Hub's product data carries (lib/certificate.ts) — none today.
+  const certificate = certificateOf(p);
   // `path` is the bare route <Breadcrumbs> renders and makes absolute with the
   // page's own locale prefix (lib/json-ld.ts); `href` is the "view all" link.
   const crumb = col ? { href: localePath(`/collections/${col.slug}`, lang), path: `/collections/${col.slug}`, name: collectionName(col, lang) }
@@ -191,7 +197,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <ConditionBadge condition={p.condition} lang={lang} />
               <OriginBadge origin={p.origin} brand={p.brand} lang={lang} />
             </div>
-            <h1 className="pdp-name">{name}</h1>
+            <h1 className="pdp-name"><Reveal>{name}</Reveal></h1>
             {reviews.length > 0 && reviewAverage != null && (
               <div className="-mt-2"><ReviewSummary average={reviewAverage} count={reviewCount} lang={lang} href="#pdp-reviews" /></div>
             )}
@@ -249,8 +255,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="pdp-fig text-[12.5px] text-charcoal/70">SKU {p.sku}</p>
           </section>
         </div>
+      </div>
 
-        <section aria-labelledby="pdp-specs" className="pb-2 pt-8 sm:pb-6 sm:pt-16">
+      {/* THE SHEETS (P4; Herbier Blanc's paper over paper): each block below
+          the piece is a sheet that lifts into place over the one before it —
+          a rounded top edge, a soft upward shadow and, where the browser has
+          scroll-driven animations, a rise on entry (app/lumiere/pages.css
+          .pdp-sheet). Plain stacked sections where it has not. */}
+      <div className="pdp-sheets">
+        <section aria-labelledby="pdp-specs" className="pdp-sheet pdp-sheet--white">
+          <div className="wrap pb-6 pt-10 sm:pb-10 sm:pt-16">
           <h2 id="pdp-specs" className="pdp-label mb-3.5 font-sans text-gold-dark">{t("pdp", "specs")}</h2>
           <dl className="grid grid-cols-2 border-l border-t border-hairline bg-white sm:grid-cols-3">
             {ledger.map(([k, v]) => (
@@ -266,26 +280,41 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <p className="max-w-[64ch] whitespace-pre-line text-[15px] leading-[1.8] sm:text-base">{desc}</p>
             </div>
           )}
+          </div>
         </section>
 
-        {reviews.length > 0 && (
-          <section id="pdp-reviews" aria-labelledby="pdp-reviews-h" className={`scroll-mt-24 pt-10 sm:pt-14 ${related.length > 0 ? "" : "pb-16 sm:pb-24"}`}>
-            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-              <h2 id="pdp-reviews-h" className="text-[clamp(26px,3.2vw,40px)] leading-[1.1]">{t("reviews", "pdpH")}</h2>
-              {reviewAverage != null && <ReviewSummary average={reviewAverage} count={reviewCount} lang={lang} />}
+        {/* The envelope: ONLY when the Hub's product data carries a certificate (lib/certificate.ts). */}
+        {certificate && (
+          <section aria-labelledby="pdp-cert" className="pdp-sheet pdp-sheet--bone">
+            <div className="wrap py-12 sm:py-20">
+              <h2 id="pdp-cert" className="sr-only">{t("pdp", "certificate")}</h2>
+              <CertificateEnvelope certificate={certificate} label={t("pdp", "certificate")} kindLabel={t("pdp", "certificateKind")} issuerLabel={t("pdp", "certificateIssuer")} numberLabel={t("pdp", "certificateNumber")} />
             </div>
-            {/* The piece is this page, so the cards do not repeat its name. */}
-            <ReviewGrid reviews={reviews} lang={lang} showPiece={false} />
+          </section>
+        )}
+
+        {reviews.length > 0 && (
+          <section id="pdp-reviews" aria-labelledby="pdp-reviews-h" className="pdp-sheet pdp-sheet--bone scroll-mt-24">
+            <div className="wrap py-12 sm:py-16">
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                <h2 id="pdp-reviews-h" className="text-[clamp(26px,3.2vw,40px)] leading-[1.1]">{t("reviews", "pdpH")}</h2>
+                {reviewAverage != null && <ReviewSummary average={reviewAverage} count={reviewCount} lang={lang} />}
+              </div>
+              {/* The piece is this page, so the cards do not repeat its name. */}
+              <ReviewGrid reviews={reviews} lang={lang} showPiece={false} />
+            </div>
           </section>
         )}
 
         {related.length > 0 && (
-          <section aria-labelledby="pdp-related" className="pb-16 pt-10 sm:pb-24 sm:pt-14">
-            <div className="mb-6 flex items-end justify-between gap-5">
-              <h2 id="pdp-related" className="text-[clamp(30px,4vw,52px)] leading-[1.08]">{t("pdp", "related")}</h2>
-              <Link href={crumb?.href ?? localePath("/collections", lang)} className="shrink-0 border-b border-gold-dark pb-0.5 text-sm font-medium text-gold-dark hover:text-charcoal-deep">{t("collection", "viewAll")}</Link>
+          <section aria-labelledby="pdp-related" className="pdp-sheet pdp-sheet--white pdp-sheet--last">
+            <div className="wrap pb-16 pt-12 sm:pb-24 sm:pt-16">
+              <div className="mb-6 flex items-end justify-between gap-5">
+                <h2 id="pdp-related" className="text-[clamp(30px,4vw,52px)] leading-[1.08]">{t("pdp", "related")}</h2>
+                <Link href={crumb?.href ?? localePath("/collections", lang)} className="shrink-0 border-b border-gold-dark pb-0.5 text-sm font-medium text-gold-dark hover:text-charcoal-deep">{t("collection", "viewAll")}</Link>
+              </div>
+              <RelatedGrid pieces={related} lang={lang} />
             </div>
-            <RelatedGrid pieces={related} lang={lang} />
           </section>
         )}
       </div>
@@ -314,7 +343,7 @@ function MessengerButton({ href, lang }: { href: string; lang: Lang }) {
 function RelatedGrid({ pieces, lang }: { pieces: Product[]; lang: Lang }) {
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-5 min-[834px]:grid-cols-3 min-[834px]:gap-x-6 min-[834px]:gap-y-8 lg:grid-cols-4">
-      {pieces.map((x, i) => <ProductCard key={x.slug} product={x} lang={lang} index={i} />)}
+      {pieces.map((x, i) => <LeanCard key={x.slug}><ProductCard product={x} lang={lang} index={i} /></LeanCard>)}
     </div>
   );
 }

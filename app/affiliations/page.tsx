@@ -6,6 +6,7 @@ import { Emblem } from "@/components/fx/emblem";
 import { ComponentStyle } from "@/components/fx/component-style";
 import { Eyebrow } from "@/components/site/support-stage";
 import { H_DISPLAY, H_TITLE, LEDE, Label, SEC } from "@/components/site/brand-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("affiliations");
 
@@ -71,7 +72,7 @@ export default async function Affiliations() {
           <Emblem name="affiliations" sm={96} lg={144} />
           <div>
             <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
-            <h1 className={`mt-3.5 text-charcoal-deep ${H_DISPLAY}`}>{t("contact", "affiliationsH")}</h1>
+            <h1 className={`mt-3.5 text-charcoal-deep ${H_DISPLAY}`}><Reveal>{t("contact", "affiliationsH")}</Reveal></h1>
             <p className={`mt-4 ${LEDE}`}>{t("contact", "affiliationsLede")}</p>
           </div>
         </div>

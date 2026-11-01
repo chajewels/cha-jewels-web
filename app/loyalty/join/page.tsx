@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { JoinButton } from "@/components/loyalty/join-button";
 import { MemberGroups } from "@/components/loyalty/member-groups";
 import { loyaltyGroups } from "@/lib/settings";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("join");
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap grid gap-12 md:grid-cols-2">
-        <div><h1 className="text-[clamp(36px,5.5vw,80px)]">{t("loyalty", "joinH")}</h1><p className="mt-5 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><p className="mt-4 max-w-[48ch] text-charcoal/70">{t("loyalty", "lede")}</p></div>
+        <div><h1 className="text-[clamp(36px,5.5vw,80px)]"><Reveal>{t("loyalty", "joinH")}</Reveal></h1><p className="mt-5 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><p className="mt-4 max-w-[48ch] text-charcoal/70">{t("loyalty", "lede")}</p></div>
         {!jwt ? (
           // middleware should have redirected already; if it somehow did not,
           // offer the way in rather than a button that cannot work.

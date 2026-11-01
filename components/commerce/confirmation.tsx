@@ -9,6 +9,7 @@ import { follow } from "@/lib/settings";
 import { tr } from "@/lib/i18n";
 import { type Lang } from "@/lib/i18n-core";
 import type { PieceImage } from "@/lib/product-media";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * THE CONFIRMATION LAYOUT (build step 3; comp page-comps/cart-checkout
@@ -38,7 +39,7 @@ export function ConfirmationLayout({ lang, reference, heading, lede, children, s
             {t("complete", "reference")}
             <span className="font-mono text-[13px] normal-case tracking-[0.04em] text-charcoal-deep">{reference}</span>
           </p>
-          <h1 className="mb-3.5 mt-3 text-[clamp(32px,4.4vw,56px)]">{heading}</h1>
+          <h1 className="mb-3.5 mt-3 text-[clamp(32px,4.4vw,56px)]"><Reveal>{heading}</Reveal></h1>
           <div className="max-w-[60ch] text-[17px] leading-relaxed text-charcoal-deep">{lede}</div>
           {children}
         </div>

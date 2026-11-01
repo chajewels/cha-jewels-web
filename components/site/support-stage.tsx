@@ -1,5 +1,6 @@
 import { SocialGlyph } from "@/components/site/social-icons";
 import { MessengerAnchor } from "@/components/site/messenger-anchor";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * The parts of the supporting pages (build step 6) that the client error
@@ -49,7 +50,7 @@ export function EmptyStage({ code, title, lede, children }: { code?: string; tit
           <span className="absolute inset-x-[6%] bottom-[30px] h-px bg-[linear-gradient(90deg,rgb(163_157_148/0),rgb(163_157_148/.55)_25%,rgb(217_211_202/.75)_50%,rgb(163_157_148/.55)_75%,rgb(163_157_148/0))]" />
         </div>
         <h1 className="mx-auto max-w-[22ch] text-[clamp(30px,4.2vw,52px)] leading-[1.12] text-gold-pale [:lang(ja)_&]:text-[clamp(24px,3vw,38px)] [:lang(ja)_&]:leading-[1.45] [:lang(ja)_&]:[word-break:auto-phrase]">
-          {title}
+          <Reveal>{title}</Reveal>
         </h1>
         <p className="mx-auto mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-chalk/85 [:lang(ja)_&]:text-[15.5px]">{lede}</p>
         {children}

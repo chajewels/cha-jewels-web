@@ -16,6 +16,7 @@ import { isBuyable, productAvailability } from "@/lib/availability";
 import { typeVisual } from "@/lib/type-icons";
 import { TypeIconWell } from "@/components/catalog/type-icon";
 import { collectionList, type CollectionWithProducts } from "@/lib/catalog-context";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * The server half of a collection or category grid (step 2 build): each piece
@@ -98,7 +99,7 @@ export function CollectionHead({ eyebrow, title, description, available, photo, 
       )}
       <div className={`flex flex-col justify-end gap-3.5 px-[clamp(18px,4vw,48px)] pb-7 pt-7 md:pb-12 md:pt-14 md:pl-[max(clamp(18px,4vw,48px),calc((100vw-1240px)/2+48px))] ${photo ? "" : "md:col-span-2"}`}>
         <p className="cs-eyebrow">{eyebrow}</p>
-        <h1 className="cs-title !mt-0">{title}</h1>
+        <h1 className="cs-title !mt-0"><Reveal>{title}</Reveal></h1>
         {description && <p className="cs-desc !mt-0">{description}</p>}
         <CountLine available={available} lang={lang} />
       </div>

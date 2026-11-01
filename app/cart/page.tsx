@@ -15,6 +15,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { formatMoney, formatYenPeso, isFigure } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/types";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("cart");
 // The cart is a cookie and prices are live; there is nothing here to cache.
@@ -139,7 +140,7 @@ function PageHead({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="mb-6 sm:mb-8">
       <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{eyebrow}</p>
-      <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]">{title}</h1>
+      <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]"><Reveal>{title}</Reveal></h1>
     </div>
   );
 }
