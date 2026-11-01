@@ -204,7 +204,7 @@ test("new arrivals: the old section's strings, plus the carousel's own labels wi
 
 test("stories: the old heading block, 'Verified buyer' from reviews, every published story on the home (P3 item 4)", () => {
   const section = readFileSync("components/lumiere/stories/stories-section.tsx", "utf8");
-  assert.ok(!/STORIES_ON_HOME|\.slice\(0,/.test(section), "no cap on the stack");
+  assert.ok(!/STORIES_ON_HOME|stories\.slice\(|merge[^\n]*\.slice\(/.test(section), "no cap on the stack (the only slice is the card's excerpt)");
   assert.match(section, /limit: REVIEWS_PAGE_MAX/, "every approved review the route can hand over");
   for (const lang of ["en", "ja"]) {
     const s = lumiereStories(lang);

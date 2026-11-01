@@ -437,14 +437,46 @@ export interface LumiereStoriesStrings {
   verified: string;
   /** `{n}` / `{total}`, the live announcement (new string). */
   count: string;
+  /** The belt's region label (the keyboard hint), the drag hint, the list and dialog labels (new strings, P4). */
+  region: string;
+  hint: string;
+  seeAll: string;
+  allTitle: string;
+  close: string;
+  next: string;
+  previous: string;
+  open: string;
 }
 const STORIES_NEW: Record<Lang, string> = { en: "Story {n} of {total}", ja: "{total} 件中 {n} 件目" };
+const STORIES_BELT: Record<Lang, Omit<LumiereStoriesStrings, "eyebrow" | "heading" | "lead" | "verified" | "count">> = {
+  en: {
+    region: "Customer stories, a draggable 3D belt of cards. Use the left and right arrow keys to move and Enter to read the story in front.",
+    hint: "Drag to explore",
+    seeAll: "See all stories",
+    allTitle: "All customer stories",
+    close: "Close",
+    next: "Next story",
+    previous: "Previous story",
+    open: "Read the full story",
+  },
+  ja: {
+    region: "お客様の声。ドラッグで動かせる立体のカードです。左右の矢印キーで動かし、Enterキーで手前のカードの全文を読めます。",
+    hint: "ドラッグして見る",
+    seeAll: "お客様の声をすべて見る",
+    allTitle: "お客様の声（すべて）",
+    close: "閉じる",
+    next: "次のお客様の声",
+    previous: "前のお客様の声",
+    open: "全文を読む",
+  },
+};
 export const lumiereStories = (lang: Lang): LumiereStoriesStrings => ({
   eyebrow: dict.home.testiEyebrow[lang],
   heading: dict.home.testiH[lang],
   lead: dict.home.testiP[lang],
   verified: dict.reviews.verified[lang],
   count: STORIES_NEW[lang],
+  ...STORIES_BELT[lang],
 });
 
 /**

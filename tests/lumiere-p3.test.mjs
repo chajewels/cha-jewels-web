@@ -81,7 +81,7 @@ test("item 3 — the arrivals ring advances by itself and pauses for hover, focu
 
 test("item 4 — the stories stack shows every published story, newest first", () => {
   const section = read("components/lumiere/stories/stories-section.tsx");
-  assert.ok(!section.includes(".slice(0,"));
+  assert.ok(!/stories\.slice\(|STORIES_ON_HOME/.test(section));
   assert.match(section, /export const REVIEWS_PAGE_MAX = 50;/);
   assert.match(section, /mergeStories\(toStories\(items, lang\), reviewsToStories\(list\?\.reviews \?\? \[\], lang\)\);/);
   assert.ok(!read("lib/content/lumiere-home.ts").includes("STORIES_ON_HOME"));
@@ -99,7 +99,7 @@ test("item 5 — the Halcyon Gate: tinted through CONFIG only, the shader verbat
   assert.match(island, /whenAfterTTI\(\)/);
   assert.match(island, /if \(!inView \|\| document\.hidden\) return;/);
   assert.match(island, /ENTRANCE_MS = 2800/);
-  assert.match(read("components/lumiere/layaway/layaway-section.tsx"), /className="layaway__feature"/);
+  assert.match(read("components/lumiere/layaway/layaway-section.tsx"), /className="lw__stage"/);
   assert.match(read("docs/design-refs/halcyon-gate/CONTRACT.md"), /preserve: motion, composition/);
 });
 

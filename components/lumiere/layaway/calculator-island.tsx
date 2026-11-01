@@ -18,7 +18,7 @@ import { NearIsland } from "@/components/lumiere/common/near-island";
  */
 const LayawayCalculator = dynamic(
   () => import("@/components/commerce/layaway-calculator").then((m) => m.LayawayCalculator),
-  { ssr: false, loading: () => <div className="layaway__calc-shell" aria-hidden="true" /> },
+  { ssr: false, loading: () => <div className="lw__calc-shell" aria-hidden="true" /> },
 );
 
 export interface CalculatorIslandProps {
@@ -28,7 +28,7 @@ export interface CalculatorIslandProps {
 }
 
 export const CalculatorIsland = ({ lang, header, cta }: CalculatorIslandProps) => (
-  <NearIsland fallback={<div className="layaway__calc-shell" aria-hidden="true" />}>
+  <NearIsland fallback={<div className="lw__calc-shell" aria-hidden="true" />}>
     <LayawayCalculator lang={lang} header={header} cta={cta} variant="lumiere" />
   </NearIsland>
 );

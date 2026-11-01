@@ -134,13 +134,6 @@ export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switc
     },
   ];
 
-  const legal = [
-    { label: t("footer", "privacy"), href: L("/legal/privacy") },
-    { label: t("footer", "sale"), href: L("/legal/terms") },
-    // §13 row 29: the full title does not fit the footer line; the page title is unchanged.
-    { label: strings.legalNotice, href: L("/legal/tokusho") },
-  ];
-
   return (
     <footer className="footer footer--cha" data-chrome-tone="dark">
       <Link href={L("/")} className="footer__logo" aria-label="Cha Jewels">
@@ -189,23 +182,28 @@ export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switc
             </div>
           );
         })}
-
-        {/* The company block (§1a, D-1, D-2): every line from lib/content/legal.ts. */}
-        <div className="footer__column footer__company">
-          <p className="footer__column-title" style={line}>{COMPANY_NAME_DISPLAY[lang]}</p>
-          <ul className="footer__list footer__list--company">
-            <li className="footer__company-line">{REPRESENTATIVE_NAME[lang]}</li>
-            <li className="footer__company-line">{COMPANY_ADDRESS[lang]}</li>
-            <li className="footer__company-line">{strings.corporateNo} {CORPORATE_NO}</li>
-            {/* The site footer's trust ledger: founded and authentication, as text lines. */}
-            <li className="footer__company-line">{t("trust", "founded")}: {t("trust", "foundedValue")} — {t("trust", "incorporated")}</li>
-            <li className="footer__company-line">{t("trust", "auth")}: {t("trust", "authValue")} — {t("trust", "authNote")}</li>
-            {/* The live permit and invoice lines, verbatim (as the site footer renders them). */}
-            <li className="footer__company-line">{t("footer", "invoiceReg")}</li>
-            <li className="footer__company-line">{t("footer", "secondhandPermit")}</li>
-          </ul>
-        </div>
       </nav>
+
+      {/* THE COMPANY DETAILS, in an area of their own (P4 item 4): 14 px, white
+          at 86 % on black (contrast rows in scripts/check-contrast.mjs), a
+          comfortable line height. Every line is lib/content/legal.ts or the
+          footer strings the site footer carried (§1a, D-1, D-2). */}
+      <section className="footer__company-panel" aria-label={COMPANY_NAME_DISPLAY[lang]}>
+        <div className="footer__company-col">
+          <p className="footer__company-name">{COMPANY_NAME_DISPLAY[lang]}</p>
+          <p className="footer__company-line">{REPRESENTATIVE_NAME[lang]}</p>
+          <p className="footer__company-line">{COMPANY_ADDRESS[lang]}</p>
+        </div>
+        <div className="footer__company-col">
+          <p className="footer__company-line">{strings.corporateNo} {CORPORATE_NO}</p>
+          <p className="footer__company-line">{t("footer", "invoiceReg")}</p>
+          <p className="footer__company-line">{t("footer", "secondhandPermit")}</p>
+        </div>
+        <div className="footer__company-col">
+          <p className="footer__company-line">{t("trust", "founded")}: {t("trust", "foundedValue")} — {t("trust", "incorporated")}</p>
+          <p className="footer__company-line">{t("trust", "auth")}: {t("trust", "authValue")} — {t("trust", "authNote")}</p>
+        </div>
+      </section>
 
       <div className="footer__subscribe">
         {/* The Hub's footer.tagline, rendered exactly with the owner's own line
@@ -226,17 +224,6 @@ export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switc
       <p className="footer__rights" style={line}>
         © {new Date().getFullYear()} {COMPANY_NAME_DISPLAY[lang]}
       </p>
-
-      <ul className="footer__meta footer__meta--legal">
-        {legal.map((item, index) => (
-          <li key={item.href} className="footer__meta-item">
-            {index > 0 && <Separator />}
-            <Link href={item.href} className="footer__link" style={line}>
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
 
       <div className="footer__meta footer__meta--social">
         {followLinks.length > 0 && <span className="footer__column-title footer__follow" style={line}>{t("footer", "follow")}</span>}

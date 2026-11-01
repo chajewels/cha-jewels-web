@@ -107,9 +107,9 @@ export const GateSceneIsland = ({ note }: { note: string }) => {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   return (
-    <div ref={box} className="layaway__plate" data-gate-plate>
-      <div className="layaway__poster" aria-hidden="true"><span className="layaway__poster-ring" /></div>
-      <p className="layaway__plate-note font-manrope">{note}</p>
+    <div ref={box} className="lw__plate" data-gate-plate>
+      <div className="lw__poster" aria-hidden="true"><span className="lw__poster-ring" /></div>
+      <p className="lw__plate-note font-manrope">{note}</p>
       {ready && (
         <NearIsland margin="60% 0px">
           <Live box={box} />

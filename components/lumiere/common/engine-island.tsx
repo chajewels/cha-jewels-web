@@ -14,14 +14,12 @@ import { NearIsland } from "./near-island";
  * `engine` names the module; `target` is the element the engine binds to
  * (found by id, so the island can sit anywhere in the section).
  */
-export type EngineName = "spotlight" | "almanac" | "colonnade";
+export type EngineName = "spotlight" | "colonnade";
 
 const load = async (engine: EngineName): Promise<(root: HTMLElement) => { destroy(): void }> => {
   switch (engine) {
     case "spotlight":
       return (await import("@/components/lumiere/arrivals/spotlight-engine")).mountSpotlight;
-    case "almanac":
-      return (await import("@/components/lumiere/stories/almanac-engine")).mountAlmanac;
     case "colonnade":
       return (await import("@/components/lumiere/why/colonnade-engine")).mountColonnade;
   }
