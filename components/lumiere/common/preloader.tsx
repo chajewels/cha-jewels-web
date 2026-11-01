@@ -33,8 +33,39 @@ import { usePreloadStore } from "@/lib/lumiere/preload-store";
 import { whenGatesReady } from "@/lib/lumiere/ready-gates";
 import { lockScroll } from "@/lib/scroll-lock";
 
-/** The curtain lifts no later than this, whatever is still loading (D-9). */
+/**
+ * The curtain lifts no later than this after the page's FIRST PAINT, whatever
+ * is still loading (D-9). Counted from the paint, not from hydration: on a
+ * phone the hero's script arrives a second or two after the curtain is first
+ * seen, and a cap that started counting then kept the visitor behind the gate
+ * for that long again (P2 part A: 5.2–6.7 s to the lift on Lighthouse's
+ * mobile profile, every run on the cap).
+ */
 export const PRELOADER_CAP_MS = 4000;
+/**
+ * The least the gate keeps counting for once it can (hydration later than the
+ * cap): long enough for the rule to be seen reaching the end, no longer.
+ */
+export const PRELOADER_MIN_MS = 300;
+/**
+ * How long a 3D scene's gate may hold the curtain after the hero's own images
+ * and webfonts have landed. The pendant draws its first frame in about a
+ * second on a recent phone and inside the cap on a slow one; past this it
+ * fades in over its poster after the lift (hero-pendant.tsx, the `fade`
+ * spring) rather than holding the whole page. The rings no longer gate the
+ * curtain at all (featured-rings.tsx: built after the pendant, as the block
+ * nears).
+ */
+export const SCENE_GATE_MS = 1500;
+/**
+ * …and only while the visitor has waited less than this since the first
+ * paint. A phone that hydrates late has already looked at the gate for most
+ * of the cap; it gets the page the moment the hero's own assets are in, and
+ * the pendant arrives over its poster. A fast device (hydrated well inside
+ * this) still gives the pendant its full grace, so there the scene is under
+ * the curtain as the reference intends.
+ */
+export const SCENE_DEADLINE_MS = 2500;
 /** sessionStorage key: set once the curtain has been shown in this tab. */
 export const PRELOADER_SEEN_KEY = "cj-lumiere-preloaded";
 
@@ -62,6 +93,21 @@ const EXIT_MS = 480;
  * overlap and the page does not sit still between them.
  */
 const REVEAL_AT = 0.45;
+
+/**
+ * Milliseconds since the document's first paint — the moment the curtain was
+ * first seen. The paint entry is the browser's own; before it exists (an
+ * effect can run first on a cold cache) the gate was not yet seen, so nothing
+ * has elapsed.
+ */
+const sinceFirstPaint = (): number => {
+  try {
+    const paint = performance.getEntriesByType("paint").find((entry) => entry.name === "first-paint" || entry.name === "first-contentful-paint");
+    return paint ? Math.max(0, performance.now() - paint.startTime) : 0;
+  } catch {
+    return 0;
+  }
+};
 
 /** True when this tab has already shown the curtain (D-9: once per session). */
 export const preloaderSeen = (): boolean => {
@@ -136,7 +182,12 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
     let settled = 0;
     let isCancelled = false;
     const images = heroImages();
-    const gates = whenGatesReady(PRELOADER_CAP_MS);
+    // Whatever is left of the cap, measured from the first paint; the scenes'
+    // grace shrinks to nothing as the deadline passes.
+    const elapsed = sinceFirstPaint();
+    const remaining = Math.max(PRELOADER_MIN_MS, PRELOADER_CAP_MS - elapsed);
+    const sceneBudget = Math.max(0, Math.min(SCENE_GATE_MS, SCENE_DEADLINE_MS - elapsed, remaining));
+    const gates = whenGatesReady(sceneBudget);
     // + the webfonts (the wordmark and the category strip size themselves from
     // real glyph metrics) + every registered scene gate
     const total = images.length + 1 + gates.length;
@@ -167,12 +218,13 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
       image.addEventListener("load", () => done(image), { once: true });
       image.addEventListener("error", () => done(image), { once: true });
     });
-    // THE HARD CAP (D-9): at 4 s everything still pending counts as landed.
+    // THE HARD CAP (D-9): 4 s after the first paint everything still pending
+    // counts as landed.
     const cap = setTimeout(() => {
       capped = true;
       [...pending].forEach(done);
       if (!isCancelled) setProgress(1);
-    }, PRELOADER_CAP_MS);
+    }, remaining);
 
     return () => {
       isCancelled = true;

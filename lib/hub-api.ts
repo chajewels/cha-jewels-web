@@ -219,7 +219,7 @@ export const hub = {
    * empty-200 case and it is not an error.
    */
   testimonials: (): Promise<Testimonial[]> =>
-    FIXTURES ? Promise.resolve([]) : call("/testimonials", { tags: ["content"], timeout: SECONDARY_TIMEOUT_MS }),
+    FIXTURES ? Promise.resolve(fx.testimonials) : call("/testimonials", { tags: ["content"], timeout: SECONDARY_TIMEOUT_MS }),
   /**
    * The owner-editable strings and links for this site (lib/settings.ts reads
    * them by key). A flat map, so a key either side has not learned yet is

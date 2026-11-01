@@ -3,6 +3,23 @@
    `@layer utilities` classes (docs/tasks/lumiere-p0-report.md §2).
    `snap-strip` is unused in the reference and is not ported.
    =========================================================================== */
+/* CHA JEWELS — Japanese on the Lumière home (report §5.2, §5.4). The display
+   face chain: Latin from Instrument Serif, Japanese from Noto Serif JP 500
+   (the site's heading face, deferred on /ja per D-15); the reference's
+   uppercase utility labels are left as written, with no tracking; nothing is
+   italic. Unlayered, so these beat the utilities they correct. */
+html:lang(ja) .lumiere-home .font-serif {
+  font-family: var(--font-instrument-serif), var(--font-jp), "Hiragino Mincho ProN", serif;
+  font-weight: 500;
+}
+html:lang(ja) .lumiere-home .uppercase {
+  text-transform: none;
+  letter-spacing: 0;
+}
+html:lang(ja) .lumiere-home .italic {
+  font-style: normal;
+}
+
 @layer utilities {
   /* Full-viewport section height. `dvh` follows `vh` so browsers without dynamic
      viewport units keep the static fallback. */

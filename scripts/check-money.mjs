@@ -41,7 +41,10 @@ const RULES = [
   // A COD fee as a bare number (1040 / 1150 / 1370 / 1810, also 1_040): the
   // Hub's seed brackets. "1,040円" in legal copy is text, not a lookup, and the
   // comma keeps it out; so does a CSS size (1040px).
-  { name: "a cash-on-delivery fee bracket (render the Hub's fee_jpy / cod_fee)", re: /(?<![\w.,\-[])(?:1_?040|1_?150|1_?370|1_?810)(?![\w%\].])/ },
+  // A design measure or a timing is not a fee: `designHeight: 1150` and
+  // `duration: 1150` (the Lumière hero's tablet canvas and its entrance) are
+  // let through by the key in front of them.
+  { name: "a cash-on-delivery fee bracket (render the Hub's fee_jpy / cod_fee)", re: /(?<![\w.,\-[])(?<!(?:height|width|duration|delay|top|left|right|bottom|size|px|ms|units?)\s*[:=]\s*)(?:1_?040|1_?150|1_?370|1_?810)(?![\w%\].])/i },
   { name: "the cash-on-delivery limit judged here (the Hub greys COD with a reason)", re: /[<>]=?\s*300_?000\b|\b300_?000\s*[<>]/ },
 ];
 
@@ -69,6 +72,8 @@ const MUST_PASS = [
   "{t(\"checkout\", \"methodCodFee\", { fee: formatMoney(o.fee_jpy, \"JPY\") })}",
   "ja: \"代金引換手数料：1万円以下 1,040円、3万円以下 1,150円\",",
   "className=\"max-w-[1040px]\"",
+  "  designHeight: 1150,",
+  "  duration: 1150,",
 ];
 
 let failed = 0;

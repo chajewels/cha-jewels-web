@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Section · Spotlight</title>
+<!--
+  GetLayers · Section — Spotlight
+  A premium editorial-gallery section built around an INFINITE 3D concave-arc carousel (CSS 3D, no
+  WebGL). Cards curve into a cylinder on a clean light stage and wrap forever; drag / swipe / arrow-
+  keys / prev-next / dot-jump / click-to-focus to spin, with snap-to-card settling. The surrounding
+  UI is the point: a brand header + nav, an editorial masthead, a giant ghost index behind the arc,
+  and a bottom "dock" whose title · meta · rating · counter · dots stay synced to the front card.
+  Card images load from assets/spotlight/*.webp. Type: Fraunces (display) + Inter (UI), Google
+  Fonts. Every parameter is exposed in the on-screen controls (top-right; strip for the catalog).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,400;0,9..144,500;1,9..144,340&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #f4f6fa; overflow: hidden; }
+  #section { position: fixed; inset: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    color: var(--ink);
+    /* palette */
+    --ink: #12141a; --ink-2: #565c6b; --ink-3: #9198a6;
+    --line: rgba(18,20,26,.14); --line-2: rgba(18,20,26,.07);
+    --accent: #1e5bff;
+    /* live style vars, driven by the controls panel */
+    --corner: 16px; --hover: 1.05; --scrim: .9; --shadow: 1;
+    --title-size: 17px; --title-color: #ffffff;
+    --bg-top: #ffffff; --bg-bottom: #e9edf4;
+  }
+
+  /* ---------- stage + carousel engine ---------- */
+  #stage { position: fixed; inset: 0; overflow: hidden;
+    background: radial-gradient(125% 95% at 50% 4%, var(--bg-top) 0%, var(--bg-bottom) 100%);
+    perspective: 1200px; perspective-origin: 50% 50%;
+    display: grid; place-items: center;
+    cursor: grab; touch-action: none; user-select: none; outline: none; }
+  #stage.-drag { cursor: grabbing; }
+
+  /* soft floor shadow that grounds the arc + a giant ghost index behind it */
+  #floor { position: absolute; left: 50%; top: 68%; width: 62vw; height: 26vh; z-index: 0;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(60% 60% at 50% 50%, rgba(18,20,26,.14), rgba(18,20,26,0) 70%);
+    filter: blur(6px); pointer-events: none; }
+  #ghost { position: absolute; left: 50%; top: 51%; z-index: 0; transform: translate(-50%,-50%);
+    font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 42vh; line-height: .8;
+    color: rgba(18,20,26,.045); letter-spacing: -.03em; pointer-events: none; user-select: none;
+    font-variant-numeric: tabular-nums; }
+
+  #ring { position: relative; width: 0; height: 0; transform-style: preserve-3d; z-index: 1;
+    transform: translateZ(var(--push, 0px)) rotateY(var(--rot, 0deg)); }
+
+  .card { position: absolute; width: var(--cw, 220px); height: var(--ch, 300px);
+    left: calc(var(--cw, 220px) / -2); top: calc(var(--ch, 300px) / -2);
+    transform: rotateY(var(--a)) translateZ(calc(var(--r, 620px) * -1));
+    backface-visibility: hidden; -webkit-backface-visibility: hidden; transform-style: preserve-3d; }
+  .card__inner {
+    position: absolute; inset: 0; border-radius: var(--corner); overflow: hidden; background: #0a0e18;
+    box-shadow: 0 26px 60px -18px rgba(24,34,64, calc(.42 * var(--shadow))),
+                0 6px 16px -8px rgba(24,34,64, calc(.32 * var(--shadow)));
+    transition: transform .4s cubic-bezier(.22,.61,.36,1), box-shadow .4s ease;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform; }
+  .card.-front .card__inner { box-shadow: 0 40px 90px -20px rgba(24,34,64,.5), 0 8px 22px -8px rgba(24,34,64,.4); }
+  .card:hover .card__inner { transform: scale(var(--hover)); }
+  .card__inner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card__scrim { position: absolute; inset: 0; pointer-events: none; opacity: var(--scrim);
+    background: linear-gradient(to top, rgba(6,10,22,.85) 0%, rgba(6,10,22,.28) 30%, rgba(6,10,22,0) 55%); }
+  .card__no { position: absolute; top: 12px; left: 13px; z-index: 2; font-size: 11px; font-weight: 600;
+    letter-spacing: .12em; color: rgba(255,255,255,.92); font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+  .card__foot { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; }
+  .card__title { margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 400;
+    font-size: var(--title-size); line-height: 1.05; letter-spacing: -.01em;
+    color: var(--title-color); text-shadow: 0 1px 10px rgba(0,0,0,.35); }
+
+  /* ---------- framing + registration ticks ---------- */
+  #frame { position: fixed; inset: 16px; z-index: 3; pointer-events: none;
+    border: 1px solid var(--line-2); border-radius: 6px; }
+  #frame i { position: absolute; width: 9px; height: 9px; }
+  #frame i::before, #frame i::after { content: ''; position: absolute; background: var(--line); }
+  #frame i::before { left: 0; top: 0; width: 9px; height: 1px; }
+  #frame i::after  { left: 0; top: 0; width: 1px; height: 9px; }
+  #frame .tl { left: -1px; top: -1px; }
+  #frame .tr { right: -1px; top: -1px; transform: scaleX(-1); }
+  #frame .bl { left: -1px; bottom: -1px; transform: scaleY(-1); }
+  #frame .br { right: -1px; bottom: -1px; transform: scale(-1); }
+
+  /* ---------- header ---------- */
+  #top { position: fixed; top: 0; left: 0; right: 0; z-index: 6;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: clamp(20px, 3vh, 34px) clamp(24px, 4vw, 52px); }
+  #brand { display: flex; align-items: center; gap: 11px; font-weight: 600; font-size: 15px; letter-spacing: .01em; }
+  #brand svg { width: 22px; height: 22px; display: block; }
+  #brand .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-left: 2px; }
+  #nav { display: flex; gap: clamp(18px, 2.6vw, 38px); }
+  #nav a { color: var(--ink-2); text-decoration: none; font-size: 14px; font-weight: 500; letter-spacing: .01em;
+    position: relative; transition: color .2s; }
+  #nav a::after { content: ''; position: absolute; left: 0; right: 100%; bottom: -5px; height: 1px;
+    background: var(--ink); transition: right .28s cubic-bezier(.22,.61,.36,1); }
+  #nav a:hover, #nav a:focus-visible { color: var(--ink); }
+  #nav a:hover::after, #nav a:focus-visible::after { right: 0; }
+  #cta { display: inline-flex; align-items: center; gap: 8px; padding: 9px 17px; border-radius: 999px;
+    background: var(--ink); color: #fff; font-size: 13px; font-weight: 500; letter-spacing: .01em;
+    text-decoration: none; border: 1px solid var(--ink); transition: transform .2s ease, background .2s ease; white-space: nowrap; }
+  #cta:hover { transform: translateY(-1px); background: #000; }
+  #cta .arw { transition: transform .25s ease; }
+  #cta:hover .arw { transform: translateX(3px); }
+
+  /* ---------- masthead (top-centre, above the arc) ---------- */
+  #mast { position: fixed; top: clamp(80px, 13vh, 128px); left: 0; right: 0; z-index: 4;
+    text-align: center; pointer-events: none; padding: 0 20px; }
+  #eyebrow { display: inline-flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 600;
+    letter-spacing: .26em; text-transform: uppercase; color: var(--ink-3); }
+  #eyebrow::before, #eyebrow::after { content: ''; width: 26px; height: 1px; background: var(--line); }
+  #headline { margin: 14px 0 0; font-family: 'Fraunces', Georgia, serif; font-weight: 340;
+    font-size: clamp(28px, 4.6vw, 58px); line-height: 1.02; letter-spacing: -.018em; color: var(--ink);
+    text-wrap: balance; }
+  #headline em { font-style: italic; font-weight: 400; }
+
+  /* ---------- edge labels ---------- */
+  .edge { position: fixed; top: 50%; z-index: 4; font-size: 10.5px; font-weight: 600; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink-3); pointer-events: none; white-space: nowrap; }
+  .edge.-l { left: clamp(22px, 3.4vw, 40px); transform: translateY(-50%) rotate(-90deg); transform-origin: left center; }
+  .edge.-r { right: clamp(22px, 3.4vw, 40px); transform: translateY(-50%) rotate(90deg); transform-origin: right center; }
+
+  /* ---------- dock (front-card caption + controls) ---------- */
+  #dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 24px;
+    padding: 0 clamp(24px, 4vw, 56px) clamp(22px, 4vh, 40px); pointer-events: none; }
+  #dock > * { pointer-events: auto; }
+  .dock__count { font-variant-numeric: tabular-nums; letter-spacing: .04em; font-size: 13px; color: var(--ink-3); }
+  .dock__count b { font-size: 34px; font-weight: 500; color: var(--ink); font-family: 'Fraunces', serif; letter-spacing: 0; }
+  .dock__count i { font-style: normal; }
+
+  .dock__c { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .dock__title { margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 400;
+    font-size: clamp(22px, 2.8vw, 34px); line-height: 1; letter-spacing: -.01em; color: var(--ink); }
+  .dock__sub { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--ink-2); font-weight: 500; }
+  .dock__rating { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); }
+  .dock__rating svg { width: 13px; height: 13px; color: var(--accent); }
+  .dock__pip { width: 3px; height: 3px; border-radius: 50%; background: var(--line); }
+  #dots { display: flex; align-items: center; gap: 7px; }
+  #dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; cursor: pointer;
+    background: var(--line); transition: width .3s cubic-bezier(.22,.61,.36,1), background .3s ease; }
+  #dots button.-on { width: 24px; background: var(--accent); }
+
+  .dock__r { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+  .navbtn { width: 48px; height: 48px; border-radius: 999px; border: 1px solid var(--line);
+    background: rgba(255,255,255,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    color: var(--ink); font-size: 19px; line-height: 1; cursor: pointer; display: grid; place-items: center;
+    transition: background .2s ease, color .2s ease, border-color .2s ease, transform .15s ease; }
+  .navbtn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .navbtn:active { transform: scale(.94); }
+
+  .hint { position: fixed; left: 50%; bottom: clamp(124px, 17vh, 156px); transform: translateX(-50%); z-index: 4;
+    font-size: 10.5px; letter-spacing: .3em; text-transform: uppercase; font-weight: 600; color: var(--ink-3);
+    pointer-events: none; user-select: none; opacity: .9; }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1024px) {
+    #ghost { font-size: 34vh; }
+    .edge { display: none; }
+  }
+  @media (max-width: 760px) {
+    #nav { display: none; }
+    #cta { padding: 8px 13px; }
+    #frame { inset: 10px; }
+    #mast { top: clamp(74px, 11vh, 104px); }
+    #dock { grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+      padding-bottom: clamp(18px, 3vh, 28px); }
+    .dock__count b { font-size: 24px; }
+    .dock__count i, .dock__count .of { display: none; }   /* just the current number on mobile */
+    .dock__c { gap: 9px; }
+    .hint { display: none; }
+    .navbtn { width: 44px; height: 44px; }
+  }
+  @media (max-width: 420px) {
+    #dots { display: none; }
+    .dock__sub { font-size: 11.5px; gap: 10px; }
+  }
+  @media (max-height: 560px) {
+    #mast { top: 60px; }
+    #headline { font-size: clamp(22px, 5vw, 34px); }
+    .hint { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card__inner, #dots button, #nav a::after { transition: none; }
+  }
+
+  /* ============ CONTROLS — remove this block (+ the panel JS) to ship without the dev panel ============ */
+  #ui { position: fixed; top: 12px; right: 12px; z-index: 20; width: 236px; max-height: 92vh; overflow: auto;
+    background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 8px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    color: #1b1e26; font: 11px/1.35 'Inter', system-ui, sans-serif; user-select: none; box-shadow: 0 12px 40px -16px rgba(24,34,64,.4); }
+  #ui-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; cursor: pointer; }
+  #ui-head b { font-weight: 600; letter-spacing: .04em; }
+  #ui-head span { color: rgba(27,30,38,.5); font-size: 14px; }
+  #ui-body { padding: 2px 10px 10px; display: block; }
+  #ui.-collapsed #ui-body { display: none; }
+  .ui-grp { margin: 8px 0 2px; color: var(--accent); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+  .ui-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 5px 0; }
+  .ui-row label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(27,30,38,.82); }
+  .ui-row input[type=range] { width: 104px; }
+  .ui-row input[type=color] { width: 26px; height: 18px; padding: 0; border: 1px solid var(--line); border-radius: 3px; background: none; cursor: pointer; }
+  .ui-row .val { width: 42px; text-align: right; font: 10px/1 ui-monospace, Menlo, monospace; color: var(--accent); }
+  #ui-copy, #ui-reset { width: 100%; padding: 6px; cursor: pointer; color: #1b1e26;
+    background: rgba(18,20,26,.05); border: 1px solid var(--line); border-radius: 5px; font: 11px/1 inherit; }
+  #ui-copy { margin-top: 10px; border-color: var(--accent); color: var(--accent); }
+  #ui-reset { margin-top: 6px; }
+  #ui-copy:hover, #ui-reset:hover { background: rgba(18,20,26,.1); }
+  /* ============ END CONTROLS ============ */
+</style>
+</head>
+<body>
+<div id="section">
+  <div id="stage" tabindex="0" role="region" aria-label="Spotlight gallery — draggable 3D carousel. Use left and right arrow keys to move between works.">
+    <div id="floor"></div>
+    <div id="ghost">01</div>
+    <div id="ring"></div>
+  </div>
+
+  <div id="frame"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
+
+  <header id="top">
+    <div id="brand">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg>
+      <span id="brand-name">Spotlight</span><span class="dot"></span>
+    </div>
+    <nav id="nav" aria-label="Primary"></nav>
+    <a id="cta" href="#">Get access <span class="arw">→</span></a>
+  </header>
+
+  <div id="mast">
+    <span id="eyebrow"></span>
+    <h1 id="headline"></h1>
+  </div>
+
+  <span class="edge -l" id="edge-l"></span>
+  <span class="edge -r" id="edge-r"></span>
+
+  <div class="hint">Drag · swipe · arrow keys</div>
+
+  <footer id="dock">
+    <div class="dock__l">
+      <div class="dock__count"><b id="d-cur">01</b> <i class="of">/ <span id="d-total">07</span></i></div>
+    </div>
+    <div class="dock__c" aria-live="polite">
+      <h2 class="dock__title" id="d-title">—</h2>
+      <div class="dock__sub">
+        <span id="d-meta">—</span>
+        <span class="dock__pip"></span>
+        <span class="dock__rating"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg><span id="d-rating">—</span></span>
+      </div>
+      <div id="dots" role="tablist" aria-label="Jump to work"></div>
+    </div>
+    <div class="dock__r">
+      <button class="navbtn" id="prev" aria-label="Previous work">‹</button>
+      <button class="navbtn" id="next" aria-label="Next work">›</button>
+    </div>
+  </footer>
+</div>
+
+<!-- CONTROLS -->
+<div id="ui">
+  <div id="ui-head"><b>Spotlight</b><span id="ui-caret">▾</span></div>
+  <div id="ui-body"></div>
+</div>
+<!-- END CONTROLS -->
+
+<script type="module">
+/* ============================================================
+   CARDS — the content. Edit titles / ratings / meta here.
+============================================================ */
+const CARDS = [
+  { img: 'assets/spotlight/azure.webp',    title: 'Azure',    rating: '8.7', meta: '2025 · Portrait' },
+  { img: 'assets/spotlight/velocity.webp', title: 'Velocity', rating: '9.2', meta: '2025 · Design' },
+  { img: 'assets/spotlight/vanta.webp',    title: 'Vanta',    rating: '8.5', meta: '2025 · Portrait' },
+  { img: 'assets/spotlight/sentinel.webp', title: 'Sentinel', rating: '8.9', meta: '2025 · Portrait' },
+  { img: 'assets/spotlight/nova.webp',     title: 'Nova',     rating: '9.0', meta: '2025 · Portrait' },
+  { img: 'assets/spotlight/zane.webp',     title: 'Zane',     rating: '8.6', meta: '2025 · Portrait' },
+  { img: 'assets/spotlight/rael.webp',     title: 'Rael',     rating: '8.8', meta: '2025 · Portrait' },
+]
+
+/* content strings for the surrounding UI (edit freely) */
+const UI = {
+  brand: 'Spotlight',
+  nav: ['Gallery', 'Artists', 'Editorial', 'About'],
+  cta: 'Get access',
+  eyebrow: 'The Spotlight Collection · Vol. 01',
+  headline: 'Selected works,<br>framed in <em>light</em>',
+  edgeL: 'Curated Index',
+  edgeR: '2025 — Ⓐ',
+}
+
+/* ============================================================
+   CONFIG (P) — every tunable value, exposed in the controls panel.
+============================================================ */
+const P = {
+  // stage
+  bgTop: '#ffffff',
+  bgBottom: '#e9edf4',
+  accent: '#1e5bff',    // UI accent (dots · counter · rating · focus)
+  // layout
+  slots: 14,            // total cards around the ring (images cycle to fill it)
+  cardScale: 1.0,       // multiplier on the responsive card width
+  cardRatio: 1.36,      // card height / width
+  radiusK: 3.0,         // ring radius as a multiple of card width
+  arcDepth: 0.7,        // 0 = flat row, 1 = deep concave (viewer at ring centre)
+  perspective: 1.0,     // perspective strength (lower = punchier 3D)
+  corner: 16,           // card corner radius (px)
+  cardShadow: 1.0,      // card shadow strength
+  // motion
+  autoSpin: 0,          // idle rotation (deg/frame). 0 → snap-to-card settling instead of drift
+  drag: 0.16,           // deg of ring rotation per pixel dragged
+  damp: 0.94,           // inertia decay after release
+  hoverScale: 1.05,     // card lift on hover
+  // overlay
+  scrim: 0.9,           // card bottom gradient strength
+  titleSize: 17,        // card title size (px)
+  titleColor: '#ffffff',
+}
+
+const DEFAULTS = JSON.parse(JSON.stringify(P))
+const STORAGE_KEY = 'getlayers:spotlight'
+try { const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); if (s) for (const k in s) if (k in P) P[k] = s[k] } catch (e) {}
+const saveP = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(P)) } catch (e) {} }
+
+const section = document.getElementById('section')
+const stage = document.getElementById('stage')
+const ring = document.getElementById('ring')
+const ghost = document.getElementById('ghost')
+const STAR = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>'
+const pad2 = (n) => String(n).padStart(2, '0')
+const stepDeg = () => 360 / P.slots
+
+/* ---------- header + masthead content ---------- */
+document.getElementById('brand-name').textContent = UI.brand
+document.getElementById('ui-head').firstElementChild.textContent = UI.brand
+document.getElementById('nav').innerHTML = UI.nav.map(n => `<a href="#">${n}</a>`).join('')
+document.querySelector('#cta').firstChild.textContent = UI.cta + ' '
+document.getElementById('eyebrow').textContent = UI.eyebrow
+document.getElementById('headline').innerHTML = UI.headline
+document.getElementById('edge-l').textContent = UI.edgeL
+document.getElementById('edge-r').textContent = UI.edgeR
+document.getElementById('d-total').textContent = pad2(CARDS.length)
+
+/* ---------- build the ring (cycle images to fill `slots`) ---------- */
+function buildRing() {
+  ring.innerHTML = ''
+  const step = stepDeg()
+  for (let i = 0; i < P.slots; i++) {
+    const cd = CARDS[i % CARDS.length]
+    const card = document.createElement('article')
+    card.className = 'card'
+    card.dataset.slot = i
+    card.style.setProperty('--a', (i * step) + 'deg')
+    card.innerHTML = `
+      <div class="card__inner">
+        <img src="${cd.img}" alt="${cd.title}" draggable="false" loading="lazy">
+        <div class="card__scrim"></div>
+        <span class="card__no">${pad2((i % CARDS.length) + 1)}</span>
+        <div class="card__foot"><h3 class="card__title">${cd.title}</h3></div>
+      </div>`
+    ring.appendChild(card)
+  }
+}
+
+/* ---------- dots (one per unique work) ---------- */
+const dotsWrap = document.getElementById('dots')
+function buildDots() {
+  dotsWrap.innerHTML = ''
+  CARDS.forEach((cd, i) => {
+    const b = document.createElement('button')
+    b.setAttribute('role', 'tab'); b.setAttribute('aria-label', 'Go to ' + cd.title)
+    b.addEventListener('click', () => focusWork(i))
+    dotsWrap.appendChild(b)
+  })
+}
+
+/* ---------- geometry (responsive) ---------- */
+function layout() {
+  const vw = innerWidth
+  const cw = Math.min(238, Math.max(150, vw * 0.17)) * P.cardScale
+  const ch = cw * P.cardRatio
+  const r = cw * P.radiusK
+  stage.style.setProperty('--cw', cw + 'px')
+  stage.style.setProperty('--ch', ch + 'px')
+  stage.style.setProperty('--r', r + 'px')
+  stage.style.setProperty('--push', (r * (1 - P.arcDepth)) + 'px')
+  stage.style.perspective = Math.max(700, vw * 0.8 * P.perspective) + 'px'
+}
+
+/* ---------- style vars (live) ---------- */
+function applyStyles() {
+  const s = section.style
+  s.setProperty('--bg-top', P.bgTop); s.setProperty('--bg-bottom', P.bgBottom)
+  s.setProperty('--accent', P.accent)
+  s.setProperty('--corner', P.corner + 'px'); s.setProperty('--shadow', P.cardShadow)
+  s.setProperty('--hover', P.hoverScale); s.setProperty('--scrim', P.scrim)
+  s.setProperty('--title-size', P.titleSize + 'px'); s.setProperty('--title-color', P.titleColor)
+}
+
+window.addEventListener('resize', layout)
+
+/* ---------- front-card tracking → dock + ghost ---------- */
+const dTitle = document.getElementById('d-title'), dMeta = document.getElementById('d-meta')
+const dRating = document.getElementById('d-rating'), dCur = document.getElementById('d-cur')
+let lastCard = -1, lastFrontSlot = -1
+function frontSlot() { return ((Math.round(-rot / stepDeg()) % P.slots) + P.slots) % P.slots }
+function render() {
+  const fs = frontSlot()
+  if (fs !== lastFrontSlot) {
+    const cards = ring.children
+    if (lastFrontSlot >= 0 && cards[lastFrontSlot]) cards[lastFrontSlot].classList.remove('-front')
+    if (cards[fs]) cards[fs].classList.add('-front')
+    lastFrontSlot = fs
+  }
+  const ci = fs % CARDS.length
+  if (ci !== lastCard) {
+    lastCard = ci
+    const cd = CARDS[ci]
+    dTitle.textContent = cd.title; dMeta.textContent = cd.meta; dRating.textContent = cd.rating
+    dCur.textContent = pad2(ci + 1); ghost.textContent = pad2(ci + 1)
+    ;[...dotsWrap.children].forEach((b, i) => b.classList.toggle('-on', i === ci))
+  }
+}
+
+/* ---------- interaction: drag / inertia / snap / prev-next / keyboard / click-to-focus ---------- */
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches
+let rot = 0, vel = 0, dragging = false, lastX = 0, downX = 0, moved = false
+let targetIndex = 0, settled = true, lastRot = NaN
+const applyRot = () => { if (rot !== lastRot) { ring.style.setProperty('--rot', rot + 'deg'); lastRot = rot } }
+
+stage.addEventListener('pointerdown', (e) => {
+  dragging = true; lastX = downX = e.clientX; moved = false; vel = 0; settled = false
+  stage.classList.add('-drag'); stage.setPointerCapture(e.pointerId)
+})
+stage.addEventListener('pointermove', (e) => {
+  if (!dragging) return
+  const dx = e.clientX - lastX; lastX = e.clientX
+  if (Math.abs(e.clientX - downX) > 6) moved = true
+  const d = -dx * P.drag; rot += d; vel = d
+})
+stage.addEventListener('pointerup', (e) => {
+  dragging = false; settled = false; stage.classList.remove('-drag')
+  if (!moved) {                                   // a tap/click → bring that card to the front
+    // pointer capture redirects the event target to the stage, so hit-test at the release point
+    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const card = el && el.closest('.card')
+    if (card) focusSlot(+card.dataset.slot)
+  }
+})
+stage.addEventListener('pointercancel', () => { dragging = false; stage.classList.remove('-drag') })
+stage.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { go(1); e.preventDefault() }
+  else if (e.key === 'ArrowLeft') { go(-1); e.preventDefault() }
+})
+document.getElementById('next').addEventListener('click', () => go(1))
+document.getElementById('prev').addEventListener('click', () => go(-1))
+
+const nearestCenter = () => Math.round(-rot / stepDeg())
+function go(delta) { targetIndex = nearestCenter() + delta; settled = true; vel = 0 }
+function focusSlot(slot) {                          // centre an exact ring slot (nearest copy)
+  const cs = nearestCenter(); let d = ((slot - (cs % P.slots)) % P.slots + P.slots) % P.slots
+  if (d > P.slots / 2) d -= P.slots
+  targetIndex = cs + d; settled = true; vel = 0
+}
+function focusWork(i) {                             // centre a unique work by its dot index
+  const cs = nearestCenter(); let d = ((i - (cs % CARDS.length)) % CARDS.length + CARDS.length) % CARDS.length
+  if (d > CARDS.length / 2) d -= CARDS.length
+  targetIndex = cs + d; settled = true; vel = 0
+}
+
+function tick() {
+  if (!dragging) {
+    rot += vel; vel *= P.damp
+    if (P.autoSpin > 0) { rot += P.autoSpin }        // drift mode
+    else if (Math.abs(vel) < 0.05) {                 // snap mode: settle a card dead-centre
+      if (!settled) { targetIndex = nearestCenter(); settled = true }
+      const diff = -targetIndex * stepDeg() - rot
+      if (Math.abs(diff) < 0.01) rot = -targetIndex * stepDeg()   // land exactly → --rot stops changing → hover is rock-steady
+      else rot += diff * (REDUCE ? 1 : 0.14)
+    } else settled = false
+  }
+  applyRot(); render()
+  requestAnimationFrame(tick)
+}
+
+/* ============================================================
+   CONTROLS PANEL — schema-driven; live-updates styles/layout;
+   `slots` rebuilds the ring. (Strip this block for the catalog build.)
+============================================================ */
+const SCHEMA = [
+  ['Stage'],
+  ['bgTop', 'Background top', 'color'], ['bgBottom', 'Background bottom', 'color'], ['accent', 'Accent', 'color'],
+  ['Layout'],
+  ['slots', 'Cards', 6, 28, 1, 'rebuild'], ['cardScale', 'Card size', 0.5, 1.8, 0.02], ['cardRatio', 'Card ratio', 1.0, 2.0, 0.02],
+  ['radiusK', 'Arc radius', 1.5, 6, 0.05], ['arcDepth', 'Curve depth', 0, 1, 0.02], ['perspective', 'Perspective', 0.4, 2, 0.02],
+  ['corner', 'Corner', 0, 40, 1], ['cardShadow', 'Shadow', 0, 2, 0.02],
+  ['Motion'],
+  ['autoSpin', 'Auto-spin', 0, 0.2, 0.005], ['drag', 'Drag speed', 0.02, 0.5, 0.01], ['damp', 'Inertia', 0.8, 0.99, 0.005], ['hoverScale', 'Hover lift', 1, 1.2, 0.005],
+  ['Overlay'],
+  ['scrim', 'Scrim', 0, 1.4, 0.02], ['titleSize', 'Card title', 10, 26, 1], ['titleColor', 'Title colour', 'color'],
+]
+const REBUILD = new Set(['slots'])
+const valEls = {}, inpEls = {}
+const fmt = (v) => Number.isInteger(v) ? String(v) : String(parseFloat(v.toFixed(4)))
+function onChange(key, v) { P[key] = v; saveP(); if (REBUILD.has(key)) { buildRing(); lastCard = -1; lastFrontSlot = -1 } layout(); applyStyles() }
+
+;(() => {
+  const body = document.getElementById('ui-body')
+  for (const row of SCHEMA) {
+    if (row.length === 1) { const h = document.createElement('div'); h.className = 'ui-grp'; h.textContent = row[0]; body.appendChild(h); continue }
+    const [key, label, a, b, step] = row
+    const el = document.createElement('div'); el.className = 'ui-row'
+    const lab = document.createElement('label'); lab.textContent = label; el.appendChild(lab)
+    if (a === 'color') {
+      const inp = document.createElement('input'); inp.type = 'color'; inp.value = P[key]; inpEls[key] = inp
+      inp.addEventListener('input', () => onChange(key, inp.value)); el.appendChild(inp)
+    } else {
+      const inp = document.createElement('input'); inp.type = 'range'; inp.min = a; inp.max = b; inp.step = step; inp.value = P[key]; inpEls[key] = inp
+      const val = document.createElement('span'); val.className = 'val'; val.textContent = fmt(P[key]); valEls[key] = val
+      inp.addEventListener('input', () => { onChange(key, parseFloat(inp.value)); val.textContent = fmt(P[key]) })
+      el.appendChild(inp); el.appendChild(val)
+    }
+    body.appendChild(el)
+  }
+  const copy = document.createElement('button'); copy.id = 'ui-copy'; copy.textContent = '⧉ copy config'
+  copy.addEventListener('click', () => copyConfig(copy)); body.appendChild(copy)
+  const reset = document.createElement('button'); reset.id = 'ui-reset'; reset.textContent = '↺ reset to defaults'
+  reset.addEventListener('click', () => { for (const k in DEFAULTS) P[k] = DEFAULTS[k]; try { localStorage.removeItem(STORAGE_KEY) } catch (e) {}; location.reload() })
+  body.appendChild(reset)
+  const head = document.getElementById('ui-head'), panel = document.getElementById('ui'), caret = document.getElementById('ui-caret')
+  head.addEventListener('click', () => { panel.classList.toggle('-collapsed'); caret.textContent = panel.classList.contains('-collapsed') ? '▸' : '▾' })
+  if (innerWidth < 760) { panel.classList.add('-collapsed'); caret.textContent = '▸' }
+})()
+
+const GROUPS = { bgTop: 'stage', slots: 'layout', autoSpin: 'motion', scrim: 'overlay' }
+function configText() {
+  const lines = ['const P = {']
+  for (const k in P) {
+    if (GROUPS[k]) lines.push('  // ' + GROUPS[k])
+    const v = P[k]
+    lines.push(`  ${k}: ${typeof v === 'string' ? `'${v}'` : fmt(v)},`)
+  }
+  lines.push('}')
+  return lines.join('\n')
+}
+async function copyConfig(btn) {
+  const text = configText()
+  try { await navigator.clipboard.writeText(text) }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy') } catch (e2) {} document.body.removeChild(ta) }
+  const old = btn.textContent; btn.textContent = '✓ copied'; setTimeout(() => { btn.textContent = old }, 1200)
+}
+
+/* ---------- go ---------- */
+buildRing(); buildDots(); layout(); applyStyles(); applyRot(); render(); tick()
+</script>
+</body>
+</html>

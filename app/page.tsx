@@ -1,139 +1,47 @@
-import Link from "next/link";
-import { getCollections, getFeaturedProducts } from "@/lib/queries/products";
-import { tr } from "@/lib/i18n";
-import { layawayOffered } from "@/lib/layaway-availability";
 import { getLang } from "@/lib/i18n-server";
-import { hub } from "@/lib/hub-api";
 import { contactEmail, follow } from "@/lib/settings";
-import { JsonLd } from "@/components/site/json-ld";
-import { DiamondDivider } from "@/components/home/diamond-divider";
-import { ValuesBento } from "@/components/home/values-bento";
-import { RecentlyViewed } from "@/components/catalog/recently-viewed";
-import { CollectionCards, type CollectionCardData } from "@/components/home/collection-cards";
-import { typeVisual } from "@/lib/type-icons";
+import { switchTargets } from "@/lib/locale-nav";
+import { PATH_HEADER } from "@/lib/i18n";
 import { headers } from "next/headers";
-import { buildHeroDeck } from "@/lib/hero-deck";
-import { HERO_DEMO_PARAM, heroDemoAllowed } from "@/lib/hero-demo";
-import { Hero } from "@/components/home/hero";
-import { HERO_POSTER } from "@/components/site/hero-video";
-import { ArrivalsSection, LayawaySection, TestimonialsSection } from "@/components/home/sections";
-import { RevealGroup, RevealItem } from "@/components/fx/reveal";
-import { SplitHeading } from "@/components/fx/split-text";
+import { JsonLd } from "@/components/site/json-ld";
+import { LumiereHome } from "@/components/lumiere/home/home-view";
 export const revalidate = 60;
 
 /**
- * Homepage — the Stitch redesign (docs/stitch/cha-desktop.html and
- * cha-mobile.html), JA-first. Section order follows the file: hero, values,
- * layaway calculator (EN only), collections, testimonials, new arrivals. The page is the one chalk (light) surface on the site;
- * the header is global and light, the footer stays charcoal.
+ * Homepage — THE LUMIÈRE HOME (redesign/lumiere P2, docs/tasks/lumiere-redesign.md
+ * §6; owner-authorised 2026-10-31). The Stitch home it replaces is kept in the
+ * tree, unused, for the Hub swap and the P5 clean-up (components/home/*,
+ * lib/hero-deck.ts); nothing of the existing site is dropped:
  *
- * Every string comes from lib/i18n. Where the file's Japanese differs from an
- * existing dictionary key, the existing key wins (hero.*, home.values*, colsH,
- * newH, viewAll, layH/layP). Product and collection data is the Hub's only.
+ *   hero (film + category slides)     → the Lumière hero (card ring, pendant)
+ *   values bento                      → the philosophy block (§13 rows 17–27)
+ *   collections cards + eyebrow/lead  → the collections block (§13 rows 8–12, §14)
+ *   recently viewed, layaway band + calculator, customer stories, new arrivals,
+ *   the loyalty band (new, D-21)      → part B of P2 (components/lumiere/home/*)
+ *
+ * Metadata, canonical, hreflang and the JewelryStore JSON-LD are unchanged;
+ * the one <h1> is the hero headline. Every string comes from §13/§14 or
+ * lib/i18n (lib/content/lumiere-home.ts); every image is a registered
+ * placeholder until the Hub swap (lib/lumiere/placeholders.ts).
  */
-
-export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  // ONLY WHAT THE SHELL AND THE HERO NEED. FX, testimonials and the arrivals
-  // deck have moved into their own streamed sections (components/home/
-  // sections.tsx) — awaiting all six here meant the slowest Hub read decided
-  // when the headline appeared, and one of them could fail the page outright.
-  const [lang, collections, categories, storeEmail, storeSameAs] = await Promise.all([
+export default async function Home() {
+  const [lang, h, storeEmail, storeSameAs] = await Promise.all([
     getLang(),
-    getCollections().catch(() => []),
-    hub.categories().catch(() => []),
+    headers(),
     // Chrome reads for the JewelryStore JSON-LD (Phase 4 §16): the Hub's
     // contact email and social row, caught like the other chrome reads — a
     // failed read omits the field, never the page.
     contactEmail().catch(() => null),
     follow().then((links) => links.map((l) => l.href), () => [] as string[]),
   ]);
-  const t = tr(lang);
-  const layaway = layawayOffered(lang);
-  // A card shows the type's own hero_media, else the Stitch placeholder for
-  // that slug, else the type's line icon (lib/type-icons.ts). A product photo
-  // never stands in for a type.
-  const cards: CollectionCardData[] = collections.map((c) => ({ c, visual: typeVisual(c) }));
-  // Hero deck (hero v3): the film alone, then one slide per category in the
-  // Hub's sort_order, each with up to three pieces chosen from the Hub's
-  // catalogue on this render — only active pieces in stock, never a sold one —
-  // and the empty-category switch applied. All of it in lib/hero-deck.ts.
-  // Preview deployments only: `?hero_demo=1` labels the hero as the review
-  // view (lib/hero-demo.ts). Never on production. The hero's cut-outs are the
-  // same everywhere: the original tool's only, never Photoroom's
-  // (lib/hero-deck.ts `heroCutout`).
-  const demo = (await searchParams)[HERO_DEMO_PARAM] === "1" && heroDemoAllowed((await headers()).get("host"));
-  const slides = await buildHeroDeck(lang, categories);
-
+  // The language switcher's destinations for this path (lib/locale-nav.ts),
+  // the same read the root layout makes for the site header.
+  const targets = await switchTargets(h.get(PATH_HEADER)).catch(() => ({ en: null, ja: null } as const));
 
   return (
-    <div className="bg-chalk text-charcoal pb-20 lg:pb-0">
+    <>
       <JsonLd type="store" email={storeEmail} sameAs={storeSameAs} />
-
-      {/* §3 Hero — hero v3 (owner approvals 2026-09-26): the gold film alone
-          on slide 1, then one image-led stage per category with up to three
-          pieces. The film is the base layer under slide 1, with the film
-          slide's own horizontal scrim (.hd-film-scrim) between it and the
-          copy; every category slide covers it. Copy from lib/i18n, pieces and
-          figures from the Hub (lib/hero-deck.ts). */}
-      {/* THE ONE EAGER IMAGE ON THIS PAGE.
-          The hero poster is what a visitor sees first: the clip does not load
-          until something decides it should play, slide 1 has no photo of its
-          own, and no category slide mounts a photo until the deck is coming
-          to it, so for the whole of the intro slide this file IS the hero. React hoists the tag into <head>,
-          which puts the request in the same breath as the stylesheet instead
-          of waiting for the <video> to be parsed. Nothing else on the site
-          asks for priority — see components/media/hub-image.tsx. */}
-      <link rel="preload" as="image" href={HERO_POSTER} fetchPriority="high" />
-      {/* The deck is stacked slides, so the section has a height at every
-          width (.hd-hero, app/globals.css). overflow-CLIP, never hidden: see
-          hero.tsx, "NOTHING IN THE HERO SCROLLS". */}
-      <Hero
-        lang={lang}
-        slides={slides}
-        demo={demo}
-        className="hd-hero relative isolate flex w-full overflow-clip bg-charcoal-deep"
-      />
-
-      {/* §6 Diamond divider */}
-      <DiamondDivider className="wrap" />
-
-      {/* §5 Values bento */}
-      <ValuesBento lang={lang} />
-
-      {/* Recently viewed (owner decision 2026-10-17): above the layaway band —
-          on the Japanese home, between Values and Collections. Drawn in the
-          browser from the slugs the product page recorded; absent (the page
-          unchanged) until there are cards. */}
-      <RecentlyViewed lang={lang} title={t("pdp", "recentlyViewed")} />
-
-      {/* §7 Layaway band — the pill, the pitch, the three steps and the
-          calculator, now shared with /layaway (components/commerce/layaway-band).
-          English only (owner decision 2026-09-15): the section and the
-          calculator go together, and a calculator with no explanation is worse
-          than neither. See lib/layaway-availability. */}
-      {layaway && <LayawaySection lang={lang} />}
-
-      {/* §8 Collections — dynamic from the Hub */}
-      <section id="collections" className="border-t border-hairline py-16 lg:py-20">
-        <div className="wrap">
-          {/* Entrance: eyebrow, split-text heading, then the line (components/fx). */}
-          <RevealGroup className="mb-10 text-center">
-            <RevealItem index={0}><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark">{t("home", "colsEyebrow")}</p></RevealItem>
-            <SplitHeading text={t("home", "colsH")} lang={lang} className="mt-3 text-[clamp(28px,3.6vw,44px)]" />
-            <RevealItem index={2}><p className="mx-auto mt-4 max-w-[52ch] text-charcoal/75">{t("home", "colsP")}</p></RevealItem>
-          </RevealGroup>
-          <CollectionCards items={cards} lang={lang} />
-        </div>
-      </section>
-
-      {/* §9 Customer stories — testimonials and approved reviews in one
-          slideshow (owner decision 2026-10-17); streamed; no section when
-          there are none, and no section when the Hub cannot be reached either. */}
-      <TestimonialsSection lang={lang} />
-
-      {/* §10 New arrivals — streamed; real pieces only, no section when none */}
-      <ArrivalsSection lang={lang} />
-
-    </div>
+      <LumiereHome lang={lang} switchTargets={targets} />
+    </>
   );
 }
