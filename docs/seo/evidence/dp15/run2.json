@@ -1,0 +1,25 @@
+{
+  "at": "2026-11-01T12:11:02.292Z",
+  "elapsed_s": 19,
+  "aborted": "fetch failed",
+  "missing": [
+    "E2:collections",
+    "E2:categories",
+    "E2:product-slugs",
+    "E2:posts",
+    "E2w",
+    "E3",
+    "E4",
+    "R0",
+    "R:failure-reached",
+    "R:continuity",
+    "V:recovery"
+  ],
+  "failed": [],
+  "results": {
+    "E1": {
+      "ok": true,
+      "note": "exit 0; exact set equal; image tag true"
+    }
+  }
+}

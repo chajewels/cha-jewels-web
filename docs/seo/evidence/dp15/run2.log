@@ -1,0 +1,14 @@
+PASS E1: exit 0; exact set equal; image tag true
+ABORT: fetch failed
+FAIL E2:collections: NOT RUN (missing or skipped required experiment)
+FAIL E2:categories: NOT RUN (missing or skipped required experiment)
+FAIL E2:product-slugs: NOT RUN (missing or skipped required experiment)
+FAIL E2:posts: NOT RUN (missing or skipped required experiment)
+FAIL E2w: NOT RUN (missing or skipped required experiment)
+FAIL E3: NOT RUN (missing or skipped required experiment)
+FAIL E4: NOT RUN (missing or skipped required experiment)
+FAIL R0: NOT RUN (missing or skipped required experiment)
+FAIL R:failure-reached: NOT RUN (missing or skipped required experiment)
+FAIL R:continuity: NOT RUN (missing or skipped required experiment)
+FAIL V:recovery: NOT RUN (missing or skipped required experiment)
+exit 1

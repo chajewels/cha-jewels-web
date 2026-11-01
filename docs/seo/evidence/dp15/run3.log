@@ -1,0 +1,20 @@
+PASS E1: exit 0; exact set equal; image tag true
+PASS E2:collections: exit 1; named true; upstream 503 reached 5x
+PASS E2:categories: exit 1; named true; upstream 503 reached 6x
+PASS E2:product-slugs: exit 1; named true; upstream 503 reached 3x
+PASS E2:posts: exit 1; named true; upstream 503 reached 1x
+PASS E2w: OBSERVATION warm cache: exit 0; sitemap = last good rows (exact set equal to v1)
+PASS E3: exit 0; exact set equal; image tags false; image 503 reached 4x
+FAIL E4: exit 1; SitemapUnavailable naming collections: false
+[Error: A required parameter (slug) was not provided as a string received undefined in generateStaticParams for /collections/[slug]]
+> Build error occurred
+[Error: Failed to collect page data for /collections/[slug]] {
+  type: 'Error'
+PASS R0: status 200; exact set equal to v1; image true
+FAIL R:failure-reached: upstream 503s served during the failure window: {"collections":0,"categories":0,"product-slugs":0,"posts":0} (an intended failure that was not reached would make the next check meaningless)
+
+FAIL R:continuity: CONTINUITY evidence only (retained old output, not recovery): [[200,"STALE",15],[200,"HIT",0],[200,"HIT",0]]
+
+FAIL V:recovery: NOT reflected within 300 s: missing ["/en/blog/exp-en-only","/en/blog/exp-post","/en/categories/necklaces","/en/collections/exp-new-col","/en/collections/kihei","/en/collections/pearls","/en/products/exp-new-4","/en/products/exp-pearl-3","/en/products/exp-ring-1","/ja/blog/exp-post","/ja/categories/necklaces","/ja/collections/exp-new-col","/ja/collections/kihei","/ja/collections/pearls","/ja/products/exp-new-4","/ja/products/exp-pearl-3","/ja/products/exp-ring-1"] extra []
+
+exit 1

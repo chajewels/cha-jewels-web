@@ -1,0 +1,36 @@
+{
+  "at": "2026-11-01T11:46:37.103Z",
+  "elapsed_s": 132,
+  "results": [
+    {
+      "id": "E2 build with collections failing",
+      "ok": true,
+      "note": "exit 1; SitemapUnavailable naming \"collections\": true"
+    },
+    {
+      "id": "E2 build with categories failing",
+      "ok": true,
+      "note": "exit 1; SitemapUnavailable naming \"categories\": true"
+    },
+    {
+      "id": "E2 build with product-slugs failing",
+      "ok": true,
+      "note": "exit 1; SitemapUnavailable naming \"product-slugs\": true"
+    },
+    {
+      "id": "E2 build with posts failing",
+      "ok": false,
+      "note": "exit 1; SitemapUnavailable naming \"posts\": false"
+    },
+    {
+      "id": "E2w OBSERVATION build with a WARM Data Cache and collections failing",
+      "ok": true,
+      "note": "exit 0; sitemap complete=true (the cached last-good Hub rows answered; not a truncated sitemap)"
+    },
+    {
+      "id": "E3 build with only the optional image read failing",
+      "ok": true,
+      "note": "exit 0; complete=true; image tags=false"
+    }
+  ]
+}
