@@ -61,7 +61,7 @@ export function OrderSlab({ id, title, lines, rows, total, children, className }
   className?: string;
 }) {
   return (
-    <aside id={id} aria-label={title} className={cn("band-dark relative scroll-mt-24 bg-charcoal-deep text-chalk", className)}>
+    <aside id={id} aria-label={title} className={cn("band-dark icm-slab relative scroll-mt-24 bg-charcoal-deep text-chalk", className)}>
       <CommerceStyle />
       <span aria-hidden="true" className="cj-slab-rule" />
       <div className="px-5 pb-6 pt-6 sm:px-[26px]">
@@ -102,7 +102,7 @@ export function OrderSlab({ id, title, lines, rows, total, children, className }
 function StageThumb({ image, alt }: { image: PieceImage | null; alt: string }) {
   const cut = image?.kind === "cut";
   return (
-    <span className={cn("relative block h-16 w-16 overflow-hidden outline outline-1 -outline-offset-1 outline-gold/35", cut ? "bg-charcoal" : "bg-white")}>
+    <span className={cn("icm-slab-thumb relative block h-16 w-16 overflow-hidden outline outline-1 -outline-offset-1 outline-gold/35", cut ? "bg-charcoal" : "bg-white")}>
       {image && (
         <span className={cut ? "cj-stage-cut" : "absolute inset-0"}>
           <HubImage src={image.src} alt={image.alt?.trim() || alt} fill sizes="64px" className="object-contain" />
@@ -115,7 +115,7 @@ function StageThumb({ image, alt }: { image: PieceImage | null; alt: string }) {
 /** A piece's picture in a 1:1 chalk well (D3-12): the cut-out with air around it, or the whole photo contained. */
 export function PieceWell({ image, alt, className }: { image: PieceImage | null; alt: string; className?: string }) {
   return (
-    <span className={cn("relative block aspect-square overflow-hidden bg-chalk", className)}>
+    <span className={cn("relative block aspect-square overflow-hidden rounded-[14px] bg-chalk", className)}>
       {image && (
         <span className={image.kind === "cut" ? "cj-cut" : "absolute inset-0"}>
           <HubImage src={image.src} alt={image.alt?.trim() || alt} fill sizes="148px" className="object-contain" />
@@ -135,7 +135,7 @@ export function StickyAct({ label, figure, note, children }: { label: string; fi
       data-sticky-act
       role="region"
       aria-label={label}
-      className="stickact band-dark flex items-center gap-3 bg-charcoal-deep px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2.5 lg:hidden"
+      className="stickact band-dark flex items-center gap-3 rounded-t-[22px] bg-charcoal-deep px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2.5 lg:hidden"
     >
       <CommerceStyle />
       <p className="cj-fig shrink-0 font-display text-[20px] leading-[1.1] text-gold-pale">
@@ -157,7 +157,7 @@ export function Stepper({ steps, current, label, stepOf }: {
   stepOf: (n: number, label: string) => string;
 }) {
   return (
-    <ol aria-label={label} className="cj-steps mb-8 grid grid-cols-4 border-t border-hairline">
+    <ol aria-label={label} className="cj-steps icm-stepper">
       <CommerceStyle />
       {steps.map((s, i) => {
         const n = i + 1;
@@ -168,12 +168,11 @@ export function Stepper({ steps, current, label, stepOf }: {
             data-at={at}
             aria-current={at === "cur" ? "step" : undefined}
             className={cn(
-              "relative flex flex-col gap-1 pr-1 pt-3 text-[11px] font-medium sm:flex-row sm:items-baseline sm:gap-2.5 sm:pr-3 sm:pt-4 sm:text-[13px]",
-              at === "cur" ? "text-charcoal-deep" : at === "done" ? "text-charcoal/80" : "text-charcoal/70",
+              "relative",
             )}
           >
             <span className="sr-only">{stepOf(n, s)}</span>
-            <span aria-hidden="true" className={cn("cj-fig font-display text-[17px] leading-none sm:text-[20px]", at === "todo" ? "text-charcoal/70" : "text-gold-dark")}>
+            <span aria-hidden="true" className="icm-stepper__n">
               {at === "done" ? <Check className="inline h-4 w-4" strokeWidth={2} /> : n}
             </span>
             <span aria-hidden="true">{s}</span>
@@ -188,21 +187,15 @@ export function NextSteps({ heading, items }: { heading: string; items: { title:
   return (
     <section className="mt-8">
       <CommerceStyle />
-      <h2 className="mb-[18px] font-display text-[22px] text-charcoal-deep">{heading}</h2>
-      <ol className="cj-next m-0 grid list-none p-0">
+      <h2 className="lm-h2 mb-5 !text-[clamp(22px,2.4vw,32px)]">{heading}</h2>
+      <ol className="icm-next">
         {items.map((it, i) => (
-          <li key={it.title} className="grid grid-cols-[44px_minmax(0,1fr)] gap-4 pb-[26px]">
-            <span
-              aria-hidden="true"
-              className={cn(
-                "cj-fig grid h-11 w-11 place-items-center rounded-full border font-display text-[18px]",
-                it.now ? "border-charcoal-deep bg-charcoal-deep text-gold-pale" : "border-gold-dark bg-chalk text-gold-dark",
-              )}
-            >
+          <li key={it.title} data-now={it.now ? "" : undefined}>
+            <span aria-hidden="true" className="icm-next__n">
               {it.now ? <Check className="h-4 w-4" strokeWidth={2} /> : i + 1}
             </span>
             <div>
-              <p className="mt-2.5 text-[15px] font-semibold text-charcoal-deep">{it.title}</p>
+              <p className="mt-2 text-[15px] font-semibold text-charcoal-deep">{it.title}</p>
               {it.body && <p className="mt-1 text-sm leading-relaxed text-charcoal/80">{it.body}</p>}
             </div>
           </li>
@@ -215,7 +208,7 @@ export function NextSteps({ heading, items }: { heading: string; items: { title:
 /** The hairline note with a gold-dark icon (the comp's `.notice`). */
 export function Notice({ icon, children, className }: { icon: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <div className={cn("grid grid-cols-[22px_minmax(0,1fr)] gap-3 border border-gold-dark/45 bg-gold-pale/15 px-[18px] py-4 text-sm leading-relaxed text-charcoal-deep", className)}>
+    <div className={cn("icm-note", className)}>
       <span aria-hidden="true" className="text-gold-dark">{icon}</span>
       <div>{children}</div>
     </div>

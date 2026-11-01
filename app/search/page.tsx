@@ -11,8 +11,8 @@ import { follow } from "@/lib/settings";
 import type { Category, Collection, Product } from "@/lib/types";
 import { ProductCard } from "@/components/catalog/product-card";
 import { SearchView } from "@/components/analytics/search-view";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 import { ChipLink, Eyebrow, InStockStrip, MessengerCta, SearchForm } from "@/components/site/support-ui";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * Results for a search submitted from the header box, or linked to directly
@@ -60,28 +60,23 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const none = hasQuery && total === 0;
   const [tries, pieces] = none ? await noResultHelp(lang) : [[], []];
 
+  const lead = !hasQuery
+    ? t("search", "prompt")
+    : total > 0
+      ? <span className="cj-fig">{total === 1 ? t("search", "countOne") : t("search", "count", { n: String(total) })}</span>
+      : none ? t("search", "none", { q }) : undefined;
   return (
-    <div className="wrap pb-16 sm:pb-24">
+    <>
       {hasQuery && <SearchView q={q} total={total} />}
 
-      <div className="flex flex-col gap-6 border-b border-hairline pb-6 pt-8 sm:pt-12 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0">
-          <Eyebrow>{t("support", "search")}</Eyebrow>
-          <h1 className="mt-2 break-words text-[clamp(30px,4.2vw,52px)] leading-[1.1] text-charcoal-deep [:lang(ja)_&]:text-[clamp(24px,3vw,38px)] [:lang(ja)_&]:leading-[1.4]">
-            <Reveal>{hasQuery ? t("search", "title", { q }) : t("search", "placeholder")}</Reveal>
-          </h1>
-          {!hasQuery && <p className="mt-3 max-w-[58ch] text-charcoal">{t("search", "prompt")}</p>}
-          {hasQuery && total > 0 && (
-            <p className="cj-fig mt-2 text-sm text-charcoal/75">{total === 1 ? t("search", "countOne") : t("search", "count", { n: String(total) })}</p>
-          )}
-          {none && <p className="mt-2 text-sm text-charcoal/75">{t("search", "none", { q })}</p>}
-        </div>
-        <SearchForm lang={lang} value={q} className="w-full lg:max-w-[380px] lg:flex-[0_1_380px]" />
-      </div>
+      {/* P4b: the Halden head; the query box sits under it. */}
+      <PageHead eyebrow={t("support", "search")} title={hasQuery ? t("search", "title", { q }) : t("search", "placeholder")} lead={lead}>
+        <SearchForm lang={lang} value={q} className="icm-search" />
+      </PageHead>
 
       {hasQuery && total > 0 && (
-        <>
-          <nav aria-label={t("support", "filters")} data-lenis-prevent-horizontal className="-mx-[clamp(18px,4vw,48px)] overflow-x-auto px-[clamp(18px,4vw,48px)] py-4 [scrollbar-width:none] sm:pb-6">
+        <PageSection tone="sheet">
+          <nav aria-label={t("support", "filters")} data-lenis-prevent-horizontal className="overflow-x-auto pb-3 [scrollbar-width:none]">
             <ul className="flex gap-2">
               <li><ChipLink href={base} on={!stockOnly}>{t("support", "all")} <span className="cj-fig text-[11.5px] opacity-80">{total}</span></ChipLink></li>
               <li><ChipLink href={`${base}&stock=1`} on={stockOnly}>{t("support", "inStock")} <span className="cj-fig text-[11.5px] opacity-80">{inStockCount}</span></ChipLink></li>
@@ -94,42 +89,42 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {products.length > 0 ? (
             <ResultGrid lang={lang} products={products} messenger={messenger} />
           ) : (
-            <p className="border border-hairline bg-white p-5 text-sm text-charcoal-deep">{t("search", "none", { q })}</p>
+            <p className="lm-plate lm-plate--bone text-sm text-charcoal-deep">{t("search", "none", { q })}</p>
           )}
-        </>
+        </PageSection>
       )}
 
       {none && (
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:gap-8">
-          <div className="border border-hairline bg-white p-6 sm:p-7">
-            {tries.length > 0 && (
-              <>
-                <Eyebrow>{t("support", "tryThese")}</Eyebrow>
-                <ul className="mt-3.5 flex flex-wrap gap-2">
-                  {tries.map((x) => <li key={x}><ChipLink href={`/search?q=${encodeURIComponent(x)}`}>{x}</ChipLink></li>)}
-                </ul>
-              </>
-            )}
-            {cols.length > 0 && (
-              <>
-                <Eyebrow className={tries.length > 0 ? "mt-6" : ""}>{t("search", "collections")}</Eyebrow>
-                <ul className="mt-3.5 flex flex-wrap gap-2">
-                  {cols.map((c) => <li key={c.slug}><ChipLink href={localePath(`/collections/${c.slug}`, lang)}>{collectionName(c, lang)}</ChipLink></li>)}
-                </ul>
-              </>
-            )}
+        <PageSection tone="sheet">
+          <div className="lm-grid lm-grid--2">
+            <div className="lm-plate lm-plate--bone lm-rise">
+              {tries.length > 0 && (
+                <>
+                  <p className="lm-eyebrow">{t("support", "tryThese")}</p>
+                  <ul className="flex flex-wrap gap-2">
+                    {tries.map((x) => <li key={x}><ChipLink href={`/search?q=${encodeURIComponent(x)}`}>{x}</ChipLink></li>)}
+                  </ul>
+                </>
+              )}
+              {cols.length > 0 && (
+                <>
+                  <p className={`lm-eyebrow ${tries.length > 0 ? "!mt-6" : ""}`}>{t("search", "collections")}</p>
+                  <ul className="flex flex-wrap gap-2">
+                    {cols.map((c) => <li key={c.slug}><ChipLink href={localePath(`/collections/${c.slug}`, lang)}>{collectionName(c, lang)}</ChipLink></li>)}
+                  </ul>
+                </>
+              )}
+            </div>
+            <div className="lm-plate lm-plate--ink lm-rise grid content-center gap-4">
+              <p className="lm-eyebrow" style={{ color: "var(--nav-gold)", margin: 0 }}>{t("support", "lookEyebrow")}</p>
+              <p className="font-display text-[clamp(20px,2vw,26px)] leading-snug [:lang(ja)_&]:text-[18px] [:lang(ja)_&]:leading-[1.6]">{t("support", "lookLine")}</p>
+              {messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} className="justify-self-start" />}
+            </div>
           </div>
-          <div className="band-dark relative grid content-center gap-4 overflow-hidden bg-charcoal-deep p-7 text-chalk outline outline-1 -outline-offset-1 outline-gold/30 sm:p-8">
-            <div aria-hidden="true" className="cs-pool" />
-            <Eyebrow dark rule className="relative">{t("support", "lookEyebrow")}</Eyebrow>
-            <p className="relative font-display text-[clamp(20px,2vw,26px)] leading-snug text-gold-pale [:lang(ja)_&]:text-[18px] [:lang(ja)_&]:leading-[1.6]">{t("support", "lookLine")}</p>
-            {messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} className="relative justify-self-start" />}
-          </div>
-        </div>
+          <div className="-mx-[clamp(18px,4vw,48px)] mt-10"><InStockStrip lang={lang} products={pieces} /></div>
+        </PageSection>
       )}
-
-      {none && <div className="-mx-[clamp(18px,4vw,48px)]"><InStockStrip lang={lang} products={pieces} /></div>}
-    </div>
+    </>
   );
 }
 
@@ -147,7 +142,7 @@ function ResultGrid({ lang, products, messenger }: { lang: Lang; products: Produ
       href={messenger}
       target="_blank"
       rel="noreferrer"
-      className={`band-dark relative min-h-[240px] flex-col justify-between gap-6 overflow-hidden bg-charcoal-deep p-5 text-chalk sm:p-6 ${r2 ? "flex" : "hidden"} ${r4 ? `lg:flex ${LG_SPAN[4 - r4]}` : "lg:hidden"}`}
+      className={`band-dark relative min-h-[240px] flex-col rounded-[22px] justify-between gap-6 overflow-hidden bg-charcoal-deep p-5 text-chalk sm:p-6 ${r2 ? "flex" : "hidden"} ${r4 ? `lg:flex ${LG_SPAN[4 - r4]}` : "lg:hidden"}`}
     >
       <span aria-hidden="true" className="cs-pool" />
       <Eyebrow dark className="relative">{t("support", "tileEyebrow")}</Eyebrow>

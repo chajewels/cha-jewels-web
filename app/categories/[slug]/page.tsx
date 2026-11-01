@@ -6,11 +6,12 @@ import { hub } from "@/lib/hub-api";
 import { tr } from "@/lib/i18n";
 import { categoryDescription, categoryName } from "@/lib/catalog-i18n";
 import { getLang } from "@/lib/i18n-server";
-import { stagePieces } from "@/lib/hero-deck";
-import { CategoryStage } from "@/components/catalog/category-stage";
-import { CatalogSection, CollectionHead, CountLine, EmptyCatalog } from "@/components/catalog/catalog-section";
+import { CatalogSection, EmptyCatalog } from "@/components/catalog/catalog-section";
 import { catalogue, collectionsWithProducts, isAvailable, stockedCollections } from "@/lib/catalog-context";
 import { follow } from "@/lib/settings";
+import { PageHead } from "@/components/lumiere/page/page-head";
+import { CountTag } from "@/components/commerce/count-tag";
+import { HubImage } from "@/components/media/hub-image";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { JsonLd } from "@/components/site/json-ld";
 import { listingOpenGraph, listingProductSlugs, ogFor } from "@/lib/listing-seo";
@@ -69,17 +70,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       <div className="wrap">
         <Breadcrumbs lang={lang} label={t("pdp", "breadcrumb")} items={[{ name: t("nav", "home"), path: "/" }, { name, path: `/categories/${slug}` }]} />
       </div>
-      {/* The owner's Hub photo leads, as on a collection; without one the
-          category's own in-stock pieces stand on the hero's dark stage
-          (CategoryStage), or its text alone when none is in stock. */}
-      {cat.hero_media ? (
-        <CollectionHead eyebrow={eyebrow} title={name} description={description} available={available} photo={cat.hero_media} lang={lang} />
-      ) : (
-        <div className="wrap pt-[clamp(20px,3vw,40px)]">
-          <CategoryStage lang={lang} pieces={stagePieces(cat.products, lang)} eyebrow={eyebrow} title={name} description={description} count={<CountLine available={available} lang={lang} />} />
-        </div>
-      )}
-      <div className="h-[clamp(12px,2vw,24px)]" />
+      {/* P4b: the Halden head (eyebrow, display title, lead, count); the owner's Hub
+          photo, when there is one, stands beside it as a rounded plate. */}
+      <PageHead eyebrow={eyebrow} title={name} lead={description} aside={<CountTag available={available} lang={lang} />}>
+        {cat.hero_media && (
+          <div className="relative mt-8 aspect-[21/9] w-full overflow-hidden rounded-[22px] bg-chalk">
+            <HubImage src={cat.hero_media} alt="" fill priority sizes="(min-width:1240px) 1240px, 100vw" className="object-cover" />
+          </div>
+        )}
+      </PageHead>
       {empty
         ? <EmptyCatalog lang={lang} stocked={stockedCollections(cols)} now={all.filter(isAvailable).slice(0, 4)} messenger={messenger} />
         : <CatalogSection products={cat.products} lang={lang} messenger={messenger} />}

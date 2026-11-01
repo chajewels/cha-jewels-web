@@ -35,7 +35,7 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
   const [pending, start] = useTransition();
 
   return (
-    <ul className="grid gap-4" aria-busy={pending}>
+    <ul className="icm-lines" aria-busy={pending}>
       {items.map((item) => {
         // A one-of-a-kind piece has a single unit on the shelf; there is no
         // quantity decision to offer, so we state the fact instead.
@@ -52,13 +52,13 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
           item.stone?.trim() || null,
         ].filter((x): x is string => !!x);
         return (
-          <li key={item.variant_id} className="grid grid-cols-[96px_minmax(0,1fr)] gap-3.5 border border-hairline bg-white p-4 sm:grid-cols-[148px_minmax(0,1fr)_auto] sm:gap-6 sm:p-6">
-            <Link href={localePath(`/products/${item.slug}`, lang)} tabIndex={-1} aria-hidden="true" className="block">
+          <li key={item.variant_id} className="icm-line lm-rise">
+            <Link href={localePath(`/products/${item.slug}`, lang)} tabIndex={-1} aria-hidden="true" className="icm-line__well block">
               <PieceWell image={item.picture} alt={name} />
             </Link>
             <div className="min-w-0">
               {item.condition === "Preloved" && (
-                <span className="inline-flex min-h-6 items-center border border-hairline bg-chalk px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal/80 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">
+                <span className="inline-flex min-h-6 items-center rounded-full border border-hairline bg-chalk px-3 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal/80 [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">
                   {t("collection", "filterPreloved")}
                 </span>
               )}
@@ -89,7 +89,7 @@ export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
                 </label>
               )}
             </div>
-            <div className="col-span-2 flex items-center justify-between border-t border-hairline pt-2 sm:col-span-1 sm:block sm:border-0 sm:pt-0 sm:text-right">
+            <div className="icm-line__side">
               <p className="cj-fig whitespace-nowrap font-display text-[20px] leading-tight text-charcoal-deep sm:text-[24px]">{formatMoney(item.line_total_jpy)}</p>
               <button
                 type="button"

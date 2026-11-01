@@ -658,9 +658,9 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
         </b>
       </a>
       <div ref={topRef} className="wrap scroll-mt-24 pt-6 sm:pt-12">
-        <div className="mb-6 sm:mb-8">
-          <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{t("checkout", mode === "layaway" ? "eyebrow" : "eyebrowOrder")}</p>
-          <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]"><Reveal>{t("checkout", "h1")}</Reveal></h1>
+        <div className="mb-6 sm:mb-10">
+          <p className="lm-eyebrow">{t("checkout", mode === "layaway" ? "eyebrow" : "eyebrowOrder")}</p>
+          <h1 className="lm-h1"><Reveal>{t("checkout", "h1")}</Reveal></h1>
         </div>
         <Stepper steps={steps} current={stepperAt} label={t("checkout", "stepsLabel")} stepOf={(n, label) => t("checkout", "stepOf", { n: String(n), label })} />
 
@@ -676,7 +676,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
             )}
 
             {step === 1 && (
-              <section className="border border-hairline bg-white p-5 sm:p-7">
+              <section className="icm-stepplate">
                 <h2 className={SEC}>{t("checkout", "stepDetails")}</h2>
                 <dl className="grid gap-x-5 gap-y-2.5 text-sm sm:grid-cols-[160px_minmax(0,1fr)]">
                   <dt className="text-charcoal/75">{t("account", "name")}</dt><dd className="m-0 break-words text-charcoal-deep">{customer.name ?? "—"}</dd>
@@ -708,7 +708,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                       <Plus aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />{t("checkout", "newAddress")}
                     </button>
                   ) : (
-                    <form className="mt-2 grid gap-x-4 border border-hairline p-4 sm:grid-cols-2 sm:p-5" action={saveAddress}>
+                    <form className="mt-2 grid gap-x-4 rounded-[14px] border border-hairline p-4 sm:grid-cols-2 sm:p-5" action={saveAddress}>
                       <p className="mb-3 text-[15px] font-semibold text-charcoal-deep sm:col-span-2">{t("checkout", "newAddress")}</p>
                       <Field name="recipient_name" maxLength={ADDRESS_CAPS.recipient_name} label={t("checkout", "recipientName")} autoComplete="name" />
                       <Field name="phone" maxLength={ADDRESS_CAPS.phone} label={t("checkout", "phone")} autoComplete="tel" type="tel" />
@@ -730,7 +730,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
             )}
 
             {step === 2 && (
-              <section className="border border-hairline bg-white p-5 sm:p-7">
+              <section className="icm-stepplate">
                 <fieldset>
                   <legend className={SEC}>{t("checkout", "orderType")}</legend>
                   <div className="grid gap-2.5">
@@ -777,7 +777,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
             )}
 
             {step === 3 && (
-              <section className="border border-hairline bg-white p-5 sm:p-7">
+              <section className="icm-stepplate">
                 {/* One way to pay where layaway is not offered, so there is
                     nothing to choose between and the fieldset goes entirely. */}
                 {layawayOk && (
@@ -870,7 +870,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 screen still cannot get a plan. The agreement is one document
                 written in Tagalog with English; there is no language to pick. */}
             {step === "sign" && quote && (
-              <section className="relative border border-hairline bg-white p-5 sm:p-7">
+              <section className="icm-stepplate">
                 <span aria-hidden="true" className="cj-slab-rule" />
                 <h2 className={SEC}>{t("checkout", "agreementHeading")}</h2>
                 <p className="text-sm leading-relaxed text-charcoal-deep">{t("checkout", "agreementIntro")}</p>
@@ -897,7 +897,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
             )}
 
             {step === 4 && quote && (
-              <section className="border border-hairline bg-white p-5 sm:p-7">
+              <section className="icm-stepplate">
                 <h2 className={SEC}>{t("checkout", "stepReview")}</h2>
                 <dl className="grid gap-x-5 gap-y-2.5 text-sm sm:grid-cols-[160px_minmax(0,1fr)]">
                   <dt className="text-charcoal/75">{t("checkout", "reviewName")}</dt>
@@ -957,7 +957,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 {/* The plan exactly as the Hub computed it, in the currency it
                     will be written in. Nothing here is recalculated. */}
                 {plan && (
-                  <div className="mt-6 border border-hairline p-5">
+                  <div className="mt-6 rounded-[14px] border border-hairline p-5">
                     <dl className="grid gap-4 sm:grid-cols-3">
                       <PlanFigure k={t("checkout", "layawayDeposit")} v={money(plan.deposit)} />
                       <PlanFigure k={t("checkout", "layawayMonthly")} v={money(plan.monthly)} />
@@ -1038,7 +1038,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     and before points. The Hub validates and prices it; a
                     refused code shows the Hub's reason and changes nothing. */}
                 {choice && (
-                  <div className="mt-6 border border-hairline p-4" data-testid="checkout-coupon">
+                  <div className="mt-6 rounded-[14px] border border-hairline p-4" data-testid="checkout-coupon">
                     {coupon ? (
                       <>
                         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-charcoal-deep">
@@ -1082,7 +1082,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     never shipping; the deposit on a layaway), and the new
                     total. Not usable → why. */}
                 {choice && (
-                  <div className="mt-6 border border-hairline p-4" data-testid="checkout-points">
+                  <div className="mt-6 rounded-[14px] border border-hairline p-4" data-testid="checkout-points">
                     <label className="flex cursor-pointer items-start gap-3 text-sm text-charcoal-deep">
                       <input
                         type="checkbox" checked={usePoints} disabled={pending || !choice.points.usable}
@@ -1147,7 +1147,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                 {/* Offered only to a signed-in non-member, and never
                     pre-ticked: this is consent. */}
                 {offerLoyalty && (
-                  <div className="mt-6 border border-hairline p-4">
+                  <div className="mt-6 rounded-[14px] border border-hairline p-4">
                     <label className="flex cursor-pointer items-start gap-3 text-sm text-charcoal-deep">
                       <input
                         type="checkbox"
@@ -1280,7 +1280,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
 }
 
 const SEC = "mb-4 font-display text-[22px] leading-snug text-charcoal-deep [:lang(ja)_&]:text-[19px]";
-const OPT = "grid min-h-11 w-full cursor-pointer grid-cols-[22px_minmax(0,1fr)] items-start gap-3.5 border border-hairline bg-white p-4 sm:p-[18px]";
+const OPT = "grid min-h-11 w-full cursor-pointer grid-cols-[22px_minmax(0,1fr)] items-start gap-3.5 rounded-[14px] border border-hairline bg-white p-4 sm:p-[18px]";
 const OPT_ON = "border-gold-dark shadow-[inset_3px_0_0_#2a2724]";
 const BACK = "inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep disabled:opacity-60";
 const FIELD_LABEL = "mb-4 block text-[13px] font-semibold text-charcoal/85";

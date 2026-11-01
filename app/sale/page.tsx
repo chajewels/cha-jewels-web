@@ -3,7 +3,9 @@ import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-import { CatalogSection, CollectionHead } from "@/components/catalog/catalog-section";
+import { CatalogSection } from "@/components/catalog/catalog-section";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
+import { CountTag } from "@/components/commerce/count-tag";
 import { Button } from "@/components/ui/button";
 import { catalogue } from "@/lib/catalog-context";
 import { saleListed } from "@/lib/sale";
@@ -30,25 +32,18 @@ export default async function SalePage() {
   const messenger = await follow().then((links) => links.find((l) => l.key === "messenger")?.href ?? null, () => null);
   return (
     <>
-      <CollectionHead
-        eyebrow={t("nav", "collections")}
-        title={t("salePage", "h1")}
-        description={t("salePage", "lede")}
-        available={pieces.length}
-        photo={null}
-        lang={lang}
-      />
+      <PageHead eyebrow={t("nav", "collections")} title={t("salePage", "h1")} lead={t("salePage", "lede")} aside={<CountTag available={pieces.length} lang={lang} />} />
       {pieces.length > 0 ? (
         <CatalogSection products={pieces} lang={lang} messenger={messenger} />
       ) : (
-        <section className="wrap pb-28 pt-7 md:pb-24 md:pt-14">
-          <div className="grid max-w-xl gap-4 border-t border-charcoal-deep pt-6">
-            <p className="text-[15px] leading-[1.7] md:text-[17px]">{t("salePage", "empty")}</p>
+        <PageSection tone="sheet">
+          <div className="lm-plate lm-plate--bone icm-empty lm-rise">
+            <p className="text-[15px] md:text-[17px]">{t("salePage", "empty")}</p>
             <div>
               <Button asChild variant="outline"><Link href={localePath("/collections", lang)}>{t("salePage", "emptyCta")}</Link></Button>
             </div>
           </div>
-        </section>
+        </PageSection>
       )}
     </>
   );
