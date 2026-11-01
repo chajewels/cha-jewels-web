@@ -5,6 +5,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { renderMarkdown } from "@/lib/markdown";
 import type { Lang } from "@/lib/i18n";
 import type { HubPost, PostType } from "@/lib/types";
+import { validPostDetail } from "@/lib/sitemap-reads";
 
 /**
  * EDITORIAL, FROM THE HUB. There is no second source any more.
@@ -109,9 +110,26 @@ export async function merge(lang: Lang, type?: PostType): Promise<ViewPost[]> {
  */
 export async function postLanguages(slug: string): Promise<{ en: boolean; ja: boolean }> {
   const full = await hub.post(slug).catch(() => null);
+  return languagesOf(full);
+}
+
+function languagesOf(full: HubPost | null): { en: boolean; ja: boolean } {
   const has = (lang: Lang) =>
     !!full && !!fromHub(full, lang, true) && (full.layaway_only !== true || layawayOffered(lang));
   return { en: has("en"), ja: has("ja") };
+}
+
+/**
+ * The sitemap's variant (DP-15): a 404 is a successful absence ({en:false,ja:false}),
+ * but a failed read THROWS instead of reading as "no such language". The
+ * language switcher keeps `postLanguages` above, unchanged.
+ */
+export async function postLanguagesStrict(slug: string, signal?: AbortSignal): Promise<{ en: boolean; ja: boolean }> {
+  const full = await hub.post(slug, signal ? { signal } : undefined);
+  // null = the Hub's 404 = a successful absence. Anything else must have the
+  // shape the sitemap reads, or it is a FAILED read (never "no such language").
+  if (full !== null && !validPostDetail(full)) throw new Error(`invalid post detail for ${slug}`);
+  return languagesOf(full);
 }
 
 export async function getPost(slug: string, lang: Lang): Promise<ViewPost | null> {

@@ -1,0 +1,13 @@
+PASS E1: exit 0; exact set equal; image tag true
+PASS E2:collections: exit 1; named true; upstream 503 reached 6x
+PASS E2:categories: exit 1; named true; upstream 503 reached 5x
+PASS E2:product-slugs: exit 1; named true; upstream 503 reached 3x
+PASS E2:posts: exit 1; named true; upstream 503 reached 1x
+PASS E2w: OBSERVATION warm cache: exit 0; sitemap = last good rows (exact set equal to v1)
+PASS E3: exit 0; exact set equal; image tags false; image 503 reached 4x
+PASS E4: exit 1; build failed on the malformed 200: true (sitemap-named: false)
+PASS R0: status 200; exact set equal to v1; image true
+PASS R:failure-reached: upstream 503s served during the failure window: {"collections":3,"categories":3,"product-slugs":2,"posts":2} (an intended failure that was not reached would make the next check meaningless)
+PASS R:continuity: CONTINUITY evidence only (retained old output, not recovery): [[200,"STALE",15],[200,"HIT",15],[200,"HIT",15]]
+PASS V:recovery: sitemap reflected the CHANGED dataset (added exp-new-col, exp-new-4; removed exp-chain-2) after 20 s; agreed window 90 s
+exit 0
