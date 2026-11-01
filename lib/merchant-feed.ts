@@ -31,23 +31,33 @@ import { displayedVariant } from "@/lib/json-ld";
  *    buy buttons use), its size and stone. A per-variant feed would disagree
  *    with its landing page for every other variant; that mode is deliberately
  *    not offered until the page can show a chosen variant (owner decision).
- *  - IDENTIFIERS ARE EVIDENCE, NOT A DEFAULT (MC-G7, OD-MC-11): the Website API
- *    carries no GTIN, MPN or identifier field, so the builder has NO opinion of
- *    its own. Every call supplies an `IdentifierRule` — the owner's written
- *    rule per piece class, turned into code when it exists — that answers, per
- *    product, "no identifier exists" (→ `identifier_exists: no`), "these
- *    identifiers exist" (→ `gtin`/`mpn` with `brand`), or UNKNOWN (null → the
- *    product is EXCLUDED with reason `identifier_unknown`). The only built-in
- *    rule is `IDENTIFIERS_UNDECIDED`, which answers UNKNOWN for everything: with
- *    it the feed has no items, which is the truthful state before OD-MC-11.
- *    A rule's answer is cross-checked against the Hub: "no identifier" for a
- *    piece the Hub marks branded (`origin === "BRAND"` or a non-empty `brand`)
- *    is a conflict (a branded piece has a brand by definition), as is an MPN
- *    without a brand or an "ids" answer without any id; such products are
- *    excluded with reason `identifier_conflict`, never sent.
- *  - BRAND: filled only from an "ids" answer, never guessed (OD-MC-4, rule 11).
+ *  - IDENTIFIERS ARE EVIDENCE ON TWO AXES, NEVER A DEFAULT (MC-G7, OD-MC-11;
+ *    Google Merchant Center help "identifier_exists", "brand", "gtin", "mpn",
+ *    "About unique product identifiers", read 2026-11-01). BRAND evidence and
+ *    CODE (GTIN/MPN) evidence are separate facts:
+ *      · Brand: the Hub carries one — `brand` on a piece marked `origin ===
+ *        "BRAND"` (and any non-empty `brand`) is the Hub's own evidence and
+ *        always wins. For a piece without a Hub brand, the owner's rule says
+ *        "no brand" or names one (Google's stated path for a merchant who is
+ *        also the maker: the store name as brand), or leaves it UNKNOWN.
+ *      · Codes: the Website API carries no GTIN or MPN, so these come only
+ *        from the owner's rule: "none" (certain no code exists), concrete
+ *        codes (a manufacturer MPN/GTIN, or — Google's path for own-made
+ *        pieces — an MPN of the merchant's choosing such as the SKU), or UNKNOWN.
+ *    Resolution, per Google's text: UNKNOWN on either axis → EXCLUDED
+ *    (`identifier_unknown`); no brand AND no codes → `identifier_exists: no`
+ *    (Google: set it only when certain the product has NO assigned identifier);
+ *    a brand with codes → brand + gtin/mpn; a brand with no codes → brand alone
+ *    (Google makes MPN optional for custom-made pieces and warns, not
+ *    disapproves, when an identifier it can find is missing); a GTIN alone →
+ *    gtin. CONFLICTS are excluded (`identifier_conflict`), never sent: the rule
+ *    says "no brand" or names a different brand while the Hub carries one; an
+ *    MPN without a brand (Google: brand is required for a product with a
+ *    clearly associated brand or maker); a "codes" answer with no code.
+ *    The only built-in rule is `IDENTIFIERS_UNDECIDED` (UNKNOWN on both axes):
+ *    with it the feed has no items, the truthful state before OD-MC-11.
  *  - ORIGIN: no made-in field, no origin claim; the Hub's `origin` is used only
- *    for the branded cross-check above.
+ *    to recognise the Hub's brand evidence.
  *  - LANGUAGE: the EN feed links /en/products/<slug> and uses the English name
  *    and description; the JA feed links /ja/… and uses the Japanese ones. A
  *    product with no description in the feed's language is EXCLUDED (never a
@@ -111,11 +121,17 @@ export type FeedExclusion = { slug: string; reason: ExclusionReason };
 export type FeedMembership = { slug: string | null; outcome: "item" | ExclusionReason };
 export type FeedBuild = { items: FeedItem[]; excluded: FeedExclusion[]; membership: FeedMembership[] };
 
-/** What the owner's identifier rule (OD-MC-11) says about one product. `null` = unknown → excluded. */
-export type IdentifierEvidence = { kind: "none" } | { kind: "ids"; gtin?: string; mpn?: string; brand?: string };
-export type IdentifierRule = (p: Product) => IdentifierEvidence | null;
-/** The only built-in rule: no identifier rule exists yet, so every product is UNKNOWN and the feed is empty. */
-export const IDENTIFIERS_UNDECIDED: IdentifierRule = () => null;
+/** Brand evidence for one product: none, a named brand, or null = UNKNOWN. */
+export type BrandEvidence = { kind: "none" } | { kind: "brand"; name: string } | null;
+/** GTIN/MPN evidence for one product: none, concrete codes, or null = UNKNOWN. */
+export type CodeEvidence = { kind: "none" } | { kind: "codes"; gtin?: string; mpn?: string } | null;
+/** What the owner's identifier rule (OD-MC-11) says about one product, on both axes. */
+export type IdentifierEvidence = { brand: BrandEvidence; codes: CodeEvidence };
+export type IdentifierRule = (p: Product) => IdentifierEvidence;
+/** The only built-in rule: no identifier rule exists yet, so every product is UNKNOWN on both axes and the feed is empty. */
+export const IDENTIFIERS_UNDECIDED: IdentifierRule = () => ({ brand: null, codes: null });
+/** The Hub's own brand evidence: the `brand` of a piece the Hub marks as branded (or any non-empty `brand`). */
+export const hubBrand = (p: Pick<Product, "origin" | "brand">): string | undefined => text(p.brand);
 
 /** Google product taxonomy ids by Hub collection slug (taxonomy-with-ids.en-US.txt, read 2026-10-29). Unmapped: no category. */
 export const GOOGLE_CATEGORY_BY_COLLECTION: Readonly<Record<string, number>> = {
@@ -143,17 +159,28 @@ export function googleCategory(p: Pick<Product, "collection_slugs" | "category_s
 }
 
 /**
- * The identifier fields for one product from the rule's answer, or the exclusion reason. The cross-checks are
- * the builder's own and cannot be switched off by a rule.
+ * The identifier fields for one product from the Hub's brand evidence and the rule's answer, or the exclusion
+ * reason. The cross-checks are the builder's own and cannot be switched off by a rule.
  */
 export function identifierFields(p: Product, rule: IdentifierRule): { fields: Pick<FeedItem, "brand" | "gtin" | "mpn" | "identifier_exists"> } | { reason: "identifier_unknown" | "identifier_conflict" } {
   const ev = rule(p);
-  if (ev === null) return { reason: "identifier_unknown" };
-  const branded = p.origin === "BRAND" || text(p.brand) !== undefined;
-  if (ev.kind === "none") return branded ? { reason: "identifier_conflict" } : { fields: { identifier_exists: "no" } };
-  const gtin = text(ev.gtin), mpn = text(ev.mpn), brand = text(ev.brand);
-  if (!gtin && !mpn) return { reason: "identifier_conflict" };
+  const fromHub = hubBrand(p);
+  // Brand axis: the Hub's brand is evidence and wins; the rule may only confirm it.
+  let brand: string | undefined;
+  if (fromHub) {
+    if (ev.brand === null) brand = fromHub;
+    else if (ev.brand.kind === "none") return { reason: "identifier_conflict" };
+    else if (text(ev.brand.name) !== fromHub) return { reason: "identifier_conflict" };
+    else brand = fromHub;
+  } else if (ev.brand === null) return { reason: "identifier_unknown" };
+  else if (ev.brand.kind === "brand") { brand = text(ev.brand.name); if (!brand) return { reason: "identifier_conflict" }; }
+  // Code axis: the API has no GTIN/MPN; only the rule can know.
+  if (ev.codes === null) return { reason: "identifier_unknown" };
+  const gtin = ev.codes.kind === "codes" ? text(ev.codes.gtin) : undefined;
+  const mpn = ev.codes.kind === "codes" ? text(ev.codes.mpn) : undefined;
+  if (ev.codes.kind === "codes" && !gtin && !mpn) return { reason: "identifier_conflict" };
   if (mpn && !brand) return { reason: "identifier_conflict" };
+  if (!brand && !gtin && !mpn) return { fields: { identifier_exists: "no" } };
   return { fields: { ...(brand ? { brand } : {}), ...(gtin ? { gtin } : {}), ...(mpn ? { mpn } : {}) } };
 }
 

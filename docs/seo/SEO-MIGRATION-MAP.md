@@ -438,7 +438,7 @@ Nothing that depends on these is implemented. Every "Recommended" entry below is
 | **C0/H0 legacy canonical + hreflang: OWNER APPROVED 2026-10-28 — FOR PHASE 2B ONLY** | During the 2B dark launch, legacy bare URLs keep their existing canonical and hreflang byte-identically, and the new locale URLs stay unlinked and unlisted. **This approval expires at the Phase 2C gate**: before any localized public link or sitemap entry activates, the legacy strategy must be reconsidered and separately approved. Risk record: §7 |
 | **OD-8 single-language pages: OWNER APPROVED 2026-10-28** | **Yes.** Publish and index only language versions that actually exist and meet content-eligibility requirements. No invented or machine-generated Japanese (or any) translations. The eligibility details for fallback-language content depend on OD-9, which is still open |
 
-**Remaining decisions at a glance** (OD-2, OD-3, OD-8, OD-9, OD-10, OD-15 and C0/H0-for-2B are now approved, above; still open: OD-1, OD-4, OD-6, OD-7, OD-11, OD-12):
+**Remaining decisions at a glance** (OD-2, OD-3, OD-8, OD-9, OD-10, OD-15 and C0/H0-for-2B are now approved, above; still open: OD-1, OD-4, OD-6, OD-7, OD-11, OD-12). *Record label (2026-11-01): this line is the 2026-10-28 snapshot. Later state per `SEO-IMPLEMENTATION-STATUS.md`: OD-7 and OD-11 implemented in Phase 2C (PR #405, released #412); OD-4 and OD-12 approved for the 307 stage / HTML-only (their own headings below); OD-1 (308 promotion) and OD-6 (bare `/layaway`) remain OWNER DECISION PENDING (matrix R-10/R-11).*
 
 | # | Decision | Recommended | Must be decided before |
 |---|---|---|---|

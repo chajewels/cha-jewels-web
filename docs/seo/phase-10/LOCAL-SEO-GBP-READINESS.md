@@ -1,6 +1,6 @@
 # Phase 10 — Local SEO and Google Business Profile readiness
 
-**Status:** AUDITED (documentation only). No Google Business Profile was created, claimed, edited or looked up; no page was changed. **Update 2026-10-31: OD-GBP-1 answered No — not eligible, do not create a profile (see §4).**
+**Status:** Business Profile part **CLOSED — NOT ELIGIBLE** (OD-GBP-1 = No, owner 2026-10-31, PR #454; do not create a profile); identity-alignment part AUDITED (documentation only, continues through Phases 4, 5 and 11). No Google Business Profile was created, claimed, edited or looked up; no page was changed. **Update 2026-10-31: OD-GBP-1 answered No — not eligible, do not create a profile (see §4).**
 **Date:** 2026-10-29 · **Plan:** `docs/seo/CHA-JEWELS-SEO-MASTER-PLAN.md` §16, §17, PHASE 10 · **Findings carried in:** X8 (GBP status UNKNOWN), X9 (wording)
 
 ---
@@ -43,7 +43,7 @@ All strings are interpolated from one module, `lib/content/legal.ts`, so they ca
 
 | ID | Gap | Phase that owns it |
 |---|---|---|
-| G1 | `JewelryStore` JSON-LD has no street address, postal code, telephone, email, opening hours, `sameAs`, logo (baseline §8). Adding them is a Phase 4 structured-data change and must reflect **real, visible** data: the address and phones are on `/contact` and tokusho, so they qualify; `openingHoursSpecification` must **not** be added unless the location is actually open to visitors at those hours (support hours ≠ opening hours). | Phase 4 |
+| G1 | `JewelryStore` JSON-LD has no street address, postal code, telephone, email, opening hours, `sameAs`, logo (baseline §8). Adding them is a Phase 4 structured-data change and must reflect **real, visible** data: the address and phones are on `/contact` and tokusho, so they qualify; `openingHoursSpecification` must **not** be added unless the location is actually open to visitors at those hours (support hours ≠ opening hours). | Phase 4 | **Record label (2026-11-01):** G1 describes the 2026-10-29 baseline; `PHASE-4-REPORT.md` and `STRUCTURED-DATA-REVIEW-2026-11-01.md` §1 record that the entity now emits address, logo, telephone, email and `sameAs` live (no opening hours, by design). Open part: the entity TYPE (OD-SD-1). |
 | G2 | Possible email drift: legal pages hardcode `sales@chajewelsjp.com`; `/contact` shows the Hub's `contact.email`. Owner confirms both are the same address. | Owner check; if different, a Hub setting edit (no code) |
 | G3 | The site never says whether customers may visit the office. For GBP eligibility this is the deciding fact (§4). | Owner decision OD-GBP-1 |
 | G4 | Registered-name form "to be confirmed against the registration certificate" (comment in `legal.ts`). | Owner (compliance review) |

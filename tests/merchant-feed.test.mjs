@@ -8,10 +8,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const { buildFeed, feedItem, feedPrice, googleCategory, identifierFields, reconcile, renderRss, GOOGLE_CATEGORY_BY_COLLECTION, IDENTIFIERS_UNDECIDED } = await import("@/lib/merchant-feed");
+const { buildFeed, feedItem, feedPrice, googleCategory, identifierFields, hubBrand, reconcile, renderRss, GOOGLE_CATEGORY_BY_COLLECTION, IDENTIFIERS_UNDECIDED } = await import("@/lib/merchant-feed");
 const B = "https://www.chajewelsjp.com";
-/** A TEST rule standing in for the owner's OD-MC-11 rule: "no identifier exists" for every piece. Not a product decision. */
-const NONE = () => ({ kind: "none" });
+/** A TEST rule standing in for the owner's OD-MC-11 rule: "no brand, no code" for every piece. Not a product decision. */
+const NONE = () => ({ brand: { kind: "none" }, codes: { kind: "none" } });
+const EV = (brand, codes) => () => ({ brand, codes });
 const media = (url, sort = 0) => ({ url, alt: null, sort });
 const variant = (over = {}) => ({ id: "v1", size: null, stone: null, price_jpy: 120000, price_php: 48000, full_price_jpy: null, on_sale: false, stock_qty: 1, down_payment_jpy: 36000, down_payment_php: 14400, down_payment_pct: 30, product_media: [media("https://img.test/a.jpg", 1), media("https://img.test/b.jpg", 0)], ...over });
 const product = (over = {}) => ({ id: "p1", sku: "N1616", slug: "n1616-necklace", name: "N1616 Necklace K18", name_en: "N1616 Necklace K18", name_ja: "N1616 ネックレス K18", karat: "K18", metals: ["K18"], weight_g: 16.65, description_en: "An English description.", description_ja: "日本語の説明。", description_tl: null, status: "active", condition: "New", origin: "JAPAN", brand: null, collection_slugs: ["necklaces"], category_slugs: ["fine-jewelry"], product_variants: [variant()], ...over });
@@ -52,31 +53,45 @@ test("language: the EN feed links /en and uses English text; the JA feed links /
 });
 
 test("identifiers are EVIDENCE from an explicit rule, never a default (reproduced: identifier_exists=no was hard-coded): with no rule every product is UNKNOWN and excluded; the feed is empty", () => {
-  assert.equal(IDENTIFIERS_UNDECIDED(product()), null);
+  assert.deepEqual(IDENTIFIERS_UNDECIDED(product()), { brand: null, codes: null });
   const b = buildFeed([product(), product({ id: "p2", slug: "r-1" })], "en", B, IDENTIFIERS_UNDECIDED);
   assert.equal(b.items.length, 0);
   assert.deepEqual(b.excluded.map((e) => e.reason), ["identifier_unknown", "identifier_unknown"]);
   assert.match(reconcile(b, ["n1616-necklace", "r-1"]).join(";"), /no items/, "an empty feed is never served");
-  assert.deepEqual(identifierFields(product(), () => null), { reason: "identifier_unknown" });
   assert.throws(() => feedItem(product(), "en", B), /not a function/, "a rule is required; there is no implicit one");
 });
 
-test("identifier rule answers are cross-checked against the Hub: 'none' for a branded piece, an MPN without a brand, or 'ids' without any id are CONFLICTS and the piece is excluded; a consistent answer fills the fields", () => {
+test("brand evidence and code evidence are two axes (reproduced on 1b654f7: one 'none' answer covered both): UNKNOWN on either axis excludes; the Hub's brand always wins", () => {
+  // unknown on one axis only
+  assert.deepEqual(identifierFields(product(), EV({ kind: "none" }, null)), { reason: "identifier_unknown" }, "codes unknown");
+  assert.deepEqual(identifierFields(product(), EV(null, { kind: "none" })), { reason: "identifier_unknown" }, "brand unknown");
+  // no brand, no code → identifier_exists=no (Google: only when certain no identifier is assigned)
   assert.deepEqual(identifierFields(product({ origin: "JAPAN" }), NONE), { fields: { identifier_exists: "no" } });
   for (const origin of ["OTHER", "UNKNOWN", undefined]) assert.deepEqual(identifierFields(product({ origin }), NONE), { fields: { identifier_exists: "no" } }, String(origin));
-  assert.deepEqual(identifierFields(product({ origin: "BRAND", brand: "Louis Vuitton" }), NONE), { reason: "identifier_conflict" }, "a branded piece cannot have 'no identifier, no brand'");
-  assert.deepEqual(identifierFields(product({ origin: "JAPAN", brand: "Mikimoto" }), NONE), { reason: "identifier_conflict" }, "a Hub brand is evidence of a brand");
-  assert.deepEqual(identifierFields(product(), () => ({ kind: "ids", mpn: "M-1" })), { reason: "identifier_conflict" }, "an MPN needs a brand");
-  assert.deepEqual(identifierFields(product(), () => ({ kind: "ids", brand: "X" })), { reason: "identifier_conflict" }, "'ids' with no id is not evidence");
-  assert.deepEqual(identifierFields(product({ origin: "BRAND", brand: "Louis Vuitton" }), () => ({ kind: "ids", mpn: "M62631", brand: "Louis Vuitton" })), { fields: { brand: "Louis Vuitton", mpn: "M62631" } });
-  assert.deepEqual(identifierFields(product(), () => ({ kind: "ids", gtin: "4901234567894" })), { fields: { gtin: "4901234567894" } });
-  const branded = feedItem(product({ origin: "BRAND", brand: "Louis Vuitton" }), "en", B, NONE);
+  // the Hub's brand is evidence: the rule may leave brand unknown (Hub wins) or confirm it; "none" or another name is a conflict
+  const lv = product({ origin: "BRAND", brand: "Louis Vuitton" });
+  assert.deepEqual(identifierFields(lv, EV(null, { kind: "codes", mpn: "M62631" })), { fields: { brand: "Louis Vuitton", mpn: "M62631" } }, "brand from the Hub, MPN from the rule");
+  assert.deepEqual(identifierFields(lv, EV({ kind: "brand", name: "Louis Vuitton" }, { kind: "codes", mpn: "M62631" })), { fields: { brand: "Louis Vuitton", mpn: "M62631" } });
+  assert.deepEqual(identifierFields(lv, NONE), { reason: "identifier_conflict" }, "'no brand' for a Hub-branded piece");
+  assert.deepEqual(identifierFields(lv, EV({ kind: "brand", name: "Dior" }, { kind: "none" })), { reason: "identifier_conflict" }, "a different brand than the Hub's");
+  assert.deepEqual(identifierFields(product({ origin: "JAPAN", brand: "Mikimoto" }), NONE), { reason: "identifier_conflict" }, "any non-empty Hub brand is brand evidence");
+  assert.deepEqual(identifierFields(lv, EV(null, null)), { reason: "identifier_unknown" }, "a Hub brand with unknown codes is still unknown (a branded piece may carry a manufacturer MPN)");
+  assert.deepEqual(identifierFields(lv, EV(null, { kind: "none" })), { fields: { brand: "Louis Vuitton" } }, "brand with no code: brand alone (Google: MPN optional only when none is clearly associated; the owner's rule asserts that)");
+  // own-made pieces: Google's path is the store name as brand plus an MPN of the merchant's choosing (e.g. the SKU)
+  assert.deepEqual(identifierFields(product(), EV({ kind: "brand", name: "Cha Jewels" }, { kind: "codes", mpn: "N1616" })), { fields: { brand: "Cha Jewels", mpn: "N1616" } });
+  // code-axis conflicts
+  assert.deepEqual(identifierFields(product(), EV({ kind: "none" }, { kind: "codes", mpn: "M-1" })), { reason: "identifier_conflict" }, "an MPN needs a brand");
+  assert.deepEqual(identifierFields(product(), EV({ kind: "none" }, { kind: "codes" })), { reason: "identifier_conflict" }, "'codes' with no code is not evidence");
+  assert.deepEqual(identifierFields(product(), EV({ kind: "brand", name: " " }, { kind: "none" })), { reason: "identifier_conflict" }, "a blank brand name is not evidence");
+  assert.deepEqual(identifierFields(product(), EV({ kind: "none" }, { kind: "codes", gtin: "4901234567894" })), { fields: { gtin: "4901234567894" } }, "a GTIN alone is a valid identifier");
+  // rendered
+  const branded = feedItem(lv, "en", B, NONE);
   assert.deepEqual(branded.excluded, { slug: "n1616-necklace", reason: "identifier_conflict" });
   const xmlNone = renderRss(buildFeed([product()], "en", B, NONE), { title: "t", link: B, description: "d" });
   assert.match(xmlNone, /<g:identifier_exists>no<\/g:identifier_exists>/);
   assert.doesNotMatch(xmlNone, /<g:brand>|<g:gtin>|<g:mpn>|countryOfOrigin|made in/i);
-  const xmlIds = renderRss(buildFeed([product({ origin: "BRAND", brand: "LV" })], "en", B, () => ({ kind: "ids", mpn: "M1", brand: "LV" })), { title: "t", link: B, description: "d" });
-  assert.match(xmlIds, /<g:brand>LV<\/g:brand><g:mpn>M1<\/g:mpn>/);
+  const xmlIds = renderRss(buildFeed([lv], "en", B, EV(null, { kind: "codes", mpn: "M1" })), { title: "t", link: B, description: "d" });
+  assert.match(xmlIds, /<g:brand>Louis Vuitton<\/g:brand><g:mpn>M1<\/g:mpn>/);
   assert.doesNotMatch(xmlIds, /identifier_exists/);
 });
 
@@ -159,6 +174,8 @@ test("source guard: the builder computes nothing from a price, uses the page's o
   assert.match(src, /displayedVariant\(/);
   assert.doesNotMatch(src, /price_jpy\s*[*\/+-]\s*\d|\*\s*0\.|Math\.round\(.*price|jpy_php|toPhp|phpRate/);
   assert.doesNotMatch(src, /identifiers\s*:\s*IdentifierRule\s*=|identifiers\s*=\s*IDENTIFIERS_UNDECIDED/, "no default identifier rule parameter");
+  assert.equal(hubBrand({ origin: "BRAND", brand: " Louis Vuitton " }), "Louis Vuitton");
+  assert.equal(hubBrand({ origin: "JAPAN", brand: null }), undefined);
   assert.doesNotMatch(src, /condition === "Preloved" \? "used" : "new"[^;]*\?\?/, "no condition fallback");
   assert.equal(require_exists("app/api/merchant-feed/route.ts"), false, "the feed route needs the owner's route-change approval before it exists");
 });

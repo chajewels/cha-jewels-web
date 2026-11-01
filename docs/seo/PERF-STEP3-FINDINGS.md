@@ -3,6 +3,8 @@
 Status: Step 3a **READY FOR QA** (PR below). Step 3b and 3c are **AUDITED**, proposals only, nothing implemented.
 Not deployed. No claim is made about real-user Core Web Vitals (no field data is available yet).
 
+> **Record label (2026-11-01 reconciliation):** findings as of 2026-10-29. Step 3a was later released (#436 → `main` `81f9aa0`; scoped follow-up #438/#439): DEPLOYED, no production gain confirmed (R-21). Steps 3b/3c stay AUDITED (R-22). Nothing below is edited.
+
 ## 1. Method
 
 - Lighthouse 13.5.0 CLI, performance category, default **mobile** (Moto G Power emulation, simulated Slow 4G, 4x CPU) and `--preset=desktop`; headless Chrome on a MacBook; 3 runs per page and form factor.

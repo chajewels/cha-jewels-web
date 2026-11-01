@@ -12,13 +12,18 @@
 //    query rows are sums of DISCLOSED rows, not property totals. Property totals come from Chart.csv alone.
 //  - MALFORMED IS REJECTED, NOT ZEROED. A metric cell that is not a number of the expected kind, a row with the
 //    wrong number of fields, an empty key, clicks above impressions, a CTR outside 0–100 %, a position below 1,
-//    a date that is not YYYY-MM-DD, a repeated key: the file is refused with the row number. Nothing becomes 0.
+//    a date that is not a real calendar date, a repeated key, an unterminated or stray quote: the file is refused
+//    with the row number. Nothing becomes 0.
 //  - HOSTS ARE CLASSIFIED, NOT ASSUMED. A Domain property reports every host and scheme of the domain. A page
 //    URL is a site page only on the canonical host over https; any other host or scheme is reported as such,
 //    and a value that is not an absolute URL is reported as unparseable, never as a locale segment.
-//  - COMPARISONS NEED A CONTEXT. A period-over-period change is printed only when both periods are known
-//    (from each folder's Chart.csv), of equal length, and the previous one ends before the current one starts;
-//    otherwise the change column says why not. The same folder as both periods is refused.
+//  - COMPARISONS NEED A CONTEXT. A CSV export does not say which property, search type or filters it came from.
+//    Each export folder therefore carries a small `context.json` the exporter writes when downloading
+//    ({ "property": "sc-domain:chajewelsjp.com", "searchType": "web", "filters": [] , "dateRange"?: {start,end} });
+//    a period-over-period change is printed only when BOTH folders have a context, the property, search type and
+//    filters MATCH, both periods are known (Chart.csv), of equal length, and the previous one ends before the
+//    current one starts. Unknown or mismatched context = NOT COMPARABLE, with the reason. The same folder twice
+//    is refused; a context whose dateRange does not contain its Chart dates is refused.
 //  - NOTHING UNOBSERVED. Every rule fires on export rows only; no "expected" trend, no prefilled "none".
 //
 // INPUT. A directory of Search Console "Download CSV" files. Search Console names them Queries.csv, Pages.csv,
@@ -57,23 +62,28 @@ export const TARGET_TERMS = Object.freeze(["kihei", "k18", "layaway", "preloved"
 const KINDS = { queries: /^(?:(\d{4}-\d{2}-\d{2})-)?queries\.csv$/i, pages: /^(?:(\d{4}-\d{2}-\d{2})-)?pages\.csv$/i, countries: /^(?:(\d{4}-\d{2}-\d{2})-)?countries\.csv$/i, devices: /^(?:(\d{4}-\d{2}-\d{2})-)?devices\.csv$/i, chart: /^(?:(\d{4}-\d{2}-\d{2})-)?chart\.csv$/i };
 const LABEL = { queries: "Top queries", pages: "Top pages", countries: "Country", devices: "Device", chart: "Date" };
 const METRICS = ["Clicks", "Impressions", "CTR", "Position"];
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** RFC-4180-ish CSV: quoted fields, doubled quotes, CRLF, BOM. Returns rows of strings. */
-export function parseCsv(text) {
+export function parseCsv(text, name = "csv") {
   const s = text.replace(/^\uFEFF/, "");
-  const rows = []; let row = [], field = "", q = false;
+  const rows = []; let row = [], field = "", q = false, quoted = false, line = 1, qLine = 1;
+  const malformed = (what, at = line) => new Error(`${name} line ${at}: malformed CSV: ${what}`);
   for (let i = 0; i < s.length; i++) {
     const c = s[i];
-    if (q) { if (c === '"') { if (s[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; continue; }
-    if (c === '"') q = true;
-    else if (c === ",") { row.push(field); field = ""; }
-    else if (c === "\n" || c === "\r") { if (c === "\r" && s[i + 1] === "\n") i++; row.push(field); rows.push(row); row = []; field = ""; }
+    if (q) { if (c === '"') { if (s[i + 1] === '"') { field += '"'; i++; } else { q = false; quoted = true; } } else { field += c; if (c === "\n") line++; } continue; }
+    if (c === '"') { if (field.length || quoted) throw malformed("a quote inside an unquoted field or after a closing quote"); q = true; qLine = line; }
+    else if (quoted && c !== "," && c !== "\n" && c !== "\r") throw malformed("text after a closing quote");
+    else if (c === ",") { row.push(field); field = ""; quoted = false; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && s[i + 1] === "\n") i++; row.push(field); rows.push(row); row = []; field = ""; quoted = false; line++; }
     else field += c;
   }
+  if (q) throw malformed("unterminated quoted field", qLine);
   if (field.length || row.length) { row.push(field); rows.push(row); }
   return rows.filter((r) => r.some((x) => x.trim() !== ""));
 }
+/** A real calendar date written YYYY-MM-DD (2026-02-30 is not one). */
+export const isCalendarDate = (v) => { const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return false; const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3]; };
+export const SEARCH_TYPES = Object.freeze(["web", "image", "video", "news", "discover", "googleNews"]);
 
 const bad = (name, n, what, v) => new Error(`${name} row ${n}: ${what}: ${JSON.stringify(String(v))}`);
 /** A non-negative integer as Search Console writes it (thousands separators allowed). Throws on anything else. */
@@ -85,7 +95,7 @@ const pos = (v, name, n) => { const t = String(v ?? "").trim(); if (!/^\d+(?:\.\
 
 /** One export table: `{ kind, label, rows: [{ key, clicks, impressions, ctr, position }] }`. Fails loudly on an unknown header or a malformed row. */
 export function parseExport(kind, text, name = kind) {
-  const rows = parseCsv(text);
+  const rows = parseCsv(text, name);
   if (rows.length === 0) throw new Error(`${name}: empty file`);
   const header = rows[0].map((h) => h.trim());
   const keyIdx = header.findIndex((h) => h === LABEL[kind]);
@@ -97,7 +107,7 @@ export function parseExport(kind, text, name = kind) {
     if (r.length !== header.length) throw bad(name, n, `expected ${header.length} fields, got ${r.length}`, r.join(","));
     const key = r[keyIdx].trim();
     if (!key) throw bad(name, n, `empty "${LABEL[kind]}" cell`, r[keyIdx]);
-    if (kind === "chart" && !DATE.test(key)) throw bad(name, n, "Date is not YYYY-MM-DD", key);
+    if (kind === "chart" && !isCalendarDate(key)) throw bad(name, n, "Date is not a real calendar date (YYYY-MM-DD)", key);
     const clicks = count(r[idx.Clicks], name, n, "Clicks"), impressions = count(r[idx.Impressions], name, n, "Impressions");
     if (clicks > impressions) throw bad(name, n, "Clicks exceed Impressions", `${clicks}>${impressions}`);
     return { key, clicks, impressions, ctr: pct(r[idx.CTR], name, n), position: pos(r[idx.Position], name, n) };
@@ -115,9 +125,30 @@ export function periodOf(exports) {
   return { start, end, days: Math.round((Date.parse(end) - Date.parse(start)) / 86400000) + 1 };
 }
 
+/**
+ * The export context the exporter records beside the files (`context.json`): which property, search type and
+ * filters the download came from. Validated strictly; `null` when the file is absent (= context UNKNOWN).
+ */
+export function readContext(dir) {
+  let raw;
+  try { raw = readFileSync(join(dir, "context.json"), "utf8"); } catch { return null; }
+  let c;
+  try { c = JSON.parse(raw); } catch (e) { throw new Error(`${dir}/context.json: not valid JSON (${e.message})`); }
+  if (!c || typeof c !== "object" || Array.isArray(c)) throw new Error(`${dir}/context.json: must be an object`);
+  if (typeof c.property !== "string" || !/^(sc-domain:[a-z0-9.-]+|https?:\/\/\S+\/)$/i.test(c.property.trim())) throw new Error(`${dir}/context.json: "property" must be a Search Console property (sc-domain:… or a URL-prefix ending in /)`);
+  if (!SEARCH_TYPES.includes(c.searchType)) throw new Error(`${dir}/context.json: "searchType" must be one of ${SEARCH_TYPES.join(", ")}`);
+  if (!Array.isArray(c.filters) || !c.filters.every((f) => typeof f === "string" && f.trim())) throw new Error(`${dir}/context.json: "filters" must be an array of strings (empty when none were applied)`);
+  let dateRange = null;
+  if (c.dateRange !== undefined && c.dateRange !== null) {
+    if (!c.dateRange || !isCalendarDate(c.dateRange.start) || !isCalendarDate(c.dateRange.end) || c.dateRange.start > c.dateRange.end) throw new Error(`${dir}/context.json: "dateRange" must be { start, end } real calendar dates, start ≤ end`);
+    dateRange = { start: c.dateRange.start, end: c.dateRange.end };
+  }
+  return { property: c.property.trim(), searchType: c.searchType, filters: [...c.filters].map((f) => f.trim()).sort(), dateRange };
+}
+
 /** Read the recognised export files of a directory. Unknown files are ignored; two files of one kind, or mixed date prefixes, are refused. */
 export function readExports(dir) {
-  const out = { dir, files: [], datePrefix: null, period: null };
+  const out = { dir, files: [], datePrefix: null, period: null, context: readContext(dir) };
   for (const name of readdirSync(dir).sort()) {
     const kind = Object.keys(KINDS).find((k) => KINDS[k].test(basename(name)));
     if (!kind || !statSync(join(dir, name)).isFile()) continue;
@@ -129,6 +160,8 @@ export function readExports(dir) {
     out.files.push(name);
   }
   out.period = periodOf(out);
+  const r = out.context?.dateRange;
+  if (r && out.period && (out.period.start < r.start || out.period.end > r.end)) throw new Error(`${dir}: the Chart dates (${out.period.start} → ${out.period.end}) fall outside the recorded dateRange (${r.start} → ${r.end}); the files and the context are not from one export`);
   return out;
 }
 
@@ -141,6 +174,10 @@ export function comparison(cur, prev) {
   const same = (a, b) => { try { return realpathSync(a) === realpathSync(b); } catch { return resolve(a) === resolve(b); } };
   if (same(cur.dir, prev.dir)) throw new Error("the previous export folder is the current one");
   if (cur.datePrefix && prev.datePrefix && prev.datePrefix >= cur.datePrefix) throw new Error(`the previous export (${prev.datePrefix}) is not dated before the current one (${cur.datePrefix})`);
+  if (!cur.context || !prev.context) return { state: "unknown", reason: `export context unknown: no context.json in ${!cur.context ? "the current" : "the previous"} folder (property, search type and filters unrecorded)` };
+  if (cur.context.property !== prev.context.property) return { state: "not-comparable", reason: `different properties (${prev.context.property} vs ${cur.context.property})` };
+  if (cur.context.searchType !== prev.context.searchType) return { state: "not-comparable", reason: `different search types (${prev.context.searchType} vs ${cur.context.searchType})` };
+  if (cur.context.filters.join("|") !== prev.context.filters.join("|")) return { state: "not-comparable", reason: `different filters ([${prev.context.filters.join(", ")}] vs [${cur.context.filters.join(", ")}])` };
   if (!cur.period || !prev.period) return { state: "unknown", reason: `period unknown: no Chart export in ${!cur.period ? "the current" : "the previous"} folder` };
   if (prev.period.end >= cur.period.start) return { state: "not-comparable", reason: `periods overlap (previous ends ${prev.period.end}, current starts ${cur.period.start})` };
   if (prev.period.days !== cur.period.days) return { state: "not-comparable", reason: `periods differ in length (${prev.period.days} vs ${cur.period.days} days)` };
@@ -190,7 +227,8 @@ const change = (a, b, cmp) => cmp.state !== "comparable" ? "—" : (a == null ||
 const periodText = (x) => x.period ? `period: ${x.period.start} → ${x.period.end}, ${x.period.days} day(s)` : "period UNKNOWN (no Chart export)";
 const delta = (a, b, cmp) => cmp.state !== "comparable" || a == null || b == null ? "—" : `${a - b >= 0 ? "+" : ""}${(a - b).toFixed(1)} positions`;
 
-export function report(cur, prev, { date = new Date().toISOString().slice(0, 10), property = "sc-domain:chajewelsjp.com", host = CANONICAL_HOST } = {}) {
+export function report(cur, prev, { date = new Date().toISOString().slice(0, 10), host = CANONICAL_HOST } = {}) {
+  const ctxText = (x) => x.context ? `${x.context.property}, ${x.context.searchType}${x.context.filters.length ? `, filters: ${x.context.filters.map(esc).join("; ")}` : ", no filters"}` : "UNKNOWN (no context.json)";
   const cmp = comparison(cur, prev);
   const prevCell = (v) => prev ? v : "NO PREVIOUS EXPORT";
   const chartC = cur.chart?.rows ?? null, chartP = prev?.chart?.rows ?? null;
@@ -206,7 +244,8 @@ export function report(cur, prev, { date = new Date().toISOString().slice(0, 10)
   L.push(`# SEO weekly report — ${date} (export folder: ${esc(basename(resolve(cur.dir)))}; ${periodText(cur)}) vs ${prev ? `${esc(basename(resolve(prev.dir)))}; ${periodText(prev)}` : "NO PREVIOUS EXPORT"}`, "");
   L.push(`Exports used: ${cur.files.length ? cur.files.map(esc).join(", ") : "NO EXPORT — report not produced"}${prev ? `; previous: ${prev.files.map(esc).join(", ")}` : ""}`);
   L.push(`Comparison: ${cmp.state === "comparable" ? `comparable (${cmp.reason})` : cmp.state === "none" ? "NO PREVIOUS EXPORT" : `NOT COMPARABLE — ${cmp.reason}; change columns left blank`}`);
-  L.push(`Property: ${property}  Prepared by: scripts/gsc-report.mjs (every cell is a CSV row; nothing is estimated; absence from an export is UNKNOWN, not zero)`, "");
+  L.push(`Export context — this period: ${ctxText(cur)}${prev ? `; previous: ${ctxText(prev)}` : ""}`);
+  L.push(`Prepared by: scripts/gsc-report.mjs (every cell is a CSV row; nothing is estimated; absence from an export is UNKNOWN, not zero)`, "");
   L.push("## Totals", "| Metric | Source | This period | Previous | Change |", "|---|---|---|---|---|");
   const row = (metric, source, a, b, fmt = f, ch = change) => L.push(`| ${metric} | ${source} | ${fmt(a)} | ${prevCell(fmt(b))} | ${ch(a, b, cmp)} |`);
   row("Clicks", "property total (Chart export)", chartC ? sum(chartC, "clicks") : null, chartP ? sum(chartP, "clicks") : null);

@@ -13,6 +13,7 @@
 // Only real <link>/<meta> elements are counted. Next also repeats the metadata
 // inside its RSC payload as escaped JSON, which is not what a crawler reads.
 
+import { existsSync } from "node:fs";
 import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, llmsTxtProblems, llmsTxtLinks, llmsLinkProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 // BASE is where requests GO. PUBLIC_ORIGIN is what the pages DECLARE (canonical, hreflang, og:url, sitemap):
@@ -36,6 +37,10 @@ const results = [];
 const record = (status, route, what, detail = "") => results.push({ status, route, what, detail });
 const ok = (route, what, cond, detail = "") => record(cond ? "PASS" : "FAIL", route, what, cond ? "" : detail);
 const cov = new Coverage();
+// /llms.txt is GATED (OD-LLMS-1, docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md): the route is not in the tree until the
+// owner resolves the static-file / Phase 6 timing conflict. While the route file is absent, a 404 is the expected
+// state and the two llms rows are optional (skipped with that reason); the moment the route exists they are required.
+const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
 
 const robotsMeta = (html) => (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
 const canonicals = (html) => [...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1]);
@@ -343,8 +348,8 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   cov.expect("gated-descendants", "malformed descendants of gated private routes redirect to /login", gatedMalformed.length);
   cov.expect("private-pages", "real private pages keep og:url only", 3);
   cov.expect("query-handling", "og:url and the canonical ignore the request query", 2);
-  cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page (no product, private, Japanese-layaway or figure)", 1);
-  cov.expect("llms-links", "every link /llms.txt advertises is FETCHED and answers 200 text/html, no noindex (header or meta) and one self canonical — the recorded contract, not sitemap membership (one row per link)", 30);
+  cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page (no product, private, Japanese-layaway or figure)", 1, { optional: !LLMS_ROUTE_PRESENT });
+  cov.expect("llms-links", "every link /llms.txt advertises is FETCHED and answers 200 text/html, no noindex (header or meta) and one self canonical — the recorded contract, not sitemap membership (one row per link)", 30, { optional: !LLMS_ROUTE_PRESENT });
   if (smv.problems.length === 0) cov.hit("sitemap");
 
   // 1. known templates. A template that is not 200 is a FAIL; a known static template missing from the sitemap is a FAIL.
@@ -422,6 +427,11 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   // 6. llms.txt (Master Plan PHASE 6 add-on): the shared rule in scripts/lib/seo-check-core.mjs
   {
     const r = await get("/llms.txt");
+    if (!LLMS_ROUTE_PRESENT && r.status === 404) {
+      cov.skip("llms-txt", "route gated (OD-LLMS-1 pending): /llms.txt answers 404 as expected while app/llms.txt/route.ts is absent");
+      cov.skip("llms-links", "route gated (OD-LLMS-1 pending): no file to read links from");
+      ok("/llms.txt", "LLMS: route gated on OD-LLMS-1 — 404 recorded as the expected state, not judged", true, "");
+    } else {
     cov.hit("llms-txt");
     const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
     ok("/llms.txt", "LLMS: 200 text/plain; every link is a public sitemap page on the public origin; no product, private or Japanese-layaway link; no figure", problems.length === 0, r.error ? `request failed: ${r.error}` : problems.join("; "));
@@ -434,6 +444,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
       cov.hit("llms-links");
       const lp = llmsLinkProblems(link, lr);
       ok(u.pathname, "LLMS-LINK: advertised in /llms.txt → fetched 200 text/html, no noindex, one self canonical", lp.length === 0, lp.join("; "));
+    }
     }
   }
 

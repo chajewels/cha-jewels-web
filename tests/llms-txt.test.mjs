@@ -1,5 +1,6 @@
-// llms.txt (lib/llms-txt.ts + app/llms.txt/route.ts), Master Plan PHASE 6 add-on (owner, 2026-10-31).
-// Run: npm run test:unit. The served response is checked by scripts/check-seo-live.mjs and check-seo-dom.mjs ("llms-txt").
+// llms.txt builder (lib/llms-txt.ts), Master Plan PHASE 6 add-on (owner, 2026-10-31). The ROUTE is gated on OD-LLMS-1
+// (docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md) and is not in the tree. Run: npm run test:unit. Once the route exists,
+// the served response is checked by scripts/check-seo-live.mjs and check-seo-dom.mjs ("llms-txt", "llms-links").
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -47,15 +48,19 @@ test("collection and category names are the Hub's through catalog-i18n (Japanese
   assert.match(txt, /- \[A bad name\]\(https:\/\/www\.chajewelsjp\.com\/en\/collections\/x\)/);
 });
 
-test("the route serves text/plain from the cached catalog reads, tolerates a failed read, and the middleware never sees the path", () => {
-  const route = readFileSync(join(process.cwd(), "app/llms.txt/route.ts"), "utf8");
-  assert.match(route, /text\/plain; charset=utf-8/);
-  assert.match(route, /hub\.collections\(\)\.catch\(\(\) => \[\]\)/);
-  assert.match(route, /hub\.categories\(\)\.catch\(\(\) => \[\]\)/);
-  assert.match(route, /export const revalidate = 60/);
+test("the route is GATED (OD-LLMS-1): app/llms.txt/route.ts is absent until the owner decides; the decision record carries the exact route; the middleware would never see the path; a failed Hub read still lists every static page", () => {
+  const { existsSync } = require_fs();
+  assert.equal(existsSync(join(process.cwd(), "app/llms.txt/route.ts")), false, "the route returns only with OD-LLMS-1 (docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md)");
+  const decision = readFileSync(join(process.cwd(), "docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md"), "utf8");
+  assert.match(decision, /text\/plain; charset=utf-8/);
+  assert.match(decision, /hub\.collections\(\)\.catch\(\(\) => \[\]\)/);
+  assert.match(decision, /hub\.categories\(\)\.catch\(\(\) => \[\]\)/);
+  assert.match(decision, /export const revalidate = 60/);
+  assert.match(decision, /OD-LLMS-1/);
   const mw = readFileSync(join(process.cwd(), "middleware.ts"), "utf8");
-  assert.match(mw, /\.\*\\\\\.\[\^\/\]\+\$/, "the matcher skips paths with a file extension, so /llms.txt bypasses it");
+  assert.match(mw, /\.\*\\\\\.\[\^\/\]\+\$/, "the matcher skips paths with a file extension, so /llms.txt would bypass it");
   const txt = buildLlmsTxt({ collections: [], categories: [] }, B);
   assert.match(txt, /^# Cha Jewels\n/);
   assert.ok(links(txt).length >= 2 * (STATIC_PAGES.length + 1) + 1, "a failed Hub read still lists every static page");
 });
+function require_fs() { return { existsSync: (p) => { try { readFileSync(p); return true; } catch { return false; } } }; }

@@ -42,6 +42,7 @@
 //  (canonical href, og:url, hreflang pairs, fb:app_id, robots, og:locale, title, h1) unchanged for 600 ms. A page
 //  that never settles is a FAIL that names what blocked it, not a pass.
 import { chromium } from "@playwright/test";
+import { existsSync } from "node:fs";
 import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, describeFailure, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, llmsTxtProblems, llmsTxtLinks, llmsLinkProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 const BASE = (process.argv[2] ?? "https://www.chajewelsjp.com").replace(/\/$/, "");
@@ -90,8 +91,12 @@ cov.expect("gated-descendants", "malformed descendants of gated private routes l
 cov.expect("private-pages", "real private pages keep og:url only (per context)", M.privatePages.length * C);
 cov.expect("query-handling", "og:url and the canonical ignore the request query (per context)", M.queryCases.length * C);
 cov.expect("client-navigation", "client-side navigations keep one og:url (per context)", M.navTargets.length * C);
-cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page, fetched with the browser context's own credentials (per context)", 1 * C);
-cov.expect("llms-links", "every link /llms.txt advertises is FETCHED with the context's own credentials and answers 200 text/html, no noindex and one self canonical (one row per link, per context)", 30 * C);
+// /llms.txt is GATED (OD-LLMS-1, docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md): the route is not in the tree until the
+// owner resolves the static-file / Phase 6 timing conflict. While the route file is absent, a 404 is the expected
+// state and the two llms rows are optional (skipped with that reason); the moment the route exists they are required.
+const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
+cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page, fetched with the browser context's own credentials (per context)", 1 * C, { optional: !LLMS_ROUTE_PRESENT });
+cov.expect("llms-links", "every link /llms.txt advertises is FETCHED with the context's own credentials and answers 200 text/html, no noindex and one self canonical (one row per link, per context)", 30 * C, { optional: !LLMS_ROUTE_PRESENT });
 if (smv.problems.length === 0) cov.hit("sitemap");
 
 const browser = await chromium.launch();
@@ -293,6 +298,11 @@ for (const [ctxName, opts] of contexts) {
       const res = await context.request.get(`${ORIGINS.requestOrigin}/llms.txt`, { maxRedirects: 0, timeout: SETTLE_MS });
       r = { status: res.status(), contentType: res.headers()["content-type"] ?? null, body: await res.text() };
     } catch (e) { r = { status: 0, contentType: null, body: "", error: describeFailure(e, AUTH) }; }
+    if (!LLMS_ROUTE_PRESENT && r.status === 404) {
+      cov.skip("llms-txt", "route gated (OD-LLMS-1 pending): /llms.txt answers 404 as expected while app/llms.txt/route.ts is absent");
+      cov.skip("llms-links", "route gated (OD-LLMS-1 pending): no file to read links from");
+      ok(ctxName, "/llms.txt", "LLMS: route gated on OD-LLMS-1 — 404 recorded as the expected state, not judged", true, "");
+    } else {
     cov.hit("llms-txt");
     const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
     ok(ctxName, "/llms.txt", "200 text/plain; every link is a public sitemap page on the public origin; no product, private or Japanese-layaway link; no figure", problems.length === 0, r.error ? `request failed: ${r.error}` : problems.join("; "));
@@ -308,6 +318,7 @@ for (const [ctxName, opts] of contexts) {
       cov.hit("llms-links");
       const lp = llmsLinkProblems(link, lr);
       ok(ctxName, u.pathname, "LLMS-LINK: advertised in /llms.txt → fetched 200 text/html, no noindex, one self canonical", lp.length === 0, lp.join("; "));
+    }
     }
   }
 
