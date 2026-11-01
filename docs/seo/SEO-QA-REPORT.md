@@ -584,3 +584,24 @@ Run from the signed-in Playwright browser as Node-side Playwright code (real top
 | D-4 | Release `develop` → `main` (O-2b) | separate approval; not requested here | decide after D-1..D-3 |
 
 **Recommendation in one line:** release is reasonable after D-1 (a or b with evidence) and D-3 (b); D-2 (b) is preferable but (a) is defensible on the local fixed-checker runs; production approval is separate and is not requested here; this section stops before it.
+
+## 20. Remaining-scope batch (2026-11-01, branch `seo/remaining-batch-2026-11-01`, stacked on #465 `112d84a`; no PR opened — awaiting authorization N-14) — READY FOR QA
+
+**Scope (the only SEO work authorized and executable now; matrix §M.1).** (1) `scripts/check-step4-live.mjs` — the Step 4 post-publication checks promised in the owner checklist §8, read-only, parsing the approved wording from the checklist itself (never retyped): status 200 and no redirect, meta description and body = approved and old text gone, canonical = own URL, hreflang en/ja/x-default, product-link count vs a recorded baseline, no origin or country-branded-metal claim in the live description; the article as a CONTENT row (both languages must carry the four approved paragraphs; the English body must no longer contain the removed phrase). (2) `docs/seo/step4-membership-baseline-2026-11-01.json` — the pre-publication product-link counts of the twelve listing pages. (3) Three-run Lighthouse medians as the "before" of any approved Step 3b/3c work (runbook §5 rule). (4) Matrix §M (remaining scope by state and delivery order) and §N (one owner-decision package).
+
+**Verification on the branch head (SHA in the branch; tree = `112d84a` + these files).** Unit **668 pass / 0 fail** (663 + 5: checklist parser on the real file, APPLIED/OLD/OTHER rules, redirect/canonical/hreflang/membership/claim problems, article rule, report). `check:terms` pass. No runtime code changed (`app/`, `lib/` untouched), so the build and the SEO checkers are unaffected: the local fixed-checker results of QA §18 and the candidate results of §19 stand for this tree.
+
+**Step 4 live read (production, 2026-11-01T06:56Z, read-only):** all twelve listing pages **OLD** (meta description and body still the previous text, canonical and hreflang correct); article **NOT APPLIED** EN and JA (content task); membership baseline recorded: necklaces 138, rings 135, other-accessories 51, pendants 34, fine-jewelry 99, preloved-jewelry 195 product links (identical in both languages). Nothing was changed; the owner publishes.
+
+**Lab performance "before" (Lighthouse 13.6.0, `--preset=perf --form-factor=mobile --screenEmulation.mobile`, headless Chrome, production, 2026-11-01 06:53–07:02 UTC; three runs per page, median; lab only, not field data; same major version as the §16 single runs).**
+
+| Page (production `main` `9518974`) | Runs | Score (median; runs) | LCP | TBT | CLS |
+|---|---|---|---|---|---|
+| `/ja` | 3 | **67** (67, 68, 63) | 4.3 s | 300 ms | 0.01 |
+| `/en` | 3 valid (one run discarded: Lighthouse's TBT/interactive audits errored, score null) | **64** (64, 63, 67) | 4.3 s | 313 ms | 0.01 |
+| `/en/collections/rings` | 3 | **79** (81, 79, 79) | 3.6 s | 199 ms | 0.00 |
+| `/en/products/8c100-…` | 3 | **82** (82, 82, 82) | 3.6 s | 72 ms | 0.00 |
+
+Use: the comparison base for an owner-scoped Step 3b/3c (R-22); the single runs of §16 are superseded by these medians. No performance claim is made.
+
+**Not run / limitations.** No deployment of this branch exists (branch builds are ignored); the fixed checkers are unaffected by docs and scripts; the candidate-side gaps of §19.6 stand unchanged (this batch does not touch them).

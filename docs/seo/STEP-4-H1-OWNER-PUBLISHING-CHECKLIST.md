@@ -106,6 +106,8 @@ Steps: (1) back up both full bodies; (2) make the four deletions; (3) check that
 
 ## 8. After you publish (what I will check, 14 pages)
 
+*Tooling (2026-11-01): these checks are automated in `scripts/check-step4-live.mjs` (read-only), with the product-link counts of each listing page recorded before publication in `step4-membership-baseline-2026-11-01.json`. First run 2026-11-01T06:56Z: all twelve listing pages still OLD, article NOT APPLIED in both languages.*
+
 Tell me which records you saved and when. For the article (EN, JA), the four collections (EN, JA) and the two categories (EN, JA) I will check: HTTP 200 and no redirect; the approved text on each page; article paragraphs, the image and links intact and the two old origin phrases gone in both languages; meta descriptions equal the approved text; canonical and hreflang unchanged; product counts and membership unchanged; no new origin or metal claim; no product data change. The article check is reported as a CONTENT task (not an SEO status item, per PR #450): it passes only when both language bodies are verified live. The approved footer clarifier appears on every page and is not part of the article body.
 
 ## 9. Facts recorded alongside (no product change authorised)

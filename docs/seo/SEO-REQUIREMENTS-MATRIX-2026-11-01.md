@@ -60,7 +60,7 @@
 |---|---|---|---|---|
 | R-21 | Step 3a (Japanese heading font) | DEPLOYED; no production gain confirmed | — | done |
 | R-22 | Steps 3b (large listings) and 3c (root-layout caching) | AUDITED; **no owner scoping** (gate: scoping + measured need) | owner scopes; then a dedicated branch with matched before/after mobile runs | owner then source |
-| D-1 | Reproducible lab baseline for before/after | Lighthouse 13.6 mobile single runs on four production pages taken 2026-11-01 (QA §16 table); lab only, single run, not field data | repeat as the "before" of any approved step; 3 runs median | source (done) |
+| D-1 | Reproducible lab baseline for before/after | **Three-run medians recorded 2026-11-01 (QA §20):** `/ja` 67, `/en` 64, `/en/collections/rings` 79, `/en/products/8c100-…` 82 (Lighthouse 13.6.0 mobile preset, production); the §16 single runs superseded; lab only | repeat as the "before" of any approved step; never compared across Lighthouse majors without saying so | source (done) |
 | D-2 | Real-user measurement readiness | Vercel Speed Insights mounted (`SpeedInsightsProvider`) [V]; Search Console Core Web Vitals report still processing [V earlier] | owner reads CWV in Search Console on the planned dates | external |
 | D-3 | Responsive image sizing and priority, fonts, hydration, third-party loading | Covered by Steps 1 and 3a; no new defect found by the DOM checker (0 failed requests, 0 console errors) | — | done |
 
@@ -68,7 +68,7 @@
 
 | Ref | Requirement | Current state | Remaining | Owner / kind |
 |---|---|---|---|---|
-| R-23 | Step 4 Hub-managed content (OD-S4-3/4 texts, OD-S4-6/7/9, pilot) | AUDITED — OWNER APPROVAL PENDING; **live re-check 2026-11-01: none of the six listing texts applied** (necklaces, rings, other-accessories, pendants, preloved-jewelry, fine-jewelry still show the old descriptions) [V] | owner publishes per `STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md` (complete package: fields, backups, steps, verification, rollback); Site verifies after | content |
+| R-23 | Step 4 Hub-managed content (OD-S4-3/4 texts, OD-S4-6/7/9, pilot) | AUDITED — OWNER APPROVAL PENDING. **Live re-check 2026-11-01T06:56Z by the new `scripts/check-step4-live.mjs`** (parses the checklist's approved wording, GETs the 14 pages, read-only): all 12 listing pages **OLD** (meta description and body still the previous text), article **NOT APPLIED** in EN and JA (content task); membership baseline recorded (`step4-membership-baseline-2026-11-01.json`: necklaces 138, rings 135, other-accessories 51, pendants 34, fine-jewelry 99, preloved-jewelry 195 product links, identical in both languages) [V] | owner publishes per `STEP-4-H1-OWNER-PUBLISHING-CHECKLIST.md`; Site then runs `node scripts/check-step4-live.mjs --baseline docs/seo/step4-membership-baseline-2026-11-01.json` and records §8 | content (owner) → source verification ready |
 | R-24 | BUG-03 article wording | Out of SEO scope (owner); not applied [V earlier] | owner | content |
 | R-26 | Phase 6 commercial landing pages and Hub SEO fields | AUDITED; OD-P6-1..9 pending (no `kihei`/`diamonds` collection; Hub SEO fields a draft) | owner decisions; Hub implements fields; Site renders in a later batch | external / content / source later |
 | R-26 add-on | **`llms.txt`** | **Builder IMPLEMENTED (`lib/llms-txt.ts`, shared static list `lib/sitemap-pages.ts`, 4 tests); route WITHDRAWN and DEFERRED to the Phase 6 batch under the approved requirements (owner, 2026-10-31: "static file", "after the Phase 6 URLs and titles are final") — no owner decision pending.** History by head: `d0b3b5f` route + `llms-txt` checker row (raw 671/0); `1b654f7` + `llms-links` rows fetching every advertised link (raw 57 rows, DOM 114 rows, all pass on the fixtures build); withdrawn at `b70f5e0` because those rules were not met and a documented deviation is not approval. The checkers keep both rules and skip them with the reason "route deferred" while `app/llms.txt/route.ts` is absent. Acceptance (Phase 6 batch): 200 `text/plain`; every link fetched 200 and indexable; guards pass; the static-file vs Hub-links tension settled in that batch's design | Phase 6 batch (OD-P6-1..10); nothing before it | source, later |
@@ -251,3 +251,55 @@ Row-level inventory: `SEO-REQUIREMENTS-MATRIX-2026-11-01-INVENTORY-A.md` (18 doc
 | 22 | Status Phase 2B "X1 RESOLVED" vs Phase 1 row "404 cleanup READY FOR QA" | the Phase 1 row refers to the foundation batch (R-06, in `develop`, not released); X1 (original 404 finding) is resolved; no edit |
 | 23 | Manifest foundation card 728/0 vs matrix 671/0 | both dated by head; manifest row now carries the reconciliation head's numbers with history |
 | 24 | OD-MC-4 recommendation "omit brand" (readiness) vs Google's text read 2026-11-01 (store name + MPN for merchant-makers) | readiness OD-MC-4 revised ("omit" withdrawn; owner decides); register MC-G7 and proposal carry the same recommendation |
+
+## M. Remaining scope by state and delivery order (2026-11-01, after #462 and the #465 acceptance; branch `seo/remaining-batch-2026-11-01`)
+
+**Reconciliation [V 2026-11-01 ~06:50 UTC]:** `develop` `1693b66` (unchanged since the #462 merge), `main` `9518974`, open PRs into `develop`: **#465 only** (the acceptance record, head `112d84a`). Other owners' work read-only: `redesign/lumiere` at `446ee6d` (P2b, PR #464 merged into that branch, not into `develop`; overlap with SEO files unchanged: one comment line in `lib/product-seo.ts`); no other branch touches `app/`, `lib/` or `scripts/` SEO surfaces. **This batch's branch is stacked on #465** (`112d84a`) so the matrix and QA edits do not conflict; sequencing: merge #465, then this branch's PR when authorized (none opened).
+
+**M.1 Authorized and executable now → done in this batch (source + verification)**
+
+| Item | Done | Evidence |
+|---|---|---|
+| R-23 Step 4 post-publication verification tooling (checklist §8 promised checks) | `scripts/check-step4-live.mjs` + 5 tests (parser on the real checklist, APPLIED/OLD/OTHER rules, article content rule, membership baseline, claim rule); baseline JSON; first read-only run: 0 of 12 applied, article not applied | QA §20 |
+| D-1 three-run Lighthouse medians (runbook §5 rule) as the "before" for Steps 3b/3c | `/ja` 67, `/en` 64, rings 79, product 82 (median of 3; one `/en` run discarded for a Lighthouse audit error and replaced) | QA §20 |
+| This section (§M) and the consolidated owner package (§N) | — | — |
+
+**M.2 Dependent on another SEO deliverable (sequenced, not startable)**
+
+| Item | Depends on | Then |
+|---|---|---|
+| `llms.txt` route (R-26 add-on) | the Phase 6 batch (approved rules: static file, after Phase 6 URLs are final) | build inside Phase 6 to the rules; `llms-txt`/`llms-links` checker rows become required |
+| Phase 7/8 pillars and clusters (R-27/R-28) | OD-P6-5 route family + editorial approval (Phase 6) | dedicated batch |
+| Merchant feed route (R-25, MC-G1/G10/G11/G12) | OD-MC-7 + OD-MC-11 identifier rule (+ X8 account for any submission) | one small route batch with the rule as code and the raw checker's `merchant-feed` row |
+| Redirect stage 308 / root / bare layaway / gold-guide (R-10/R-11/BUG-06) | Search Console Pages data (~12 Nov read) + OD-1/3/4/6 | dedicated high-risk branch with the 2E redirect matrix test |
+| R-13 homepage title testing | Search Console query data (R-03 reads) + owner direction | — |
+| R-29 Filipino option | R9 evidence from the Search Console helper | owner option |
+| R-19 product-video assessment | Hub API access (count + per-video look) | assessment addendum |
+| Step 4 verification run (R-23) | owner publishes | `check-step4-live.mjs --baseline …` |
+
+**M.3 Awaiting an actual owner decision (nothing implementable before it)** — OD-SD-1 (entity type), OD-P6-1..10 (Phase 6 incl. the reverse-linking texts), OD-MC-1..12 (feed; the identifier rule and OD-MC-4 brand), OD-ATTR-1..5 (attribution; consent first), OD-CT-1..6 (guide/trust wording), OD-SC-1..4 + export `context.json` (O-16), OD-AUTH-1..3, R-22 scoping, OD-F1 retirement (after D1 evidence on the candidate), the §19.7 acceptance decisions D-1..D-3, O-2b release. Consolidated in §N.
+
+**M.4 Awaiting external access** — fixed checkers on the candidate (bypass secret; QA §19.6 items 1–3), Hub API key (multi-variant prevalence, product-video inventory, MC-G4/G6 counts), Search Console reads (owner, ~5 and ~12 Nov), Notion (Codex applies the manifest), Google Merchant Center account (X8), MC-G12 help page.
+
+**M.5 Explicitly deferred or outside SEO** — `llms.txt` route (deferred to Phase 6 by the approved rules); Phase 10 Business Profile (CLOSED — NOT ELIGIBLE); R-35 old domain (CLOSED); BUG-03 article wording (content task; checked by the Step 4 verifier as a content row); product-route Hub-failure logging (**proposed only**, not authorized); login/Messenger/security, payments, Page365, Hub internals, Lumière (outside).
+
+**Next complete implementation batch (what becomes executable the moment its inputs exist, in order):** (1) Step 4 live verification the day the owner publishes (R-23; tooling ready). (2) Fixed-checker run on the candidate when the secret is placed (QA §19.6 items 1–3). (3) Phase 6 batch after OD-P6-1..10: landing routes/Hub SEO fields, `/en/guides/*` family (R-27/R-28 content on approval), the reverse-linking block (OD-P6-10), `llms.txt` route to the approved rules, `llms-links` rows required. (4) Merchant route batch after OD-MC-7/11 (+ OD-MC-12 Hub total if granted). (5) Redirect stage after the 12 Nov read and OD-1/3/4/6. (6) Attribution implementation after OD-ATTR-1..5 (Hub contract draft first). Each is one coordinated batch with its own regression tests; none starts before its gate.
+
+## N. Consolidated owner-decision package (one list; recommendations; what each unblocks and what waiting costs)
+
+| # | Decision | Recommended choice | Unblocks | If not decided |
+|---|---|---|---|---|
+| N-1 | QA §19.7 D-1: the unexplained 500 on the candidate — accept the risk, or authorize a bounded read-only investigation | investigation if Hub-side logs can be shared; otherwise an explicit written acceptance (not assumed here) | O-2b release | release stays BLOCKED; logging on the product route stays a proposal |
+| N-2 | QA §19.7 D-2: place the existing automation secret (instructions already given; never in chat) or accept QA §19.6 items 1–4 individually | place the secret: both fixed checkers run once; the preview's injected noindex header is then observed, not assumed | A-1/A-2 fixed-checker evidence on the candidate | items 1–4 remain "not established" in the record |
+| N-3 | QA §19.7 D-3: a known multi-variant product slug, or accept the unit + single-variant live evidence | supply one slug | C-1 live proof of the Offer correction | multi-variant runtime stays UNVERIFIED |
+| N-4 | O-2b: release `develop` → `main` | after N-1..N-3 | production; post-release raw run; SEARCH ENGINE RECRAWL PENDING | — |
+| N-5 | O-4 Step 4: publish the six listing texts and (content task) the article edits per the checklist; confirm 8C100 wording, OD-S4-7, OD-S4-9, the pilot | publish | R-23 verification (tooling ready) | listings keep the old descriptions |
+| N-6 | OD-SD-1 entity type | `OnlineStore` | C-2 one-line builder change + tests | `JewelryStore` stays (a LocalBusiness subtype for an online-only seller) |
+| N-7 | OD-P6-1..10 Phase 6 (collections kihei/diamonds, watches URL, Hub SEO fields, `/en/guides/*`, no `/shop/*`, layaway guides deferred, query export, wholesale title, reverse-linking texts) | approve the field draft and the guides family | Phase 6 batch incl. `llms.txt`; Phases 7–8 | the plan's commercial pages, pillars and `llms.txt` all wait |
+| N-8 | OD-MC-1..12 Merchant Center (incl. OD-MC-4 brand = store name + MPN = SKU for own-made pieces, OD-MC-7 route, OD-MC-11 identifier rule per class, OD-MC-12 Hub total), X8 account | JA-first, Option B route, two-axis identifier rule as recommended | feed route batch; account package | feed stays builder-only (empty by rule) |
+| N-9 | OD-ATTR-1..5 attribution (consent first, with counsel) | A with consent gating; metrics as defined; B2 only if GA4 wanted | tracking design → Hub contract draft | commercial metrics NOT STARTED |
+| N-10 | OD-CT-1..6 guide/trust wording; X7; G2 email drift; G4 registered-name form | decide with N-5 | R-30/R-31 closure | near-misses stay recorded |
+| N-11 | OD-SC-1..4 + O-16 export `context.json`; the ~5 and ~12 Nov reads | adopt with the next export | R-03 first real report; redirect stage input | reports not comparable |
+| N-12 | OD-1/3/4/6 redirect stage (after the 12 Nov read) | decide then | R-10/R-11/BUG-06 batch | 307 stage persists |
+| N-13 | R-22 Steps 3b/3c scoping; OD-F1 retirement; OD-AUTH-1..3; Phase 9 option; R-36 subdomain policy | as recorded in §J | D, Phase 11, Phase 9 | — |
+| N-14 | PR authorization for branch `seo/remaining-batch-2026-11-01` (stacked on #465) | authorize after #465 merges | the Step 4 verifier and this record land in `develop` | the tooling waits on the branch |
