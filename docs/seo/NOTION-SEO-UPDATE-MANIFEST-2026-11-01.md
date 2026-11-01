@@ -36,3 +36,5 @@ Branch: `seo/master-plan-completion`; PR: **#462** (heads the same day: `d0b3b5f
 
 ## 3. Update status (2026-11-01 overall-delivery closeout)
 **Actually changed in Notion: none** (connector unauthenticated; no OAuth requested). **Prepared only (Codex applies; properties Status, Completed, Pending, Evidence / PR, Next action, Limitations / Owner decision; security cards untouched):** SEO foundation batch → "PARTIAL ACCEPTANCE; release blocked on N-1 (500), N-2 (fixed checkers), N-3 (non-SEO shared dependencies)"; Step 4 → "verifier working (QA §21), listings OLD, publication N-4"; Phase 4 → "Offer verified live on 75 pages; multi-variant NOT APPLICABLE; entity type N-5"; Phase 5/6/7/8/9/11/12 rows → "no working feature; decisions N-6..N-13"; owner package = matrix §N (14 items).
+
+**Refresh (continuation):** `develop` is `c6d7cd9` (#467); the candidate must be re-pinned; owner package IDs are now stable `DP-01a…DP-14` (matrix §N); verifier findings closed (matrix §Q); publication verification pending (DP-04). Still nothing changed in Notion; all of the above is prepared only.

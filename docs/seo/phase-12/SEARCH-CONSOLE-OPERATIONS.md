@@ -197,4 +197,4 @@ Next Mon  compare; move statuses; never claim OBSERVED without the export
 - `docs/seo/SEO-IMPLEMENTATION-STATUS.md` (X8; Phase 0 export NOT STARTED; status vocabulary), `docs/seo/SEO-BASELINE.md` §11 (analytics: do not disturb), `scripts/check-seo-live.mjs` (existing read-only probe)
 - Search Console UI column names and regex behaviour are from working knowledge, **UNVERIFIED** against a live export on this date; the helper is specified to read headers rather than assume them.
 
-**UNVERIFIED:** Search Console property existence/access (X8); `(?i)` acceptance in the regex filter; exact export column names; the analytics tool and its events; Merchant Center/GBP availability for the monthly review.
+**UNVERIFIED:** Search Console property existence/access (X8); `(?i)` acceptance in the regex filter; exact export column names (VERIFIED 2026-11-01 against the 31 October export for Queries, Pages and Chart); the analytics tool and its events; Merchant Center/GBP availability for the monthly review.
