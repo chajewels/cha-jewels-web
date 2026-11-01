@@ -61,14 +61,14 @@ test("/ja/layaway metadata is empty: a 404 says nothing (X1 rule), and the legac
 
 test("every English layaway link goes through localePath (none stays on the bare cookie-decided URL)", () => {
   // The chrome: header nav (L("/layaway")), the phone tab bar, the account's plan page, Why Cha Jewels.
-  assert.match(strip(src("components/site/header.tsx")), /L\("\/layaway"\)/);
+  assert.match(strip(src("components/lumiere/site/chrome-data.tsx")), /L\("\/layaway"\)/);
   const layout = strip(src("app/layout.tsx"));
   assert.match(layout, /localePath\("\/layaway", lang\)/, "tab bar: locale-aware");
   assert.doesNotMatch(layout, /href: "\/layaway"/, "no bare tab href");
   assert.match(strip(src("app/account/layaway/page.tsx")), /localePath\("\/layaway", lang\)/);
   assert.match(strip(src("app/why-cha-jewels/page.tsx")), /localePath\("\/layaway", lang\)/);
   // Nothing under app/ or components/ links to the bare URL with a literal href.
-  for (const f of ["app/layout.tsx", "components/site/header.tsx", "components/site/footer.tsx", "components/site/mobile-nav.tsx", "app/account/layaway/page.tsx", "app/why-cha-jewels/page.tsx", "app/layaway/page.tsx"]) {
+  for (const f of ["app/layout.tsx", "components/lumiere/site/chrome-data.tsx", "components/lumiere/footer/footer-section.tsx", "components/lumiere/site/menu-overlay.tsx", "app/account/layaway/page.tsx", "app/why-cha-jewels/page.tsx", "app/layaway/page.tsx"]) {
     assert.doesNotMatch(strip(src(f)), /href=\{?"\/layaway["?]/, `${f}: a literal bare /layaway href`);
   }
 });

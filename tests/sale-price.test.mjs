@@ -44,9 +44,8 @@ test("every listed surface renders its price through SalePrice", () => {
     "components/commerce/price-block.tsx",
     "components/catalog/product-card.tsx",
     "components/home/arrival-card.tsx",
-    "components/home/hero-slide-views.tsx",
     "components/catalog/sold-card.tsx",
-    "components/site/search-box.tsx",
+    "components/lumiere/site/search-overlay.tsx",
   ]) assert.match(readFileSync(f, "utf8"), /<SalePrice /, f);
   // Cart, checkout and order pages show what the customer pays: untouched.
   for (const f of ["components/commerce/checkout-flow.tsx"]) assert.doesNotMatch(readFileSync(f, "utf8"), /SalePrice|full_price_jpy/, f);

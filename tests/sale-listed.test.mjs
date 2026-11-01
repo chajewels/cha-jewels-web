@@ -53,7 +53,7 @@ test("the chip, the /sale page and the header link all decide through saleListed
   assert.match(grid, /sale: saleListed\(p\)/, "grid chip");
   assert.doesNotMatch(grid, /struckFullPrice/, "the chip no longer carries its own copy of the rule");
   assert.match(strip(readFileSync("app/sale/page.tsx", "utf8")), /\.filter\(saleListed\)/, "/sale page");
-  const header = strip(readFileSync("components/site/header.tsx", "utf8"));
+  const header = strip(readFileSync("components/lumiere/site/chrome-data.tsx", "utf8")); // the live header's data (the old components/site/header.tsx was retired in P5)
   assert.match(header, /\.filter\(saleListed\)\.length/, "header count");
-  assert.match(header, /saleCount > 0 \? \[\{ href: L\("\/sale"\), label: t\("nav", "sale"\) \}\]/, "link only while something is on sale");
+  assert.match(header, /saleCount > 0 \? \[\{ label: t\("nav", "sale"\), href: L\("\/sale"\) \}\]/, "link only while something is on sale");
 });
