@@ -1,5 +1,33 @@
 # Performance baseline
 
+## 2026-11-02 — Lumière redesign P5: polish, the Hub's image slots, clean-up
+
+**THE GATE ON THE DEPLOYED PREVIEW HAS NOT BEEN RUN.** `https://cha-jewels-web-git-redesign-lumiere-cha-jewels.vercel.app` answers every request with a 302 to Vercel's SSO sign-in (Deployment Protection), so no number could be taken from it. The rows below are the **local production build in fixture mode** (Lighthouse 13.6, three runs, median (range)); they are an interim check that P5 did not regress the build, **not the gate**. Production rows are the same-day P2b measurements further down (same methods).
+
+**To run the gate (owner, once):** Vercel → the project → Settings → **Deployment Protection** → **Protection Bypass for Automation** → enable → copy the generated secret. On this machine create the untracked file `.env.perf.local` in the repo root with one line `VERCEL_AUTOMATION_BYPASS_SECRET=<the secret>` (`.env*.local` is git-ignored; never paste the secret in chat or a PR). Then:
+
+```
+node scripts/perf-preview.mjs preview https://cha-jewels-web-git-redesign-lumiere-cha-jewels.vercel.app /ja,/en,/en/collections/rings,/en/products/<a real product slug with Hub photos>,/cart
+LH_BASE=https://www.chajewelsjp.com node scripts/perf-preview.mjs production /ja,/en,/en/collections/rings,/en/products/<the same slug>,/cart
+```
+The script sends the bypass header through a private temporary file (the secret is never on a command line or printed), runs mobile (simulated Slow 4G / 4× CPU), desktop and mobile "applied" (devtools throttling), prints a markdown table, and stops with the same instruction if a page still redirects to Vercel's sign-in.
+
+| Page | Method | Production (P2b) | P4b (local) | **P5 (local, interim)** |
+|---|---|---|---|---|
+| `/ja` mobile | lab | 82 · 4.24 s · TBT 56 ms | 83 · 4.40 s · 111 ms | **83 (82–83) · 4.48 s · TBT 111 ms** |
+| `/en` mobile | lab | 81 · 4.38 s · TBT 78 ms | 79 · 4.99 s · 168 ms | **81 (78–82) · 4.49 s · TBT 157 ms** |
+| `/ja` · `/en` desktop | lab | 97 / 98 | 98 / 98 | **99 / 99** (LCP 0.92 / 0.95 s) |
+| `/en/collections/rings` mobile · desktop | lab | 83 · 4.40 s / 99 | 85 · 4.23 s / 100 | **86 · 4.15 s · TBT 10 ms / 100 · 0.76 s** |
+| product (`kihei-chain-50-cm`) mobile · desktop | lab | 86 · 3.94 s / 99 | 86 · 4.12 s / 99 | **84 · 4.52 s · TBT 17 ms / 99 · 0.89 s** |
+| `/cart` mobile · desktop | lab | not recorded | 90 · 3.62 s / 99 | **89 · 3.78 s · TBT 6 ms / 100 · 0.81 s** |
+| `/ja` · `/en` mobile | applied | 55 · 5.06 s / 59 · 4.77 s | 76 · 2.37 s / 69 · 2.56 s | **78 · 2.28 s / 68 · 2.93 s** (TBT 525 / 829 ms) |
+| collection · cart mobile | applied | not recorded | 91 / 84 | **92 · 2.31 s / 86 · 3.10 s** |
+| product mobile | applied | not recorded | 66 · 6.68 s | **68 · 6.67 s** (fixture artefact: the flat vector photograph is not an LCP candidate, so the cookie bar's text is; with a photograph the image is — see P4b) |
+
+**Verdict per page (local, interim):** `/ja` meets production (83 against 82); `/en` mobile meets it on the lab method (81 against 81, TBT 157 ms) and stays under it on the applied method as in every phase since P2 (the curtain's lift waits on hydration; unchanged); desktop meets and exceeds (99 against 97/98); the collection exceeds (86 against 83); the product page is level within run noise (84–86 across P4, P4b and P5 against 86) with the same fixture LCP artefact; `/cart` has no production row. **The verdict that counts is the preview's, with real Hub photographs, and is pending.**
+
+**What the numbers found in P5.** Wiring the Hub's featured pieces into the home added ~45 ms of blocking time on mobile (`/en` 168 → 214 ms, `/ja` 111 → 161 ms; a control build with the slots switched off measured 167 / 108, a second with only the hero cards left on placeholders still measured 230 / 166). The cost was the featured title: a real piece's Hub name ("R3341 Ring K18WG 16.20g Diamond 3.82ct, 0.80ct Dome Sz# 13 [Preloved]") went through the per-letter reveal's wrapping engine. Long names now render as plain wrapped text that cross-fades (the letter reveal stays when every featured name is 16 characters or shorter), and the add-to-cart action and its analytics module load on the click instead of with the home. Result: 157 / 111 ms lab and 829 / 525 ms applied, level with the build before the wiring. Home first load stays 198 kB gz.
+
 ## 2026-11-01 — Lumière redesign P4b: the remaining inner pages recomposed, navigation colours, the account findings
 
 Local production build (fixture mode + a local fake auth endpoint), Lighthouse 13.6, three runs, median (range). `simulate` = method of record; `applied` = `--throttling-method=devtools`. P4 column from the entry below.
