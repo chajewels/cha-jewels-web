@@ -162,3 +162,94 @@ test("isHomePath: /, /en, /ja (trailing slash, query ignored) and nothing else",
   for (const p of ["/", "/en", "/ja", "/en/", "/ja/", "/?lang=en", "/en?x=1", "/ja#top"]) assert.equal(isHomePath(p), true, p);
   for (const p of ["/en/collections", "/about", "/english", "/japan", "/cart", "", null, undefined, "/en/about"]) assert.equal(isHomePath(p), false, String(p));
 });
+
+/* ---------------------------------------------------------------- part B (report §7 home row) */
+const {
+  lumiereWhy,
+  lumiereArrivals,
+  lumiereStories,
+  lumiereLayaway,
+  lumiereLoyalty,
+  lumiereRecentlyViewedTitle,
+  STORIES_ON_HOME,
+} = await import("@/lib/content/lumiere-home");
+const { layawayOffered } = await import("@/lib/layaway-availability");
+
+test("why columns: the four values of the old bento, in order, with the why page as the pill", () => {
+  for (const lang of ["en", "ja"]) {
+    const why = lumiereWhy(lang, `/${lang}/why-cha-jewels`);
+    assert.equal(why.columns.length, 4);
+    assert.deepEqual(why.columns.map((c) => c.index), ["01", "02", "03", "04"]);
+    assert.deepEqual(why.columns.map((c) => c.name), ["Timeless", "Worth", "Craft", "Quality"].map((k) => dict.home[`value${k}H`][lang]));
+    assert.deepEqual(why.columns.map((c) => c.title), ["Timeless", "Worth", "Craft", "Quality"].map((k) => dict.home[`value${k}P`][lang]));
+    assert.equal(why.eyebrow, dict.home.valuesEyebrow[lang]);
+    assert.equal(why.heading, dict.home.valuesH[lang]);
+    assert.equal(why.cta.label, dict.navMenu.why[lang]);
+    assert.equal(why.cta.href, `/${lang}/why-cha-jewels`);
+  }
+});
+
+test("new arrivals: the old section's strings, plus the carousel's own labels with their slots", () => {
+  for (const lang of ["en", "ja"]) {
+    const a = lumiereArrivals(lang);
+    assert.equal(a.eyebrow, dict.home.newEyebrow[lang]);
+    assert.equal(a.heading, dict.home.newH[lang]);
+    assert.equal(a.viewAll, dict.home.viewAll[lang]);
+    assert.equal(a.detail, dict.home.newDetail[lang]);
+    assert.equal(a.checked, dict.home.trust1H[lang]);
+    assert.ok(a.goTo.includes("{name}") && a.count.includes("{n}") && a.count.includes("{total}"));
+    for (const v of Object.values(a)) assert.ok(typeof v === "string" && v.length > 0);
+  }
+});
+
+test("stories: the old heading block, 'Verified buyer' from reviews, six on the home", () => {
+  assert.equal(STORIES_ON_HOME, 6);
+  for (const lang of ["en", "ja"]) {
+    const s = lumiereStories(lang);
+    assert.equal(s.eyebrow, dict.home.testiEyebrow[lang]);
+    assert.equal(s.heading, dict.home.testiH[lang]);
+    assert.equal(s.lead, dict.home.testiP[lang]);
+    assert.equal(s.verified, dict.reviews.verified[lang]);
+    assert.ok(s.count.includes("{n}") && s.count.includes("{total}"));
+  }
+});
+
+test("layaway band: every string is home.lay*, three steps, the CTA goes to the pieces (never /layaway); the band is English-only by the availability rule", () => {
+  const en = lumiereLayaway("en", "/en/collections");
+  assert.equal(en.pill, dict.home.layPill.en);
+  assert.equal(en.heading, dict.home.layH.en);
+  assert.equal(en.lead, dict.home.layP.en);
+  assert.deepEqual(en.steps.map((s) => s.title), [1, 2, 3].map((n) => dict.home[`layStep${n}H`].en));
+  assert.deepEqual(en.steps.map((s) => s.body), [1, 2, 3].map((n) => dict.home[`layStep${n}P`].en));
+  assert.deepEqual(en.steps.map((s) => s.index), ["01", "02", "03"]);
+  assert.equal(en.calculator.title, dict.home.layCalcH.en);
+  assert.equal(en.cta.label, dict.home.layCta.en);
+  assert.equal(en.cta.href, "/en/collections");
+  assert.ok(!en.cta.href.includes("layaway"));
+  // The section itself gates on layawayOffered (components/lumiere/layaway/layaway-section.tsx).
+  assert.equal(layawayOffered("en"), true);
+  assert.equal(layawayOffered("ja"), false);
+});
+
+test("loyalty band (D-21): the programme page's own strings, figures as the lede's words, the pill to /loyalty", () => {
+  for (const lang of ["en", "ja"]) {
+    const l = lumiereLoyalty(lang, `/${lang}/loyalty`);
+    assert.equal(l.eyebrow, dict.nav.loyalty[lang]);
+    assert.equal(l.heading, dict.loyalty.h1[lang]);
+    assert.equal(l.lead, dict.meta.loyalty.description[lang]);
+    assert.deepEqual(l.cells.map((c) => c.value), [dict.loyalty.baseRateValue[lang], dict.loyalty.pointValueValue[lang]]);
+    assert.deepEqual(l.cells.map((c) => c.label), [dict.loyalty.baseRate[lang], dict.loyalty.pointValue[lang]]);
+    assert.equal(l.note, dict.loyalty.onNextPiece[lang]);
+    assert.equal(l.cta.label, dict.loyalty.join[lang]);
+    assert.equal(l.cta.href, `/${lang}/loyalty`);
+    assert.equal(lumiereRecentlyViewedTitle(lang), dict.pdp.recentlyViewed[lang]);
+  }
+});
+
+test("part B copy: no British spelling, no origin claim, no invented figures", () => {
+  for (const lang of ["en", "ja"]) {
+    const all = JSON.stringify([lumiereWhy(lang, "/x"), lumiereArrivals(lang), lumiereStories(lang), lumiereLayaway(lang, "/x"), lumiereLoyalty(lang, "/x")]);
+    assert.ok(!/jeweller/i.test(all), "D-22");
+    assert.ok(!/made in japan|日本製/i.test(all), "origin only via origin-badge");
+  }
+});

@@ -8,6 +8,7 @@ import { dict, type Lang } from "@/lib/i18n";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
 import { RollingValue } from "@/components/fx/rolling";
+import { DigitRoll } from "@/components/lumiere/common/digit-roll";
 import { useReduced } from "@/components/fx/media";
 import { DUR, EASE_LUX, RISE, STAGGER } from "@/lib/motion";
 
@@ -31,8 +32,40 @@ const TONES = {
     cellValue: "mt-1 block font-display text-2xl font-normal text-charcoal-deep",
     cellMonthly: "mt-1 block font-display text-2xl font-normal text-gold-dark",
     note: "text-xs text-charcoal/70",
+    // The term buttons, exactly the literals the markup carried before the
+    // Lumière variant existed (the default output is byte-identical).
+    termOn: "border-charcoal-deep bg-charcoal-deep text-white",
+    termOff: "border-hairline bg-chalk text-charcoal hover:border-charcoal/40",
+    headerTitle: "font-display text-xl text-charcoal-deep",
+    headerSub: "mt-0.5 text-xs text-charcoal/70",
+    chip: "inline-flex shrink-0 items-center gap-1.5 rounded-full bg-chalk px-2.5 py-1 text-[11px] font-semibold text-charcoal",
+  },
+  /**
+   * LUMIÈRE (redesign/lumiere P2, the home's layaway band): the same form on
+   * the paper palette — white card, hairline grey-300 rules, black pills, no
+   * orange (DESIGN-LUMIERE.md). Black at 70 % on white is 5.9:1
+   * (scripts/check-contrast.mjs rows). The figures use the Brewns digit roll.
+   */
+  lumiere: {
+    form: "grid gap-5 rounded-[26px] border border-black/[.08] bg-white p-6 text-sm text-content shadow-[0_1px_2px_rgba(28,22,16,.06),0_40px_80px_-34px_rgba(40,30,20,.4)]",
+    label: "grid gap-1.5 text-black/70",
+    field: "min-h-11 rounded-[8px] border border-border-muted bg-surface px-3 text-content",
+    toggle: "flex w-fit overflow-hidden rounded-full border border-border-muted text-xs",
+    toggleOn: "bg-content text-content-inverse",
+    toggleOff: "text-black/70",
+    cellKey: "text-xs text-black/70",
+    cellValue: "mt-1 block font-serif text-[28px] font-normal leading-none text-content",
+    cellMonthly: "mt-1 block font-serif text-[28px] font-normal leading-none text-content",
+    note: "text-xs text-black/70",
+    termOn: "border-content bg-content text-content-inverse rounded-full",
+    termOff: "border-border-muted bg-surface text-content hover:border-black/40 rounded-full",
+    headerTitle: "font-serif text-2xl text-content",
+    headerSub: "mt-0.5 text-xs text-black/70",
+    chip: "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border-muted px-2.5 py-1 text-[11px] font-medium text-content",
   },
 } as const;
+
+export type LayawayCalculatorVariant = keyof typeof TONES;
 
 /**
  * Renders numbers returned by the shared RPC, in the currency the customer
@@ -46,12 +79,18 @@ const TONES = {
  * furniture (the homepage passes them); with neither, and tone "dark", the
  * markup is exactly what it was before the prop existed.
  */
-export function LayawayCalculator({ lang, initialPrice = 150000, className, header, cta, fixedPiece = false }: {
+export function LayawayCalculator({ lang, initialPrice = 150000, className, header, cta, fixedPiece = false, variant = "light" }: {
   lang: Lang;
   initialPrice?: number;
   className?: string;
   header?: { title: string; sub: string; chip: string };
   cta?: { label: string; href: string };
+  /**
+   * The surface: `light` (every existing caller, unchanged) or `lumiere` (the
+   * redesigned home's band — components/lumiere/layaway). The variant picks
+   * classes and the figures' entrance only; state, quote and rules are one.
+   */
+  variant?: LayawayCalculatorVariant;
   /**
    * THE /layaway PAGE'S PIECE MODE (build step 5, comp brand-programmes
    * "layaway"). The price is a real piece's Hub price, chosen by the page, so
@@ -64,7 +103,8 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
   fixedPiece?: boolean;
 }) {
   const c = dict.calc;
-  const s = TONES.light;
+  const s = TONES[variant];
+  const lumiere = variant === "lumiere";
   const [display, setDisplay] = useState<Currency>("JPY");
   // THE RAW STRING, not a number. `Number("") || 0` turned an empty field into
   // a price of zero and asked the Hub to quote it, which answered ¥0 down and
@@ -174,10 +214,10 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
       {header && (
         <div className="flex items-start justify-between gap-3 border-b border-hairline pb-4">
           <div>
-            <p className="font-display text-xl text-charcoal-deep">{header.title}</p>
-            <p className="mt-0.5 text-xs text-charcoal/70">{header.sub}</p>
+            <p className={s.headerTitle}>{header.title}</p>
+            <p className={s.headerSub}>{header.sub}</p>
           </div>
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-chalk px-2.5 py-1 text-[11px] font-semibold text-charcoal">
+          <span className={s.chip}>
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-teal" />{header.chip}
           </span>
         </div>
@@ -228,7 +268,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
                   disabled={termOff(tm)}
                   aria-pressed={term === tm.months}
                   onClick={() => setTerm(tm.months)}
-                  className={`min-h-10 rounded-sm border px-3 text-sm ${term === tm.months ? "border-charcoal-deep bg-charcoal-deep text-white" : "border-hairline bg-chalk text-charcoal hover:border-charcoal/40"} disabled:cursor-not-allowed disabled:opacity-50`}
+                  className={`min-h-10 rounded-sm border px-3 text-sm ${term === tm.months ? s.termOn : s.termOff} disabled:cursor-not-allowed disabled:opacity-50`}
                 >
                   {tm.months}{termSuffix(tm)}
                 </button>
@@ -241,9 +281,9 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
         {(["JPY", "PHP"] as const).map((cur) => <button key={cur} type="button" aria-pressed={display === cur} onClick={() => setDisplay(cur)} className={`${fixedPiece ? "min-h-11" : "min-h-9"} px-3 ${display === cur ? (fixedPiece ? "bg-charcoal-deep text-chalk" : s.toggleOn) : s.toggleOff}`}>{cur === "JPY" ? c.jpy[lang] : c.php[lang]}</button>)}
       </div>
       <output ref={cells} aria-live="polite" className={fixedPiece ? "grid border-l border-t border-hairline sm:grid-cols-3" : "grid grid-cols-3 gap-3"}>
-        <Cell k={dpLabel} v={<RollingValue value={shown ? shown.down_payment : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} boxClass={fixedPiece ? PIECE_CELL : undefined} />
-        <Cell k={c.monthly[lang]} v={<RollingValue value={shown ? shown.monthly : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellMonthly} boxClass={fixedPiece ? PIECE_CELL : undefined} />
-        <Cell k={c.total[lang]} v={<RollingValue value={shown ? shown.total : null} format={fmt} />} keyClass={s.cellKey} valueClass={s.cellValue} boxClass={fixedPiece ? PIECE_CELL : undefined} />
+        <Cell k={dpLabel} v={<Figure value={shown ? shown.down_payment : null} format={fmt} lumiere={lumiere} />} keyClass={s.cellKey} valueClass={s.cellValue} boxClass={fixedPiece ? PIECE_CELL : undefined} />
+        <Cell k={c.monthly[lang]} v={<Figure value={shown ? shown.monthly : null} format={fmt} lumiere={lumiere} />} keyClass={s.cellKey} valueClass={s.cellMonthly} boxClass={fixedPiece ? PIECE_CELL : undefined} />
+        <Cell k={c.total[lang]} v={<Figure value={shown ? shown.total : null} format={fmt} lumiere={lumiere} />} keyClass={s.cellKey} valueClass={s.cellValue} boxClass={fixedPiece ? PIECE_CELL : undefined} />
       </output>
       {fixedPiece && !error && validPrice && !pending && <p className={s.note}>{shown?.term_downgraded ? c.unavailableTerm[lang] : c.note[lang]}</p>}
       {cta && (
@@ -252,7 +292,14 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
         // a link, so a keyboard or screen-reader user is the only one who can
         // follow it while the figures are stale. The <Link> is rendered only
         // when there is something current to act on.
-        shown ? (
+        lumiere ? (
+          // The Lumière pill (black on white), the same two states.
+          shown ? (
+            <Link href={cta.href} className={LUMIERE_PILL} data-analytics="layaway-calculator-cta">{cta.label}</Link>
+          ) : (
+            <button type="button" disabled className={`${LUMIERE_PILL} disabled:cursor-not-allowed disabled:opacity-50`}>{cta.label}</button>
+          )
+        ) : shown ? (
           <Button asChild><Link href={cta.href}>{cta.label}</Link></Button>
         ) : (
           // opacity-50 rather than the shared button's 70, and the cursor with
@@ -278,5 +325,20 @@ const FALLBACK_TERMS = [3, 6, 8, 10, 12];
 
 /** Piece mode's result cells: value over label in a hairline ledger (comp). */
 const PIECE_CELL = "border-b border-r border-hairline p-4";
+
+/** The Lumière variant's call to action: a black pill, uppercase Inter Tight. */
+const LUMIERE_PILL = "inline-flex min-h-11 items-center justify-center rounded-full bg-content px-5 text-[13px] font-medium uppercase tracking-[.04em] text-content-inverse transition-opacity hover:opacity-85";
+
+/**
+ * A figure, entering: the site's rolling value (the number counts to the Hub's
+ * figure), or — on the Lumière home — the Brewns digit roll (each digit rolls
+ * into place). Both are display only: `format(value)` is the string shown and
+ * nothing is computed from the amount (scripts/check-money.mjs).
+ */
+function Figure({ value, format, lumiere }: { value: number | null; format: (n: number) => string; lumiere: boolean }) {
+  if (!lumiere) return <RollingValue value={value} format={format} />;
+  if (value === null) return <>—</>;
+  return <DigitRoll value={format(value)} />;
+}
 
 function Cell({ k, v, keyClass, valueClass, boxClass }: { k: string; v: React.ReactNode; keyClass: string; valueClass: string; boxClass?: string }) { return <div className={boxClass}><span className={keyClass}>{k}</span><b className={valueClass}>{v}</b></div>; }

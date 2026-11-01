@@ -278,8 +278,12 @@ export const HeroCluster = () => {
                 src={card.image.src}
                 alt={card.image.alt}
                 fill
-                sizes={isHero ? "100vw" : "(max-width: 768px) 40vw, 30vw"}
-                quality={isHero ? PHOTO_QUALITY : undefined}
+                // The hero card grows to the whole screen; every other card is
+                // drawn at CARD.width design units — 7.3vw at 1440 and above,
+                // 25vw on a phone where the compact ring scales up (measured
+                // 105 px on a 412 screen; Lighthouse "image delivery", P2 A).
+                sizes={isHero ? "100vw" : "(max-width: 767.98px) 26vw, (max-width: 1439.98px) 14vw, 8vw"}
+                quality={PHOTO_QUALITY}
                 priority
                 className="object-cover"
                 style={{ objectPosition: card.objectPosition }}

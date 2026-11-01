@@ -1,4 +1,64 @@
 {
   "buildPath": "comp",
-  "buildPathScope": "Owner decision 2026-09-25: comp-first for the hero, banners and any new page or major section; code-first for small fixes and the audit's smaller Top 10 items."
+  "buildPathScope": "Owner decision 2026-09-25: comp-first for the hero, banners and any new page or major section; code-first for small fixes and the audit's smaller Top 10 items.",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/design-refs/carousel-spotlight/carousel-spotlight.html"
+        ],
+        "createdAt": "2026-11-01T03:07:03.517Z",
+        "reason": "GetLayers reference source saved verbatim as a design fixture in docs/design-refs (not shipped; docs/design-refs/README.md)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "docs/design-refs/carousel-spotlight/carousel-spotlight.html"
+        ],
+        "createdAt": "2026-11-01T03:07:03.547Z",
+        "reason": "GetLayers reference source saved verbatim as a design fixture in docs/design-refs (not shipped; docs/design-refs/README.md)"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "docs/design-refs/carousel-spotlight/carousel-spotlight.html"
+        ],
+        "createdAt": "2026-11-01T03:07:03.570Z",
+        "reason": "GetLayers reference source saved verbatim as a design fixture in docs/design-refs (not shipped; docs/design-refs/README.md)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/design-refs/colonnade/colonnade.html"
+        ],
+        "createdAt": "2026-11-01T03:07:03.593Z",
+        "reason": "GetLayers reference source saved verbatim as a design fixture in docs/design-refs (not shipped; docs/design-refs/README.md)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "docs/design-refs/colonnade/colonnade.html"
+        ],
+        "createdAt": "2026-11-01T03:07:03.618Z",
+        "reason": "GetLayers reference source saved verbatim as a design fixture in docs/design-refs (not shipped; docs/design-refs/README.md)"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "docs/design-refs/colonnade/colonnade.html"
+        ],
+        "createdAt": "2026-11-01T03:07:03.647Z",
+        "reason": "GetLayers reference source saved verbatim as a design fixture in docs/design-refs (not shipped; docs/design-refs/README.md)"
+      }
+    ]
+  }
 }

@@ -1,11 +1,15 @@
 "use client";
 
-// Ported verbatim from the Lumière reference (src/hooks/use-scroll-progress.ts).
-// §10 of docs/tasks/lumiere-p0-report.md moves its per-frame read onto doc-box in P5.
+// Ported from the Lumière reference (src/hooks/use-scroll-progress.ts), with
+// the per-frame `getBoundingClientRect` moved onto doc-box (report §10 step 2,
+// done in P2): the box is measured on size changes only and the viewport
+// position is arithmetic on Lenis's fractional scroll.
 
 import { useEffect, type RefObject } from "react";
 import { useSpringValue, type SpringValue } from "@react-spring/web";
 
+import { createDocBox } from "@/lib/animation/doc-box";
+import { smoothScrollY } from "@/lib/animation/smooth-scroll-y";
 import { subscribeToTicker } from "@/lib/animation/ticker";
 
 /** Run on every frame — a scrubbed value must not lag behind the scroll. */
@@ -45,8 +49,11 @@ export const useScrollProgress = (
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let unsubscribe: (() => void) | null = null;
+    // Measured on size changes only — no layout read per frame (doc-box).
+    const box = createDocBox(target);
     const track = () => {
-      const { top, height } = target.getBoundingClientRect();
+      const { height } = box;
+      const top = box.top - smoothScrollY();
       const viewport = window.innerHeight;
       const travel = (viewport + height) / 2;
       if (travel <= 0) return;
@@ -71,6 +78,7 @@ export const useScrollProgress = (
     return () => {
       observer.disconnect();
       unsubscribe?.();
+      box.dispose();
     };
   }, [measureParent, progress, ref]);
 

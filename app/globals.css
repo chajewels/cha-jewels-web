@@ -5,6 +5,7 @@
    names no current page carries. docs/tasks/lumiere-p0-report.md §2. */
 @import "./lumiere/tokens.css";
 @import "./lumiere/blocks.css";
+@import "./lumiere/sections.css";
 @import "./lumiere/utilities.css";
 @tailwind base;
 @tailwind components;

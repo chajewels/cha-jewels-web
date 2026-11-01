@@ -1,4 +1,4 @@
-import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCheckoutCoupon, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload } from "@/lib/types";
+import type { Category, CheckoutMode, Collection, CutoutStatus, ProductCutout, HubDraft, HubDraftDetail, HubDraftPayResult, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubCartLine, HubLayawayScheduleRow, HubMe, HubOrder, HubCardPayment, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCheckoutCoupon, HubOrderDetail, HubPayResult, HubPointsPreview, HubQuote, HubQuoteItem, HubTier, LayawayQuote, LayawayScheduleRow, LayawayTerm, OrderType, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, TransferMethod, PaidyCheckoutPayload, Testimonial } from "@/lib/types";
 import type { PostComments } from "@/lib/comments";
 import { tiers as localTiers } from "@/lib/loyalty";
 import { normalizeCouponCode } from "@/lib/coupon";
@@ -1405,3 +1405,18 @@ export function verifyReceiptFixture(code: string) {
 }
 /** A one-page blank PDF for the preview download (the real one is drawn by the Hub). */
 export const FIXTURE_RECEIPT_PDF = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n";
+
+/**
+ * FIXTURE testimonials (preview/fixture mode only, like the fixture products
+ * above): what GET /testimonials returns on a preview so the home's customer
+ * stories stack (components/lumiere/stories, P2) can be seen and tested.
+ * Plainly fictional — never the illustrative quotes the live site once fell
+ * back to (removed 2026-09-22; lib/hub-api.ts `testimonials`). The real site
+ * shows the Hub's rows or nothing.
+ */
+export const testimonials: Testimonial[] = [
+  { id: "fx-t-1", customer_name: "Fixture customer A", location: "Tokyo", quote_en: "A fixture testimonial, two lines long,\nto show the stories stack on a preview.", quote_ja: "プレビュー用のサンプルコメントです。\n二行の例です。", item: "K18 pendant (fixture)", rating: 5, testimonial_date: "2026-09-14" },
+  { id: "fx-t-2", customer_name: "Fixture customer B", location: null, quote_en: "A second fixture quote without a location or a rating.", quote_ja: "場所と評価のないサンプルです。", item: null, rating: null, testimonial_date: "2026-07-02" },
+  { id: "fx-t-3", customer_name: "Fixture customer C", location: "Manila", quote_en: "A third fixture quote, English only, with a date and four stars.", quote_ja: null, item: "Preloved watch (fixture)", rating: 4, testimonial_date: "2026-05-20" },
+  { id: "fx-t-4", customer_name: "Fixture customer D", location: "Osaka", quote_en: null, quote_ja: "日本語のみのサンプルコメント。日付なし。", item: null, rating: 5, testimonial_date: null },
+];

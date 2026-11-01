@@ -25,10 +25,17 @@ const C = {
 const LUMIERE = {
   "lm-surface": "#f4f0ec", "lm-content": "#000000", "lm-white": "#ffffff", "lm-black": "#000000",
   "lm-border-muted": "#cfcfd0", "lm-ink": "#1c1c1c",
+  // The spotlight card scrim at its foot: black at 85 % over the darkest a
+  // photograph can be assumed to be at the foot (the scrim itself) — the
+  // composited floor the title sits on. Not a token; the gradient literal is
+  // in app/lumiere/sections.css, which is what the guard below checks.
+  "lm-scrim": "#262626",
 };
 Object.assign(C, LUMIERE);
 const tokens = readFileSync(new URL("../app/lumiere/tokens.css", import.meta.url), "utf8").toLowerCase();
+const sections = readFileSync(new URL("../app/lumiere/sections.css", import.meta.url), "utf8");
 for (const [name, hex] of Object.entries(LUMIERE)) {
+  if (name === "lm-scrim") { if (!/rgb\(0 0 0 \/ 0\.85\) 0%/.test(sections)) { console.error("check-contrast: the spotlight scrim is no longer black/85 at the foot — lm-scrim is stale"); process.exit(1); } continue; }
   if (!tokens.includes(hex.toLowerCase())) { console.error(`check-contrast: ${name} ${hex} is not in app/lumiere/tokens.css — table is stale`); process.exit(1); }
 }
 
@@ -80,6 +87,21 @@ add("lumiere: footer dim white/50 on black", "lm-white", "lm-black", TEXT, 0.5);
 add("lumiere: footer dim white/55 on black (below 1440)", "lm-white", "lm-black", TEXT, 0.55);
 add("lumiere: footer rule white/20 on black (non-text, decorative hairline — recorded, not gated)", "lm-white", "lm-black", 1, 0.2);
 add("lumiere: preloader count white/30 on black (decorative percentage; the rule carries the progress)", "lm-white", "lm-black", 1, 0.3);
+// PART B (app/lumiere/sections.css): the eyebrows, leads, dates and names are
+// black at 60 % / 70 % on the paper and on the white cards; the loyalty band's
+// dim role is white at 60 % / 70 % on black; the spotlight card title is white
+// over the card scrim (black at 85 %, the reference's); the calculator's
+// Lumière variant sets its secondary text black/70 on white.
+add("lumiere B: black/60 eyebrow, date, count on surface", "lm-content", "lm-surface", TEXT, 0.6);
+add("lumiere B: black/70 lead, name, meta on surface", "lm-content", "lm-surface", TEXT, 0.7);
+add("lumiere B: black/60 date on white card", "lm-content", "lm-white", TEXT, 0.6);
+add("lumiere B: black/70 calculator secondary text on white", "lm-content", "lm-white", TEXT, 0.7);
+add("lumiere B: ink-900 quote on white card", "lm-ink", "lm-white", TEXT);
+add("lumiere B: loyalty white/60 label on black", "lm-white", "lm-black", TEXT, 0.6);
+add("lumiere B: loyalty white/70 lead on black", "lm-white", "lm-black", TEXT, 0.7);
+add("lumiere B: spotlight card title white over the black/85 scrim (foot of the photo)", "lm-white", "lm-scrim", TEXT);
+add("lumiere B: pill white on black (CTAs)", "lm-white", "lm-black", TEXT);
+add("lumiere B: hairline grey-300 on surface (non-text, decorative — recorded, not gated)", "lm-border-muted", "lm-surface", 1);
 // Muted labels on the LIGHT surfaces, added 2026-09-21 with the Company nav
 // and /contact. Both shipped at an alpha that measured under 4.5 and axe caught
 // it: charcoal/55 is 3.16 on chalk, and the menu panel's charcoal/50 is 2.85 on

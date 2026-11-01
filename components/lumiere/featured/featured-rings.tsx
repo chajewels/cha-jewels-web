@@ -19,9 +19,19 @@ import { ringOnStrip } from "./featured-trajectory";
 import { RING_3D, SLOTS } from "./featured.config";
 import { useFeaturedContent } from "./featured-content";
 import { markRingsReady } from "@/lib/scene/rings-ready";
+import { whenPendantReady } from "@/lib/scene/pendant-ready";
+import { loadSceneLibraries } from "@/lib/scene/load-libraries";
 
 /** Start loading the scene this far before the block scrolls in (§4). */
 const LOAD_MARGIN = "150% 0px";
+/**
+ * The most the build waits for the pendant's first frame. A pendant that kept
+ * its poster (no WebGL 2, a load error) resolves at once; a slow one holds the
+ * rings this long and no longer.
+ */
+const PENDANT_WAIT_MS = 4000;
+/** Idle slot the build asks for once it may start; a busy phone gets it by then anyway. */
+const IDLE_TIMEOUT_MS = 1500;
 /** Render only while the block is on, or about to be on, screen. */
 const RENDER_MARGIN = "25% 0px";
 
@@ -136,7 +146,8 @@ export const FeaturedRings = () => {
       canvas.className = "block h-full w-full";
       mount.appendChild(canvas);
 
-      import("@/lib/scene/rings/rings-scene")
+      loadSceneLibraries()
+        .then(() => import("@/lib/scene/rings/rings-scene"))
         .then(({ RingsScene: Scene }) =>
           Scene.create(
             canvas as HTMLCanvasElement,
@@ -194,29 +205,42 @@ export const FeaturedRings = () => {
         });
     };
 
-    // Built once, at mount — under the preloader's curtain, which waits for it
-    // (capped). Built as the block approached, it landed in scroll frames: a
-    // 225 ms, then a 100 ms script task in collections; built in idle after the
-    // entrance, its GPU work stalled hero frames (67 ms, 3/3, 4× phone). The
-    // observer stays as a guard. Drawn only while it is near view.
+    // AFTER THE PENDANT'S FIRST FRAME, AS THE BLOCK NEARS, IN IDLE (P2, report
+    // §10 step 3). The reference built the rings at mount under its curtain,
+    // which on a phone meant the curtain waited for a second scene (context,
+    // PMREM, five compiles) two screens below the fold, or lifted on its cap.
+    // Here the build may start only once the hero's own scene has drawn (or
+    // given up), and then only when the block is within a viewport and a half
+    // — in an idle slot, so the hero's entrance frames are never shared with
+    // it. The scene's own `yieldTask` steps keep each piece of the build short.
     let isStarted = false;
+    let isNear = false;
+    let pendantDone = false;
+    const whenIdle = (run: () => void) => {
+      if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(run, { timeout: IDLE_TIMEOUT_MS });
+      else setTimeout(run, 50);
+    };
     const startOnce = () => {
-      if (isStarted || isDisposed) return;
+      if (isStarted || isDisposed || !isNear || !pendantDone) return;
       isStarted = true;
       loadObserver.disconnect();
-      start();
+      whenIdle(() => {
+        if (!isDisposed) start();
+      });
     };
     const loadObserver = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) startOnce();
+        isNear = entry.isIntersecting;
+        startOnce();
       },
       { rootMargin: LOAD_MARGIN },
     );
     loadObserver.observe(container);
     cleanups.push(() => loadObserver.disconnect());
-
-    // Under the curtain: the preloader waits for it (whenRingsReady, capped).
-    startOnce();
+    whenPendantReady(PENDANT_WAIT_MS).then(() => {
+      pendantDone = true;
+      startOnce();
+    });
 
     const viewObserver = new IntersectionObserver(
       ([entry]) => {

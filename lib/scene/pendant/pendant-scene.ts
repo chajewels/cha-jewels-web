@@ -40,7 +40,9 @@ import {
  * against their own facets, and everything reflects the same studio.
  */
 
-export const PENDANT_MODEL_URL = "/lumiere/placeholder/models/pendant-emerald.glb";
+import { PENDANT_MODEL_URL } from "./pendant-assets";
+
+export { PENDANT_MODEL_URL };
 
 /** Where the pendant sits in its box, both as fractions of the box. */
 export interface PendantFraming {

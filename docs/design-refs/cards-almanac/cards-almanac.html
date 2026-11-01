@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Section · Almanac</title>
+<!--
+  GetLayers · Section — Almanac
+  A self-contained, premium "sticky card stack." A column of dated dispatch cards (cover art +
+  note + tag + save button) that each pin to the viewport as you scroll; the next card slides up
+  and overlays the one before it, one on one, building a pile whose earlier cards peek at the top.
+  Pure HTML/CSS/JS — no WebGL, no libraries, no images (covers are CSS mesh gradients), no fonts.
+  Core stacking is CSS `position: sticky`; a scroll rAF loop adds depth (subtle scale + dim on the
+  buried cards) and drives the counter. Responsive, accessible, honours prefers-reduced-motion.
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+
+  /* ---- CONFIG → CSS custom properties (mirror the JS CONFIG below) ---- */
+  #section {
+    --bg:      #f1f0ed;   /* page wash */
+    --card:    #ffffff;   /* card surface */
+    --ink:     #1a1917;   /* primary text */
+    --muted:   rgba(26,25,23,.5);
+    --faint:   rgba(26,25,23,.32);
+    --line:    rgba(26,25,23,.08);
+    --accent:  #ff6a2b;   /* warm accent */
+  }
+
+  #section {
+    position: relative; min-height: 100svh;
+    background:
+      radial-gradient(120% 80% at 50% -8%, #fbfaf8 0%, var(--bg) 60%),
+      var(--bg);
+    color: var(--ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 clamp(16px, 4vw, 40px) clamp(60px, 12vh, 140px);
+  }
+
+  /* ---- intro (compact header — the first card sits right under it) ---- */
+  .intro { max-width: 640px; margin: 0 auto; text-align: center;
+    padding: clamp(48px, 10vh, 104px) 0 clamp(16px, 3vh, 34px); }
+  .intro__eyebrow { font: 600 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
+  .intro__title { margin: 0; font-size: clamp(38px, 6.4vw, 72px); font-weight: 700;
+    letter-spacing: -.035em; line-height: .98; }
+  .intro__sub { margin: 18px auto 0; max-width: 44ch; color: var(--muted); font-size: clamp(14px, 1.4vw, 16.5px); }
+
+  /* ---- the stack (big cards ≈ 80vw) ---- */
+  .stack { width: min(80vw, 1080px); margin: 0 auto; }
+  .card {
+    position: sticky; top: var(--top, 88px);
+    margin: 0 0 var(--gap, 46vh);
+    background: var(--card); border-radius: clamp(18px, 2vw, 26px);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(28,22,16,.06), 0 40px 80px -34px rgba(40,30,20,.4);
+    padding: clamp(14px, 1.4vw, 20px);
+    display: grid;
+    grid-template-columns: minmax(180px, 42%) 1fr;
+    grid-template-rows: 1fr auto;
+    gap: clamp(16px, 1.6vw, 26px);
+    min-height: clamp(300px, 46vh, 480px);
+    transform-origin: 50% 0;
+    will-change: transform, filter;
+  }
+  .card:last-child { margin-bottom: 0; }
+  .tail { height: clamp(52vh, 66vh, 74vh); }   /* scroll room so the last card fully rises + rests on top */
+
+  .card__media { grid-column: 1; grid-row: 1 / span 2; position: relative;
+    border-radius: clamp(12px, 1.2vw, 18px); overflow: hidden; min-height: 210px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); }
+  .card__cover { position: absolute; inset: 0; background-size: cover; background-position: center;
+    transform-origin: center; will-change: transform;
+    transform: scale(1.12); transition: transform 1.15s cubic-bezier(.2,.7,.2,1); }
+
+  .card__body { grid-column: 2; grid-row: 1; padding: 8px clamp(4px, 1vw, 18px) 0 clamp(4px, 1vw, 10px);
+    display: flex; flex-direction: column; }
+  .card__date { margin: 0 0 clamp(12px, 1.4vw, 22px); font-size: clamp(12.5px, 1vw, 14px); color: var(--faint); }
+  .card__text { margin: 0; max-width: 46ch; font-size: clamp(15px, 1.5vw, 22px); line-height: 1.42;
+    font-weight: 450; letter-spacing: -.01em; color: #2a2825; }
+
+  .card__foot { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 0 clamp(4px, 1vw, 12px); }
+  .card__tag { border: 0; cursor: pointer; padding: 8px 15px; border-radius: 999px;
+    font: 500 12.5px/1 inherit; color: #4a463f; background: #f2f1ee;
+    transition: background .18s ease, color .18s ease; }
+  .card__tag:hover { background: color-mix(in srgb, var(--accent) 14%, #f2f1ee); color: var(--accent); }
+  .card__add { flex: none; width: 42px; height: 42px; border: 0; border-radius: 50%; cursor: pointer;
+    display: grid; place-items: center; color: #fff; background: var(--ink);
+    transition: background .22s ease, transform .18s ease; }
+  .card__add:hover { transform: scale(1.06); }
+  .card__add:active { transform: scale(.94); }
+  .card__add.-saved { background: var(--accent); }
+  .card__add svg { width: 18px; height: 18px; }
+  .card__add .i-check { display: none; }
+  .card__add.-saved .i-plus { display: none; }
+  .card__add.-saved .i-check { display: block; }
+
+  .card__tag:focus-visible, .card__add:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* reveal-on-arrival — JS toggles .-in when a card reaches its pin */
+  .card__date, .card__text, .card__foot { opacity: 0; transform: translateY(20px);
+    transition: opacity .6s ease, transform .65s cubic-bezier(.2,.7,.2,1); }
+  .card.-in .card__cover { transform: scale(1); }
+  .card.-in .card__date  { opacity: 1; transform: none; transition-delay: .12s; }
+  .card.-in .card__text  { opacity: 1; transform: none; transition-delay: .2s; }
+  .card.-in .card__foot  { opacity: 1; transform: none; transition-delay: .3s; }
+
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---- tablet ---- */
+  @media (max-width: 900px) {
+    .stack { width: 86vw; }
+    .card { min-height: clamp(280px, 42vh, 420px); }
+  }
+  /* ---- mobile: stack the card vertically (cover on top) ---- */
+  @media (max-width: 620px) {
+    .stack { width: 92vw; }
+    .card { grid-template-columns: 1fr; grid-template-rows: auto auto auto;
+      min-height: 0; gap: 13px; padding: 12px; border-radius: 20px; }
+    .card__media { grid-column: 1; grid-row: 1; aspect-ratio: 16 / 10; min-height: 0; }
+    .card__body { grid-column: 1; grid-row: 2; padding: 2px 4px 0; }
+    .card__foot { grid-column: 1; grid-row: 3; padding: 0 4px; }
+    .card__text { font-size: 15.5px; max-width: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card__cover { transform: none !important; transition: none !important; }
+    .card__date, .card__text, .card__foot { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<section id="section" aria-label="Almanac — a stack of dispatch cards">
+  <div class="intro">
+    <p class="intro__eyebrow" id="introEyebrow"></p>
+    <h1 class="intro__title" id="introTitle"></h1>
+    <p class="intro__sub" id="introSub"></p>
+  </div>
+
+  <div class="stack" id="stack"><!-- cards injected from CONFIG.cards --></div>
+
+  <div class="sr" id="live" aria-live="polite"></div>
+</section>
+
+<script type="module">
+/* ============================================================
+   CONFIG — every tunable value. Colors are '#rrggbb'; covers are
+   any CSS background string; the rest numbers/strings. The single
+   place to art-direct the section.
+============================================================ */
+const CONFIG = {
+  accent: '#ff6a2b',
+
+  intro: {
+    eyebrow: 'Almanac · 2025',
+    title: 'Recent dispatches',
+    subtitle: 'A running log of studies in colour, light and form. Scroll to leaf through the stack — each note pins, and the next slides up over it.',
+  },
+
+  // the stack feel
+  stack: {
+    baseVh:     5,    // floor: never pin a card higher than this (cards otherwise centre in the viewport)
+    peekPx:     34,   // vertical offset per card → how much of each earlier card peeks above the next
+    gapVh:      46,   // scroll length (vh) between cards → the pacing of the reveal
+    revealPx:   480,  // distance over which an incoming card eases from "arriving" to "pinned"
+    revealAt:   0.5,  // reveal a card's text/image once this fraction of it is on screen (0.5 = half seen)
+    persp:      1500, // 3D perspective (px) applied per card — smaller = stronger incline
+    arriveTilt: 15,   // deg an incoming card is inclined as it rises, easing to flat when it pins
+    buriedTilt: 3,    // deg each buried card reclines back per card stacked on top
+    scaleStep:  0.035,// how much each buried card shrinks per card on top
+    dimStep:    0.02, // how much each buried card dims per card on top
+    liftPx:     4,    // how much each buried card tucks up per card on top
+  },
+
+  cards: [
+    { date: 'Published on July 18, 2025', tag: 'light',  img: 'assets/almanac/lantern.webp',
+      body: 'Ribbons of warm light suspended in the dark — tubular forms sweeping diagonally across a near-black frame, oranges and cool blues folding past one another.' },
+    { date: 'Published 6 days ago', tag: 'liquid', img: 'assets/almanac/nectar.webp',
+      body: 'Molten colour swirls like warm glass; reds and greens fold into one another with no hard edge anywhere in sight.' },
+    { date: 'Published on June 30, 2025', tag: 'radial', img: 'assets/almanac/frond.webp',
+      body: 'A fan of luminous blades opens from a single point, violet giving way to green as it spreads.' },
+    { date: 'Published on June 12, 2025', tag: 'pour',  img: 'assets/almanac/tidepool.webp',
+      body: 'Poured pigment pools into little cells — gold shot through with veins of deep, restless blue.' },
+    { date: 'Published on May 28, 2025', tag: 'bloom', img: 'assets/almanac/dahlia.webp',
+      body: 'Petals unfurl in hot pink and gold, a bright bloom caught exactly mid-open.' },
+    { date: 'Published on May 9, 2025', tag: 'marble', img: 'assets/almanac/delta.webp',
+      body: 'Rivers of colour braid through stone — a slow marble caught in the middle of its motion.' },
+  ],
+}
+
+/* ---------- apply CONFIG ---------- */
+const $ = id => document.getElementById(id)
+const section = $('section'), stack = $('stack'), live = $('live')
+section.style.setProperty('--accent', CONFIG.accent)
+section.style.setProperty('--gap', CONFIG.stack.gapVh + 'vh')
+
+$('introEyebrow').textContent = CONFIG.intro.eyebrow
+$('introTitle').textContent   = CONFIG.intro.title
+$('introSub').textContent     = CONFIG.intro.subtitle
+
+const N = CONFIG.cards.length
+const shown = new Array(N).fill(false)   // reveal-animation state per card
+
+const PLUS  = '<svg class="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+const CHECK = '<svg class="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+
+const cards = CONFIG.cards.map((c, i) => {
+  const el = document.createElement('article')
+  el.className = 'card'
+  el.innerHTML = `
+    <div class="card__media">
+      <div class="card__cover" style="background-image:url('${c.img}')"></div>
+    </div>
+    <div class="card__body">
+      <p class="card__date">${c.date}</p>
+      <p class="card__text">${c.body}</p>
+    </div>
+    <div class="card__foot">
+      <button class="card__tag" type="button">${c.tag}</button>
+      <button class="card__add" type="button" aria-label="Save this dispatch" aria-pressed="false">${PLUS}${CHECK}</button>
+    </div>`
+  stack.appendChild(el)
+
+  const add = el.querySelector('.card__add')
+  add.addEventListener('click', () => {
+    const on = add.classList.toggle('-saved')
+    add.setAttribute('aria-pressed', String(on))
+    add.setAttribute('aria-label', on ? 'Saved — click to remove' : 'Save this dispatch')
+  })
+  return el
+})
+stack.insertAdjacentHTML('beforeend', '<div class="tail" aria-hidden="true"></div>')
+
+/* ---------- layout: pin positions + scroll distance ---------- */
+const S = CONFIG.stack
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x))
+let restTops = [], CARDH = 400
+function layout() {
+  const vh = innerHeight
+  const cardH = CARDH = cards[0].offsetHeight    // layout height (ignores transform)
+  // centre the pile: the middle card sits in the middle of the viewport, the rest fan around it
+  const centred = (vh - cardH) / 2 - ((N - 1) / 2) * S.peekPx
+  const base = Math.max(centred, (S.baseVh / 100) * vh)   // never pin above the baseVh floor
+  restTops = cards.map((el, i) => {
+    const t = Math.round(base + i * S.peekPx)
+    el.style.setProperty('--top', t + 'px')
+    return t
+  })
+}
+addEventListener('resize', layout); layout()
+
+/* ---------- depth: buried cards shrink + dim as later cards stack over them ---------- */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+let lastCur = -1, queued = false
+
+function update() {
+  queued = false
+  const vh = innerHeight
+  const revealLine = vh - S.revealAt * CARDH   // a card reveals once its top rises above this (≈ half on screen)
+  const hideLine   = vh - 0.04 * CARDH         // re-arm once it's scrolled almost fully back below
+  // risen[i] ∈ [0,1]: how fully card i has arrived at its pin (drives the incline/depth); tops for reveal
+  const risen = [], tops = []
+  cards.forEach((el, i) => {
+    const top = el.getBoundingClientRect().top
+    tops[i] = top
+    risen[i] = clamp((restTops[i] + S.revealPx - top) / S.revealPx, 0, 1)
+  })
+  // buried[i] = how many later cards are currently stacked over card i (continuous)
+  let suffix = 0
+  for (let i = N - 1; i >= 0; i--) {
+    const b = suffix
+    const el = cards[i]
+    if (reduce) { el.style.transform = ''; el.style.filter = '' }
+    else {
+      // incline while arriving (eases to flat at the pin), recline slightly once buried
+      const rx = S.arriveTilt * (1 - risen[i]) - S.buriedTilt * b
+      el.style.transform =
+        `perspective(${S.persp}px) translateY(${(-b * S.liftPx).toFixed(2)}px) rotateX(${rx.toFixed(2)}deg) scale(${(1 - S.scaleStep * b).toFixed(4)})`
+      el.style.filter = `brightness(${(1 - S.dimStep * b).toFixed(4)})`
+    }
+    el.style.zIndex = 10 + i
+    // reveal the card's cover + text once ~half of it is on screen; re-arm when it's back below
+    if (!shown[i] && tops[i] <= revealLine) { el.classList.add('-in'); shown[i] = true }
+    else if (shown[i] && tops[i] >= hideLine) { el.classList.remove('-in'); shown[i] = false }
+    suffix += risen[i]
+  }
+  // announce the active card (a11y)
+  const cur = clamp(Math.round(risen.reduce((a, r) => a + r, 0)), 1, N)
+  if (cur !== lastCur) { lastCur = cur; live.textContent = `Card ${cur} of ${N}` }
+}
+function onScroll() { if (!queued) { queued = true; requestAnimationFrame(update) } }
+addEventListener('scroll', onScroll, { passive: true })
+addEventListener('resize', onScroll)
+update()
+</script>
+</body>
+</html>

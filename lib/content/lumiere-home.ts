@@ -320,3 +320,176 @@ export const LUMIERE_HOME_STRINGS: Record<Lang, { loading: string; collectionsIn
   // §13 row 29: the Japanese footer label fits in full (特定商取引法に基づく表記, 168 u); only the English is shortened.
   ja: { loading: "読み込み中", collectionsIndex: "コレクション", menuTitle: "メニュー", accountTitle: "マイアカウント", corporateNo: "法人番号", legalNotice: "特定商取引法に基づく表記" },
 };
+
+/* ---------------------------------------------------------------- part B: the existing home's sections (report §7 home row, §8) */
+
+/**
+ * WHY COLUMNS — the Colonnade reference (docs/design-refs/colonnade). The four
+ * values of the old home's bento (`home.value*H/P`, FIX 4 kept their names in
+ * the philosophy block) fold here as the four chapters; the pill goes to
+ * /why-cha-jewels (`navMenu.why`). Nothing is new copy.
+ */
+export interface LumiereWhyColumn {
+  index: string;
+  /** `home.value*H` — the chapter's name on the column. */
+  name: string;
+  /** `home.value*P` — the chapter's line in the swapping headline. */
+  title: string;
+}
+export interface LumiereWhyContent {
+  eyebrow: string;
+  heading: string;
+  columns: LumiereWhyColumn[];
+  cta: { label: string; href: string };
+  tablistLabel: string;
+}
+const WHY_VALUES = ["Timeless", "Worth", "Craft", "Quality"] as const;
+export const lumiereWhy = (lang: Lang, whyHref: string): LumiereWhyContent => ({
+  eyebrow: dict.home.valuesEyebrow[lang],
+  heading: dict.home.valuesH[lang],
+  columns: WHY_VALUES.map((value, i) => ({
+    index: `0${i + 1}`,
+    name: dict.home[`value${value}H`][lang],
+    title: dict.home[`value${value}P`][lang],
+  })),
+  cta: { label: dict.navMenu.why[lang], href: whyHref },
+  tablistLabel: dict.home.valuesH[lang],
+});
+
+/**
+ * NEW ARRIVALS — the Carousel Spotlight reference (docs/design-refs/
+ * carousel-spotlight). The pieces are the Hub's (`hub.featured`, filtered by
+ * `isShowableArrival` as before); the chrome strings are the old section's
+ * (`home.newEyebrow`, `newH`, `viewAll`, `newDetail`, `trust1H`). The
+ * carousel's own controls need five labels the site never had — listed as
+ * new strings in the P2 report.
+ */
+export interface LumiereArrivalsStrings {
+  eyebrow: string;
+  heading: string;
+  viewAll: string;
+  detail: string;
+  checked: string;
+  /** Carousel controls (new strings). */
+  region: string;
+  prev: string;
+  next: string;
+  /** `{name}` filled per dot. */
+  goTo: string;
+  /** `{n}` / `{total}`, the live counter's screen-reader text. */
+  count: string;
+  hint: string;
+}
+const ARRIVALS_NEW: Record<Lang, Pick<LumiereArrivalsStrings, "region" | "prev" | "next" | "goTo" | "count" | "hint">> = {
+  en: {
+    region: "New arrivals — a turning gallery. Use the left and right arrow keys to move between pieces.",
+    prev: "Previous piece",
+    next: "Next piece",
+    goTo: "Go to {name}",
+    count: "Piece {n} of {total}",
+    hint: "Drag · swipe · arrow keys",
+  },
+  ja: {
+    region: "新着ギャラリー。左右の矢印キーで商品を切り替えられます。",
+    prev: "前の商品",
+    next: "次の商品",
+    goTo: "{name} へ",
+    count: "{total} 点中 {n} 点目",
+    hint: "ドラッグ · スワイプ · 矢印キー",
+  },
+};
+export const lumiereArrivals = (lang: Lang): LumiereArrivalsStrings => ({
+  eyebrow: dict.home.newEyebrow[lang],
+  heading: dict.home.newH[lang],
+  viewAll: dict.home.viewAll[lang],
+  detail: dict.home.newDetail[lang],
+  checked: dict.home.trust1H[lang],
+  ...ARRIVALS_NEW[lang],
+});
+
+/**
+ * CUSTOMER STORIES — the Cards Almanac reference (docs/design-refs/
+ * cards-almanac). The stories are lib/stories.ts's (testimonials + approved
+ * reviews, newest first; a layaway story only where layaway is offered). The
+ * heading block is the old section's (`home.testi*`); "Verified buyer" is
+ * `reviews.verified`. The stack shows the newest `STORIES_ON_HOME`.
+ */
+export const STORIES_ON_HOME = 6;
+export interface LumiereStoriesStrings {
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  verified: string;
+  /** `{n}` / `{total}`, the live announcement (new string). */
+  count: string;
+}
+const STORIES_NEW: Record<Lang, string> = { en: "Story {n} of {total}", ja: "{total} 件中 {n} 件目" };
+export const lumiereStories = (lang: Lang): LumiereStoriesStrings => ({
+  eyebrow: dict.home.testiEyebrow[lang],
+  heading: dict.home.testiH[lang],
+  lead: dict.home.testiP[lang],
+  verified: dict.reviews.verified[lang],
+  count: STORIES_NEW[lang],
+});
+
+/**
+ * THE LAYAWAY BAND (English only, `layawayOffered`): the three steps as a
+ * Cards Almanac stack beside the existing calculator (LayawayCalculator,
+ * logic untouched; its figures roll in with the Brewns digit roll). Every
+ * string is the old band's (`home.lay*`).
+ */
+export interface LumiereLayawayContent {
+  pill: string;
+  heading: string;
+  lead: string;
+  steps: { index: string; title: string; body: string }[];
+  calculator: { title: string; sub: string; chip: string };
+  cta: { label: string; href: string };
+  /** `{n}` / `{total}` (new string, shared with the stories' announcement). */
+  count: string;
+}
+export const lumiereLayaway = (lang: Lang, collectionsHref: string): LumiereLayawayContent => ({
+  pill: dict.home.layPill[lang],
+  heading: dict.home.layH[lang],
+  lead: dict.home.layP[lang],
+  steps: ([1, 2, 3] as const).map((n) => ({
+    index: `0${n}`,
+    title: dict.home[`layStep${n}H`][lang],
+    body: dict.home[`layStep${n}P`][lang],
+  })),
+  calculator: { title: dict.home.layCalcH[lang], sub: dict.home.layCalcP[lang], chip: dict.home.layCalcChip[lang] },
+  // NEVER /layaway (components/commerce/layaway-band.tsx): a layaway starts from a piece.
+  cta: { label: dict.home.layCta[lang], href: collectionsHref },
+  count: STEPS_NEW[lang],
+});
+const STEPS_NEW: Record<Lang, string> = { en: "Step {n} of {total}", ja: "{total} ステップ中 {n}" };
+
+/**
+ * THE LOYALTY BAND (new, D-21) → /loyalty. Every line exists already: the
+ * programme page's own h1 and its two-cell ledger (`loyalty.h1`, `baseRate`,
+ * `pointValue`, `onNextPiece`, `join`), the nav label as the eyebrow, and the
+ * page's one-sentence summary (`seo.loyalty.description`) as the lead. The
+ * figures are the lede's own words set as figures — not computed.
+ */
+export interface LumiereLoyaltyContent {
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  cells: { label: string; value: string }[];
+  note: string;
+  cta: { label: string; href: string };
+}
+export const lumiereLoyalty = (lang: Lang, loyaltyHref: string): LumiereLoyaltyContent => ({
+  eyebrow: dict.nav.loyalty[lang],
+  heading: dict.loyalty.h1[lang],
+  lead: dict.meta.loyalty.description[lang],
+  cells: [
+    { label: dict.loyalty.baseRate[lang], value: dict.loyalty.baseRateValue[lang] },
+    { label: dict.loyalty.pointValue[lang], value: dict.loyalty.pointValueValue[lang] },
+  ],
+  note: dict.loyalty.onNextPiece[lang],
+  cta: { label: dict.loyalty.join[lang], href: loyaltyHref },
+});
+
+/** The recently-viewed strip keeps its component; only the heading is the site's string. */
+export const lumiereRecentlyViewedTitle = (lang: Lang): string => dict.pdp.recentlyViewed[lang];

@@ -14,10 +14,13 @@ import {
 } from "@/lib/scene/device";
 import { reportAssetError } from "@/components/lumiere/common/asset-banner";
 import { markPendantReady } from "@/lib/scene/pendant-ready";
-import {
-  PENDANT_MODEL_URL,
-  type PendantFraming,
-  type PendantScene,
+import { PENDANT_MODEL_URL } from "@/lib/scene/pendant/pendant-assets";
+import { loadSceneLibraries } from "@/lib/scene/load-libraries";
+// `import type` ONLY: a value import here put three.js in the home's first load
+// (lib/scene/pendant/pendant-assets.ts explains).
+import type {
+  PendantFraming,
+  PendantScene,
 } from "@/lib/scene/pendant/pendant-scene";
 
 import { range } from "./hero-geometry";
@@ -32,6 +35,9 @@ import type { HeroTilt } from "./use-hero-tilt";
 import { useHeroContent } from "./hero-content";
 
 
+
+/** The posters at the two full-bleed photographs' quality (report §10 step 1). */
+const POSTER_QUALITY = 82;
 
 /** Warm the scene a viewport before it scrolls in (optimize-3d-scene §4). */
 const IN_VIEW_MARGIN = "100% 0px";
@@ -106,6 +112,9 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
     // on this scene's gate, capped.
     document.fonts.ready
       .catch(() => undefined)
+      // The libraries one task at a time (lib/scene/load-libraries.ts), then
+      // the scene itself.
+      .then(() => loadSceneLibraries())
       .then(() => import("@/lib/scene/pendant/pendant-scene"))
       .then(({ PendantScene: Scene }) =>
         Scene.create(canvas, budget, isAnimated),
@@ -192,6 +201,7 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
           alt={pendant.poster.alt}
           width={PENDANT.width}
           height={PENDANT.height}
+          quality={POSTER_QUALITY}
           loading="eager"
           className="hidden h-full w-full max-w-none object-fill min-[930px]:block"
         />
@@ -201,6 +211,7 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
           alt={pendant.posterCompact.alt}
           width={PENDANT_COMPACT.width}
           height={PENDANT_COMPACT.height}
+          quality={POSTER_QUALITY}
           priority
           fetchPriority="high"
           className="h-full w-full max-w-none object-fill min-[930px]:hidden"

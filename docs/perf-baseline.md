@@ -1,5 +1,60 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P2 (final): the whole home, part A + part B, real-visitor view
+
+Recorded for `docs/tasks/lumiere-p0-report.md` §10 and the P2 PR (`redesign/lumiere-p2-home` → `redesign/lumiere`). The home now carries every section (hero, collections, featured, philosophy, why columns, new arrivals, customer stories, recently viewed, the EN layaway band + calculator, the loyalty band, footer) and the §10 performance work: three.js out of the home's first load (it had been pulled in by a value import — route first load **433 → 238 kB**, the route manifest 1.52 MB → 765 KB), staged scene imports, the curtain's cap counted from first paint with the scenes on a 1.5 s grace that closes 2.5 s after the paint, the rings built after the pendant as the block nears, a home-only `Link: rel=preload` header for the hero faces (next/font's built URLs), the part-B sections as server markup with engines loaded when near, doc-box in every scroll stage, Suspense boundaries under the hero.
+
+**Method.** As the part-A entry below (local production build in fixture mode, Lighthouse 13.6.0, normal Chrome UA, mobile simulated / desktop preset, three runs, median (range), nothing else running). Two passes on the final branch: the first before the Suspense boundaries and the scene deadline, the second (the shipped build) with them — the two are within each other's ranges.
+
+### Before part A — `redesign/lumiere` (P1 rows, the old home)
+
+| Page | Perf | LCP | TBT |
+|---|---|---|---|
+| `/ja` mobile | 83 (81–85) | 4.60 s | 27 ms |
+| `/en` mobile | 81 (80–83) | 5.08 s | 16 ms |
+| `/ja` desktop | 99 | 0.99 s | 0 ms |
+| `/en` desktop | 99 | 0.97 s | 0 ms |
+
+### After part A (part-A entry below)
+
+| Page | Perf | LCP | TBT |
+|---|---|---|---|
+| `/ja` mobile | 73 (73–75) | 5.74 s | 189 ms |
+| `/en` mobile | 74 (73–76) | 6.10 s | 160 ms |
+| `/ja` desktop | 96 (96–99) | 1.27 s | 0 ms |
+| `/en` desktop | 97 (96–99) | 1.24 s | 10 ms |
+
+### Final — part A + part B + the §10 work (first pass)
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` mobile | 74 (69–77) | 5.24 s (4.84 s–6.09 s) | 1.66 s | 242 ms (219 ms–304 ms) | 0.000 | 3.70 s (3.26 s–4.10 s) | 211 ms (196 ms–267 ms) |
+| `/ja` desktop | 97 (97–98) | 1.16 s (1.08 s–1.17 s) | 0.41 s | 1 ms (0 ms–3 ms) | 0.000 | 1.07 s (1.07 s–1.12 s) | 52 ms (50 ms–56 ms) |
+| `/en` mobile | 75 (67–77) | 4.96 s (4.74 s–5.04 s) | 1.66 s | 272 ms (251 ms–539 ms) | 0.000 | 2.72 s (2.66 s–2.98 s) | 238 ms (228 ms–239 ms) |
+| `/en` desktop | 97 (84–97) | 1.19 s (1.16 s–1.24 s) | 0.41 s | 15 ms (6 ms–258 ms) | 0.000 | 1.20 s (0.99 s–1.74 s) | 62 ms (60 ms–235 ms) |
+
+### Final — the shipped build (second pass, Suspense boundaries + scene deadline)
+
+| Page | Perf | LCP | FCP | TBT | CLS | Speed Index | Max potential FID |
+|---|---|---|---|---|---|---|---|
+| `/ja` mobile | 72 (72–73) | 5.42 s (5.20 s–5.58 s) | 1.66 s | 291 ms (281 ms–304 ms) | 0.000 | 3.42 s (3.36 s–3.45 s) | 182 ms (180 ms–185 ms) |
+| `/ja` desktop | 97 (97–97) | 1.27 s (1.19 s–1.27 s) | 0.41 s | 0 ms | 0.000 | 1.05 s (1.01 s–1.08 s) | 44 ms (44 ms–45 ms) |
+| `/en` mobile | 73 (71–73) | 5.12 s (4.89 s–6.01 s) | 1.66 s | 361 ms (216 ms–365 ms) | 0.000 | 2.74 s (2.71 s–2.99 s) | 297 ms (295 ms–303 ms) |
+| `/en` desktop | 97 (97–98) | 1.19 s (1.09 s–1.19 s) | 0.41 s | 14 ms | 0.000 | 0.90 s (0.90 s–0.92 s) | 78 ms (78 ms–78 ms) |
+
+**Reading.** Desktop meets the bar (≥ 97: 97 / 97, LCP 1.2–1.3 s, TBT 0–14 ms). **Mobile does not** — the bar is the P1 rows (83 / 81) with LCP ≤ 4.3 s; the home sits at 72–75 with LCP 5.0–5.4 s and TBT 240–360 ms, roughly where part A was (73 / 74) despite a first load 195 kB lighter, the fonts at 31 ms instead of 940 ms and the scenes off the critical path. The cause, per Lighthouse (`lcp-breakdown`, `long-tasks`, `bootup-time`, the request waterfall):
+
+- **LCP** is the compact pendant poster, and its paint is the curtain's lift. The hero is server-rendered at rest, hidden behind the preloader until React hydrates and the gate's effect runs; on the simulated 4× phone the Next/React runtime (`1255` + `4bd1b696`, 100 kB gz) plus the page's chunks (137 kB gz: the dictionary + site chrome 46 kB, the Lumière components 25 kB, react-spring 18 kB, spring-text-engine 11 kB, …) hydrate in one 185–303 ms task about 3.5–4 s after first paint, so the lift (hydration commit + the 0.4 s settle-and-fade) lands at 5.0–5.4 s. The poster's own request takes 9–15 ms; `elementRenderDelay` is the whole of it.
+- **TBT** is that hydration task (135–250 ms over the 50 ms line) plus the scene build after the lift — the pendant chunk's evaluation and first steps (`8127`, 139–166 ms) and the three.js chunks (74–83 ms each) — all inside the window, because TTI (7–10 s) waits for the scenes' network and CPU to go quiet. The Suspense boundaries did not split the hydration task measurably (second pass).
+
+**What would close it** (not done in P2; each is a design decision):
+1. Lift the curtain before hydration: an inline script that counts the cap from the paint itself and a CSS reveal of the hero at rest, so the poster paints at min(assets ready, cap) rather than at hydration — on a slow phone the entrance choreography then plays late or not at all (the reference always hydrates first).
+2. Cut the first load below ~150 kB gz: the dictionary chunk (every string of both languages, 46 kB gz, on every page) split per route; the site chrome's client code (consent, tab bar, Messenger, search, account) deferred until idle.
+3. Build the scenes only after the TTI window (e.g. five seconds after the lift, or on the first interaction), which takes their ~400 ms of tasks out of TBT at the cost of the pendant arriving later on a phone.
+4. AVIF + a tighter `deviceSizes` ladder for the phone posters (small).
+
+The route stays **flagged**; the P5 gate is the production rows of the P0 entry, per route, plus INP field data. Part B's own sections cost nothing above the fold (server markup; engines loaded only when near — `/en` mobile run 1 requests 75 → 77, script bytes unchanged).
+
 ## 2026-11-01 — Lumière redesign P2 (part A): the Lumière home, real-visitor view
 
 Recorded for `docs/tasks/lumiere-p0-report.md` §10 and the P2 branch `redesign/lumiere-p2-home`. The home page (`/`, `/en`, `/ja`) is now the Lumière home: preloader (once per session, 4 s cap), the pinned hero with the card ring and the 3D emerald pendant, the five-card collections block, the featured stage with the five 3D rings, the philosophy block, and the Lumière header and footer. Part B (the existing secondary sections re-skinned from the GetLayers references) is not in this measurement.
