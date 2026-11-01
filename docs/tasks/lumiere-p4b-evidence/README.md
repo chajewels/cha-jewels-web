@@ -1,5 +1,7 @@
 # P4b evidence
 
+**The screenshots are not in this branch.** Review images are not code history, so they live on the orphan branch **`evidence/lumiere-p4b`** (no parent, never merged): `https://github.com/chajewels/cha-jewels-web/tree/evidence/lumiere-p4b`. This folder keeps the text only (this index, the route table, the Lighthouse tables); `.gitignore` keeps `docs/tasks/lumiere-p*-evidence/**/*.{jpg,jpeg,png,webp,gif}` out of future commits. The folder names below (`after-en/`, `misc/`, `account-nav-widths/` …) are the folders on that branch.
+
 - `route-table.md` — every route × 1440/375 × EN/JA, signed out and signed in (170 rows, all PASS): status, one h1, no horizontal overflow, header and footer, the menu opened (the account dropdown above the page content and opaque when signed in), console clean, JA display lines in the Mincho.
 - `misc/A-*` — findings A1–A4: the account menu open over `/account` and `/account/orders` before and after, the account page at 375, the header after. (Before = the P4 build, #469.)
 - `before-en/` — the pages as P4 left them (EN, 1440). The account-family "before" set was partly captured while that agent's class-replacement script was running, so a few detail pages are already partly restyled; the list pages are clean.
