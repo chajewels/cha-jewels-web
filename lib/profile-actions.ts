@@ -10,6 +10,7 @@ import type { HubProfileInput } from "@/lib/types";
 import { CART_REMINDER_TEXT_VERSION } from "@/lib/cart-reminders";
 import { getLang } from "@/lib/i18n-server";
 import { normalizeMessengerLink } from "@/lib/profile-messenger-link";
+import { ProfileFieldsSchema } from "@/lib/action-schemas";
 
 /**
  * Submits the "Complete your profile" step to the Hub (POST /auth/customer).
@@ -45,6 +46,12 @@ export async function completeProfileAction(form: FormData): Promise<ActionResul
 
   const fullName = str(form, "full_name");
   if (!fullName) return { ok: false, code: "full_name_required" };
+  // W-05: every free-text field capped (lib/action-schemas.ts). The form's own
+  // maxLength is lower, so only a crafted request reaches this refusal.
+  if (!ProfileFieldsSchema.safeParse({
+    full_name: fullName, facebook_name: str(form, "facebook_name"),
+    mobile_number: str(form, "mobile_number"), next: str(form, "next"),
+  }).success) return { ok: false, code: "invalid_input" };
 
   const locationType = str(form, "location_type") as LocationType;
   if (!LOCATION_TYPES.includes(locationType)) return { ok: false, code: "bad_location" };

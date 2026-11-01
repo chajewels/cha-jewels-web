@@ -1,6 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
+import { fileKind, REVIEW_PHOTO_KINDS } from "@/lib/file-magic";
 import { submitReview } from "@/lib/hub-api";
 import {
   REVIEW_BODY_LIMIT_BYTES, REVIEW_MAX, REVIEW_MAX_PHOTOS, REVIEW_MIN,
@@ -50,6 +52,13 @@ export async function reviewAction(formData: FormData): Promise<ReviewState> {
     total += f.size;
   }
   if (total > REVIEW_BODY_LIMIT_BYTES) return "photo_too_large";
+  // W-10: the label is what the browser SAYS; the first bytes decide. A file
+  // that is not really a JPEG, PNG or WebP (no PDF, no HEIC) is "photo_type",
+  // the message the form already shows for a wrong type.
+  for (const f of photos) {
+    const kind = await fileKind(f);
+    if (!kind || !REVIEW_PHOTO_KINDS.includes(kind)) return "photo_type";
+  }
 
   // A fresh body with only the fields the Hub reads: nothing the browser added
   // (the honeypot, the token) is forwarded.
@@ -59,7 +68,7 @@ export async function reviewAction(formData: FormData): Promise<ReviewState> {
   for (const f of photos) out.append("photos", f, f.name || "photo.jpg");
 
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || h.get("x-real-ip") || null;
+  const ip = clientIp(h); // W-06: Vercel-set headers only, an IP literal or nothing
 
   const res = await submitReview(token, out, ip);
   if (res.ok) return "success";

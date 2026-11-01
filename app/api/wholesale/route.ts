@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { hub } from "@/lib/hub-api";
+import { clientIp } from "@/lib/client-ip";
 /** Forwards a wholesale lead to the Hub, which writes it to wholesale_inquiries. */
 const Body = z.object({
   name: z.string().min(1).max(200),
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
   // sending blanks the Hub would store as empty strings.
   const { phone, notes, ...rest } = parsed.data;
   const body = { ...rest, ...(phone ? { phone } : {}), ...(notes ? { notes } : {}) };
-  try { await hub.wholesaleInquiry(body); return NextResponse.json({ ok: true }); }
+  // W-06: the visitor's address, so the Hub's per-IP limit counts her, not this server.
+  try { await hub.wholesaleInquiry(body, clientIp(req.headers)); return NextResponse.json({ ok: true }); }
   catch { return NextResponse.json({ ok: false }, { status: 502 }); }
 }

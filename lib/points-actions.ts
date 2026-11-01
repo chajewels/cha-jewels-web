@@ -3,6 +3,7 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub } from "@/lib/hub-api";
 import { pointsLineFrom, type PointsLine } from "@/lib/points-line";
+import { PREVIEW_FIXTURES } from "@/lib/fixtures-mode";
 
 /**
  * The product page's loyalty-points line (lib/points-line.ts). The page itself
@@ -17,7 +18,8 @@ export async function pointsLineAction(variantId: string): Promise<PointsLine> {
   try {
     if (typeof variantId !== "string" || !/^[\w-]{1,64}$/.test(variantId)) return null;
     // Preview stand-in (lib/fixtures.ts): no Hub and no real session there.
-    if (process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1") {
+    // Never on production (W-04, lib/fixtures-mode.ts).
+    if (PREVIEW_FIXTURES) {
       return pointsLineFrom(await hub.pointsPreview("", [variantId]), variantId);
     }
     const supabase = await supabaseServer();

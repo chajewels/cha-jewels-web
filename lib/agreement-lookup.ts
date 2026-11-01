@@ -1,4 +1,5 @@
 import "server-only";
+import { PREVIEW_FIXTURES } from "@/lib/fixtures-mode";
 
 /**
  * WAS THIS CHECKOUT SESSION SIGNED?
@@ -49,8 +50,12 @@ export type AgreementStatus =
   | { ok: true; signed: false }
   | { ok: false; reason: string };
 
-/** The preview mode that fakes the whole Hub fakes this too — see below. */
-const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
+/**
+ * The preview mode that fakes the whole Hub fakes this too — see below. Never
+ * on production (W-04, lib/fixtures-mode.ts): there the gate always asks the
+ * real signing record and fails closed without it.
+ */
+const FIXTURES = PREVIEW_FIXTURES;
 
 /**
  * 15 s per attempt, at most two attempts.
@@ -91,9 +96,9 @@ export async function agreementStatus(target: AgreementTarget): Promise<Agreemen
   const key = card ? target.order : target;
   // Consistent with every other Hub call in this repo: the fixtures preview
   // fakes the backend wholesale, and a gate that refused everything there would
-  // make the mode useless for reviewing layaway. NEXT_PUBLIC_PREVIEW_FIXTURES
-  // is never set in production — see hub-api.ts, which branches the same way on
-  // the same constant.
+  // make the mode useless for reviewing layaway. PREVIEW_FIXTURES is false on
+  // a production deployment even if the variable is set (lib/fixtures-mode.ts);
+  // hub-api.ts branches the same way on the same constant.
   if (FIXTURES) {
     // The card answer binds the preview order's own customer and amount — what
     // a signature made from the signed link would record — so the preview gate
