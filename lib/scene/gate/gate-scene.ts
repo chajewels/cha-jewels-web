@@ -36,7 +36,7 @@ export const GATE_CONFIG = {
   colCloudDark: "#cdbda2",
   colWaterDeep: "#5f4319",
   colGoldLight: "#e8c37d",
-  colGoldDark: "#2a2724",
+  colGoldDark: "#8a6b12",
   horizon: 0.5,
   sunX: 0.5,
   sunY: 0.6,

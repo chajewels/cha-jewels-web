@@ -93,9 +93,10 @@ export default async function LoyaltyPage() {
                       <Label dark>{t("loyalty", "level", { n: String(i + 1) })}</Label>
                       <h3 className={`mt-1 text-gold-pale ${H_TITLE}`}>{tier.name}</h3>
                     </div>
-                    <p className="lining-nums font-display text-[44px] leading-none text-chalk">
-                      <span className="sr-only">{t("loyalty", "multiplier")}: </span>
-                      {tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}
+                    {/* P4 item 5: the label in the LABEL style, the figure in the display face. */}
+                    <p className="flex flex-col gap-1">
+                      <span className="font-sans text-[11px] font-medium uppercase leading-snug tracking-[0.1em] text-chalk/70 [:lang(ja)_&]:text-xs [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.03em]">{t("loyalty", "multiplier")}</span>
+                      <span className="lining-nums font-display text-[44px] leading-none text-chalk">{tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}</span>
                     </p>
                     <dl className="border-t border-rule">
                       <div className="border-b border-rule py-2.5">

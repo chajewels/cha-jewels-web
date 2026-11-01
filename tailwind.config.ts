@@ -89,7 +89,7 @@ export default {
       // Leading floor for clipped text-engine reveals (the reference's text-engine.md).
       lineHeight: { display: "1.1" },
       spacing: lumiereUnits(),
-      borderColor: { rule: "rgba(201,162,39,.32)", "rule-soft": "rgba(201,162,39,.16)" },
+      borderColor: { rule: "rgba(255,255,255,.2)", "rule-soft": "rgba(255,255,255,.1)" },
       maxWidth: { site: "1240px" },
     },
   },

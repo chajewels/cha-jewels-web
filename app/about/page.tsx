@@ -10,6 +10,7 @@ import { catalogue } from "@/lib/catalog-context";
 import { Eyebrow } from "@/components/site/support-stage";
 import { DarkBand, H_DISPLAY, H_HEAD, H_TITLE, LEDE, LEDE_DARK, Label, Proof, ProofCells, SEC, SEC_S, StageBand, specExample } from "@/components/site/brand-ui";
 import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { ResolveNumber } from "@/components/lumiere/common/resolve-number";
 
 export const generateMetadata = () => pageMeta("about");
 
@@ -87,7 +88,7 @@ export default async function About() {
           <ol className="mt-[18px] grid grid-cols-2 border-t border-rule lg:grid-cols-4">
             {c.timeline.map((e, i) => (
               <li key={e.year} className={`border-rule py-4 pr-3 lg:py-[22px] lg:pr-[22px] ${i % 2 === 1 ? "pl-3 lg:pl-[22px]" : ""} ${i === 2 ? "lg:pl-[22px]" : ""} ${i < 2 ? "border-b lg:border-b-0" : ""} ${i % 2 === 0 ? "border-r" : "lg:border-r"} lg:last:border-r-0`}>
-                <p className="font-display text-[28px] leading-none text-gold-pale lining-nums lg:text-[34px]">{e.year}</p>
+                <p className="font-display text-[28px] leading-none text-gold-pale lining-nums lg:text-[34px]"><ResolveNumber>{e.year}</ResolveNumber></p>
                 <p className="mt-2.5 text-sm leading-relaxed text-chalk/80">{e.text}</p>
               </li>
             ))}
