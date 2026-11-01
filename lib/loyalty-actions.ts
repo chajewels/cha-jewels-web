@@ -2,7 +2,9 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
+import { headers } from "next/headers";
 import { hub, loyaltyEnrol, type EnrolSource } from "@/lib/hub-api";
+import { clientIp } from "@/lib/client-ip";
 
 /**
  * Enrolment from the storefront — at checkout, and on the /loyalty/join page.
@@ -65,7 +67,8 @@ async function enrol(source: EnrolSource, countryCode?: string): Promise<EnrolOu
     const region = REGIONS.has(cc) ? cc : "OTHER";
 
     try {
-      await hub.loyaltyJoin({ name, contact: email, region, lang: await getLang() });
+      // W-06: the visitor's address, so the Hub's per-IP limit counts her, not this server.
+      await hub.loyaltyJoin({ name, contact: email, region, lang: await getLang() }, clientIp(await headers()));
       return { state: "recorded" };
     } catch {
       // Both paths to the Hub are down. The order still stands; that is the

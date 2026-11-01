@@ -1,6 +1,39 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { localeVariants } from "@/lib/locale";
 import { NextResponse } from "next/server";
+
+/**
+ * THE SECRET CHECK (W-08, security batch 2, 2026-11-01).
+ *
+ * Before: `header !== process.env.REVALIDATE_SECRET`. An EMPTY variable then
+ * matched an empty header, so a deploy with REVALIDATE_SECRET="" let anyone
+ * flush the caches; and `!==` returns as soon as a character differs.
+ *
+ * Now: no secret, an empty one, or one shorter than 16 characters refuses
+ * every request (401) and logs ONCE per server instance that the variable is
+ * misconfigured — never the value. A configured secret is compared in
+ * constant time over SHA-256 digests (equal length by construction, so
+ * timingSafeEqual cannot throw and the length is not leaked). The owner's
+ * setting: at least 32 characters, the same value as the Hub's.
+ */
+const MIN_SECRET_LENGTH = 16;
+let misconfiguredLogged = false;
+
+function secretOk(sent: string | null): boolean {
+  const secret = process.env.REVALIDATE_SECRET ?? "";
+  if (secret.length < MIN_SECRET_LENGTH) {
+    if (!misconfiguredLogged) {
+      misconfiguredLogged = true;
+      console.error(`[revalidate] REVALIDATE_SECRET is missing or shorter than ${MIN_SECRET_LENGTH} characters; every request is refused.`);
+    }
+    return false;
+  }
+  if (!sent) return false;
+  const a = createHash("sha256").update(sent, "utf8").digest();
+  const b = createHash("sha256").update(secret, "utf8").digest();
+  return timingSafeEqual(a, b);
+}
 
 /**
  * Cache tags the Hub is allowed to bust.
@@ -59,7 +92,7 @@ const isSlug = (value: unknown): value is string =>
 
 /** Called by the Hub (Lovable edge function `notify_website`) when a product, variant, stock, post, FAQ answer, site setting, approved review or loyalty tier changes. */
 export async function POST(req: Request) {
-  if (req.headers.get("x-revalidate-secret") !== process.env.REVALIDATE_SECRET) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!secretOk(req.headers.get("x-revalidate-secret"))) return NextResponse.json({ ok: false }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as { productSlug?: string; collectionSlug?: string; postSlug?: string; tag?: string; path?: string };
   // Since Phase 2C a resource renders at up to three URLs (bare, /en, /ja), so
   // a Hub change refreshes all of them. localeVariants returns only paths that

@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { hub, HubError } from "@/lib/hub-api";
+import { clientIp } from "@/lib/client-ip";
+import { errorTag } from "@/lib/log-safe";
 import type { ActionResult } from "@/lib/checkout-actions";
 import { AGREEMENT_REQUIRED, AGREEMENT_UNVERIFIED } from "@/lib/layaway-agreement";
 import { agreementStatus } from "@/lib/agreement-lookup";
@@ -108,7 +110,7 @@ export async function cardAuthorizeAction(orderId: string, input: CardAuthorizeI
   // Evidence of the tick, as the Hub records it on the hold (docs/SQUARE.md):
   // the customer's address and browser, from the request that carried it.
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || undefined;
+  const ip = clientIp(h); // W-06: Vercel-set headers only, an IP literal or nothing
   const userAgent = (h.get("user-agent") ?? "").slice(0, 300) || undefined;
 
   try {
@@ -133,7 +135,8 @@ export async function cardAuthorizeAction(orderId: string, input: CardAuthorizeI
     }
     // A timeout or a dropped connection AFTER the request left: Square may
     // have answered. Never "not charged", never "try again" (SQ22).
-    console.error("[cardAuthorizeAction] card request did not complete:", err);
+    // W-09: the name and a short code only, never the error object.
+    console.error("[cardAuthorizeAction] card request did not complete:", errorTag(err));
     return { ok: false, code: "unconfirmed" };
   }
 }
