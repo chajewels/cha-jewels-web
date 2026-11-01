@@ -115,6 +115,16 @@
    THE PHONE TAB BAR: charcoal at rest; the current tab takes the deep gold
    and a gold bar on the top edge of the bar.
    -------------------------------------------------------------------------- */
+/* The bar's surface is OPAQUE bone (P5, finding A2). It was `bg-surface/92`, and Tailwind's opacity modifier
+   cannot split a CSS-variable colour, so no background was generated at all: the bar was transparent and its
+   labels sat on whatever scrolled beneath (the black footer, a dark photograph). */
+.lm-tab-bar {
+  background: var(--surface, #f4f0ec) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-top: 1px solid var(--nav-panel-border);
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.07);
+}
 .lm-tab {
   position: relative;
   color: color-mix(in srgb, var(--nav-ink) 66%, transparent);

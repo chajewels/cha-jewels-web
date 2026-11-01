@@ -374,3 +374,33 @@ body:has(.consent-banner--bar) .messenger-fab {
   .footer--cha .footer__list--two { columns: 1; }
   .footer--cha .footer__giant { font-size: clamp(40px, 13vw, 96px); letter-spacing: 0.03em; }
 }
+
+/* THE MESSENGER BUTTON STEPS ASIDE (P5, finding A1; components/site/messenger-button.tsx): faded out and inert
+   while it would sit on a price, total, button or field. The transition is short so a scrolling reader never
+   meets a half-visible button; reduced motion gets no transition at all. */
+.messenger-fab {
+  transition: opacity 110ms linear, transform 110ms linear, visibility 0s;
+}
+.messenger-fab[data-dodge] {
+  opacity: 0;
+  transform: translateY(10px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 110ms linear, transform 110ms linear, visibility 0s linear 110ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .messenger-fab, .messenger-fab[data-dodge] { transition: none; }
+}
+
+/* THE FEATURED TITLE WITH A REAL (LONG) HUB NAME (P5): the reference's title is one word on one line; a Hub name runs to
+   several words and is never shortened, so it wraps inside the panel, smaller, centred and balanced. */
+.featured .featured__title.featured__title--long {
+  white-space: normal;
+  width: min(80vw, 340px);
+  /* the panel's content box is narrower (its side padding is 228 px at 1440): centre the wider title on it, spilling evenly both sides */
+  margin-inline: calc((100% - min(80vw, 340px)) / 2);
+  font-size: clamp(22px, calc(22px + 6 * (100vw - 375px) / 1065), 28px);
+  line-height: 1.08;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}

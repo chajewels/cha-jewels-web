@@ -156,6 +156,11 @@ add("nav: charcoal/82 side-list label on bone", "nav-ink", "lm-surface", TEXT, 0
 // #8a6b12 is 4.42:1 on bone — under 4.5 — so small gold text on BONE uses the deep gold (6.2:1); #8a6b12 only on white (5.0:1).
 add("nav: gold-deep eyebrow on bone (11 px; the menu, search and header eyebrows)", "nav-gold-deep", "lm-surface", TEXT);
 add("nav: gold-text eyebrow on white (11 px)", "nav-gold-text", "lm-white", TEXT);
+// P5 (finding A2): the phone tab bar is an opaque bone surface, so each label AND icon is measured on bone.
+add("nav tab bar: inactive label charcoal/66 on the opaque bone bar (11 px)", "nav-ink", "lm-surface", TEXT, 0.66);
+add("nav tab bar: inactive icon charcoal/66 on bone (non-text)", "nav-ink", "lm-surface", NONTEXT, 0.66);
+add("nav tab bar: current label deep gold on bone (11 px, 600)", "nav-gold-deep", "lm-surface", TEXT);
+add("nav tab bar: current icon deep gold on bone (non-text)", "nav-gold-deep", "lm-surface", NONTEXT);
 add("nav: gold-deep hover / current label on bone", "nav-gold-deep", "lm-surface", TEXT);
 add("nav: gold-deep hover / current label on white", "nav-gold-deep", "lm-white", TEXT);
 add("nav: gold-deep hover label on the dropdown's bone hover fill", "nav-gold-deep", "lm-surface", TEXT);
