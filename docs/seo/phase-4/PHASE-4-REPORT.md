@@ -3,6 +3,8 @@
 Branch `seo/phase-4-structured-data` (from `origin/develop` at `4dc3c23`), draft PR against `develop`.
 Status: **READY FOR QA** (Rich Results Test and Search Console cannot be run locally; see the TODO at the end).
 
+> **Record label (2026-11-01 reconciliation):** this is the implementation report as of its date. Phase 4 was later released (PR #421, `main` `82effab`, 2026-10-29): DEPLOYED, SEARCH ENGINE RECRAWL PENDING per `SEO-IMPLEMENTATION-STATUS.md` (R-17). The Product Offer rule was corrected on 2026-11-01 (`STRUCTURED-DATA-REVIEW-2026-11-01.md` §2, in PR #462). Nothing below is edited.
+
 Scope: master plan §6, §7, §8, §16 and "PHASE 4"; baseline §8 "Not present" list; deferred findings X4 (closed by the pure builder in Phase 2B, now extended) and X5 (closed here). Everything is a pure builder branch in `lib/json-ld.ts`, rendered by the unchanged `components/site/json-ld.tsx`, which decides the locale prefix from the path header. Locale wrappers under `app/[lang]/*` re-export the legacy pages, so every change below applies to `/`, `/en/...` and `/ja/...` alike. `app/layaway/page.tsx` was not touched (another branch owns it).
 
 ## 1. What was added, per template

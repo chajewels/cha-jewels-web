@@ -6,6 +6,7 @@ import { LAYAWAY_LANGS } from "@/lib/layaway-availability";
 import { postLanguages } from "@/lib/posts";
 import { PAGE_LASTMOD } from "@/lib/page-lastmod.generated";
 import { primaryImage } from "@/lib/product-facts";
+import { STATIC_PAGES } from "@/lib/sitemap-pages";
 
 /**
  * THE LOCALE SITEMAP (Phase 2D, owner-approved 2026-10-28).
@@ -36,44 +37,16 @@ import { primaryImage } from "@/lib/product-facts";
  * EVERY URL BUILT HERE GOES THROUGH `localePath`, so this file cannot mint a
  * private, unknown or not-yet-live locale URL: `/en/layaway` (Phase 3) and
  * `/ja/layaway` (never) are impossible by construction, not by care.
+ *
+ * THE STATIC PAGE LIST lives in lib/sitemap-pages.ts (shared with llms.txt,
+ * lib/llms-txt.ts, so the two can never advertise different pages).
  */
 /** How long the optional product-photo read may take before the sitemap goes out without image tags. */
 const IMAGE_LOOKUP_TIMEOUT_MS = 10_000;
-type Freq = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
 
 /** Japanese first: the site's primary language. */
 const ORDER: readonly Locale[] = ["ja", "en"];
 
-/**
- * The static public pages, each of which has an `app/[lang]` route that answers
- * 200 in both languages (tests/seo-sitemap.test.mjs holds this list to the
- * route files). /sale answers 200 even with nothing on sale (its empty state);
- * /legal/tokusho in both languages (only its layaway lines vary). The
- * /collections index has a route but was never listed, and 2D changes the URL
- * form of the entries, not which pages are advertised.
- *
- * /layaway is NOT in this list because `both()` would ask for a Japanese URL
- * it must never have: the page is English-only. Since Phase 3 it is listed
- * separately below, at /en/layaway alone. The bare URL 404s in Japanese — the
- * language a crawler is served — so it was never listable and still is not.
- */
-const STATIC_PAGES: readonly { path: string; changeFrequency: Freq; priority: number }[] = [
-  { path: "/sale", changeFrequency: "daily", priority: 0.8 },
-  { path: "/loyalty", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/wholesale", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/faq", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/jewelry-guide", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/shopping-guide", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/about", changeFrequency: "yearly", priority: 0.5 },
-  { path: "/why-cha-jewels", changeFrequency: "yearly", priority: 0.6 },
-  { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
-  { path: "/affiliations", changeFrequency: "yearly", priority: 0.4 },
-  { path: "/legal/privacy", changeFrequency: "yearly", priority: 0.3 },
-  { path: "/legal/terms", changeFrequency: "yearly", priority: 0.3 },
-  { path: "/legal/returns", changeFrequency: "yearly", priority: 0.3 },
-  { path: "/legal/tokusho", changeFrequency: "yearly", priority: 0.3 },
-  { path: "/blog", changeFrequency: "weekly", priority: 0.6 },
-];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();

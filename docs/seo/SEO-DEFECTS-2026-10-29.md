@@ -2,6 +2,8 @@
 
 Scope: the independently confirmed defects and open findings from the October 29 monitoring report that concern this repository, plus the website-side evidence for the Hub items. Hub items (BUG-01, BUG-04) are tracked in `chajewels/la-tracking`. Status vocabulary: CONFIRMED · FIXED LOCALLY · READY FOR QA · BLOCKED · NOT A BUG.
 
+> **Record label (2026-11-01 reconciliation):** BUG-02, BUG-05 and BUG-08 read "FIXED LOCALLY → READY FOR QA" below as of 2026-10-29; they were released in #426 (`97a6e76`) and are DEPLOYED per `SEO-IMPLEMENTATION-STATUS.md`. Nothing below is edited.
+
 | ID | Finding | Status | Where |
 |---|---|---|---|
 | BUG-02 | Messenger chat link (`m.me/chajewelsjapan`) emitted as JewelryStore `sameAs` | **FIXED LOCALLY → READY FOR QA** | PR #423 `fix/bug-02-sameas-chat-links` |
