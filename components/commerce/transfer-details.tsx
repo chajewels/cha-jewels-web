@@ -1,4 +1,5 @@
-import { dict, type Lang } from "@/lib/i18n";
+import { dict } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import type { TransferMethod } from "@/lib/types";
 
 /**

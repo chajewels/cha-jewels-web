@@ -6,7 +6,7 @@ import { animated, easings, to, useSpring } from "@react-spring/web";
 
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
 import { useWindowSize } from "@/hooks/use-window-size";
-import { useHasLoaded } from "@/lib/lumiere/preload-store";
+import { useHasLoaded, useLiftedEarly } from "@/lib/lumiere/preload-store";
 import { designUnit } from "@/lib/lumiere/design-unit";
 
 import {
@@ -104,9 +104,16 @@ export const HeroCluster = () => {
   const tilt = useHeroTilt();
   // The entrance (HERO_INTRO): linear time, eased per card and for the spin.
   const hasLoaded = useHasLoaded();
+  const liftedEarly = useLiftedEarly();
+  // `from` is the RESTING pose, so the server renders the ring arrived — what
+  // the inline cap shows when it lifts the curtain before hydration (P2b).
+  // Under the gate the spring snaps to 0 at mount (immediate, unseen) and
+  // plays the entrance when the gate lifts; after an early lift it lands at 1.
   const { intro } = useSpring({
+    from: { intro: 1 },
     intro: hasLoaded ? 1 : 0,
-    delay: hasLoaded ? HERO_INTRO.delay : 0,
+    delay: hasLoaded && !liftedEarly ? HERO_INTRO.delay : 0,
+    immediate: !hasLoaded || liftedEarly,
     config: { duration: HERO_INTRO.duration, easing: easings.linear },
   });
   // Where the pinned stage is in the viewport: 0 for the whole pin, falling to

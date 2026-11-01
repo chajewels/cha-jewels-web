@@ -318,26 +318,7 @@ html:lang(ja) .lumiere-home .loyalty__heading {
 }
 
 /* headline (swaps in the same upward motion) */
-.colonnade__headline {
-  position: absolute;
-  top: calc(72 * var(--u));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
-  width: min(92%, calc(760 * var(--u)));
-  height: calc(220 * var(--u));
-  overflow: hidden;
-  pointer-events: none;
-  text-align: center;
-}
 .colonnade__head {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: calc(16 * var(--u));
   transform: translateY(112%);
   opacity: 0;
   transition: transform var(--slide) var(--ease), opacity calc(var(--slide) * 0.7) ease;
@@ -441,8 +422,6 @@ html:lang(ja) .lumiere-home .loyalty__pill {
   .colonnade__frame { height: clamp(460px, 56vh, 640px); }
   .colonnade__cap { top: 20px; left: 20px; right: 16px; font-size: 11px; }
   .colonnade__name { left: 20px; bottom: 26px; right: 16px; font-size: clamp(16px, 1.8vw, 24px); }
-  .colonnade__headline { top: clamp(56px, 10vh, 88px); width: min(92%, 760px); height: clamp(150px, 26vh, 220px); }
-  .colonnade__head { gap: 16px; }
   .colonnade__line { font-size: clamp(22px, 3vw, 34px); }
   html:lang(ja) .lumiere-home .colonnade__line { font-size: clamp(19px, 2.4vw, 28px); }
   .colonnade__pill, .spotlight__pill, .loyalty__pill { padding: 11px 20px; font-size: 12.5px; }
@@ -456,9 +435,6 @@ html:lang(ja) .lumiere-home .loyalty__pill {
   .colonnade__col.-active { flex-grow: 3.4; }
   .colonnade__cap { top: 16px; }
   .colonnade__name { bottom: 16px; font-size: 16px; }
-  .colonnade__headline { position: relative; top: auto; left: auto; transform: none; width: 100%; height: auto; margin-top: 20px; overflow: visible; }
-  .colonnade__head { position: relative; transform: translateY(20px); gap: 12px; }
-  .colonnade__head:not(.-in) { display: none; }
   .colonnade__line { font-size: clamp(20px, 6vw, 28px); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1260,4 +1236,292 @@ html:lang(ja) .lumiere-home .lumiere-recent h2 {
 }
 .lumiere-recent > section {
   border-top-color: var(--border-muted);
+}
+
+
+/* --------------------------------------------------------------------------
+   P2b — the home's bottom bars, the header controls, the demo label
+   -------------------------------------------------------------------------- */
+
+/* Whatever fixed bar the page has along its bottom edge — the tab bar below
+   lg (64px + the safe area) and the cookie bar while it is up — summed into
+   one length the hero's band and the footer clear (P2b items 4 and 8). */
+.lumiere-home {
+  --lm-tab: 0px;
+  --lm-consent: 0px;
+  --lm-consent-h: 72px;
+  /* The announcement bar sits in flow ABOVE the hero, so at the top of the
+     page the viewport-high stage is pushed down by its height and its band
+     would run under the bottom bars until the hero pins; the bar publishes
+     its height on :root (components/site/announcement-bar.tsx). */
+  --lm-announce: var(--announcement-h, 0px);
+  --lm-bottom-bar: calc(var(--lm-tab) + var(--lm-consent) + var(--lm-announce));
+}
+@media (max-width: 1023.98px) {
+  body:has([data-mobile-tab-bar]) .lumiere-home {
+    --lm-tab: calc(64px + env(safe-area-inset-bottom));
+  }
+  .lumiere-home {
+    --lm-consent-h: 128px;
+  }
+}
+body:has(.consent-banner--bar) .lumiere-home {
+  --lm-consent: var(--lm-consent-h);
+}
+/* On a phone the cookie bar does NOT lift the hero band: with the tab bar
+   and the announcement bar already clearing 120 px, another 128 would put the
+   band over the ring. The bar is a one-time, dismissible question; the tab
+   bar and the announcement bar are permanent chrome and are always cleared. */
+@media (max-width: 1023.98px) {
+  body:has(.consent-banner--bar) .lumiere-home {
+    --lm-consent: 0px;
+  }
+}
+.hero-band {
+  bottom: var(--lm-bottom-bar, 0px);
+}
+/* The footer's last rows clear the bars too (the social row and the marks
+   are the page's last line). */
+body:has(.consent-banner--bar) .footer.footer--cha {
+  padding-bottom: calc(32px + var(--lm-consent-h));
+}
+@media (max-width: 1023.98px) {
+  body:has([data-mobile-tab-bar]) .footer.footer--cha {
+    padding-bottom: calc(32px + 64px + env(safe-area-inset-bottom));
+  }
+  body:has([data-mobile-tab-bar]):has(.consent-banner--bar) .footer.footer--cha {
+    padding-bottom: calc(32px + 64px + 172px + env(safe-area-inset-bottom));
+  }
+}
+
+/* The cookie banner as a bar across the bottom of the Lumière home. */
+.consent-banner.consent-banner--bar {
+  left: 0;
+  right: 0;
+  width: auto;
+  bottom: 0;
+  border-radius: 0;
+  border-width: 1px 0 0;
+  min-height: var(--lm-consent-h, 72px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 24px;
+  padding: 12px clamp(20px, 4vw, 40px);
+  font-family: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
+}
+.consent-banner.consent-banner--bar > h2 {
+  margin: 0;
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: 18px;
+  white-space: nowrap;
+}
+html:lang(ja) .consent-banner.consent-banner--bar > h2 {
+  font-family: var(--font-instrument-serif), var(--font-jp), serif;
+}
+.consent-banner.consent-banner--bar > p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.consent-banner.consent-banner--bar > div {
+  margin: 0;
+  display: flex;
+  gap: 10px;
+}
+.consent-banner.consent-banner--bar > div > button {
+  border-radius: 999px;
+  min-width: 128px;
+}
+@media (max-width: 1023.98px) {
+  .consent-banner.consent-banner--bar {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    min-height: 0;
+    padding: 10px 16px;
+  }
+  .consent-banner.consent-banner--bar > h2 { font-size: 15px; white-space: normal; }
+  .consent-banner.consent-banner--bar > p { font-size: 12.5px; line-height: 1.35; }
+  .consent-banner.consent-banner--bar > div > button { flex: 1 1 0; min-width: 0; min-height: 40px; }
+}
+
+/* The header's controls (the site's own components, dressed in charcoal) take
+   the stage's colour in every hero state — black on the paper, white over the
+   frame-3 photograph — and their boxes become hairlines of that colour. */
+.hero-utilities :is(a, button, div, span, kbd, input, svg) {
+  color: inherit !important;
+}
+.hero-utilities :is(a, button, div, kbd) {
+  border-color: color-mix(in srgb, currentColor 45%, transparent) !important;
+}
+.hero-utilities .bg-white {
+  background: transparent !important;
+}
+.hero-utilities input::placeholder {
+  color: inherit;
+  opacity: 0.7;
+}
+/* The cart count: a hairline ring in the current colour instead of a black
+   plate, so it reads in both states. */
+.hero-utilities .bg-charcoal-deep {
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+/* The preview-only hero demo label (lib/hero-demo.ts). */
+.hero__demo {
+  position: absolute;
+  top: calc(72 * var(--raw-unit-design));
+  left: 50%;
+  z-index: 40;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--content);
+  color: var(--content-inverse);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   P2b — why columns: photographs in the panels, the copy inside the panel
+   -------------------------------------------------------------------------- */
+.colonnade__photo {
+  object-fit: cover;
+}
+/* The reference's mesh gradient becomes a paper wash over the photograph. */
+.colonnade__media .colonnade__scene {
+  opacity: 0.55;
+}
+.colonnade__head {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 14%;
+  z-index: 3;
+  inset-block-end: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(14 * var(--u));
+  padding: calc(22 * var(--u)) calc(24 * var(--u));
+  border-radius: var(--corner-panel);
+  background: rgb(244 240 236 / 0.82);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  text-align: center;
+  pointer-events: none;
+}
+.colonnade__head .colonnade__pill {
+  pointer-events: auto;
+}
+/* The copy belongs to the active column only; the others keep the panel's
+   name and index. */
+.colonnade__col:not(.-active) .colonnade__head {
+  visibility: hidden;
+}
+.colonnade__col.-active .colonnade__head,
+.colonnade__head.-out {
+  visibility: visible;
+}
+.colonnade__line {
+  font-size: calc(28 * var(--u));
+}
+@media (max-width: 1439.98px) {
+  .colonnade__head { padding: 18px 20px; gap: 12px; }
+  .colonnade__line { font-size: clamp(19px, 2.2vw, 28px); }
+}
+@media (max-width: 859.98px) {
+  .colonnade__head { left: 16px; right: 16px; top: 52px; }
+  .colonnade__col:not(.-active) .colonnade__head { display: none; }
+  .colonnade__head.-out { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   P2b — the loyalty band's levels (the Hub's tiers)
+   -------------------------------------------------------------------------- */
+.loyalty__panel {
+  display: grid;
+  gap: calc(16 * var(--u));
+}
+.loyalty__tiers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: var(--corner-panel);
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.2);
+}
+.loyalty__tier {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "index rate" "name rate";
+  align-items: center;
+  column-gap: 12px;
+  padding: calc(16 * var(--u)) calc(20 * var(--u));
+  background: var(--content);
+}
+.loyalty__tier-index {
+  grid-area: index;
+  font-size: calc(11 * var(--u));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.6);
+}
+.loyalty__tier-name {
+  grid-area: name;
+  font-size: calc(24 * var(--u));
+  line-height: 1.1;
+}
+.loyalty__tier-rate {
+  grid-area: rate;
+  font-size: calc(18 * var(--u));
+  font-variant-numeric: tabular-nums;
+  color: var(--content-inverse);
+}
+@media (max-width: 1439.98px) {
+  .loyalty__panel { gap: 16px; }
+  .loyalty__tier { padding: 14px 16px; }
+  .loyalty__tier-index { font-size: 11px; }
+  .loyalty__tier-name { font-size: clamp(18px, 2vw, 24px); }
+  .loyalty__tier-rate { font-size: 16px; }
+}
+@media (max-width: 479.98px) {
+  .loyalty__tiers { grid-template-columns: minmax(0, 1fr); }
+}
+
+
+/* --------------------------------------------------------------------------
+   P2b — the inline cap (components/lumiere/common/preloader.tsx): before
+   React arrives, `html[data-lumiere-lift]` fades the gate and shows the hero
+   at rest. Every entrance's resting pose is what the server rendered (the
+   springs' `from`); the few server-rendered "held" states are released here.
+   -------------------------------------------------------------------------- */
+html[data-lumiere-lift] [data-lumiere-preloader] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 480ms cubic-bezier(0.22, 0.61, 0.36, 1) 190ms;
+}
+html[data-lumiere-lift] .lumiere-home [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+html[data-lumiere-lift] .lumiere-home [data-masked] {
+  transform: none !important;
+}
+/* Only the ACTIVE version of the headline (the swap keeps the other mounted,
+   aria-hidden, as an invisible stand-in): the first child of the swap's grid
+   that is not a stand-in. */
+html[data-lumiere-lift] .lumiere-home [data-hero-headline-art] .grid > span:not([aria-hidden]) .invisible {
+  visibility: visible !important;
 }

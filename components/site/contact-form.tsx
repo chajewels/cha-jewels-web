@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { contactAction, type ContactState } from "@/app/actions/contact";
 import { MESSAGE_MAX, MESSAGE_MIN } from "@/lib/contact";
 import { trackContactSubmit } from "@/lib/analytics";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { contact as contactDict } from "@/lib/i18n/sections/contact";
 import { alertLight, inputLight, labelLight } from "@/lib/form-classes";
 
 /**
@@ -25,7 +26,7 @@ import { alertLight, inputLight, labelLight } from "@/lib/form-classes";
  * on anything here.
  */
 export function ContactForm({ lang }: { lang: Lang }) {
-  const c = dict.contact;
+  const c = contactDict;
   const t = (k: keyof typeof c, vars?: Record<string, string>) => {
     // Annotated: c[k][lang] is a literal union, and the replace below assigns a
     // plain string back into it.

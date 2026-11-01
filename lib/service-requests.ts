@@ -1,5 +1,5 @@
 import type { Lang } from "@/lib/i18n";
-import { dict } from "@/lib/i18n";
+import { service as serviceDict } from "@/lib/i18n/sections/service";
 import type { Tone } from "@/lib/order-status";
 import type { ServiceRequest, ServiceRequestKind, ServiceRequestStatus } from "@/lib/types";
 
@@ -21,12 +21,12 @@ export const RING_SIZE_MAX = 16;
 
 export function serviceKindLabel(kind: ServiceRequestKind, lang: Lang): string {
   switch (kind) {
-    case "resize": return dict.service.kindResize[lang];
-    case "cleaning": return dict.service.kindCleaning[lang];
-    case "repair": return dict.service.kindRepair[lang];
-    case "appraisal": return dict.service.kindAppraisal[lang];
-    case "certificate": return dict.service.kindCertificate[lang];
-    default: return dict.service.kindOther[lang];
+    case "resize": return serviceDict.kindResize[lang];
+    case "cleaning": return serviceDict.kindCleaning[lang];
+    case "repair": return serviceDict.kindRepair[lang];
+    case "appraisal": return serviceDict.kindAppraisal[lang];
+    case "certificate": return serviceDict.kindCertificate[lang];
+    default: return serviceDict.kindOther[lang];
   }
 }
 
@@ -36,11 +36,11 @@ export function serviceKindLabel(kind: ServiceRequestKind, lang: Lang): string {
  */
 export function serviceStatusLabel(status: ServiceRequestStatus, lang: Lang): { text: string; tone: Tone } {
   switch (status) {
-    case "completed": return { text: dict.service.statusCompleted[lang], tone: "good" };
-    case "declined": return { text: dict.service.statusDeclined[lang], tone: "dead" };
-    case "in_progress": return { text: dict.service.statusInProgress[lang], tone: "pending" };
-    case "received": return { text: dict.service.statusReceived[lang], tone: "pending" };
-    default: return { text: dict.service.statusRequested[lang], tone: "pending" };
+    case "completed": return { text: serviceDict.statusCompleted[lang], tone: "good" };
+    case "declined": return { text: serviceDict.statusDeclined[lang], tone: "dead" };
+    case "in_progress": return { text: serviceDict.statusInProgress[lang], tone: "pending" };
+    case "received": return { text: serviceDict.statusReceived[lang], tone: "pending" };
+    default: return { text: serviceDict.statusRequested[lang], tone: "pending" };
   }
 }
 

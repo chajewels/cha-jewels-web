@@ -75,7 +75,10 @@ function walk(dir) {
     lines.forEach((line, i) => {
       for (const re of forbidden) if (re.test(line)) { hits++; console.error(`${p}:${i + 1}: forbidden term -> ${line.trim()}`); }
       if (spellingScope(rel) && !spellingExempt.has(rel) && spelling.test(line)) { hits++; console.error(`${p}:${i + 1}: British spelling (write "jewelry", D-22) -> ${line.trim()}`); }
-      const exempt = originAllowed.has(rel) || (rel === "lib/i18n.ts" && i18nOriginKeys.test(line));
+      // lib/i18n/sections/** is generated verbatim from lib/i18n.ts (scripts/
+      // gen-i18n-sections.mjs, checked by check:i18n), so the origin strings it
+      // carries are the dictionary's own, already judged on their source line.
+      const exempt = originAllowed.has(rel) || (rel === "lib/i18n.ts" && i18nOriginKeys.test(line)) || rel.startsWith("lib/i18n/sections/");
       if (!exempt) {
         const rest = withoutExempt(line);
         for (const re of originClaims) if (re.test(rest)) { hits++; console.error(`${p}:${i + 1}: hardcoded origin claim (only OriginBadge may render this, from product data) -> ${line.trim()}`); }

@@ -5,7 +5,8 @@ import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { reviewAction } from "@/app/actions/review";
 import { reviewSentKey } from "@/components/site/review-done";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { reviews as reviewsDict } from "@/lib/i18n/sections/reviews";
 import { alertLight, inputLight, labelLight } from "@/lib/form-classes";
 import {
   REVIEW_BODY_LIMIT_BYTES, REVIEW_MAX, REVIEW_MAX_PHOTOS, REVIEW_MIN,
@@ -64,7 +65,7 @@ async function shrink(file: File): Promise<File | null> {
  * the ordinary way (arrow keys), and the gold stars are their labels.
  */
 export function ReviewForm({ token, lang }: { token: string; lang: Lang }) {
-  const r = dict.reviews;
+  const r = reviewsDict;
   const t = (k: keyof typeof r, vars?: Record<string, string>) => {
     let v: string = r[k][lang];
     if (vars) for (const [key, val] of Object.entries(vars)) v = v.replace(`{${key}}`, val);

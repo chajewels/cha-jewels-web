@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { siteDay } from "@/lib/site-time";
-import { tr, type Lang } from "@/lib/i18n";
+import { trOf } from "@/lib/i18n-client";
+import { service as serviceDict } from "@/lib/i18n/sections/service";
+import { type Lang } from "@/lib/i18n-core";
 import { serviceKindLabel, serviceRequestHref, serviceStatusLabel } from "@/lib/service-requests";
 import type { ServiceRequest } from "@/lib/types";
 import { StatusBadge } from "@/components/account/status-badge";
@@ -16,7 +18,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
  * the browser's is a hydration mismatch. The orders list does the same.
  */
 export function ServiceRequestRow({ request, lang, showTarget = false }: { request: ServiceRequest; lang: Lang; showTarget?: boolean }) {
-  const t = tr(lang);
+  const t = trOf({ service: serviceDict }, lang);
   const status = serviceStatusLabel(request.status, lang);
   // A plan link is layaway, and nothing layaway-related shows on the Japanese
   // site (owner decision 2026-09-25): the request itself still lists.

@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { announcement as announcementDict } from "@/lib/i18n/sections/announcement";
 import { announcementBarAllowed } from "@/lib/statutory-path";
 
 /**
@@ -63,7 +65,7 @@ const HEIGHT_VAR = "--announcement-h";
 const PREPAINT = `try{if(sessionStorage.getItem(${JSON.stringify(STORAGE_KEY)})===document.currentScript.dataset.t)document.body.setAttribute("data-cj-announcement","dismissed")}catch(e){}`;
 
 export function AnnouncementBar({ text, href, lang, nonce }: { text: string; href: string | null; lang: Lang; /** The page's CSP nonce, on the one page with an enforced policy (pay-card, lib/csp.ts). */ nonce?: string }) {
-  const t = tr(lang);
+  const t = trOf({ announcement: announcementDict }, lang);
   const allowed = announcementBarAllowed(usePathname());
   const [dismissed, setDismissed] = useState(false);
   const bar = useRef<HTMLElement>(null);

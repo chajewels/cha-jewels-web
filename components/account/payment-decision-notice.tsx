@@ -1,4 +1,5 @@
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { formatSiteDate } from "@/lib/site-time";
 import { formatMoney } from "@/lib/utils";
 import type { HubLatestDecision } from "@/lib/types";

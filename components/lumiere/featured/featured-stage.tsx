@@ -75,20 +75,32 @@ const wipeMask = (r: number) => {
 const everyFrame = () => 0;
 
 /**
- * The piece in the centre slot, as state: it changes once per crossing of a
- * transition's middle, with `PIECE_SWITCH.hysteresis` either side.
+ * The piece in the centre slot, as state — the name, the materials row and the
+ * price pill all read it. It is derived from the SAME wipe the photographs
+ * follow (`wipeAt`, the same `strip` value, the same frame): the piece is the
+ * last photograph whose wipe has passed its midpoint, so the words and the
+ * picture change on one frame. The reference switched on the strip's own
+ * midpoint with `PIECE_SWITCH.hysteresis` either side, which let the name lag
+ * the photograph by up to 0.06 of a transition — "Trinity." over the Solace
+ * photograph when the scroll rested there (P2b item 6).
  */
+const SWITCH_AT = 0.5;
+const pieceAt = (s: number, lastPiece: number): number => {
+  let piece = 0;
+  for (let index = 1; index <= lastPiece; index++) {
+    if (wipeAt(s, index) >= SWITCH_AT) piece = index;
+    else break;
+  }
+  return piece;
+};
 const useActivePiece = (strip: SpringValue<number>, lastPiece: number): number => {
   const [active, setActive] = useState(0);
 
   useEffect(
     () =>
       subscribeToTicker(() => {
-        const s = Math.min(Math.max(strip.get(), 0), lastPiece);
-        setActive((was) => {
-          if (Math.abs(s - was) <= 0.5 + PIECE_SWITCH.hysteresis) return was;
-          return Math.min(lastPiece, Math.max(0, Math.round(s)));
-        });
+        const next = pieceAt(strip.get(), lastPiece);
+        setActive((was) => (was === next ? was : next));
       }, everyFrame),
     [strip, lastPiece],
   );
@@ -207,8 +219,13 @@ export const FeaturedStage = () => {
           </animated.div>
 
           {/* The site's heading entrance, played as the block is looked at. */}
-          <h2
-            id="featured-title"
+          {/* The piece's name, once, as the section's heading; the swap's
+              stand-ins and engine letters draw aria-hidden beside it (P2b item 2). */}
+          <h2 id="featured-title" className="sr-only">
+            {activePiece.nameRuns.map((run) => run.text).join("")}
+          </h2>
+          <div
+            aria-hidden="true"
             className="featured__title font-serif"
             style={capTrimSerif(TYPE.title.size, TYPE.title.leading)}
           >
@@ -217,7 +234,7 @@ export const FeaturedStage = () => {
               active={active}
               first={{ ready: true, delay: 0 }}
             />
-          </h2>
+          </div>
 
           <div className="featured__meta">
             <animated.div

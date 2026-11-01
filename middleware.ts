@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { LANG_COOKIE, LANG_HEADER, LANG_PARAM, PATH_HEADER, asLang, langDecision, type Lang } from "@/lib/i18n";
+import { LANG_COOKIE, LANG_HEADER, LANG_PARAM, PATH_HEADER, asLang, langDecision, type Lang } from "@/lib/i18n-core";
 import { localeOf } from "@/lib/locale";
 import { LEGACY_REDIRECT_HEADER, legacyRedirect, legacyRedirectsEnabled } from "@/lib/legacy-redirect";
 import { cspForPath, CSP_FAILSAFE_HEADER, FRAME_OPTIONS } from "@/lib/csp";

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { ArrowRight } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { collectionDescription, collectionName } from "@/lib/catalog-i18n";
 import type { Collection } from "@/lib/types";
 import type { TypeVisual } from "@/lib/type-icons";

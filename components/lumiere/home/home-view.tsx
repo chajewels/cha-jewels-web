@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { User } from "lucide-react";
 
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { localePath } from "@/lib/locale";
 import type { SwitchTargets } from "@/lib/locale-nav";
 import { layawayOffered } from "@/lib/layaway-availability";
@@ -41,7 +42,7 @@ import { lumiereRecentlyViewedTitle } from "@/lib/content/lumiere-home";
 import { CartButton } from "@/components/site/cart-button";
 import { AccountMenu } from "@/components/site/account-menu";
 import { LangSwitcher } from "@/components/site/lang-switcher";
-import { SearchBox } from "@/components/site/search-box";
+import { SearchIsland } from "@/components/lumiere/hero/search-island";
 
 /**
  * THE LUMIÈRE HOME (P2; docs/tasks/lumiere-redesign.md §6, report §7 home row).
@@ -63,7 +64,7 @@ import { SearchBox } from "@/components/site/search-box";
  * the one page every visitor and every crawler gets, with the copy as real
  * text and the posters in place of the scenes until they draw.
  */
-export const LumiereHome = async ({ lang, switchTargets }: { lang: Lang; switchTargets?: SwitchTargets }) => {
+export const LumiereHome = async ({ lang, switchTargets, demo = false }: { lang: Lang; switchTargets?: SwitchTargets; demo?: boolean }) => {
   const L = (h: string) => localePath(h, lang);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
@@ -140,10 +141,11 @@ export const LumiereHome = async ({ lang, switchTargets }: { lang: Lang; switchT
       langSwitcher: <LangSwitcher lang={lang} targets={switchTargets} compact />,
       account,
       cart: <CartButton lang={lang} />,
-      search: <SearchBox lang={lang} />,
+      search: <SearchIsland lang={lang} placeholder={t("search", "placeholder")} openLabel={t("search", "open")} />,
     },
     menu,
     homeHref: L("/"),
+    demo: demo ? { label: t("home", "heroDemoTag") } : undefined,
     labels: {
       home: `Cha Jewels — ${t("nav", "home")}`,
       menu: strings.menuTitle,
@@ -220,7 +222,7 @@ export const LumiereHome = async ({ lang, switchTargets }: { lang: Lang; switchT
         <LoyaltySection lang={lang} />
       </Suspense>
       <Suspense fallback={null}>
-        <FooterSection lang={lang} />
+        <FooterSection lang={lang} switchTargets={switchTargets} />
       </Suspense>
     </div>
   );

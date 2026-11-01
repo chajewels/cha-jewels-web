@@ -3,7 +3,8 @@ import { isLayawayTestimonial } from "@/lib/content-rules";
 import { graphemes, storySize, type QuoteLang } from "@/lib/story-timing";
 import { SITE_TIME_ZONE } from "@/lib/site-time";
 import { REVIEW_MAX_PHOTOS, showable, type Review } from "@/lib/reviews";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import type { Testimonial } from "@/lib/types";
 
 /**

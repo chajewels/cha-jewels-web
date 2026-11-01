@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { home as homeDict } from "@/lib/i18n/sections/home";
 import { useHeroMotion } from "@/components/home/hero";
 import { HeroSlideView } from "@/components/home/hero-slide-views";
 import { HERO_TRIO_HOLD, SLIDE_EVERY } from "@/lib/motion";
@@ -64,7 +66,7 @@ const SWIPE_PX = 48;
  * has no photo of its own: its poster is the page's one eager image.
  */
 export function HeroSlides({ lang, slides }: { lang: Lang; slides: HeroSlide[] }) {
-  const t = tr(lang);
+  const t = trOf({ home: homeDict }, lang);
   const { active, setActive, rotateOn, paused, toggle, wipe } = useHeroMotion();
   const count = slides.length;
   const [held, setHeld] = useState(false);

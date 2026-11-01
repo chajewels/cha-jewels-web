@@ -1,10 +1,11 @@
 import { getLang } from "@/lib/i18n-server";
 import { contactEmail, follow } from "@/lib/settings";
 import { switchTargets } from "@/lib/locale-nav";
-import { PATH_HEADER } from "@/lib/i18n";
+import { PATH_HEADER } from "@/lib/i18n-core";
 import { headers } from "next/headers";
 import { JsonLd } from "@/components/site/json-ld";
 import { LumiereHome } from "@/components/lumiere/home/home-view";
+import { HERO_DEMO_PARAM, heroDemoAllowed } from "@/lib/hero-demo";
 export const revalidate = 60;
 
 /**
@@ -24,7 +25,7 @@ export const revalidate = 60;
  * lib/i18n (lib/content/lumiere-home.ts); every image is a registered
  * placeholder until the Hub swap (lib/lumiere/placeholders.ts).
  */
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [lang, h, storeEmail, storeSameAs] = await Promise.all([
     getLang(),
     headers(),
@@ -37,11 +38,15 @@ export default async function Home() {
   // The language switcher's destinations for this path (lib/locale-nav.ts),
   // the same read the root layout makes for the site header.
   const targets = await switchTargets(h.get(PATH_HEADER)).catch(() => ({ en: null, ja: null } as const));
+  // Preview deployments only: `?hero_demo=1` labels the hero as the review
+  // view (lib/hero-demo.ts) — the same param and the same allow rule the
+  // Stitch hero honoured. Never on production.
+  const demo = (await searchParams)[HERO_DEMO_PARAM] === "1" && heroDemoAllowed(h.get("host"));
 
   return (
     <>
       <JsonLd type="store" email={storeEmail} sameAs={storeSameAs} />
-      <LumiereHome lang={lang} switchTargets={targets} />
+      <LumiereHome lang={lang} switchTargets={targets} demo={demo} />
     </>
   );
 }

@@ -7,7 +7,11 @@ import Link from "next/link";
 import { useTransition } from "react";
 import { removeFromCart, setCartQty } from "@/lib/cart-actions";
 import { formatMoney, formatWeight } from "@/lib/utils";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { cart as cartDict } from "@/lib/i18n/sections/cart";
+import { collection as collectionDict } from "@/lib/i18n/sections/collection";
+import { product as productDict } from "@/lib/i18n/sections/product";
 import type { CartItem } from "@/lib/cart";
 import { cartItemName } from "@/lib/catalog-i18n";
 import { metalsLabel } from "@/lib/metals";
@@ -27,7 +31,7 @@ import { PieceWell } from "@/components/commerce/commerce-ui";
  *           (audit: it measured 16px tall)
  */
 export function CartLines({ items, lang }: { items: CartItem[]; lang: Lang }) {
-  const t = tr(lang);
+  const t = trOf({ cart: cartDict, collection: collectionDict, product: productDict }, lang);
   const [pending, start] = useTransition();
 
   return (

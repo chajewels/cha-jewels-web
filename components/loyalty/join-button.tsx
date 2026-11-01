@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { localePath } from "@/lib/locale";
 import Link from "next/link";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { footer as footerDict } from "@/lib/i18n/sections/footer";
+import { loyalty as loyaltyDict } from "@/lib/i18n/sections/loyalty";
+import { nav as navDict } from "@/lib/i18n/sections/nav";
 import { Button } from "@/components/ui/button";
 import { joinLoyaltyAction } from "@/lib/loyalty-actions";
 import type { EnrolOutcome } from "@/lib/loyalty-actions";
@@ -28,7 +31,7 @@ import type { SocialLink } from "@/lib/types";
  * that a person will finish it, not that they are a member.
  */
 export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] }) {
-  const c = dict.loyalty;
+  const c = loyaltyDict;
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<EnrolOutcome["state"] | null>(null);
 
@@ -59,7 +62,7 @@ export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] 
       <div className={box}>
         {c.alreadyMember[lang]}{" "}
         <Link href="/account" className="underline hover:text-charcoal-deep">
-          {dict.nav.account[lang]}
+          {navDict.account[lang]}
         </Link>
         <MemberGroups items={groups} lang={lang} className="mt-6 border-t border-hairline pt-5" />
       </div>
@@ -77,9 +80,9 @@ export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] 
       {outcome === "lost" && <p className="text-garnet">{c.err[lang]}</p>}
       <p className="text-xs text-charcoal/70">
         {c.consent[lang]}{" "}
-        <Link href={localePath("/legal/terms", lang)} className="underline hover:text-gold-dark">{dict.footer.sale[lang]}</Link>
+        <Link href={localePath("/legal/terms", lang)} className="underline hover:text-gold-dark">{footerDict.sale[lang]}</Link>
         {" · "}
-        <Link href={localePath("/legal/privacy", lang)} className="underline hover:text-gold-dark">{dict.footer.privacy[lang]}</Link>
+        <Link href={localePath("/legal/privacy", lang)} className="underline hover:text-gold-dark">{footerDict.privacy[lang]}</Link>
       </p>
     </div>
   );

@@ -218,6 +218,13 @@
     transition: opacity var(--duration-hover-out) var(--ease-hover-role);
   }
 
+  /* THE INDEX LINE IS NEVER HIDDEN (D-24, P2b item 1): the eyebrow that says
+     "Preloved" stands at rest on every card, at every width; hover moves the
+     label and reveals the note and the link around it, never this. */
+  .collections [data-card-index] {
+    opacity: 1;
+  }
+
   .collections [data-card-label] {
     transform: translateY(var(--label-rise)) scale(var(--label-scale));
     transition: transform var(--duration-hover-out) var(--ease-hover-role);
@@ -838,6 +845,14 @@
     .featured__pill--cta:hover {
       background: var(--raw-color-featured-pill-hover);
     }
+  }
+
+  /* D-7: a placeholder piece cannot be bought — the pill must LOOK disabled
+     (P2b item 6): dimmed, no hover, a not-allowed cursor. */
+  .featured__pill--cta:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: var(--raw-color-featured-pill);
   }
 
   .featured__pill--cta:focus-visible {
@@ -2702,7 +2717,6 @@
     display: block;
     width: auto;
     height: 100%;
-    filter: brightness(0) invert(1);
   }
 
   .footer--cha .footer__wordmark {
@@ -2714,15 +2728,29 @@
   .footer--cha .footer__columns {
     grid-area: columns;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: calc(50 * var(--raw-unit-design));
+    /* five: collections, shop, company, care and the company block (P2b item 9) */
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: calc(40 * var(--raw-unit-design));
     align-items: start;
+  }
+
+  .footer--cha .footer__follow {
+    margin-right: calc(8 * var(--raw-unit-design));
+  }
+
+  .footer--cha .footer__lang {
+    display: flex;
+    align-items: center;
   }
 
   .footer--cha .footer__company .footer__column-title {
     text-transform: none;
     white-space: normal;
     color: #fff;
+    /* The registered name wraps (the full-width Japanese form): a real
+       line-height, not the cap-trimmed single line the link rows use. */
+    line-height: 1.35;
+    margin-block: 0 calc(8 * var(--raw-unit-design));
   }
 
   /* The reference lays its LAST column's four links out as a 2×2 grid on a
@@ -2843,6 +2871,9 @@
   }
 
   @media (max-width: 1023.98px) {
+    .footer--cha .footer__columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 767.98px) {
     .footer--cha .footer__columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 

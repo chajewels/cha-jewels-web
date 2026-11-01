@@ -116,6 +116,8 @@ export interface HeroCardSlot {
 }
 
 export interface LumiereHeroContent {
+  /** The headline as plain text — `hero.h1a` exactly — for the page's one <h1>; the engine's letters are aria-hidden copies beside it. */
+  headlineText: string;
   headline: TextRun[][];
   headlinePhoto: TextRun[][];
   /** The standfirst: one line that wraps in English (`wrap` mode); named lines in Japanese (§5.3). */
@@ -158,9 +160,14 @@ const HERO: Record<Lang, Pick<LumiereHeroContent, "headline" | "headlinePhoto" |
 /** The reference's crops for the eight cards (its `heroCards`); card 8 is the frame-3 photograph. */
 const CARD_CROPS: Record<number, string> = { 4: "center bottom", 6: "center bottom" };
 
+/** The lines of a heading as the plain sentence they came from (EN lines are space-separated, JA lines run on). */
+export const headingText = (lines: readonly TextRun[][], lang: Lang): string =>
+  lines.map((line) => line.map((run) => run.text).join("")).join(lang === "en" ? " " : "");
+
 export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, collectionsHref: string): LumiereHeroContent => {
   const cta = dict.hero.cta1[lang];
   return {
+    headlineText: headingText(HERO[lang].headline, lang),
     ...HERO[lang],
     // row 5: EN opens two words on italic capitals as the reference's CTA does; JA plain
     cta: { runs: lang === "en" ? caps(...cta.toLowerCase().split(" ")) : plain(cta), href: collectionsHref },
@@ -184,6 +191,8 @@ export interface LumiereCollectionCard {
 }
 
 export interface LumiereCollectionsContent {
+  /** The heading as one plain sentence, for the <h2>. */
+  headingText: string;
   heading: TextRun[][];
   lead: string;
   cta: TextRun[];
@@ -215,6 +224,7 @@ const COLLECTION_IMAGES = [
 const COLLECTION_WIDTHS = ["narrow", "wide", "wide", "narrow", "full"] as const;
 
 export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => string): LumiereCollectionsContent => ({
+  headingText: headingText(COLLECTIONS[lang].heading, lang),
   ...COLLECTIONS[lang],
   // row 12: home.colsLink
   cta: lang === "en" ? caps(...dict.home.colsLink[lang].toLowerCase().split(" ")) : plain(dict.home.colsLink[lang]),
@@ -331,6 +341,8 @@ export const LUMIERE_HOME_STRINGS: Record<Lang, { loading: string; collectionsIn
  */
 export interface LumiereWhyColumn {
   index: string;
+  /** The panel's photograph — a registered placeholder until the values get their own (D-16). */
+  image: PlaceholderAsset;
   /** `home.value*H` — the chapter's name on the column. */
   name: string;
   /** `home.value*P` — the chapter's line in the swapping headline. */
@@ -344,11 +356,14 @@ export interface LumiereWhyContent {
   tablistLabel: string;
 }
 const WHY_VALUES = ["Timeless", "Worth", "Craft", "Quality"] as const;
+/** One panel photograph per value: the collections placeholders, in their registry order. */
+const WHY_IMAGES = [COLLECTION_PHOTOS.rings, COLLECTION_PHOTOS.necklaces, COLLECTION_PHOTOS.earrings, COLLECTION_PHOTOS.bracelets] as const;
 export const lumiereWhy = (lang: Lang, whyHref: string): LumiereWhyContent => ({
   eyebrow: dict.home.valuesEyebrow[lang],
   heading: dict.home.valuesH[lang],
   columns: WHY_VALUES.map((value, i) => ({
     index: `0${i + 1}`,
+    image: WHY_IMAGES[i],
     name: dict.home[`value${value}H`][lang],
     title: dict.home[`value${value}P`][lang],
   })),

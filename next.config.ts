@@ -43,6 +43,10 @@ const config: NextConfig = {
     // widths used for images that carry a `sizes` prop, and all of them must
     // stay below the smallest deviceSize (640).
     imageSizes: [16, 32, 48, 64, 80, 96, 128, 256, 384],
+    // The default ladder plus two phone rungs (412, 480): a full-bleed photo
+    // on a 1× phone used to fetch the 640 candidate (P2b; AVIF first, WebP
+    // second — `formats` below).
+    deviceSizes: [412, 480, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     formats: ["image/avif", "image/webp"],
   },
   // The Gold Guide was merged into the jewelry guide (owner 2026-10-27): its

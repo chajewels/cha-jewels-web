@@ -2,7 +2,8 @@ import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { categoryCta, categoryDescription, categoryName, productName } from "@/lib/catalog-i18n";
 import { allImages, usableCutout } from "@/lib/queries/products";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import type { Category, Product, ProductMedia, ProductVariant } from "@/lib/types";
 
 /**

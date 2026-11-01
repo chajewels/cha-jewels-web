@@ -8,7 +8,10 @@ import { HubImage } from "@/components/media/hub-image";
 import { formatWeight, formatYenPeso, isFigure } from "@/lib/utils";
 import { SalePrice } from "@/components/commerce/sale-price";
 import { metalsLabel, productMetals } from "@/lib/metals";
-import { tr, type Lang } from "@/lib/i18n";
+import { trOf } from "@/lib/i18n-client";
+import { collection as collectionDict } from "@/lib/i18n/sections/collection";
+import { product as productDict } from "@/lib/i18n/sections/product";
+import { type Lang } from "@/lib/i18n-core";
 import { productName } from "@/lib/catalog-i18n";
 import { availabilityKey, isBuyable, productAvailability } from "@/lib/availability";
 import { layawayOffered } from "@/lib/layaway-availability";
@@ -56,7 +59,7 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) { .pcard-rule { transition: none; } }`;
 
 export function ProductCard({ product, lang, index = 0, priority = false }: { product: Product; lang: Lang; index?: number; priority?: boolean }) {
-  const t = tr(lang);
+  const t = trOf({ collection: collectionDict, product: productDict }, lang);
   const price = fromPrice(product);
   // The reserve figures belong to the variant whose price is shown, and are
   // the Hub's own (down_payment_jpy / down_payment_php) — never price × 30%.

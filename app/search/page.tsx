@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { localePath } from "@/lib/locale";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { getLang } from "@/lib/i18n-server";
 import { normalize, search } from "@/lib/search";
 import { hub } from "@/lib/hub-api";

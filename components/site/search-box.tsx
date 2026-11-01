@@ -4,7 +4,10 @@ import { localePath } from "@/lib/locale";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { product as productDict } from "@/lib/i18n/sections/product";
+import { search as searchDict } from "@/lib/i18n/sections/search";
 import { SalePrice } from "@/components/commerce/sale-price";
 import { markSearchFromBox } from "@/lib/search-origin";
 import { HubImage } from "@/components/media/hub-image";
@@ -56,7 +59,7 @@ const MAX_SUGGESTIONS = 6;
  * page re-reads the Hub.
  */
 export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang; variant?: "header" | "drawer"; onNavigate?: () => void }) {
-  const t = tr(lang);
+  const t = trOf({ product: productDict, search: searchDict }, lang);
   const router = useRouter();
   const inDrawer = variant === "drawer";
 

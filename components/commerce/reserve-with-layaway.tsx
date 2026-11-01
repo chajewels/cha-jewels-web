@@ -4,7 +4,10 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addToCart } from "@/lib/cart-actions";
 import { trackAddToCart } from "@/lib/analytics";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { checkout as checkoutDict } from "@/lib/i18n/sections/checkout";
+import { product as productDict } from "@/lib/i18n/sections/product";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -24,7 +27,7 @@ import { Button } from "@/components/ui/button";
 export function ReserveWithLayaway({ variantId, slug, sku, lang, className, fill = false }: {
   variantId: string; slug: string; sku: string; lang: Lang; className?: string; fill?: boolean;
 }) {
-  const t = tr(lang);
+  const t = trOf({ checkout: checkoutDict, product: productDict }, lang);
   const router = useRouter();
   const [pending, start] = useTransition();
 

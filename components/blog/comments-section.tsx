@@ -1,4 +1,5 @@
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { hub } from "@/lib/hub-api";
 import { readSession } from "@/lib/session";
 import { profileUrl } from "@/lib/profile";

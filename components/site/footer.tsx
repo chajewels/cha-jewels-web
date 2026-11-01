@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import type { SwitchTargets } from "@/lib/locale-nav";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { getCollections } from "@/lib/queries/products";
 import { collectionName } from "@/lib/catalog-i18n";
 import { layawayOffered } from "@/lib/layaway-availability";
@@ -12,7 +13,7 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
 import { LangSwitcher } from "@/components/site/lang-switcher";
 import { CardMarks, PaidyMark } from "@/components/commerce/card-marks";
 import { hub } from "@/lib/hub-api";
-import { CookieSettingsLink } from "@/components/site/consent-banner";
+import { CookieSettingsLink } from "@/components/site/cookie-settings-link";
 
 /**
  * THE SITE FRAME'S FOOTER (build step 1, 2026-09-27; comps in

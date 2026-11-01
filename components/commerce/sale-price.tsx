@@ -1,6 +1,8 @@
 import { ComponentStyle } from "@/components/fx/component-style";
 import { formatMoney, cn } from "@/lib/utils";
-import { tr, type Lang } from "@/lib/i18n";
+import { trOf } from "@/lib/i18n-client";
+import { product as productDict } from "@/lib/i18n/sections/product";
+import { type Lang } from "@/lib/i18n-core";
 import { struckFullPrice } from "@/lib/sale";
 
 /**
@@ -41,7 +43,7 @@ export function SalePrice({ price, full, onSale, sold = false, lang, tone, size 
 }) {
   const struck = struckFullPrice({ full, onSale, sold });
   if (struck == null) return <>{formatMoney(price)}</>;
-  const t = tr(lang);
+  const t = trOf({ product: productDict }, lang);
   return (
     <>
       <ComponentStyle id="fx-sale" css={CSS} />

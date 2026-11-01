@@ -2,13 +2,18 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { localePath } from "@/lib/locale";
-import { tr, type Lang } from "@/lib/i18n";
+import type { SwitchTargets } from "@/lib/locale-nav";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { follow, footerTagline } from "@/lib/settings";
+import { getCollections } from "@/lib/queries/products";
+import { collectionName } from "@/lib/catalog-i18n";
+import { LangSwitcher } from "@/components/site/lang-switcher";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { COMPANY_ADDRESS, COMPANY_NAME_DISPLAY, CORPORATE_NO, REPRESENTATIVE_NAME } from "@/lib/content/legal";
 import { CATEGORY_SHORT_NAME, CATEGORY_ORDER, LUMIERE_HOME_STRINGS } from "@/lib/content/lumiere-home";
 import { CardMarks, PaidyMark } from "@/components/commerce/card-marks";
-import { CookieSettingsLink } from "@/components/site/consent-banner";
+import { CookieSettingsLink } from "@/components/site/cookie-settings-link";
 import { capTrim } from "@/components/lumiere/collections/cap-trim";
 
 import { Separator } from "./footer-icons";
@@ -47,48 +52,70 @@ const note = capTrim(
  *              WhatsApp, LINE, email) — Instagram/TikTok are the reference's
  *              and are not carried
  *
+ * NOTHING OF THE SITE FOOTER IS DROPPED (P2b item 9; components/site/
+ * footer.tsx is the list): the Hub's collections column, every Company link
+ * (FAQ and News included), the Care column under its own heading with the
+ * legal pages, "Cookie settings", the newsletter heading over the form and
+ * its note, "Follow us" over the social row, the founded / authentication
+ * ledger lines in the company block, and the language switcher in the bottom
+ * row. The social row is whatever the Hub's `social.follow` returns.
+ *
  * A server component but for the e-mail line. Every Hub read is caught: an
  * unreachable Hub costs the tagline or the icons, never the page.
  */
-export const FooterSection = async ({ lang }: { lang: Lang }) => {
+export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switchTargets?: SwitchTargets }) => {
   const L = (h: string) => localePath(h, lang);
   const t = tr(lang);
   const layaway = layawayOffered(lang);
   const strings = LUMIERE_HOME_STRINGS[lang];
-  const [followLinks, tagline] = await Promise.all([
+  const [followLinks, tagline, collections] = await Promise.all([
     follow().catch(() => []),
     footerTagline(lang).catch(() => null),
+    getCollections().catch(() => []),
   ]);
 
-  const columns: { title: string; links: { label: string; href: string }[] }[] = [
+  const columns: { key: string; title: string; links: { label: string; href: string }[] }[] = [
     {
-      title: t("footer", "shop"),
-      links: [
-        ...CATEGORY_ORDER.map((slug) => ({ label: CATEGORY_SHORT_NAME[slug][lang].title.replace(/[.。]$/, ""), href: L(`/categories/${slug}`) })),
-        { label: t("footer", "all"), href: L("/collections") },
-      ],
+      key: "collections",
+      title: t("footer", "collections"),
+      links: [...collections.map((c) => ({ label: collectionName(c, lang), href: L(`/collections/${c.slug}`) })), { label: t("footer", "all"), href: L("/collections") }],
     },
     {
+      key: "shop",
+      title: t("footer", "shop"),
+      links: CATEGORY_ORDER.map((slug) => ({ label: CATEGORY_SHORT_NAME[slug][lang].title.replace(/[.。]$/, ""), href: L(`/categories/${slug}`) })),
+    },
+    {
+      key: "company",
       title: t("trust", "company"),
       links: [
         { label: t("navMenu", "about"), href: L("/about") },
         { label: t("navMenu", "why"), href: L("/why-cha-jewels") },
+        { label: t("navMenu", "faq"), href: L("/faq") },
         { label: t("navMenu", "blog"), href: L("/blog") },
+        { label: t("navMenu", "news"), href: L("/blog?type=news") },
+        { label: t("navMenu", "contact"), href: L("/contact") },
         { label: t("navMenu", "affiliations"), href: L("/affiliations") },
         { label: t("nav", "loyalty"), href: L("/loyalty") },
         { label: t("nav", "wholesale"), href: L("/wholesale") },
         ...(layaway ? [{ label: t("nav", "layaway"), href: L("/layaway") }] : []),
-        { label: t("navMenu", "contact"), href: L("/contact") },
       ],
     },
     {
-      title: t("footer", "help"),
+      key: "care",
+      title: t("footer", "care"),
       links: [
+        // The FAQ's layaway section, not /layaway: "Layaway terms" promises
+        // terms. English only, because layaway is.
+        ...(layaway ? [{ label: t("footer", "terms"), href: L("/faq#payments-and-layaway") }] : []),
         { label: t("footer", "faq"), href: L("/faq") },
         { label: t("footer", "shoppingGuide"), href: L("/shopping-guide") },
         { label: t("footer", "jewelryGuide"), href: L("/jewelry-guide") },
-        ...(layaway ? [{ label: t("footer", "terms"), href: L("/faq#payments-and-layaway") }] : []),
         { label: t("footer", "returns"), href: L("/legal/returns") },
+        // §13 row 29: the short display label in the footer only; the page title is unchanged.
+        { label: strings.legalNotice, href: L("/legal/tokusho") },
+        { label: t("footer", "privacy"), href: L("/legal/privacy") },
+        { label: t("footer", "sale"), href: L("/legal/terms") },
       ],
     },
   ];
@@ -128,7 +155,7 @@ export const FooterSection = async ({ lang }: { lang: Lang }) => {
                   </Link>
                 </li>
               ))}
-              {column.title === t("footer", "help") && (
+              {column.key === "care" && (
                 <li>
                   {/* Reopens the cookie banner (components/site/consent-banner.tsx). */}
                   <CookieSettingsLink label={t("footer", "cookieSettings")} className="footer__link footer__link--button" />
@@ -145,6 +172,9 @@ export const FooterSection = async ({ lang }: { lang: Lang }) => {
             <li className="footer__company-line">{REPRESENTATIVE_NAME[lang]}</li>
             <li className="footer__company-line">{COMPANY_ADDRESS[lang]}</li>
             <li className="footer__company-line">{strings.corporateNo} {CORPORATE_NO}</li>
+            {/* The site footer's trust ledger: founded and authentication, as text lines. */}
+            <li className="footer__company-line">{t("trust", "founded")}: {t("trust", "foundedValue")} — {t("trust", "incorporated")}</li>
+            <li className="footer__company-line">{t("trust", "auth")}: {t("trust", "authValue")} — {t("trust", "authNote")}</li>
             {/* The live permit and invoice lines, verbatim (as the site footer renders them). */}
             <li className="footer__company-line">{t("footer", "invoiceReg")}</li>
             <li className="footer__company-line">{t("footer", "secondhandPermit")}</li>
@@ -156,6 +186,7 @@ export const FooterSection = async ({ lang }: { lang: Lang }) => {
         {/* The Hub's footer.tagline, rendered exactly with the owner's own line
             breaks — the only brand text under the mark (owner 2026-09-26). */}
         {tagline && <p className="footer__note footer__note--tagline" style={note}>{tagline}</p>}
+        <p className="footer__column-title" style={line}>{t("footer", "newsletter")}</p>
         <SubscribeForm lang={lang} />
         <p className="footer__note" style={note}>
           {t("footer", "newsletterNote")}
@@ -183,6 +214,7 @@ export const FooterSection = async ({ lang }: { lang: Lang }) => {
       </ul>
 
       <div className="footer__meta footer__meta--social">
+        {followLinks.length > 0 && <span className="footer__column-title footer__follow" style={line}>{t("footer", "follow")}</span>}
         <ul className="footer__meta footer__meta--social-list">
           {followLinks.map((item, index) => (
             <li key={item.key} className="footer__meta-item">
@@ -203,6 +235,10 @@ export const FooterSection = async ({ lang }: { lang: Lang }) => {
         <span className="footer__marks">
           <CardMarks label={t("footer", "cards")} />
           <PaidyMark label={t("footer", "paidy")} />
+        </span>
+        {/* The language toggle, as the site footer carries it (dark tone). */}
+        <span className="footer__lang">
+          <LangSwitcher lang={lang} targets={switchTargets} tone="dark" />
         </span>
       </div>
     </footer>

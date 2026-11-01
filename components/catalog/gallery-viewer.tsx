@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { product as productDict } from "@/lib/i18n/sections/product";
 import { DUR, EASE_GLIDE, EASE_SLIDE, ZOOM } from "@/lib/motion";
 import { useReduced } from "@/components/fx/media";
 import { ComponentStyle } from "@/components/fx/component-style";
@@ -102,7 +104,7 @@ export function GalleryViewer({ images, name, lang, start, aspect, getRect, onJu
   images: GalleryImage[]; name: string; lang: Lang; start: number; aspect: number;
   getRect: () => DOMRect | null; onJump: (k: number) => void; onClosed: () => void;
 }) {
-  const t = tr(lang);
+  const t = trOf({ product: productDict }, lang);
   const n = images.length;
   const reduced = useReduced() !== false; // until known, do not animate
   const [idx, setIdx] = useState(start);

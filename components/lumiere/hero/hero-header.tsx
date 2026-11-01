@@ -74,7 +74,10 @@ const Wordmark = ({ inverse = false }: { inverse?: boolean }) => (
       height={BADGE.size}
       sizes="(max-width: 480px) 36px, 40px"
       priority
-      className={`block h-full w-auto ${inverse ? "brightness-0 invert" : ""}`}
+      // The badge is a gold coin on black (public/images/brand): it reads on
+      // the paper and on the photograph alike, so it is never filtered —
+      // `brightness-0 invert` turned it into a blank white disc (P2b item 3).
+      className="block h-full w-auto"
     />
     <span className={`font-serif text-wordmark whitespace-nowrap ${inverse ? "text-content-inverse" : ""}`}>Cha Jewels</span>
   </span>
@@ -172,9 +175,9 @@ export const HeroHeader = () => {
         </ul>
       </nav>
 
-      {/* The mark: the badge and the name (D-3). The white copy fades in over it
-          with the frame-3 inversion — artwork cannot inherit `currentColor`, so
-          the badge is turned white by the same filter the preloader uses. */}
+      {/* The mark: the badge and the name (D-3). The white copy of the NAME
+          fades in over it with the frame-3 inversion; the badge artwork is the
+          same in both states. */}
       <Link
         href={homeHref}
         aria-label={labels.home}
@@ -206,7 +209,11 @@ export const HeroHeader = () => {
       >
         {/* Continues the primary nav's count rather than restarting it, so the
             whole top line reads as one pass across the page. */}
-        <ul className="flex list-none items-center gap-u-24 font-manrope text-nav font-medium uppercase">
+        {/* `hero-utilities` (app/lumiere/sections.css): the site's controls carry
+            their own charcoal classes; here they take the stage's `currentColor`
+            — black on the paper, white over the photograph — so they stay
+            legible through the inversion (P2b item 7). */}
+        <ul className="hero-utilities flex list-none items-center gap-u-24 font-manrope text-nav font-medium uppercase">
           {[utilities.langSwitcher, utilities.account, utilities.cart, utilities.search].map((node, index) => (
             <RevealItem
               key={index}
@@ -225,6 +232,7 @@ export const HeroHeader = () => {
       {/* z-50 puts the bar above the overlay: at z-20 the button that opens the
           menu sat underneath it, leaving no way to close it again. */}
       <animated.div
+        data-reveal
         className={`pointer-events-auto absolute inset-x-0 top-u-29 z-50 flex items-center justify-between px-u-40 md:flex-row-reverse lg:hidden ${
           isMenuOpen ? "text-content" : ""
         }`}
@@ -232,7 +240,7 @@ export const HeroHeader = () => {
         // overlay if the entrance were still running.
         style={isMenuOpen ? undefined : chromeReveal}
       >
-        <span className="flex min-h-[44px] items-center gap-u-12 font-manrope text-nav font-medium uppercase">
+        <span className="hero-utilities flex min-h-[44px] items-center gap-u-12 font-manrope text-nav font-medium uppercase">
           {utilities.search}
           {utilities.cart}
         </span>

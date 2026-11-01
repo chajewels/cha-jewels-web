@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { localePath } from "@/lib/locale";
 import Link from "next/link";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { isOptimizableImage } from "@/lib/image-hosts";
 import type { Review } from "@/lib/reviews";
 

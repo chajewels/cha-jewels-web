@@ -1,5 +1,5 @@
 import { getLang } from "@/lib/i18n-server";
-import { gateLang } from "@/lib/i18n";
+import { gateLang } from "@/lib/i18n-core";
 import { layawayOffered } from "@/lib/layaway-availability";
 
 /**

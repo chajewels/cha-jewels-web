@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { siteUrl } from "@/lib/site";
-import { PATH_HEADER } from "@/lib/i18n";
+import { PATH_HEADER } from "@/lib/i18n-core";
 import { localeOf } from "@/lib/locale";
 import { buildJsonLd, type JsonLdProps } from "@/lib/json-ld";
 import { serializeJsonLd } from "@/lib/json-ld-script";

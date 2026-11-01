@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { FileText, Lock, RotateCcw, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { PRODUCT_TRUST } from "@/lib/content/product-trust";
 
 /**

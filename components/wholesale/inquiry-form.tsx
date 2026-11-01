@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { wholesale as wholesaleDict } from "@/lib/i18n/sections/wholesale";
 import { MARKETS, VOLUMES, marketLabel, volumeLabel } from "@/lib/content/wholesale";
 import { Button } from "@/components/ui/button";
 import { errorLight, inputLight, labelLight } from "@/lib/form-classes";
@@ -13,7 +14,7 @@ import { errorLight, inputLight, labelLight } from "@/lib/form-classes";
  * the same defaults (JP, TEST), the same POST to /api/wholesale.
  */
 export function InquiryForm({ lang, heading }: { lang: Lang; heading?: string }) {
-  const c = dict.wholesale;
+  const c = wholesaleDict;
   const [state, setState] = useState<"idle" | "sending" | "ok" | "err">("idle");
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

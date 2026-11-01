@@ -1,7 +1,8 @@
 import { pageMeta } from "@/lib/page-meta";
 import { Award, FileText, Gem, House } from "lucide-react";
 import { getLang } from "@/lib/i18n-server";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { catalogue } from "@/lib/catalog-context";
 import { stagePieces, type HeroPiece } from "@/lib/hero-deck";

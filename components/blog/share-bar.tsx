@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { share as shareDict } from "@/lib/i18n/sections/share";
 import { trackShare } from "@/lib/analytics";
 import { SHARE_NETWORKS, buildShareUrl, withShareUtm, type ShareNetwork } from "@/lib/share";
 import { Button } from "@/components/ui/button";
@@ -26,7 +28,7 @@ import { inputLight } from "@/lib/form-classes";
  * field, already selected, for the reader to copy by hand.
  */
 export function ShareBar({ url, title, slug, lang }: { url: string; title: string; slug: string; lang: Lang }) {
-  const t = tr(lang);
+  const t = trOf({ share: shareDict }, lang);
   const [canNative, setCanNative] = useState(false);
   const [copied, setCopied] = useState(false);
   const [manual, setManual] = useState<string | null>(null);

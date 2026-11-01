@@ -2,7 +2,9 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createServiceRequestAction } from "@/lib/service-actions";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { service as serviceDict } from "@/lib/i18n/sections/service";
 import { DETAILS_MAX, RING_SIZE_MAX, SERVICE_KINDS, needsRingSize, serviceKindLabel } from "@/lib/service-requests";
 import { trackServiceRequest } from "@/lib/analytics";
 import type { ServiceRequest, ServiceRequestKind } from "@/lib/types";
@@ -41,7 +43,7 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest, q
   initial: ServiceRequest[];
   canRequest: boolean;
 }) {
-  const t = tr(lang);
+  const t = trOf({ service: serviceDict }, lang);
   const formRef = useRef<HTMLFormElement>(null);
   const [kind, setKind] = useState<ServiceRequestKind | "">("");
   const [requests, setRequests] = useState<ServiceRequest[]>(initial);

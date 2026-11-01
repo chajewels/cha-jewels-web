@@ -8,9 +8,10 @@
  *    (sessionStorage) shows no curtain and marks the page loaded at once, so
  *    the hero's entrance still plays. Mounted on the home in P2; built and
  *    tested here.
- *  - HARD CAP 4 s (the reference waited 6 s): whatever is still loading, the
- *    curtain starts to lift at 4 s. The 3D keeps loading behind the posters
- *    after the lift (the scenes' own `fade` springs).
+ *  - HARD CAP 2.5 s FROM FIRST PAINT (D-9 as amended by the owner 2026-11-01
+ *    in P2b; it was 4 s, the reference waited 6 s): whatever is still loading,
+ *    the curtain starts to lift at 2.5 s. The 3D keeps loading behind the
+ *    posters after the lift (the scenes' own `fade` springs).
  *  - THE CHA JEWELS MARK (D-3): the transparent badge
  *    (public/images/brand/logo-badge-192.webp, white through the same
  *    `brightness-0 invert` the header will use) and "Cha Jewels" in Instrument
@@ -35,13 +36,16 @@ import { lockScroll } from "@/lib/scroll-lock";
 
 /**
  * The curtain lifts no later than this after the page's FIRST PAINT, whatever
- * is still loading (D-9). Counted from the paint, not from hydration: on a
+ * is still loading (D-9: 2.5 s, amended by the owner 2026-11-01 in P2b from
+ * the 4 s of P0; it still lifts earlier when the hero's assets are in, and
+ * still once per session). Counted from the paint, not from hydration: on a
  * phone the hero's script arrives a second or two after the curtain is first
  * seen, and a cap that started counting then kept the visitor behind the gate
  * for that long again (P2 part A: 5.2–6.7 s to the lift on Lighthouse's
- * mobile profile, every run on the cap).
+ * mobile profile, every run on the cap). The inline script below enforces the
+ * same figure before React arrives.
  */
-export const PRELOADER_CAP_MS = 4000;
+export const PRELOADER_CAP_MS = 2500;
 /**
  * The least the gate keeps counting for once it can (hydration later than the
  * cap): long enough for the rule to be seen reaching the end, no longer.
@@ -129,15 +133,46 @@ const markSeen = (): void => {
 
 /** Root attribute set before first paint when this tab has seen the curtain (app/globals.css hides the gate). */
 export const PRELOADER_SEEN_ATTR = "data-lumiere-preloaded";
+/** Root attribute the inline cap sets when it lifts the curtain before hydration (app/lumiere/sections.css). */
+export const PRELOADER_LIFT_ATTR = "data-lumiere-lift";
+/** Root attribute React sets as it takes the gate over, which stops the inline cap. */
+export const PRELOADER_HYDRATED_ATTR = "data-lumiere-hydrated";
 
 /**
- * Runs during HTML parsing, before anything paints: a repeat visit in this
- * tab never shows the black gate, not even for a frame. The same decision the
- * effect below makes, taken earlier. (Server HTML only — React does not run
- * an inline script it renders on the client; on a client navigation the
- * attribute is already on the root from `markSeen`.)
+ * THE INLINE CAP (P2b, the first approved closer). Runs during HTML parsing,
+ * before anything paints — and before React, whose script on a phone arrives
+ * seconds later:
+ *  - a repeat visit in this tab never shows the black gate, not even for a
+ *    frame (the `seen` key → `data-lumiere-preloaded`);
+ *  - otherwise it counts the 2.5 s cap from the first paint ITSELF and, if React
+ *    has not taken the gate over by then, LIFTS THE CURTAIN ON ITS OWN: the
+ *    root gets `data-lumiere-lift`, the stylesheet fades the gate and shows
+ *    the hero at rest (every entrance's resting pose is what the server
+ *    rendered), and the session is marked seen. When React hydrates later it
+ *    finds the attribute and lands every spring at once (`liftedEarly`) — no
+ *    replay, no flash, no shift.
+ *  - React, once mounted, sets `data-lumiere-hydrated` and clears the timer,
+ *    and the honest asset-counting gate runs as before from there.
+ * (Server HTML only — React does not run an inline script it renders on the
+ * client; on a client navigation the attribute is already on the root.)
  */
-const PREPAINT_SCRIPT = `try{if(sessionStorage.getItem(${JSON.stringify(PRELOADER_SEEN_KEY)})==="1")document.documentElement.setAttribute(${JSON.stringify(PRELOADER_SEEN_ATTR)},"")}catch(e){}`;
+const PREPAINT_SCRIPT = [
+  "try{var d=document.documentElement,s=sessionStorage,K=" + JSON.stringify(PRELOADER_SEEN_KEY) + ";",
+  "if(s.getItem(K)===\"1\"){d.setAttribute(" + JSON.stringify(PRELOADER_SEEN_ATTR) + ",\"\")}else{",
+  "var t0=performance.now(),C=" + PRELOADER_CAP_MS + ";",
+  "var lift=function(){if(d.hasAttribute(" + JSON.stringify(PRELOADER_HYDRATED_ATTR) + "))return;d.setAttribute(" + JSON.stringify(PRELOADER_LIFT_ATTR) + ",\"\");try{s.setItem(K,\"1\")}catch(e){}};",
+  "var tick=function(){var p=0;try{var e=performance.getEntriesByType(\"paint\")[0];if(e)p=e.startTime}catch(e){}var el=performance.now()-(p>t0?p:t0);if(el>=C)lift();else window.__cjLift=setTimeout(tick,C-el)};",
+  "window.__cjLift=setTimeout(tick,C)}}catch(e){}",
+].join("");
+
+/** The inline cap's state, read once React takes over. */
+const takeOverFromInlineCap = (): boolean => {
+  const root = document.documentElement;
+  root.setAttribute(PRELOADER_HYDRATED_ATTR, "");
+  const timer = (window as unknown as { __cjLift?: number }).__cjLift;
+  if (timer) clearTimeout(timer);
+  return root.hasAttribute(PRELOADER_LIFT_ATTR);
+};
 
 export interface PreloaderProps {
   /** The screen-reader label; the caller passes the `lib/i18n` string. */
@@ -166,6 +201,15 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
   const releaseLock = useRef<() => void>(() => undefined);
 
   useEffect(() => {
+    // The inline cap may have lifted the curtain already (P2b): the hero is on
+    // screen at rest; every entrance lands at once. Otherwise a repeat visit
+    // skips the gate as before, and a first visit counts the assets from here.
+    const liftedEarly = takeOverFromInlineCap();
+    if (liftedEarly) {
+      setSkipped(true);
+      usePreloadStore.getState().setLoaded({ early: true });
+      return;
+    }
     if (preloaderSeen()) {
       setSkipped(true);
       usePreloadStore.getState().setLoaded();
@@ -218,8 +262,8 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
       image.addEventListener("load", () => done(image), { once: true });
       image.addEventListener("error", () => done(image), { once: true });
     });
-    // THE HARD CAP (D-9): 4 s after the first paint everything still pending
-    // counts as landed.
+    // THE HARD CAP (D-9): 2.5 s after the first paint everything still
+    // pending counts as landed.
     const cap = setTimeout(() => {
       capped = true;
       [...pending].forEach(done);
@@ -307,8 +351,8 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
         style={{ gap: "clamp(12px, 3.5vh, calc(28 * var(--raw-unit-design)))" }}
       >
         <span className="flex items-center" style={{ gap: "clamp(10px, 2vw, calc(16 * var(--raw-unit-design)))" }}>
-          {/* The same badge and the same inversion the header will use (D-3),
-              so the mark does not change when the gate lifts. */}
+          {/* The same badge the header uses (D-3), in its own colours — a gold
+              coin on black reads on the black gate as it does on the paper. */}
           <Image
             src="/images/brand/logo-badge-192.webp"
             alt=""
@@ -316,7 +360,7 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
             height={192}
             priority
             sizes="(max-width: 480px) 10vw, 56px"
-            className="block brightness-0 invert"
+            className="block"
             style={{ width: BADGE_WIDTH, height: BADGE_WIDTH }}
           />
           <span className="font-serif text-wordmark text-content-inverse">Cha Jewels</span>

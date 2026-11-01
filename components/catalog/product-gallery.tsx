@@ -4,7 +4,10 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { pdp as pdpDict } from "@/lib/i18n/sections/pdp";
+import { product as productDict } from "@/lib/i18n/sections/product";
 import { EASE_SHEEN, EASE_SLIDE, GALLERY, PHOTO_DIM, PHOTO_SETTLE, ZOOM } from "@/lib/motion";
 import { useFinePointer, useReduced } from "@/components/fx/media";
 import { ComponentStyle, mix } from "@/components/fx/component-style";
@@ -128,7 +131,7 @@ const CSS = `
  * hover zoom and the viewer's zoom still work; they just do not animate.
  */
 export function ProductGallery({ items, name, lang, badge }: { items: GalleryItem[]; name: string; lang: Lang; badge?: React.ReactNode }) {
-  const t = tr(lang);
+  const t = trOf({ pdp: pdpDict, product: productDict }, lang);
   const images = items;
   const n = images.length;
   // The viewer shows the Hub's own photos (never a cut-out, never the video),
@@ -560,7 +563,7 @@ export function ProductGallery({ items, name, lang, badge }: { items: GalleryIte
  * round button plays it. Anyone can pause it (WCAG 2.2.2).
  */
 function GalleryVideo({ src, poster, active, reduced, lang }: { src: string; poster: string | null; active: boolean; reduced: boolean; lang: Lang }) {
-  const t = tr(lang);
+  const t = trOf({ pdp: pdpDict, product: productDict }, lang);
   const ref = useRef<HTMLVideoElement>(null);
   const [want, setWant] = useState<boolean | null>(null); // the reader's own choice, once made
   const [playing, setPlaying] = useState(false);
@@ -594,7 +597,7 @@ const pad = (k: number) => String(k).padStart(2, "0");
  * dictionary sentence ("Photo 3 of 7") once, from an sr-only copy.
  */
 function Counter({ i, n, lang, reduced }: { i: number; n: number; lang: Lang; reduced: boolean }) {
-  const t = tr(lang);
+  const t = trOf({ pdp: pdpDict, product: productDict }, lang);
   const num = useRef<HTMLSpanElement>(null);
   const prev = useRef(i);
   useLayoutEffect(() => {

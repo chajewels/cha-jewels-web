@@ -46,22 +46,29 @@ const startsOf = (lines: readonly TextRun[][]) =>
 export interface CollectionsRevealProps {
   /** §13 row 8, two named lines. */
   heading: TextRun[][];
+  /** The same heading as one plain sentence, for the <h2>. */
+  headingText: string;
   /** §13 row 9. */
   lead: string;
 }
 
-export const CollectionsReveal = ({ heading, lead: leadText }: CollectionsRevealProps) => {
+export const CollectionsReveal = ({ heading, headingText, lead: leadText }: CollectionsRevealProps) => {
   const headingStarts = startsOf(heading);
-  const [ref, seen] = useInView<HTMLHeadingElement>();
+  const [ref, seen] = useInView<HTMLDivElement>();
   const lead = useEnterSpring(seen, LEAD_DELAY);
   // Measured on the section, not the heading — the heading moves with it.
   const drift = useScrollProgress(ref, { measureParent: true });
 
   return (
     <>
-      <animated.h2
+      {/* The heading, once, as plain text; the engine's letters draw in the
+          aria-hidden block under it (as the hero's h1, P2b item 2). */}
+      <h2 id="collections-heading" className="sr-only">
+        {headingText}
+      </h2>
+      <animated.div
         ref={ref}
-        id="collections-heading"
+        aria-hidden="true"
         className="collections__heading font-serif text-collections-heading"
         style={{
           ...capTrimSerif(TYPE.heading.size, TYPE.heading.leading),
@@ -79,7 +86,7 @@ export const CollectionsReveal = ({ heading, lead: leadText }: CollectionsReveal
             delay={headingStarts[index] * LETTER_REVEAL.stagger}
           />
         ))}
-      </animated.h2>
+      </animated.div>
 
       <animated.p
         className="collections__lead font-tight text-collections-lead"

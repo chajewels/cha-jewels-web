@@ -16,6 +16,7 @@ import { reportAssetError } from "@/components/lumiere/common/asset-banner";
 import { markPendantReady } from "@/lib/scene/pendant-ready";
 import { PENDANT_MODEL_URL } from "@/lib/scene/pendant/pendant-assets";
 import { loadSceneLibraries } from "@/lib/scene/load-libraries";
+import { whenAfterTTI } from "@/lib/scene/after-tti";
 // `import type` ONLY: a value import here put three.js in the home's first load
 // (lib/scene/pendant/pendant-assets.ts explains).
 import type {
@@ -106,14 +107,12 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
     let isDisposed = false;
     let isInView = true;
 
-    // After the webfonts (the curtain's first wait, report §10 step 3): the
-    // build then follows the type and the hero's images instead of sharing
-    // the first tasks with them. Still under the curtain — the preloader waits
-    // on this scene's gate, capped.
-    document.fonts.ready
-      .catch(() => undefined)
-      // The libraries one task at a time (lib/scene/load-libraries.ts), then
-      // the scene itself.
+    // AFTER THE TTI WINDOW (P2b; lib/scene/after-tti.ts): the curtain has
+    // lifted and the visitor has touched the page or five seconds have passed,
+    // then an idle slot — the poster stands until the scene has drawn and
+    // crossfades in. The libraries one task at a time (lib/scene/
+    // load-libraries.ts), then the scene itself.
+    whenAfterTTI()
       .then(() => loadSceneLibraries())
       .then(() => import("@/lib/scene/pendant/pendant-scene"))
       .then(({ PendantScene: Scene }) =>

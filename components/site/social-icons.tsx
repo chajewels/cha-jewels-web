@@ -1,5 +1,7 @@
 import { Mail } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { trOf } from "@/lib/i18n-client";
+import { social as socialDict } from "@/lib/i18n/sections/social";
+import { type Lang } from "@/lib/i18n-core";
 import type { SocialKey, SocialLink } from "@/lib/types";
 
 /**
@@ -25,7 +27,7 @@ export function SocialIcons({ items, tone, lang, className = "" }: {
   lang: Lang;
   className?: string;
 }) {
-  const t = tr(lang);
+  const t = trOf({ social: socialDict }, lang);
   // An empty list is "the Hub holds no social links", which renders as nothing
   // rather than as an empty <ul> the callers would still have put a heading on.
   if (items.length === 0) return null;

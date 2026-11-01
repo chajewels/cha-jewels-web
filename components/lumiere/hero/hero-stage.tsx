@@ -69,10 +69,17 @@ export const HeroStage = ({ lang, content, chrome }: HeroSectionProps) => {
             moves out from beside it to above it. `lg:` restores the Figma
             placement verbatim — the desktop branch is untouched. */}
         {/* THE PAGE'S ONE <h1>: the hero headline (report §15.7; SEO
-            governance). Its plain text is in the server HTML — the engine's
-            letters are hidden copies over a visible, readable line. */}
-        <h1
-          id="hero-headline"
+            governance; P2b item 2). Its text is `hero.h1a`, once, as plain
+            text; the letter reveal and the frame-3 swap — which keep every
+            version mounted as invisible stand-ins and split the live one into
+            engine letters — draw in an aria-hidden block beside it, so neither
+            the accessibility tree nor `textContent` ever carries a duplicate. */}
+        <h1 id="hero-headline" className="sr-only">
+          {content.headlineText}
+        </h1>
+        <div
+          aria-hidden="true"
+          data-hero-headline-art
           // A flex column, and not for the layout: each line's mask carries a
           // negative margin to hide the slack it needs around the glyphs, and
           // between plain blocks those margins collapse with their neighbours —
@@ -82,8 +89,13 @@ export const HeroStage = ({ lang, content, chrome }: HeroSectionProps) => {
           className={"absolute left-u-40 z-30 flex max-w-[calc(100vw-80*var(--raw-unit-design))] flex-col items-start font-serif text-display top-[var(--headline-top)] w-auto lg:top-[calc(50%-104*var(--raw-unit-design))] lg:w-u-350"}
         >
           <HeroHeadline isPhoto={isPhoto} />
-        </h1>
+        </div>
 
+        {/* HERO DEMO (lib/hero-demo.ts): `?hero_demo=1` on a preview puts the
+            review label on the hero, never on production or the shop's domain
+            (`heroDemoAllowed`). The Lumière hero has no Hub cut-outs yet (D-16),
+            so the label is the only thing the mode changes here. */}
+        {chrome.demo && <p className="hero__demo font-manrope">{chrome.demo.label}</p>}
         <HeroHeader />
         <CategoryIndex />
         <HeroFooter isPhoto={isPhoto} />

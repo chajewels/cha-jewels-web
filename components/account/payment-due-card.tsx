@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 
 /**
  * "How to pay": the first thing on an order or plan page while money is due

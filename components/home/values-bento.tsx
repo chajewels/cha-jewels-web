@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { SplitHeading } from "@/components/fx/split-text";
 import { ArtisanVideo } from "@/components/fx/artisan-video";

@@ -1,7 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { LANG_PARAM, tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { LANG_PARAM } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { nav as navDict } from "@/lib/i18n/sections/nav";
 import type { SwitchTargets } from "@/lib/locale-nav";
 import { useSwitchTargets } from "./use-switch-targets";
 
@@ -26,7 +29,7 @@ import { useSwitchTargets } from "./use-switch-targets";
  */
 export function LangSwitcher({ lang, targets, tone = "light", compact = false }: { lang: Lang; targets?: SwitchTargets; tone?: "light" | "dark"; compact?: boolean }) {
   const router = useRouter();
-  const t = tr(lang);
+  const t = trOf({ nav: navDict }, lang);
   const [pending, start] = useTransition();
   function set(l: Lang) {
     if (l === lang) return;

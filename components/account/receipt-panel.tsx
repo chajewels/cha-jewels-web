@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { FileDown } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { receipts as receiptsDict } from "@/lib/i18n/sections/receipts";
 import { ADDRESSEE_MAX, PURPOSE_MAX, receiptErrorKey, receiptPdfHref, type HubReceipt, type ReceiptLang } from "@/lib/receipts";
 import { updateReceiptDetailsAction } from "@/lib/receipt-actions";
 import { alertLight, inputLight } from "@/lib/form-classes";
@@ -31,7 +33,7 @@ export function ReceiptPanel({ lang, receipt, issuedLabel, totalLabel, orderHref
   orderPath?: string;
   headingLevel?: 2 | 3;
 }) {
-  const t = tr(lang);
+  const t = trOf({ receipts: receiptsDict }, lang);
   const [saved, setSaved] = useState({ addressee: receipt.addressee ?? "", purpose: receipt.purpose ?? "" });
   const [addressee, setAddressee] = useState(saved.addressee);
   const [purpose, setPurpose] = useState(saved.purpose);

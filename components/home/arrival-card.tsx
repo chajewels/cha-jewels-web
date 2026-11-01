@@ -7,7 +7,8 @@ import { formatWeight } from "@/lib/utils";
 import { SalePrice } from "@/components/commerce/sale-price";
 import { metalsLabel, productMetals } from "@/lib/metals";
 import { productName } from "@/lib/catalog-i18n";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { OriginBadge } from "@/components/catalog/origin-badge";
 
 /**
