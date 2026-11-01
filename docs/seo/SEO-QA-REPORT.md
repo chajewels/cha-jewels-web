@@ -489,7 +489,7 @@ Use: the "before" for any owner-scoped Step 3b/3c; three-run medians are require
 
 ## 19. Integration of #462 into `develop` (2026-11-01) — candidate pinned; SEO acceptance NOT RUN (access); RELEASE: BLOCKED (owner approval separate)
 
-**Authorization.** The owner's instruction of 2026-11-01 ("After the owner's explicit develop-merge approval: … Merge #462 into develop, pinned to that exact head … STOP before production release") was taken as the explicit develop-merge approval and as nothing more; no production action was taken or requested.
+**Authorization — the actual record, cited exactly.** The develop-merge approval exists only as the owner's pasted instruction in the Claude Code working session of 2026-11-01 (text: "After the owner's explicit develop-merge approval: 1. Verify: head = 875075d…, develop = 47ffc77, main = 95189746 … 2. Merge #462 into develop, pinned to that exact head … STOP before production release and request separate owner approval"). It was taken as the explicit develop-merge approval and as nothing more. There is **no other approval record**: no PR comment or review on #462, no repository document and no known Notion page records it; the merge commit `1693b66` and this section are the only written traces, and the PR's GitHub merge event names the session's `gh` user. No production action was taken or requested.
 
 **Pre-merge verification [V 2026-11-01].** PR #462 head `875075d7c141a28c3c22d8c304cbeafd7d8f953f`; `develop` `47ffc77a…` (the PR base, unmoved: 0 commits since); `main` `95189746…`; PR MERGEABLE / CLEAN; GitHub Actions `check` pass (51 s); Vercel check "Canceled by Ignored Build Step" (the documented branch behaviour); no other open PR into `develop`; working tree clean; no `VERCEL_AUTOMATION_BYPASS_SECRET` in the environment.
 
@@ -503,4 +503,6 @@ Use: the "before" for any owner-scoped Step 3b/3c; three-run medians are require
 
 **Accessible checks done instead:** the merge, tree and `main` verifications above; the anonymous gate probe (302 + noindex on both hosts, so nothing of the candidate is publicly readable); production not re-run (unchanged since the `b70f5e0` read: 556/109). Nothing is claimed about the candidate's runtime.
 
-**Release decision: BLOCKED for the candidate (= HOLD of the batch records).** Production approval is separate and is not requested here; this section stops before it.
+**Access re-check (2026-11-01, later session turn, after the owner's "once authorized preview access is available" instruction):** still **none** — `VERCEL_AUTOMATION_BYPASS_SECRET` and `SEO_CHECK_BYPASS_ORIGIN` absent from the environment and from `.env.local`; the equivalent method not re-approved. The GitHub deployment record (7469037125, `sha` = `1693b66`, success) is the only proof that the host serves the candidate; its `dpl_…` id and asset identity remain unread. Steps 1–3 of that instruction therefore did not run; nothing was repeated, re-merged or newly implemented. The five missing assertions and the one access request above stand unchanged.
+
+**Consolidated SEO release verdict: NOT ACCEPTED — BLOCKED for the candidate `develop` `1693b66`** (acceptance not run for lack of access; no finding against the candidate, no finding for it). Production approval is separate and is not requested here; this section stops before it.
