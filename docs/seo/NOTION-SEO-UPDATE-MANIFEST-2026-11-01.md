@@ -42,3 +42,5 @@ Branch: `seo/master-plan-completion`; PR: **#462** (heads the same day: `d0b3b5f
 **Refresh 3 (combined acceptance):** candidate `c6d7cd9` (dpl_76xqg28V…, GitHub 7470620312): PARTIAL ACCEPTANCE (QA §22); #465 ⊂ #468 (merge #465 then #468); first-sitemap-after-deploy finding added to DP-01b; DP-01b optional, not a gate. Prepared only; nothing changed in Notion.
 
 **Refresh 4:** DP-15 sitemap reliability (protected; approval needed); DP-01b optional; first failed sitemap assertion preserved in the verdict; 2E-1 redirect matrix established on `c6d7cd9`. Prepared only.
+
+**Refresh 5:** DP-15 final (sitemap; protected, approval needed; option B withdrawn); DP package §N written out in full; DP-01b optional. Prepared only.
