@@ -1,5 +1,24 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P4b: the remaining inner pages recomposed, navigation colours, the account findings
+
+Local production build (fixture mode + a local fake auth endpoint), Lighthouse 13.6, three runs, median (range). `simulate` = method of record; `applied` = `--throttling-method=devtools`. P4 column from the entry below.
+
+| Page | Method | P4 | **P4b** |
+|---|---|---|---|
+| `/ja` mobile | simulate | 83 · 4.45 s · TBT 116 ms | **83 (83–83) · 4.40 s · TBT 111 ms** |
+| `/en` mobile | simulate | 79 · 4.98 s · TBT 163 ms | **79 (78–80) · 4.99 s · TBT 168 ms** |
+| `/en` / `/ja` desktop | simulate | 98 / 98 | **98 / 98** |
+| `/en/collections/rings` mobile / desktop | simulate | 86 · 4.15 s / 99 | **85 · 4.23 s / 100 · 0.79 s** |
+| product page (`kihei-chain-50-cm`) mobile / desktop | simulate | 83 · 4.59 s / 99 | **86 (83–87) · 4.12 s · TBT 21 ms / 99 · 0.90 s** |
+| `/cart` mobile / desktop | simulate | 88 · 3.92 s / 99 | **90 · 3.62 s / 99 · 0.82 s** |
+| `/ja` · `/en` mobile | applied | 76 · 2.45 s / 69 · 2.50 s | **76 · 2.37 s / 69 · 2.56 s** |
+| collection · cart mobile | applied | 90 · 2.36 s / 86 · 3.10 s | **91 · 2.38 s / 84 · 3.10 s** |
+| product page mobile | applied | 65 · 6.68 s | **66 · 6.68 s** (fixture artefact, below) |
+
+- **No regression:** the recomposed pages add CSS (inner.css, three family files, nav.css) and no client JavaScript on the home; home first load 198 kB gz (197 at P4). Every other row is within run noise of P4.
+- **The cookie bar is not the LCP on a product page.** The fixture product's photograph is a flat vector image, which Chrome ignores as an LCP candidate (low entropy), so a fixture product's LCP falls to the largest remaining paint — the bar's text — and the applied run reads 6.68 s. With a photograph standing in for the fixture image (a noise JPEG served in place of the SVG; `tools/p4b-lcp-photo.mjs`, 4× CPU, slow-4G emulation, production build) the LCP is **the product image** (136 000 px² against the bar's 19 000) at 1.7 s on `/en`, 1.6 s on `/ja`, 1.6 s on the second fixture product. A real Hub photograph is high-entropy WebP, so the same holds on the live site; to be confirmed on the preview.
+
 ## 2026-11-01 — Lumière redesign P4: every inner page in the Lumière design
 
 Local production build, fixture mode, Lighthouse 13.6, normal Chrome UA, three runs, median (range); `simulate` = the method of record (mobile Slow 4G / 4× CPU modelled, desktop preset), `applied` = `--throttling-method=devtools`. Production rows are the same-day P2b measurements above.
@@ -10,7 +29,7 @@ Local production build, fixture mode, Lighthouse 13.6, normal Chrome UA, three r
 | `/en` mobile | simulate | 81 · LCP 4.38 s · TBT 78 ms | 80 · 4.90 s · 159 ms | **79 (68–82) · 4.98 s · 163 ms** |
 | `/ja` / `/en` desktop | simulate | 97 / 98 | 98 / 98 | **98 / 98** (LCP 1.01 / 1.15 s) |
 | `/en/collections/rings` mobile / desktop | simulate | 83 · 4.40 s / 99 | 88 · 3.93 s / 100 | **86 · 4.15 s · TBT 6 ms / 99 · 0.86 s** |
-| a product page, mobile / desktop | simulate | 86 · 3.94 s / 99 | (P3 measured a 404 page here — see below) | **83 · 4.59 s · TBT 22 ms / 99 · 0.94 s** |
+| a product page, mobile / desktop | simulate | 86 · 3.94 s / 99 | 86 · 4.14 s | **83 · 4.59 s · TBT 22 ms / 99 · 0.94 s** |
 | `/cart` mobile / desktop | simulate | not recorded | not measured | **88 · 3.92 s · TBT 7 ms / 99 · 0.83 s** |
 | `/ja` mobile | applied | 55 · LCP 5.06 s | 78 · 2.33 s · TBT 520 ms | **76 · 2.45 s · TBT 557 ms** |
 | `/en` mobile | applied | 59 · LCP 4.77 s | 70 · 2.52 s · TBT 808 ms | **69 · 2.50 s · TBT 836 ms** |
@@ -21,7 +40,7 @@ Local production build, fixture mode, Lighthouse 13.6, normal Chrome UA, three r
 - *The home did not regress.* The first build of the stories belt put its engine and dialog in the home's hydration (English TBT 159 → 262 ms, 76); the belt is now a lazy island (`stories-belt-island.tsx`: its chunk arrives as the band nears; the verbatim story list stays in the server HTML), and the home is back at P3's level — Japanese 83 (the bar), English 79 against 81 (TBT 163 ms, in line with P3's 159; the run range 68–82 is one noisy run). Home first load 197 kB gz (194 at P3).
 - *Inner pages* now carry the Lumière header and footer and the redesigned bodies at the same or better cost than production's rows: the collection page (the Halden cards) 86 · 4.15 s against production's 83 · 4.40 s.
 - *The product page's applied LCP (6.68 s) is the cookie bar's text, not the piece.* The fixture product has an SVG placeholder photograph, which the browser does not count as an image paint, so the largest contentful paint on that page falls to the bar's paragraph, which mounts after hydration (3.1 s on a 4× phone in a direct observation; the product page's client work is the longest of the inner pages). A Hub photograph is a WebP and is the LCP at ~2 s on the collection page (observed: 1.5 s). A 700 ms idle bound on the bar was tried and did not move it (hydration, not the idle wait, sets the time) and was reverted. Unverified on production data; to be re-measured on the branch preview, where the Hub's photographs are real.
-- *Correction to the P3 entry:* the P3 "product page" row (86 · LCP 4.14 s) was measured on `/en/products/double-sided-diamond-pendant`, which is not a fixture slug — it was the not-found page. The product row above is a real fixture product (`kihei-chain-50-cm`).
+- *Retraction (P4b):* the P4 entry here and in PR #469 said the P3 product row (86 · LCP 4.14 s) had been measured on a not-found page. P4b could not reproduce that: `/en/products/double-sided-diamond-pendant` answers 200 on the same fixtures and the fixture existed at the P3 merge. The P3 row stands; the P4 row uses a second fixture product (`kihei-chain-50-cm`).
 - *Mobile simulate on the English home is still under the P1 bar (81, LCP 4.3 s)*; the cause and closers are unchanged from the P2b entry (the curtain's lift is bound by hydration; a static hero shell or PPR is the framework-level answer).
 
 ## 2026-11-01 — Lumière redesign P3: the chrome on every page and the home fixes

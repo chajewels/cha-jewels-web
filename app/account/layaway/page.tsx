@@ -69,7 +69,7 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
         <p className="max-w-[70ch] text-[15px] leading-relaxed text-charcoal-deep">{t("plans", "readOnlyNote")}</p>
 
         {failed && (
-          <p className={`mt-8 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>
+          <p className={`mt-8 ${alertLight} iac-alert p-5 text-sm`}>{t("account", "unavailable")}</p>
         )}
 
         <DraftRows drafts={drafts} lang={lang} />
@@ -82,7 +82,7 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
         )}
 
         {plans.length > 0 && (
-          <ul className="rule-grid mt-8 grid gap-px border border-hairline">
+          <ul className="iac-stack mt-8">
             {plans.map((plan) => {
               const status = planStatusLabel(plan, lang);
               const money = (n: number) => formatMoney(n, plan.currency);
@@ -91,7 +91,7 @@ export default async function AccountLayawayPage({ searchParams }: { searchParam
               // — its badge already reads "Paid in full".
               const figure = planFigure(plan, lang);
               return (
-                <li key={plan.id} className="flex flex-wrap items-center justify-between gap-4 bg-white p-5">
+                <li key={plan.id} className="iac-plate flex flex-wrap items-center justify-between gap-4 p-5">
                   <div>
                     <p className="font-mono text-gold-dark">{plan.web_reference ?? plan.invoice_number ?? "—"}</p>
                     <p className="mt-1 text-xs text-charcoal/70">

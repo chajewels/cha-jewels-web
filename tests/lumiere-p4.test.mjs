@@ -74,7 +74,9 @@ test("items 3–4 — the footer: whole wordmark, readable company panel, one le
 
 test("item 5 — the loyalty labels are in the label style, the figures and names in the display face", () => {
   assert.match(read("components/lumiere/loyalty/loyalty-section.tsx"), /loyalty__tier-rate-label font-manrope/);
-  assert.match(read("app/loyalty/page.tsx"), /text-\[11px\] font-medium uppercase[^"]*tracking-\[0\.1em\]/);
+  // P4b recomposed the page: the label style lives in app/lumiere/inner-commerce.css (.icm-tier__lab), the figures in the display face.
+  assert.match(read("app/lumiere/inner-commerce.css"), /\.icm-tier__lab \{[^}]*font-family: var\(--font-manrope\)[^}]*text-transform: uppercase/);
+  assert.match(read("app/lumiere/inner-commerce.css"), /\.icm-tier__mult \{ font-family: var\(--font-display/);
   assert.match(read("app/lumiere/sections.css"), /\.loyalty__tier-name \{ font-family: var\(--lm-font-display\); \}/);
 });
 
@@ -111,6 +113,8 @@ test("every h1 resolves word by word with real text; Japanese breaks at phrases"
   for (const f of [...walk("app"), ...walk("components")]) {
     const s = read(f);
     for (const m of s.matchAll(/<h1\b[^>\n]*>\s*\{?[^<\n]*<Reveal>/g)) wrapped += 1;
+    // P4b: PageHead owns an h1 that resolves through Reveal (components/lumiere/page/page-head.tsx)
+    if (!f.endsWith("page-head.tsx")) for (const m of s.matchAll(/<PageHead\b/g)) wrapped += 1;
   }
   assert.ok(wrapped >= 30, `h1s wrapped: ${wrapped}`);
 });

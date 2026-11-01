@@ -11,7 +11,7 @@ import type { ReviewInvite } from "@/lib/reviews";
 import { ReviewForm } from "@/components/site/review-form";
 import { ReviewUsedOrThanks } from "@/components/site/review-done";
 import { Eyebrow, MessengerCta } from "@/components/site/support-stage";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 /**
  * noindex, nofollow: a personal, one-use link. It must never be crawled, and
@@ -60,28 +60,32 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
       : invite.status === "used" ? [t("reviews", "usedH"), t("reviews", "usedP")]
       : invite.status === "expired" ? [t("reviews", "expiredH"), t("reviews", "expiredP")]
       : [t("reviews", "notFoundH"), t("reviews", "notFoundP")];
-    return (
-      <section className="bg-chalk pb-[clamp(56px,7vw,96px)] pt-[clamp(40px,6vw,88px)] text-charcoal">
-        <div className="wrap max-w-[720px]">
-          <Eyebrow rule>{t("reviews", "pageEyebrow")}</Eyebrow>
-          <div className="mt-6 grid gap-5 border border-hairline bg-white p-[22px] sm:p-8">
-            {invite?.status === "used" ? (
-              // The sender's own browser gets the thank-you, not "already used"
-              // (components/site/review-done.tsx says why).
+    const actions = (
+      <div className="flex flex-wrap items-center gap-4">
+        {invite?.status !== "used" && messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} />}
+        <Link href={localePath("/collections", lang)} className="iac-link">{t("reviews", "browse")} →</Link>
+      </div>
+    );
+    if (invite?.status === "used") {
+      // The sender's own browser gets the thank-you, not "already used"
+      // (components/site/review-done.tsx says why; that component owns the h1).
+      return (
+        <section className="iac-shell iac-form text-charcoal">
+          <div className="wrap iac-solo pt-[clamp(40px,6vw,88px)]">
+            <Eyebrow rule>{t("reviews", "pageEyebrow")}</Eyebrow>
+            <div className="iac-plate iac-sheet lm-rise mt-6 grid gap-5">
               <ReviewUsedOrThanks token={token} usedH={h} usedP={p} thanksH={t("reviews", "thanksH")} thanksP={t("reviews", "thanksP")} />
-            ) : (
-              <>
-                <h1 className="text-[clamp(26px,3vw,36px)] leading-tight text-charcoal-deep [:lang(ja)_&]:text-[clamp(22px,2.6vw,30px)] [:lang(ja)_&]:leading-[1.45]"><Reveal>{h}</Reveal></h1>
-                <p className="text-[16px] leading-[1.75] text-charcoal/85">{p}</p>
-              </>
-            )}
-            <div className="flex flex-wrap items-center gap-4">
-              {invite?.status !== "used" && messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} />}
-              <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm font-semibold text-gold-dark underline underline-offset-4">{t("reviews", "browse")} →</Link>
+              {actions}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      );
+    }
+    return (
+      <div className="iac-shell">
+        <PageHead eyebrow={t("reviews", "pageEyebrow")} title={h} lead={p} />
+        <PageSection>{actions}</PageSection>
+      </div>
     );
   }
 
@@ -90,21 +94,18 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
   const image = invite.product?.image ?? null;
 
   return (
-    <section className="bg-chalk pb-[clamp(56px,7vw,96px)] pt-[clamp(40px,6vw,88px)] text-charcoal">
-      <div className="wrap">
-        <Eyebrow rule>{t("reviews", "pageEyebrow")}</Eyebrow>
-        <h1 className="mt-3.5 text-[clamp(30px,4.2vw,54px)] leading-[1.1] text-charcoal-deep [:lang(ja)_&]:text-[clamp(24px,3.2vw,40px)] [:lang(ja)_&]:leading-[1.4]">
-          {piece ? t("reviews", "ask", { piece }) : t("reviews", "askNoPiece")}
-        </h1>
-        <p className="mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-charcoal/85 [:lang(ja)_&]:text-[15.5px]">
-          {name ? t("reviews", "hello", { name }) : t("reviews", "helloNoName")} {t("reviews", "lede")}
-        </p>
-
-        <div className="mt-10 grid items-start gap-7 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10">
-          <div className="band-dark relative grid gap-4 overflow-hidden bg-charcoal-deep p-6 text-chalk outline outline-1 -outline-offset-1 outline-gold/30 sm:p-[34px]">
+    <div className="iac-shell iac-form text-charcoal">
+      <PageHead
+        eyebrow={t("reviews", "pageEyebrow")}
+        title={piece ? t("reviews", "ask", { piece }) : t("reviews", "askNoPiece")}
+        lead={<>{name ? t("reviews", "hello", { name }) : t("reviews", "helloNoName")} {t("reviews", "lede")}</>}
+      />
+      <PageSection>
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8">
+          <div className="band-dark iac-ink lm-rise relative grid gap-4 p-6 text-chalk sm:p-[34px]">
             <div aria-hidden="true" className="cs-pool" />
             {image && (
-              <div className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden bg-chalk">
+              <div className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-[20px] bg-chalk">
                 {isOptimizableImage(image)
                   ? <Image src={image} alt={invite.product?.name ?? piece ?? ""} fill sizes="320px" className="object-contain" />
                   // eslint-disable-next-line @next/next/no-img-element
@@ -125,11 +126,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
             )}
           </div>
 
-          <div className="grid gap-5 border border-hairline bg-white p-[22px] sm:p-8">
+          <div className="iac-plate lm-rise grid gap-5 p-[22px] sm:p-8">
             <ReviewForm token={token} lang={lang} />
           </div>
         </div>
-      </div>
-    </section>
+      </PageSection>
+    </div>
   );
 }

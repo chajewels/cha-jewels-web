@@ -44,7 +44,7 @@ export function MobileTabBar({ tabs, label }: { tabs: Tab[]; label: string }) {
           const bare = stripLocale(path);
           const active = OWNS[icon].some((m) => (m === "/" ? bare === "/" : bare === m || bare.startsWith(`${m}/`)));
           return (
-            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex h-14 min-w-[64px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium leading-none ${active ? "text-content" : "text-content/55 hover:text-content"}`}>
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className="lm-tab flex h-14 min-w-[64px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium leading-none">
               <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} />
               <span className="whitespace-nowrap">{name}</span>
             </Link>

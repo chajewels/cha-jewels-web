@@ -13,7 +13,7 @@ import { ProductTrust } from "@/components/catalog/product-trust";
 import { Button } from "@/components/ui/button";
 import { agreementStatusAction } from "@/lib/checkout-actions";
 import type { HubAddress, HubMe } from "@/lib/types";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const generateMetadata = () => pageMeta("checkout");
 export const dynamic = "force-dynamic";
@@ -102,13 +102,15 @@ export default async function CheckoutPage({ searchParams }: {
 
   if (items.length === 0) {
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
-        <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(32px,4.4vw,56px)]"><Reveal>{t("checkout", "h1")}</Reveal></h1>
-          <p className="mt-8 text-charcoal">{t("checkout", "emptyCart")}</p>
-          <Button asChild variant="outline" className="mt-6"><Link href={localePath("/collections", lang)}>{t("cart", "browse")}</Link></Button>
-        </div>
-      </section>
+      <>
+        <PageHead eyebrow={t("checkout", "eyebrow")} title={t("checkout", "h1")} />
+        <PageSection tone="sheet">
+          <div className="lm-plate lm-plate--bone icm-empty lm-rise">
+            <p className="text-charcoal">{t("checkout", "emptyCart")}</p>
+            <div><Button asChild variant="outline"><Link href={localePath("/collections", lang)}>{t("cart", "browse")}</Link></Button></div>
+          </div>
+        </PageSection>
+      </>
     );
   }
 
@@ -137,7 +139,7 @@ export default async function CheckoutPage({ searchParams }: {
         subtotal={cartSubtotal(items)}
         initialAddresses={addresses}
         customer={{ name: me?.customer.full_name ?? null, email: me?.customer.email ?? auth.user.email ?? null }}
-        aside={<div className="border border-hairline bg-white px-4"><ProductTrust lang={lang} only={["pay", "ship", "returns"]} /></div>}
+        aside={<div className="icm-trust"><ProductTrust lang={lang} only={["pay", "ship", "returns"]} /></div>}
         initialMode={initialMode}
         offerLoyalty={offerLoyalty}
         initialQuote={initialQuote}

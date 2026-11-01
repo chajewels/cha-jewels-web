@@ -5,16 +5,10 @@ import { getFaq } from "@/lib/faq";
 import { JsonLd } from "@/components/site/json-ld";
 import { contactEmail, follow } from "@/lib/settings";
 import { COMPANY_PHONE } from "@/lib/content/legal";
-import { Eyebrow, MessengerCta } from "@/components/site/support-stage";
+import { MessengerCta } from "@/components/site/support-stage";
 import { FaqNav, FaqStyle } from "@/components/faq/faq-nav";
 import { Emblem } from "@/components/fx/emblem";
-import { ComponentStyle } from "@/components/fx/component-style";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
-
-// The emblem beside the title, as on Affiliations and Blog. It was dropped by
-// the step 6 redesign without an owner decision (2026-10-01); restored.
-const TITLE_CSS = `.fx-titled { display: flex; flex-direction: column; align-items: flex-start; gap: 1.25rem; }
-@media (min-width: 640px) { .fx-titled { flex-direction: row; align-items: center; gap: clamp(24px, 3.4vw, 40px); } }`;
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const generateMetadata = () => pageMeta("faq");
 
@@ -38,19 +32,14 @@ export default async function FaqPage() {
     <>
       <JsonLd type="faq" items={jsonLdItems} />
       <FaqStyle />
-      <section className="pb-[clamp(48px,7vw,88px)] pt-[clamp(40px,6vw,88px)]">
-        <div className="wrap">
-          <ComponentStyle id="fx-titled" css={TITLE_CSS} />
-          <div className="fx-titled">
-            <Emblem name="faq" sm={96} lg={128} />
-            <div>
-              <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
-              <h1 className="mt-3.5 max-w-[18ch] text-[clamp(34px,4.6vw,60px)] leading-[1.08] text-charcoal-deep [:lang(ja)_&]:text-[clamp(28px,3.4vw,44px)] [:lang(ja)_&]:leading-[1.35]"><Reveal>{t("faq", "h1")}</Reveal></h1>
-              <p className="mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-charcoal/85 [:lang(ja)_&]:text-[15.5px]">{t("faq", "lede")}</p>
-            </div>
-          </div>
-        </div>
-        <div className="wrap fx-faq mt-8 lg:mt-11">
+      <PageHead
+        eyebrow={t("navMenu", "company")}
+        title={t("faq", "h1")}
+        lead={t("faq", "lede")}
+        aside={<Emblem name="faq" sm={96} lg={128} />}
+      />
+      <PageSection tone="sheet">
+        <div className="fx-faq">
           <div className="fx-faq-side">
             <FaqNav
               label={t("faq", "categories")}
@@ -60,22 +49,21 @@ export default async function FaqPage() {
           <div lang={lang} className="fx-faq-main">
             {/* The accordion is kept deliberately: forty questions rendered flat
                 is a wall, and a shopper looking for one answer should not scroll
-                past the rest. Rows are 60px with a 32px round ± control. */}
+                past the rest. Each group is a plate; rows are rounded, with a
+                36px pill +/- control. */}
             {sections.map((section) => (
               // `id` is what makes a section linkable — the footer's layaway
               // link is /faq#payments-and-layaway. The page CSS sets its
               // scroll-margin so the heading clears the header (and, on phones,
               // the section bar).
-              <section key={section.key} id={section.slug} className="mb-11 last:mb-0">
-                <h2 className="mb-3.5 text-[clamp(22px,2.2vw,28px)] text-charcoal-deep [:lang(ja)_&]:text-[clamp(19px,2vw,24px)] [:lang(ja)_&]:leading-[1.5]">
-                  {section.heading}
-                </h2>
-                <div className="border-b border-hairline">
+              <section key={section.key} id={section.slug} className="ic-faqgroup lm-plate">
+                <h2 className="lm-h2 font-display">{section.heading}</h2>
+                <div className="ic-faq-rows">
                   {section.items.map((item) => (
-                    <details key={item.key} className="group border-t border-hairline">
-                      <summary className="flex min-h-[60px] cursor-pointer list-none items-center justify-between gap-5 py-3 text-[16px] font-medium leading-normal text-charcoal-deep [&::-webkit-details-marker]:hidden [:lang(ja)_&]:text-[15.5px]">
+                    <details key={item.key} className="ic-faq-row group">
+                      <summary>
                         <span className="min-w-0">{item.question}</span>
-                        <span aria-hidden="true" className="grid h-8 w-8 flex-none place-items-center rounded-full border border-gold-dark/60 text-gold-dark">
+                        <span aria-hidden="true" className="ic-faq-pm">
                           <span className="group-open:hidden">+</span>
                           <span className="hidden group-open:inline">−</span>
                         </span>
@@ -83,7 +71,7 @@ export default async function FaqPage() {
                       {/* Markdown from lib/markdown.ts, which escapes its input
                           before parsing it — there is no path from an answer to
                           a tag. `.faq-answer` in globals.css styles it. */}
-                      <div className="faq-answer pb-5 text-charcoal/85 lg:pr-[60px]" dangerouslySetInnerHTML={{ __html: item.answerHtml }} />
+                      <div className="faq-answer ic-faq-answer text-charcoal/85" dangerouslySetInnerHTML={{ __html: item.answerHtml }} />
                     </details>
                   ))}
                 </div>
@@ -91,22 +79,21 @@ export default async function FaqPage() {
             ))}
           </div>
         </div>
-      </section>
+      </PageSection>
 
-      {/* Not answered here? A person answers (comp: the page ends on the dark band). */}
-      <section className="band-dark relative overflow-hidden bg-charcoal-deep text-chalk">
-        <div aria-hidden="true" className="cs-pool" />
-        <div className="wrap relative flex flex-wrap items-center justify-between gap-5 py-10 sm:py-14">
+      {/* Not answered here? A person answers: the page ends on a black band. */}
+      <PageSection tone="ink">
+        <div className="ic-ask">
           <div>
-            <p className="font-display text-[clamp(22px,2.4vw,30px)] leading-snug text-gold-pale [:lang(ja)_&]:text-[clamp(19px,2vw,24px)]">{t("support", "askH")}</p>
-            <p className="mt-1.5 text-sm text-chalk/80">
-              {email && <><a href={`mailto:${email}`} className="text-chalk underline-offset-4 hover:underline">{email}</a> · </>}
-              <a href={`tel:${COMPANY_PHONE.office.replace(/-/g, "")}`} className="cj-fig text-chalk underline-offset-4 hover:underline">{COMPANY_PHONE.office}</a>
+            <p className="ic-ask__title font-display">{t("support", "askH")}</p>
+            <p className="ic-ask__body">
+              {email && <><a href={`mailto:${email}`} className="text-white underline-offset-4 hover:underline">{email}</a> · </>}
+              <a href={`tel:${COMPANY_PHONE.office.replace(/-/g, "")}`} className="cj-fig text-white underline-offset-4 hover:underline">{COMPANY_PHONE.office}</a>
             </p>
           </div>
-          {messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} />}
+          {messenger && <MessengerCta href={messenger} label={t("social", "messengerButton")} className="ic-btn-light" />}
         </div>
-      </section>
+      </PageSection>
     </>
   );
 }

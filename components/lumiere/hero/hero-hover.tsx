@@ -102,6 +102,8 @@ export interface RollLinkProps {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
+  /** The link is for the page on screen (aria-current). */
+  current?: boolean;
 }
 
 /**
@@ -113,11 +115,12 @@ export const RollLink = ({
   children,
   className,
   onClick,
+  current,
 }: RollLinkProps) => {
   const { hovered, handlers } = useHover();
 
   return (
-    <Link href={href} className={className} onClick={onClick} {...handlers}>
+    <Link href={href} className={className} onClick={onClick} aria-current={current ? "page" : undefined} {...handlers}>
       <HoverRoll active={hovered}>{children}</HoverRoll>
     </Link>
   );

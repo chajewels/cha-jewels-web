@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { signOutAction } from "@/lib/session-actions";
 
 export type AccountMenuItem = { href: string; label: string };
@@ -25,6 +26,7 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.R
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const id = useId();
+  const path = (usePathname() ?? "").replace(/^\/(en|ja)(?=\/|$)/, "");
 
   const close = useCallback((refocus: boolean) => {
     setOpen(false);
@@ -56,7 +58,7 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.R
     else if (e.key === "Tab") close(false);
   }
 
-  const itemClass = "block w-full px-4 py-2.5 text-left text-sm text-charcoal/85 hover:bg-chalk hover:text-gold-dark focus-visible:bg-chalk focus-visible:text-gold-dark";
+  const itemClass = "lm-dropdown__item block w-full px-4 py-2.5 text-left text-sm";
 
   return (
     <div className="relative">
@@ -69,7 +71,7 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.R
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => { if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !open) { e.preventDefault(); setOpen(true); } }}
         // Site frame: an icon + label tool, like Cart beside it.
-        className={`inline-flex min-h-11 max-w-[18ch] items-center gap-2 whitespace-nowrap rounded-sm px-1.5 text-sm font-medium ${open ? "text-gold-dark" : "text-charcoal-deep hover:text-gold-dark"}`}
+        className="lm-nav-tool inline-flex min-h-11 max-w-[18ch] items-center gap-2 whitespace-nowrap rounded-sm px-1.5 text-sm font-medium" data-open={open ? "" : undefined}
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
         <span className="sr-only">{name}</span>
@@ -84,12 +86,12 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.R
           role="menu"
           aria-label={menuLabel}
           onKeyDown={onMenuKeyDown}
-          className="menu-in absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] rounded-sm border border-hairline bg-white py-1.5 shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
+          className="lm-dropdown menu-in absolute right-0 top-[calc(100%+10px)] z-50 min-w-[230px] py-1.5"
         >
           {items.map((it) => (
-            <Link key={it.href} role="menuitem" tabIndex={-1} href={it.href} onClick={() => close(false)} className={itemClass}>{it.label}</Link>
+            <Link key={it.href} role="menuitem" tabIndex={-1} href={it.href} onClick={() => close(false)} aria-current={it.href.split("#")[0] === path && !it.href.includes("#") ? "page" : undefined} className={itemClass}>{it.label}</Link>
           ))}
-          <form action={signOutAction} className="mt-1.5 border-t border-hairline pt-1.5">
+          <form action={signOutAction} className="lm-dropdown__foot mt-1.5 pt-1.5">
             <button type="submit" role="menuitem" tabIndex={-1} className={itemClass}>{signOut}</button>
           </form>
         </div>

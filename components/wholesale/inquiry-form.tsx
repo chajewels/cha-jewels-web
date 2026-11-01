@@ -28,16 +28,16 @@ export function InquiryForm({ lang, heading }: { lang: Lang; heading?: string })
   // The shared light form rule, not a second opinion about what a field looks
   // like. lib/form-classes.ts carries the measured pairs; only the sizing is
   // this form's own.
-  const field = `min-h-12 w-full rounded-sm px-3.5 text-[15px] ${inputLight}`;
+  const field = `min-h-12 w-full rounded-[14px] px-4 text-[15px] ${inputLight}`;
   const label = `grid gap-1.5 text-xs font-semibold tracking-[0.06em] ${labelLight}`;
   // A radio chip: the input stays a real radio (keyboard arrows, form data),
   // visually hidden; the chip shows its state and its focus ring.
-  const chip = "relative inline-flex min-h-11 cursor-pointer items-center rounded-sm border border-charcoal/60 bg-white px-3.5 text-sm font-normal tracking-normal text-charcoal-deep has-[:checked]:border-charcoal-deep has-[:checked]:bg-charcoal-deep has-[:checked]:text-chalk has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-gold-dark";
+  const chip = "relative inline-flex min-h-11 cursor-pointer items-center rounded-full border border-charcoal/60 bg-white px-3.5 text-sm font-normal tracking-normal text-charcoal-deep has-[:checked]:border-charcoal-deep has-[:checked]:bg-charcoal-deep has-[:checked]:text-chalk has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-gold-dark";
   // The success box is NOT alertLight: that rule is garnet-bordered for things
   // that went wrong, and a confirmation in an error frame reads as a failure.
-  if (state === "ok") return <div className="border border-hairline bg-white p-6 text-charcoal-deep sm:p-8">{c.ok[lang]}</div>;
+  if (state === "ok") return <div className="ic-formsheet text-charcoal-deep">{c.ok[lang]}</div>;
   return (
-    <form onSubmit={submit} noValidate className="grid gap-[18px] border border-hairline bg-white p-[22px] text-sm text-charcoal sm:p-8">
+    <form onSubmit={submit} noValidate className="ic-formsheet grid gap-[18px] text-sm text-charcoal">
       {heading && <h2 className="font-display text-[clamp(22px,2.2vw,28px)] leading-tight text-charcoal-deep">{heading}</h2>}
       <label className={label}>{c.name[lang]}<input name="name" required autoComplete="name" className={field} /></label>
       <label className={label}>{c.business[lang]}<input name="business" required autoComplete="organization" className={field} /></label>

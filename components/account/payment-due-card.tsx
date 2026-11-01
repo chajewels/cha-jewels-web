@@ -26,7 +26,7 @@ export function PaymentDueCard({
 }) {
   const t = tr(lang);
   return (
-    <section aria-labelledby="pay-h" className="mt-8 border border-hairline bg-white p-5 sm:p-7">
+    <section aria-labelledby="pay-h" className="iac-plate iac-due mt-8 p-5 sm:p-8">
       <h2 id="pay-h" className="font-display text-2xl text-charcoal-deep">{t("account", "payH")}</h2>
       {(amount || deadline) && (
         <dl className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -56,7 +56,7 @@ export function PaymentDueCard({
  */
 export function ReservedStatusCard({ heading, children }: { heading: string; children: ReactNode }) {
   return (
-    <section aria-labelledby="reserved-h" className="mt-8 border border-hairline bg-white p-5 text-sm text-charcoal sm:p-7">
+    <section aria-labelledby="reserved-h" className="mt-8 iac-plate p-5 text-sm text-charcoal sm:p-7">
       <h2 id="reserved-h" className="font-display text-xl text-charcoal-deep">{heading}</h2>
       <div className="mt-2 space-y-2">{children}</div>
     </section>

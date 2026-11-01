@@ -207,7 +207,7 @@ export const MenuOverlay = ({ id, open, onClose, nav, menu, utilities, labels, h
         <div className="lm-menu__groups">
           {menu.map((group) => (
             <nav key={group.title} aria-label={group.title} className="mb-[20px]">
-              <p className="mb-[6px] font-manrope text-[11px] font-medium uppercase tracking-utility opacity-50">{group.title}</p>
+              <p className="lm-nav-eyebrow mb-[6px] font-manrope text-[11px] font-medium uppercase tracking-utility">{group.title}</p>
               <ul className="flex list-none flex-col gap-0 font-serif">
                 {group.links.map((link) => {
                   const delay = MENU_LEAD + (nav.length + 1 + menuIndex++) * ITEM_STAGGER;

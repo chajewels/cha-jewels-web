@@ -83,7 +83,7 @@ export function CommentForm({ slug, lang, open, initialPending, signInHref, prof
             value={body}
             onChange={(e) => { setBody(e.target.value); if (error?.code === "body_invalid") setError(null); }}
             aria-describedby="comment-hint comment-count"
-            className={`w-full px-3 py-2 text-[15px] leading-[1.7] ${inputLight}`}
+            className={`w-full rounded-[14px] px-3.5 py-2.5 text-[15px] leading-[1.7] ${inputLight}`}
           />
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12px] text-charcoal/70">
             <span id="comment-hint">{t("comments", "hint")}</span>
@@ -93,7 +93,7 @@ export function CommentForm({ slug, lang, open, initialPending, signInHref, prof
           </div>
           {error && <ErrorLine {...error} lang={lang} links={links} />}
           {sent && !error && (
-            <p role="status" className="border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("comments", "sent")}</p>
+            <p role="status" className="rounded-[14px] border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("comments", "sent")}</p>
           )}
           <div>
             <Button type="submit" disabled={busy} className="w-full sm:w-auto">
@@ -144,11 +144,11 @@ function PendingComment({ comment, slug, lang, links, onSaved, onDeleted }: {
   const small = "min-h-10 w-full px-4 py-2 text-sm sm:w-auto";
 
   return (
-    <article className="border border-dashed border-charcoal/60 bg-white p-5 sm:p-6">
+    <article className="rounded-[18px] border border-dashed border-charcoal/60 bg-white p-5 sm:p-6">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm font-semibold text-charcoal-deep">
           {comment.author_first_name}
-          <span className="ml-2 inline-block border border-gold-dark px-2 py-0.5 text-[11px] font-normal text-gold-dark">{t("comments", "pending")}</span>
+          <span className="ml-2 inline-block rounded-full border border-gold-dark px-2.5 py-0.5 text-[11px] font-normal text-gold-dark">{t("comments", "pending")}</span>
         </p>
         <time dateTime={comment.created_at} className="text-xs text-charcoal/70">{comment.when}</time>
       </header>
@@ -159,7 +159,7 @@ function PendingComment({ comment, slug, lang, links, onSaved, onDeleted }: {
           <textarea
             id={fieldId} rows={4} maxLength={COMMENT_MAX}
             value={draft} onChange={(e) => setDraft(e.target.value)}
-            className={`w-full px-3 py-2 text-[15px] leading-[1.7] ${inputLight}`}
+            className={`w-full rounded-[14px] px-3.5 py-2.5 text-[15px] leading-[1.7] ${inputLight}`}
           />
           <p className="text-right text-[12px] tabular-nums text-charcoal/70">
             {t("comments", "counter", { n: String(draft.length), max: String(COMMENT_MAX) })}

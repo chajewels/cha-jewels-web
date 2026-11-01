@@ -16,3 +16,11 @@ playwright-report/
 # Hero cut-out runs (scripts/hero-cutouts)
 hero-cutouts-out/
 __pycache__/
+
+# Review evidence (screenshots) is NOT code history: it lives on the orphan branches `evidence/lumiere-*`
+# (never merged). The text index in each docs/tasks/lumiere-p*-evidence/ folder stays tracked.
+docs/tasks/lumiere-p*-evidence/**/*.jpg
+docs/tasks/lumiere-p*-evidence/**/*.jpeg
+docs/tasks/lumiere-p*-evidence/**/*.png
+docs/tasks/lumiere-p*-evidence/**/*.webp
+docs/tasks/lumiere-p*-evidence/**/*.gif

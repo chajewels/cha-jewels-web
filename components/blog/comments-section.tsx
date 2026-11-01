@@ -40,7 +40,7 @@ export async function CommentsSection({ slug, lang }: { slug: string; lang: Lang
   const count = comments.length === 1 ? t("comments", "countOne") : t("comments", "count", { n: String(comments.length) });
 
   return (
-    <section id="comments" aria-labelledby="comments-h" className="mt-16 border-t border-hairline pt-10">
+    <section id="comments" aria-labelledby="comments-h" className="mt-16 rounded-[22px] bg-chalk p-[clamp(20px,3vw,36px)]">
       <h2 id="comments-h" className="flex flex-wrap items-baseline gap-x-3 font-display text-2xl text-charcoal-deep">
         {t("comments", "h")}
         <span className="font-sans text-sm text-charcoal/70">{count}</span>
@@ -76,7 +76,7 @@ export async function CommentsSection({ slug, lang }: { slug: string; lang: Lang
 function ApprovedComment({ comment, lang }: { comment: PostComment; lang: Lang }) {
   const t = tr(lang);
   return (
-    <article className="border border-hairline bg-white p-5 sm:p-6">
+    <article className="rounded-[18px] bg-white p-5 sm:p-6">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm font-semibold text-charcoal-deep">
           {comment.author_first_name}
@@ -86,7 +86,7 @@ function ApprovedComment({ comment, lang }: { comment: PostComment; lang: Lang }
       </header>
       <p className="mt-3 whitespace-pre-line break-words text-[15px] leading-[1.75] text-charcoal-deep">{comment.body}</p>
       {comment.reply && (
-        <div className="mt-4 border-l-2 border-gold-dark bg-chalk px-4 py-3">
+        <div className="mt-4 rounded-[14px] border-l-2 border-gold-dark bg-chalk px-4 py-3">
           <p className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs">
             <span className="font-semibold text-gold-dark">{t("comments", "reply")}</span>
             <time dateTime={comment.reply.created_at} className="text-charcoal/70">{formatSiteDate(comment.reply.created_at, lang)}</time>

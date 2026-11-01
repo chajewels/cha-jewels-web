@@ -198,7 +198,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
                 opening Paidy again (S-L6); with it, PaidyPay shows the notice
                 itself and hides it while it waits for the Hub (review fix 4). */}
             {windowOpen && !(paidy && boxes.paidy) && (
-              <div className="mb-5 border border-gold-dark bg-white p-4 sm:p-5" role="status" data-testid="paidy-window-open">
+              <div className="mb-5 iac-plate iac-plate--note p-4 sm:p-5" role="status" data-testid="paidy-window-open">
                 <h3 className="font-display text-[17px] text-charcoal-deep">{t("paidy", "windowOpenTitle")}</h3>
                 <p className="mt-1 text-sm text-charcoal/80">{t("paidy", "windowOpenBodyNoReopen")}</p>
               </div>
@@ -214,19 +214,19 @@ export default async function OrderDetailPage({ params, searchParams }: {
                 behind the Card Purchase Agreement gate (owner D9). */}
             {/* M9: never beside her open Paidy window (the Hub sends no card then either). */}
             {card && boxes.card && !windowOpen && (
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border border-hairline bg-white p-4 sm:p-5" data-testid="card-offer">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 iac-plate p-4 sm:p-5" data-testid="card-offer">
                 <div className="min-w-0">
                   <p className="font-display text-[17px] text-charcoal-deep">{t("card", "orderButton")}</p>
                   <p className="mt-1 text-[13px] leading-relaxed text-charcoal/80">{t("card", "orderLede")}</p>
                   <CardMarks label={t("footer", "cards")} className="mt-2" />
                 </div>
                 {/* A full page load, not a client navigation: the pay-card page's enforced CSP header only applies to a document load. */}
-                <a href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</a>
+                <a href={`/account/orders/${order.id}/pay-card`} className="inline-flex h-11 items-center justify-center rounded-pill bg-charcoal-deep px-5 text-[13px] font-medium uppercase tracking-[0.12em] text-white transition hover:bg-charcoal [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{t("card", "orderButton")}</a>
               </div>
             )}
             {paidyNeedsProfile && paidyReq && <PaidyProfileForm orderId={order.id} requirements={paidyReq} lang={lang} />}
             {chosenUnavailable && (
-              <p className="mb-5 border border-hairline bg-white p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", cardFallback ? "cardFallbackNote" : "methodUnavailableNote")}</p>
+              <p className="mb-5 iac-plate p-4 text-sm text-charcoal-deep" data-testid="chosen-method-unavailable">{t("orders", cardFallback ? "cardFallbackNote" : "methodUnavailableNote")}</p>
             )}
             {switchMethods.length > 0 && <SwitchMethod orderId={order.id} methods={switchMethods} lang={lang} />}
             {showTransfer && !windowOpen && (
@@ -243,7 +243,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
       {/* CASH ON DELIVERY: no way to pay here — the courier collects the
           Hub's figure (fee included) when the parcel arrives. */}
       {codOpen && (
-        <div className="mb-6 border border-gold-dark bg-white p-5" role="status" data-testid="cod-notice">
+        <div className="mb-6 iac-plate iac-plate--note p-5" role="status" data-testid="cod-notice">
           <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "codH")}</h2>
           {cod && (
             <p className="mt-2 text-sm text-charcoal/80">
@@ -262,14 +262,14 @@ export default async function OrderDetailPage({ params, searchParams }: {
       )}
 
       {paidyProcessing && !cardPayment && pending.length === 0 && (
-        <div className="mb-6 border border-gold-dark bg-white p-5" role="status" data-testid="paidy-processing">
+        <div className="mb-6 iac-plate iac-plate--note p-5" role="status" data-testid="paidy-processing">
           <h2 className="font-display text-lg text-charcoal-deep">{t("paidy", "processingTitle")}</h2>
           <p className="mt-2 text-sm text-charcoal/80">{t("paidy", "processingBody")}</p>
         </div>
       )}
 
       {pendingShown.length > 0 && (
-        <div className="mb-6 border border-gold-dark bg-white p-5">
+        <div className="mb-6 iac-plate iac-plate--note p-5">
           <h2 className="font-display text-lg text-charcoal-deep">{t("orders", "pending")}</h2>
           <ul className="mt-3 space-y-1 text-sm text-charcoal/80">
             {pendingShown.map((sub) => (
@@ -292,13 +292,13 @@ export default async function OrderDetailPage({ params, searchParams }: {
           {/* A Hub-arranged order records its pieces on the invoice, not in
               this table: most carry no lines and no saved address. */}
           {items.length === 0 ? (
-            <p className="border border-hairline bg-white p-5 text-sm leading-relaxed text-charcoal/80">{t("orders", "arrangedWithUs")}</p>
+            <p className="iac-plate p-5 text-sm leading-relaxed text-charcoal/80">{t("orders", "arrangedWithUs")}</p>
           ) : (
             <ul className="grid gap-3">
               {items.map((line) => {
                 const name = orderLineTitle(line, lang);
                 return (
-                  <li key={line.id} className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-3.5 border border-hairline bg-white p-4 sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-5 sm:p-5">
+                  <li key={line.id} className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-3.5 iac-plate p-4 sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-5 sm:p-5">
                     <PieceWell image={linePicture(line.image_url, name)} alt={name} />
                     <div className="min-w-0">
                       <p className="font-display text-[15px] leading-[1.45] text-charcoal-deep [font-variant-numeric:lining-nums] sm:text-[17px]">{name}</p>
@@ -331,7 +331,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
 
           {/* The Hub decided the cancellation and the refund; this block only reports them. */}
           {cancelled && (
-            <div className="mt-6 border border-hairline bg-white p-5 text-sm text-charcoal sm:p-6">
+            <div className="mt-6 iac-plate p-5 text-sm text-charcoal sm:p-6">
               <h2 className="font-display text-xl text-charcoal-deep">{t("orders", "statusCancelled")}</h2>
               <dl className="mt-4 space-y-2">
                 {order.cancelled_at && <Row k={t("orders", "cancelledOn")} v={fmtDate(order.cancelled_at)} />}
@@ -359,7 +359,7 @@ export default async function OrderDetailPage({ params, searchParams }: {
           />
         </div>
 
-        <aside className="border border-hairline bg-white p-5 sm:p-6">
+        <aside className="iac-plate p-5 sm:p-6 lg:sticky lg:top-24">
           <dl className="grid gap-1 text-sm">
             <Kv k={t("orders", "placed")}><span className="cj-fig">{placed}</span></Kv>
             {address && (

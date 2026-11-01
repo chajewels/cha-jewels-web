@@ -18,7 +18,7 @@ import { ServiceRequestForm } from "@/components/account/service-request-form";
 import { NextSteps } from "@/components/commerce/commerce-ui";
 import { ConfirmationActions, ConfirmationLayout, linePicture } from "@/components/commerce/confirmation";
 import type { ServiceRequest } from "@/lib/types";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 /**
  * WEBSITE ORDERS (Hub PR 6 / storefront PR 7) — a checkout the Hub holds as a
@@ -62,12 +62,10 @@ export default async function DraftCompletePage({ params, searchParams }: {
 
   if (!detail) {
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
-        <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(28px,3.6vw,44px)]"><Reveal>{t("draft", "notFound")}</Reveal></h1>
-          <Button asChild variant="ghost" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
-        </div>
-      </section>
+      <>
+        <PageHead title={t("draft", "notFound")} />
+        <PageSection tone="sheet"><Button asChild variant="ghost" className=""><Link href="/account/orders">{t("orders", "back")}</Link></Button></PageSection>
+      </>
     );
   }
 
@@ -83,18 +81,17 @@ export default async function DraftCompletePage({ params, searchParams }: {
   if (draft.status === "declined" || draft.status === "expired") {
     const declined = draft.status === "declined";
     return (
-      <section className="py-[clamp(48px,7vw,96px)]">
-        <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(28px,3.6vw,44px)]"><Reveal>{t("draft", declined ? "declinedH1" : "expiredH1")}</Reveal></h1>
-          <p className="mt-4 text-charcoal">{t("draft", declined ? "declinedLede" : "expiredLede")}</p>
-          <dl className="rule-grid mt-8 grid gap-px sm:grid-cols-2">
+      <>
+        <PageHead title={t("draft", declined ? "declinedH1" : "expiredH1")} lead={t("draft", declined ? "declinedLede" : "expiredLede")} />
+        <PageSection tone="sheet">
+          <dl className="lm-grid lm-grid--2 mb-8">
             <Cell k={t("draft", "reference")} v={draft.web_reference} mono />
             {declined && draft.decline_reason && <Cell k={t("draft", "reason")} v={draft.decline_reason} />}
           </dl>
           {/* No orange on a confirmation page (D3-10): nothing here buys. */}
           <Button asChild variant="outline" className="mt-8"><Link href={localePath("/collections", lang)}>{t("draft", "shop")}</Link></Button>
-        </div>
-      </section>
+        </PageSection>
+      </>
     );
   }
 
@@ -183,7 +180,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
       </div>
 
       {address && (
-        <div className="mt-10 border border-hairline bg-white p-5 text-sm text-charcoal-deep">
+        <div className="lm-plate lm-plate--bone mt-10 text-sm text-charcoal-deep">
           <h2 className="font-display text-lg">{t("draft", "shipTo")}</h2>
           <p className="mt-2">{address.recipient_name ?? "—"}</p>
           <p>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p>
@@ -197,7 +194,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
 
 function Cell({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="bg-white p-5">
+    <div className="lm-plate lm-plate--bone">
       <dt className="text-xs text-charcoal/70">{k}</dt>
       <dd className={`mt-1 text-gold-dark ${mono ? "font-mono text-lg" : "font-display text-xl"}`}>{v}</dd>
     </div>

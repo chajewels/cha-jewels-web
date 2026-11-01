@@ -62,7 +62,7 @@ export function ContactForm({ lang }: { lang: Lang }) {
     : state === "error" ? t("error")
     : null;
 
-  const field = `min-h-11 w-full rounded-sm px-3 text-sm ${inputLight} disabled:cursor-not-allowed disabled:opacity-60`;
+  const field = `min-h-12 w-full rounded-[14px] px-4 text-sm ${inputLight} disabled:cursor-not-allowed disabled:opacity-60`;
   const label = `block text-xs font-semibold uppercase tracking-[0.14em] ${labelLight}`;
 
   return (
@@ -120,7 +120,7 @@ export function ContactForm({ lang }: { lang: Lang }) {
       </label>
 
       {message && (
-        <p role="alert" className={`rounded-sm px-3 py-2 text-sm ${alertLight}`}>{message}</p>
+        <p role="alert" className={`rounded-[14px] px-4 py-2.5 text-sm ${alertLight}`}>{message}</p>
       )}
 
       <button
@@ -128,7 +128,7 @@ export function ContactForm({ lang }: { lang: Lang }) {
         disabled={pending}
         // Charcoal, not orange (build step 6, D6-2): on /contact the one orange
         // action is Messenger, where most customers already talk to us.
-        className="btn-press min-h-12 w-full rounded-sm bg-charcoal-deep px-6 text-[15px] font-medium text-chalk transition-colors hover:bg-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        className="btn-press min-h-12 w-full rounded-pill bg-charcoal-deep px-6 text-[15px] font-medium text-chalk transition-colors hover:bg-charcoal focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? t("sending") : t("send")}
       </button>

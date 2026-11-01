@@ -39,6 +39,10 @@ export default {
         teal: "#1ABC9C",
         garnet: { DEFAULT: "#7A1E2B", light: "#F28B94" },
         hairline: "#dad6d0",
+        // NAVIGATION (P4b, owner 2026-11-01): the site's own colour language inside the
+        // Lumière layout. Dedicated tokens, so the global `gold` retarget stays. The same
+        // values are the CSS variables in app/lumiere/nav.css.
+        "nav-gold": "#C9A227",
         // LUMIÈRE ROLES (app/lumiere/tokens.css Tier 2; the reference's
         // `@theme inline` bindings, report §2). Read at runtime through the
         // tokens, so the responsive bands in tokens.css reach every utility.

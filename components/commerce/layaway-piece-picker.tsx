@@ -148,7 +148,7 @@ function PickerButton({ lang, pieces, chosen, open, onOpen, onClose, onChoose }:
       </button>
       {host && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-charcoal-deep/70 sm:items-center sm:p-6"
+          className="fixed inset-0 z-[75] flex items-end justify-center bg-charcoal-deep/70 sm:items-center sm:p-6"
           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
           onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); onClose(); } }}
         >

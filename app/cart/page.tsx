@@ -15,7 +15,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { formatMoney, formatYenPeso, isFigure } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/types";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const generateMetadata = () => pageMeta("cart");
 // The cart is a cookie and prices are live; there is nothing here to cache.
@@ -53,28 +53,28 @@ export default async function CartPage() {
   if (items.length === 0) {
     const now = all.filter(isAvailable).slice(0, 4);
     return (
-      <section className="pb-24 pt-[clamp(24px,5vw,48px)]">
+      <>
         <CommerceStyle />
-        <div className="wrap">
-          <PageHead eyebrow={t("cart", "pieces", { n: "0" })} title={t("cart", "h1")} />
+        <PageHead eyebrow={t("cart", "pieces", { n: "0" })} title={t("cart", "h1")} />
+        <PageSection tone="sheet">
           {dropped > 0 && <Notice icon={<Info className="h-5 w-5" strokeWidth={1.5} />} className="mb-6">{t("cart", "dropped")}</Notice>}
-          <div className="grid items-center gap-5 border border-hairline bg-white p-5 sm:grid-cols-[1fr_auto] sm:p-7">
+          <div className="icm-emptycart lm-rise">
             <div>
-              <p className="font-display text-[22px] text-charcoal-deep">{t("cart", "empty")}</p>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-charcoal/75">{t("cart", "emptyHelp")}</p>
+              <p className="font-display text-[clamp(22px,2.4vw,32px)] text-charcoal-deep">{t("cart", "empty")}</p>
+              <p className="mt-1.5 text-[14px] leading-relaxed text-charcoal/75">{t("cart", "emptyHelp")}</p>
             </div>
             <Button asChild variant="outline"><Link href={localePath("/collections", lang)}>{t("cart", "browse")}</Link></Button>
           </div>
           {now.length > 0 && (
             <section className="mt-12">
-              <h2 className="mb-[18px] font-display text-[22px] text-charcoal-deep">{t("cart", "availableNow")}</h2>
+              <h2 className="lm-h2 mb-6 !text-[clamp(22px,2.4vw,32px)]">{t("cart", "availableNow")}</h2>
               <div className="grid grid-cols-2 gap-x-3 gap-y-5 min-[834px]:grid-cols-4 min-[834px]:gap-x-6">
                 {now.map((p, i) => <ProductCard key={p.slug} product={p} lang={lang} index={i} />)}
               </div>
             </section>
           )}
-        </div>
-      </section>
+        </PageSection>
+      </>
     );
   }
 
@@ -86,20 +86,20 @@ export default async function CartPage() {
   const [pre, post] = t("product", "orReserve", { dp: "\u0001" }).split("\u0001");
 
   return (
-    <section className="pb-24 pt-[clamp(24px,5vw,48px)]">
+    <>
       <CommerceStyle />
-      <div className="wrap">
-        <PageHead eyebrow={countLabel} title={t("cart", "h1")} />
+      <PageHead eyebrow={countLabel} title={t("cart", "h1")} />
+      <PageSection tone="sheet" className="pb-24">
         {dropped > 0 && <Notice icon={<Info className="h-5 w-5" strokeWidth={1.5} />} className="mb-6">{t("cart", "dropped")}</Notice>}
-        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="icm-cart">
           <div className="min-w-0">
             <CartLines items={items} lang={lang} />
             <Notice icon={<Lock className="h-5 w-5" strokeWidth={1.5} />} className="mt-4">{t("cart", "notHeld")}</Notice>
             {more.length > 0 && (
               <section className="mt-12">
-                <div className="mb-[18px] flex flex-wrap items-baseline justify-between gap-x-4">
-                  <h2 className="font-display text-[22px] text-charcoal-deep">{t("cart", "youMayLike")}</h2>
-                  <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm font-medium text-gold-dark underline-offset-4 hover:underline">{t("cart", "browse")}</Link>
+                <div className="icm-sechead">
+                  <h2 className="lm-h2 !text-[clamp(22px,2.4vw,32px)]">{t("cart", "youMayLike")}</h2>
+                  <Link href={localePath("/collections", lang)} className="icm-pill">{t("cart", "browse")}</Link>
                 </div>
                 <div className="grid grid-cols-2 gap-x-3 sm:grid-cols-3 sm:gap-x-4 lg:gap-x-6">
                   {more.map((p, i) => <div key={p.slug} className={i === 2 ? "hidden sm:block" : undefined}><ProductCard product={p} lang={lang} index={i} /></div>)}
@@ -107,7 +107,7 @@ export default async function CartPage() {
               </section>
             )}
           </div>
-          <div className="grid gap-4">
+          <div className="icm-sticky grid gap-4">
             <OrderSlab
               title={t("cart", "summaryH")}
               lines={items.map((i) => ({ key: i.variant_id, name: cartItemName(i, lang), image: i.picture, price: formatMoney(i.line_total_jpy) }))}
@@ -121,27 +121,18 @@ export default async function CartPage() {
                 sub: dp ? <>{pre}<b className="font-medium text-gold-pale">{dp}</b>{post}</> : undefined,
               }}
             >
-              <Button asChild className="mt-[18px] hidden w-full lg:inline-flex"><Link href="/checkout">{t("cart", "checkout")}</Link></Button>
+              <Button asChild className="icm-slab-cta mt-[18px] hidden w-full lg:inline-flex"><Link href="/checkout">{t("cart", "checkout")}</Link></Button>
               <p className="mt-3 text-[13px] leading-relaxed text-chalk/80">{t("cart", "shippingNote")}</p>
             </OrderSlab>
-            <div className="border border-hairline bg-white px-4"><ProductTrust lang={lang} /></div>
-            <Link href={localePath("/collections", lang)} className="inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep">← {t("cart", "continueShopping")}</Link>
+            <div className="icm-trust"><ProductTrust lang={lang} /></div>
+            <Link href={localePath("/collections", lang)} className="icm-pill justify-self-start">← {t("cart", "continueShopping")}</Link>
           </div>
         </div>
-      </div>
+      </PageSection>
       <StickyAct label={t("cart", "summaryH")} figure={formatMoney(subtotal)} note={t("cart", "plusShipping")}>
-        <Button asChild><Link href="/checkout">{t("cart", "checkoutShort")}</Link></Button>
+        <Button asChild className="icm-slab-cta"><Link href="/checkout">{t("cart", "checkoutShort")}</Link></Button>
       </StickyAct>
-    </section>
-  );
-}
-
-function PageHead({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div className="mb-6 sm:mb-8">
-      <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{eyebrow}</p>
-      <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]"><Reveal>{title}</Reveal></h1>
-    </div>
+    </>
   );
 }
 

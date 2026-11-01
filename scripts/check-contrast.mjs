@@ -39,6 +39,14 @@ Object.assign(C, LUMIERE);
 // Not tokens: the literals live in pages.css, which the guard below checks.
 const P4 = { "p4-slip-bg": "#0a0a0c", "p4-slip-card": "#131318", "p4-brass": "#e8c37d", "p4-chip": "#292522", "p4-scene-sky": "#e2d0b2" };
 Object.assign(C, P4);
+// NAVIGATION (P4b, app/lumiere/nav.css): the site's own colour language for every
+// navigation surface — dedicated tokens, the global `gold` retarget stays.
+const NAV = { "nav-ink": "#1c1c1c", "nav-gold": "#c9a227", "nav-gold-text": "#8a6b12", "nav-gold-deep": "#6f5510", "nav-bar-dark": "#222120" };
+Object.assign(C, NAV);
+const navCss = readFileSync(new URL("../app/lumiere/nav.css", import.meta.url), "utf8").toLowerCase();
+for (const name of ["nav-ink", "nav-gold", "nav-gold-text", "nav-gold-deep"]) {
+  if (!navCss.includes(NAV[name])) { console.error(`check-contrast: ${name} ${NAV[name]} is not in app/lumiere/nav.css — table is stale`); process.exit(1); }
+}
 const pagesCss = readFileSync(new URL("../app/lumiere/pages.css", import.meta.url), "utf8").toLowerCase();
 for (const name of ["p4-slip-bg", "p4-slip-card", "p4-brass", "p4-scene-sky"]) {
   if (!pagesCss.includes(P4[name])) { console.error(`check-contrast: ${name} ${P4[name]} is not in app/lumiere/pages.css — table is stale`); process.exit(1); }
@@ -59,7 +67,7 @@ const cfg = readFileSync(new URL("../tailwind.config.ts", import.meta.url), "utf
 // values, recorded here because that is what the text actually sits on.
 const TAILWIND_BUILTIN = new Set(["white", "tintA", "tintB"]);
 for (const [name, hex] of Object.entries(C)) {
-  if (TAILWIND_BUILTIN.has(name) || name in LUMIERE || name in P4) continue;
+  if (TAILWIND_BUILTIN.has(name) || name in LUMIERE || name in P4 || name in NAV) continue;
   if (!cfg.toLowerCase().includes(hex.toLowerCase())) { console.error(`check-contrast: ${name} ${hex} is not in tailwind.config.ts — table is stale`); process.exit(1); }
 }
 
@@ -135,6 +143,75 @@ add("p4 layaway: brass pill / index on black", "p4-brass", "lm-black", TEXT);
 add("p4 layaway: caption chip white on the black/82 chip over the pale scene", "lm-white", "p4-chip", TEXT);
 add("p4 loyalty: tier label white/62 on black", "lm-white", "lm-black", TEXT, 0.62);
 add("p4 loyalty: tier spend white/90 on black", "lm-white", "lm-black", TEXT, 0.9);
+
+// NAVIGATION (P4b, nav.css). The dark bar is black at 86 % over the lightest
+// page it can sit on (bone: 0.14 × #f4f0ec ≈ #222120, the brightest ground the
+// white labels and the gold hover text ever meet). The gold ACCENT (#c9a227)
+// on paper is a decorative line or mark, never the only cue — the text beside
+// it takes the deep gold — so those rows are recorded, not gated.
+add("nav: charcoal label on bone (header, menu, tab bar, side list)", "nav-ink", "lm-surface", TEXT);
+add("nav: charcoal label on white (account dropdown, side list on cards)", "nav-ink", "lm-white", TEXT);
+add("nav: charcoal/66 inactive tab label on bone (11 px)", "nav-ink", "lm-surface", TEXT, 0.66);
+add("nav: charcoal/82 side-list label on bone", "nav-ink", "lm-surface", TEXT, 0.82);
+// #8a6b12 is 4.42:1 on bone — under 4.5 — so small gold text on BONE uses the deep gold (6.2:1); #8a6b12 only on white (5.0:1).
+add("nav: gold-deep eyebrow on bone (11 px; the menu, search and header eyebrows)", "nav-gold-deep", "lm-surface", TEXT);
+add("nav: gold-text eyebrow on white (11 px)", "nav-gold-text", "lm-white", TEXT);
+add("nav: gold-deep hover / current label on bone", "nav-gold-deep", "lm-surface", TEXT);
+add("nav: gold-deep hover / current label on white", "nav-gold-deep", "lm-white", TEXT);
+add("nav: gold-deep hover label on the dropdown's bone hover fill", "nav-gold-deep", "lm-surface", TEXT);
+add("nav: gold-deep search focus line on bone (non-text)", "nav-gold-deep", "lm-surface", NONTEXT);
+add("nav: white label on the dark bar", "lm-white", "nav-bar-dark", TEXT);
+add("nav: gold hover text on the dark bar", "nav-gold", "nav-bar-dark", TEXT);
+add("nav: gold footer heading on black (12 px)", "nav-gold", "lm-black", TEXT);
+add("nav: gold footer link hover on black", "nav-gold", "lm-black", TEXT);
+add("nav: gold accent line on black (non-text)", "nav-gold", "lm-black", NONTEXT);
+add("nav: white label on the current account chip (charcoal)", "lm-white", "nav-ink", TEXT);
+add("nav: gold accent on the charcoal chip's base line (non-text)", "nav-gold", "nav-ink", NONTEXT);
+add("nav: gold accent line on bone (decorative underline / indicator — text beside it carries the state; recorded, not gated)", "nav-gold", "lm-surface", 1);
+add("nav: gold accent line on white (decorative indicator; recorded, not gated)", "nav-gold", "lm-white", 1);
+// P4b account family (app/lumiere/inner-account.css, prefix iac-).
+add("iac: black label on the current side-list pill (bone)", "lm-content", "lm-surface", TEXT);
+add("iac: gold-deep hover label on the side-list hover pill (bone)", "nav-gold-deep", "lm-surface", TEXT);
+add("iac: ink/70 secondary text on a white plate", "nav-ink", "lm-white", TEXT, 0.7);
+add("iac: warm-ink (gold-dark) ledger header on a white plate (11 px)", "gold-dark", "lm-white", TEXT);
+add("iac: white step number on the current timeline circle (ink)", "lm-white", "nav-ink", TEXT);
+add("iac: gold-deep border on the done timeline circle / bar (non-text)", "nav-gold-deep", "lm-white", NONTEXT);
+add("iac: chalk/90 perk row on the black sign-in plate", "chalk", "lm-black", TEXT, 0.9);
+add("iac: gold-pale label on the black level plate", "gold-pale", "lm-black", TEXT);
+add("iac: ink outline numeral (404) on bone (non-text, display)", "nav-ink", "lm-surface", NONTEXT);
+// P4b content family (ic-): inner-content.css. Black bands, plates and pills.
+add("ic: white/84 term text on black (wholesale terms)", "lm-white", "lm-black", TEXT, 0.84);
+add("ic: white/82 fact text on black (wholesale permit)", "lm-white", "lm-black", TEXT, 0.82);
+add("ic: white/80 ask-body text on black", "lm-white", "lm-black", TEXT, 0.8);
+add("ic: white/74 method label on the contact plate's raised row (worst case #2b2b2b)", "lm-white", "charcoal-mid", TEXT, 0.74);
+add("ic: white method value on the raised row (worst case #2b2b2b)", "lm-white", "charcoal-mid", TEXT);
+add("ic: white/75 ledger note on the affiliation plate (worst case #2b2b2b)", "lm-white", "charcoal-mid", TEXT, 0.75);
+add("ic: white label on the contents pill number chip (white/14 over black)", "lm-white", "charcoal-mid", TEXT);
+add("ic: black label on the hovered contents pill (white)", "lm-black", "lm-white", TEXT);
+add("ic: white label on the current legal tab / TOC pill / FAQ pill (black)", "lm-white", "lm-black", TEXT);
+add("ic: white pill count on the current FAQ pill (white/16 over black)", "lm-white", "charcoal-mid", TEXT);
+add("ic: gold-pale text on the legal summary plate (black)", "gold-pale", "lm-black", TEXT);
+add("ic: chalk/90 text on the legal summary plate (black)", "chalk", "lm-black", TEXT, 0.9);
+add("ic: black Read band label (white on black, 12 px)", "lm-white", "lm-black", TEXT);
+add("ic: charcoal/80 post excerpt on bone plate", "nav-ink", "lm-surface", TEXT, 0.8);
+add("ic: charcoal/78 legal meta / TOC link on bone", "nav-ink", "lm-surface", TEXT, 0.78);
+add("ic: charcoal/78 legal meta / TOC link on white", "nav-ink", "lm-white", TEXT, 0.78);
+add("ic: black Read tag text on hover (white on black)", "lm-white", "lm-black", TEXT);
+add("ic: gold label on the contents heading / plate eyebrow (black)", "nav-gold", "lm-black", TEXT);
+add("ic: black label on the white light button (ink band CTA)", "lm-black", "lm-white", TEXT);
+add("ic: gold-deep legal-aside label on bone raised box", "nav-gold-deep", "lm-surface", TEXT);
+// P4b commerce (app/lumiere/inner-commerce.css, prefix icm-): ink plates are white at 7-10 % over black.
+Object.assign(C, { "icm-plate": "#121212", "icm-plate-hover": "#1a1a1a", "icm-crown": "#2a2410" });
+add("icm: white title on an ink plate", "lm-white", "icm-plate", TEXT);
+add("icm: white/80 body on an ink plate (14.5 px)", "lm-white", "icm-plate", TEXT, 0.8);
+add("icm: white/80 body on a hovered ink plate", "lm-white", "icm-plate-hover", TEXT, 0.8);
+add("icm: white/88 perk on the crown tier plate", "lm-white", "icm-crown", TEXT, 0.88);
+add("icm: gold label on an ink plate (11 px)", "nav-gold", "icm-plate", TEXT);
+add("icm: gold label on the crown tier plate", "nav-gold", "icm-crown", TEXT);
+add("icm: ink/80 body on the bone call-to-action plate", "lm-ink", "lm-surface", TEXT, 0.8);
+add("icm: ink/80 label on a bone stepper pill", "lm-ink", "lm-surface", TEXT, 0.8);
+add("icm: white on the black current step / black pill", "lm-white", "lm-black", TEXT);
+add("icm: black on a white pill on the ink band", "lm-black", "lm-white", TEXT);
 // Muted labels on the LIGHT surfaces, added 2026-09-21 with the Company nav
 // and /contact. Both shipped at an alpha that measured under 4.5 and axe caught
 // it: charcoal/55 is 3.16 on chalk, and the menu panel's charcoal/50 is 2.85 on

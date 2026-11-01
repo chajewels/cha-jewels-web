@@ -11,7 +11,7 @@ import { formatSiteDate } from "@/lib/site-time";
 import { formatMoney } from "@/lib/utils";
 import { alertLight, inputLight } from "@/lib/form-classes";
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const dynamic = "force-dynamic";
 
@@ -44,16 +44,13 @@ export default async function ReceiptVerifyPage({ searchParams }: { searchParams
       outcome = e instanceof HubError && e.status === 429 ? "limited" : "error";
     }
   }
-  const eyebrow = `text-[11px] font-semibold text-gold-dark ${lang === "en" ? "uppercase tracking-[0.14em]" : "tracking-[0.05em]"}`;
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[760px]">
-        <p className={eyebrow}>Cha Jewels</p>
-        <h1 className="mt-3 font-display text-[clamp(32px,4.5vw,56px)] leading-tight text-charcoal-deep"><Reveal>{t("receipts", "verifyH1")}</Reveal></h1>
-        <p className="mt-4 max-w-[58ch] text-charcoal">{t("receipts", "verifyLede")}</p>
-
-        <form method="get" action="/receipts/verify" className="mt-8 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+    <div className="iac-shell">
+      <PageHead eyebrow="Cha Jewels" title={t("receipts", "verifyH1")} lead={t("receipts", "verifyLede")} />
+      <PageSection>
+      <div className="iac-solo">
+        <form method="get" action="/receipts/verify" className="iac-form iac-plate iac-sheet lm-rise grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <label className="text-sm text-charcoal/70">
             {t("receipts", "codeLabel")}
             <input
@@ -65,17 +62,17 @@ export default async function ReceiptVerifyPage({ searchParams }: { searchParams
         </form>
 
         <div className="mt-8" aria-live="polite">
-          {outcome === "bad" && <p role="alert" className={`${alertLight} p-4 text-sm`}>{t("receipts", "badCode")}</p>}
-          {outcome === "limited" && <p role="alert" className={`${alertLight} p-4 text-sm`}>{t("receipts", "rateLimited")}</p>}
-          {outcome === "error" && <p role="alert" className={`${alertLight} p-4 text-sm`}>{t("receipts", "unavailable")}</p>}
+          {outcome === "bad" && <p role="alert" className={`${alertLight} iac-alert p-4 text-sm`}>{t("receipts", "badCode")}</p>}
+          {outcome === "limited" && <p role="alert" className={`${alertLight} iac-alert p-4 text-sm`}>{t("receipts", "rateLimited")}</p>}
+          {outcome === "error" && <p role="alert" className={`${alertLight} iac-alert p-4 text-sm`}>{t("receipts", "unavailable")}</p>}
           {outcome === "missing" && (
-            <div className="border border-hairline bg-white p-5" data-testid="verify-missing">
+            <div className="iac-plate p-5" data-testid="verify-missing">
               <p className="flex items-center gap-2 font-display text-[20px] text-charcoal-deep"><SearchX aria-hidden="true" className="h-5 w-5 text-charcoal/70" strokeWidth={1.5} />{t("receipts", "notFoundH")}</p>
               <p className="mt-2 text-sm text-charcoal/80">{t("receipts", "notFoundNote")}</p>
             </div>
           )}
           {outcome === "found" && result && (
-            <div className={`border bg-white p-5 sm:p-6 ${result.status === "valid" ? "border-gold-dark" : "border-charcoal/40"}`} data-testid={`verify-${result.status}`}>
+            <div className={`iac-plate rounded-[22px] border-2 p-5 sm:p-6 ${result.status === "valid" ? "border-gold-dark" : "border-charcoal/40"}`} data-testid={`verify-${result.status}`}>
               <p className="flex items-center gap-2 font-display text-[22px] text-charcoal-deep">
                 {result.status === "valid"
                   ? <CheckCircle2 aria-hidden="true" className="h-6 w-6 text-gold-dark" strokeWidth={1.5} />
@@ -94,7 +91,8 @@ export default async function ReceiptVerifyPage({ searchParams }: { searchParams
 
         <p className="mt-8 text-[13px] text-charcoal/75">{t("receipts", "verifyPrivacy")}</p>
       </div>
-    </section>
+      </PageSection>
+    </div>
   );
 }
 

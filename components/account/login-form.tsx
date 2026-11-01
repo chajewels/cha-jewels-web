@@ -92,7 +92,7 @@ export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string |
         <span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full border border-gold-dark text-gold-dark">
           <Mail className="h-6 w-6" strokeWidth={1.5} />
         </span>
-        <h1 className="mb-3 mt-[22px] text-[clamp(32px,4vw,48px)] [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:[word-break:auto-phrase]"><Reveal>{c.sentH[lang]}</Reveal></h1>
+        <h1 className="lm-h1 iac-h1 mb-3 mt-[22px]"><Reveal>{c.sentH[lang]}</Reveal></h1>
         <p className="text-[17px] leading-relaxed text-charcoal-deep">{c.sentTo[lang].replace("{email}", sentTo)}</p>
         {/* The expiry is read from configuration, never guessed — when nobody
             has set it this says the link works once and claims nothing about
@@ -126,21 +126,21 @@ export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string |
   }
   return (
     <div>
-      <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{navDict.account[lang]}</p>
-      <h1 className="mb-3 mt-3.5 text-[clamp(32px,4vw,48px)] [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:[word-break:auto-phrase]"><Reveal>{c.loginH[lang]}</Reveal></h1>
+      <p className="lm-eyebrow">{navDict.account[lang]}</p>
+      <h1 className="lm-h1 iac-h1 mb-3 mt-3.5"><Reveal>{c.loginH[lang]}</Reveal></h1>
       <p className="mb-[26px] max-w-[44ch] text-[17px] leading-relaxed text-charcoal-deep">{c.loginP[lang]}</p>
       <form onSubmit={submit} noValidate className="grid gap-4 text-sm">
         {configError && (
-          <p role="alert" className="border border-garnet/60 p-3 text-charcoal-deep">{c.configErr[lang]}</p>
+          <p role="alert" className="rounded-[16px] border border-garnet/60 p-3 text-charcoal-deep">{c.configErr[lang]}</p>
         )}
         {!configError && linkErrorCopy && (
-          <p role="alert" className={`${alertLight} p-3`}>{linkErrorCopy}</p>
+          <p role="alert" className={`${alertLight} iac-alert p-3`}>{linkErrorCopy}</p>
         )}
         <label className="grid gap-1.5 font-medium text-charcoal-deep">
           {c.email[lang]}
           <input
             name="email" type="email" required autoComplete="email" inputMode="email"
-            className="min-h-12 w-full rounded-sm border border-charcoal/40 bg-white px-3.5 text-base font-normal text-charcoal-deep focus-visible:border-gold-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+            className="min-h-12 w-full rounded-[14px] border border-charcoal/40 bg-white px-3.5 text-base font-normal text-charcoal-deep focus-visible:border-gold-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
           />
         </label>
         <Button type="submit" disabled={state === "sending"} className="w-full">{c.sendLink[lang]}</Button>

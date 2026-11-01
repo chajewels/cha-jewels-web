@@ -45,7 +45,7 @@ export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] 
     setBusy(result.state !== "lost");
   }
 
-  const box = "border border-hairline bg-white p-6 text-charcoal-deep";
+  const box = "icm-join__card text-charcoal-deep";
 
   // The two outcomes in which this customer IS a member — freshly, or already.
   // The groups are member-only, so they appear here and nowhere else on the page.
@@ -73,7 +73,7 @@ export function JoinButton({ lang, groups }: { lang: Lang; groups: SocialLink[] 
   }
 
   return (
-    <div className="grid gap-4 border border-hairline bg-white p-6 text-sm">
+    <div className="icm-join__card grid gap-4 text-sm">
       <Button type="button" onClick={join} disabled={busy}>
         {c.submit[lang]}
       </Button>

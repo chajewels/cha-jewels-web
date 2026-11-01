@@ -45,15 +45,15 @@ export default async function AddressesPage({ searchParams }: { searchParams: Pr
     <AccountShell lang={lang} current="addresses" eyebrow={t("accountMenu", "addresses")} title={t("account", "addressesH")}>
       <p className="mb-6 max-w-[62ch] text-[15px] leading-relaxed text-charcoal-deep">{t("account", "addressesP")}</p>
 
-      {failed && <p className={`mb-6 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>}
+      {failed && <p className={`mb-6 ${alertLight} iac-alert p-5 text-sm`}>{t("account", "unavailable")}</p>}
 
-      {me && me.addresses.length === 0 && <p className="border border-hairline bg-white p-5 text-charcoal-deep">{t("account", "noAddresses")}</p>}
+      {me && me.addresses.length === 0 && <p className="iac-plate p-5 text-charcoal-deep">{t("account", "noAddresses")}</p>}
 
       {me && me.addresses.length > 0 && (
         <ul className="grid gap-4 sm:grid-cols-2">
           {me.addresses.map((a, i) => (
-            <li key={a.id ?? i} className="border border-hairline bg-white p-5 text-sm leading-relaxed text-charcoal-deep">
-              {a.is_default && <span className="mb-2 inline-block border border-gold-dark px-2 py-0.5 text-[11px] text-gold-dark">{t("account", "default")}</span>}
+            <li key={a.id ?? i} className="iac-plate p-5 text-sm leading-relaxed text-charcoal-deep">
+              {a.is_default && <span className="mb-2 inline-block rounded-pill border border-gold-dark px-2.5 py-0.5 text-[11px] text-gold-dark">{t("account", "default")}</span>}
               <p className="font-medium">{a.recipient_name ?? me.customer.full_name}</p>
               <p>{a.line1}{a.line2 ? `, ${a.line2}` : ""}</p>
               <p>{[a.city, a.region, a.postal_code].filter(Boolean).join(" ")}</p>

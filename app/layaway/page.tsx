@@ -6,8 +6,7 @@ import { JsonLd } from "@/components/site/json-ld";
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { LayawayPiecePicker } from "@/components/commerce/layaway-piece-picker";
 import { ProductCard } from "@/components/catalog/product-card";
-import { Eyebrow } from "@/components/site/support-stage";
-import { H_DISPLAY, H_HEAD, LEDE_DARK, SEC, StageBand } from "@/components/site/brand-ui";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 import { tr } from "@/lib/i18n";
 import { type Lang } from "@/lib/i18n-core";
 import { getLang } from "@/lib/i18n-server";
@@ -19,7 +18,6 @@ import { cardImage } from "@/lib/product-media";
 import { productName } from "@/lib/catalog-i18n";
 import { isFigure } from "@/lib/utils";
 import { initialPieceSlug, type PickerPiece } from "@/lib/layaway-picker";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("layaway");
 
@@ -126,86 +124,85 @@ export default async function LayawayPage({ searchParams }: { searchParams: Prom
           and the structured data: Google is never shown an answer a reader
           cannot find on this page. */}
       {faq.length > 0 && <JsonLd type="faq" items={faq.map((i) => ({ q: i.question, a: i.answerText }))} />}
-      <StageBand>
-        <div className={`wrap ${SEC}`}>
-          <Eyebrow dark rule>{t("home", "layPill")}</Eyebrow>
-          <h1 className={`gilt mt-4 max-w-[22ch] ${H_DISPLAY}`}><Reveal>{t("layawayPage", "h1")}</Reveal></h1>
-          <p className={`mt-[18px] ${LEDE_DARK}`}>{t("home", "layP")}</p>
-          {/* The three steps, joined by a gold line: across from sm, down the
-              discs on a phone. */}
-          <ol className="relative mt-10 grid gap-6 before:absolute before:bottom-[22px] before:left-[22px] before:top-[22px] before:w-px before:bg-[linear-gradient(180deg,#d9d3ca,#a39d94)] sm:grid-cols-3 sm:gap-0 sm:before:bottom-auto sm:before:right-[22px] sm:before:h-px sm:before:w-auto sm:before:bg-[linear-gradient(90deg,#d9d3ca,#a39d94)]">
-            {([1, 2, 3] as const).map((n) => (
-              <li key={n} className="relative grid grid-cols-[44px_1fr] gap-x-4 sm:block sm:pr-8">
-                <span aria-hidden="true" className="lining-nums relative grid h-11 w-11 place-items-center rounded-full bg-chalk text-base font-semibold text-charcoal-deep">{n}</span>
-                <div>
-                  <h2 className="mt-2 font-display text-[22px] leading-[1.25] text-gold-pale sm:mt-[18px]">{t("home", `layStep${n}H`)}</h2>
-                  <p className="mt-1.5 text-[14.5px] leading-relaxed text-chalk/80">{t("home", `layStep${n}P`)}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </StageBand>
+      {/* P4b: an ink head, the plan as three numbered plates. */}
+      <PageHead tone="ink" eyebrow={t("home", "layPill")} title={t("layawayPage", "h1")} lead={t("home", "layP")}>
+        <ol className="icm-steps">
+          {([1, 2, 3] as const).map((n) => (
+            <li key={n} className="icm-step lm-rise">
+              <span aria-hidden="true" className="icm-step__n">{n}</span>
+              <h2 className="icm-step__h">{t("home", `layStep${n}H`)}</h2>
+              <p className="icm-step__p">{t("home", `layStep${n}P`)}</p>
+            </li>
+          ))}
+        </ol>
+      </PageHead>
 
-      <section className={`wrap ${SEC}`}>
-        <Eyebrow>{t("home", "layCalcH")}</Eyebrow>
-        <h2 className={`mb-7 mt-2.5 text-charcoal-deep ${H_HEAD}`}>{t("home", "layCalcP")}</h2>
-        {startSlug ? (
-          <LayawayPiecePicker lang={lang} pieces={pieces} initialSlug={startSlug} />
-        ) : (
-          <LayawayCalculator lang={lang} cta={{ label: t("home", "layCta"), href: L("/collections") }} className="max-w-2xl" />
-        )}
-      </section>
+      <PageSection tone="sheet" label={t("home", "layCalcH")}>
+        <div className="icm-sechead">
+          <div>
+            <p className="lm-eyebrow">{t("home", "layCalcH")}</p>
+            <h2 className="lm-h2">{t("home", "layCalcP")}</h2>
+          </div>
+        </div>
+        <div className="icm-sheet lm-rise">
+          {startSlug ? (
+            <LayawayPiecePicker lang={lang} pieces={pieces} initialSlug={startSlug} />
+          ) : (
+            <LayawayCalculator lang={lang} cta={{ label: t("home", "layCta"), href: L("/collections") }} className="max-w-2xl" />
+          )}
+        </div>
+      </PageSection>
 
       {strip.length > 0 && (
-        <section className="wrap pb-14 sm:pb-[88px]">
-          <div className="mb-5 flex items-end justify-between gap-4">
-            <h2 className="text-[clamp(22px,2.4vw,30px)] text-charcoal-deep">{t("layawayPage", "reserveToday")}</h2>
-            <Link href={L("/collections")} className="inline-flex min-h-11 items-center text-sm text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("layawayPage", "allPieces")}</Link>
+        <PageSection tone="bone">
+          <div className="icm-sechead">
+            <h2 className="lm-h2">{t("layawayPage", "reserveToday")}</h2>
+            <Link href={L("/collections")} className="icm-pill">{t("layawayPage", "allPieces")}</Link>
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-5 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-8">
             {strip.map((p, i) => <ProductCard key={p.id} product={p} lang={lang} index={i} />)}
           </div>
-        </section>
+        </PageSection>
       )}
 
       {faq.length > 0 && (
-        <section aria-labelledby="layaway-faq-h" className="wrap pb-14 sm:pb-[88px]">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-            <h2 id="layaway-faq-h" className="text-[clamp(22px,2.4vw,30px)] text-charcoal-deep">{t("layawayPage", "faqH")}</h2>
-            <Link href={L(`/faq#${FAQ_SECTION}`)} className="inline-flex min-h-11 items-center text-sm text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{t("layawayPage", "faqAll")}</Link>
+        <PageSection tone="white" id="layaway-faq" label={t("layawayPage", "faqH")}>
+          <div className="icm-sechead">
+            <h2 id="layaway-faq-h" className="lm-h2">{t("layawayPage", "faqH")}</h2>
+            <Link href={L(`/faq#${FAQ_SECTION}`)} className="icm-pill">{t("layawayPage", "faqAll")}</Link>
           </div>
-          {/* The /faq page's accordion rows, unchanged in shape so the two pages
-              read as one document. Markdown from lib/markdown.ts, escaped before
-              it is parsed; `.faq-answer` in globals.css styles it. */}
-          <div className="border-b border-hairline">
+          {/* The /faq page's accordion rows as plates; markdown from lib/markdown.ts,
+              escaped before it is parsed; `.faq-answer` in globals.css styles it. */}
+          <div className="icm-faq">
             {faq.map((item) => (
-              <details key={item.key} className="group border-t border-hairline">
-                <summary className="flex min-h-[60px] cursor-pointer list-none items-center justify-between gap-5 py-3 text-[16px] font-medium leading-normal text-charcoal-deep [&::-webkit-details-marker]:hidden">
+              <details key={item.key} className="lm-rise">
+                <summary>
                   <span className="min-w-0">{item.question}</span>
-                  <span aria-hidden="true" className="grid h-8 w-8 flex-none place-items-center rounded-full border border-gold-dark/60 text-gold-dark">
-                    <span className="group-open:hidden">+</span>
-                    <span className="hidden group-open:inline">−</span>
+                  <span aria-hidden="true" className="icm-faq__mark">
+                    <span className="icm-faq__plus">+</span>
+                    <span className="icm-faq__minus">−</span>
                   </span>
                 </summary>
                 <div className="faq-answer pb-5 text-charcoal/85 lg:pr-[60px]" dangerouslySetInnerHTML={{ __html: item.answerHtml }} />
               </details>
             ))}
           </div>
-        </section>
+        </PageSection>
       )}
 
-      <section aria-labelledby="layaway-more-h" className="wrap pb-14 sm:pb-[88px]">
-        <h2 id="layaway-more-h" className="text-[clamp(22px,2.4vw,30px)] text-charcoal-deep">{t("layawayPage", "moreH")}</h2>
-        <p className="mt-2 max-w-[60ch] text-[15.5px] leading-relaxed text-charcoal/80">{t("layawayPage", "moreP")}</p>
-        <ul className="mt-5 flex flex-wrap gap-x-7 gap-y-3">
-          {more.map((m) => (
-            <li key={m.href}>
-              <Link href={m.href} className="inline-flex min-h-11 items-center text-[15px] text-gold-dark underline decoration-gold-dark/50 underline-offset-4 hover:decoration-gold-dark">{m.label}</Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <PageSection tone="bone" label={t("layawayPage", "moreH")}>
+        <div className="icm-cta lm-rise">
+          <div>
+            <h2 id="layaway-more-h" className="lm-h2">{t("layawayPage", "moreH")}</h2>
+            <p className="max-w-[60ch] text-[15.5px] leading-relaxed">{t("layawayPage", "moreP")}</p>
+          </div>
+          <ul className="icm-pills">
+            {more.map((m) => (
+              <li key={m.href}><Link href={m.href} className="icm-pill">{m.label}</Link></li>
+            ))}
+          </ul>
+        </div>
+      </PageSection>
     </>
   );
 }

@@ -113,7 +113,7 @@ export function ShareBar({ url, title, slug, lang }: { url: string; title: strin
           <input
             id="share-link" ref={field} type="text" readOnly value={manual}
             onFocus={(e) => e.currentTarget.select()}
-            className={`mt-1 w-full px-3 py-2 text-sm ${inputLight}`}
+            className={`mt-1 w-full rounded-[14px] px-3.5 py-2 text-sm ${inputLight}`}
           />
         </div>
       )}

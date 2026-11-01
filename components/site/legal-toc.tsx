@@ -38,14 +38,13 @@ export function LegalToc({ items, label, printLabel }: { items: TocItem[]; label
 
   return (
     <nav aria-label={label} data-lenis-prevent className="sticky top-24 max-h-[calc(100vh-120px)] overflow-auto pb-4 print:hidden">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{label}</p>
-      <ol className="mt-3 border-l border-hairline">
+      <p className="ic-toc-title">{label}</p>
+      <ol className="ic-toc mt-3">
         {items.map((i) => (
           <li key={i.id}>
             <a
               href={`#${i.id}`}
               aria-current={current === i.id ? "true" : undefined}
-              className="-ml-px block border-l-2 border-transparent py-[7px] pl-4 text-[13px] leading-[1.45] text-charcoal/75 hover:text-charcoal-deep aria-[current]:border-gold-dark aria-[current]:font-medium aria-[current]:text-charcoal-deep"
             >
               {i.label}
             </a>
@@ -60,7 +59,7 @@ export function LegalToc({ items, label, printLabel }: { items: TocItem[]; label
 export function LegalTocPhone({ items, label }: { items: TocItem[]; label: string }) {
   const ref = useRef<HTMLDetailsElement>(null);
   return (
-    <details ref={ref} className="group mb-7 border border-hairline bg-white print:hidden">
+    <details ref={ref} className="group mb-7 rounded-[18px] bg-chalk print:hidden">
       <summary className="flex min-h-[52px] cursor-pointer list-none items-center justify-between px-4 font-medium text-charcoal-deep [&::-webkit-details-marker]:hidden">
         <span>{label}</span>
         <span className="flex items-center gap-3 text-[13px] font-normal text-charcoal/70">
@@ -68,13 +67,13 @@ export function LegalTocPhone({ items, label }: { items: TocItem[]; label: strin
           <span aria-hidden="true" className="inline-block h-2 w-2 rotate-45 border-b border-r border-charcoal/60 transition-transform group-open:-rotate-[135deg]" />
         </span>
       </summary>
-      <ol className="border-t border-hairline px-4 pb-2.5">
+      <ol className="border-t border-charcoal/10 px-4 pb-2.5">
         {items.map((i) => (
           <li key={i.id}>
             <a
               href={`#${i.id}`}
               onClick={() => { if (ref.current) ref.current.open = false; }}
-              className="flex min-h-[44px] items-center border-b border-hairline py-2 text-sm text-charcoal-deep last:border-b-0"
+              className="flex min-h-[44px] items-center border-b border-charcoal/10 py-2 text-sm text-charcoal-deep last:border-b-0"
             >
               {i.label}
             </a>

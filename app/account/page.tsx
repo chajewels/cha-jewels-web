@@ -133,7 +133,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       eyebrow={t("accountMenu", "myAccount")}
       title={name ? t("account", "welcome", { name }) : t("account", "h1")}
     >
-      {failure && <p className={`mb-6 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>}
+      {failure && <p className={`mb-6 ${alertLight} iac-alert p-5 text-sm`}>{t("account", "unavailable")}</p>}
 
       {me && (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -170,7 +170,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <AccountTile label={t("account", "addresses")}>
             {defaultAddress ? (
               <div className="text-sm text-charcoal-deep">
-                {defaultAddress.is_default && <span className="mb-1.5 inline-block border border-gold-dark px-2 py-0.5 text-[11px] text-gold-dark">{t("account", "default")}</span>}
+                {defaultAddress.is_default && <span className="mb-1.5 inline-block rounded-pill border border-gold-dark px-2.5 py-0.5 text-[11px] text-gold-dark">{t("account", "default")}</span>}
                 <p>{defaultAddress.recipient_name ?? me.customer.full_name}</p>
                 <p className="text-charcoal/80">{[defaultAddress.city, defaultAddress.region, defaultAddress.country].filter(Boolean).join(", ")}</p>
                 {me.addresses.length > 1 && <p className="mt-1 text-[13px] text-charcoal/75">{t("account", "addressCount", { n: String(me.addresses.length) })}</p>}
@@ -188,7 +188,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             same email. The Hub also raises a staff notification for the second.
           */}
           {me.records && me.records.layaway === 0 && me.records.orders === 0 && (me.records.drafts ?? 0) === 0 && (
-            <p className="border border-hairline bg-white p-5 text-sm leading-relaxed text-charcoal-deep sm:col-span-2">
+            <p className="iac-plate p-5 text-sm leading-relaxed text-charcoal-deep sm:col-span-2">
               {me.shares_email ? t("account", "noRecordsShared") : t("account", "noRecords")}
             </p>
           )}
@@ -196,7 +196,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           {/* What the other surface is for. The link is the Hub's own builder,
               so a legacy customer gets their token and everyone else the bare URL. */}
           {me.portal_url && (
-            <article className="band-dark flex flex-col gap-3 border border-charcoal-deep bg-charcoal-deep p-5 text-chalk sm:col-span-2 sm:p-[22px]">
+            <article className="band-dark iac-ink lm-rise flex flex-col gap-3 p-5 text-chalk sm:col-span-2 sm:p-[26px]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-pale [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{t("account", "portalH")}</p>
               <p className="max-w-[70ch] text-sm leading-relaxed text-chalk/85">{t("account", "portalP")}</p>
               <Button asChild variant="outline" className="self-start border-chalk bg-chalk text-charcoal-deep hover:border-white hover:bg-white">
@@ -226,7 +226,7 @@ type CurrentCard = {
 function CurrentReservation({ card, lang }: { card: CurrentCard; lang: Lang }) {
   const t = tr(lang);
   return (
-    <article className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-x-4 gap-y-3 border border-hairline bg-white p-4 sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:gap-x-[18px] sm:p-5">
+    <article className="iac-tile grid grid-cols-[72px_minmax(0,1fr)] items-center gap-x-4 gap-y-3 iac-plate p-4 sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:gap-x-[18px] sm:p-5">
       <PieceWell image={card.piece?.image ?? null} alt={card.piece?.name ?? card.reference} className="w-[72px] sm:w-24" />
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -257,7 +257,7 @@ function LevelCard({ me, tiers, lang }: { me: HubMe; tiers: HubTier[]; lang: Lan
   const label = "text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-pale [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]";
   const on = (tier: HubTier) => !!L.tier && tier.name.trim().toLowerCase() === L.tier.trim().toLowerCase();
   return (
-    <section id="loyalty" aria-label={t("accountMenu", "points")} className="band-dark relative scroll-mt-24 bg-charcoal-deep p-5 text-chalk outline outline-1 -outline-offset-1 outline-gold/35 sm:p-[26px]">
+    <section id="loyalty" aria-label={t("accountMenu", "points")} className="band-dark iac-ink lm-rise relative scroll-mt-24 p-5 text-chalk sm:p-[26px]">
       <span aria-hidden="true" className="cj-slab-rule" />
       {L.enrolled ? (
         <>
@@ -291,7 +291,7 @@ function LevelCard({ me, tiers, lang }: { me: HubMe; tiers: HubTier[]; lang: Lan
           )}
 
           {L.reduced === true && (
-            <div className="mt-5 border border-gold/45 p-4 text-sm" data-testid="level-reduced">
+            <div className="mt-5 rounded-[18px] border border-gold/45 p-4 text-sm" data-testid="level-reduced">
               <p className="font-medium text-gold-pale">{t("account", "levelReduced")}</p>
               <p className="mt-1 leading-relaxed text-chalk/85">{t("account", "levelReducedP")}</p>
               <dl className="mt-3 grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] gap-x-5 gap-y-1.5">
@@ -302,10 +302,10 @@ function LevelCard({ me, tiers, lang }: { me: HubMe; tiers: HubTier[]; lang: Lan
           )}
 
           {tiers.length > 0 && (
-            <ol className="mt-6 grid grid-cols-2 gap-y-4 border-t border-chalk/20 sm:grid-cols-4">
+            <ol className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {tiers.map((tier) => (
-                <li key={tier.slug} aria-current={on(tier) ? "true" : undefined} className="relative pr-3 pt-3.5 text-[12.5px] leading-relaxed text-chalk/75">
-                  <span aria-hidden="true" className={`absolute -top-[5px] left-0 h-[9px] w-[9px] rounded-full border ${on(tier) ? "border-gold-pale bg-gold-pale" : "border-gold bg-[#0d0d0d]"}`} />
+                <li key={tier.slug} aria-current={on(tier) ? "true" : undefined} className={`relative rounded-[18px] border p-3.5 pr-7 text-[12.5px] leading-relaxed text-chalk/75 ${on(tier) ? "border-gold-pale bg-white/10" : "border-chalk/20"}`}>
+                  <span aria-hidden="true" className={`absolute right-3.5 top-3.5 h-[9px] w-[9px] rounded-full border ${on(tier) ? "border-gold-pale bg-gold-pale" : "border-gold bg-[#0d0d0d]"}`} />
                   <b className={`block font-display text-[17px] font-normal leading-tight ${on(tier) ? "text-gold-pale" : "text-chalk"}`}>{tier.name}</b>
                   <span className="cj-fig">{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</span>
                   {tier.multiplier !== null && <><br />{t("account", "points")} {t("loyalty", "times", { n: String(tier.multiplier) })}</>}

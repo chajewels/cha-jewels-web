@@ -9,19 +9,11 @@ import type { HubTier } from "@/lib/types";
 import { formatMoney } from "@/lib/utils";
 import { TierLadder } from "@/components/fx/tier-ladder";
 import { TierIcon } from "@/components/fx/tier-icon";
-import { Eyebrow } from "@/components/site/support-stage";
-import { DarkBand, H_DISPLAY, H_HEAD, H_TITLE, LEDE_DARK, Label, SEC, SEC_S, StageBand } from "@/components/site/brand-ui";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
+import { ResolveNumber } from "@/components/lumiere/common/resolve-number";
 export const generateMetadata = () => pageMeta("loyalty");
 export const revalidate = 300;
 
-
-/**
- * "Join free" is NOT orange (owner decision D5-3): joining is neither a buy
- * nor a contact action. Chalk on the dark stage, charcoal on the light band.
- */
-const JOIN_ON_DARK = "btn-press inline-flex min-h-12 items-center justify-center rounded-sm bg-chalk px-6 py-3 text-[15px] font-medium text-charcoal-deep hover:bg-white";
-const JOIN_ON_LIGHT = "btn-press inline-flex min-h-12 items-center justify-center rounded-sm bg-charcoal-deep px-6 py-3 text-[15px] font-medium text-chalk hover:bg-charcoal";
 
 /**
  * LOYALTY (build step 5; comp page-comps/brand-programmes "loyalty").
@@ -44,76 +36,65 @@ export default async function LoyaltyPage() {
   const first = tiers[0]?.name;
   return (
     <>
-      <StageBand>
-        <div className={`wrap ${SEC} grid items-end gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
-          <div>
-            <Eyebrow dark rule>{t("nav", "loyalty")}</Eyebrow>
-            <h1 className={`gilt mt-4 ${H_DISPLAY}`}><Reveal>{t("loyalty", "h1")}</Reveal></h1>
-            <p className={`mt-[18px] ${LEDE_DARK}`}>{t("loyalty", "lede")}</p>
-            <div className="mt-7"><Link href={localePath("/loyalty/join", lang)} className={JOIN_ON_DARK}>{t("loyalty", "join")}</Link></div>
-          </div>
-          <dl className="grid grid-cols-2 border border-rule">
-            <div className="border-r border-rule p-4 sm:p-5">
-              <dt><Label dark>{t("loyalty", "baseRate")}</Label></dt>
-              <dd className="lining-nums mt-1.5 font-display text-[40px] leading-[1.1] text-gold-pale">{t("loyalty", "baseRateValue")}</dd>
-              {first && <dd className="mt-1 text-[13px] text-chalk/75">{first}</dd>}
+      {/* P4b: an ink head (Halden band) with the two base facts as plates; the ladder as plates on the ink band below (Aerra's resolving figures). */}
+      <PageHead
+        tone="ink"
+        eyebrow={t("nav", "loyalty")}
+        title={t("loyalty", "h1")}
+        lead={t("loyalty", "lede")}
+        aside={
+          <dl className="icm-facts">
+            <div className="icm-fact">
+              <dt>{t("loyalty", "baseRate")}</dt>
+              <dd className="icm-fact__fig"><ResolveNumber>{t("loyalty", "baseRateValue")}</ResolveNumber></dd>
+              {first && <dd className="icm-fact__sub">{first}</dd>}
             </div>
-            <div className="p-4 sm:p-5">
-              <dt><Label dark>{t("loyalty", "pointValue")}</Label></dt>
-              <dd className="lining-nums mt-1.5 font-display text-[40px] leading-[1.1] text-gold-pale">{t("loyalty", "pointValueValue")}</dd>
-              <dd className="mt-1 text-[13px] text-chalk/75">{t("loyalty", "onNextPiece")}</dd>
+            <div className="icm-fact">
+              <dt>{t("loyalty", "pointValue")}</dt>
+              <dd className="icm-fact__fig"><ResolveNumber>{t("loyalty", "pointValueValue")}</ResolveNumber></dd>
+              <dd className="icm-fact__sub">{t("loyalty", "onNextPiece")}</dd>
             </div>
           </dl>
-        </div>
-      </StageBand>
+        }
+      >
+        <div className="mt-7"><Link href={localePath("/loyalty/join", lang)} className="icm-pill icm-pill--light">{t("loyalty", "join")}</Link></div>
+      </PageHead>
 
-      <DarkBand className="border-t border-chalk/10">
-        <div className={`wrap ${SEC}`}>
-          <h2 className={`text-gold-pale ${H_HEAD}`}>{t("loyalty", "levelsH")}</h2>
-          <p className={`mt-[18px] ${LEDE_DARK}`}>{t("loyalty", "levelsP")}{lang === "ja" ? "" : " "}{t("loyalty", "inactivityP")}</p>
-          {/* THE LADDER (components/fx/tier-ladder.tsx): a gold rail fills as
-              the reader scrolls, each tier lights as it reaches it, and the
-              top tier's edge turns slowly in gold. Dark tone on this band. */}
+      <section className="lm-sec lm-sec--ink" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <h2 className="lm-h2">{t("loyalty", "levelsH")}</h2>
+          <p className="lm-lead" style={{ color: "rgb(255 255 255 / 0.8)" }}>{t("loyalty", "levelsP")}{lang === "ja" ? "" : " "}{t("loyalty", "inactivityP")}</p>
+          {/* THE LADDER (components/fx/tier-ladder.tsx): a rail fills as the reader
+              scrolls and each tier lights as it reaches it. The medallions are untouched. */}
           <TierLadder tone="dark" className="mt-12">
-            <ol className="grid border border-rule sm:grid-cols-2 lg:grid-cols-4">
+            <ol className="icm-tiers">
               {tiers.map((tier, i) => {
                 const crown = i === tiers.length - 1;
                 return (
-                  <li
-                    key={tier.slug}
-                    data-tier=""
-                    data-crown={crown ? "" : undefined}
-                    className={`flex flex-col gap-4 border-rule p-6 max-lg:border-b sm:[&:nth-child(odd)]:border-r lg:border-r lg:last:border-r-0 ${crown ? "bg-[linear-gradient(180deg,rgb(163_157_148/.10),transparent_60%)] outline outline-1 -outline-offset-1 outline-gold" : ""}`}
-                  >
-                    {/* The animated medallion (components/fx/tier-icon.tsx), restored
-                        2026-10-03 by owner decision: the step 5 redesign had replaced it
-                        with a plain numeral without asking. It lights with the ladder. */}
+                  <li key={tier.slug} data-tier="" data-crown={crown ? "" : undefined} className="icm-tier lm-rise">
                     <TierIcon slug={tier.slug} sm={72} lg={88} />
                     <div>
-                      <Label dark>{t("loyalty", "level", { n: String(i + 1) })}</Label>
-                      <h3 className={`mt-1 text-gold-pale ${H_TITLE}`}>{tier.name}</h3>
+                      <span className="icm-tier__lab">{t("loyalty", "level", { n: String(i + 1) })}</span>
+                      <h3 className="icm-tier__name font-display">{tier.name}</h3>
                     </div>
-                    {/* P4 item 5: the label in the LABEL style, the figure in the display face. */}
                     <p className="flex flex-col gap-1">
-                      <span className="font-sans text-[11px] font-medium uppercase leading-snug tracking-[0.1em] text-chalk/70 [:lang(ja)_&]:text-xs [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.03em]">{t("loyalty", "multiplier")}</span>
-                      <span className="lining-nums font-display text-[44px] leading-none text-chalk">{tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}</span>
+                      <span className="icm-tier__lab">{t("loyalty", "multiplier")}</span>
+                      <span className="icm-tier__mult"><ResolveNumber>{tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}</ResolveNumber></span>
                     </p>
-                    <dl className="border-t border-rule">
-                      <div className="border-b border-rule py-2.5">
-                        <dt className="text-xs text-chalk/70">{t("loyalty", "threshold")}</dt>
-                        <dd className="lining-nums mt-0.5 text-[15px] text-chalk">{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</dd>
+                    <dl>
+                      <div>
+                        <dt>{t("loyalty", "threshold")}</dt>
+                        <dd>{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</dd>
                       </div>
-                      <div className="border-b border-rule py-2.5">
-                        <dt className="text-xs text-chalk/70">{t("loyalty", "requalify")}</dt>
-                        <dd className="lining-nums mt-0.5 text-[15px] text-chalk">{tier.requalify_spend === null ? t("loyalty", "requalifyNone") : formatMoney(tier.requalify_spend, "JP")}</dd>
+                      <div>
+                        <dt>{t("loyalty", "requalify")}</dt>
+                        <dd>{tier.requalify_spend === null ? t("loyalty", "requalifyNone") : formatMoney(tier.requalify_spend, "JP")}</dd>
                       </div>
                     </dl>
                     <div>
                       <p className="sr-only">{t("loyalty", "perks")}</p>
-                      <ul className="grid gap-2 text-[13.5px] leading-[1.55] text-chalk/85">
-                        {(lang === "ja" ? tier.benefits_ja : tier.benefits_en).map((p) => (
-                          <li key={p} className="flex gap-2 before:mt-2 before:h-[5px] before:w-[5px] before:flex-none before:rotate-45 before:bg-gold">{p}</li>
-                        ))}
+                      <ul>
+                        {(lang === "ja" ? tier.benefits_ja : tier.benefits_en).map((p) => <li key={p}>{p}</li>)}
                       </ul>
                     </div>
                   </li>
@@ -122,15 +103,17 @@ export default async function LoyaltyPage() {
             </ol>
           </TierLadder>
         </div>
-      </DarkBand>
-
-      <section className={`wrap ${SEC_S} flex flex-wrap items-center justify-between gap-5`}>
-        <div>
-          <h2 className={`text-charcoal-deep ${H_TITLE}`}>{t("loyalty", "joinH")}</h2>
-          <p className="mt-1.5 text-charcoal/75">{t("loyalty", "joinP")}</p>
-        </div>
-        <Link href={localePath("/loyalty/join", lang)} className={JOIN_ON_LIGHT}>{t("loyalty", "join")}</Link>
       </section>
+
+      <PageSection tone="bone">
+        <div className="icm-cta lm-rise">
+          <div>
+            <h2 className="lm-h2">{t("loyalty", "joinH")}</h2>
+            <p>{t("loyalty", "joinP")}</p>
+          </div>
+          <Link href={localePath("/loyalty/join", lang)} className="icm-pill icm-pill--solid">{t("loyalty", "join")}</Link>
+        </div>
+      </PageSection>
     </>
   );
 }

@@ -47,10 +47,10 @@ export default async function ServiceRequestsPage({ searchParams }: { searchPara
     <AccountShell lang={lang} current="service" eyebrow={t("accountMenu", "service")} title={t("service", "h1")}>
       <p className="mb-6 max-w-[62ch] text-[15px] leading-relaxed text-charcoal-deep">{t("service", "lede")}</p>
 
-      {failed && <p className={`mb-6 ${alertLight} p-5 text-sm`}>{t("account", "unavailable")}</p>}
+      {failed && <p className={`mb-6 ${alertLight} iac-alert p-5 text-sm`}>{t("account", "unavailable")}</p>}
 
       {!failed && requests.length === 0 && (
-        <p className="border border-hairline bg-white p-5 text-charcoal-deep">
+        <p className="iac-plate p-5 text-charcoal-deep">
           {t("service", "empty")}{" "}
           <Link href="/account/orders" className="text-gold-dark underline underline-offset-4">{t("orders", "h1")}</Link>
           {layawayOffered(lang) && (
@@ -63,7 +63,7 @@ export default async function ServiceRequestsPage({ searchParams }: { searchPara
       )}
 
       {requests.length > 0 && (
-        <ul className="rule-grid grid gap-px border border-hairline">
+        <ul className="iac-stack">
           {requests.map((r) => <ServiceRequestRow key={r.id} request={r} lang={lang} showTarget />)}
         </ul>
       )}

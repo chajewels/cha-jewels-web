@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
  */
 export function ConfirmSignIn({ tokenHash, type, next, lang }: { tokenHash: string; type: string; next: string; lang: Lang }) {
   return (
-    <form action={confirmSignInAction} className="mt-8">
+    <form action={confirmSignInAction} className="mt-0">
       <input type="hidden" name="token_hash" value={tokenHash} />
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="next" value={next} />

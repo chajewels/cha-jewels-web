@@ -3,7 +3,7 @@ import Link from "next/link";
 import { hub } from "@/lib/hub-api";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 /** noindex: reached only from the link in a cart reminder email; it carries a token. */
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -28,14 +28,11 @@ export default async function CartRemindersUnsubscribePage({
   if (token) { try { await hub.cartRemindersUnsubscribe(token); } catch { /* see the note above */ } }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap max-w-[52ch]">
-        <h1 className="text-[clamp(28px,3.6vw,44px)]"><Reveal>{t("cartReminders", "unsubscribed")}</Reveal></h1>
-        <p className="mt-4 text-charcoal-deep">{t("cartReminders", "unsubscribedNote")}</p>
-        <Link href="/" className="mt-6 inline-block text-gold-dark underline underline-offset-4">
-          {t("nav", "home")}
-        </Link>
-      </div>
-    </section>
+    <div className="iac-shell">
+      <PageHead title={t("cartReminders", "unsubscribed")} lead={t("cartReminders", "unsubscribedNote")} />
+      <PageSection>
+        <Link href="/" className="iac-link">{t("nav", "home")}</Link>
+      </PageSection>
+    </div>
   );
 }

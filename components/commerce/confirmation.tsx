@@ -9,7 +9,7 @@ import { follow } from "@/lib/settings";
 import { tr } from "@/lib/i18n";
 import { type Lang } from "@/lib/i18n-core";
 import type { PieceImage } from "@/lib/product-media";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 /**
  * THE CONFIRMATION LAYOUT (build step 3; comp page-comps/cart-checkout
@@ -31,24 +31,23 @@ export function ConfirmationLayout({ lang, reference, heading, lede, children, s
 }) {
   const t = tr(lang);
   return (
-    <section className="pb-24 pt-[clamp(28px,5vw,56px)]">
+    <>
       <CommerceStyle />
-      <div className="wrap grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="min-w-0">
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">
-            {t("complete", "reference")}
-            <span className="font-mono text-[13px] normal-case tracking-[0.04em] text-charcoal-deep">{reference}</span>
-          </p>
-          <h1 className="mb-3.5 mt-3 text-[clamp(32px,4.4vw,56px)]"><Reveal>{heading}</Reveal></h1>
-          <div className="max-w-[60ch] text-[17px] leading-relaxed text-charcoal-deep">{lede}</div>
-          {children}
+      <PageHead
+        eyebrow={<>{t("complete", "reference")}<span className="icm-ref">{reference}</span></>}
+        title={heading}
+        lead={lede}
+      />
+      <PageSection tone="sheet" className="icm-confirm">
+        <div className="icm-cart">
+          <div className="min-w-0">{children}</div>
+          <div className="icm-sticky grid gap-4">
+            <OrderSlab {...slab} />
+            <div className="icm-trust"><ProductTrust lang={lang} only={["pay", "ship", "returns"]} /></div>
+          </div>
         </div>
-        <div className="grid gap-4">
-          <OrderSlab {...slab} />
-          <div className="border border-hairline bg-white px-4"><ProductTrust lang={lang} only={["pay", "ship", "returns"]} /></div>
-        </div>
-      </div>
-    </section>
+      </PageSection>
+    </>
   );
 }
 

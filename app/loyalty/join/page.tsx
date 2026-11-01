@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { JoinButton } from "@/components/loyalty/join-button";
 import { MemberGroups } from "@/components/loyalty/member-groups";
 import { loyaltyGroups } from "@/lib/settings";
-import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { PageHead, PageSection } from "@/components/lumiere/page/page-head";
 
 export const generateMetadata = () => pageMeta("join");
 export const dynamic = "force-dynamic";
@@ -56,27 +56,29 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   }
 
   return (
-    <section className="py-[clamp(48px,7vw,96px)]">
-      <div className="wrap grid gap-12 md:grid-cols-2">
-        <div><h1 className="text-[clamp(36px,5.5vw,80px)]"><Reveal>{t("loyalty", "joinH")}</Reveal></h1><p className="mt-5 max-w-[48ch] text-charcoal">{t("loyalty", "joinP")}</p><p className="mt-4 max-w-[48ch] text-charcoal/70">{t("loyalty", "lede")}</p></div>
-        {!jwt ? (
-          // middleware should have redirected already; if it somehow did not,
-          // offer the way in rather than a button that cannot work.
-          <div className="grid gap-4 border border-hairline bg-white p-6 text-sm">
-            <Button asChild><Link href="/login?next=/loyalty/join">{t("loyalty", "submit")}</Link></Button>
-          </div>
-        ) : enrolled ? (
-          // Known member: no button at all. Asking someone to join a programme
-          // they are already in is the mistake worth spending a /me call on.
-          <div className="border border-hairline bg-white p-6 text-charcoal-deep">
-            {t("loyalty", "alreadyMember")}{" "}
-            <Link href="/account" className="underline hover:text-charcoal-deep">{t("nav", "account")}</Link>
-            <MemberGroups items={groups} lang={lang} className="mt-6 border-t border-hairline pt-5" />
-          </div>
-        ) : (
-          <JoinButton lang={lang} groups={groups} />
-        )}
-      </div>
-    </section>
+    <>
+      <PageHead eyebrow={t("nav", "loyalty")} title={t("loyalty", "joinH")} lead={<>{t("loyalty", "joinP")}<br /><span className="opacity-90">{t("loyalty", "lede")}</span></>} />
+      <PageSection tone="sheet">
+        <div className="icm-join">
+          {!jwt ? (
+            // middleware should have redirected already; if it somehow did not,
+            // offer the way in rather than a button that cannot work.
+            <div className="icm-join__card grid gap-4 text-sm">
+              <Button asChild><Link href="/login?next=/loyalty/join">{t("loyalty", "submit")}</Link></Button>
+            </div>
+          ) : enrolled ? (
+            // Known member: no button at all. Asking someone to join a programme
+            // they are already in is the mistake worth spending a /me call on.
+            <div className="icm-join__card text-charcoal-deep">
+              {t("loyalty", "alreadyMember")}{" "}
+              <Link href="/account" className="underline hover:text-charcoal-deep">{t("nav", "account")}</Link>
+              <MemberGroups items={groups} lang={lang} className="mt-6 border-t border-hairline pt-5" />
+            </div>
+          ) : (
+            <JoinButton lang={lang} groups={groups} />
+          )}
+        </div>
+      </PageSection>
+    </>
   );
 }

@@ -91,7 +91,7 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest, q
           <p className="mt-2 max-w-[60ch] text-sm text-charcoal/70">{t("service", "formP")}</p>
 
           {error && (
-            <p role="alert" className={`mt-4 ${alertLight} p-4 text-sm`}>{error}</p>
+            <p role="alert" className={`mt-4 ${alertLight} iac-alert p-4 text-sm`}>{error}</p>
           )}
           {sent && !error && (
             <p role="status" className="mt-4 border border-gold-dark px-4 py-3 text-sm text-gold-dark">{t("service", "success")}</p>
@@ -100,7 +100,7 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest, q
           {/* An action, not a record: the print stylesheet (app/globals.css) drops
               .print-hide, so the statement keeps the requests list below without
               the form that creates them. */}
-          <form ref={formRef} action={submit} className="print-hide mt-6 grid gap-4 border border-hairline p-5 sm:grid-cols-2">
+          <form ref={formRef} action={submit} className="print-hide iac-form iac-plate mt-6 grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
             {"cash_order_id" in target
               ? <input type="hidden" name="cash_order_id" value={target.cash_order_id} />
               : "draft_id" in target
@@ -157,7 +157,7 @@ export function ServiceRequestForm({ lang, target, items, initial, canRequest, q
       {requests.length === 0 ? (
         <p className="mt-3 text-sm text-charcoal/70">{t("service", "emptyHere")}</p>
       ) : (
-        <ul className="rule-grid mt-3 grid gap-px">
+        <ul className="iac-stack mt-3">
           {requests.map((r) => <ServiceRequestRow key={r.id} request={r} lang={lang} />)}
         </ul>
       )}

@@ -8,6 +8,10 @@ export const blog = {
     "ja": "ブログ一覧へ",
     "en": "All posts"
   },
+  "read": {
+    "ja": "記事を読む",
+    "en": "Read"
+  },
   "empty": {
     "ja": "この分類の記事はまだありません。",
     "en": "Nothing here yet."

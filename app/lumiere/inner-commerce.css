@@ -1,0 +1,111 @@
+/* LUMIÈRE INNER PAGES — inner-commerce (P4b). Contract: docs/tasks/lumiere-p4b-inner-pages.md.
+   Prefix icm-. Layaway, loyalty, sale, search, categories, cart, checkout + completion.
+   Chrome and composition only: no rule here changes a flow, a gate or a figure. */
+
+/* Numbered plates on an ink ground (layaway steps, loyalty facts) ------------- */
+.icm-steps { list-style: none; margin: clamp(28px, 4vw, 56px) 0 0; padding: 0; display: grid; gap: clamp(12px, 1.6vw, 20px); grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+.icm-step { border-radius: var(--lm-plate-radius); background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.14); padding: clamp(18px, 2.2vw, 28px); color: #fff; }
+.icm-step__n { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; background: #fff; color: #000; font-family: var(--font-display, serif); font-size: 18px; font-variant-numeric: lining-nums; }
+.icm-step__h { margin: 18px 0 0; font-family: var(--font-display, serif); font-size: clamp(20px, 1.8vw, 26px); line-height: 1.2; color: #fff; }
+.icm-step__p { margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: rgb(255 255 255 / 0.8); }
+@media (hover: hover) { .icm-step { transition: transform 520ms var(--lm-ease), background-color 520ms var(--lm-ease); } .icm-step:hover { transform: translateY(-3px); background: rgb(255 255 255 / 0.1); } }
+
+/* Section heads inside a page ------------------------------------------------- */
+.icm-sechead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: clamp(20px, 2.6vw, 36px); }
+.icm-sechead .lm-eyebrow { margin-bottom: 12px; }
+
+/* Text links as pills ---------------------------------------------------------- */
+.icm-pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--lm-rule); background: var(--lm-sheet); color: var(--nav-ink, #1c1c1c); font-family: var(--font-manrope), sans-serif; font-size: 14px; font-weight: 600; text-decoration: none; transition: transform 380ms var(--lm-ease), border-color 380ms var(--lm-ease), color 380ms var(--lm-ease); }
+@media (hover: hover) { .icm-pill:hover { transform: translateY(-2px); border-color: var(--nav-gold-deep, #6f5510); color: var(--nav-gold-deep, #6f5510); } }
+.icm-pills { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.icm-pill--solid { background: #000; color: #fff; border-color: #000; }
+@media (hover: hover) { .icm-pill--solid:hover { background: #1c1c1c; color: #fff; border-color: #1c1c1c; } }
+.icm-pill--light { background: #fff; color: #000; border-color: #fff; }
+@media (hover: hover) { .icm-pill--light:hover { background: #f4f0ec; color: #000; border-color: #f4f0ec; } }
+
+/* The calculator's sheet --------------------------------------------------------- */
+.icm-sheet { border-radius: var(--lm-plate-radius); overflow: hidden; }
+
+/* FAQ rows as plates ---------------------------------------------------------------- */
+.icm-faq { display: grid; gap: 10px; }
+.icm-faq details { border-radius: var(--lm-plate-radius-sm); background: var(--lm-bone); border: 1px solid transparent; padding: 0 clamp(16px, 2vw, 26px); transition: background-color 380ms var(--lm-ease); }
+.icm-faq details[open] { background: #fff; border-color: var(--lm-rule); }
+.icm-faq summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 64px; padding: 12px 0; cursor: pointer; list-style: none; font-size: 16px; font-weight: 600; color: var(--nav-ink, #1c1c1c); }
+.icm-faq summary::-webkit-details-marker { display: none; }
+.icm-faq__mark { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: #000; color: #fff; }
+.icm-faq details[open] .icm-faq__plus { display: none; }
+.icm-faq details:not([open]) .icm-faq__minus { display: none; }
+
+/* Loyalty ---------------------------------------------------------------------------------- */
+.icm-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.icm-fact { border-radius: var(--lm-plate-radius); background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.14); padding: clamp(16px, 2vw, 26px); color: #fff; }
+.icm-fact dt { font-family: var(--font-manrope), sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--nav-gold, #c9a227); }
+html:lang(ja) .icm-fact dt { font-size: 12px; letter-spacing: 0.04em; text-transform: none; }
+.icm-fact dd { margin: 6px 0 0; }
+.icm-fact__fig { font-family: var(--font-display, serif); font-size: clamp(34px, 4vw, 56px); line-height: 1.05; font-variant-numeric: lining-nums; }
+.icm-fact__sub { font-size: 13px; color: rgb(255 255 255 / 0.8); }
+.icm-tiers { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(12px, 1.6vw, 20px); grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+.icm-tier { display: flex; flex-direction: column; gap: 16px; border-radius: var(--lm-plate-radius); background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.14); padding: clamp(20px, 2.2vw, 30px); color: #fff; }
+.icm-tier[data-crown] { border-color: var(--nav-gold, #c9a227); background: linear-gradient(180deg, rgb(201 162 39 / 0.14), rgb(255 255 255 / 0.05) 60%); }
+.icm-tier__lab { font-family: var(--font-manrope), sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgb(255 255 255 / 0.8); }
+html:lang(ja) .icm-tier__lab { font-size: 12px; letter-spacing: 0.03em; text-transform: none; }
+.icm-tier__name { margin: 4px 0 0; font-size: clamp(24px, 2.2vw, 32px); line-height: 1.15; color: #fff; }
+.icm-tier__mult { font-family: var(--font-display, serif); font-size: clamp(40px, 4vw, 56px); line-height: 1; font-variant-numeric: lining-nums; }
+.icm-tier dl { margin: 0; border-top: 1px solid rgb(255 255 255 / 0.18); }
+.icm-tier dl > div { padding: 10px 0; border-bottom: 1px solid rgb(255 255 255 / 0.18); }
+.icm-tier dt { font-size: 12px; color: rgb(255 255 255 / 0.8); }
+.icm-tier dd { margin: 2px 0 0; font-size: 15px; font-variant-numeric: lining-nums; color: #fff; }
+.icm-tier ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 13.5px; line-height: 1.55; color: rgb(255 255 255 / 0.88); }
+.icm-tier li::before { content: ""; display: inline-block; width: 5px; height: 5px; margin: 0 8px 2px 0; background: var(--nav-gold, #c9a227); transform: rotate(45deg); }
+.icm-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; border-radius: var(--lm-plate-radius); background: #fff; border: 1px solid var(--lm-rule); padding: clamp(22px, 3vw, 44px); }
+.icm-cta p { margin: 8px 0 0; color: rgb(28 28 28 / 0.8); }
+.icm-join { display: grid; gap: clamp(24px, 4vw, 64px); grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); align-items: start; }
+.icm-join__card { border-radius: var(--lm-plate-radius); background: #fff; border: 1px solid var(--lm-rule); padding: clamp(20px, 2.6vw, 36px); color: var(--nav-ink, #1c1c1c); }
+.icm-join__card > .grid, .icm-join__card .join-box { border: 0; padding: 0; }
+
+/* Empty states and search results ------------------------------------------------------ */
+.icm-empty { display: grid; gap: 16px; max-width: 40rem; }
+.icm-empty p { margin: 0; line-height: 1.7; }
+.icm-search { margin-top: clamp(20px, 2.6vw, 32px); width: 100%; max-width: 440px; }
+.icm-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 clamp(18px, 2.4vw, 32px); padding: 0; list-style: none; }
+.icm-stage { margin-bottom: clamp(12px, 2vw, 24px); }
+
+/* Cart ----------------------------------------------------------------------------------------- */
+.icm-cart { display: grid; gap: clamp(24px, 3vw, 48px); align-items: start; }
+@media (min-width: 1024px) { .icm-cart { grid-template-columns: minmax(0, 1fr) 420px; } .icm-sticky { position: sticky; top: 96px; } }
+.icm-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.icm-line { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; border-radius: var(--lm-plate-radius); background: #fff; border: 1px solid var(--lm-rule); padding: 14px; }
+@media (min-width: 640px) { .icm-line { grid-template-columns: 148px minmax(0, 1fr) auto; gap: 24px; padding: 20px; } }
+.icm-line__well { border-radius: var(--lm-plate-radius-sm); overflow: hidden; }
+.icm-line__well > span { border-radius: inherit; }
+.icm-line__side { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--lm-rule); padding-top: 8px; }
+@media (min-width: 640px) { .icm-line__side { grid-column: auto; display: block; border: 0; padding: 0; text-align: right; } }
+.icm-note { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; border-radius: var(--lm-plate-radius-sm); background: var(--lm-bone); padding: 16px 18px; font-size: 14px; line-height: 1.6; color: var(--nav-ink, #1c1c1c); }
+.icm-trust { border-radius: var(--lm-plate-radius); background: #fff; border: 1px solid var(--lm-rule); padding: 4px 20px; }
+.icm-emptycart { display: grid; gap: 20px; align-items: center; border-radius: var(--lm-plate-radius); background: #fff; border: 1px solid var(--lm-rule); padding: clamp(20px, 3vw, 40px); }
+@media (min-width: 640px) { .icm-emptycart { grid-template-columns: 1fr auto; } }
+
+/* The order summary: an ink sheet (OrderSlab) ----------------------------------------------- */
+.icm-slab { border-radius: var(--lm-plate-radius); overflow: hidden; }
+.icm-slab-thumb { border-radius: 12px; }
+.icm-stepper { list-style: none; margin: 0 0 clamp(20px, 3vw, 36px); padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.icm-stepper li { display: flex; flex-direction: column; gap: 4px; border-radius: 16px; padding: 10px 10px; background: var(--lm-bone); font-size: 11px; font-weight: 600; color: rgb(28 28 28 / 0.8); }
+@media (min-width: 640px) { .icm-stepper li { flex-direction: row; align-items: center; gap: 10px; padding: 12px 16px; font-size: 13px; border-radius: 999px; } }
+.icm-stepper li[data-at="cur"] { background: #000; color: #fff; }
+.icm-stepper li[data-at="done"] { background: #fff; border: 1px solid var(--lm-rule); }
+.icm-stepper__n { font-family: var(--font-display, serif); font-size: 18px; line-height: 1; font-variant-numeric: lining-nums; }
+.icm-next { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.icm-next li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; border-radius: var(--lm-plate-radius); background: #fff; border: 1px solid var(--lm-rule); padding: 16px 20px; }
+.icm-next__n { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; background: var(--lm-bone); color: var(--nav-ink, #1c1c1c); font-family: var(--font-display, serif); font-size: 18px; font-variant-numeric: lining-nums; }
+.icm-next li[data-now] .icm-next__n { background: #000; color: #fff; }
+
+/* Checkout step plates (checkout-flow wrapper classes) --------------------------------------- */
+.icm-stepplate { border-radius: var(--lm-plate-radius); background: #fff; border: 1px solid var(--lm-rule); padding: clamp(20px, 2.6vw, 36px); position: relative; }
+.icm-confirm { padding-bottom: clamp(48px, 7vw, 96px); }
+.icm-ref { display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 999px; background: var(--lm-bone); font-family: ui-monospace, monospace; font-size: 13px; color: var(--nav-ink, #1c1c1c); }
+.icm-tier[data-crown]::before { border-radius: inherit; }
+.icm-tier[data-lit] { box-shadow: 0 0 0 1px var(--nav-gold, #c9a227); }
+.icm-join { max-width: 44rem; }
+.cj-steps.icm-stepper li::before, .cj-steps.icm-stepper li[data-at]::before { display: none; }
+.band-dark a.icm-slab-cta, .band-dark button.icm-slab-cta { background: #fff; color: #000; border-color: #fff; border-radius: 999px; }
+@media (hover: hover) { .band-dark a.icm-slab-cta:hover { background: #f4f0ec; color: #000; } }

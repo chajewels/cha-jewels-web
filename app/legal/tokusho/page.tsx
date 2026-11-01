@@ -34,11 +34,11 @@ export default async function Tokusho() {
       {/* Build step 7: a hairline ledger, the item in gold-dark beside its
           detail. On EN the ※ layaway row is tinted so it reads as a footnote;
           on JA it is not there at all (owner decision 2026-09-25). */}
-      <dl className="border-t border-hairline text-[16px] leading-[1.8] [:lang(ja)_&]:text-[15.5px] [:lang(ja)_&]:leading-[1.95]">
+      <dl className="ic-legal-rows text-[16px] leading-[1.8] [:lang(ja)_&]:text-[15.5px] [:lang(ja)_&]:leading-[1.95]">
         {tokushoRowsFor(layaway, offered).map(({ k, v, layaway: note }) => (
           // Keyed on the Japanese label because it is stable — the key must
           // not change when the toggle does.
-          <div key={k.ja} className={`grid gap-1 border-b border-hairline py-[18px] sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-6 lg:grid-cols-[300px_minmax(0,1fr)] ${note ? "-mx-4 bg-white px-4" : ""}`}>
+          <div key={k.ja} className={`ic-legal-row ${note ? "ring-1 ring-charcoal/15" : ""}`}>
             <dt className="pt-[3px] text-[12px] font-semibold uppercase leading-[1.6] tracking-[0.1em] text-gold-dark [:lang(ja)_&]:text-[13.5px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.04em]">{k[lang]}</dt>
             <dd className="min-w-0 break-words text-charcoal-deep">{v[lang]}</dd>
           </div>
