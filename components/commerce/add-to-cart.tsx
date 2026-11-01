@@ -4,7 +4,10 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { addToCart } from "@/lib/cart-actions";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { cart as cartDict } from "@/lib/i18n/sections/cart";
+import { product as productDict } from "@/lib/i18n/sections/product";
 import { trackAddToCart } from "@/lib/analytics";
 import { availabilityKey, isBuyable, type Availability } from "@/lib/availability";
 import { Button } from "@/components/ui/button";
@@ -48,7 +51,7 @@ export function AddToCart({ variantId, slug, sku, availability, lang, className,
   variantId: string; slug: string; sku: string; availability: Availability; lang: Lang; className?: string;
   block?: boolean; compact?: boolean; id?: string;
 }) {
-  const t = tr(lang);
+  const t = trOf({ cart: cartDict, product: productDict }, lang);
   const [pending, start] = useTransition();
   const [added, setAdded] = useState(false);
 

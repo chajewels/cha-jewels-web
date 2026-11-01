@@ -1,7 +1,9 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { account as accountDict } from "@/lib/i18n/sections/account";
 import { confirmSignInAction } from "@/lib/auth-actions";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +24,7 @@ export function ConfirmSignIn({ tokenHash, type, next, lang }: { tokenHash: stri
 }
 
 function SubmitButton({ lang }: { lang: Lang }) {
-  const t = tr(lang);
+  const t = trOf({ account: accountDict }, lang);
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">

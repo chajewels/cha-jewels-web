@@ -4,7 +4,9 @@ import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf, type Translator } from "@/lib/i18n-client";
+import { paidy as paidyDict } from "@/lib/i18n/sections/paidy";
 import { paidyAbandonAction, paidyAuthorizedAction, paidyStartAction } from "@/lib/paidy-actions";
 import { paidyStatus } from "@/lib/paidy";
 import type { HubOrderPaidy, PaidyCheckoutPayload } from "@/lib/types";
@@ -79,7 +81,7 @@ const ABANDON_MS = 15_000;
 const FILE_MS = 30_000;
 
 export function PaidyPay({ orderId, paidy, logoUrl, lang, windowOpen = false }: { orderId: string; paidy: HubOrderPaidy; logoUrl: string; lang: Lang; windowOpen?: boolean }) {
-  const t = tr(lang);
+  const t = trOf({ paidy: paidyDict }, lang);
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<State>("idle");
@@ -350,7 +352,7 @@ function addressLine(c: { postal_code?: string | null; region?: string | null; c
   return `${c.postal_code ? `〒${c.postal_code} ` : ""}${[c.region, c.city, c.line1, c.line2].filter(Boolean).join(" ")}`;
 }
 
-function errorText(code: string | null, t: ReturnType<typeof tr>): string {
+function errorText(code: string | null, t: Translator<{ paidy: typeof paidyDict }>): string {
   switch (code) {
     // L4: a start that failed — Paidy never opened, so nothing to "record".
     case "start_failed": return t("paidy", "errStartFailed");

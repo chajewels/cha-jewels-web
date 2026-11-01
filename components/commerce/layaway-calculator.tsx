@@ -4,7 +4,9 @@ import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { layawayQuote } from "@/lib/layaway";
 import { formatMoney, cn, type Currency } from "@/lib/utils";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { calc as calcDict } from "@/lib/i18n/sections/calc";
+import { checkout as checkoutDict } from "@/lib/i18n/sections/checkout";
 import { termLaunched } from "@/lib/layaway-availability";
 import type { LayawayQuote as Quote } from "@/lib/types";
 import { RollingValue } from "@/components/fx/rolling";
@@ -102,7 +104,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
    */
   fixedPiece?: boolean;
 }) {
-  const c = dict.calc;
+  const c = calcDict;
   const s = TONES[variant];
   const lumiere = variant === "lumiere";
   const [display, setDisplay] = useState<Currency>("JPY");
@@ -150,7 +152,7 @@ export function LayawayCalculator({ lang, initialPrice = 150000, className, head
           // untouched — nothing here computes money.
           if (fixedPiece && r.quote.term_downgraded && r.quote.term_months !== term) setTerm(r.quote.term_months);
         }
-        else { setQuote(null); setError(r.code === "rate_unavailable" ? dict.checkout.rateUnavailable[lang] : c.err[lang]); }
+        else { setQuote(null); setError(r.code === "rate_unavailable" ? checkoutDict.rateUnavailable[lang] : c.err[lang]); }
       }
       catch { setQuote(null); setError(c.err[lang]); }
     }), 250);

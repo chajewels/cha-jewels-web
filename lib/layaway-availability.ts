@@ -1,4 +1,4 @@
-import { type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 
 /**
  * IS LAYAWAY OFFERED TO A VISITOR READING THE SITE IN THIS LANGUAGE?

@@ -3,7 +3,10 @@
 import { useState, useTransition } from "react";
 import { completeProfileAction } from "@/lib/profile-actions";
 import { COUNTRIES, type LocationType } from "@/lib/countries";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { cartReminders as cartRemindersDict } from "@/lib/i18n/sections/cartReminders";
+import { profile as profileDict } from "@/lib/i18n/sections/profile";
 import { normalizeMessengerLink } from "@/lib/profile-messenger-link";
 import { Button } from "@/components/ui/button";
 import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-classes";
@@ -22,7 +25,7 @@ import { alertLight, errorLight, inputLight, labelLight } from "@/lib/form-class
  * Success and "already registered" are redirects from the action.
  */
 export function CompleteProfileForm({ lang, email, next }: { lang: Lang; email: string; next: string }) {
-  const t = tr(lang);
+  const t = trOf({ cartReminders: cartRemindersDict, profile: profileDict }, lang);
   const [pending, start] = useTransition();
   const [fullName, setFullName] = useState("");
   const [locationType, setLocationType] = useState<LocationType>("japan");

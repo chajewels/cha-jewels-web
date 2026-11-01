@@ -5,7 +5,13 @@ import { localePath } from "@/lib/locale";
 import { ChevronDown, ExternalLink, Info, Lock, Plus, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { tr, type Lang, type dict } from "@/lib/i18n";
+import { type dict } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { account as accountDict } from "@/lib/i18n/sections/account";
+import { cart as cartDict } from "@/lib/i18n/sections/cart";
+import { checkout as checkoutDict } from "@/lib/i18n/sections/checkout";
+import { footer as footerDict } from "@/lib/i18n/sections/footer";
 import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -113,7 +119,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
    */
   offerLoyalty?: boolean;
 }) {
-  const t = tr(lang);
+  const t = trOf({ account: accountDict, cart: cartDict, checkout: checkoutDict, footer: footerDict }, lang);
   const router = useRouter();
   const [pending, start] = useTransition();
 

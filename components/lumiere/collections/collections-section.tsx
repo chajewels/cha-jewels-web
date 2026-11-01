@@ -35,7 +35,7 @@ export const CollectionsSection = ({ content }: { content: LumiereCollectionsCon
         className="z-0 object-cover"
       />
 
-      <CollectionsReveal heading={content.heading} lead={content.lead} />
+      <CollectionsReveal heading={content.heading} headingText={content.headingText} lead={content.lead} />
 
       <div className="collections__grid collections__grid--five">
         <div className="collections__row">

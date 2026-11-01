@@ -1,4 +1,6 @@
-import { tr, type Lang } from "@/lib/i18n";
+import { trOf } from "@/lib/i18n-client";
+import { loyalty as loyaltyDict } from "@/lib/i18n/sections/loyalty";
+import { type Lang } from "@/lib/i18n-core";
 import type { SocialLink } from "@/lib/types";
 import { SocialIcons } from "@/components/site/social-icons";
 
@@ -16,7 +18,7 @@ import { SocialIcons } from "@/components/site/social-icons";
  * them down, so there is still exactly one place the list comes from.
  */
 export function MemberGroups({ items, lang, className = "" }: { items: SocialLink[]; lang: Lang; className?: string }) {
-  const t = tr(lang);
+  const t = trOf({ loyalty: loyaltyDict }, lang);
   // No groups in the Hub is no block at all — a heading and an invitation over
   // an empty row is worse than saying nothing.
   if (items.length === 0) return null;

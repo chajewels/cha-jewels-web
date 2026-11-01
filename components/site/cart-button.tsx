@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cartCount } from "@/lib/cart";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { CartBump } from "@/components/fx/cart-bump";
 
 /**

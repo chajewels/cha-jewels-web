@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Info, Gem, CircleHelp, BookOpen, Megaphone, MessageCircle, Landmark, ArrowRight, User } from "lucide-react";
 import { Suspense } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { getCollections } from "@/lib/queries/products";
 import { hub } from "@/lib/hub-api";
 import { collectionName, categoryName } from "@/lib/catalog-i18n";

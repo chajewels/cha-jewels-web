@@ -2,7 +2,11 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { useEffect, useRef, useState } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { brand as brandDict } from "@/lib/i18n/sections/brand";
+import { hero as heroDict } from "@/lib/i18n/sections/hero";
+import { home as homeDict } from "@/lib/i18n/sections/home";
 import { Button } from "@/components/ui/button";
 import { HubImage } from "@/components/media/hub-image";
 import { useHeroMotion } from "@/components/home/hero";
@@ -75,10 +79,10 @@ const d = (s: number) => ({ ["--d" as string]: s }) as React.CSSProperties;
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function Reserve({ piece, lang }: { piece: HeroPiece; lang: Lang }) {
-  return <Button asChild className="hd-btn"><Link href={localePath(`/products/${piece.slug}`, lang)}>{tr(lang)("home", "heroReserve")}</Link></Button>;
+  return <Button asChild className="hd-btn"><Link href={localePath(`/products/${piece.slug}`, lang)}>{trOf({ brand: brandDict, hero: heroDict, home: homeDict }, lang)("home", "heroReserve")}</Link></Button>;
 }
 function Ask({ lang }: { lang: Lang }) {
-  return <Button asChild className="hd-btn"><Link href={localePath("/contact", lang)}>{tr(lang)("home", "heroAsk")}</Link></Button>;
+  return <Button asChild className="hd-btn"><Link href={localePath("/contact", lang)}>{trOf({ brand: brandDict, hero: heroDict, home: homeDict }, lang)("home", "heroAsk")}</Link></Button>;
 }
 function Explore({ slide, lang }: { slide: HeroCategorySlide; lang: Lang }) {
   return (
@@ -90,7 +94,7 @@ function Explore({ slide, lang }: { slide: HeroCategorySlide; lang: Lang }) {
 
 /* ---------------- 1 · The film, alone ---------------- */
 function FilmView({ lang }: { lang: Lang }) {
-  const t = tr(lang);
+  const t = trOf({ brand: brandDict, hero: heroDict, home: homeDict }, lang);
   return (
     <div className="hd-view hd-film">
       <div aria-hidden="true" className="hd-film-scrim" />
@@ -181,7 +185,7 @@ function PhotoLayer({ photo, on, mounted }: { photo: HeroPhoto; on: boolean; mou
 }
 
 function StageView({ slide, index, lang, active, mounted, side, moving }: ViewProps & { slide: HeroCategorySlide }) {
-  const t = tr(lang);
+  const t = trOf({ brand: brandDict, hero: heroDict, home: homeDict }, lang);
   const { rotateOn, reduced } = useHeroMotion();
   const pieces = slide.pieces;
   const n = pieces.length;
@@ -363,7 +367,7 @@ const TOKYO = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Tokyo", hour: "
  * be wrong by the time it is read.
  */
 function HeroClock({ lang, run, still }: { lang: Lang; run: boolean; still: boolean }) {
-  const t = tr(lang);
+  const t = trOf({ brand: brandDict, hero: heroDict, home: homeDict }, lang);
   const [hm, setHm] = useState<string | null>(null);
   const track = useRef<HTMLDivElement>(null);
   const hand = useRef<HTMLDivElement>(null);

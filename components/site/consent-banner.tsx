@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CONSENT_OPEN_EVENT, openConsent, writeConsent } from "@/lib/consent";
+import { CONSENT_OPEN_EVENT, writeConsent } from "@/lib/consent";
 import { isPayCardPath } from "@/lib/csp";
 import { isStatutoryPath } from "@/lib/statutory-path";
 import { useConsent } from "@/components/analytics/use-consent";
+import { isHomePath } from "@/lib/lumiere/home-path";
 
 /**
  * THE COOKIE BANNER (owner rule 2026-10-15): advertising loads only after
@@ -26,6 +27,13 @@ import { useConsent } from "@/components/analytics/use-consent";
  * on a phone it sits above whichever bottom bar the page has; from `lg` it is
  * a card at the bottom LEFT, so it never covers the Messenger button, which is
  * bottom right.
+ *
+ * ON THE LUMIÈRE HOME (redesign/lumiere P2b item 4) it is a full-width bar
+ * along the bottom at every width (`consent-banner--bar`, app/lumiere/
+ * sections.css): the bottom-left card sat over the hero's standfirst, the
+ * collections lead and the footer's company block. The home's hero band and
+ * footer lift above the bar by its height (`--lm-consent`), so no control is
+ * ever under it.
  */
 export type ConsentCopy = { region: string; title: string; body: string; accept: string; necessary: string; privacy: string };
 
@@ -46,6 +54,7 @@ export function ConsentBanner({ copy, privacyHref = "/legal/privacy" }: { privac
 
   // The statutory pages, prefixed by a locale or not (lib/statutory-path.ts).
   const quietHere = isStatutoryPath(path) || isPayCardPath(path);
+  const bar = isHomePath(path);
   const asking = consent === "unset" && !quietHere;
   if (consent === "unknown" || (!asking && !opened)) return null;
 
@@ -55,7 +64,7 @@ export function ConsentBanner({ copy, privacyHref = "/legal/privacy" }: { privac
   };
 
   return (
-    <section role="region" aria-label={copy.region} data-consent-banner className="consent-banner border border-hairline bg-white p-5 text-charcoal shadow-[0_8px_28px_rgb(35_29_18/18%)] lg:rounded-sm">
+    <section role="region" aria-label={copy.region} data-consent-banner className={`consent-banner border border-hairline bg-white p-5 text-charcoal shadow-[0_8px_28px_rgb(35_29_18/18%)] lg:rounded-sm${bar ? " consent-banner--bar" : ""}`}>
       <h2 id="cj-consent-title" ref={heading} tabIndex={-1} className="font-display text-[18px] font-medium text-charcoal-deep outline-none">{copy.title}</h2>
       <p className="mt-2 text-[14px] leading-relaxed">
         {copy.body}{" "}
@@ -69,11 +78,5 @@ export function ConsentBanner({ copy, privacyHref = "/legal/privacy" }: { privac
   );
 }
 
-/** "Cookie settings" in the footer: reopens the banner. */
-export function CookieSettingsLink({ label, className }: { label: string; className?: string }) {
-  return (
-    <button type="button" className={className} onClick={openConsent}>
-      {label}
-    </button>
-  );
-}
+// "Cookie settings" lives in components/site/cookie-settings-link.tsx (P2b):
+// a footer that imported it from here carried this whole module.

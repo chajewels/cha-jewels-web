@@ -3,7 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { localePath } from "@/lib/locale";
 import { safeNext as toSafeNext } from "@/lib/safe-next";
 import { useSearchParams } from "next/navigation";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { account as accountDict } from "@/lib/i18n/sections/account";
+import { nav as navDict } from "@/lib/i18n/sections/nav";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -22,7 +24,7 @@ import { alertLight } from "@/lib/form-classes";
  * docs/tasks/phase2-plan.md and the Hub's step-1 migration.
  */
 export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string | null }) {
-  const c = dict.account;
+  const c = accountDict;
   const params = useSearchParams();
   const next = params.get("next") ?? "/account";
   // middleware sends ?reason=config when the Supabase env vars are missing on
@@ -123,7 +125,7 @@ export function LoginForm({ lang, messenger }: { lang: Lang; messenger: string |
   }
   return (
     <div>
-      <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{dict.nav.account[lang]}</p>
+      <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{navDict.account[lang]}</p>
       <h1 className="mb-3 mt-3.5 text-[clamp(32px,4vw,48px)] [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:[word-break:auto-phrase]">{c.loginH[lang]}</h1>
       <p className="mb-[26px] max-w-[44ch] text-[17px] leading-relaxed text-charcoal-deep">{c.loginP[lang]}</p>
       <form onSubmit={submit} noValidate className="grid gap-4 text-sm">
@@ -158,7 +160,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
  * anything else stays in minutes rather than being rounded into a number that
  * is no longer the one in the dashboard.
  */
-function expiryPhrase(c: typeof dict.account, lang: Lang): string | null {
+function expiryPhrase(c: typeof accountDict, lang: Lang): string | null {
   const minutes = authLinkExpiryMinutes();
   if (minutes == null) return null;
   if (minutes === 60) return c.expiryHour[lang];

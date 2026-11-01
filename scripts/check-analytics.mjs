@@ -212,7 +212,9 @@ if (!adsSrc) {
 
 // 11. Both are mounted in the layout; the tags after the Vercel provider, so
 //     the provider's effect still runs first (invariant 1).
-const consentPos = layout.indexOf("<ConsentBanner ");
+// `<ConsentBannerLazy>` (components/site/consent-banner-lazy.tsx) mounts the
+// banner in idle on every page — the same component, the same cookie.
+const consentPos = layout.search(/<ConsentBanner(?:Lazy)? /);
 const adsPos = layout.indexOf("<AdsTags />");
 if (consentPos === -1) fail("app/layout.tsx: <ConsentBanner /> is not mounted.");
 if (adsPos === -1) fail("app/layout.tsx: <AdsTags /> is not mounted.");

@@ -1,4 +1,6 @@
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { card as cardDict } from "@/lib/i18n/sections/card";
 import { formatDeadline } from "@/lib/site-time";
 import type { HubCardPayment } from "@/lib/types";
 
@@ -24,7 +26,7 @@ export function CardPaymentStatus({ lang, state, brand, last4, captureBy, refere
   reference?: string | null;
   children?: React.ReactNode;
 }) {
-  const t = tr(lang);
+  const t = trOf({ card: cardDict }, lang);
   const card = [brand ?? "", last4 ? `····${last4}` : ""].filter(Boolean).join(" ");
   const line =
     state === "processing" ? t("card", "processing")

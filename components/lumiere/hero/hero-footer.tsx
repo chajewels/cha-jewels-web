@@ -59,12 +59,16 @@ export const HeroFooter = ({ isPhoto }: HeroFooterProps) => {
   const wrap = content.taglineWraps ? { gap: TAGLINE_SPACE } : undefined;
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+    // `hero-band`: its bottom edge is `--lm-bottom-bar` — the tab bar (below
+    // lg) and the cookie bar while it is up — so the CTA and the standfirst
+    // never sit under either (P2b item 8; app/lumiere/sections.css).
+    <div className="hero-band pointer-events-none absolute inset-x-0 z-20">
       {/* The three items share one baseline wherever there is room for them on
           one line — desktop and tablet. Only the phone stacks the standfirst
           above the CTA against the same left gutter. Which of the two it is
           lives in `--footer-*-bottom`, not here. */}
       <animated.p
+        data-reveal
         // Width in classes, not inline: an inline value outranks `lg:w-u-281`
         // and would pin the desktop measure to the phone's.
         className="absolute left-u-40 font-manrope text-body font-medium bottom-[var(--footer-tagline-bottom)] w-[min(calc(100vw-80*var(--raw-unit-design)),var(--footer-tagline-width))] lg:w-u-281"
@@ -101,6 +105,7 @@ export const HeroFooter = ({ isPhoto }: HeroFooterProps) => {
       </animated.p>
 
       <AnimatedLink
+        data-reveal
         href={content.cta.href}
         // `md:` and `lg:` set the same pair, so this reaches the tablet without
         // the desktop rule changing meaning: from 768 up the CTA sits in the

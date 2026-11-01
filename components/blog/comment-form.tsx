@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { createCommentAction, deleteCommentAction, updateCommentAction } from "@/lib/comment-actions";
 import { COMMENT_MAX, cleanCommentBody, type CommentCode, type PostComment } from "@/lib/comments";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { comments as commentsDict } from "@/lib/i18n/sections/comments";
 import { formatSiteDate } from "@/lib/site-time";
 import { Button } from "@/components/ui/button";
 import { alertLight, inputLight, labelLight } from "@/lib/form-classes";
@@ -29,7 +31,7 @@ export function CommentForm({ slug, lang, open, initialPending, signInHref, prof
   open: boolean;
   initialPending: Pending[];
 } & Links) {
-  const t = tr(lang);
+  const t = trOf({ comments: commentsDict }, lang);
   const [pending, setPending] = useState<Pending[]>(initialPending);
   const [body, setBody] = useState("");
   const [error, setError] = useState<{ code: CommentCode; requestId: string | null } | null>(null);
@@ -112,7 +114,7 @@ function PendingComment({ comment, slug, lang, links, onSaved, onDeleted }: {
   onSaved: (c: PostComment) => void;
   onDeleted: () => void;
 }) {
-  const t = tr(lang);
+  const t = trOf({ comments: commentsDict }, lang);
   const [mode, setMode] = useState<"view" | "edit" | "confirmDelete">("view");
   const [draft, setDraft] = useState(comment.body);
   const [error, setError] = useState<{ code: CommentCode; requestId: string | null } | null>(null);
@@ -199,7 +201,7 @@ function PendingComment({ comment, slug, lang, links, onSaved, onDeleted }: {
 
 /** One honest line per outcome, with the way forward where there is one. */
 function ErrorLine({ code, requestId, lang, links }: { code: CommentCode; requestId: string | null; lang: Lang; links: Links }) {
-  const t = tr(lang);
+  const t = trOf({ comments: commentsDict }, lang);
   const line = (() => {
     switch (code) {
       case "sign_in": return { text: t("comments", "errSignIn"), link: { href: links.signInHref, label: t("comments", "errSignInLink") } };

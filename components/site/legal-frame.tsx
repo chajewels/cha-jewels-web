@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { ChevronRight } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { COMPANY_NAME_DISPLAY, tokusho } from "@/lib/content/legal";
 import { LegalToc, LegalTocPhone, PrintLink, type TocItem } from "@/components/site/legal-toc";
 

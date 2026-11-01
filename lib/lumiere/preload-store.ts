@@ -18,13 +18,24 @@ interface PreloadStore {
    * in the same session, D-9) set it at once — see `components/lumiere/common/preloader.tsx`.
    */
   hasLoaded: boolean;
-  setLoaded: () => void;
+  /**
+   * The curtain lifted BEFORE React hydrated (the inline cap in
+   * components/lumiere/common/preloader.tsx, P2b): the hero is already on
+   * screen at rest, drawn by CSS, so every entrance must land at once rather
+   * than play — a reveal that replayed on hydration would be a flash.
+   */
+  liftedEarly: boolean;
+  setLoaded: (options?: { early?: boolean }) => void;
 }
 
 export const usePreloadStore = create<PreloadStore>((set) => ({
   hasLoaded: false,
-  setLoaded: () => set({ hasLoaded: true }),
+  liftedEarly: false,
+  setLoaded: (options) => set({ hasLoaded: true, liftedEarly: options?.early === true }),
 }));
+
+/** True when the curtain lifted before hydration — every entrance is immediate. */
+export const useLiftedEarly = (): boolean => usePreloadStore((state) => state.liftedEarly);
 
 /** True once the preloader has begun to lift (or was never shown). */
 export const useHasLoaded = (): boolean => usePreloadStore((state) => state.hasLoaded);

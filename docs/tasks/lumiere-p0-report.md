@@ -61,7 +61,7 @@ Lumière is CSS-first Tailwind 4; ~2,600 of its 3,402 CSS lines are plain BEM (`
 
 **3.2 Lenis.** Window-scrolling instance (`smoothWheel: true, wheelMultiplier: 0.65`), own rAF on the shared ticker, native scroll position still moves so `scrollY`, `getBoundingClientRect`, IntersectionObserver, sticky and `scrollIntoView` keep working. Actions: remove `html { scroll-behavior: smooth }` (`app/globals.css:6`), route anchors through `lenis.scrollTo`; one `lib/scroll-lock.ts` (`lenis.stop()` + overflow hidden) for the four `body.style.overflow` lockers (`mobile-nav`, `search-box`, `layaway-piece-picker`, `catalog-grid` filter sheet); `data-lenis-prevent` on every inner scroll container (drawer body, search sheet, picker, filter sheet, mega-menu panels, product-gallery strip, faq-nav list, gallery viewer, Paidy widget wrapper); HeaderShell's `--hdr-h` contract kept so sticky consumers keep working. **Scope (D-13 APPROVED): Lenis is not mounted on `/checkout/**`, `/account/**`, `/login`, `/auth/**`.** Reduced motion: Lenis is not created at all; springs rest; posters shown.
 
-**3.3 Preloader vs the existing LCP rule (`fx/boot-marker.tsx`).** Home only, first visit per session, **hard cap 4 s** (D-9 APPROVED); 3D keeps loading behind the posters after the curtain lifts (the scenes' `fade` springs already do this). Inner pages keep the "nothing above the fold starts hidden" marker.
+**3.3 Preloader vs the existing LCP rule (`fx/boot-marker.tsx`).** Home only, first visit per session, **hard cap 2.5 s from first paint** (D-9 APPROVED; amended from 4 s by the owner 2026-11-01, P2b); 3D keeps loading behind the posters after the curtain lifts (the scenes' `fade` springs already do this). Inner pages keep the "nothing above the fold starts hidden" marker.
 
 ## 4. Exact CSP change (`lib/csp.ts`, report-only policy only)
 
@@ -99,7 +99,7 @@ Legend: P = port verbatim, A = adapt, N = not ported, R = replaced by ours.
 | `lib/animation/{ticker,doc-box,smooth-scroll-y}` | `lib/animation/*` | P |
 | `hooks/animation/*`, `use-scroll-progress`, `use-in-view`, `use-window-size` | `hooks/**` | P (`use-scroll-progress` onto doc-box in P5) |
 | `stores/preload-store.ts` | `lib/lumiere/preload-store.ts` | P |
-| `common/{letter-reveal,text-swap,preloader,reduced-motion,warm-below-fold}` | `components/lumiere/common/*` | A (session-once 4 s cap, Cha logo plate, JA segmenter) |
+| `common/{letter-reveal,text-swap,preloader,reduced-motion,warm-below-fold}` | `components/lumiere/common/*` | A (session-once 2.5 s cap, Cha logo plate, JA segmenter) |
 | `utils/scroll-to.ts` | `lib/lumiere/scroll-to.ts` | A (`lenis.scrollTo`) |
 | `lib/scene/**` (device, presets, ready gates, gem material, pendant scene, studio env, HDRI, EXR worker, rings scene) | `lib/scene/**` | P (shaders and presets character for character; URLs → `/lumiere/**`) |
 | `views/home/hero/*` (20 files) | `components/lumiere/hero/*` | P geometry/motion + A content; `hero-header.tsx` replaced by the P3 site header |
@@ -187,7 +187,7 @@ Full tables and method in `docs/perf-baseline.md` ("2026-11-01 — Lumière rede
 
 Lumière reference, real-visitor view (normal UA, preloader on, local `next start`, isolated runs): **mobile 72, LCP 5.94 s, TBT 255 ms, max-potential FID 288 ms, CLS 0**; desktop 92, LCP 1.40 s, TBT 128 ms — already behind production's desktop bar (LCP < 1 s, TBT 0), so the gate applies to both form factors. The owner's "310 ms input delay" reproduces (280–303 ms). Lumière's vault figure (85–87 / 2.15 s) is not what a visitor gets with the curtain and the PNG masters.
 
-**The bar:** each redesigned route must match the production rows above, mobile and desktop (lab), and, at P5, Speed Insights INP. Plan, in order: (1) re-encode the 28 MB of PNG masters to ≤ 6 MB of WebP/JPG sources at ≥ 1440 px long side (card-08 2.65 MB → ~250 KB; `logo.png` and `paper.png` 2.4 / 2.0 MB → < 100 KB), `quality={82}` on the two full-bleed photos, one `fetchPriority="high"`; (2) zero layout reads in the rAF: all per-frame geometry from `doc-box`, HeaderShell and `use-scroll-progress` on the shared ticker; (3) pendant build after the curtain's fonts/images settle, `yieldTask()` between PMREM / BVH / compile like the rings, rings 4 s after the curtain; **phones keep the live 3D on Lumière's mobile budget (D-10 APPROVED)**, posters only when `navigator.connection.saveData`, `navigator.deviceMemory ≤ 4`, no WebGL2, or reduced motion; (4) Inter Tight subset; (5) one rAF for ticker + Lenis + springs, `set()` for scroll stages; (6) preloader session-once, 4 s cap; (7) P5 gate = same four URLs, same method, three runs, plus INP field data; revisit D-10 only if the gate fails.
+**The bar:** each redesigned route must match the production rows above, mobile and desktop (lab), and, at P5, Speed Insights INP. Plan, in order: (1) re-encode the 28 MB of PNG masters to ≤ 6 MB of WebP/JPG sources at ≥ 1440 px long side (card-08 2.65 MB → ~250 KB; `logo.png` and `paper.png` 2.4 / 2.0 MB → < 100 KB), `quality={82}` on the two full-bleed photos, one `fetchPriority="high"`; (2) zero layout reads in the rAF: all per-frame geometry from `doc-box`, HeaderShell and `use-scroll-progress` on the shared ticker; (3) pendant build after the curtain's fonts/images settle, `yieldTask()` between PMREM / BVH / compile like the rings, rings 4 s after the curtain; **phones keep the live 3D on Lumière's mobile budget (D-10 APPROVED)**, posters only when `navigator.connection.saveData`, `navigator.deviceMemory ≤ 4`, no WebGL2, or reduced motion; (4) Inter Tight subset; (5) one rAF for ticker + Lenis + springs, `set()` for scroll stages; (6) preloader session-once, 2.5 s cap from first paint (amended 2026-11-01); (7) P5 gate = same four URLs, same method, three runs, plus INP field data; revisit D-10 only if the gate fails.
 
 ## 11. Risks (updated)
 
@@ -214,7 +214,7 @@ Lumière reference, real-visitor view (normal UA, preloader on, local `next star
 | D-6 | Philosophy lines | **APPROVED** | Wording per §13 rows 17–27, approved 2026-11-01. |
 | D-7 | Featured placeholder prices | **APPROVED** | "¥ —" pills, never $; Add to cart disabled while placeholder. |
 | D-8 | Five-card collections | **APPROVED** | Lumière's 2×2 + one full-width fifth card. |
-| D-9 | Preloader | **APPROVED** | Home only, first visit per session, hard cap 4 s; 3D continues behind posters after the curtain. |
+| D-9 | Preloader | **APPROVED** (amended 2026-11-01, P2b) | Home only, first visit per session, **hard cap 2.5 s from first paint** (was 4 s); lifts earlier when the hero's assets are in; 3D continues behind posters after the curtain. |
 | D-10 | Phones and 3D | **APPROVED** | Live 3D on phones with Lumière's mobile budget; posters only on Save-Data, `deviceMemory ≤ 4`, no WebGL2, or reduced motion. Revisit only if the P5 gate fails. |
 | D-11 | Rem grid | **APPROVED** | Not ported. |
 | D-12 | Dark mode | **APPROVED** | Dropped; light only. |

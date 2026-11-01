@@ -1,7 +1,7 @@
 import { track } from "@vercel/analytics";
 import { normalize } from "@/lib/search-normalize";
 import type { SearchOrigin } from "@/lib/search-origin";
-import { DEFAULT_LANG } from "@/lib/i18n";
+import { DEFAULT_LANG } from "@/lib/i18n-core";
 import { adsGranted } from "@/lib/consent";
 import { adsIds, purchaseCalls, purchaseLabel, type Purchase, type TagCall } from "@/lib/ads";
 

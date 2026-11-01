@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { formatMoney } from "@/lib/utils";
 import { draftCompletePath } from "@/lib/drafts";
 import { StatusBadge } from "@/components/account/status-badge";

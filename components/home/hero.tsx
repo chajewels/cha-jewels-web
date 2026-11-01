@@ -3,7 +3,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DUR, EASE_LUX, EASE_WIPE_IN, HERO_SINK } from "@/lib/motion";
 import { HeroVideo } from "@/components/site/hero-video";
 import { HeroSlides, type HeroSlide } from "@/components/home/hero-slides";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { home as homeDict } from "@/lib/i18n/sections/home";
 
 /**
  * THE HERO'S MOTION, DECIDED IN ONE PLACE.
@@ -269,7 +271,7 @@ export function Hero({ lang, slides, className, demo = false }: {
         </div>
         {/* Over the slides, under the arrows, dots and pause button (z-20). */}
         <div ref={curtainRef} aria-hidden="true" className="hero-curtain" />
-        {demo && <p className="hd-demo">{tr(lang)("home", "heroDemoTag")}</p>}
+        {demo && <p className="hd-demo">{trOf({ home: homeDict }, lang)("home", "heroDemoTag")}</p>}
       </section>
     </Ctx.Provider>
   );

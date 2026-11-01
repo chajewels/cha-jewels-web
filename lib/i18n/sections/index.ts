@@ -1,0 +1,2 @@
+// GENERATED — the section names, for scripts and tests.
+export const I18N_SECTIONS = ["newsletter","nav","navMenu","trust","why","contact","brand","hero","home","product","calc","search","categories","collection","pdp","footer","loyalty","layawayPage","announcement","social","salePage","wholesale","faq","gold","account","cart","checkout","transfer","complete","paidy","card","orders","draft","plans","support","legalPage","about","comments","share","blog","notFound","service","receipts","accountMenu","cartReminders","profile","reviews","consent","meta"] as const;

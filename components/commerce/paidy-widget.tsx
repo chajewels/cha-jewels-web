@@ -3,7 +3,9 @@
 import Script from "next/script";
 import { useEffect } from "react";
 import { PAIDY_WIDGET_SRC, paidyWidgetAttrs, refreshPaidyWidget } from "@/lib/paidy-widget";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { paidy as paidyDict } from "@/lib/i18n/sections/paidy";
 
 /**
  * Paidy's N-Pay promotional widget under the product price (owner decisions
@@ -36,7 +38,7 @@ export function PaidyWidget({ amountJpy, lang, className = "" }: { amountJpy: nu
     if (shown) refreshPaidyWidget(window as unknown as { _paidy?: unknown });
   }, [amountJpy, shown]);
   if (!attrs) return null;
-  const t = tr(lang);
+  const t = trOf({ paidy: paidyDict }, lang);
   return (
     <div className={className} data-testid="paidy-widget" data-lenis-prevent>
       <div {...attrs} />

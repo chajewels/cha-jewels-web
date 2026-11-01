@@ -3,7 +3,8 @@
 import { useActionState, useEffect, useRef } from "react";
 import { subscribeAction, type NewsletterState } from "@/app/actions/newsletter";
 import { trackNewsletterSubscribe } from "@/lib/analytics";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { newsletter as newsletterDict } from "@/lib/i18n/sections/newsletter";
 import { inputLight, labelLight } from "@/lib/form-classes";
 
 /**
@@ -24,7 +25,7 @@ import { inputLight, labelLight } from "@/lib/form-classes";
  * say one sentence would lose their place.
  */
 export function NewsletterForm({ lang, tone = "light" }: { lang: Lang; tone?: "light" | "dark" }) {
-  const c = dict.newsletter;
+  const c = newsletterDict;
   const [state, action, pending] = useActionState<NewsletterState, FormData>(subscribeAction, "idle");
   const formRef = useRef<HTMLFormElement>(null);
   const counted = useRef<NewsletterState>("idle");

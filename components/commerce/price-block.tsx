@@ -1,6 +1,7 @@
 import { formatYenPeso, isFigure, cn } from "@/lib/utils";
 import { SalePrice } from "@/components/commerce/sale-price";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 /**
  * Full price + the reservation line. Presentational: the reserve figures are
  * the Hub's (`down_payment_jpy` / `down_payment_php` on the variant, from

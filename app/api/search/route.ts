@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { asLang, DEFAULT_LANG } from "@/lib/i18n";
+import { asLang, DEFAULT_LANG } from "@/lib/i18n-core";
 import { normalize, search, toSuggestion } from "@/lib/search";
 import { getCollections } from "@/lib/queries/products";
 import { collectionName } from "@/lib/catalog-i18n";

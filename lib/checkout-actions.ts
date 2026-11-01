@@ -3,7 +3,7 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
 import { cookies } from "next/headers";
-import { LANG_COOKIE, asLang, gateLang } from "@/lib/i18n";
+import { LANG_COOKIE, asLang, gateLang } from "@/lib/i18n-core";
 import { hub, HubError, type CheckoutChoiceInput } from "@/lib/hub-api";
 import { TERM_NOT_LAUNCHED, termLaunched, LAYAWAY_UNAVAILABLE } from "@/lib/layaway-availability";
 import { layawayOfferedNow } from "@/lib/layaway-availability-server";

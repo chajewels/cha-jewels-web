@@ -1,4 +1,5 @@
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import type { Story } from "@/lib/stories";
 import { StoryShow } from "@/components/home/story-show";
 import { ReviewSummary } from "@/components/reviews/review-list";

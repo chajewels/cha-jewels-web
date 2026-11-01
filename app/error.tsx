@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { dict, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { social as socialDict } from "@/lib/i18n/sections/social";
+import { support as supportDict } from "@/lib/i18n/sections/support";
 import { EmptyStage, MessengerCta } from "@/components/site/support-stage";
 
 /**
@@ -25,7 +27,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
     console.error(error);
   }, [error]);
 
-  const s = dict.support;
+  const s = supportDict;
   return (
     <EmptyStage title={s.errorH[lang]} lede={s.errorP[lang]}>
       <div className="mt-7 flex flex-wrap justify-center gap-3">
@@ -36,7 +38,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         >
           {s.retry[lang]}
         </button>
-        {messenger && <MessengerCta href={messenger} label={dict.social.messengerButton[lang]} />}
+        {messenger && <MessengerCta href={messenger} label={socialDict.messengerButton[lang]} />}
       </div>
     </EmptyStage>
   );

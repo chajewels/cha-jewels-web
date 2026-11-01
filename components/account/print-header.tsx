@@ -1,5 +1,6 @@
 import { COMPANY_ADDRESS, COMPANY_NAME } from "@/lib/content/legal";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 
 /**
  * The letterhead, printed only. On screen it is absent: the page already shows

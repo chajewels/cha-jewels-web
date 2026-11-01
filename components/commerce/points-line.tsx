@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { localePath } from "@/lib/locale";
 import Link from "next/link";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { product as productDict } from "@/lib/i18n/sections/product";
 import { pointsLineAction } from "@/lib/points-actions";
 import { formatPoints, type PointsLine as Line } from "@/lib/points-line";
 
@@ -23,7 +25,7 @@ export function PointsLine({ variantId, lang }: { variantId: string; lang: Lang 
   }, [variantId]);
   if (!line) return null;
 
-  const t = tr(lang);
+  const t = trOf({ product: productDict }, lang);
   if (line.kind === "join") {
     return (
       <p className="text-[13px] leading-relaxed text-charcoal/80" data-testid="points-line">

@@ -7,15 +7,13 @@
  * that is about to be swapped.
  */
 
-import { registerReadyGate } from "@/lib/lumiere/ready-gates";
-
 let resolveReady: () => void = () => {};
 const ready = new Promise<void>((resolve) => {
   resolveReady = resolve;
 });
-// Registered as the module loads — before any effect — so the preloader
-// (components/lumiere/common/preloader.tsx) counts it from its first frame.
-registerReadyGate("pendant", ready);
+// NOT a preloader gate any more (P2b): the scene builds after the curtain and
+// the TTI window (lib/scene/after-tti.ts), so the gate would only ever time
+// out. The signal stays for the rings, which follow the pendant.
 
 export const markPendantReady = (): void => resolveReady();
 

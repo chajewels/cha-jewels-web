@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { setCartRemindersAction } from "@/lib/cart-reminder-actions";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { cartReminders as cartRemindersDict } from "@/lib/i18n/sections/cartReminders";
 import { alertLight } from "@/lib/form-classes";
 
 /**
@@ -15,7 +17,7 @@ import { alertLight } from "@/lib/form-classes";
  * The 22px box sits inside a 44px row so the whole line is the tap target.
  */
 export function CartReminderToggle({ lang, optedIn }: { lang: Lang; optedIn: boolean }) {
-  const t = tr(lang);
+  const t = trOf({ cartReminders: cartRemindersDict }, lang);
   const [checked, setChecked] = useState(optedIn);
   const [pending, start] = useTransition();
   const [note, setNote] = useState<{ tone: "ok" | "err"; text: string } | null>(null);

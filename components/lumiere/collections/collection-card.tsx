@@ -145,10 +145,13 @@ export const CollectionCard = ({ card, cta, depth }: CollectionCardProps) => {
       <div className="collections__body">
         {/* The index line is the category's eyebrow — "Preloved · Authenticated
             in Japan" — never a number (D-24, secondhand-dealer rule): a
-            preloved piece must never read as new. Roman in Japanese (§5.2). */}
+            preloved piece must never read as new. Roman in Japanese (§5.2).
+            VISIBLE AT REST on every card at every width (P2b item 1): the
+            reference hid its 01–04 until hover; a "Preloved" line that only
+            shows on hover is a label most visitors never see. Not
+            `data-card-reveal`, not `aria-hidden` — it is content. */}
         <span
-          aria-hidden
-          data-card-reveal
+          data-card-index
           className="collections__index font-serif text-card-index underline [:lang(en)_&]:italic"
           style={capTrimSerif(TYPE.index.size, TYPE.index.leading)}
         >

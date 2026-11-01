@@ -12,7 +12,8 @@ import { FACEBOOK_APP_ID, siteOpenGraph } from "@/lib/og-meta";
 import { indexingFor } from "@/lib/seo-policy";
 import { localePath, localizeAuthoredHref } from "@/lib/locale";
 import { switchTargets } from "@/lib/locale-nav";
-import { dict, tr, PATH_HEADER } from "@/lib/i18n";
+import { dict, tr } from "@/lib/i18n";
+import { PATH_HEADER } from "@/lib/i18n-core";
 import { headers } from "next/headers";
 import { announcement, follow } from "@/lib/settings";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
@@ -25,7 +26,7 @@ import { JpFontGate } from "@/components/site/jp-font-gate";
 import { deferJpFont } from "@/lib/jp-font-defer";
 import { MetricoolTracker } from "@/components/analytics/metricool-tracker";
 import { AdsTags } from "@/components/analytics/ads-tags";
-import { ConsentBanner } from "@/components/site/consent-banner";
+import { ConsentBannerLazy } from "@/components/site/consent-banner-lazy";
 import { BootMarker } from "@/components/fx/boot-marker";
 import { PageEnter } from "@/components/fx/page-enter";
 import { lumiereFontVariables } from "@/app/fonts";
@@ -208,7 +209,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
         {/* Last in the document, so no page chrome paints over it. */}
         {/* The cookie banner: asks once, and again from "Cookie settings" in the footer. */}
-        <ConsentBanner privacyHref={localePath("/legal/privacy", lang)} copy={{ region: t("consent", "region"), title: t("consent", "title"), body: t("consent", "body"), accept: t("consent", "accept"), necessary: t("consent", "necessary"), privacy: t("consent", "privacy") }} />
+        <ConsentBannerLazy privacyHref={localePath("/legal/privacy", lang)} copy={{ region: t("consent", "region"), title: t("consent", "title"), body: t("consent", "body"), accept: t("consent", "accept"), necessary: t("consent", "necessary"), privacy: t("consent", "privacy") }} />
         {messenger && <MessengerButton href={messenger} label={t("social", "messengerButton")} />}
       </body>
     </html>

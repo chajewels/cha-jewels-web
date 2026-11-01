@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { signOutAction } from "@/lib/session-actions";
 import { CommerceStyle } from "@/components/commerce/commerce-ui";

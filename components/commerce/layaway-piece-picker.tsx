@@ -8,7 +8,9 @@ import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
 import { HubImage } from "@/components/media/hub-image";
 import { Eyebrow } from "@/components/site/support-stage";
 import { StageBand } from "@/components/site/stage-band";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { layawayPage as layawayPageDict } from "@/lib/i18n/sections/layawayPage";
 import { filterPieces, type PickerPiece } from "@/lib/layaway-picker";
 import { formatMoney } from "@/lib/utils";
 import { lockScroll } from "@/lib/scroll-lock";
@@ -33,7 +35,7 @@ import { lockScroll } from "@/lib/scroll-lock";
  * to the default piece when the slug is not in the pool.
  */
 export function LayawayPiecePicker({ lang, pieces, initialSlug }: { lang: Lang; pieces: PickerPiece[]; initialSlug: string }) {
-  const t = tr(lang);
+  const t = trOf({ layawayPage: layawayPageDict }, lang);
   const [slug, setSlug] = useState(initialSlug);
   const [open, setOpen] = useState(false);
   const piece = pieces.find((p) => p.slug === slug) ?? pieces[0];
@@ -102,7 +104,7 @@ function PickerButton({ lang, pieces, chosen, open, onOpen, onClose, onChoose }:
   onClose: () => void;
   onChoose: (slug: string) => void;
 }) {
-  const t = tr(lang);
+  const t = trOf({ layawayPage: layawayPageDict }, lang);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const [host, setHost] = useState<HTMLElement | null>(null);

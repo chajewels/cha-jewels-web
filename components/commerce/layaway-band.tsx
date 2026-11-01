@@ -1,5 +1,6 @@
 import { LayawayCalculator } from "@/components/commerce/layaway-calculator";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { SplitHeading } from "@/components/fx/split-text";
 import { RevealGroup, RevealItem } from "@/components/fx/reveal";
 import { STAGGER } from "@/lib/motion";

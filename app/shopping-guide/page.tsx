@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { pageMeta } from "@/lib/page-meta";
-import { dict, tr, type Lang } from "@/lib/i18n";
+import { dict, tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { getLang } from "@/lib/i18n-server";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { layawayOffered } from "@/lib/layaway-availability";

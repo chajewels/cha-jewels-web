@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { dict, LANG_PARAM, PATH_HEADER, type Lang } from "@/lib/i18n";
+import { dict } from "@/lib/i18n";
+import { LANG_PARAM, PATH_HEADER, type Lang } from "@/lib/i18n-core";
 import { getLang } from "@/lib/i18n-server";
 import { layawayOffered } from "@/lib/layaway-availability";
 import { siteUrl } from "@/lib/site";

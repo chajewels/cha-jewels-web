@@ -25,6 +25,8 @@ export interface HeroChrome {
   /** The phone menu: every existing link, in groups. */
   menu: { title: string; links: HeroNavLink[] }[];
   homeHref: string;
+  /** Preview-only demo mode (lib/hero-demo.ts): the review label on the hero. */
+  demo?: { label: string };
   labels: { home: string; menu: string; openMenu: string; closeMenu: string; primary: string; account: string; collectionsIndex: string };
 }
 

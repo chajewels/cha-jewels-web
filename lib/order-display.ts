@@ -1,6 +1,7 @@
 import { isAwaitingConfirmation, isReadyForPayment } from "@/lib/reservation";
 import { isClosedOrder, orderStatusKey, orderStatusLabel } from "@/lib/order-status";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import type { CheckoutMethod, CheckoutMode, HubLatestDecision, HubOrder } from "@/lib/types";
 
 /**

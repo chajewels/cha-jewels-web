@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { Search } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/catalog/product-card";
 export { EmptyStage, Eyebrow, MessengerCta } from "@/components/site/support-stage";

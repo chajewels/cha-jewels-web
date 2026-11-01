@@ -6,7 +6,8 @@ import { ProductTrust } from "@/components/catalog/product-trust";
 import { CommerceStyle, OrderSlab, type SlabLine } from "@/components/commerce/commerce-ui";
 import { Button } from "@/components/ui/button";
 import { follow } from "@/lib/settings";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import type { PieceImage } from "@/lib/product-media";
 
 /**

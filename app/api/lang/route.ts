@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { LANG_COOKIE } from "@/lib/i18n";
+import { LANG_COOKIE } from "@/lib/i18n-core";
 export async function POST(req: Request) {
   const { lang } = (await req.json()) as { lang?: string };
   if (lang !== "ja" && lang !== "en") return NextResponse.json({ ok: false }, { status: 400 });

@@ -2,7 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { checkout as checkoutDict } from "@/lib/i18n/sections/checkout";
+import { orders as ordersDict } from "@/lib/i18n/sections/orders";
 import { switchMethodAction } from "@/lib/payment-method-actions";
 import { switchErrorKey, type SwitchErrorKey } from "@/lib/switch-method-copy";
 import type { CheckoutMethod } from "@/lib/types";
@@ -16,7 +19,7 @@ import type { CheckoutMethod } from "@/lib/types";
  * refuse; the page is then re-read, so it shows the order as it now stands.
  */
 export function SwitchMethod({ orderId, methods, lang }: { orderId: string; methods: CheckoutMethod[]; lang: Lang }) {
-  const t = tr(lang);
+  const t = trOf({ checkout: checkoutDict, orders: ordersDict }, lang);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<CheckoutMethod | null>(null);

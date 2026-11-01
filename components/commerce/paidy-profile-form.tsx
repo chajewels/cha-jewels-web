@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { paidy as paidyDict } from "@/lib/i18n/sections/paidy";
 import { paidyProfileAction } from "@/lib/paidy-actions";
 import { safeAction } from "@/lib/paidy-flow";
 import type { PaidyRequirements } from "@/lib/types";
@@ -18,7 +20,7 @@ import type { PaidyRequirements } from "@/lib/types";
  * Paidy is then offered — this form only collects.
  */
 export function PaidyProfileForm({ orderId, requirements, lang }: { orderId: string; requirements: PaidyRequirements; lang: Lang }) {
-  const t = tr(lang);
+  const t = trOf({ paidy: paidyDict }, lang);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   // QA 2026-10-08: her input survives a refusal (the form used to reset), and

@@ -1,5 +1,5 @@
 import type { Lang } from "@/lib/i18n";
-import { dict } from "@/lib/i18n";
+import { orders as ordersDict } from "@/lib/i18n/sections/orders";
 import type { CheckoutMethod, HubOrder } from "@/lib/types";
 
 /**
@@ -22,7 +22,7 @@ export type Tone = "pending" | "good" | "dead";
  */
 export function orderStatusLabel(order: HubOrder, lang: Lang, chosenMethod?: CheckoutMethod | null): { text: string; tone: Tone } {
   const { key, tone } = orderStatusKey(order, chosenMethod);
-  return { text: dict.orders[key][lang], tone };
+  return { text: ordersDict[key][lang], tone };
 }
 
 /**
@@ -33,7 +33,7 @@ export function orderStatusLabel(order: HubOrder, lang: Lang, chosenMethod?: Che
  * delivery" (statusPendingCod). Absent or transfer (an older Hub) reads as
  * before.
  */
-export function orderStatusKey(order: HubOrder, chosenMethod?: CheckoutMethod | null): { key: keyof typeof dict.orders; tone: Tone } {
+export function orderStatusKey(order: HubOrder, chosenMethod?: CheckoutMethod | null): { key: keyof typeof ordersDict; tone: Tone } {
   // Cash on delivery (Hub 2026-10-10): nothing to pay before the parcel
   // arrives — the order is getting ready to ship, never "awaiting transfer".
   const awaiting = chosenMethod === "cod" ? "statusPendingCod"
@@ -83,10 +83,10 @@ export function orderStatusKey(order: HubOrder, chosenMethod?: CheckoutMethod | 
  */
 export function refundLabel(status: HubOrder["refund_status"], lang: Lang): string | null {
   switch (status) {
-    case "refund_issued": return dict.orders.refundIssued[lang];
-    case "refund_pending": return dict.orders.refundPending[lang];
-    case "store_credit_issued": return dict.orders.storeCredit[lang];
-    case "no_refund": return dict.orders.noRefund[lang];
+    case "refund_issued": return ordersDict.refundIssued[lang];
+    case "refund_pending": return ordersDict.refundPending[lang];
+    case "store_credit_issued": return ordersDict.storeCredit[lang];
+    case "no_refund": return ordersDict.noRefund[lang];
     default: return null;
   }
 }

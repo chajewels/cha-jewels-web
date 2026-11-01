@@ -1,5 +1,6 @@
 import { Droplets, CircleSlash, Gem } from "lucide-react";
-import { tr, type Lang } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
 import { stampIllustrations, type GuideStep } from "@/lib/content/jewelry-guide";
 import { ComponentStyle, mix } from "@/components/fx/component-style";
 

@@ -3,7 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { siteDay } from "@/lib/site-time";
 import { submitLayawayPaymentAction } from "@/lib/layaway-actions";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf } from "@/lib/i18n-client";
+import { plans as plansDict } from "@/lib/i18n/sections/plans";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { SettlementCurrency, TransferMethod } from "@/lib/types";
@@ -31,7 +33,7 @@ export function LayawayPayForm({ accountId, lang, currency, suggestedAmount, met
   suggestedAmount: number;
   methods: TransferMethod[];
 }) {
-  const t = tr(lang);
+  const t = trOf({ plans: plansDict }, lang);
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);

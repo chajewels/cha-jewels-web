@@ -1,4 +1,5 @@
-import { dict, type Lang } from "@/lib/i18n";
+import { product as productDict } from "@/lib/i18n/sections/product";
+import { type Lang } from "@/lib/i18n-core";
 import type { Origin } from "@/lib/types";
 
 /**
@@ -17,7 +18,7 @@ import type { Origin } from "@/lib/types";
  */
 export function OriginBadge({ origin, brand, lang }: { origin: Origin | undefined; brand: string | null | undefined; lang: Lang }) {
   const label = origin === "JAPAN"
-    ? dict.product.originJapan[lang]
+    ? productDict.originJapan[lang]
     : origin === "BRAND" && brand?.trim()
       ? brand.trim()
       : null;

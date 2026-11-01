@@ -1,7 +1,7 @@
 "use client";
 
 import { TextSwap } from "@/components/lumiere/common/text-swap";
-import { useHasLoaded } from "@/lib/lumiere/preload-store";
+import { useHasLoaded, useLiftedEarly } from "@/lib/lumiere/preload-store";
 
 import { useHeroContent } from "./hero-content";
 import { REVEAL } from "./hero-reveal";
@@ -25,13 +25,16 @@ export interface HeroHeadlineProps {
 
 export const HeroHeadline = ({ isPhoto }: HeroHeadlineProps) => {
   const hasLoaded = useHasLoaded();
+  // Lifted before hydration (P2b): the words are already on screen, so the
+  // first version is simply there — no letter entrance to replay.
+  const liftedEarly = useLiftedEarly();
   const { content } = useHeroContent();
 
   return (
     <TextSwap
       versions={[content.headline, content.headlinePhoto]}
       active={isPhoto ? 1 : 0}
-      first={{ ready: hasLoaded, delay: REVEAL.headline }}
+      first={liftedEarly ? undefined : { ready: hasLoaded, delay: REVEAL.headline }}
     />
   );
 };

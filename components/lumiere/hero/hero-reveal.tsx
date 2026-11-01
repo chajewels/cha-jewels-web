@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { animated, easings, useSpring } from "@react-spring/web";
 
-import { useHasLoaded } from "@/lib/lumiere/preload-store";
+import { useHasLoaded, useLiftedEarly } from "@/lib/lumiere/preload-store";
 
 /**
  * The hero's entrances.
@@ -88,11 +88,14 @@ const useReducedMotion = (): boolean => {
 /** The single spring behind every entrance here: 0 held, 1 arrived. */
 const useEntrance = (active: boolean, delay: number) => {
   const reduced = useReducedMotion();
+  // The curtain lifted before hydration (P2b): the element is already on
+  // screen at rest, so the spring lands there at once rather than replaying.
+  const liftedEarly = useLiftedEarly();
 
   return useSpring({
     t: active || reduced ? 1 : 0,
-    delay: active && !reduced ? delay : 0,
-    immediate: reduced,
+    delay: active && !reduced && !liftedEarly ? delay : 0,
+    immediate: reduced || liftedEarly,
     config: CONFIG,
   }).t;
 };
@@ -166,6 +169,7 @@ const Masked = ({ children, delay = 0, active }: MaskedProps) => {
       }}
     >
       <animated.span
+        data-masked
         className="block will-change-transform"
         style={{
           transform: t.to((value) => `translate3d(0, ${(1 - value) * 100}%, 0)`),
@@ -209,7 +213,7 @@ export const RevealItem = ({
   const style = useRevealSpring(delay, rise);
 
   return (
-    <animated.li className={className} style={style}>
+    <animated.li data-reveal className={className} style={style}>
       {children}
     </animated.li>
   );

@@ -5,7 +5,10 @@ import { localePath } from "@/lib/locale";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { tr, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n-core";
+import { trOf, type Translator } from "@/lib/i18n-client";
+import { card as cardDict } from "@/lib/i18n/sections/card";
+import { navMenu as navMenuDict } from "@/lib/i18n/sections/navMenu";
 import { cardAuthorizeAction } from "@/lib/card-actions";
 import { CARD_AGREEMENT_RESIGN, cardBilling, squareSdkSrc, tokenizeCode, type CardBillingForm, type SquareBillingContact } from "@/lib/card";
 import { BILLING_COUNTRIES, billingCountryCode } from "@/lib/billing-countries";
@@ -87,7 +90,7 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
   /** The pay-card page's CSP nonce (middleware.ts → x-nonce), for Square's script. */
   nonce?: string;
 }) {
-  const t = tr(lang);
+  const t = trOf({ card: cardDict, navMenu: navMenuDict }, lang);
   const router = useRouter();
   const [state, setState] = useState<State>("loading");
   const [code, setCode] = useState<string | null>(null);
@@ -362,7 +365,7 @@ export function CardPay({ orderId, card, delivery, amountLabel, lang, nonce }: {
   );
 }
 
-function errorText(code: string, t: ReturnType<typeof tr>): string {
+function errorText(code: string, t: Translator<{ card: typeof cardDict; navMenu: typeof navMenuDict }>): string {
   switch (code) {
     case "card_declined": return t("card", "errDeclined");
     case "card_declined_cancelled": return t("card", "errDeclinedCancelled");
