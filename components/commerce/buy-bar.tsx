@@ -25,7 +25,7 @@ import type { Lang } from "@/lib/i18n";
 const CSS = `
 .buybar { position: fixed; inset: auto 0 0 0; z-index: 40; transform: translateY(100%); visibility: hidden; transition: transform var(--dur-reveal) var(--ease-lux), visibility 0s linear var(--dur-reveal); }
 .buybar[data-show] { transform: none; visibility: visible; transition: transform var(--dur-reveal) var(--ease-lux), visibility 0s; }
-.buybar::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, rgb(201 162 39 / 0), #C9A227 25%, #E8D28A 50%, #C9A227 75%, rgb(201 162 39 / 0)); }
+.buybar::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, rgb(163 157 148 / 0), #a39d94 25%, #d9d3ca 50%, #a39d94 75%, rgb(163 157 148 / 0)); }
 .buybar-price { font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
 @media (min-width: 1024px) { .buybar { display: none; } }
 @media (prefers-reduced-motion: reduce) { .buybar, .buybar[data-show] { transition: none; } }`;

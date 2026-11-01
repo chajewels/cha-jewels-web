@@ -18,6 +18,7 @@ import { ServiceRequestForm } from "@/components/account/service-request-form";
 import { NextSteps } from "@/components/commerce/commerce-ui";
 import { ConfirmationActions, ConfirmationLayout, linePicture } from "@/components/commerce/confirmation";
 import type { ServiceRequest } from "@/lib/types";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * WEBSITE ORDERS (Hub PR 6 / storefront PR 7) — a checkout the Hub holds as a
@@ -63,7 +64,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("draft", "notFound")}</h1>
+          <h1 className="text-[clamp(28px,3.6vw,44px)]"><Reveal>{t("draft", "notFound")}</Reveal></h1>
           <Button asChild variant="ghost" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
         </div>
       </section>
@@ -84,7 +85,7 @@ export default async function DraftCompletePage({ params, searchParams }: {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("draft", declined ? "declinedH1" : "expiredH1")}</h1>
+          <h1 className="text-[clamp(28px,3.6vw,44px)]"><Reveal>{t("draft", declined ? "declinedH1" : "expiredH1")}</Reveal></h1>
           <p className="mt-4 text-charcoal">{t("draft", declined ? "declinedLede" : "expiredLede")}</p>
           <dl className="rule-grid mt-8 grid gap-px sm:grid-cols-2">
             <Cell k={t("draft", "reference")} v={draft.web_reference} mono />

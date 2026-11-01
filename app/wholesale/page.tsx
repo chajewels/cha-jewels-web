@@ -6,6 +6,7 @@ import { INVOICE_REG_NO, SECONDHAND_PERMIT_NO } from "@/lib/content/legal";
 import { InquiryForm } from "@/components/wholesale/inquiry-form";
 import { Eyebrow } from "@/components/site/support-stage";
 import { H_DISPLAY, LEDE_DARK, SEC, StageBand } from "@/components/site/brand-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("wholesale");
 
@@ -27,7 +28,7 @@ export default async function WholesalePage() {
       <div className={`wrap ${SEC} grid items-start gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
         <div>
           <Eyebrow dark rule>{t("nav", "wholesale")}</Eyebrow>
-          <h1 className={`mt-4 max-w-[18ch] text-gold-pale ${H_DISPLAY}`}>{t("wholesale", "h1")}</h1>
+          <h1 className={`mt-4 max-w-[18ch] text-gold-pale ${H_DISPLAY}`}><Reveal>{t("wholesale", "h1")}</Reveal></h1>
           <p className={`mt-[18px] ${LEDE_DARK}`}>{t("wholesale", "lede")}</p>
           <ul className="mt-8 border border-rule">
             {bullets.map((b, i) => (

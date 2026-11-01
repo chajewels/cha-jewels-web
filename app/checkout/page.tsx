@@ -13,6 +13,7 @@ import { ProductTrust } from "@/components/catalog/product-trust";
 import { Button } from "@/components/ui/button";
 import { agreementStatusAction } from "@/lib/checkout-actions";
 import type { HubAddress, HubMe } from "@/lib/types";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("checkout");
 export const dynamic = "force-dynamic";
@@ -103,7 +104,7 @@ export default async function CheckoutPage({ searchParams }: {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(32px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
+          <h1 className="text-[clamp(32px,4.4vw,56px)]"><Reveal>{t("checkout", "h1")}</Reveal></h1>
           <p className="mt-8 text-charcoal">{t("checkout", "emptyCart")}</p>
           <Button asChild variant="outline" className="mt-6"><Link href={localePath("/collections", lang)}>{t("cart", "browse")}</Link></Button>
         </div>

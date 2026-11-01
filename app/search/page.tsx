@@ -12,6 +12,7 @@ import type { Category, Collection, Product } from "@/lib/types";
 import { ProductCard } from "@/components/catalog/product-card";
 import { SearchView } from "@/components/analytics/search-view";
 import { ChipLink, Eyebrow, InStockStrip, MessengerCta, SearchForm } from "@/components/site/support-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * Results for a search submitted from the header box, or linked to directly
@@ -67,7 +68,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <div className="min-w-0">
           <Eyebrow>{t("support", "search")}</Eyebrow>
           <h1 className="mt-2 break-words text-[clamp(30px,4.2vw,52px)] leading-[1.1] text-charcoal-deep [:lang(ja)_&]:text-[clamp(24px,3vw,38px)] [:lang(ja)_&]:leading-[1.4]">
-            {hasQuery ? t("search", "title", { q }) : t("search", "placeholder")}
+            <Reveal>{hasQuery ? t("search", "title", { q }) : t("search", "placeholder")}</Reveal>
           </h1>
           {!hasQuery && <p className="mt-3 max-w-[58ch] text-charcoal">{t("search", "prompt")}</p>}
           {hasQuery && total > 0 && (

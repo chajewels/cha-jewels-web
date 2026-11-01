@@ -23,7 +23,7 @@ import { cardImage } from "@/lib/product-media";
 export function SoldCard({ alternatives, messenger, lang }: { alternatives: Product[]; messenger: string | null; lang: Lang }) {
   const t = tr(lang);
   return (
-    <div className="band-dark relative grid gap-3.5 bg-[radial-gradient(ellipse_80%_42%_at_50%_30%,rgb(120_92_40/.30)_0%,rgb(0_0_0/0)_72%),radial-gradient(ellipse_120%_90%_at_50%_30%,#231e18_0%,#17140f_60%,#0f0d0a_100%)] p-6 text-chalk outline outline-1 -outline-offset-1 outline-gold/30">
+    <div className="band-dark relative grid gap-3.5 bg-[radial-gradient(ellipse_80%_42%_at_50%_30%,rgb(120_92_40/.30)_0%,rgb(0_0_0/0)_72%),radial-gradient(ellipse_120%_90%_at_50%_30%,#1a1a1a_0%,#0d0d0d_60%,#000_100%)] p-6 text-chalk outline outline-1 -outline-offset-1 outline-gold/30">
       <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-pale before:h-px before:w-7 before:bg-gold [:lang(ja)_&]:text-xs [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{t("product", "sold")}</p>
       <h2 className="text-[clamp(20px,2.2vw,26px)] leading-tight text-gold-pale">{t("pdp", "soldTitle")}</h2>
       <p className="text-sm text-chalk/80">{t("pdp", "soldBody")}</p>

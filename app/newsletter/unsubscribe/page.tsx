@@ -3,6 +3,7 @@ import Link from "next/link";
 import { hub } from "@/lib/hub-api";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * noindex: this URL is only ever reached from a link in an email, it carries a
@@ -34,7 +35,7 @@ export default async function UnsubscribePage({
   return (
     <section className="py-[clamp(48px,7vw,96px)]">
       <div className="wrap max-w-[52ch]">
-        <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("newsletter", "unsubscribed")}</h1>
+        <h1 className="text-[clamp(28px,3.6vw,44px)]"><Reveal>{t("newsletter", "unsubscribed")}</Reveal></h1>
         <Link href="/" className="mt-6 inline-block text-gold-dark underline underline-offset-4">
           {t("nav", "home")}
         </Link>

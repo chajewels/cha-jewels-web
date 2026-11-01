@@ -9,6 +9,7 @@ import { Eyebrow, MessengerCta } from "@/components/site/support-stage";
 import { FaqNav, FaqStyle } from "@/components/faq/faq-nav";
 import { Emblem } from "@/components/fx/emblem";
 import { ComponentStyle } from "@/components/fx/component-style";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 // The emblem beside the title, as on Affiliations and Blog. It was dropped by
 // the step 6 redesign without an owner decision (2026-10-01); restored.
@@ -44,7 +45,7 @@ export default async function FaqPage() {
             <Emblem name="faq" sm={96} lg={128} />
             <div>
               <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
-              <h1 className="mt-3.5 max-w-[18ch] text-[clamp(34px,4.6vw,60px)] leading-[1.08] text-charcoal-deep [:lang(ja)_&]:text-[clamp(28px,3.4vw,44px)] [:lang(ja)_&]:leading-[1.35]">{t("faq", "h1")}</h1>
+              <h1 className="mt-3.5 max-w-[18ch] text-[clamp(34px,4.6vw,60px)] leading-[1.08] text-charcoal-deep [:lang(ja)_&]:text-[clamp(28px,3.4vw,44px)] [:lang(ja)_&]:leading-[1.35]"><Reveal>{t("faq", "h1")}</Reveal></h1>
               <p className="mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-charcoal/85 [:lang(ja)_&]:text-[15.5px]">{t("faq", "lede")}</p>
             </div>
           </div>

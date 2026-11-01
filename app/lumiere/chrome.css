@@ -244,21 +244,26 @@ body:has(.consent-banner--bar) .messenger-fab {
   grid-template-areas:
     "logo    subscribe"
     "columns columns"
+    "company company"
     "rule    rule"
-    "rights  legal"
+    "rights  rights"
     "social  social"
     "giant   giant";
 }
+/* Four link columns now: the company block is its own area (P4 item 4). */
 .footer--cha .footer__columns {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: calc(28 * var(--raw-unit-design));
 }
 .footer--cha .footer__link {
   min-height: 20px;
   font-size: 13px;
   line-height: 1.2;
+  color: rgb(255 255 255 / 0.72);
 }
 .footer--cha .footer__column-title {
   font-size: 12px;
+  color: rgb(255 255 255 / 0.9);
 }
 /* A long collections list (the Hub's twelve) runs in two columns. */
 .footer--cha .footer__list--two {
@@ -267,32 +272,52 @@ body:has(.consent-banner--bar) .messenger-fab {
   column-gap: calc(16 * var(--raw-unit-design));
 }
 .footer--cha .footer__list--two > li { break-inside: avoid; }
+/* THE COMPANY PANEL: 14 px, comfortable leading, white at 86 % (≥ 4.5:1 on
+   black by a wide margin), a hairline above it. */
+.footer--cha .footer__company-panel {
+  grid-area: company;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px calc(40 * var(--raw-unit-design));
+  padding-top: 16px;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+}
+.footer--cha .footer__company-col { display: grid; gap: 4px; align-content: start; }
+.footer--cha .footer__company-name {
+  margin: 0;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+}
 .footer--cha .footer__company-line {
-  font-size: 11.5px;
-  line-height: 1.35;
-  padding-block: 2px;
+  margin: 0;
+  padding: 0;
+  color: rgb(255 255 255 / 0.86);
+  font-size: 14px;
+  line-height: 1.55;
+  font-variant-numeric: lining-nums tabular-nums;
 }
-.footer--cha .footer__subscribe {
-  gap: calc(10 * var(--raw-unit-design));
-}
-.footer--cha .footer__note--tagline {
-  font-size: 12px;
-  line-height: 1.4;
-}
-/* The giant wordmark: Halden's letter-spaced name across the base, drawn
-   aria-hidden (the mark above carries the name), sized to the frame so it
-   never wraps and never pushes the footer past one screen. */
+.footer--cha .footer__subscribe { gap: calc(10 * var(--raw-unit-design)); }
+.footer--cha .footer__note,
+.footer--cha .footer__note--tagline { color: rgb(255 255 255 / 0.8); font-size: 13px; line-height: 1.45; }
+.footer--cha .footer__rights { color: rgb(255 255 255 / 0.8); font-size: 13px; }
+/* The giant wordmark: Halden's letter-spaced name across the base, aria-hidden
+   (the mark above carries the name). NOT CLIPPED (P4 item 3): the line box is
+   taller than the glyphs and nothing hides overflow, so the J's descender and
+   the baseline are whole at every width. */
 .footer--cha .footer__giant {
   grid-area: giant;
   display: block;
-  overflow: hidden;
+  overflow: visible;
   margin-top: 0;
+  padding-bottom: 0.14em;
   color: #fff;
-  font-size: clamp(40px, 9.2vw, 140px);
-  line-height: 0.9;
-  letter-spacing: 0.06em;
+  font-size: clamp(40px, 9vw, 136px);
+  line-height: 1.2;
+  letter-spacing: 0.05em;
   white-space: nowrap;
-  opacity: 0.92;
+  opacity: 0.94;
   user-select: none;
 }
 .footer--cha .footer__giant .line-word { display: inline-block; }
@@ -301,10 +326,7 @@ body:has(.consent-banner--bar) .messenger-fab {
 @media (max-width: 1023.98px) {
   .footer--cha .footer__column > .footer__column-title,
   .footer--cha .footer__column > .footer__list { display: none; }
-  .footer--cha .footer__company > .footer__column-title,
-  .footer--cha .footer__company > .footer__list { display: block; }
-  .footer--cha .footer__company > .footer__list { display: flex; }
-  .footer--cha .footer__column > details { display: block; border-top: 1px solid var(--site-footer-rule); }
+  .footer--cha .footer__column > details { display: block; border-top: 1px solid rgb(255 255 255 / 0.2); }
   .footer--cha .footer__column > details > summary {
     display: flex;
     align-items: center;
@@ -331,7 +353,7 @@ body:has(.consent-banner--bar) .messenger-fab {
   .footer--cha .footer__column > details .footer__link { min-height: 40px; font-size: 15px; }
   .footer--cha .footer__columns { display: block; }
   .footer--cha .footer__column { gap: 0; }
-  .footer--cha .footer__company { margin-top: 24px; }
+  .footer--cha .footer__company-panel { grid-template-columns: minmax(0, 1fr); margin-top: 8px; }
   .footer--cha .footer__list--two { columns: 1; }
   .footer--cha .footer__giant { font-size: clamp(40px, 13vw, 96px); letter-spacing: 0.03em; }
 }

@@ -9,14 +9,14 @@
 import { readFileSync } from "node:fs";
 
 const C = {
-  charcoal: "#333333", "charcoal-deep": "#222222", "charcoal-mid": "#444444",
-  chalk: "#F5F5F2", gold: "#C9A227", "gold-pale": "#E8D28A",
-  orange: "#FFA500", "orange-hover": "#FFB733", teal: "#1ABC9C",
+  charcoal: "#1c1c1c", "charcoal-deep": "#000000", "charcoal-mid": "#2b2b2b",
+  chalk: "#f4f0ec", gold: "#a39d94", "gold-pale": "#d9d3ca",
+  teal: "#1ABC9C",
   garnet: "#7A1E2B", "garnet-light": "#F28B94",
-  "gold-dark": "#8A6B12", "gold-deep": "#6F5510", white: "#FFFFFF", hairline: "#E5E5E0",
+  "gold-dark": "#2a2724", "gold-deep": "#000000", white: "#FFFFFF", hairline: "#dad6d0",
   // Composited homepage tints, measured rather than named in the config:
   // hairline at 40% over chalk, and chalk at 95% over the page beneath.
-  tintA: "#EFEFEB", tintB: "#EBEBE8",
+  tintA: "#eae6e1", tintB: "#efebe6",
 };
 
 // LUMIÈRE (redesign/lumiere, P2; DESIGN-LUMIERE.md "Palette", report §15.2).
@@ -32,6 +32,18 @@ const LUMIERE = {
   "lm-scrim": "#262626",
 };
 Object.assign(C, LUMIERE);
+// LUMIÈRE P4 (app/lumiere/pages.css): the stories belt's near-black stage and
+// quote cards, the layaway band's brass on black, the caption chip over the
+// Halcyon Gate (black at 82 % over the scene's pale horizon, composited:
+// 0.82 × 0 + 0.18 × #e2d0b2 ≈ #292522 — the lightest the chip's ground gets).
+// Not tokens: the literals live in pages.css, which the guard below checks.
+const P4 = { "p4-slip-bg": "#0a0a0c", "p4-slip-card": "#131318", "p4-brass": "#e8c37d", "p4-chip": "#292522", "p4-scene-sky": "#e2d0b2" };
+Object.assign(C, P4);
+const pagesCss = readFileSync(new URL("../app/lumiere/pages.css", import.meta.url), "utf8").toLowerCase();
+for (const name of ["p4-slip-bg", "p4-slip-card", "p4-brass", "p4-scene-sky"]) {
+  if (!pagesCss.includes(P4[name])) { console.error(`check-contrast: ${name} ${P4[name]} is not in app/lumiere/pages.css — table is stale`); process.exit(1); }
+}
+if (!/background: rgb\(0 0 0 \/ 0\.82\)/.test(pagesCss)) { console.error("check-contrast: the layaway caption chip is no longer black/82 — p4-chip is stale"); process.exit(1); }
 const tokens = readFileSync(new URL("../app/lumiere/tokens.css", import.meta.url), "utf8").toLowerCase();
 const sections = readFileSync(new URL("../app/lumiere/sections.css", import.meta.url), "utf8");
 for (const [name, hex] of Object.entries(LUMIERE)) {
@@ -47,7 +59,7 @@ const cfg = readFileSync(new URL("../tailwind.config.ts", import.meta.url), "utf
 // values, recorded here because that is what the text actually sits on.
 const TAILWIND_BUILTIN = new Set(["white", "tintA", "tintB"]);
 for (const [name, hex] of Object.entries(C)) {
-  if (TAILWIND_BUILTIN.has(name) || name in LUMIERE) continue;
+  if (TAILWIND_BUILTIN.has(name) || name in LUMIERE || name in P4) continue;
   if (!cfg.toLowerCase().includes(hex.toLowerCase())) { console.error(`check-contrast: ${name} ${hex} is not in tailwind.config.ts — table is stale`); process.exit(1); }
 }
 
@@ -102,6 +114,27 @@ add("lumiere B: loyalty white/70 lead on black", "lm-white", "lm-black", TEXT, 0
 add("lumiere B: spotlight card title white over the black/85 scrim (foot of the photo)", "lm-white", "lm-scrim", TEXT);
 add("lumiere B: pill white on black (CTAs)", "lm-white", "lm-black", TEXT);
 add("lumiere B: hairline grey-300 on surface (non-text, decorative — recorded, not gated)", "lm-border-muted", "lm-surface", 1);
+
+// LUMIÈRE P4. Every text on the footer's black, the stories belt, the layaway band.
+add("p4 footer: company line white/86 on black (14 px)", "lm-white", "lm-black", TEXT, 0.86);
+add("p4 footer: company name white on black (15 px)", "lm-white", "lm-black", TEXT);
+add("p4 footer: link white/72 on black", "lm-white", "lm-black", TEXT, 0.72);
+add("p4 footer: note, rights white/80 on black", "lm-white", "lm-black", TEXT, 0.8);
+add("p4 footer: column title white/90 on black", "lm-white", "lm-black", TEXT, 0.9);
+add("p4 stories: eyebrow white/70 on the stage", "lm-white", "p4-slip-bg", TEXT, 0.7);
+add("p4 stories: lead white/78 on the stage", "lm-white", "p4-slip-bg", TEXT, 0.78);
+add("p4 stories: hint white/62 on the stage", "lm-white", "p4-slip-bg", TEXT, 0.62);
+add("p4 stories: card meta white/78 over the scrim", "lm-white", "lm-scrim", TEXT, 0.78);
+add("p4 stories: quote-card excerpt white on the card", "lm-white", "p4-slip-card", TEXT);
+add("p4 stories: card meta white/78 on the quote card", "lm-white", "p4-slip-card", TEXT, 0.78);
+add("p4 stories: card stars white/50 outline on the quote card (non-text)", "lm-white", "p4-slip-card", NONTEXT, 0.5);
+add("p4 stories: see-all pill black on white", "lm-black", "lm-white", TEXT);
+add("p4 layaway: lead white/80 on black", "lm-white", "lm-black", TEXT, 0.8);
+add("p4 layaway: step body white/78 on black", "lm-white", "lm-black", TEXT, 0.78);
+add("p4 layaway: brass pill / index on black", "p4-brass", "lm-black", TEXT);
+add("p4 layaway: caption chip white on the black/82 chip over the pale scene", "lm-white", "p4-chip", TEXT);
+add("p4 loyalty: tier label white/62 on black", "lm-white", "lm-black", TEXT, 0.62);
+add("p4 loyalty: tier spend white/90 on black", "lm-white", "lm-black", TEXT, 0.9);
 // Muted labels on the LIGHT surfaces, added 2026-09-21 with the Company nav
 // and /contact. Both shipped at an alpha that measured under 4.5 and axe caught
 // it: charcoal/55 is 3.16 on chalk, and the menu panel's charcoal/50 is 2.85 on
@@ -113,10 +146,7 @@ for (const a of [0.7, 0.75, 0.8, 0.85, 1]) add(`charcoal/${a * 100} label on whi
 for (const bg of DARK) add("garnet-light text", "garnet-light", bg, TEXT);
 add("garnet-light/60 border", "garnet-light", "charcoal-deep", NONTEXT, 0.6);
 // Orange: CTA fills (edge) and the pomelli heading exemption (>=24px, large text).
-for (const bg of [...DARK, "charcoal-mid"]) { add("orange fill edge", "orange", bg, NONTEXT); add("orange heading >=24px (pomelli exemption)", "orange", bg, LARGE); add("teal ornament", "teal", bg, NONTEXT); }
-add("charcoal-deep on orange (CTA label)", "charcoal-deep", "orange", TEXT);
-add("charcoal-deep on orange-hover", "charcoal-deep", "orange-hover", TEXT);
-add("charcoal on orange (hero CTA label)", "charcoal", "orange", TEXT);
+for (const bg of [...DARK, "charcoal-mid"]) { add("teal ornament", "teal", bg, NONTEXT); }
 add("charcoal text on chalk band", "charcoal", "chalk", TEXT);
 // Status badge tone dots (components/account/status-badge.tsx) on the account
 // pages, which are still the dark theme. NON-TEXT (3:1): the dot carries no
@@ -150,7 +180,6 @@ add("gold-dark monthly figure on white (light calculator)", "gold-dark", "white"
 add("charcoal/70 keys, labels and note on white (light calculator)", "charcoal", "white", TEXT, 0.7);
 add("charcoal on chalk input (light calculator)", "charcoal", "chalk", TEXT);
 add("white on charcoal-deep (selected term)", "white", "charcoal-deep", TEXT);
-add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "orange", TEXT);
 
 // HERO v2 FILM SCRIM (app/globals.css .hd-film-scrim), slider v2 2026-09-26.
 // It replaced the vertical .hero-scrim when the headline moved to the left
@@ -265,7 +294,6 @@ add("FAQ current category: gold-dark on chalk", "gold-dark", "chalk", TEXT);
   const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), lit, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(lit)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
   pairs.push({ label: "spotlight peak: chalk heading", fg: "chalk", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("chalk") });
   pairs.push({ label: "spotlight peak: chalk/75 body", fg: "chalk", bg: "spotlight@gold20", need: TEXT, alpha: 0.75, ratio: on("chalk", 0.75) });
-  pairs.push({ label: "spotlight peak: orange numeral (11px bold)", fg: "orange", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("orange") });
 }
 
 // HERO v3 STAGE (components/home/hero-slide-views.tsx, app/globals.css
@@ -422,8 +450,6 @@ add("social icon glyph gold-dark (hover) on white", "gold-dark", "white", NONTEX
 // and orange-hover, rows above.
 add("messenger button border (charcoal-deep) on chalk", "charcoal-deep", "chalk", NONTEXT);
 add("messenger button border (charcoal-deep) on white", "charcoal-deep", "white", NONTEXT);
-add("messenger button fill edge (orange) on charcoal-deep", "orange", "charcoal-deep", NONTEXT);
-add("messenger button glyph charcoal-deep on orange", "charcoal-deep", "orange", NONTEXT);
 add("messenger focus ring outer charcoal-deep on chalk", "charcoal-deep", "chalk", NONTEXT);
 add("messenger focus ring outer charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
 add("messenger focus ring inner chalk on charcoal-deep", "chalk", "charcoal-deep", NONTEXT);
@@ -464,8 +490,6 @@ add("values burst flash gold-pale on charcoal tile", "gold-pale", "charcoal", TE
 // 4.5, which it clears on charcoal-deep at 8.06; the exemption is not borrowed
 // and the bar's type size is not free to grow into it.
 add("announcement text (chalk) on charcoal-deep", "chalk", "charcoal-deep", TEXT);
-add("announcement link (orange 13px) on charcoal-deep", "orange", "charcoal-deep", TEXT);
-add("announcement link hover (orange-hover) on charcoal-deep", "orange-hover", "charcoal-deep", TEXT);
 add("announcement close glyph chalk/75 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.75);
 add("announcement close focus ring gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
 
@@ -552,7 +576,6 @@ add("footer Sign up gold-pale on charcoal-deep (D1-2)", "gold-pale", "charcoal-d
     ["chalk/80 step text and ledger notes", "chalk", 0.8, TEXT],
     ["chalk/75 ledger small print", "chalk", 0.75, TEXT],
     ["chalk button fill edge (Join free, D5-3)", "chalk", 1, NONTEXT],
-    ["orange step disc edge", "orange", 1, NONTEXT],
   ]) pairs.push({ label: `step 5 stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
 }
 add("step 5 Join free label charcoal-deep on chalk (dark stage)", "charcoal-deep", "chalk", TEXT);
@@ -587,11 +610,10 @@ add("step 5 second question gold-dark display on chalk", "gold-dark", "chalk", L
 // gold-pale on chalk (1.37) was already here and stays.
 const mustFail = [
   ["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT],
-  ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT],
-  ["orange", "chalk", 1, TEXT], ["charcoal", "white", 0.6, TEXT],
+  ["gold-pale", "chalk", 1, TEXT],
+  ["charcoal", "white", 0.3, TEXT],
   ["teal", "white", 1, TEXT], ["gold", "white", 1, NONTEXT],
   ["charcoal", "chalk", 0.6, TEXT], ["garnet-light", "chalk", 1, TEXT],
-  ["orange", "chalk", 1, NONTEXT],
 ];
 
 let bad = 0;

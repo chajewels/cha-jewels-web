@@ -16,6 +16,9 @@ import { formatYenPeso, isFigure } from "@/lib/utils";
 import type { Category } from "@/lib/types";
 import { Eyebrow } from "@/components/site/support-stage";
 import { DarkBand, H_DISPLAY, H_TITLE, LEDE, Proof, ProofCells, ProofRow, SEC_S, specExample } from "@/components/site/brand-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
+import { WhySection } from "@/components/lumiere/why/why-section";
+import { ResolveNumber } from "@/components/lumiere/common/resolve-number";
 
 export const generateMetadata = () => pageMeta("why");
 
@@ -112,7 +115,7 @@ export default async function WhyChaJewels() {
         <div className="wrap grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16">
           <div>
             <Eyebrow rule>{t("navMenu", "company")}</Eyebrow>
-            <h1 className={`mt-4 text-charcoal-deep ${H_DISPLAY}`}>{t("why", "h1")}</h1>
+            <h1 className={`mt-4 text-charcoal-deep ${H_DISPLAY}`}><Reveal>{t("why", "h1")}</Reveal></h1>
             <p className={`mt-[22px] font-display text-gold-dark ${H_TITLE}`}>{t("why", "sub")}</p>
             <p className={`mt-[18px] ${LEDE}`}>{t("why", "intro")}</p>
           </div>
@@ -129,11 +132,14 @@ export default async function WhyChaJewels() {
         </div>
       </section>
 
+      {/* The home's Colonnade chapter columns (Aerra + Colonnade, P4): the same four values, sliding as the reader moves between them. */}
+      <div className="lumiere-home"><WhySection lang={lang} /></div>
+
       <section className="wrap pb-14 sm:pb-[72px]">
         <ol className="border-t border-hairline">
           {sections.map((s, i) => (
             <li key={s.key} className="grid grid-cols-[44px_1fr] items-start gap-x-3.5 gap-y-4 border-b border-hairline py-[30px] lg:grid-cols-[72px_1fr_1fr] lg:gap-x-7">
-              <span aria-hidden="true" className="font-display text-[30px] leading-none text-gold-dark lining-nums lg:text-[40px]">{String(i + 1).padStart(2, "0")}</span>
+              <span aria-hidden="true" className="font-display text-[30px] leading-none text-gold-dark lining-nums lg:text-[40px]"><ResolveNumber>{String(i + 1).padStart(2, "0")}</ResolveNumber></span>
               <div>
                 <h2 className="mb-2 font-display text-2xl leading-[1.25] text-charcoal-deep [:lang(ja)_&]:text-xl [:lang(ja)_&]:leading-normal [:lang(ja)_&]:[word-break:auto-phrase]">{s.h}</h2>
                 <p className="text-charcoal/80">{s.p}</p>

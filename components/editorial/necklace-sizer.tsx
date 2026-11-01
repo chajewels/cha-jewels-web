@@ -113,7 +113,7 @@ export function NecklaceSizer({ lengths, copy, caption, initial = 1 }: { lengths
             <input
               id={`${uid}-len`} type="range" min={0} max={lengths.length - 1} step={1} value={i}
               onChange={(e) => choose(Number(e.target.value))} aria-valuetext={valueText}
-              className="h-11 min-w-0 flex-1 cursor-pointer accent-[#8A6B12]"
+              className="h-11 min-w-0 flex-1 cursor-pointer accent-[#2a2724]"
             />
             <button type="button" className={btn} aria-label={copy.longer.replace("{name}", lengths[Math.min(lengths.length - 1, i + 1)].name)} disabled={i === lengths.length - 1} onClick={() => choose(i + 1)}>
               <Plus aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />

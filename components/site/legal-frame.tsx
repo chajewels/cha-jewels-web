@@ -5,6 +5,7 @@ import { tr } from "@/lib/i18n";
 import { type Lang } from "@/lib/i18n-core";
 import { COMPANY_NAME_DISPLAY, tokusho } from "@/lib/content/legal";
 import { LegalToc, LegalTocPhone, PrintLink, type TocItem } from "@/components/site/legal-toc";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export type LegalPageKey = "terms" | "privacy" | "returns" | "tokusho";
 
@@ -64,13 +65,13 @@ export function LegalFrame({
     <div lang={lang} className="print-legal">
       <section className="band-dark relative overflow-hidden bg-charcoal-deep text-chalk print:bg-white print:text-charcoal-deep">
         <div aria-hidden="true" className="cs-pool print:hidden" />
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,rgb(201_162_39/0),rgb(201_162_39/.6)_20%,#E8D28A_50%,rgb(201_162_39/.6)_80%,rgb(201_162_39/0))] print:hidden" />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,rgb(163_157_148/0),rgb(163_157_148/.6)_20%,#d9d3ca_50%,rgb(163_157_148/.6)_80%,rgb(163_157_148/0))] print:hidden" />
         <div className="wrap relative pt-9 lg:pb-11 lg:pt-14">
           <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-pale before:h-px before:w-7 before:bg-gold print:text-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">
             {t("footer", "legal")}
           </p>
           <h1 className="mt-3.5 max-w-[22ch] text-[clamp(32px,4.4vw,58px)] leading-[1.08] text-gold-pale print:text-charcoal-deep [:lang(ja)_&]:max-w-none [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:leading-[1.4] [:lang(ja)_&]:[word-break:auto-phrase]">
-            {title}
+            <Reveal>{title}</Reveal>
           </h1>
           <p className="mt-[18px] flex flex-wrap gap-x-7 gap-y-2 text-[13px] text-chalk/80 print:text-charcoal">
             <span className="cj-fig">{updated}</span>

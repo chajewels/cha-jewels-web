@@ -35,6 +35,7 @@ import { paidy612Active } from "@/lib/paidy-widget";
 import { methodWhyKey } from "@/lib/checkout-method-why";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/analytics";
 import { purchaseFromPayResult } from "@/lib/ads";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * THE FOUR STEPS (build step 3, D3-1; comp page-comps/cart-checkout):
@@ -657,7 +658,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       <div ref={topRef} className="wrap scroll-mt-24 pt-6 sm:pt-12">
         <div className="mb-6 sm:mb-8">
           <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark">{t("checkout", mode === "layaway" ? "eyebrow" : "eyebrowOrder")}</p>
-          <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]">{t("checkout", "h1")}</h1>
+          <h1 className="mt-2.5 text-[clamp(34px,4.4vw,56px)]"><Reveal>{t("checkout", "h1")}</Reveal></h1>
         </div>
         <Stepper steps={steps} current={stepperAt} label={t("checkout", "stepsLabel")} stepOf={(n, label) => t("checkout", "stepOf", { n: String(n), label })} />
 
@@ -1278,7 +1279,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
 
 const SEC = "mb-4 font-display text-[22px] leading-snug text-charcoal-deep [:lang(ja)_&]:text-[19px]";
 const OPT = "grid min-h-11 w-full cursor-pointer grid-cols-[22px_minmax(0,1fr)] items-start gap-3.5 border border-hairline bg-white p-4 sm:p-[18px]";
-const OPT_ON = "border-gold-dark shadow-[inset_3px_0_0_#8A6B12]";
+const OPT_ON = "border-gold-dark shadow-[inset_3px_0_0_#2a2724]";
 const BACK = "inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep disabled:opacity-60";
 const FIELD_LABEL = "mb-4 block text-[13px] font-semibold text-charcoal/85";
 const INPUT = `mt-1.5 h-12 w-full px-3.5 text-[15px] ${inputLight}`;

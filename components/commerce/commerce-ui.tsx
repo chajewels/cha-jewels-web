@@ -32,7 +32,7 @@ const CSS = `
 .cj-cut { position: absolute; inset: 10%; filter: drop-shadow(0 10px 10px rgb(35 29 18 / .18)); }
 .cj-stage-cut { position: absolute; inset: 9%; filter: drop-shadow(0 6px 8px rgb(0 0 0 / .55)); }
 .stickact { position: fixed; inset: auto 0 0 0; z-index: 40; }
-.stickact::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, rgb(201 162 39 / 0), var(--c-gold) 25%, var(--c-gold-pale) 50%, var(--c-gold) 75%, rgb(201 162 39 / 0)); }
+.stickact::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, rgb(163 157 148 / 0), var(--c-gold) 25%, var(--c-gold-pale) 50%, var(--c-gold) 75%, rgb(163 157 148 / 0)); }
 @media (min-width: 1024px) { .stickact { display: none; } }
 @media (max-width: 1023.98px) {
   body:has([data-sticky-act]) [data-mobile-tab-bar] { display: none; }

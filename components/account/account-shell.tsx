@@ -7,6 +7,7 @@ import { layawayOffered } from "@/lib/layaway-availability";
 import { signOutAction } from "@/lib/session-actions";
 import { CommerceStyle } from "@/components/commerce/commerce-ui";
 import { cn } from "@/lib/utils";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * THE ACCOUNT FRAME (build step 4; comp page-comps/account-signin, "Account
@@ -66,7 +67,7 @@ export function AccountShell({ lang, current, eyebrow, title, headAside, back, c
                     aria-current={on ? "page" : undefined}
                     className={cn(
                       "flex min-h-12 items-center justify-between border-b border-hairline px-1 text-sm font-medium",
-                      on ? "pl-3.5 text-charcoal-deep shadow-[inset_2px_0_0_#8A6B12]" : "text-charcoal/80 hover:text-charcoal-deep",
+                      on ? "pl-3.5 text-charcoal-deep shadow-[inset_2px_0_0_#2a2724]" : "text-charcoal/80 hover:text-charcoal-deep",
                     )}
                   >
                     {it.label}
@@ -113,7 +114,7 @@ export function AccountShell({ lang, current, eyebrow, title, headAside, back, c
           <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 sm:mb-8">
             <div className="min-w-0">
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-dark before:h-px before:w-8 before:bg-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">{eyebrow}</p>
-              <h1 className="mt-2.5 text-[clamp(30px,4vw,48px)] [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:[word-break:auto-phrase]">{title}</h1>
+              <h1 className="mt-2.5 text-[clamp(30px,4vw,48px)] [:lang(ja)_&]:text-[clamp(26px,3.2vw,40px)] [:lang(ja)_&]:[word-break:auto-phrase]"><Reveal>{title}</Reveal></h1>
             </div>
             {headAside && <div className="flex flex-wrap items-center gap-3">{headAside}</div>}
           </div>

@@ -11,6 +11,7 @@ import type { ReviewInvite } from "@/lib/reviews";
 import { ReviewForm } from "@/components/site/review-form";
 import { ReviewUsedOrThanks } from "@/components/site/review-done";
 import { Eyebrow, MessengerCta } from "@/components/site/support-stage";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * noindex, nofollow: a personal, one-use link. It must never be crawled, and
@@ -70,7 +71,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
               <ReviewUsedOrThanks token={token} usedH={h} usedP={p} thanksH={t("reviews", "thanksH")} thanksP={t("reviews", "thanksP")} />
             ) : (
               <>
-                <h1 className="text-[clamp(26px,3vw,36px)] leading-tight text-charcoal-deep [:lang(ja)_&]:text-[clamp(22px,2.6vw,30px)] [:lang(ja)_&]:leading-[1.45]">{h}</h1>
+                <h1 className="text-[clamp(26px,3vw,36px)] leading-tight text-charcoal-deep [:lang(ja)_&]:text-[clamp(22px,2.6vw,30px)] [:lang(ja)_&]:leading-[1.45]"><Reveal>{h}</Reveal></h1>
                 <p className="text-[16px] leading-[1.75] text-charcoal/85">{p}</p>
               </>
             )}

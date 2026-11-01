@@ -11,6 +11,7 @@ import { TierLadder } from "@/components/fx/tier-ladder";
 import { TierIcon } from "@/components/fx/tier-icon";
 import { Eyebrow } from "@/components/site/support-stage";
 import { DarkBand, H_DISPLAY, H_HEAD, H_TITLE, LEDE_DARK, Label, SEC, SEC_S, StageBand } from "@/components/site/brand-ui";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 export const generateMetadata = () => pageMeta("loyalty");
 export const revalidate = 300;
 
@@ -47,7 +48,7 @@ export default async function LoyaltyPage() {
         <div className={`wrap ${SEC} grid items-end gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16`}>
           <div>
             <Eyebrow dark rule>{t("nav", "loyalty")}</Eyebrow>
-            <h1 className={`gilt mt-4 ${H_DISPLAY}`}>{t("loyalty", "h1")}</h1>
+            <h1 className={`gilt mt-4 ${H_DISPLAY}`}><Reveal>{t("loyalty", "h1")}</Reveal></h1>
             <p className={`mt-[18px] ${LEDE_DARK}`}>{t("loyalty", "lede")}</p>
             <div className="mt-7"><Link href={localePath("/loyalty/join", lang)} className={JOIN_ON_DARK}>{t("loyalty", "join")}</Link></div>
           </div>
@@ -82,7 +83,7 @@ export default async function LoyaltyPage() {
                     key={tier.slug}
                     data-tier=""
                     data-crown={crown ? "" : undefined}
-                    className={`flex flex-col gap-4 border-rule p-6 max-lg:border-b sm:[&:nth-child(odd)]:border-r lg:border-r lg:last:border-r-0 ${crown ? "bg-[linear-gradient(180deg,rgb(201_162_39/.10),transparent_60%)] outline outline-1 -outline-offset-1 outline-gold" : ""}`}
+                    className={`flex flex-col gap-4 border-rule p-6 max-lg:border-b sm:[&:nth-child(odd)]:border-r lg:border-r lg:last:border-r-0 ${crown ? "bg-[linear-gradient(180deg,rgb(163_157_148/.10),transparent_60%)] outline outline-1 -outline-offset-1 outline-gold" : ""}`}
                   >
                     {/* The animated medallion (components/fx/tier-icon.tsx), restored
                         2026-10-03 by owner decision: the step 5 redesign had replaced it
@@ -92,9 +93,10 @@ export default async function LoyaltyPage() {
                       <Label dark>{t("loyalty", "level", { n: String(i + 1) })}</Label>
                       <h3 className={`mt-1 text-gold-pale ${H_TITLE}`}>{tier.name}</h3>
                     </div>
-                    <p className="lining-nums font-display text-[44px] leading-none text-chalk">
-                      <span className="sr-only">{t("loyalty", "multiplier")}: </span>
-                      {tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}
+                    {/* P4 item 5: the label in the LABEL style, the figure in the display face. */}
+                    <p className="flex flex-col gap-1">
+                      <span className="font-sans text-[11px] font-medium uppercase leading-snug tracking-[0.1em] text-chalk/70 [:lang(ja)_&]:text-xs [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.03em]">{t("loyalty", "multiplier")}</span>
+                      <span className="lining-nums font-display text-[44px] leading-none text-chalk">{tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}</span>
                     </p>
                     <dl className="border-t border-rule">
                       <div className="border-b border-rule py-2.5">

@@ -147,7 +147,7 @@ export function RingSizer({ copy, sizes, caption, initial = 13 }: { copy: Copy; 
           <input
             id={`${uid}-size`} type="range" min={0} max={sizes.length - 1} step={1} value={i}
             onChange={(e) => setI(Number(e.target.value))} aria-valuetext={valueText}
-            className="h-11 min-w-0 flex-1 cursor-pointer accent-[#8A6B12]"
+            className="h-11 min-w-0 flex-1 cursor-pointer accent-[#2a2724]"
           />
           <button type="button" className={btn} aria-label={copy.larger} disabled={i === sizes.length - 1} onClick={() => setI(i + 1)}><Plus aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} /></button>
         </div>
@@ -186,7 +186,7 @@ export function RingSizer({ copy, sizes, caption, initial = 13 }: { copy: Copy; 
             <input
               id={`${uid}-scale`} type="range" min={SCALE_MIN} max={SCALE_MAX} step={0.5} value={scale}
               onChange={(e) => setAndSave(Number(e.target.value))} aria-valuetext={`${scale}%`}
-              className="h-11 min-w-0 flex-1 cursor-pointer accent-[#8A6B12]"
+              className="h-11 min-w-0 flex-1 cursor-pointer accent-[#2a2724]"
             />
             <button type="button" className={btn} aria-label={copy.enlarge} disabled={scale >= SCALE_MAX} onClick={() => setAndSave(scale + 1)}><Plus aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} /></button>
           </div>
@@ -226,8 +226,8 @@ function CardOutline({ pxPerMm }: { pxPerMm: number }) {
       width={CARD_W_MM * pxPerMm} height={CARD_H_MM * pxPerMm} viewBox={`0 0 ${CARD_W_MM} ${CARD_H_MM}`}
       aria-hidden="true" focusable="false" className="block max-w-none"
     >
-      <rect x={0.2} y={0.2} width={CARD_W_MM - 0.4} height={CARD_H_MM - 0.4} rx={CARD_R_MM} fill="#FFFFFF" stroke="#8A6B12" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-      <rect x={CARD_W_MM - 18} y={8} width={10} height={8} rx={1.4} fill="none" stroke="#C9A227" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      <rect x={0.2} y={0.2} width={CARD_W_MM - 0.4} height={CARD_H_MM - 0.4} rx={CARD_R_MM} fill="#FFFFFF" stroke="#2a2724" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+      <rect x={CARD_W_MM - 18} y={8} width={10} height={8} rx={1.4} fill="none" stroke="#a39d94" strokeWidth={1} vectorEffect="non-scaling-stroke" />
       <text x={CARD_W_MM / 2} y={CARD_H_MM / 2} textAnchor="middle" fontSize={3.4} fill="#222222" className="font-sans [font-variant-numeric:lining-nums_tabular-nums]">85.60 × 53.98 mm</text>
     </svg>
   );

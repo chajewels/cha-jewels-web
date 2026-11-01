@@ -1,5 +1,6 @@
 import { SocialGlyph } from "@/components/site/social-icons";
 import { MessengerAnchor } from "@/components/site/messenger-anchor";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 /**
  * The parts of the supporting pages (build step 6) that the client error
@@ -12,7 +13,7 @@ export function MessengerCta({ href, label, className = "" }: { href: string; la
   return (
     <MessengerAnchor
       href={href}
-      className={`btn-press inline-flex min-h-12 items-center justify-center gap-2.5 rounded-sm bg-orange px-6 py-3 text-[15px] font-medium text-charcoal-deep hover:bg-orange-hover ${className}`}
+      className={`btn-press inline-flex min-h-12 items-center justify-center gap-2.5 rounded-pill bg-content px-6 py-3 text-[15px] font-medium text-content-inverse hover:opacity-85 ${className}`}
     >
       <SocialGlyph name="messenger" size={18} />
       {label}
@@ -40,16 +41,16 @@ export function EmptyStage({ code, title, lede, children }: { code?: string; tit
       <div aria-hidden="true" className="cs-pool" />
       <div className="wrap relative grid min-h-[calc(100svh-68px-120px)] content-center py-16 text-center sm:py-20">
         <div aria-hidden="true" className="relative mx-auto mb-9 h-[170px] w-full max-w-[520px] sm:h-[200px]">
-          <span className="absolute bottom-[31px] left-1/2 h-[120px] w-[260px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_50%_100%,rgb(201_162_39/.22),transparent_70%)]" />
+          <span className="absolute bottom-[31px] left-1/2 h-[120px] w-[260px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_50%_100%,rgb(163_157_148/.22),transparent_70%)]" />
           {code && (
-            <span className="cj-fig absolute inset-x-0 bottom-[42px] font-display text-[72px] leading-none tracking-[0.04em] text-transparent [-webkit-text-stroke:1px_rgb(232_210_138/.55)] sm:text-[96px]">
+            <span className="cj-fig absolute inset-x-0 bottom-[42px] font-display text-[72px] leading-none tracking-[0.04em] text-transparent [-webkit-text-stroke:1px_rgb(217_211_202/.55)] sm:text-[96px]">
               {code}
             </span>
           )}
-          <span className="absolute inset-x-[6%] bottom-[30px] h-px bg-[linear-gradient(90deg,rgb(201_162_39/0),rgb(201_162_39/.55)_25%,rgb(232_210_138/.75)_50%,rgb(201_162_39/.55)_75%,rgb(201_162_39/0))]" />
+          <span className="absolute inset-x-[6%] bottom-[30px] h-px bg-[linear-gradient(90deg,rgb(163_157_148/0),rgb(163_157_148/.55)_25%,rgb(217_211_202/.75)_50%,rgb(163_157_148/.55)_75%,rgb(163_157_148/0))]" />
         </div>
         <h1 className="mx-auto max-w-[22ch] text-[clamp(30px,4.2vw,52px)] leading-[1.12] text-gold-pale [:lang(ja)_&]:text-[clamp(24px,3vw,38px)] [:lang(ja)_&]:leading-[1.45] [:lang(ja)_&]:[word-break:auto-phrase]">
-          {title}
+          <Reveal>{title}</Reveal>
         </h1>
         <p className="mx-auto mt-[18px] max-w-[60ch] text-[17px] leading-[1.75] text-chalk/85 [:lang(ja)_&]:text-[15.5px]">{lede}</p>
         {children}

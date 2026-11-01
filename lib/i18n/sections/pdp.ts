@@ -32,6 +32,22 @@ export const pdp = {
     "ja": "関連する作品",
     "en": "Related pieces"
   },
+  "certificate": {
+    "ja": "鑑定書・鑑別書",
+    "en": "Certificate"
+  },
+  "certificateKind": {
+    "ja": "種類",
+    "en": "Kind"
+  },
+  "certificateIssuer": {
+    "ja": "発行元",
+    "en": "Issued by"
+  },
+  "certificateNumber": {
+    "ja": "番号",
+    "en": "Number"
+  },
   "recentlyViewed": {
     "ja": "最近見た商品",
     "en": "Recently viewed"

@@ -15,6 +15,7 @@ import { NextSteps } from "@/components/commerce/commerce-ui";
 import { ConfirmationActions, ConfirmationLayout, linePicture } from "@/components/commerce/confirmation";
 import { MemberGroups } from "@/components/loyalty/member-groups";
 import { loyaltyGroups } from "@/lib/settings";
+import { Reveal } from "@/components/lumiere/common/reveal-text";
 
 export const generateMetadata = () => pageMeta("complete");
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export default async function CheckoutCompletePage({ params, searchParams }: {
     return (
       <section className="py-[clamp(48px,7vw,96px)]">
         <div className="wrap max-w-[720px]">
-          <h1 className="text-[clamp(28px,3.6vw,44px)]">{t("orders", "notFound")}</h1>
+          <h1 className="text-[clamp(28px,3.6vw,44px)]"><Reveal>{t("orders", "notFound")}</Reveal></h1>
           <Button asChild variant="ghost" className="mt-6"><Link href="/account/orders">{t("orders", "back")}</Link></Button>
         </div>
       </section>

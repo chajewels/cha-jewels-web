@@ -3,19 +3,21 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 const buttonVariants = cva(
-  "btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border px-6 py-3 text-[15px] font-medium disabled:opacity-70",
+  // LUMIÈRE (D-4, P4): the primary action is the black pill (cream on black
+  // on a dark surface through the same classes' overrides); there is no orange.
+  "btn-press inline-flex min-h-12 items-center justify-center gap-2 rounded-pill border px-6 py-3 font-manrope text-[15px] font-medium transition-opacity disabled:opacity-70",
   { variants: { variant: {
-      solid: "border-transparent bg-orange text-charcoal-deep hover:bg-orange-hover",
+      solid: "border-transparent bg-content text-content-inverse hover:opacity-85",
       // The body is light, so these are the only pair. The dark counterparts
       // (gold-pale text on a gold border) were deleted with the body flip:
       // gold-pale is 1.37:1 on chalk and had nowhere left to render. A button
       // that must sit on a dark band overrides the colours at the call site —
       // components/home/hero-slides.tsx is the one place that does, and it
       // overrides all four, hover included.
-      ghost: "border-gold-dark bg-transparent text-gold-dark hover:border-charcoal-deep hover:text-charcoal-deep",
+      ghost: "border-content bg-transparent text-content hover:bg-content hover:text-content-inverse",
       // Quieter than ghost: a charcoal edge rather than a gold one, so a
       // secondary action does not compete with what it sits beside.
-      outline: "border-charcoal/60 bg-transparent text-charcoal-deep hover:border-charcoal-deep",
+      outline: "border-charcoal/50 bg-transparent text-charcoal-deep hover:border-charcoal-deep",
     } }, defaultVariants: { variant: "solid" } }
 );
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> { asChild?: boolean }

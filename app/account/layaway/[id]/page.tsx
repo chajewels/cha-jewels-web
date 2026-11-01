@@ -385,7 +385,7 @@ const TH = "pb-2.5 pr-3 text-left text-[11px] font-semibold uppercase tracking-[
 function StatusBadgeDark({ tone, text }: { tone: Tone; text: string }) {
   return (
     <span className="inline-flex items-center gap-2 border border-gold/50 px-3 py-1 text-xs text-chalk">
-      <i aria-hidden="true" className={`h-1.5 w-1.5 rotate-45 ${tone === "good" ? "bg-gold-pale" : tone === "pending" ? "bg-orange" : "border border-chalk/70"}`} />
+      <i aria-hidden="true" className={`h-1.5 w-1.5 rotate-45 ${tone === "good" ? "bg-gold-pale" : tone === "pending" ? "bg-gold" : "border border-chalk/70"}`} />
       {text}
     </span>
   );

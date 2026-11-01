@@ -90,7 +90,7 @@ export function NewsletterForm({ lang, tone = "light" }: { lang: Lang; tone?: "l
           // A chalk-edged button joined to the field, gold-pale label (10.62).
           className={dark
             ? "min-h-12 shrink-0 rounded-r-sm border border-l-0 border-chalk/40 px-4 text-sm font-medium text-gold-pale hover:bg-charcoal hover:text-chalk disabled:cursor-not-allowed disabled:opacity-60"
-            : "min-h-10 shrink-0 rounded-sm bg-orange px-4 text-sm font-medium text-charcoal-deep hover:bg-orange-hover disabled:cursor-not-allowed disabled:opacity-60"}
+            : "min-h-10 shrink-0 rounded-pill bg-content px-4 text-sm font-medium text-content-inverse hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-60"}
         >
           {c.submit[lang]}
         </button>

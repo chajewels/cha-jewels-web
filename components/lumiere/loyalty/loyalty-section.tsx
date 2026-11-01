@@ -70,11 +70,12 @@ export const LoyaltySection = async ({ lang }: { lang: Lang }) => {
               <span className="loyalty__tier-name font-serif">{tier.name}</span>
               <span className="loyalty__tier-spend">
                 <span className="sr-only">{t("loyalty", "threshold")}: </span>
-                {tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}
+                <span className="loyalty__tier-spend-value">{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</span>
               </span>
+              {/* The label in the LABEL style (small, tracked, muted — P4 item 5), the figure in the display face. */}
               <span className="loyalty__tier-rate">
-                <span className="sr-only">{t("loyalty", "multiplier")}: </span>
-                {tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}
+                <span className="loyalty__tier-rate-label font-manrope">{t("loyalty", "multiplier")}</span>
+                <span className="loyalty__tier-rate-value font-serif">{tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}</span>
               </span>
             </li>
           ))}
