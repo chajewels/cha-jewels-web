@@ -83,20 +83,21 @@ test("W-05: saveAddressAction ignores a client-sent address list — the Hub rec
   assert.equal(result.current.ok, true);
   assert.equal(result.legacy.ok, true, "a page loaded before the deploy still saves");
   const puts = fetches.filter((f) => f.method === "PUT" && f.url.endsWith("/me/addresses"));
-  assert.equal(puts.length, 2);
+  assert.equal(puts.length, 3, "two tampered/current saves plus the any-country save");
   const expected = [
     { ...ME.addresses[0], is_default: false },
     { label: null, recipient_name: "Ana", line1: "1-2-3 Tateishi", line2: null, city: "Katsushika", region: null, postal_code: "124-0012", country: "JP", phone: "090", is_default: true },
   ];
-  for (const put of puts) assert.deepEqual(put.body.addresses, expected);
+  for (const put of puts.slice(0, 2)) assert.deepEqual(put.body.addresses, expected);
+  assert.equal(puts[2].body.addresses[1].country, "ATLANTIS");
   // Each save read her list from the Hub first.
   assert.equal(fetches.filter((f) => f.method === "GET" && f.url.endsWith("/me")).length >= 2, true);
   assert.ok(!JSON.stringify(puts).includes("victim-id") && !JSON.stringify(puts).includes("CHANGED BY CLIENT"));
 });
 
-test("W-05: a bad new address is refused before any Hub call", () => {
+test("W-05: an over-long or mistyped new address is refused before any Hub call; any country text is still accepted", () => {
   const { result } = run("address", { ...HUB, SB2_JWT: "J", SB2_ROUTES: ADDRESS_ROUTES });
-  assert.deepEqual(result.badCountry, { ok: false, code: "address_invalid" });
+  assert.equal(result.anyCountry.ok, true, "no country list is enforced (unchanged acceptance)");
   assert.deepEqual(result.longLine, { ok: false, code: "address_invalid" });
   assert.deepEqual(result.wrongType, { ok: false, code: "address_invalid" });
   assert.deepEqual(result.noLine, { ok: false, code: "address_required" });
@@ -115,12 +116,13 @@ test("W-05: quoteAction refuses a bad order_type, an over-long gift note, a bad 
   assert.equal(fetches.length, 0);
 });
 
-test("W-05: the schemas — caps, enums, country list, and the existing book passed through untouched", async () => {
+test("W-05: the schemas — caps, enums, no country list, and the existing book passed through untouched", async () => {
   const s = await import("@/lib/action-schemas");
   assert.equal(s.parseNewAddress({ line1: "a", country: "Philippines" }).address.country, "PHILIPPINES");
   assert.equal(s.parseNewAddress({ line1: "a" }).address.country, "JP");
   assert.equal(s.parseNewAddress({ line1: "a", country: "us" }).ok, true);
-  assert.equal(s.parseNewAddress({ line1: "a", country: "USA" }).ok, false);
+  assert.equal(s.parseNewAddress({ line1: "a", country: "Atlantis" }).ok, true, "free-text country, as before");
+  assert.equal(s.parseNewAddress({ line1: "a", country: "x".repeat(61) }).ok, false);
   assert.equal(s.parseNewAddress({ line1: "a", postal_code: "1".repeat(33) }).ok, false);
   assert.equal(s.parseNewAddress(null).ok, false);
   // An existing address longer than any cap and with an unlisted country still goes back as it is.

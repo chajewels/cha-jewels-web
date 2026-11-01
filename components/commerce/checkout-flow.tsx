@@ -214,7 +214,6 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
     : code === "expired" ? t("checkout", "expired")
     : code === "empty_cart" ? t("checkout", "emptyCart")
     : code === "address_required" ? t("checkout", "addressRequired")
-    : code === "address_invalid" ? t("checkout", "addressInvalid")
     : code === "below_plan_minimum" ? t("checkout", "belowMinimum")
     : code === "currency_unsupported" ? t("checkout", "currencyUnsupported")
     : code === "rate_unavailable" ? t("checkout", "rateUnavailable")

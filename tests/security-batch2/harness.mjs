@@ -45,11 +45,11 @@ try {
       out.current = await saveAddressAction(fresh);
       out.legacy = await saveAddressAction(tampered, fresh);
       const before = fetches.length;
-      out.badCountry = await saveAddressAction({ ...fresh, country: "ATLANTIS" });
       out.longLine = await saveAddressAction({ ...fresh, line1: "x".repeat(301) });
       out.noLine = await saveAddressAction({ ...fresh, line1: "  " });
       out.wrongType = await saveAddressAction({ ...fresh, city: { $ne: 1 } });
       out.fetchesForRefused = fetches.length - before;
+      out.anyCountry = await saveAddressAction({ ...fresh, country: "ATLANTIS" });
       break;
     }
     case "quote": {

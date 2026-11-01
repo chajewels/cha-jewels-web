@@ -985,8 +985,6 @@ export const dict = {
     failed: { ja: "ご注文を完了できませんでした。しばらくしてからもう一度お試しください。", en: "We could not complete your order. Please try again shortly." },
     emptyCart: { ja: "カートが空のためお手続きできません。", en: "There is nothing in your cart to check out." },
     addressRequired: { ja: "お届け先をご入力ください。", en: "Please enter a delivery address." },
-    // W-05 (2026-11-01): a new address the server refused — a country not on the list, or a line longer than the field allows.
-    addressInvalid: { ja: "お届け先をご確認ください。国は国名または2文字の国コード（例：JP）でご入力ください。", en: "Please check the delivery address. Enter the country as its name or two-letter code (for example, JP)." },
     // ── THE LAYAWAY AGREEMENT GATE (2026-09-18) ──────────────────────────────
     // No plan is created until the customer has signed. The AGREEMENT itself is
     // ONE DOCUMENT IN TAGALOG WITH ENGLISH (owner decision 2026-09-25; no

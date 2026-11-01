@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { billingCountryCode } from "@/lib/billing-countries";
 import type { HubAddress } from "@/lib/types";
 import { ADDRESS_CAPS, PROFILE_CAPS, QUOTE_CAPS } from "@/lib/action-caps";
 
@@ -48,13 +47,12 @@ export const NewAddressSchema = z.object({
   city: optText(ADDRESS_CAPS.city),
   region: optText(ADDRESS_CAPS.region),
   postal_code: optText(ADDRESS_CAPS.postal_code),
-  // The checkout field is typed and upper-cased ("JP", "JAPAN"). Only a
-  // country on the Hub's list (lib/countries.ts, as a name or its ISO code —
-  // the same reading the card form uses, lib/billing-countries.ts) is kept;
-  // absent → "JP", the Hub's own default.
+  // The checkout field is free text, typed and upper-cased ("JP", "JAPAN"), and
+  // the Hub accepts any value (blank → "JP"); no list is enforced, exactly as
+  // before. Only the type and a generous length cap apply.
   country: z.preprocess(
     (v) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? "JP" : typeof v === "string" ? v.trim().toUpperCase() : v),
-    z.string().max(ADDRESS_CAPS.country).refine((c) => billingCountryCode(c) !== null, { message: "country_not_listed" }),
+    z.string().max(ADDRESS_CAPS.country),
   ),
   phone: optText(ADDRESS_CAPS.phone),
 });
