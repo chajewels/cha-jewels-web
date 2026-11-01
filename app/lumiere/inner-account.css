@@ -16,9 +16,13 @@ html:lang(ja) .iac-h1 { font-size: clamp(26px, 3.6vw, 48px); }
 .iac-frame { display: grid; align-items: start; gap: clamp(20px, 3vw, 40px); }
 @media (min-width: 1024px) { .iac-frame { grid-template-columns: 252px minmax(0, 1fr); } }
 .iac-main { min-width: 0; }
+.iac-frame > * { min-width: 0; }
+/* Real data is long and unbroken (an email, a Japanese address, a part number): it wraps inside its plate instead of widening the page, so the page never scrolls sideways and the side list never leaves the screen. */
+.iac-main :where(dd, dt, td, th, p, li, h2, h3, a, span, label, summary) { overflow-wrap: anywhere; }
+.iac-chips { align-items: stretch; }
 
 /* The side list: one white plate, pill rows, the current page on bone */
-.iac-side { position: sticky; top: 96px; padding: 10px; background: var(--lm-sheet); border: 1px solid var(--lm-rule); border-radius: var(--lm-plate-radius); }
+.iac-side { min-width: 0; position: sticky; top: 96px; padding: 10px; background: var(--lm-sheet); border: 1px solid var(--lm-rule); border-radius: var(--lm-plate-radius); }
 .iac-side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .iac-side .iac-side__link { border-radius: 999px; }
 .iac-side .iac-side__link[aria-current="page"] { background: var(--lm-bone); padding-left: 28px; }

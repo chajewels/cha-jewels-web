@@ -114,6 +114,8 @@ export function ScrollLayout() {
       // `raf` on a destroyed instance after unmount/HMR.
       unsubscribe?.();
       lenis?.destroy();
+      // destroy() leaves the root classes behind when it lands mid-scroll (found P4b: a stale `lenis` on <html> after a soft navigation into /account)
+      document.documentElement.classList.remove("lenis", "lenis-smooth", "lenis-scrolling", "lenis-stopped");
       if (lenis && useScroll.getState().lenis === lenis) useScroll.getState().setLenis(null);
     };
   }, [enabled]);

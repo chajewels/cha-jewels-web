@@ -22,6 +22,7 @@
     "postbuild": "node scripts/check-font-urls.mjs",
     "check:layaway-ja": "node --experimental-strip-types --no-warnings --import ./tests/register-aliases.mjs scripts/check-layaway-ja.mjs",
     "test:unit": "node --experimental-strip-types --no-warnings --import ./tests/register-aliases.mjs --test \"tests/**/*.test.mjs\"",
+    "check:account-nav": "node scripts/check-account-nav.mjs",
     "e2e:signup": "playwright test --config e2e/playwright.config.ts",
     "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > lib/supabase/database.types.ts",
     "check:jp-font": "node scripts/check-jp-font-live.mjs"

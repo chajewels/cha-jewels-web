@@ -66,3 +66,21 @@ test("the page head and sections exist for every recomposed page", () => {
   assert.match(head, /<h1 className="lm-h1"><Reveal>\{title\}<\/Reveal><\/h1>/, "one h1, through Reveal");
   assert.match(read("app/globals.css"), /@import "\.\/lumiere\/inner\.css";/);
 });
+
+test("A2 (correction) — the account navigation cannot leave the screen: a grid at lg, wrapped chips below it, long data wraps, no stale Lenis class", () => {
+  const css = read("app/lumiere/inner-account.css");
+  assert.match(css, /@media \(min-width: 1024px\) \{ \.iac-frame \{ grid-template-columns: 252px minmax\(0, 1fr\); \} \}/);
+  assert.match(css, /\.iac-frame > \* \{ min-width: 0; \}/);
+  assert.match(css, /\.iac-main :where\(dd, dt, td, th, p, li, h2, h3, a, span, label, summary\) \{ overflow-wrap: anywhere; \}/);
+  const shell = read("components/account/account-shell.tsx");
+  assert.match(shell, /className="iac-chips print-hide mb-5 flex flex-wrap gap-2 lg:hidden"/, "chips wrap — nothing scrolls out of sight");
+  assert.ok(!/iac-chips[^"]*overflow-x-auto/.test(shell));
+  assert.match(shell, /className="iac-side print-hide hidden lg:block"/);
+  assert.match(read("components/lumiere/scroll-layout.tsx"), /classList\.remove\("lenis", "lenis-smooth", "lenis-scrolling", "lenis-stopped"\)/);
+  assert.match(read("scripts/check-account-nav.mjs"), /\[1440, 1\.1\], \[1440, 1\.25\], \[1440, 1\.5\]/, "the check covers browser zoom 110/125/150 % on a 1440 window");
+});
+
+test("evidence images stay out of the code history (owner, 2026-11-01)", () => {
+  const ignore = read(".gitignore");
+  for (const ext of ["jpg", "jpeg", "png", "webp", "gif"]) assert.ok(ignore.includes(`docs/tasks/lumiere-p*-evidence/**/*.${ext}`), ext);
+});
