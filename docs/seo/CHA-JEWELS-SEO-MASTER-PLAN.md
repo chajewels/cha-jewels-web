@@ -1274,7 +1274,7 @@ Rules:
 - Only public pages that are in the sitemap. No account, cart, checkout, API or Hub URLs. No private or customer data.
 - Wording follows "Terminology" (`check:terms` passes). Japanese pages, if listed, never link to layaway.
 - Does not change robots.txt, the sitemap, canonicals or hreflang.
-- Test: the URL returns 200 with `text/plain`; every link in it returns 200 and is indexable; `check:terms`, `check:money` and `check:i18n` pass.
+- Test: the URL returns 200 with `text/plain`; every link in it returns 200 and is indexable; `check:terms`, `check:money` and `check:i18n` pass. *(Implemented as the `llms-txt` and `llms-links` rows of both SEO checkers: each advertised link is fetched and must answer 200, `text/html`, no noindex and one self canonical; sitemap membership alone is not acceptance. Verified on the local fixtures build 2026-11-01; real-data and deployment runs pending.)*
 
 ---
 

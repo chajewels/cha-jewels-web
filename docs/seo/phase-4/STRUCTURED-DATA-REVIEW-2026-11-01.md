@@ -1,5 +1,7 @@
 # Phase 4 — structured-data review (2026-11-01): entity type, Offer consistency, sharing identity, video eligibility
 
+**Corrected 2026-11-01 (review of `d0b3b5f`):** §3 no longer states "none eligible" for the whole inventory; the product-video inventory is UNKNOWN and recorded as open.
+
 **Status:** AUDITED (§1, §3, §4: no change made) and IMPLEMENTED → READY FOR QA (§2: one builder change with tests). Protected assets (CLAUDE.md governance §4) were modified only where §2 records a verified defect. No fabricated review, rating, identifier, policy or origin; every value read from the live site on 2026-11-01 is cited as the page rendered it.
 
 ## 1. `JewelryStore` vs `OnlineStore` / `Organization` (the review deferred by PR #454) — AUDITED, owner decision OD-SD-1
@@ -33,16 +35,18 @@
 
 **Verification:** unit 652/652; raw checker 671/0 and DOM checker 685/0 on the local build (JSON-LD parses on every product template); production samples re-read (8C100, N1616: single-variant, unchanged values). Release: with the batch. After release: Rich Results Test on one multi-variant piece (owner names one, or the first-fetch Merchant Center Diagnostics shows none).
 
-## 3. Video eligibility (R-19) — ASSESSED, no `VideoObject`
+## 3. Video eligibility (R-19) — ASSESSED for the inventoried site videos; product-video inventory UNKNOWN
+
+**Inventory, stated exactly.** Three videos are inventoried from the source tree [V, code]: the home hero film, the About page logo film and the artisan tile (`public/videos`, rendered by `components/site/hero*` and the About page). Product videos exist as a Hub capability (`video_url` + `video_poster_url` on the product contract) but **their inventory is UNKNOWN in this session**: no Hub API key is available, so neither the number of live pieces carrying a video nor what those videos show could be read. The assessment below therefore covers the three site videos; the product-video line is a conditional, not a finding.
 
 | Video | Where | Role on the page | Hosted | Eligible for video markup / indexing? |
 |---|---|---|---|---|
-| Home hero film | `/en`, `/ja` (`components/site/hero*`; `public/videos`) | decorative background loop, muted, autoplay, no controls, no title or description of its own | the site's own `public/videos` (Vercel) | **No.** Google's video eligibility needs the video to be the main content of a page (or a clearly identifiable element) with a thumbnail, a title and a watchable player; a muted decorative loop is none of these. Marking it up would be a false "video page". |
+| Home hero film | `/en`, `/ja` (`components/site/hero*`; `public/videos`) | decorative background loop, muted, autoplay, no controls, no title or description of its own | the site's own `public/videos` (Vercel) | **No** for this video: Google's video eligibility needs the video to be the main content of a page (or a clearly identifiable element) with a thumbnail, a title and a watchable player; a muted decorative loop is none of these. Marking it up would be a false "video page". |
 | About page logo film | `/en/about`, `/ja/about` | brand animation beside the story; decorative | `public/videos` | **No** (same reason). |
 | Artisan tile video | About page tile | illustrative, short, no narration or title | `public/videos` | **No**. |
-| Product gallery video (`video_url` + `video_poster_url` from the Hub) | product pages that carry one | supplementary: one gallery item among photos; the page's main content is the product listing, which already carries `Product` markup | the Hub's storage | **Not now.** A product video is supplementary content; Google's product markup has no `video` property in the supported Product fields, and a separate `VideoObject` would describe a clip with no title, description or duration of its own. Count of live pieces with a video: [U] (Hub API needed). |
+| Product gallery video (`video_url` + `video_poster_url` from the Hub) | product pages that carry one | by contract one gallery item among photos; the page's main content is the product listing, which already carries `Product` markup | the Hub's storage | **UNKNOWN — not assessed.** How many live pieces carry one, and whether any is presented as the page's main watchable content, cannot be read without the Hub API. The conditional view: a supplementary gallery clip with no title, description or duration of its own would not be eligible, and Google's supported Product fields carry no `video` property; a product video that IS the main content would need its own audit. |
 
-**Conclusion:** no video markup is added and none is eligible today. If an editorial video page is ever built (a guide with a titled, captioned video as its main content), `VideoObject` with `name`, `description`, `thumbnailUrl`, `uploadDate` and `contentUrl` becomes applicable and gets its own audit. Search Console's video report stays expected-empty.
+**Conclusion:** no video markup is added. The three inventoried site videos are not eligible. The product-video inventory stays **UNKNOWN** (this is a genuine dependency on the Hub API, recorded in the matrix as R-19 open: "read-only API count and a per-video look when a key is available"); R-19 is not closed. If an editorial video page is ever built (a guide with a titled, captioned video as its main content), `VideoObject` with `name`, `description`, `thumbnailUrl`, `uploadDate` and `contentUrl` becomes applicable and gets its own audit. Search Console's video report is expected empty for the site videos; nothing is claimed for product videos.
 
 ## 4. Sharing identity (OG/Twitter) — re-verified, no change
 
@@ -51,4 +55,4 @@ Every successful locale template carries one `og:url` = canonical, one `fb:app_i
 ## 5. Documentation used
 - https://developers.google.com/search/docs/appearance/structured-data/organization, https://developers.google.com/search/docs/appearance/structured-data/local-business, https://developers.google.com/search/docs/appearance/structured-data/merchant-listing, https://schema.org/OnlineStore, https://schema.org/JewelryStore (all read 2026-11-01 through a fetch agent; quotes verbatim where shown).
 - Repository: `lib/json-ld.ts`, `app/products/[slug]/page.tsx`, `lib/availability.ts`, `lib/product-seo.ts`, `lib/locale-meta.ts`, `lib/og-meta.ts`, `docs/seo/phase-10/LOCAL-SEO-GBP-READINESS.md`, `docs/seo/phase-5/MERCHANT-CENTER-READINESS.md` §6.
-- **UNVERIFIED:** prevalence of multi-variant pieces and of product videos in the live catalog; Google's video eligibility page was not re-read in this session (the assessment follows the long-standing rule that the video must be the page's main, watchable content).
+- **UNVERIFIED:** prevalence of multi-variant pieces in the live catalog; the product-video inventory (count and content) — UNKNOWN, not assessed; Google's video eligibility page was not re-read in this session (the assessment of the three site videos follows the long-standing rule that the video must be the page's main, watchable content).

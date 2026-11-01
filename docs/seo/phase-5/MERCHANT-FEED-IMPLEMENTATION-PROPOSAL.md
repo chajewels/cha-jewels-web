@@ -1,12 +1,12 @@
 # Phase 5 — Merchant Center feed: implementation proposal and owner package (2026-11-01)
 
-**Status:** builder IMPLEMENTED → READY FOR QA (`lib/merchant-feed.ts`, `tests/merchant-feed.test.mjs`, 10 tests); route **NOT CREATED** (route-change approval OD-MC-7 not given); account side **OWNER DECISION PENDING** (X8, OD-MC-1..11). Nothing was submitted, claimed, fetched or changed in any Google account. Readiness background: `MERCHANT-CENTER-READINESS.md`; gaps: `../SEO-REQUIREMENTS-REGISTER.md` §4 (MC-G1 to MC-G13).
+**Status:** builder IMPLEMENTED → READY FOR QA (`lib/merchant-feed.ts`, `tests/merchant-feed.test.mjs`, 12 tests); route **NOT CREATED — PROPOSED ONLY** (§3 is code for approval, not behaviour that exists) (route-change approval OD-MC-7 not given); account side **OWNER DECISION PENDING** (X8, OD-MC-1..11). Nothing was submitted, claimed, fetched or changed in any Google account. **Corrected 2026-11-01 (review of `d0b3b5f`):** identifiers are evidence from an explicit rule (no default), unknown states are exclusions, nothing is skipped silently, reconciliation is exact membership, and the completeness limit of the Website API is stated (OD-MC-12). Readiness background: `MERCHANT-CENTER-READINESS.md`; gaps: `../SEO-REQUIREMENTS-REGISTER.md` §4 (MC-G1 to MC-G13).
 
 ## 1. What exists after this batch
 
 | Piece | State | Proof |
 |---|---|---|
-| `lib/merchant-feed.ts` — `feedItem`, `buildFeed`, `feedPrice`, `googleCategory`, `reconcile`, `renderRss` | implemented, pure, no route | 10 unit tests: displayed-variant agreement, money rules (no peso/deposit/percentage), EN/JA language rule with exclusion, identifiers and brand, availability (sold → `out_of_stock`, never dropped), images, condition/category/material, reconciliation, XML escaping, a source guard that **no route exists** |
+| `lib/merchant-feed.ts` — `feedItem`, `buildFeed`, `feedPrice`, `googleCategory`, `identifierFields`, `reconcile`, `renderRss`, `IDENTIFIERS_UNDECIDED` | implemented, pure, no route | 12 unit tests: displayed-variant agreement, money rules (no peso/deposit/percentage), EN/JA language rule with exclusion, identifiers as evidence (no rule → every product `identifier_unknown`, feed empty; conflicts excluded), unknown status/condition/slug/duplicate as recorded exclusions, availability (sold → `out_of_stock`, never dropped), images, category/material, exact-membership reconciliation (missing, extra, repeated, blank, no-slug, duplicate rows, authoritative total), XML escaping, a source guard that **no route exists** and no identifier or condition default is shipped |
 | Route `app/api/merchant-feed/route.ts` | not created | §3 carries the exact code; the guard test fails the suite if the file appears without this proposal being approved and the test updated |
 | Account-side setup | not started | §5 |
 
@@ -20,10 +20,10 @@
 | MC-G4 counts | 453 products live (sitemap, 2026-11-01); sold count [U] without the Hub API | re-read at route time |
 | MC-G5 sold rule | `out_of_stock` while D3 stands (builder) | restate if D3/X10 changes |
 | MC-G6 `item_type` | [U] here; the builder maps `item_type === "Watch"` and the `preloved-watches` category and the `luxury-watches` collection to 201, so a missing `item_type` still categorises watches | read-only API check with a key |
-| MC-G7 identifiers | rule in code: `identifier_exists=no` only for unbranded pieces; **branded pieces excluded** with reason `branded_identifier_rule_pending` | **OD-MC-11:** the owner's written rule per piece class (unique / hallmarked / branded): which identifiers exist and where they come from; then branded pieces are either sent with real MPN/GTIN fields from the Hub (a Hub contract change) or with `identifier_exists=no` where the rule says none exist |
+| MC-G7 identifiers | **the builder has no identifier opinion**: every call supplies an `IdentifierRule` (the owner's OD-MC-11 rule as code); the only built-in rule, `IDENTIFIERS_UNDECIDED`, answers UNKNOWN for every piece, so every piece is excluded (`identifier_unknown`) and the feed is empty until the rule exists. A rule's answer is cross-checked: "no identifier" for a piece the Hub marks branded, an MPN without a brand, or "ids" without an id → `identifier_conflict`, never sent | **OD-MC-11:** the owner's written rule per piece class (unique / hallmarked / branded): which identifiers exist and where they come from; then branded pieces are either sent with real MPN/GTIN fields from the Hub (a Hub contract change) or with `identifier_exists=no` where the rule says none exist |
 | MC-G8 variants | closed by design: one item per product = the displayed variant (`product_variants[0]`), the same rule as the corrected Product JSON-LD Offer (`phase-4/STRUCTURED-DATA-REVIEW-2026-11-01.md` §2); test proves price and availability equal the page's | a per-variant feed only with a variant-selectable page |
 | MC-G9 freshness | daily fetch 03:00 JST proposed; the route reads the 60 s catalog cache (Hub-busted); worst case = one fetch interval | OD-MC-8: acceptable maximum age |
-| MC-G10 full catalog | `reconcile()` fails the build of a feed that leaves any catalog slug unaccounted for | — |
+| MC-G10 full catalog | **PARTIAL by the API's limits:** `reconcile()` demands exact membership (items + recorded exclusions = the catalog slug list; nothing missing, extra, repeated or blank; no row without a slug; at least one item) between two reads of the Website API. Neither read is authoritative: `/catalog/products?limit=5000` and the `?fields=slug` projection are the same table under the same limit, so a truncated read of both would agree. "Complete" therefore means "two reads agree and the list is under the limit" until the Hub exposes a total | **OD-MC-12 (Hub work item, Lovable):** a total count on the catalog read (e.g. `{ total }` or an `X-Total-Count` header) that `reconcile(build, slugs, { authoritativeTotal })` already accepts |
 | MC-G11 failures | route answers **503** on any Hub failure or reconciliation problem, never an empty or partial 200; `Cache-Control: no-store` on errors; a complete feed cached 300 s | — |
 | MC-G12 robots `/api` | Google's Merchant Center crawl-guidance page could not be read in this session (help id returned 404; recorded [U]). Plan: keep `/api/merchant-feed`, run the first manual fetch, read Diagnostics; if the fetch is refused for robots reasons, the approved fallback is one `Allow: /api/merchant-feed` line in `app/robots.ts` with a test | first fetch |
 | MC-G13 shipping/returns | published text re-read 2026-11-01 and quoted in §5 verbatim; outside-Japan rates are not published, so no non-JP target is configured | owner enters exactly §5 |
@@ -35,7 +35,11 @@
 import { hub } from "@/lib/hub-api";
 import { siteUrl } from "@/lib/site";
 import { isLocale } from "@/lib/locale";
-import { buildFeed, reconcile, renderRss } from "@/lib/merchant-feed";
+import { buildFeed, reconcile, renderRss, type IdentifierRule } from "@/lib/merchant-feed";
+
+// PROPOSED: the owner's OD-MC-11 identifier rule as code. Until it exists this stays IDENTIFIERS_UNDECIDED and the
+// route answers 503 "feed incomplete: the feed has no items" — the truthful state, never an empty 200.
+const IDENTIFIER_RULE: IdentifierRule = () => null; // ← replaced by the owner's rule in the approval batch
 
 export const revalidate = 300;
 
@@ -48,11 +52,12 @@ export async function GET(req: Request) {
   } catch {
     return new Response("catalog unavailable", { status: 503, headers: { "cache-control": "no-store" } });
   }
-  const build = buildFeed(products, lang, siteUrl());
-  const problems = reconcile(build, slugs.map((s) => s.slug));
+  const build = buildFeed(products, lang, siteUrl(), IDENTIFIER_RULE);
+  // authoritativeTotal: null until OD-MC-12 gives the Hub read a total; the header below says which kind of completeness this is
+  const problems = reconcile(build, slugs.map((s) => s.slug), { authoritativeTotal: null });
   if (problems.length) return new Response(`feed incomplete: ${problems.join("; ")}`, { status: 503, headers: { "cache-control": "no-store" } });
   const xml = renderRss(build, { title: "Cha Jewels", link: `${siteUrl()}/${lang}`, description: lang === "ja" ? "Cha Jewels の商品フィード" : "Cha Jewels product feed" });
-  return new Response(xml, { status: 200, headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=300", "x-feed-items": String(build.items.length), "x-feed-excluded": String(build.excluded.length) } });
+  return new Response(xml, { status: 200, headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=300", "x-feed-items": String(build.items.length), "x-feed-excluded": String(build.excluded.length), "x-feed-completeness": "two-read-agreement (no authoritative total; OD-MC-12)" } });
 }
 ```
 
@@ -78,7 +83,8 @@ Order of operations, each with its evidence and rollback:
 6. **Tax.** Prices are tax-inclusive (tokusho "Shown on each product page, tax included"); select the tax-included setting Japan uses. Rollback: edit.
 7. **Data source (after OD-MC-7 and the route release).** Scheduled fetch, URL `https://www.chajewelsjp.com/api/merchant-feed?lang=ja` (JA-first per OD-MC-1 recommendation), daily 03:00 JST, language Japanese, country Japan, currency JPY. English feed (`?lang=en`) only after OD-MC-2 (target country; English for Japan is [U] until the UI shows the allowed languages). Rollback: delete the data source (items expire; nothing on the site changes).
 8. **Verification:** fetch now → Diagnostics; items ≈ `x-feed-items`; no "price mismatch" on single-variant pieces; image crawl OK (MC-G3). Record all of it in the Phase 12 weekly report, status OBSERVED IN MERCHANT CENTER only from the Diagnostics read.
-9. **Decision log to fill:** X8, OD-MC-1, OD-MC-2, OD-MC-3, OD-MC-4 (omit brand: recommended), OD-MC-5, OD-MC-6 (no `shipping_weight`), OD-MC-7, OD-MC-8, OD-MC-9, OD-MC-10, OD-MC-11 (identifier rule).
+9. **Decision log to fill:** X8, OD-MC-1, OD-MC-2, OD-MC-3, OD-MC-4 (omit brand: recommended), OD-MC-5, OD-MC-6 (no `shipping_weight`), OD-MC-7, OD-MC-8, OD-MC-9, OD-MC-10, OD-MC-11 (identifier rule per piece class — without it the feed has NO items), OD-MC-12 (Hub total count for authoritative completeness).
+10. **Exclusions the owner will see in `x-feed-excluded` and must expect:** `identifier_unknown` (every piece until OD-MC-11), `identifier_conflict`, `condition_unknown` (pieces without a Hub condition), `status_unknown`, `not_active`, `no_slug`, `duplicate_slug`, `no_variant`, `no_price`, `no_description` (per language), `no_image`. None of them is a guess; each is a data fact to fix in the Hub or a rule to write.
 
 ## 6. Documentation used
 - Repository: `lib/merchant-feed.ts`, `lib/availability.ts`, `lib/json-ld.ts` (`displayedVariant`), `lib/catalog-i18n.ts`, `lib/metals.ts`, `lib/content/shopping-guide.ts`, `lib/content/legal.ts`, `app/robots.ts`, `MERCHANT-CENTER-READINESS.md` (its §11 Google sources, read 2026-10-29).

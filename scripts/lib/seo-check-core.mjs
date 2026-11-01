@@ -343,6 +343,30 @@ export function llmsTxtProblems({ status, contentType, body }, { publicOrigin, s
   return [...new Set(problems)];
 }
 
+/** The links /llms.txt advertises, in document order (Markdown `[label](https://…)` only). */
+export const llmsTxtLinks = (body) => [...String(body ?? "").matchAll(/\]\((https?:[^)\s]+)\)/g)].map((m) => m[1]);
+
+/**
+ * The recorded contract (master plan PHASE 6 add-on, "Test"): EVERY link in /llms.txt "returns 200 and is indexable".
+ * Sitemap membership is a listing, not an acceptance: this rule judges the FETCHED response of each link — 200,
+ * an HTML document, no noindex in the X-Robots-Tag header or the robots meta, exactly one canonical and it is the
+ * link itself (the page is its own indexable version). Shared by the raw and the DOM checker; unit-tested.
+ */
+export function llmsLinkProblems(link, res) {
+  const problems = [];
+  if (res?.error) problems.push(`request failed: ${res.error}`);
+  if (res?.status !== 200) problems.push(`status ${res?.status ?? "none"}`);
+  if (!/^text\/html\b/i.test(res?.contentType ?? "")) problems.push(`content-type ${res?.contentType ?? "none"}`);
+  if (/noindex/i.test(res?.xrobots ?? "")) problems.push(`x-robots-tag ${res.xrobots}`);
+  const html = String(res?.body ?? "");
+  const robots = (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
+  if (/noindex/i.test(robots ?? "")) problems.push(`robots meta ${robots}`);
+  const canon = [...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1]);
+  if (canon.length !== 1) problems.push(`${canon.length} canonical(s)`);
+  else if (canon[0] !== link) problems.push(`canonical ${canon[0]} is not the link itself`);
+  return problems;
+}
+
 // ------------------------------------------------------------------ the one route matrix
 /**
  * The FOUNDATION route matrix, shared by the raw-HTML and the live-DOM checker so the two cannot drift.

@@ -46,8 +46,8 @@ Additional weekly reads (no export needed, but record "checked, nothing new" or 
 | R2 | Position 5–20 | Position between 5 and 20 and Impressions ≥ 50 | Improve the page (content depth, FAQ block) + add 2–3 internal links from related pages | Content phase; internal-linking (plan §21) |
 | R3 | Query exists, no dedicated page | A query cluster with Impressions ≥ 100 whose top landing page is the home page, a collection, or an unrelated page | Brief a landing page or post (Phase 6/7/8/9 briefs) — route changes need approval | Brief first, then approval |
 | R4 | Strong page, falling clicks | Clicks down ≥ 30% vs previous 28 d with impressions stable or up | Refresh the page (dates, facts, images), check for SERP feature loss | Content refresh |
-| R5 | Zero impressions | Any target query from the plan (§30) with 0 impressions | **Do not assume demand.** Record; do not build for it | Report only |
-| R6 | Legacy URL still receiving impressions | `/products/<slug>` etc. without `/en|/ja` | Expected to decay after Phase 2E; if stable after 8 weeks, check the 307→308 stage status | Phase 2E |
+| R5 | Target term absent from the export | Any target term from the plan (§30) with no disclosed query row. **Absence is not zero:** the export lists disclosed rows only (anonymised queries and rows beyond the export limit are not in it), so the term's impressions are UNKNOWN | **Do not assume demand, or its lack.** Record; do not build for it | Report only |
+| R6 | Legacy URL receiving impressions | `/products/<slug>` etc. without `/en|/ja`, on the canonical host `https://www.chajewelsjp.com` only (another host or scheme of the Domain property is reported as "other-host", never as a site page) | Check the URL's redirect target and the Pages report; after 8 weeks of exports, bring the observed trend to the 307→308 decision (OD-1) — no trend is assumed in advance | Phase 2E |
 | R7 | Locale mismatch | `/ja/…` page ranking for an English query (or vice versa), Country split disagrees | Check hreflang on that pair; log for Phase 2 QA | `cha-i18n-seo` |
 | R8 | Question query without an answer page | §4.1 regex hit, Impressions ≥ 30, landing page not a guide/FAQ/post | Create or extend an FAQ item (Hub FAQ) or a post | Hub content |
 | R9 | Filipino-language query appears | §4.2 regex hit with Impressions > 0 | Evidence for Phase 9 expansion; map to a brief in `docs/seo/phase-9/FILIPINO-CONTENT-BRIEFS.md` | Phase 9 |
@@ -75,7 +75,7 @@ English words anchored at the start (plan §20 "queries beginning with"); Japane
 (?i)cha ?jewels|chajewels|チャジュエルズ|チャ ?ジュエルズ
 ```
 
-### 4.4 Core territory (plan §30), for the R5 "zero impressions" check
+### 4.4 Core territory (plan §30), for the R5 "absent from the export" check
 ```text
 (?i)\b(kihei|喜平|k18|18k|750|layaway|preloved|hallmark|katsushika|tateishi)\b
 ```
@@ -102,20 +102,29 @@ English words anchored at the start (plan §20 "queries beginning with"); Japane
 Exports used: <list of CSV file names, or "NO EXPORT — report not produced">
 Property: <sc-domain:chajewelsjp.com | https://www.chajewelsjp.com/>  Prepared by: <name>
 
-## Totals (Queries export)
-| Metric | This period | Previous | Change |
-|---|---|---|---|
-| Clicks | <n or NO EXPORT> | <n or NO EXPORT> | <% or —> |
-| Impressions | | | |
-| CTR | | | |
-| Avg position | | | |
+Comparison: <comparable (n days each) | NOT COMPARABLE — reason | NO PREVIOUS EXPORT>
 
-## Locale split (Pages exports)
+## Totals
+| Metric | Source | This period | Previous | Change |
+|---|---|---|---|---|
+| Clicks | property total (Chart export) | <n or NO EXPORT> | <n or NO PREVIOUS EXPORT> | <% only when comparable, else —> |
+| Impressions | property total (Chart export) | | | |
+| CTR | property total (Chart export) | | | |
+| Avg position | property (Chart export) | | | <± positions> |
+| Clicks | DISCLOSED query rows only (not a property total) | | | |
+| Impressions | DISCLOSED query rows only (not a property total) | | | |
+
+Undisclosed share: <impressions and clicks of the property total that are in no disclosed row>
+
+## Locale split (Pages export; site pages = https://www.chajewelsjp.com only)
 | Segment | Clicks | Impressions | Note |
 |---|---|---|---|
+| root | | | the root page (OD-3) |
 | /en/ | | | |
 | /ja/ | | | |
 | legacy (no prefix) | | | R6 |
+| other-host | | | other host or scheme of the Domain property — not a site page |
+| unparseable | | | check the export |
 
 ## Opportunities (rules R1–R10)
 | Rule | Query / page | Clicks | Impr. | CTR | Pos. | Proposed action | Status |
@@ -145,7 +154,11 @@ Property: <sc-domain:chajewelsjp.com | https://www.chajewelsjp.com/>  Prepared b
 Nothing in this report is marked indexed, ranking or rich-result eligible except as the exports show.
 ```
 
-## 7. Proposed helper: `scripts/gsc-report.mjs` (DESCRIBED ONLY — not written)
+## 7. Helper: `scripts/gsc-report.mjs` (WRITTEN 2026-11-01 under the master-plan completion authorization; corrected the same day after review)
+
+**What it does beyond the description below (the corrections):** rejects malformed metrics and rows with the row number instead of coercing them to 0; refuses a folder with two files of one kind or mixed date prefixes; derives each folder's period from Chart.csv and prints period-over-period changes only when the two periods are known, equal in length and non-overlapping (and refuses the same folder twice or a later "previous"); classifies page URLs by host and scheme (only `https://www.chajewelsjp.com` is a site page; other hosts of the Domain property and unparseable values get their own rows); separates property totals (Chart export) from sums of disclosed query rows and flags the two as inconsistent when the rows exceed the total; records absent target terms as ABSENT, never as zero; prefills nothing that was not observed. Tests: `tests/gsc-report.test.mjs` (11) on synthetic fixtures `tests/fixtures/gsc/` (not observations). First real run: the next export (OD-SC-1); the header names it expects are the ones §10 marks UNVERIFIED, and it fails loudly if they differ.
+
+*Original description (kept for the record):*
 
 Purpose: turn a folder of Search Console CSV exports into the §6 report so no number is retyped by hand.
 
@@ -154,7 +167,7 @@ Purpose: turn a folder of Search Console CSV exports into the §6 report so no n
 - **Output:** `report-YYYY-MM-DD.md` in the §6 shape, printed to stdout and optionally written next to the inputs. Every cell comes from a row; a missing file yields `NO EXPORT` in that section. No network calls, no Search Console API, no credentials.
 - **Guards:** read-only; runs with `node scripts/gsc-report.mjs <dir>`; the inputs are downloaded files, so the script never executes anything from that directory and treats cell text as data (escape pipes in markdown). Unit tests on small fixture CSVs under `tests/` (parsing, each rule, regexes, locale classification, missing-file handling).
 - **Out of scope for the first version:** the Search Console API (would give query×page×country×device in one table — a later step needing OAuth credentials, owner decision OD-SC-3), Merchant Center or analytics inputs, charts.
-- **Approval:** a new file under `scripts/` is in Claude's ownership area but is listed in the task boundary as not to be created now; write it only when the owner has produced the first export and approves the helper.
+- **Approval:** originally deferred until the first export; written on 2026-11-01 under the owner's "complete all remaining master-plan requirements" authorization (PR #462). The helper reads files only; it changes nothing in Search Console.
 
 ## 8. Weekly cycle (plan PHASE 12 "Weekly")
 

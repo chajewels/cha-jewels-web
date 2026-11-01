@@ -42,7 +42,7 @@
 //  (canonical href, og:url, hreflang pairs, fb:app_id, robots, og:locale, title, h1) unchanged for 600 ms. A page
 //  that never settles is a FAIL that names what blocked it, not a pass.
 import { chromium } from "@playwright/test";
-import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, describeFailure, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, llmsTxtProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
+import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, describeFailure, bootstrapBrowserCredentials, installBrowserCredentials, Coverage, validateSitemap, llmsTxtProblems, llmsTxtLinks, llmsLinkProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 const BASE = (process.argv[2] ?? "https://www.chajewelsjp.com").replace(/\/$/, "");
 let ORIGINS, AUTH;
@@ -91,6 +91,7 @@ cov.expect("private-pages", "real private pages keep og:url only (per context)",
 cov.expect("query-handling", "og:url and the canonical ignore the request query (per context)", M.queryCases.length * C);
 cov.expect("client-navigation", "client-side navigations keep one og:url (per context)", M.navTargets.length * C);
 cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page, fetched with the browser context's own credentials (per context)", 1 * C);
+cov.expect("llms-links", "every link /llms.txt advertises is FETCHED with the context's own credentials and answers 200 text/html, no noindex and one self canonical (one row per link, per context)", 30 * C);
 if (smv.problems.length === 0) cov.hit("sitemap");
 
 const browser = await chromium.launch();
@@ -295,6 +296,19 @@ for (const [ctxName, opts] of contexts) {
     cov.hit("llms-txt");
     const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
     ok(ctxName, "/llms.txt", "200 text/plain; every link is a public sitemap page on the public origin; no product, private or Japanese-layaway link; no figure", problems.length === 0, r.error ? `request failed: ${r.error}` : problems.join("; "));
+    // Each advertised link, fetched by the same context: "every link returns 200 and is indexable" (the contract).
+    for (const link of [...new Set(llmsTxtLinks(r.body))]) {
+      let u; try { u = new URL(link); } catch { continue; }
+      if (u.origin !== PUBLIC_ORIGIN) continue;
+      let lr;
+      try {
+        const res = await context.request.get(`${ORIGINS.requestOrigin}${u.pathname}`, { maxRedirects: 0, timeout: SETTLE_MS });
+        lr = { status: res.status(), contentType: res.headers()["content-type"] ?? null, xrobots: res.headers()["x-robots-tag"] ?? null, body: await res.text() };
+      } catch (e) { lr = { status: 0, contentType: null, xrobots: null, body: "", error: describeFailure(e, AUTH) }; }
+      cov.hit("llms-links");
+      const lp = llmsLinkProblems(link, lr);
+      ok(ctxName, u.pathname, "LLMS-LINK: advertised in /llms.txt → fetched 200 text/html, no noindex, one self canonical", lp.length === 0, lp.join("; "));
+    }
   }
 
   ok(ctxName, "(errors)", `no console error, page error (hydration included), unexpected HTTP status, failed request or failed navigation on any page above (not counted: ${expected404Logged} console line(s) for documents this checker expected to be 404; ${abortedPrefetches} RSC prefetch(es), ${abortedActions} Server Action call(s) and ${abortedMedia} media stream(s) cancelled by this checker's own navigation)`, errors.length === 0, JSON.stringify(errors));

@@ -13,7 +13,7 @@
 // Only real <link>/<meta> elements are counted. Next also repeats the metadata
 // inside its RSC payload as escaped JSON, which is not what a crawler reads.
 
-import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, llmsTxtProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
+import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, llmsTxtProblems, llmsTxtLinks, llmsLinkProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 // BASE is where requests GO. PUBLIC_ORIGIN is what the pages DECLARE (canonical, hreflang, og:url, sitemap):
 // the same for production and a local build, different for a preview, which is requested on its own
@@ -344,6 +344,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   cov.expect("private-pages", "real private pages keep og:url only", 3);
   cov.expect("query-handling", "og:url and the canonical ignore the request query", 2);
   cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page (no product, private, Japanese-layaway or figure)", 1);
+  cov.expect("llms-links", "every link /llms.txt advertises is FETCHED and answers 200 text/html, no noindex (header or meta) and one self canonical — the recorded contract, not sitemap membership (one row per link)", 30);
   if (smv.problems.length === 0) cov.hit("sitemap");
 
   // 1. known templates. A template that is not 200 is a FAIL; a known static template missing from the sitemap is a FAIL.
@@ -424,6 +425,16 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
     cov.hit("llms-txt");
     const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
     ok("/llms.txt", "LLMS: 200 text/plain; every link is a public sitemap page on the public origin; no product, private or Japanese-layaway link; no figure", problems.length === 0, r.error ? `request failed: ${r.error}` : problems.join("; "));
+    // Each advertised link, fetched: the contract says "every link returns 200 and is indexable". A link off the
+    // public origin is already a failure above and is not fetched (the checker never leaves its origin).
+    for (const link of [...new Set(llmsTxtLinks(r.body))]) {
+      let u; try { u = new URL(link); } catch { continue; }
+      if (u.origin !== PUBLIC_ORIGIN) continue;
+      const lr = await get(u.pathname);
+      cov.hit("llms-links");
+      const lp = llmsLinkProblems(link, lr);
+      ok(u.pathname, "LLMS-LINK: advertised in /llms.txt → fetched 200 text/html, no noindex, one self canonical", lp.length === 0, lp.join("; "));
+    }
   }
 
   // 5. query handling: the identity never follows the query

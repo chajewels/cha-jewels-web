@@ -399,8 +399,25 @@ test("llmsTxtProblems: accepts a text/plain Markdown file whose every link is a 
   assert.match(llmsTxtProblems({ status: 0, contentType: null, body: "" }, { publicOrigin: O, sitemapPaths: pages }).join(";"), /status 0/);
 });
 
-test("both checkers judge /llms.txt by the shared rule and declare the llms-txt coverage key (parity)", () => {
+test("llmsLinkProblems: the recorded contract — each advertised link is judged by its FETCHED response (200, HTML, no noindex, one self canonical), never by sitemap membership", () => {
+  const { llmsLinkProblems, llmsTxtLinks } = core;
+  const L = "https://www.chajewelsjp.com/en/faq";
+  const page = (over = {}) => ({ status: 200, contentType: "text/html; charset=utf-8", xrobots: null, body: `<html><head><link rel="canonical" href="${L}"/><meta name="robots" content="index, follow"/></head></html>`, ...over });
+  assert.deepEqual(llmsLinkProblems(L, page()), []);
+  assert.match(llmsLinkProblems(L, page({ status: 404 })).join(";"), /status 404/);
+  assert.match(llmsLinkProblems(L, page({ status: 307, body: "" })).join(";"), /status 307/, "a redirecting link is not an accepted page");
+  assert.match(llmsLinkProblems(L, page({ contentType: "text/plain" })).join(";"), /content-type text\/plain/);
+  assert.match(llmsLinkProblems(L, page({ xrobots: "noindex" })).join(";"), /x-robots-tag noindex/);
+  assert.match(llmsLinkProblems(L, page({ body: page().body.replace("index, follow", "noindex") })).join(";"), /robots meta noindex/);
+  assert.match(llmsLinkProblems(L, page({ body: "<html><head></head></html>" })).join(";"), /0 canonical\(s\)/);
+  assert.match(llmsLinkProblems(L, page({ body: page().body.replace(L, "https://www.chajewelsjp.com/en") })).join(";"), /canonical https:\/\/www\.chajewelsjp\.com\/en is not the link itself/);
+  assert.match(llmsLinkProblems(L, { status: 0, contentType: null, xrobots: null, body: "", error: "timeout" }).join(";"), /request failed: timeout/);
+  assert.deepEqual(llmsTxtLinks("# x\n- [A](https://a.test/1)\n- [B](https://a.test/2) text"), ["https://a.test/1", "https://a.test/2"]);
+  assert.deepEqual(llmsTxtLinks(null), []);
+});
+
+test("both checkers judge /llms.txt by the shared rule, FETCH every advertised link through the shared link rule, and declare the llms-txt and llms-links coverage keys (parity)", () => {
   const live = src("scripts/check-seo-live.mjs"), dom = src("scripts/check-seo-dom.mjs");
-  for (const s of [live, dom]) { assert.match(s, /llmsTxtProblems\(/); assert.match(s, /cov\.expect\("llms-txt"/); assert.match(s, /cov\.hit\("llms-txt"\)/); }
+  for (const s of [live, dom]) { assert.match(s, /llmsTxtProblems\(/); assert.match(s, /cov\.expect\("llms-txt"/); assert.match(s, /cov\.hit\("llms-txt"\)/); assert.match(s, /cov\.expect\("llms-links"/); assert.match(s, /cov\.hit\("llms-links"\)/); assert.match(s, /llmsLinkProblems\(link, lr\)/); assert.match(s, /llmsTxtLinks\(r\.body\)/); }
   assert.match(dom, /context\.request\.get\(`\$\{ORIGINS\.requestOrigin\}\/llms\.txt`/, "the DOM checker fetches with the browser context's own credentials, never a header");
 });
