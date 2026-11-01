@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scene · Halcyon Gate</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* UI PANEL — remove this block to drop the controls */
+  #ui-panel { position: fixed; top: 12px; right: 12px; background: rgba(10,10,12,.75); color: #fff;
+    font: 11px/1.4 -apple-system, system-ui, sans-serif; padding: 8px 10px; border: 1px solid rgba(255,255,255,.12);
+    border-radius: 6px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    max-width: 240px; max-height: 80vh; overflow: auto; z-index: 1000; user-select: none; }
+  #ui-toggle { background: none; border: none; color: #fff; cursor: pointer; font-size: 14px; padding: 0; }
+  #ui-body { display: none; margin-top: 6px; }
+  #ui-panel.-open #ui-body { display: block; }
+  #ui-body label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0; }
+  #ui-body input[type=color] { width: 28px; height: 20px; border: 1px solid rgba(255,255,255,.2); border-radius: 3px; padding: 0; background: none; cursor: pointer; }
+  #ui-body input[type=range] { width: 110px; }
+  #ui-buttons { display: flex; gap: 6px; margin-top: 8px; }
+  #ui-buttons button { flex: 1; cursor: pointer; background: rgba(255,255,255,.08); color: #fff;
+    border: 1px solid rgba(255,255,255,.18); border-radius: 4px; padding: 5px 6px; font: 11px/1 sans-serif; }
+  #ui-buttons button:hover { background: rgba(255,255,255,.16); }
+  #ui-snapshot { margin: 8px 0 0; padding: 6px 8px; background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.12); border-radius: 4px;
+    font: 10px/1.45 ui-monospace, 'SF Mono', Menlo, monospace;
+    white-space: pre-wrap; word-break: break-word; color: rgba(255,255,255,.88);
+    max-height: 240px; overflow: auto; user-select: text; cursor: text; }
+  /* END UI PANEL */
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.143.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.143.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<!-- UI PANEL — remove this block to drop the controls -->
+<div id="ui-panel">
+  <button id="ui-toggle" type="button" aria-label="Toggle controls">⚙ controls</button>
+  <div id="ui-body"></div>
+  <pre id="ui-snapshot" title="Click to select, then copy. These are the current CONFIG values."></pre>
+</div>
+<!-- END UI PANEL -->
+
+<script type="module">
+import * as THREE from 'three'
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
+import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js'
+
+/* ============================================================
+   CONFIG  — every tweakable value lives here. Colors are '#rrggbb'
+   strings; everything else is a number. The palette is a golden-hour
+   ocean: a cool-blue zenith warming to a peachy-gold horizon, a hot
+   white-gold sun, warm-lit & grey-mauve clouds, deep steel-blue water
+   and a brass ring (light/dark gold). The UI panel + localStorage
+   persistence are generated from these keys.
+============================================================ */
+const CONFIG = {
+  colSkyTop: '#5fb4ec',
+  colSkyHorizon: '#ffdca6',
+  colSun: '#fff7e6',
+  colCloudLit: '#fff1da',
+  colCloudDark: '#a9a3b4',
+  colWaterDeep: '#1a5790',
+  colGoldLight: '#ffe49a',
+  colGoldDark: '#9a7330',
+  horizon: 0.47,
+  sunX: 0.5,
+  sunY: 0.58,
+  sunGlow: 0.24,
+  sunCore: 0.08,
+  sunBright: 1.6,
+  cloudScale: 4.1,
+  cloudSpeed: 0.074,
+  cloudCover: 0.35,
+  cloudSoft: 0.19,
+  cloudOpacity: 0.4,
+  ringX: 0.5,
+  ringR: 0.36,
+  tube: 0.004,
+  goldSpec: 1.26,
+  goldRim: 0,
+  camHeight: 0.135,
+  waveScale: 1.8,
+  waveDetail: 0.92,
+  waveSpeed: 0.42,
+  waveAmp: 0.028,
+  stretch: 0.6,
+  edgePos: 0.035,
+  edgeSoft: 0.015,
+  ripFreq: 38,
+  ripDecay: 2.2,
+  ripSize: 2.5,
+  ripAmp: 0.54,
+  reflLow: 0,
+  reflHigh: 1,
+  reflFall: 12,
+  sparkle: 0,
+  brightness: 1.0,
+  grain: 0,
+  mouseLerp: 0.63,
+}
+
+/* ---------- DEFAULTS + localStorage (load BEFORE building the scene) ---------- */
+const DEFAULTS = JSON.parse(JSON.stringify(CONFIG))
+const STORAGE_KEY = 'getlayers:halcyon-gate:v3'        // <- bumped to v3 to load the bluer sea over old saved settings
+try { const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); if (s) for (const k in s) if (k in CONFIG) CONFIG[k] = s[k] } catch (e) {}
+function saveConfig() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(CONFIG)) } catch (e) {} }
+
+function hexToVec3(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  return new THREE.Vector3(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255)
+}
+
+/* ---------- RENDERER / SCENE / CAMERA ---------- */
+const canvas = document.getElementById('scene')
+const renderer = new THREE.WebGL1Renderer({ canvas, antialias: true })
+renderer.setPixelRatio(window.devicePixelRatio)
+renderer.setClearColor(0x000000, 1)
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10)
+camera.position.set(0, 0, 1)   // unused by the clip-space quad, but RenderPass needs a camera
+
+/* ============================================================
+   SCENE: HALCYON GATE — a fullscreen fragment-shader scene. A calm
+   ocean at golden hour: a cool-blue sky warms to a peachy-gold horizon
+   with a hot sun low behind a slender BRASS RING (a torus arch) that
+   stands centred, its upper semicircle above the waterline framing the
+   glowing sky and its lower half drowned in the sea. Everything above
+   the waterline — sky gradient, sun glow, drifting fbm clouds and the
+   ring itself — is painted by worldColor(); the water below the horizon
+   mirrors that same world through a perspective-compressed, ripple-
+   distorted reflection (so the ring + sun + clouds ripple down the
+   middle), then darkens to deep steel-blue with a glittering sun path.
+   The sea breathes; moving the pointer leaves a trail of perspective
+   ripples on the water. Rendered straight (no bloom). Reference: a
+   gold ring half-sunk in a
+   sunset sea. Cousin of the glassy [[Verdant Glass]] light scenes.
+============================================================ */
+const COL_KEYS = ['SkyTop','SkyHorizon','Sun','CloudLit','CloudDark','WaterDeep','GoldLight','GoldDark']
+const gateUniforms = {
+  uRes:        { value: new THREE.Vector2(1, 1) },
+  uTime:       { value: 0 },
+  uMouse:      { value: new THREE.Vector2(0, 0) },
+  uCamH:       { value: CONFIG.camHeight },
+  uRipFreq:    { value: CONFIG.ripFreq },
+  uRipDecay:   { value: CONFIG.ripDecay },
+  uRipFalloff: { value: CONFIG.ripSize },
+  uRipAmp:     { value: CONFIG.ripAmp },
+  uEdgePos:    { value: CONFIG.edgePos },
+  uEdgeSoft:   { value: CONFIG.edgeSoft },
+  uHorizon:    { value: CONFIG.horizon },
+  uSunX:       { value: CONFIG.sunX },
+  uSunY:       { value: CONFIG.sunY },
+  uSunGlow:    { value: CONFIG.sunGlow },
+  uSunCore:    { value: CONFIG.sunCore },
+  uSunBright:  { value: CONFIG.sunBright },
+  uCloudScale: { value: CONFIG.cloudScale },
+  uCloudSpeed: { value: CONFIG.cloudSpeed },
+  uCloudCover: { value: CONFIG.cloudCover },
+  uCloudSoft:  { value: CONFIG.cloudSoft },
+  uCloudOpac:  { value: CONFIG.cloudOpacity },
+  uRingX:      { value: CONFIG.ringX },
+  uRingR:      { value: CONFIG.ringR },
+  uTube:       { value: CONFIG.tube },
+  uGoldSpec:   { value: CONFIG.goldSpec },
+  uGoldRim:    { value: CONFIG.goldRim },
+  uWaveScale:  { value: CONFIG.waveScale },
+  uWaveDetail: { value: CONFIG.waveDetail },
+  uWaveSpeed:  { value: CONFIG.waveSpeed },
+  uWaveAmp:    { value: CONFIG.waveAmp },
+  uStretch:    { value: CONFIG.stretch },
+  uReflLow:    { value: CONFIG.reflLow },
+  uReflHigh:   { value: CONFIG.reflHigh },
+  uReflFall:   { value: CONFIG.reflFall },
+  uSparkle:    { value: CONFIG.sparkle },
+  uBright:     { value: CONFIG.brightness },
+  uGrain:      { value: CONFIG.grain },
+}
+for (const k of COL_KEYS) gateUniforms['uc' + k] = { value: hexToVec3(CONFIG['col' + k]) }
+
+/* ---------- CURSOR-TRAIL RIPPLE POOL (world-plane coords) ---------- */
+const NRIP = 28   // big enough that a fast swipe leaves a continuous trail before slots recycle
+const ripPos = Array.from({ length: NRIP }, () => new THREE.Vector2(0, 0))   // (wx, wz) on the water plane
+const ripBirth = new Array(NRIP).fill(-1e3)
+let ripIdx = 0
+gateUniforms.uRipPos = { value: ripPos }
+gateUniforms.uRipAge = { value: new Array(NRIP).fill(1e3) }
+
+const gateMat = new THREE.ShaderMaterial({
+  uniforms: gateUniforms,
+  depthTest: false, depthWrite: false,
+  vertexShader: `
+    void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+  fragmentShader: `
+    precision highp float;
+    #define PI 3.14159265
+    #define NRIP 28
+    uniform vec2  uRes, uMouse;
+    uniform vec2  uRipPos[NRIP];
+    uniform float uRipAge[NRIP];
+    uniform float uTime;
+    uniform float uHorizon, uSunX, uSunY, uSunGlow, uSunCore, uSunBright;
+    uniform float uCloudScale, uCloudSpeed, uCloudCover, uCloudSoft, uCloudOpac;
+    uniform float uRingX, uRingR, uTube, uGoldSpec, uGoldRim;
+    uniform float uCamH, uWaveScale, uWaveDetail, uWaveSpeed, uWaveAmp, uStretch;
+    uniform float uRipFreq, uRipDecay, uRipFalloff, uRipAmp;
+    uniform float uEdgePos, uEdgeSoft;
+    uniform float uReflLow, uReflHigh, uReflFall, uSparkle;
+    uniform float uBright, uGrain;
+    uniform vec3  ucSkyTop, ucSkyHorizon, ucSun, ucCloudLit, ucCloudDark, ucWaterDeep, ucGoldLight, ucGoldDark;
+
+    float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+    float noise(vec2 p){
+      vec2 i = floor(p), f = fract(p);
+      float a = hash(i), b = hash(i + vec2(1,0)), c = hash(i + vec2(0,1)), d = hash(i + vec2(1,1));
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+    }
+    float fbm(vec2 p){
+      // 4 octaves: octaves 5-6 are <5% amplitude at high frequency and
+      // invisible under the soft clouds — trimmed for performance.
+      float s = 0.0, a = 0.5;
+      for (int i = 0; i < 4; i++){ s += a * noise(p); p = p * 2.02 + vec2(11.3, 7.7); a *= 0.5; }
+      return s;
+    }
+    float aspect(){ return uRes.x / uRes.y; }
+
+    // SKY + SUN + CLOUDS + RING above the waterline. Given a screen-space
+    // coordinate (which may be a mirrored sample for the water reflection)
+    // returns the colour of the world. The ring is a full circle here, but
+    // we only ever sample its UPPER half above the horizon, so the lower
+    // half is never drawn directly — its reflection is the mirrored sample.
+    vec3 worldColor(vec2 uv){
+      float ar = aspect();
+
+      // vertical sky gradient: warm peachy gold at the horizon -> cool blue up high
+      float st = clamp((uv.y - uHorizon) / max(0.0001, 1.0 - uHorizon), 0.0, 1.0);
+      vec3 col = mix(ucSkyHorizon, ucSkyTop, pow(st, 0.7));
+
+      // the sun, low behind the ring: a soft warm glow + a hot core
+      vec2 sun = vec2(uSunX, uSunY);
+      vec2 ds = uv - sun; ds.x *= ar;
+      float sd = length(ds);
+      float glow = exp(-sd * sd / (uSunGlow * uSunGlow));
+      float core = exp(-sd * sd / (uSunCore * uSunCore));
+      col = mix(col, ucSun, glow * 0.55);
+      col += ucSun * core * uSunBright;
+
+      // drifting cumulus clouds, denser up high, thinning toward the horizon
+      vec2 cp = vec2(uv.x * ar, uv.y) * uCloudScale;
+      cp += vec2(uTime * uCloudSpeed + uMouse.x * 0.04, -uTime * uCloudSpeed * 0.25);
+      float base = fbm(cp);
+      float form = fbm(cp * 2.1 + base * 1.6);
+      float mask = smoothstep(uCloudCover, uCloudCover + uCloudSoft, base * 0.62 + form * 0.5);
+      mask *= smoothstep(uHorizon - 0.04, uHorizon + 0.16, uv.y);   // few clouds right at the horizon
+      float lit = smoothstep(0.28, 0.82, form);                      // billow tops catch the light
+      vec3 cloud = mix(ucCloudDark, ucCloudLit, lit);
+      cloud = mix(cloud, ucSun, glow * 0.35);                        // warm the clouds near the sun
+      col = mix(col, cloud, mask * uCloudOpac);
+
+      // BRASS RING — a polished gold torus standing on the horizon, shaded
+      // as a real metal tube: it MIRRORS the surrounding scene (warm sky on
+      // the up-faces, dark sea on the down-faces), tinted by a gold albedo,
+      // with a crisp sun glint and fresnel-bright silhouette edges.
+      vec2 dr = uv - vec2(uRingX, uHorizon); dr.x *= ar;
+      float rr = length(dr);
+      float band = abs(rr - uRingR);
+      float aa = max(1.3 / uRes.y, uTube * 0.12);                     // ~1px crisp but anti-aliased edge
+      float ring = smoothstep(uTube + aa, uTube - aa, band);
+      if (ring > 0.001){
+        vec2 rad = dr / max(rr, 1e-4);                                // outward radial unit
+        float a = clamp((rr - uRingR) / uTube, -1.0, 1.0);           // -1..1 across the tube
+        float round = sqrt(max(0.0, 1.0 - a * a));                    // 1 at tube centre -> 0 at edge
+        vec3 N = normalize(vec3(rad * a, round + 1e-4));             // tube surface normal (z = toward camera)
+        vec3 V = vec3(0.0, 0.0, 1.0);
+        vec3 L = normalize(vec3(normalize(sun - vec2(uRingX, uHorizon)) * 0.9, 0.55));
+
+        // environment reflection: the metal mirrors its surroundings, faked
+        // from the reflected ray's vertical — up reflects the warm bright sky,
+        // down reflects the dark sea, and the sun's glow warms the near side.
+        vec3 Rr = reflect(-V, N);
+        float upf = Rr.y;
+        vec3 env = mix(ucWaterDeep * 1.3, ucSkyHorizon, smoothstep(-0.7, 0.15, upf));
+        env = mix(env, ucSkyTop * 1.12, smoothstep(0.15, 0.9, upf));
+        env = mix(env, ucSun, glow * 0.55);                          // warm where it faces the sun
+        float envLum = dot(env, vec3(0.35, 0.4, 0.25));
+
+        // gold albedo colours the reflection (metals tint what they reflect)
+        vec3 albedo = mix(ucGoldDark, ucGoldLight, 0.5 + 0.5 * upf);
+        vec3 g = albedo * (0.32 + 1.05 * envLum);
+
+        // sharp sun specular — a small hot glint, not a rotating band
+        vec3 H = normalize(L + V);
+        float spec = pow(max(0.0, dot(N, H)), 110.0);
+        g += spec * ucSun * (1.0 + uGoldSpec);
+
+        // broad satin sheen across the upper face of the tube
+        float sheen = pow(max(0.0, dot(N, normalize(vec3(0.0, 0.9, 0.7)))), 3.5);
+        g += sheen * ucGoldLight * 0.22;
+
+        // fresnel rim brightening at the tube's grazing silhouette edges
+        g += pow(1.0 - round, 3.0) * mix(ucGoldLight, ucSun, 0.4) * uGoldRim;
+
+        // gentle backlight where the slender ring crosses the sun core
+        g += ucSun * core * 0.5;
+
+        col = mix(col, g, ring);
+      }
+      return col;
+    }
+
+    // Map a screen point below the horizon onto the WATER PLANE in world
+    // coords: wz is the distance into the scene (camera height uCamH over a
+    // pinhole looking at the horizon -> dist = camH / screenDropBelowHorizon),
+    // wx is the horizontal world position (fans out with distance). This is
+    // what makes the waves recede correctly and the cursor ripples sit flat
+    // on the sea in perspective.
+    vec2 waterPlane(vec2 uv){
+      float ar = aspect();
+      float b = max(uHorizon - uv.y, 0.0008);
+      float wz = uCamH / b;
+      float wx = (uv.x - 0.5) * ar * wz;
+      return vec2(wx, wz);
+    }
+
+    // water surface height field, evaluated in world-plane coords so waves
+    // have true perspective: long swells travelling toward the viewer + fine
+    // wind chop whose detail fades with distance (anti-aliases the horizon),
+    // plus the cursor-trail ripples (true circles on the plane).
+    float waterH(vec2 uv){
+      vec2 w = waterPlane(uv);
+      float wx = w.x, wz = w.y;
+      float fade = 1.0 / (1.0 + wz * wz * uWaveDetail);   // kill fine detail far away
+      float t = uTime * uWaveSpeed;
+      float s = uWaveScale;
+      float h = 0.0;
+      // directional swells (gerstner-ish), rolling in toward the camera
+      h += sin((wz * 1.0 + wx * 0.15) * s - t * 1.0) * 0.55;
+      h += sin((wz * 1.9 - wx * 0.40) * s - t * 1.5) * 0.32 * mix(0.5, 1.0, fade);
+      h += sin((wz * 3.3 + wx * 0.85) * s - t * 2.1) * 0.18 * fade;
+      // fine wind chop
+      h += (fbm(vec2(wx, wz) * s * 1.3 + vec2(0.0, -t * 0.6)) - 0.5) * 0.8 * fade;
+
+      // cursor-trail ripples — circular on the water PLANE (world coords),
+      // so they read in perspective and align flat with the sea. Each ripple
+      // eases IN over ~0.35s (onset) so it swells up smoothly instead of
+      // popping, and is attenuated by the distance fade so far ones don't
+      // alias into flicker.
+      for (int i = 0; i < NRIP; i++){
+        float age = uRipAge[i];
+        // onset (eases in) * decay (fades out). Both depend only on age, which
+        // is the SAME for every fragment, so this early-out is coherent across
+        // the warp (no divergence) and skips the sqrt/sin/exp for dead slots —
+        // typically only a handful of the NRIP ripples are alive at once.
+        float env = smoothstep(0.0, 0.35, age) * exp(-age * uRipDecay);
+        if (env < 0.002) continue;
+        float dist = length(w - uRipPos[i]);
+        // calm the very centre (smoothstep up from 0, scaled to the wavelength)
+        // so the ripple reads as expanding rings, not a bright cusp/dot under
+        // the cursor — that central apex is what looked like a "poke".
+        float clear = smoothstep(0.0, 2.5 / uRipFreq, dist);
+        h += sin(dist * uRipFreq - age * uRipDecay * 4.0)
+             * env * exp(-dist * uRipFalloff) * uRipAmp * fade * clear;
+      }
+      return h;
+    }
+
+    // the reflected water colour at a screen point (mirror of the world,
+    // distorted by the ripple/wave slope), independent of the horizon split.
+    vec3 waterColor(vec2 uv, float ar){
+      float depth = max(uHorizon - uv.y, 0.0);
+      // slope of the surface (finite difference) drives the refraction wobble
+      float e = 0.0016;
+      float hx = waterH(uv + vec2(e, 0.0)) - waterH(uv - vec2(e, 0.0));
+      float hy = waterH(uv + vec2(0.0, e)) - waterH(uv - vec2(0.0, e));
+      vec2 slope = clamp(vec2(hx, hy) / (2.0 * e), -40.0, 40.0);  // clamp tames the horizon
+      float amp = uWaveAmp * (depth + 0.02);
+
+      vec2 ruv;
+      ruv.x = uv.x + slope.x * amp;
+      ruv.y = uHorizon + depth * uStretch + slope.y * amp;  // mirrored back up above the horizon
+      vec3 refl = worldColor(ruv);
+
+      // fresnel: grazing (near the horizon) reflects strongly, foreground less
+      float fres = mix(uReflLow, uReflHigh, exp(-depth * uReflFall));
+      vec3 col = mix(ucWaterDeep, refl, fres);
+
+      // let the brightest reflections (sun + gold) punch through the dark water
+      float lum = dot(refl, vec3(0.299, 0.587, 0.114));
+      col += refl * smoothstep(0.6, 1.05, lum) * 0.6;
+
+      // glittering sun path: high-frequency sparkle on the bright reflections
+      float glit = pow(noise(vec2(uv.x * ar, uv.y) * 240.0 + vec2(0.0, -uTime * 3.0)), 5.0);
+      col += glit * smoothstep(0.5, 0.95, lum) * ucSun * uSparkle;
+      return col;
+    }
+
+    void main(){
+      vec2 uv = gl_FragCoord.xy / uRes;
+      float ar = aspect();
+
+      // Cross-fade sky -> water across a soft, controllable band at the
+      // waterline so the sea can melt into the sky. To stay cheap, ONLY the
+      // thin band evaluates both layers: the pure-sky region skips the
+      // (expensive) water path entirely, and pure water skips the sky clouds.
+      // uEdgePos shifts the waterline (down into the water = +), uEdgeSoft is
+      // the half-width of the fade (0 -> a hard horizon, large -> hazy fade).
+      float center = uHorizon - uEdgePos;
+      float soft   = max(uEdgeSoft, 0.0005);
+      vec3 col;
+      if (uv.y > center + soft) {
+        col = worldColor(uv);                                       // pure sky
+      } else if (uv.y < center - soft) {
+        col = waterColor(uv, ar);                                   // pure water
+      } else {
+        float waterMask = smoothstep(center + soft, center - soft, uv.y);
+        col = mix(worldColor(uv), waterColor(uv, ar), waterMask);   // soft band only
+      }
+
+      // soft horizon haze + a thin bright glint along the waterline
+      float hl = exp(-abs(uv.y - center) * 60.0);
+      col += hl * ucSun * 0.12 * exp(-pow((uv.x - uSunX) * 2.0, 2.0));
+
+      col *= uBright;
+
+      // film grain
+      col += (hash(uv * uRes + uTime) - 0.5) * uGrain;
+
+      gl_FragColor = vec4(col, 1.0);
+    }`,
+})
+const gateQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), gateMat)
+gateQuad.frustumCulled = false
+scene.add(gateQuad)
+
+/* ---------- COMPOSER (gate → gamma; bloom removed) ---------- */
+const composer = new EffectComposer(renderer)
+composer.addPass(new RenderPass(scene, camera))
+composer.addPass(new ShaderPass(GammaCorrectionShader))
+
+/* ---------- INTERACTION (pointer leaves a perspective ripple trail + warm glint) ---------- */
+const mouse = new THREE.Vector2(0, 0), mouseTarget = new THREE.Vector2(0, 0)
+let lastSx = 0, lastSy = 0    // last screen pos a ripple was dropped at (uv space)
+
+// drop a ripple at the cursor's spot on the water plane, using the SAME
+// screen->plane map as the shader so it lands flat and in perspective.
+function dropRipple(sx, sy) {
+  const b = CONFIG.horizon - sy
+  if (b <= 0.012) return                       // only over the water, not the sky
+  const ar = window.innerWidth / window.innerHeight
+  const wz = CONFIG.camHeight / b
+  const wx = (sx - 0.5) * ar * wz
+  ripPos[ripIdx].set(wx, wz)
+  ripBirth[ripIdx] = performance.now() / 1000
+  ripIdx = (ripIdx + 1) % NRIP
+}
+
+window.addEventListener('pointermove', e => {
+  const sx = e.clientX / window.innerWidth
+  const sy = 1 - e.clientY / window.innerHeight          // bottom-up, matches uv
+  const nx = sx * 2 - 1, ny = sy * 2 - 1
+  mouseTarget.set(nx, ny)
+  // throttle by screen distance so ripples space evenly into a trail
+  if (Math.hypot(sx - lastSx, sy - lastSy) > 0.018) { dropRipple(sx, sy); lastSx = sx; lastSy = sy }
+}, { passive: true })
+
+/* ---------- CONFIG → uniforms ---------- */
+function applyConfig() {
+  for (const k of COL_KEYS) gateUniforms['uc' + k].value.copy(hexToVec3(CONFIG['col' + k]))
+  gateUniforms.uHorizon.value = CONFIG.horizon
+  gateUniforms.uSunX.value = CONFIG.sunX
+  gateUniforms.uSunY.value = CONFIG.sunY
+  gateUniforms.uSunGlow.value = CONFIG.sunGlow
+  gateUniforms.uSunCore.value = CONFIG.sunCore
+  gateUniforms.uSunBright.value = CONFIG.sunBright
+  gateUniforms.uCloudScale.value = CONFIG.cloudScale
+  gateUniforms.uCloudSpeed.value = CONFIG.cloudSpeed
+  gateUniforms.uCloudCover.value = CONFIG.cloudCover
+  gateUniforms.uCloudSoft.value = CONFIG.cloudSoft
+  gateUniforms.uCloudOpac.value = CONFIG.cloudOpacity
+  gateUniforms.uRingX.value = CONFIG.ringX
+  gateUniforms.uRingR.value = CONFIG.ringR
+  gateUniforms.uTube.value = CONFIG.tube
+  gateUniforms.uGoldSpec.value = CONFIG.goldSpec
+  gateUniforms.uGoldRim.value = CONFIG.goldRim
+  gateUniforms.uCamH.value = CONFIG.camHeight
+  gateUniforms.uRipFreq.value = CONFIG.ripFreq
+  gateUniforms.uRipDecay.value = CONFIG.ripDecay
+  gateUniforms.uRipFalloff.value = CONFIG.ripSize
+  gateUniforms.uRipAmp.value = CONFIG.ripAmp
+  gateUniforms.uEdgePos.value = CONFIG.edgePos
+  gateUniforms.uEdgeSoft.value = CONFIG.edgeSoft
+  gateUniforms.uWaveScale.value = CONFIG.waveScale
+  gateUniforms.uWaveDetail.value = CONFIG.waveDetail
+  gateUniforms.uWaveSpeed.value = CONFIG.waveSpeed
+  gateUniforms.uWaveAmp.value = CONFIG.waveAmp
+  gateUniforms.uStretch.value = CONFIG.stretch
+  gateUniforms.uReflLow.value = CONFIG.reflLow
+  gateUniforms.uReflHigh.value = CONFIG.reflHigh
+  gateUniforms.uReflFall.value = CONFIG.reflFall
+  gateUniforms.uSparkle.value = CONFIG.sparkle
+  gateUniforms.uBright.value = CONFIG.brightness
+  gateUniforms.uGrain.value = CONFIG.grain
+}
+
+/* ---------- RESIZE ---------- */
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight
+  const dpr = Math.min(window.devicePixelRatio, 2)
+  renderer.setPixelRatio(dpr); renderer.setSize(w, h, false)
+  camera.aspect = w / h; camera.updateProjectionMatrix()
+  composer.setPixelRatio(dpr); composer.setSize(w, h)
+  gateUniforms.uRes.value.copy(renderer.getDrawingBufferSize(new THREE.Vector2()))
+}
+window.addEventListener('resize', resize)
+
+/* ---------- RENDER LOOP ---------- */
+let last = performance.now() / 1000
+function render() {
+  requestAnimationFrame(render)
+  const now = performance.now() / 1000
+  const dt = Math.min(0.05, now - last); last = now
+
+  mouse.lerp(mouseTarget, CONFIG.mouseLerp)
+
+  gateUniforms.uTime.value = now
+  gateUniforms.uMouse.value.copy(mouse)
+  const ages = gateUniforms.uRipAge.value
+  for (let i = 0; i < NRIP; i++) ages[i] = now - ripBirth[i]
+
+  composer.render()
+}
+
+/* ===== UI (remove this block to drop the panel) ===== */
+function setupColorUI(config, apply) {
+  const panel = document.getElementById('ui-panel')
+  const toggle = document.getElementById('ui-toggle')
+  const body = document.getElementById('ui-body')
+  if (!panel) return
+  toggle.addEventListener('click', () => panel.classList.toggle('-open'))
+  const _apply = apply
+  apply = () => { _apply(); saveConfig(); renderSnapshot(config) }
+  const numericRanges = {
+    horizon:       { min: 0.3,  max: 0.7,  step: 0.005 },
+    sunX:          { min: 0,    max: 1,    step: 0.005 },
+    sunY:          { min: 0.3,  max: 0.8,  step: 0.005 },
+    sunGlow:       { min: 0.1,  max: 1,    step: 0.01 },
+    sunCore:       { min: 0.01, max: 0.15, step: 0.002 },
+    sunBright:     { min: 0,    max: 3,    step: 0.02 },
+    cloudScale:    { min: 0.5,  max: 5,    step: 0.05 },
+    cloudSpeed:    { min: 0,    max: 0.1,  step: 0.002 },
+    cloudCover:    { min: 0.2,  max: 0.8,  step: 0.01 },
+    cloudSoft:     { min: 0.05, max: 0.6,  step: 0.01 },
+    cloudOpacity:  { min: 0,    max: 1,    step: 0.01 },
+    ringX:         { min: 0.2,  max: 0.8,  step: 0.005 },
+    ringR:         { min: 0.1,  max: 0.45, step: 0.005 },
+    tube:          { min: 0.004,max: 0.04, step: 0.0005 },
+    goldSpec:      { min: 0,    max: 2,    step: 0.02 },
+    goldRim:       { min: 0,    max: 1.5,  step: 0.02 },
+    camHeight:     { min: 0.04, max: 0.4,  step: 0.005 },
+    waveScale:     { min: 0.5,  max: 6,    step: 0.05 },
+    waveDetail:    { min: 0.02, max: 1.5,  step: 0.01 },
+    waveSpeed:     { min: 0,    max: 3,    step: 0.02 },
+    waveAmp:       { min: 0,    max: 0.05, step: 0.001 },
+    stretch:       { min: 0.6,  max: 2,    step: 0.01 },
+    edgePos:       { min: -0.15,max: 0.3,  step: 0.005 },
+    edgeSoft:      { min: 0,    max: 0.35, step: 0.005 },
+    ripFreq:       { min: 10,   max: 200,  step: 1 },
+    ripDecay:      { min: 0.3,  max: 3,    step: 0.05 },
+    ripSize:       { min: 0.5,  max: 10,   step: 0.1 },
+    ripAmp:        { min: 0,    max: 2,    step: 0.02 },
+    reflLow:       { min: 0,    max: 0.6,  step: 0.01 },
+    reflHigh:      { min: 0.3,  max: 1,    step: 0.01 },
+    reflFall:      { min: 1,    max: 12,   step: 0.1 },
+    sparkle:       { min: 0,    max: 3,    step: 0.02 },
+    brightness:    { min: 0,    max: 2,    step: 0.01 },
+    grain:         { min: 0,    max: 0.15, step: 0.003 },
+    mouseLerp:     { min: 0.01, max: 1,    step: 0.01 },
+  }
+  for (const key of Object.keys(config)) {
+    const v = config[key]
+    const row = document.createElement('label')
+    row.appendChild(Object.assign(document.createElement('span'), { textContent: key }))
+    if (typeof v === 'string' && v[0] === '#') {
+      const inp = document.createElement('input')
+      inp.type = 'color'; inp.value = v
+      inp.addEventListener('input', e => { config[key] = e.target.value; apply() })
+      row.appendChild(inp)
+    } else if (typeof v === 'number') {
+      const r = numericRanges[key] || { min: 0, max: Math.max(1, v * 2), step: 0.01 }
+      const inp = document.createElement('input')
+      inp.type = 'range'; inp.min = String(r.min); inp.max = String(r.max); inp.step = String(r.step); inp.value = String(v)
+      inp.addEventListener('input', e => {
+        let val = parseFloat(e.target.value)
+        if (Number.isInteger(r.step)) val = Math.round(val / r.step) * r.step
+        config[key] = val
+        apply()
+      })
+      row.appendChild(inp)
+    }
+    body.appendChild(row)
+  }
+  const btns = document.createElement('div'); btns.id = 'ui-buttons'
+  const reloadBtn = document.createElement('button'); reloadBtn.type = 'button'; reloadBtn.textContent = '⟳ reload'
+  const resetBtn  = document.createElement('button'); resetBtn.type = 'button'; resetBtn.textContent = '↺ reset'
+  reloadBtn.title = 'Reload the page — re-initialise the scene with the saved settings'
+  resetBtn.title = 'Clear saved settings and reload with defaults'
+  reloadBtn.addEventListener('click', () => location.reload())
+  resetBtn.addEventListener('click', () => { try { localStorage.removeItem(STORAGE_KEY) } catch (e) {} ; location.reload() })
+  btns.appendChild(reloadBtn); btns.appendChild(resetBtn)
+  body.appendChild(btns)
+  panel.classList.add('-open')
+  renderSnapshot(config)
+}
+function renderSnapshot(config) {
+  const snap = document.getElementById('ui-snapshot')
+  if (!snap) return
+  const lines = ['const CONFIG = {']
+  for (const key of Object.keys(config)) {
+    const v = config[key]
+    let formatted
+    if (typeof v === 'string') formatted = "'" + v + "'"
+    else if (Number.isInteger(v)) formatted = String(v)
+    else formatted = String(parseFloat(v.toFixed(4)))
+    lines.push('  ' + key + ': ' + formatted + ',')
+  }
+  lines.push('}')
+  snap.textContent = lines.join('\n')
+}
+
+resize()
+applyConfig()
+setupColorUI(CONFIG, applyConfig)
+render()
+/* ===== END UI ===== */
+</script>
+</body>
+</html>

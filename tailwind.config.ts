@@ -47,14 +47,16 @@ export default {
         "index-active": { DEFAULT: "var(--index-active)", inverse: "var(--index-active-inverse)" },
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
+        // D-14 (P3): `--font-display` is Instrument Serif and `--font-sans` is
+        // Manrope on every page (app/lumiere/tokens.css); Playfair and Inter
+        // are gone. `font-serif` and `font-display` both resolve through
+        // `--lm-font-display`, which on `html:lang(ja)` adds the Mincho after
+        // the serif — Latin glyphs from Instrument Serif, Japanese from Noto
+        // Serif JP — so no display line can fall to a Gothic face (P3 item 1).
+        display: ["var(--lm-font-display)"],
         jp: ["var(--font-jp)", "Hiragino Mincho ProN", "serif"],
         sans: ["var(--font-sans)", "Helvetica Neue", "Arial", "sans-serif"],
-        // LUMIÈRE FACES (D-14; app/fonts.ts). `font-sans` stays Inter until P3,
-        // so the reference's `font-sans` (Manrope) ports as `font-manrope`;
-        // `font-serif` was unused on this site, so it takes Instrument Serif
-        // as in the reference; `font-tight` is Inter Tight, as in the reference.
-        serif: ["var(--font-instrument-serif)", "Georgia", "serif"],
+        serif: ["var(--lm-font-display)"],
         manrope: ["var(--font-manrope)", "Helvetica Neue", "Arial", "sans-serif"],
         tight: ["var(--font-inter-tight)", "Helvetica Neue", "Arial", "sans-serif"],
       },

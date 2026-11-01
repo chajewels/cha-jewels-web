@@ -4,6 +4,7 @@
 // home-path switch.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 const {
   CATEGORY_ORDER,
@@ -171,7 +172,6 @@ const {
   lumiereLayaway,
   lumiereLoyalty,
   lumiereRecentlyViewedTitle,
-  STORIES_ON_HOME,
 } = await import("@/lib/content/lumiere-home");
 const { layawayOffered } = await import("@/lib/layaway-availability");
 
@@ -202,8 +202,10 @@ test("new arrivals: the old section's strings, plus the carousel's own labels wi
   }
 });
 
-test("stories: the old heading block, 'Verified buyer' from reviews, six on the home", () => {
-  assert.equal(STORIES_ON_HOME, 6);
+test("stories: the old heading block, 'Verified buyer' from reviews, every published story on the home (P3 item 4)", () => {
+  const section = readFileSync("components/lumiere/stories/stories-section.tsx", "utf8");
+  assert.ok(!/STORIES_ON_HOME|\.slice\(0,/.test(section), "no cap on the stack");
+  assert.match(section, /limit: REVIEWS_PAGE_MAX/, "every approved review the route can hand over");
   for (const lang of ["en", "ja"]) {
     const s = lumiereStories(lang);
     assert.equal(s.eyebrow, dict.home.testiEyebrow[lang]);

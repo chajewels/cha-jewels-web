@@ -16,6 +16,13 @@
  *   - `render()` ties the front card, the dock caption, the counter, the ghost
  *     index and the lit dot to the centred slot.
  *
+ * AUTO-SWIPE (P3 item 3): the ring advances one card every `AUTO.interval`
+ * ms, settling with the engine's own snap (so a turn reads as a turn and the
+ * no-shake rule holds), and PAUSES on hover, on focus inside the section, during
+ * a drag, while the section is off screen (the ticker is unsubscribed there
+ * already) and while the tab is hidden; after any interaction it waits
+ * `AUTO.idle` ms before resuming. Never under reduced motion.
+ *
  * What changed for this site:
  *   - the MARKUP IS SERVER-RENDERED (components/lumiere/arrivals/
  *     arrivals-section.tsx) — cards, captions, dots and buttons are in the
@@ -45,6 +52,14 @@ export const SPOTLIGHT = {
   tapSlop: 6,
   /** The ring is live while within this margin of the viewport. */
   nearMargin: "50% 0px",
+} as const;
+
+/** The auto-swipe (P3 item 3), in ms. */
+export const AUTO = {
+  /** One card every this often while nobody is touching it. */
+  interval: 3500,
+  /** After an interaction, this long before the ring moves by itself again. */
+  idle: 4000,
 } as const;
 
 const everyFrame = () => 0;
@@ -122,6 +137,12 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
   let targetIndex = 0;
   let settled = true;
   let lastRot = Number.NaN;
+  /* ---------- auto-swipe state ---------- */
+  let hovered = false;
+  let focused = false;
+  let lastInteraction = -Infinity;
+  let lastAuto = -Infinity;
+  const touched = (time = performance.now()) => { lastInteraction = time; };
   const applyRot = () => {
     if (rot !== lastRot) {
       ring.style.setProperty("--rot", `${rot}deg`);
@@ -155,6 +176,7 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
   };
 
   const onDown = (e: PointerEvent) => {
+    touched();
     dragging = true;
     lastX = downX = e.clientX;
     moved = false;
@@ -189,6 +211,7 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
     stage.classList.remove("-drag");
   };
   const onKey = (e: KeyboardEvent) => {
+    touched();
     if (e.key === "ArrowRight") {
       go(1);
       e.preventDefault();
@@ -197,10 +220,14 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
       e.preventDefault();
     }
   };
-  const onPrev = () => go(-1);
-  const onNext = () => go(1);
+  const onPrev = () => { touched(); go(-1); };
+  const onNext = () => { touched(); go(1); };
+  const onEnter = () => { hovered = true; };
+  const onLeave = () => { hovered = false; touched(); };
+  const onFocusIn = () => { focused = true; };
+  const onFocusOut = (e: FocusEvent) => { if (!root.contains(e.relatedTarget as Node | null)) { focused = false; touched(); } };
   const dotHandlers = dots.map((dot, i) => {
-    const handler = () => focusWork(i);
+    const handler = () => { touched(); focusWork(i); };
     dot.addEventListener("click", handler);
     return handler;
   });
@@ -212,9 +239,23 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
   stage.addEventListener("keydown", onKey);
   prev?.addEventListener("click", onPrev);
   next?.addEventListener("click", onNext);
+  root.addEventListener("pointerenter", onEnter);
+  root.addEventListener("pointerleave", onLeave);
+  root.addEventListener("focusin", onFocusIn);
+  root.addEventListener("focusout", onFocusOut);
 
   /* ---------- the frame, on the shared ticker, only while near ---------- */
-  const tick = () => {
+  const tick = (time: number) => {
+    // The auto-swipe: only at rest, only when nobody is near it, never when
+    // the tab is hidden or motion is reduced; the first turn waits a full
+    // interval from the moment the ring came on screen.
+    if (!REDUCE && !dragging && !hovered && !focused && !document.hidden && settled && Math.abs(vel) < SPOTLIGHT.rest) {
+      if (lastAuto === -Infinity) lastAuto = time;
+      if (time - lastInteraction >= AUTO.idle && time - lastAuto >= AUTO.interval) {
+        go(1);
+        lastAuto = time;
+      }
+    }
     if (!dragging) {
       rot += vel;
       vel *= SPOTLIGHT.damp;
@@ -237,8 +278,11 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
   let unsubscribe: (() => void) | null = null;
   const observer = new IntersectionObserver(
     ([entry]) => {
-      if (entry.isIntersecting && !unsubscribe) unsubscribe = subscribeToTicker(tick, everyFrame);
-      else if (!entry.isIntersecting && unsubscribe) {
+      if (entry.isIntersecting && !unsubscribe) {
+        // Coming on screen restarts the auto-swipe clock: a full interval first.
+        lastAuto = -Infinity;
+        unsubscribe = subscribeToTicker(tick, everyFrame);
+      } else if (!entry.isIntersecting && unsubscribe) {
         unsubscribe();
         unsubscribe = null;
       }
@@ -248,6 +292,7 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
   observer.observe(root);
 
   root.dataset.spotlightEngine = "on";
+  root.dataset.spotlightAuto = REDUCE ? "off" : "on";
   applyRot();
   render();
 
@@ -262,6 +307,10 @@ export const mountSpotlight = (root: HTMLElement): SpotlightHandle => {
       stage.removeEventListener("keydown", onKey);
       prev?.removeEventListener("click", onPrev);
       next?.removeEventListener("click", onNext);
+      root.removeEventListener("pointerenter", onEnter);
+      root.removeEventListener("pointerleave", onLeave);
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
       dots.forEach((dot, i) => dot.removeEventListener("click", dotHandlers[i]));
       delete root.dataset.spotlightEngine;
     },

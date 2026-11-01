@@ -125,15 +125,15 @@ export function AnnouncementBar({ text, href, lang, nonce }: { text: string; hre
           sentence is inside one. Content outside every landmark is what axe's
           `region` rule reports, and a strip bolted above the header is exactly
           the thing that ends up orphaned there. */}
-      <aside ref={bar} data-cj-announcement-bar className="bg-charcoal-deep text-chalk">
+      <aside ref={bar} data-cj-announcement-bar data-chrome-tone="dark" className="lm-announce bg-content font-manrope text-content-inverse">
         <div className="wrap flex items-center justify-center gap-3 py-2.5">
-          <p className="text-center text-[13px] leading-snug">
+          <p className="text-center text-[12.5px] font-medium leading-snug tracking-[0.02em]">
             {href ? (
               // The sentence IS the link when there is somewhere to go. An
               // added "learn more" would be copy nobody wrote, in a language
               // nobody chose — the owner writes one line and it either points
               // somewhere or it does not.
-              <Link href={href} className="text-orange underline underline-offset-4 hover:text-orange-hover">
+              <Link href={href} className="underline underline-offset-4 decoration-content-inverse/60 hover:decoration-content-inverse">
                 {text}
               </Link>
             ) : (
@@ -144,7 +144,7 @@ export function AnnouncementBar({ text, href, lang, nonce }: { text: string; hre
             type="button"
             onClick={dismiss}
             aria-label={t("announcement", "dismiss")}
-            className="-mr-1 shrink-0 rounded-full p-1 text-chalk/75 transition-colors hover:text-chalk focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-pale"
+            className="-mr-1 shrink-0 rounded-full p-1 text-content-inverse/70 transition-colors hover:text-content-inverse focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-inverse"
           >
             <X size={16} strokeWidth={1.8} aria-hidden="true" />
           </button>

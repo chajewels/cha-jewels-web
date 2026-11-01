@@ -8,7 +8,6 @@ import { CONSENT_OPEN_EVENT, writeConsent } from "@/lib/consent";
 import { isPayCardPath } from "@/lib/csp";
 import { isStatutoryPath } from "@/lib/statutory-path";
 import { useConsent } from "@/components/analytics/use-consent";
-import { isHomePath } from "@/lib/lumiere/home-path";
 
 /**
  * THE COOKIE BANNER (owner rule 2026-10-15): advertising loads only after
@@ -28,12 +27,12 @@ import { isHomePath } from "@/lib/lumiere/home-path";
  * a card at the bottom LEFT, so it never covers the Messenger button, which is
  * bottom right.
  *
- * ON THE LUMIÈRE HOME (redesign/lumiere P2b item 4) it is a full-width bar
- * along the bottom at every width (`consent-banner--bar`, app/lumiere/
- * sections.css): the bottom-left card sat over the hero's standfirst, the
- * collections lead and the footer's company block. The home's hero band and
- * footer lift above the bar by its height (`--lm-consent`), so no control is
- * ever under it.
+ * A FULL-WIDTH BAR along the bottom at every width (`consent-banner--bar`,
+ * app/lumiere/sections.css) — on the Lumière home since P2b item 4 (the
+ * bottom-left card sat over the hero's standfirst, the collections lead and
+ * the footer's company block) and on every page since P3, when the chrome
+ * went site-wide. The hero band, the footer and the Messenger button lift
+ * above the bar by its height (`--lm-consent`), so no control is ever under it.
  */
 export type ConsentCopy = { region: string; title: string; body: string; accept: string; necessary: string; privacy: string };
 
@@ -54,7 +53,6 @@ export function ConsentBanner({ copy, privacyHref = "/legal/privacy" }: { privac
 
   // The statutory pages, prefixed by a locale or not (lib/statutory-path.ts).
   const quietHere = isStatutoryPath(path) || isPayCardPath(path);
-  const bar = isHomePath(path);
   const asking = consent === "unset" && !quietHere;
   if (consent === "unknown" || (!asking && !opened)) return null;
 
@@ -64,15 +62,15 @@ export function ConsentBanner({ copy, privacyHref = "/legal/privacy" }: { privac
   };
 
   return (
-    <section role="region" aria-label={copy.region} data-consent-banner className={`consent-banner border border-hairline bg-white p-5 text-charcoal shadow-[0_8px_28px_rgb(35_29_18/18%)] lg:rounded-sm${bar ? " consent-banner--bar" : ""}`}>
-      <h2 id="cj-consent-title" ref={heading} tabIndex={-1} className="font-display text-[18px] font-medium text-charcoal-deep outline-none">{copy.title}</h2>
+    <section role="region" aria-label={copy.region} data-consent-banner className="consent-banner consent-banner--bar border border-border-muted bg-surface p-5 text-content shadow-[0_-8px_28px_rgb(0_0_0/10%)]">
+      <h2 id="cj-consent-title" ref={heading} tabIndex={-1} className="font-serif text-[18px] text-content outline-none">{copy.title}</h2>
       <p className="mt-2 text-[14px] leading-relaxed">
         {copy.body}{" "}
-        <Link href={privacyHref} className="font-medium text-gold-dark underline underline-offset-2 hover:text-charcoal-deep">{copy.privacy}</Link>
+        <Link href={privacyHref} className="font-medium text-content underline underline-offset-2 hover:opacity-70">{copy.privacy}</Link>
       </p>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <Button type="button" variant="outline" className="min-h-11 px-3" onClick={() => choose("granted")}>{copy.accept}</Button>
-        <Button type="button" variant="outline" className="min-h-11 px-3" onClick={() => choose("denied")}>{copy.necessary}</Button>
+        <Button type="button" variant="outline" className="min-h-11 rounded-pill border-content px-3 font-manrope text-content hover:bg-content hover:text-content-inverse" onClick={() => choose("granted")}>{copy.accept}</Button>
+        <Button type="button" variant="outline" className="min-h-11 rounded-pill border-content px-3 font-manrope text-content hover:bg-content hover:text-content-inverse" onClick={() => choose("denied")}>{copy.necessary}</Button>
       </div>
     </section>
   );

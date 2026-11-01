@@ -1,5 +1,20 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P3: the chrome on every page and the home fixes
+
+| Page | Method | Production | P2b (2.5 s cap) | **P3** |
+|---|---|---|---|---|
+| `/ja` mobile | simulated | 82 · LCP 4.24 s · TBT 56 ms | 77 · 5.44 s · 112 ms | **80 (57–82) · LCP 4.89 s · TBT 130 ms** |
+| `/en` mobile | simulated | 81 · LCP 4.38 s · TBT 78 ms | 76 · 5.11 s · 234 ms | **80 (77–81) · LCP 4.90 s · TBT 159 ms** |
+| `/ja` desktop | simulated preset | 97 · 0.92 s | 97 · 1.23 s | **98 · 1.01 s · TBT 0 ms** |
+| `/en` desktop | simulated preset | 98 · 0.94 s | 98 · 1.09 s | **98 · 1.15 s · TBT 14 ms** |
+| `/ja` mobile | applied | 55 · LCP 5.06 s | 69 · 2.92 s | **78 · LCP 2.33 s · TBT 520 ms** |
+| `/en` mobile | applied | 59 · LCP 4.77 s | 67 · 3.04 s | **70 · LCP 2.52 s · TBT 808 ms** |
+| `/en/collections/rings` mobile / desktop | simulated | 83 · LCP 4.40 s / 99 | (not measured) | **88 · 3.93 s · TBT 11 ms / 100 · 0.79 s** |
+| a product page, mobile / desktop | simulated | 86 · LCP 3.94 s / 99 | (not measured) | **86 · 4.14 s · TBT 20 ms / 100 · 0.80 s** |
+
+The home did not regress against P2b: the third scene is mounted near, after the TTI window, and draws only while in view (home first load 194 kB gz against 190). Mobile simulated is still under the P1 bar (83 / 81, LCP 4.3 s); the cause and the closers are unchanged from the P2b entry. Inner pages now carry the Lumière chrome and meet or beat production on mobile score and LCP except the product page (LCP +0.2 s, same score). Local build, fixture mode, three runs, median (range); production rows are the P2b same-day measurements.
+
 ## 2026-11-01 — Lumière redesign P2b: the home fixes and the four approved performance closers
 
 Recorded for the P2b PR (`redesign/lumiere-p2b-home-fixes` → `redesign/lumiere`). On top of P2 (final): the inline pre-hydration curtain (the gate lifts on its own 4 s after first paint, the hero drawn at rest by CSS, every entrance immediate on a late hydration), per-section dictionaries (`lib/i18n/sections/`, `lib/i18n-client.ts` — the 46 kB gz dictionary chunk is out of the home's first load, which is **235 → 190 kB gz**, route "190 kB"), the cookie banner in idle and the home's search box on interaction, both 3D scenes after the TTI window (lift → first interaction or 5 s → idle; posters until then), the 412/480 phone rungs in `deviceSizes`.

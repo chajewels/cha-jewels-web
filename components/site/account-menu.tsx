@@ -28,7 +28,8 @@ export function AccountMenu({ name, items, signOut, menuLabel }: { name: React.R
 
   const close = useCallback((refocus: boolean) => {
     setOpen(false);
-    if (refocus) trigger.current?.focus();
+    // Without scrolling: the trigger is in the sticky header (lib/scroll-lock.ts explains the jump).
+    if (refocus) trigger.current?.focus({ preventScroll: true });
   }, []);
 
   useEffect(() => {

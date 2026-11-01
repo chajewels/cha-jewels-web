@@ -11,7 +11,7 @@ import { search as searchDict } from "@/lib/i18n/sections/search";
 import { SalePrice } from "@/components/commerce/sale-price";
 import { markSearchFromBox } from "@/lib/search-origin";
 import { HubImage } from "@/components/media/hub-image";
-import { lockScroll } from "@/lib/scroll-lock";
+import { focusWithoutScroll, lockScroll } from "@/lib/scroll-lock";
 
 type Suggestion = { slug: string; sku: string; name: string; price: number | null; full?: number | null; on_sale?: boolean; image: string | null; cutout: string | null; sold: boolean };
 type CollectionHit = { slug: string; name: string };
@@ -162,10 +162,11 @@ export function SearchBox({ lang, variant = "header", onNavigate }: { lang: Lang
       releaseScroll();
       el.remove();
       setHost(null);
-      trigger?.focus();
+      // Without scrolling: the magnifier is in the sticky header (lib/scroll-lock.ts explains the jump).
+      focusWithoutScroll(trigger);
     };
   }, [sheet]);
-  useEffect(() => { if (host) sheetInputRef.current?.focus(); }, [host]);
+  useEffect(() => { if (host) focusWithoutScroll(sheetInputRef.current); }, [host]);
 
   /** Enter on the raw text, or "See all n results": both land on /search, the single emitter of the `search` event. */
   function submit() {

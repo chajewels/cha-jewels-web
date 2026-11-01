@@ -15,7 +15,7 @@ import type { Lang } from "@/lib/i18n";
 import type { Story } from "@/lib/stories";
 import type { TypeVisual } from "@/lib/type-icons";
 import { TypeIconWell } from "@/components/catalog/type-icon";
-import { lockScroll } from "@/lib/scroll-lock";
+import { focusWithoutScroll, lockScroll } from "@/lib/scroll-lock";
 
 /** `name` is a ReactNode: the header streams the real one in. See header.tsx. */
 export type DrawerAccount = { name: React.ReactNode; menuLabel: string; items: { href: string; label: string }[]; signOut: string };
@@ -112,8 +112,9 @@ export function MobileNav({ lang, links, groups = [], menuLabel, openLabel, clos
   useEffect(() => {
     if (!host) return;
     const trigger = triggerRef.current;
-    closeRef.current?.focus();
-    return () => { trigger?.focus(); };
+    // Without scrolling: the trigger is in the sticky header (lib/scroll-lock.ts explains the jump).
+    focusWithoutScroll(closeRef.current);
+    return () => { focusWithoutScroll(trigger); };
   }, [host]);
 
   useEffect(() => {

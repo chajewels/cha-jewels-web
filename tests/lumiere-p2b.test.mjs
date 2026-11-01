@@ -52,8 +52,9 @@ test("item 4 — the Messenger button is not shown on the home; the cookie banne
   const messenger = read("components/site/messenger-button.tsx");
   const shown = messenger.match(/const SHOWN_ON = \[([^\]]*)\]/)[1];
   assert.ok(!/"\/"/.test(shown), "SHOWN_ON names shopping paths only, never /");
+  // P3: the bar on every page (the home switch is gone).
   const consent = read("components/site/consent-banner.tsx");
-  assert.ok(consent.includes("isHomePath(path)") && consent.includes("consent-banner--bar"));
+  assert.ok(!consent.includes("isHomePath") && consent.includes("consent-banner consent-banner--bar"));
   const css = read("app/lumiere/sections.css");
   assert.ok(css.includes(".hero-band {\n  bottom: var(--lm-bottom-bar, 0px);"), "the hero band lifts above the bars");
 });

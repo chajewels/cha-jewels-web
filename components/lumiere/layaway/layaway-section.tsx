@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { Lang } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
 import { layawayOffered } from "@/lib/layaway-availability";
@@ -5,6 +7,7 @@ import { lumiereLayaway } from "@/lib/content/lumiere-home";
 import { EngineIsland } from "@/components/lumiere/common/engine-island";
 
 import { CalculatorIsland } from "./calculator-island";
+import { GateSceneIsland } from "./gate-scene";
 
 /**
  * THE LAYAWAY BAND — English only (`layawayOffered`, lib/layaway-availability:
@@ -17,6 +20,12 @@ import { CalculatorIsland } from "./calculator-island";
  * typographic plate where the reference had cover art. The calculator's call
  * to action goes to the pieces, never to /layaway (a layaway starts from a
  * piece — components/commerce/layaway-band.tsx).
+ *
+ * P3 (item 5): the band opens on the clarix-feature skeleton (GetLayers
+ * compositions — the copy stacked left with an index row, the heading, a
+ * rule, the lead and the pill; the right half the focal object): the Halcyon
+ * Gate scene (gate-scene.tsx) in a plate beside the copy. The steps and the
+ * calculator keep their row under it.
  */
 export const LAYAWAY_ID = "layaway";
 const STEPS_ID = "layaway-steps";
@@ -26,12 +35,24 @@ export const LayawaySection = ({ lang }: { lang: Lang }) => {
   const content = lumiereLayaway(lang, localePath("/collections", lang));
   return (
     <section id={LAYAWAY_ID} aria-labelledby="layaway-heading" className="layaway scroll-mt-20">
-      <div className="layaway__intro">
-        <span className="layaway__pill font-tight">{content.pill}</span>
-        <h2 id="layaway-heading" className="layaway__heading font-serif">
-          {content.heading}
-        </h2>
-        <p className="layaway__lead font-tight">{content.lead}</p>
+      <div className="layaway__feature">
+        <div className="layaway__intro">
+          <div>
+            <p className="layaway__index font-manrope" aria-hidden="true">
+              <span>{content.pill}</span>
+              <span>{`01 / 0${content.steps.length}`}</span>
+            </p>
+            <h2 id="layaway-heading" className="layaway__heading font-serif">
+              {content.heading}
+            </h2>
+            <span className="layaway__rule" aria-hidden="true" />
+            <p className="layaway__lead font-tight">{content.lead}</p>
+          </div>
+          <Link href={content.cta.href} className="layaway__pill layaway__cta font-tight" data-analytics="layaway-see-pieces">
+            {content.cta.label} <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+        <GateSceneIsland note={content.pill} />
       </div>
 
       <div className="layaway__grid">

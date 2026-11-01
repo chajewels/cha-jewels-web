@@ -48,7 +48,7 @@ export function FlashNotice({ messages }: { messages: Record<string, string> }) 
     <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4"
       style={{ top: "calc(68px + var(--announcement-h, 0px))" }}>
       {shown && (
-        <p className="pointer-events-auto mt-3 rounded-sm border border-gold bg-charcoal-deep px-5 py-2.5 text-sm text-gold-pale shadow-[0_10px_30px_rgba(0,0,0,0.45)]">{shown}</p>
+        <p className="pointer-events-auto mt-3 rounded-pill bg-content px-5 py-2.5 font-manrope text-sm text-content-inverse shadow-[0_10px_30px_rgba(0,0,0,0.25)]">{shown}</p>
       )}
     </div>
   );

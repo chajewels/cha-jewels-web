@@ -17,13 +17,37 @@
  *
  * Nested locks are counted: the second caller does not unlock the first.
  *
+ * THE PAGE STAYS WHERE IT WAS (P3, the pre-existing bug: opening the phone
+ * menu or the search sheet moved the page, and closing them left it near the
+ * top). The cause is not the lock itself: when a dialog closes it hands focus
+ * back to its trigger, and the trigger sits in the sticky header. Chrome's
+ * scroll-into-view for an element inside a `position: sticky` box scrolls to
+ * the box's STATIC position (the top of the document), not to where the box
+ * is drawn — so the page jumped to the header's resting place (measured:
+ * 840 → 428 → 16 px on /en/about at 375, Lenis on or off; a raw tap, not a
+ * test artefact). Two guards, both here or next to here:
+ *   1. the lock records `scrollY` and the release restores it (and tells
+ *      Lenis, immediately, so its own position agrees) — nothing legitimate
+ *      can move a locked page, so a difference at release is always the bug;
+ *   2. `focusWithoutScroll` below is what every dialog uses to hand focus
+ *      back — `focus({ preventScroll: true })` — so the jump never starts.
+ *
  *   useEffect(() => lockScroll(), [open]);                  // release on cleanup
  *   const release = lockScroll(); … release();
  */
 import { useScroll } from "@/lib/lumiere/scroll-store";
 
 let depth = 0;
-let previous: { body: string; html: string } | null = null;
+let previous: { body: string; html: string; y: number } | null = null;
+
+/**
+ * Focus an element without letting the browser scroll it into view — for a
+ * dialog's own controls (already on screen: it is fixed) and for the trigger
+ * focus returns to (in the sticky header, see above). Safe to call with null.
+ */
+export const focusWithoutScroll = (el: HTMLElement | null | undefined): void => {
+  el?.focus({ preventScroll: true });
+};
 
 export interface ScrollLockOptions {
   /**
@@ -40,7 +64,7 @@ export const lockScroll = ({ root = false }: ScrollLockOptions = {}): (() => voi
   if (typeof document === "undefined") return () => undefined;
   depth += 1;
   if (depth === 1) {
-    previous = { body: document.body.style.overflow, html: document.documentElement.style.overflow };
+    previous = { body: document.body.style.overflow, html: document.documentElement.style.overflow, y: typeof window === "undefined" ? 0 : window.scrollY };
     document.body.style.overflow = "hidden";
     useScroll.getState().stop();
   }
@@ -53,7 +77,13 @@ export const lockScroll = ({ root = false }: ScrollLockOptions = {}): (() => voi
     if (depth === 0) {
       document.body.style.overflow = previous?.body ?? "";
       document.documentElement.style.overflow = previous?.html ?? "";
+      const y = previous?.y;
       previous = null;
+      // Guard 1: back to where the page was before the lock, if anything moved it.
+      if (typeof window !== "undefined" && typeof y === "number" && Math.abs(window.scrollY - y) > 1) {
+        window.scrollTo({ top: y, left: 0, behavior: "instant" as ScrollBehavior });
+        useScroll.getState().lenis?.scrollTo(y, { immediate: true, force: true });
+      }
       useScroll.getState().start();
     }
   };
