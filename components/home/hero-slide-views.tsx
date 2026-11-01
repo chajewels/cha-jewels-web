@@ -409,8 +409,8 @@ function HeroClock({ lang, run, still }: { lang: Lang; run: boolean; still: bool
         <span aria-hidden="true">{t("home", "heroClockZone")}</span>
       </p>
       <div ref={track} className="hd-track" data-still={still ? "" : undefined} aria-hidden="true">
-        <Ruler stroke="rgb(232 210 138 / .38)" />
-        <div ref={outer} className="hd-trail"><div ref={inner}><Ruler stroke="rgb(232 210 138 / .9)" /></div></div>
+        <Ruler stroke="rgb(217 211 202 / .38)" />
+        <div ref={outer} className="hd-trail"><div ref={inner}><Ruler stroke="rgb(217 211 202 / .9)" /></div></div>
         <div ref={hand} className="hd-hand" />
       </div>
     </>

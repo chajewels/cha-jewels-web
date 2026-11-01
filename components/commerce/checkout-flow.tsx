@@ -1278,7 +1278,7 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
 
 const SEC = "mb-4 font-display text-[22px] leading-snug text-charcoal-deep [:lang(ja)_&]:text-[19px]";
 const OPT = "grid min-h-11 w-full cursor-pointer grid-cols-[22px_minmax(0,1fr)] items-start gap-3.5 border border-hairline bg-white p-4 sm:p-[18px]";
-const OPT_ON = "border-gold-dark shadow-[inset_3px_0_0_#8A6B12]";
+const OPT_ON = "border-gold-dark shadow-[inset_3px_0_0_#2a2724]";
 const BACK = "inline-flex min-h-11 items-center text-sm font-medium text-charcoal/80 hover:text-charcoal-deep disabled:opacity-60";
 const FIELD_LABEL = "mb-4 block text-[13px] font-semibold text-charcoal/85";
 const INPUT = `mt-1.5 h-12 w-full px-3.5 text-[15px] ${inputLight}`;

@@ -23,7 +23,7 @@ const dot: Record<Tone, string> = {
    * non-text indicator needs, while the ring is 14.57. Drop the ring and the
    * dot stops being perceivable — the contrast gate has a row for the ring.
    */
-  pending: "bg-orange ring-1 ring-charcoal-deep",
+  pending: "bg-gold ring-1 ring-charcoal-deep",
   /** Hollow: absence of fill is the third channel, after hue and the wording. */
   dead: "border border-charcoal/70",
 };

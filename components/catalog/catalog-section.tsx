@@ -89,11 +89,11 @@ export function CollectionHead({ eyebrow, title, description, available, photo, 
   eyebrow: string; title: string; description: string | null; available: number; photo: string | null; lang: Lang;
 }) {
   return (
-    <section className="band-dark grid bg-[#17140f] text-chalk md:min-h-[340px] md:grid-cols-2">
+    <section className="band-dark grid bg-[#0d0d0d] text-chalk md:min-h-[340px] md:grid-cols-2">
       {photo && (
         <div className="relative h-[190px] overflow-hidden md:order-2 md:h-auto">
           <HubImage src={photo} alt="" fill priority sizes="(min-width:768px) 50vw, 100vw" className="object-cover" />
-          <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,#17140f_0%,rgb(23_20_15/0)_45%)] md:bg-[linear-gradient(90deg,#17140f_0%,rgb(23_20_15/0)_30%)]" />
+          <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,#0d0d0d_0%,rgb(23_20_15/0)_45%)] md:bg-[linear-gradient(90deg,#0d0d0d_0%,rgb(23_20_15/0)_30%)]" />
         </div>
       )}
       <div className={`flex flex-col justify-end gap-3.5 px-[clamp(18px,4vw,48px)] pb-7 pt-7 md:pb-12 md:pt-14 md:pl-[max(clamp(18px,4vw,48px),calc((100vw-1240px)/2+48px))] ${photo ? "" : "md:col-span-2"}`}>

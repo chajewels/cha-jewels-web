@@ -112,5 +112,5 @@ export function ProductCard({ product, lang, index = 0, priority = false }: { pr
 }
 
 function GoldMotif() {
-  return <svg viewBox="0 0 200 200" fill="none" stroke="#8A6B12" strokeWidth="1" aria-hidden="true" className="absolute inset-0 m-auto h-[46%] w-[46%] opacity-55"><circle cx="100" cy="100" r="62" /><circle cx="100" cy="100" r="54" strokeOpacity=".5" /><path d="M100 30 L108 44 L100 52 L92 44 Z" strokeWidth="1.2" /></svg>;
+  return <svg viewBox="0 0 200 200" fill="none" stroke="#2a2724" strokeWidth="1" aria-hidden="true" className="absolute inset-0 m-auto h-[46%] w-[46%] opacity-55"><circle cx="100" cy="100" r="62" /><circle cx="100" cy="100" r="54" strokeOpacity=".5" /><path d="M100 30 L108 44 L100 52 L92 44 Z" strokeWidth="1.2" /></svg>;
 }

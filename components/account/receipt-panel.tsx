@@ -121,7 +121,7 @@ export function ReceiptPanel({ lang, receipt, issuedLabel, totalLabel, orderHref
               <div className="mt-2 flex flex-wrap gap-2">
                 {(["ja", "en"] as const).map((l) => (
                   <label key={l} className={`inline-flex min-h-11 cursor-pointer items-center gap-2 border px-4 text-sm ${pdfLang === l ? "border-gold-dark text-charcoal-deep" : "border-charcoal/30 text-charcoal/80"}`}>
-                    <input type="radio" name={`pdf-lang-${receipt.id}`} value={l} checked={pdfLang === l} onChange={() => setPdfLang(l)} className="accent-[#8A6B12]" />
+                    <input type="radio" name={`pdf-lang-${receipt.id}`} value={l} checked={pdfLang === l} onChange={() => setPdfLang(l)} className="accent-[#2a2724]" />
                     {t("receipts", l === "ja" ? "langJa" : "langEn")}
                   </label>
                 ))}

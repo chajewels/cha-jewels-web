@@ -4,7 +4,7 @@
  * C, every label real page text. Grade names are GIA's (4cs.gia.edu, read
  * 2026-10-27); words arrive as props from lib/content/jewelry-guide.ts.
  *
- * Palette: Assay Gold (#8A6B12) for lines and marks that carry meaning (5.01:1
+ * Palette: Assay Gold (#2a2724) for lines and marks that carry meaning (5.01:1
  * on white, so they pass 3:1 as graphics — scripts/check-contrast.mjs), Ink
  * Charcoal for type, Ledger Hairline for edges. The colour strip's tints are
  * illustrative only, edged in hairline so the near-white end stays visible.
@@ -13,7 +13,7 @@
  * (components/editorial/ring-sizer.tsx, necklace-sizer.tsx); the clasps are
  * photographs.
  */
-const ASSAY = "#8A6B12";
+const ASSAY = "#2a2724";
 
 const COLOR_GRADES = "DEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const COLOR_MARKED = new Set(["D", "G", "J", "M", "Z"]);

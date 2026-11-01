@@ -64,7 +64,7 @@ export function LegalFrame({
     <div lang={lang} className="print-legal">
       <section className="band-dark relative overflow-hidden bg-charcoal-deep text-chalk print:bg-white print:text-charcoal-deep">
         <div aria-hidden="true" className="cs-pool print:hidden" />
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,rgb(201_162_39/0),rgb(201_162_39/.6)_20%,#E8D28A_50%,rgb(201_162_39/.6)_80%,rgb(201_162_39/0))] print:hidden" />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,rgb(163_157_148/0),rgb(163_157_148/.6)_20%,#d9d3ca_50%,rgb(163_157_148/.6)_80%,rgb(163_157_148/0))] print:hidden" />
         <div className="wrap relative pt-9 lg:pb-11 lg:pt-14">
           <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-pale before:h-px before:w-7 before:bg-gold print:text-gold-dark [:lang(ja)_&]:text-[12px] [:lang(ja)_&]:normal-case [:lang(ja)_&]:tracking-[0.05em]">
             {t("footer", "legal")}

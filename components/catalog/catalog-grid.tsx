@@ -110,7 +110,7 @@ const CSS = `
 .cg-chip[aria-pressed="true"] { background: #222; color: #F5F5F2; border-color: #222; }
 .cg-chip[aria-disabled="true"] { color: rgb(34 34 34 / .7); border-style: dashed; background: transparent; cursor: default; }
 .cg-n { font-size: 11.5px; color: rgb(34 34 34 / .7); font-variant-numeric: lining-nums tabular-nums; }
-.cg-chip[aria-pressed="true"] .cg-n { color: #E8D28A; }
+.cg-chip[aria-pressed="true"] .cg-n { color: #d9d3ca; }
 .cg-drop { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px 0 12px; border: 1px solid #E5E5E0; background: #fff; font-size: 13px; border-radius: 2px; white-space: nowrap; }
 .cg-drop[data-ticked] { border-color: #222; }
 .cg-drop svg { transition: transform var(--dur-micro) var(--ease-lux); }
@@ -127,7 +127,7 @@ const CSS = `
 .cg-switch { position: relative; width: 34px; height: 20px; border-radius: 9999px; background: rgb(34 34 34 / .45); flex: none; transition: background-color var(--dur-micro) var(--ease-lux); }
 .cg-switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: 14px; height: 14px; border-radius: 9999px; background: #fff; transition: transform var(--dur-micro) var(--ease-lux); }
 [aria-checked="true"] > .cg-switch { background: #222; }
-[aria-checked="true"] > .cg-switch::after { transform: translateX(14px); background: #E8D28A; }
+[aria-checked="true"] > .cg-switch::after { transform: translateX(14px); background: #d9d3ca; }
 .cg-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
 @media (min-width: 834px) { .cg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 24px; } }
 @media (min-width: 1024px) { .cg-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -329,7 +329,7 @@ export function CatalogGrid({ items, types, labels, tile }: {
                 data-r2={r2 ? "" : undefined} data-r3={r3 ? "" : undefined} data-r4={r4 ? "" : undefined}
                 data-p2={r2 >= 2 ? "" : undefined} data-p3={r3 >= 2 ? "" : undefined} data-p4={r4 >= 2 ? "" : undefined}
               >
-                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgb(201_162_39/0),#C9A227_30%,#E8D28A_50%,#C9A227_70%,rgb(201_162_39/0))]" />
+                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgb(163_157_148/0),#a39d94_30%,#d9d3ca_50%,#a39d94_70%,rgb(163_157_148/0))]" />
                 {tile}
               </aside>
             ) : null}

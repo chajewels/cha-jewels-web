@@ -82,7 +82,7 @@ export default async function LoyaltyPage() {
                     key={tier.slug}
                     data-tier=""
                     data-crown={crown ? "" : undefined}
-                    className={`flex flex-col gap-4 border-rule p-6 max-lg:border-b sm:[&:nth-child(odd)]:border-r lg:border-r lg:last:border-r-0 ${crown ? "bg-[linear-gradient(180deg,rgb(201_162_39/.10),transparent_60%)] outline outline-1 -outline-offset-1 outline-gold" : ""}`}
+                    className={`flex flex-col gap-4 border-rule p-6 max-lg:border-b sm:[&:nth-child(odd)]:border-r lg:border-r lg:last:border-r-0 ${crown ? "bg-[linear-gradient(180deg,rgb(163_157_148/.10),transparent_60%)] outline outline-1 -outline-offset-1 outline-gold" : ""}`}
                   >
                     {/* The animated medallion (components/fx/tier-icon.tsx), restored
                         2026-10-03 by owner decision: the step 5 redesign had replaced it

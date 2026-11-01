@@ -28,7 +28,7 @@ const TONES = {
     label: "grid gap-1.5 text-charcoal/70",
     field: "min-h-11 rounded-sm border border-hairline bg-chalk px-3 text-charcoal",
     toggle: "flex w-fit overflow-hidden rounded-sm border border-hairline text-xs",
-    toggleOn: "bg-orange text-charcoal-deep",
+    toggleOn: "bg-content text-content-inverse",
     toggleOff: "text-charcoal/70",
     cellKey: "text-xs text-charcoal/70",
     cellValue: "mt-1 block font-display text-2xl font-normal text-charcoal-deep",

@@ -132,10 +132,10 @@ export default async function LayawayPage({ searchParams }: { searchParams: Prom
           <p className={`mt-[18px] ${LEDE_DARK}`}>{t("home", "layP")}</p>
           {/* The three steps, joined by a gold line: across from sm, down the
               discs on a phone. */}
-          <ol className="relative mt-10 grid gap-6 before:absolute before:bottom-[22px] before:left-[22px] before:top-[22px] before:w-px before:bg-[linear-gradient(180deg,#E8D28A,#C9A227)] sm:grid-cols-3 sm:gap-0 sm:before:bottom-auto sm:before:right-[22px] sm:before:h-px sm:before:w-auto sm:before:bg-[linear-gradient(90deg,#E8D28A,#C9A227)]">
+          <ol className="relative mt-10 grid gap-6 before:absolute before:bottom-[22px] before:left-[22px] before:top-[22px] before:w-px before:bg-[linear-gradient(180deg,#d9d3ca,#a39d94)] sm:grid-cols-3 sm:gap-0 sm:before:bottom-auto sm:before:right-[22px] sm:before:h-px sm:before:w-auto sm:before:bg-[linear-gradient(90deg,#d9d3ca,#a39d94)]">
             {([1, 2, 3] as const).map((n) => (
               <li key={n} className="relative grid grid-cols-[44px_1fr] gap-x-4 sm:block sm:pr-8">
-                <span aria-hidden="true" className="lining-nums relative grid h-11 w-11 place-items-center rounded-full bg-orange text-base font-semibold text-charcoal-deep">{n}</span>
+                <span aria-hidden="true" className="lining-nums relative grid h-11 w-11 place-items-center rounded-full bg-chalk text-base font-semibold text-charcoal-deep">{n}</span>
                 <div>
                   <h2 className="mt-2 font-display text-[22px] leading-[1.25] text-gold-pale sm:mt-[18px]">{t("home", `layStep${n}H`)}</h2>
                   <p className="mt-1.5 text-[14.5px] leading-relaxed text-chalk/80">{t("home", `layStep${n}P`)}</p>

@@ -24,7 +24,7 @@
  * re-running the gate: `charcoal/60` as TEXT is 3.57 on chalk and is a
  * must-fail row precisely because it looks like it would be fine.
  *
- * The focus ring is gold-dark by owner decision. Gold `#C9A227` — the ring on
+ * The focus ring is gold-dark by owner decision. Gold `#a39d94` — the ring on
  * the dark surface — is 2.42 : 1 on white and fails; it is a must-fail row in
  * the gate so it cannot come back by accident.
  *

@@ -305,7 +305,7 @@ function LevelCard({ me, tiers, lang }: { me: HubMe; tiers: HubTier[]; lang: Lan
             <ol className="mt-6 grid grid-cols-2 gap-y-4 border-t border-chalk/20 sm:grid-cols-4">
               {tiers.map((tier) => (
                 <li key={tier.slug} aria-current={on(tier) ? "true" : undefined} className="relative pr-3 pt-3.5 text-[12.5px] leading-relaxed text-chalk/75">
-                  <span aria-hidden="true" className={`absolute -top-[5px] left-0 h-[9px] w-[9px] rounded-full border ${on(tier) ? "border-gold-pale bg-gold-pale" : "border-gold bg-[#17140f]"}`} />
+                  <span aria-hidden="true" className={`absolute -top-[5px] left-0 h-[9px] w-[9px] rounded-full border ${on(tier) ? "border-gold-pale bg-gold-pale" : "border-gold bg-[#0d0d0d]"}`} />
                   <b className={`block font-display text-[17px] font-normal leading-tight ${on(tier) ? "text-gold-pale" : "text-chalk"}`}>{tier.name}</b>
                   <span className="cj-fig">{tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}</span>
                   {tier.multiplier !== null && <><br />{t("account", "points")} {t("loyalty", "times", { n: String(tier.multiplier) })}</>}

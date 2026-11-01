@@ -47,13 +47,13 @@ export function LayawayBand({ lang, fx = false }: { lang: Lang; fx?: boolean }) 
     <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
       <div className="wrap grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-6">
-          <span className="inline-block rounded-full bg-orange px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{t("home", "layPill")}</span>
+          <span className="inline-block rounded-full bg-chalk px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{t("home", "layPill")}</span>
           <h2 className="mt-5 max-w-[20ch] font-display text-[clamp(28px,3.6vw,44px)] text-gold-pale">{t("home", "layH")}</h2>
           <p className="mt-4 max-w-[46ch] text-chalk/75">{t("home", "layP")}</p>
           <ol className="mt-8 grid gap-5">
             {([1, 2, 3] as const).map((n) => (
               <li key={n} className="flex gap-4">
-                <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-orange font-display text-sm font-medium text-charcoal-deep">{n}</span>
+                <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-chalk font-display text-sm font-medium text-charcoal-deep">{n}</span>
                 <div>
                   <p className="font-medium text-chalk">{t("home", `layStep${n}H`)}</p>
                   <p className="mt-1 text-sm text-chalk/75">{t("home", `layStep${n}P`)}</p>
@@ -84,7 +84,7 @@ function LayawayBandFx({ lang }: { lang: Lang }) {
     <section id="layaway" className="w-full scroll-mt-20 bg-charcoal-deep py-16 text-chalk lg:py-20">
       <RevealGroup className="wrap grid items-center gap-10 lg:grid-cols-12 lg:gap-12" stagger={STAGGER.card}>
         <div className="lg:col-span-6">
-          <RevealItem index={0}><span className="inline-block rounded-full bg-orange px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{t("home", "layPill")}</span></RevealItem>
+          <RevealItem index={0}><span className="inline-block rounded-full bg-chalk px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-charcoal-deep">{t("home", "layPill")}</span></RevealItem>
           <SplitHeading text={t("home", "layH")} lang={lang} className="mt-5 max-w-[20ch] font-display text-[clamp(28px,3.6vw,44px)] text-gold-pale" />
           <RevealItem index={1}><p className="mt-4 max-w-[46ch] text-chalk/75">{t("home", "layP")}</p></RevealItem>
           <ol className="mt-8 grid gap-5">
@@ -92,7 +92,7 @@ function LayawayBandFx({ lang }: { lang: Lang }) {
               <li key={n} className="reveal-item relative flex gap-4" style={{ ["--i" as string]: n + 1 }}>
                 {/* The gold line down to the next disc, drawn after this step arrives. */}
                 {n < 3 && <span aria-hidden="true" className="lay-connector" />}
-                <span aria-hidden="true" className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full bg-orange font-display text-sm font-medium text-charcoal-deep">{n}</span>
+                <span aria-hidden="true" className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full bg-chalk font-display text-sm font-medium text-charcoal-deep">{n}</span>
                 <div>
                   <p className="font-medium text-chalk">{t("home", `layStep${n}H`)}</p>
                   <p className="mt-1 text-sm text-chalk/75">{t("home", `layStep${n}P`)}</p>

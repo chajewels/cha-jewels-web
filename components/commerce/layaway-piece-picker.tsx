@@ -66,7 +66,7 @@ export function LayawayPiecePicker({ lang, pieces, initialSlug }: { lang: Lang; 
                 // portrait photo with its own background is no longer tiny.
                 // object-contain keeps every piece whole; max-w-full keeps the
                 // square inside the panel at 375px.
-                <span className="absolute bottom-3 left-1/2 top-2 block aspect-square max-w-full -translate-x-1/2 border border-gold/45 bg-[#121110] shadow-[0_18px_30px_rgb(0_0_0/.5)]">
+                <span className="absolute bottom-3 left-1/2 top-2 block aspect-square max-w-full -translate-x-1/2 border border-gold/45 bg-[#0d0d0d] shadow-[0_18px_30px_rgb(0_0_0/.5)]">
                   <span className="relative block h-full"><HubImage src={piece.image.src} alt="" fill sizes="(min-width:1024px) 370px, 85vw" className="object-contain" /></span>
                 </span>
               )

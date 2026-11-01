@@ -26,17 +26,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        charcoal: { DEFAULT: "#333333", deep: "#222222", mid: "#444444" },
-        chalk: "#F5F5F2",
-        gold: { DEFAULT: "#C9A227", pale: "#E8D28A", dark: "#8A6B12", deep: "#6F5510" },  // `deep` is `dark` taken one step down for the homepage's TINTED
-        // surfaces: gold-dark is 4.59 on chalk and 5.01 on white, but only
-        // 4.35 on bg-hairline/40 and 4.19 behind the mobile tab bar's
-        // chalk/95. #7A5E10 is the smallest step that clears 4.5 (5.12
-        // worst case); this one is 5.89, for headroom against a new tint.
-        orange: { DEFAULT: "#FFA500", hover: "#FFB733" },
+        // LUMIÈRE PALETTE (D-4, P4): the existing names are kept so ~100 files
+        // retarget in one place; the VALUES are the redesign's. charcoal is ink
+        // (black, #1c1c1c, #2b2b2b), chalk is the page (bone-100), gold is no
+        // longer a gold: `dark` is warm ink for labels and links on paper,
+        // `pale` is the soft white for labels on black, `DEFAULT` the warm grey
+        // of a rule or a dot, `deep` black. Gold survives only where it is
+        // material — the pieces, the tier medallions (their own artwork).
+        charcoal: { DEFAULT: "#1c1c1c", deep: "#000000", mid: "#2b2b2b" },
+        chalk: "#f4f0ec",
+        gold: { DEFAULT: "#a39d94", pale: "#d9d3ca", dark: "#2a2724", deep: "#000000" },
         teal: "#1ABC9C",
         garnet: { DEFAULT: "#7A1E2B", light: "#F28B94" },
-        hairline: "#E5E5E0",
+        hairline: "#dad6d0",
         // LUMIÈRE ROLES (app/lumiere/tokens.css Tier 2; the reference's
         // `@theme inline` bindings, report §2). Read at runtime through the
         // tokens, so the responsive bands in tokens.css reach every utility.
@@ -78,7 +80,10 @@ export default {
         "card-note": ["var(--type-card-note)", "var(--type-card-note-leading)"],
         "card-cta": ["var(--type-card-cta)", "var(--type-card-cta-leading)"],
       },
-      borderRadius: { card: "var(--corner-card)", panel: "var(--corner-panel)", pill: "var(--corner-pill)" },
+      // `pill` is a true pill (P4): the buttons and chips of the redesign; `rounded-sm`
+      // (the old 2px square) is softened site-wide so every existing card, field
+      // and chip takes the Lumière radius without a rename.
+      borderRadius: { card: "var(--corner-card)", panel: "var(--corner-panel)", pill: "999px", sm: "10px" },
       letterSpacing: { micro: "var(--track-micro)", utility: "var(--track-utility)", "card-cta": "var(--track-card-cta)" },
       transitionTimingFunction: { hover: "var(--ease-hover-role)", entrance: "cubic-bezier(0.2, 0, 0, 1)" },
       // Leading floor for clipped text-engine reveals (the reference's text-engine.md).

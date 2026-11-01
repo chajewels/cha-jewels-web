@@ -57,7 +57,7 @@ export function PriceBlock({ price, full, onSale, downPayment, lang, showReserve
   return (
     <div className={cn("band-dark relative bg-charcoal-deep px-5 py-5 sm:px-6 sm:py-[22px]", className)}>
       {/* The gold rule on top (comp): the price card is a gilded band. */}
-      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgb(201_162_39/0),#C9A227_30%,#E8D28A_50%,#C9A227_70%,rgb(201_162_39/0))]" />
+      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgb(163_157_148/0),#a39d94_30%,#d9d3ca_50%,#a39d94_70%,rgb(163_157_148/0))]" />
       <p className={cn("font-display text-[30px] leading-[1.1] [font-feature-settings:'lnum'_1,'tnum'_1] [font-variant-numeric:lining-nums_tabular-nums] sm:text-[38px]", sold ? "text-chalk/60" : "text-gold-pale")}><SalePrice price={price} full={full} onSale={onSale} sold={sold} lang={lang} tone="dark" size="lg" /></p>
       {showReserve && !sold && isFigure(jpy) && isFigure(php) && (
         <p className="mt-2 text-sm leading-relaxed text-chalk/80 [font-variant-numeric:lining-nums_tabular-nums]">

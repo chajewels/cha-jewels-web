@@ -9,14 +9,14 @@
 import { readFileSync } from "node:fs";
 
 const C = {
-  charcoal: "#333333", "charcoal-deep": "#222222", "charcoal-mid": "#444444",
-  chalk: "#F5F5F2", gold: "#C9A227", "gold-pale": "#E8D28A",
-  orange: "#FFA500", "orange-hover": "#FFB733", teal: "#1ABC9C",
+  charcoal: "#1c1c1c", "charcoal-deep": "#000000", "charcoal-mid": "#2b2b2b",
+  chalk: "#f4f0ec", gold: "#a39d94", "gold-pale": "#d9d3ca",
+  teal: "#1ABC9C",
   garnet: "#7A1E2B", "garnet-light": "#F28B94",
-  "gold-dark": "#8A6B12", "gold-deep": "#6F5510", white: "#FFFFFF", hairline: "#E5E5E0",
+  "gold-dark": "#2a2724", "gold-deep": "#000000", white: "#FFFFFF", hairline: "#dad6d0",
   // Composited homepage tints, measured rather than named in the config:
   // hairline at 40% over chalk, and chalk at 95% over the page beneath.
-  tintA: "#EFEFEB", tintB: "#EBEBE8",
+  tintA: "#eae6e1", tintB: "#efebe6",
 };
 
 // LUMIÈRE (redesign/lumiere, P2; DESIGN-LUMIERE.md "Palette", report §15.2).
@@ -146,10 +146,7 @@ for (const a of [0.7, 0.75, 0.8, 0.85, 1]) add(`charcoal/${a * 100} label on whi
 for (const bg of DARK) add("garnet-light text", "garnet-light", bg, TEXT);
 add("garnet-light/60 border", "garnet-light", "charcoal-deep", NONTEXT, 0.6);
 // Orange: CTA fills (edge) and the pomelli heading exemption (>=24px, large text).
-for (const bg of [...DARK, "charcoal-mid"]) { add("orange fill edge", "orange", bg, NONTEXT); add("orange heading >=24px (pomelli exemption)", "orange", bg, LARGE); add("teal ornament", "teal", bg, NONTEXT); }
-add("charcoal-deep on orange (CTA label)", "charcoal-deep", "orange", TEXT);
-add("charcoal-deep on orange-hover", "charcoal-deep", "orange-hover", TEXT);
-add("charcoal on orange (hero CTA label)", "charcoal", "orange", TEXT);
+for (const bg of [...DARK, "charcoal-mid"]) { add("teal ornament", "teal", bg, NONTEXT); }
 add("charcoal text on chalk band", "charcoal", "chalk", TEXT);
 // Status badge tone dots (components/account/status-badge.tsx) on the account
 // pages, which are still the dark theme. NON-TEXT (3:1): the dot carries no
@@ -183,7 +180,6 @@ add("gold-dark monthly figure on white (light calculator)", "gold-dark", "white"
 add("charcoal/70 keys, labels and note on white (light calculator)", "charcoal", "white", TEXT, 0.7);
 add("charcoal on chalk input (light calculator)", "charcoal", "chalk", TEXT);
 add("white on charcoal-deep (selected term)", "white", "charcoal-deep", TEXT);
-add("charcoal-deep on orange (layaway pill, step discs)", "charcoal-deep", "orange", TEXT);
 
 // HERO v2 FILM SCRIM (app/globals.css .hd-film-scrim), slider v2 2026-09-26.
 // It replaced the vertical .hero-scrim when the headline moved to the left
@@ -298,7 +294,6 @@ add("FAQ current category: gold-dark on chalk", "gold-dark", "chalk", TEXT);
   const on = (fgName, alpha = 1) => { const fg = alpha < 1 ? blend(hex(C[fgName]), lit, alpha) : hex(C[fgName]); const [L1, L2] = [lum(fg), lum(lit)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
   pairs.push({ label: "spotlight peak: chalk heading", fg: "chalk", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("chalk") });
   pairs.push({ label: "spotlight peak: chalk/75 body", fg: "chalk", bg: "spotlight@gold20", need: TEXT, alpha: 0.75, ratio: on("chalk", 0.75) });
-  pairs.push({ label: "spotlight peak: orange numeral (11px bold)", fg: "orange", bg: "spotlight@gold20", need: TEXT, alpha: 1, ratio: on("orange") });
 }
 
 // HERO v3 STAGE (components/home/hero-slide-views.tsx, app/globals.css
@@ -455,8 +450,6 @@ add("social icon glyph gold-dark (hover) on white", "gold-dark", "white", NONTEX
 // and orange-hover, rows above.
 add("messenger button border (charcoal-deep) on chalk", "charcoal-deep", "chalk", NONTEXT);
 add("messenger button border (charcoal-deep) on white", "charcoal-deep", "white", NONTEXT);
-add("messenger button fill edge (orange) on charcoal-deep", "orange", "charcoal-deep", NONTEXT);
-add("messenger button glyph charcoal-deep on orange", "charcoal-deep", "orange", NONTEXT);
 add("messenger focus ring outer charcoal-deep on chalk", "charcoal-deep", "chalk", NONTEXT);
 add("messenger focus ring outer charcoal-deep on white", "charcoal-deep", "white", NONTEXT);
 add("messenger focus ring inner chalk on charcoal-deep", "chalk", "charcoal-deep", NONTEXT);
@@ -497,8 +490,6 @@ add("values burst flash gold-pale on charcoal tile", "gold-pale", "charcoal", TE
 // 4.5, which it clears on charcoal-deep at 8.06; the exemption is not borrowed
 // and the bar's type size is not free to grow into it.
 add("announcement text (chalk) on charcoal-deep", "chalk", "charcoal-deep", TEXT);
-add("announcement link (orange 13px) on charcoal-deep", "orange", "charcoal-deep", TEXT);
-add("announcement link hover (orange-hover) on charcoal-deep", "orange-hover", "charcoal-deep", TEXT);
 add("announcement close glyph chalk/75 on charcoal-deep", "chalk", "charcoal-deep", NONTEXT, 0.75);
 add("announcement close focus ring gold-pale on charcoal-deep", "gold-pale", "charcoal-deep", NONTEXT);
 
@@ -585,7 +576,6 @@ add("footer Sign up gold-pale on charcoal-deep (D1-2)", "gold-pale", "charcoal-d
     ["chalk/80 step text and ledger notes", "chalk", 0.8, TEXT],
     ["chalk/75 ledger small print", "chalk", 0.75, TEXT],
     ["chalk button fill edge (Join free, D5-3)", "chalk", 1, NONTEXT],
-    ["orange step disc edge", "orange", 1, NONTEXT],
   ]) pairs.push({ label: `step 5 stage pool: ${label}`, fg, bg: "stage pool", need, alpha, ratio: on(fg, alpha) });
 }
 add("step 5 Join free label charcoal-deep on chalk (dark stage)", "charcoal-deep", "chalk", TEXT);
@@ -620,11 +610,10 @@ add("step 5 second question gold-dark display on chalk", "gold-dark", "chalk", L
 // gold-pale on chalk (1.37) was already here and stays.
 const mustFail = [
   ["chalk", "charcoal", 0.45, TEXT], ["garnet", "charcoal", 1, TEXT],
-  ["chalk", "orange", 1, TEXT], ["gold-pale", "chalk", 1, TEXT],
-  ["orange", "chalk", 1, TEXT], ["charcoal", "white", 0.6, TEXT],
+  ["gold-pale", "chalk", 1, TEXT],
+  ["charcoal", "white", 0.3, TEXT],
   ["teal", "white", 1, TEXT], ["gold", "white", 1, NONTEXT],
   ["charcoal", "chalk", 0.6, TEXT], ["garnet-light", "chalk", 1, TEXT],
-  ["orange", "chalk", 1, NONTEXT],
 ];
 
 let bad = 0;

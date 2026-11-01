@@ -66,7 +66,7 @@ export function AccountShell({ lang, current, eyebrow, title, headAside, back, c
                     aria-current={on ? "page" : undefined}
                     className={cn(
                       "flex min-h-12 items-center justify-between border-b border-hairline px-1 text-sm font-medium",
-                      on ? "pl-3.5 text-charcoal-deep shadow-[inset_2px_0_0_#8A6B12]" : "text-charcoal/80 hover:text-charcoal-deep",
+                      on ? "pl-3.5 text-charcoal-deep shadow-[inset_2px_0_0_#2a2724]" : "text-charcoal/80 hover:text-charcoal-deep",
                     )}
                   >
                     {it.label}
