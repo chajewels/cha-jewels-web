@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { animated, easings, useSpring } from "@react-spring/web";
 
 import { designUnit } from "@/lib/lumiere/design-unit";
@@ -59,6 +60,13 @@ export interface SiteHeaderProps {
 /** Panels that flip the bar to its dark state when they pass under it. */
 const DARK_PANELS = ".band-dark, .bg-charcoal-deep, [data-surface=\"dark\"], [data-chrome-tone=\"dark\"], .footer--cha, .featured, .loyalty";
 
+/** The label for the page on screen (by its path, without the language prefix and any hash). */
+const isCurrent = (path: string | null, href: string): boolean => {
+  const bare = (v: string) => v.split(/[?#]/)[0].replace(/^\/(en|ja)(?=\/|$)/, "").replace(/\/$/, "") || "/";
+  const here = bare(path ?? "/"), there = bare(href);
+  return there !== "/" && (here === there || here.startsWith(there + "/"));
+};
+
 const BADGE = { src: "/images/brand/logo-badge-192.webp", size: 192 } as const;
 const MENU_ID = "site-menu";
 const ENTRANCE = { duration: 880, easing: easings.easeOutCubic } as const;
@@ -85,6 +93,7 @@ export const SiteHeader = ({ lang, chrome, crawl, messenger }: SiteHeaderProps) 
   const burger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
+  const path = usePathname();
   // Entrances only on a client navigation (boot-marker.tsx); read once.
   const [play] = useState(() => isClientNavigation());
 
@@ -127,13 +136,13 @@ export const SiteHeader = ({ lang, chrome, crawl, messenger }: SiteHeaderProps) 
   const utilityNodes = [utilities.langSwitcher, utilities.account, utilities.cart, utilities.search];
 
   return (
-    <header ref={ref} data-site-header data-tone={dark ? "dark" : "light"} className="lm-site-header sticky top-0 z-40">
+    <header ref={ref} data-site-header data-tone={dark ? "dark" : "light"} className="lm-site-header sticky top-0 z-[60]">
       <div className="lm-site-header__bar">
         <nav aria-label={labels.primary} className="lm-site-header__nav hidden lg:block">
           <ul className={`flex list-none items-center gap-u-40 font-manrope text-nav font-medium ${lang === "en" ? "uppercase" : ""}`}>
             {nav.map((link, index) => (
               <Item key={link.href} index={index} play={play}>
-                <RollLink href={link.href} className="inline-flex">{link.label}</RollLink>
+                <RollLink href={link.href} className="inline-flex" current={isCurrent(path, link.href)}>{link.label}</RollLink>
               </Item>
             ))}
           </ul>

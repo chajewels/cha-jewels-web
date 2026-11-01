@@ -8,6 +8,11 @@
 @import "./lumiere/sections.css";
 @import "./lumiere/chrome.css";
 @import "./lumiere/pages.css";
+@import "./lumiere/inner.css";
+@import "./lumiere/inner-content.css";
+@import "./lumiere/inner-commerce.css";
+@import "./lumiere/inner-account.css";
+@import "./lumiere/nav.css";
 @import "./lumiere/utilities.css";
 @tailwind base;
 @tailwind components;

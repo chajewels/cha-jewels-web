@@ -1,0 +1,173 @@
+/* ===========================================================================
+   NAVIGATION COLOURS (P4b, owner 2026-11-01, finding A4). Every piece of
+   navigation speaks the EXISTING site's colour language inside the Lumière
+   layout and motion: charcoal text, the gold accent for hover / active /
+   underline / indicators, a darker gold for small gold text so contrast
+   passes, gold eyebrow labels. Never orange. Dedicated tokens: the global
+   `gold` retarget (tailwind.config.ts, P4) is NOT reverted — every other
+   use of `gold` keeps its Lumière ink value.
+
+   The pairs are rows in scripts/check-contrast.mjs ("nav …"). The gold
+   accent (#C9A227) is a LINE or a MARK, never the only sign of a state: the
+   text beside it changes colour too (to the deep gold on paper), so a reader
+   who cannot see a pale line on bone still sees the state.
+   =========================================================================== */
+:root {
+  --nav-ink: #1c1c1c;           /* charcoal: labels on paper */
+  --nav-ink-deep: #000000;
+  --nav-gold: #c9a227;          /* the accent: underlines, indicators, dots, eyebrow rules; text only on black */
+  --nav-gold-text: #8a6b12;     /* small gold text on WHITE (account tiles); on bone use --nav-gold-deep */
+  --nav-gold-deep: #6f5510;     /* hover and current text on bone / white */
+  --nav-ink-inverse: #ffffff;   /* labels on the dark bar and the footer */
+  --nav-panel: #ffffff;         /* an opaque panel: dropdowns */
+  --nav-panel-border: #dad6d0;
+  --nav-hover: var(--nav-gold-deep);
+}
+
+/* --------------------------------------------------------------------------
+   THE HEADER: charcoal labels; the gold line draws under a label on hover and
+   stays under the page you are on. Over a dark panel the bar turns black with
+   white labels and the hover text becomes the gold itself.
+   -------------------------------------------------------------------------- */
+.lm-site-header { color: var(--nav-ink); }
+.lm-site-header[data-tone="dark"] { color: var(--nav-ink-inverse); --nav-hover: var(--nav-gold); }
+.lm-site-header__nav a { position: relative; }
+.lm-site-header__nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 2px;
+  background: var(--nav-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-hover-in) var(--ease-hover-role);
+}
+.lm-site-header__nav a[aria-current="page"] { color: var(--nav-hover); }
+.lm-site-header__nav a[aria-current="page"]::after { transform: scaleX(1); }
+@media (hover: hover) {
+  .lm-site-header__nav a:hover { color: var(--nav-hover); }
+  .lm-site-header__nav a:hover::after { transform: scaleX(1); }
+  .lm-site-header .hero-utilities :is(a, button):hover:not(.lm-dropdown *) { color: var(--nav-hover) !important; }
+}
+.lm-site-header .hero-utilities .lm-nav-tool[data-open] { color: var(--nav-hover) !important; }
+@media (prefers-reduced-motion: reduce) {
+  .lm-site-header__nav a::after { transition: none; }
+}
+
+/* --------------------------------------------------------------------------
+   THE DROPDOWN (the account menu): an OPAQUE panel with its own border and
+   shadow, above all page content (the header is z 60; the panel is in it).
+   -------------------------------------------------------------------------- */
+.lm-dropdown {
+  background: var(--nav-panel) !important;
+  color: var(--nav-ink) !important;
+  border: 1px solid var(--nav-panel-border) !important;
+  border-radius: 14px;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.08);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  isolation: isolate;
+  overflow: hidden;
+}
+.lm-dropdown__item {
+  position: relative;
+  color: var(--nav-ink) !important;
+  transition: background-color var(--duration-hover-in) var(--ease-hover-role), color var(--duration-hover-in) var(--ease-hover-role);
+}
+.lm-dropdown__item[aria-current="page"] { color: var(--nav-ink-deep) !important; font-weight: 600; }
+.lm-dropdown__item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--nav-gold);
+  border-radius: 0 2px 2px 0;
+}
+.lm-dropdown__item:hover,
+.lm-dropdown__item:focus-visible { background: #f4f0ec; color: var(--nav-gold-deep) !important; }
+.lm-dropdown__foot { border-top: 1px solid var(--nav-panel-border); }
+
+/* --------------------------------------------------------------------------
+   THE MENU OVERLAY AND THE SEARCH: gold eyebrows, charcoal links that take
+   the deep gold with a gold line on hover and for the page you are on.
+   -------------------------------------------------------------------------- */
+.lm-nav-eyebrow,
+.lm-search__eyebrow,
+.lm-search__status { color: var(--nav-gold-deep); opacity: 1; font-weight: 600; }  /* bone: the deep gold (4.42:1 for #8a6b12 is under AA) */
+.lm-menu nav a { color: var(--nav-ink); text-decoration: none; }
+.lm-menu li > a { display: inline-flex; }
+.lm-menu nav a { background-image: linear-gradient(var(--nav-gold), var(--nav-gold)); background-repeat: no-repeat; background-position: 0 100%; background-size: 0 2px; transition: background-size var(--duration-hover-in) var(--ease-hover-role), color var(--duration-hover-in) var(--ease-hover-role); }
+.lm-menu nav a[aria-current="page"] { color: var(--nav-gold-deep); background-size: 100% 2px; }
+@media (hover: hover) {
+  .lm-menu nav a:hover { color: var(--nav-gold-deep); background-size: 100% 2px; }
+}
+.lm-search__form { border-bottom-color: var(--nav-ink); }
+.lm-search__form:focus-within { border-bottom-color: var(--nav-gold-deep); box-shadow: 0 1px 0 0 var(--nav-gold-deep); }
+.lm-search__plate.-active { outline-color: var(--nav-gold-deep); }
+.lm-chrome__icon { color: var(--nav-ink); }
+@media (hover: hover) { .lm-chrome__icon:hover { color: var(--nav-gold-deep); opacity: 1; } }
+
+/* --------------------------------------------------------------------------
+   THE PHONE TAB BAR: charcoal at rest; the current tab takes the deep gold
+   and a gold bar on the top edge of the bar.
+   -------------------------------------------------------------------------- */
+.lm-tab {
+  position: relative;
+  color: color-mix(in srgb, var(--nav-ink) 66%, transparent);
+  transition: color var(--duration-hover-in) var(--ease-hover-role);
+}
+.lm-tab[aria-current="page"] { color: var(--nav-gold-deep); font-weight: 600; }
+.lm-tab[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 18%;
+  right: 18%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--nav-gold);
+}
+@media (hover: hover) { .lm-tab:hover { color: var(--nav-gold-deep); } }
+
+/* --------------------------------------------------------------------------
+   THE FOOTER (black): gold eyebrow headings, white links that take the gold
+   on hover. The company block keeps its own whites (chrome.css).
+   -------------------------------------------------------------------------- */
+.footer--cha .footer__column-title,
+.footer--cha .footer__follow { color: var(--nav-gold); font-weight: 600; }
+.footer--cha .footer__link { transition: color var(--duration-hover-in) var(--ease-hover-role); }
+@media (hover: hover) {
+  .footer--cha .footer__link:hover { color: var(--nav-gold); }
+}
+.footer--cha .footer__link[aria-current="page"] { color: var(--nav-gold); }
+
+/* --------------------------------------------------------------------------
+   THE ACCOUNT NAVIGATION (the side list at lg, the chip row below it).
+   -------------------------------------------------------------------------- */
+.lm-side__link {
+  position: relative;
+  color: color-mix(in srgb, var(--nav-ink) 82%, transparent);
+  transition: color var(--duration-hover-in) var(--ease-hover-role), padding-left var(--duration-hover-in) var(--ease-hover-role);
+}
+.lm-side__link[aria-current="page"] { color: var(--nav-ink-deep); font-weight: 600; padding-left: 14px; }
+.lm-side__link[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--nav-gold);
+}
+@media (hover: hover) { .lm-side__link:hover { color: var(--nav-gold-deep); } }
+.lm-chip {
+  border-color: color-mix(in srgb, var(--nav-ink) 55%, transparent);
+  color: var(--nav-ink-deep);
+  transition: color var(--duration-hover-in) var(--ease-hover-role), border-color var(--duration-hover-in) var(--ease-hover-role);
+}
+.lm-chip[aria-current="page"] { background: var(--nav-ink); border-color: var(--nav-ink); color: var(--nav-ink-inverse); box-shadow: inset 0 -3px 0 var(--nav-gold); }
+@media (hover: hover) { .lm-chip:not([aria-current="page"]):hover { border-color: var(--nav-gold-deep); color: var(--nav-gold-deep); } }

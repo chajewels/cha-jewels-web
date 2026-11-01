@@ -1055,13 +1055,13 @@ html:lang(ja) .consent-banner.consent-banner--bar > h2 {
 /* The header's controls (the site's own components, dressed in charcoal) take
    the stage's colour in every hero state — black on the paper, white over the
    frame-3 photograph — and their boxes become hairlines of that colour. */
-.hero-utilities :is(a, button, div, span, kbd, input, svg) {
+.hero-utilities :is(a, button, div, span, kbd, input, svg):not(.lm-dropdown, .lm-dropdown *) {
   color: inherit !important;
 }
-.hero-utilities :is(a, button, div, kbd) {
+.hero-utilities :is(a, button, div, kbd):not(.lm-dropdown, .lm-dropdown *) {
   border-color: color-mix(in srgb, currentColor 45%, transparent) !important;
 }
-.hero-utilities .bg-white {
+.hero-utilities .bg-white:not(.lm-dropdown, .lm-dropdown *) {
   background: transparent !important;
 }
 .hero-utilities input::placeholder {

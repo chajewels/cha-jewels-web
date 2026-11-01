@@ -340,7 +340,7 @@ export const Preloader = ({ label = "Loading" }: PreloaderProps) => {
       // Black, with the mark, rule and count in white — the dark theme the
       // featured stage and the footer use. The gate fades straight from black
       // to the hero's cream.
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-content text-content-inverse inset-safe"
+      className="fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-hidden bg-content text-content-inverse inset-safe"
       style={{
         opacity: exit.opacity,
         pointerEvents: hasLoaded ? "none" : "auto",

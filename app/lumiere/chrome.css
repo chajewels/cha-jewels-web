@@ -41,6 +41,15 @@
 @media (min-width: 1024px) {
   .lm-site-header__bar { height: 72px; }
 }
+/* Below the width where the primary labels fit (lg), the badge and wordmark sit at the left
+   and the tools at the right: a centred mark has only (width - mark) / 2 on each side, which
+   the cart, search, menu — and, from 640 px, the language toggle and account — do not fit
+   (P4b: signed in, the account icon sat over the badge). */
+@media (max-width: 1023.98px) {
+  .lm-site-header__bar { grid-template-columns: auto minmax(0, 1fr); }
+  .lm-site-header__mark { grid-column: 1 !important; }
+  .lm-site-header__tools { grid-column: 2 !important; }
+}
 .lm-site-header__nav { grid-column: 1; justify-self: start; }
 .lm-site-header__mark { grid-column: 2; display: block; color: inherit; text-decoration: none; }
 .lm-site-header__tools { grid-column: 3; justify-self: end; }
@@ -50,9 +59,9 @@
   .lm-site-header__name { display: none; }
 }
 /* The language toggle and the account sit in the menu on a phone. */
-.lm-site-header__wide { display: none; }
+.lm-site-header .lm-site-header__wide { display: none; }
 @media (min-width: 640px) {
-  .lm-site-header__wide { display: flex; }
+  .lm-site-header .lm-site-header__wide { display: flex; }
 }
 html:lang(ja) .lm-site-header .uppercase,
 html:lang(ja) .lm-menu .uppercase,
@@ -249,6 +258,14 @@ body:has(.consent-banner--bar) .messenger-fab {
     "rights  rights"
     "social  social"
     "giant   giant";
+}
+/* On a phone the mark and the subscribe block stack: side by side the mark's column
+   collapsed to nothing and its wordmark ran over the tagline (found P4b, 375 px). */
+@media (max-width: 767.98px) {
+  .footer.footer--cha {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "logo" "subscribe" "columns" "company" "rule" "rights" "social" "giant";
+  }
 }
 /* Four link columns now: the company block is its own area (P4 item 4). */
 .footer--cha .footer__columns {
