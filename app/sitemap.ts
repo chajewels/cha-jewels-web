@@ -3,7 +3,7 @@ import { siteUrl } from "@/lib/site";
 import { hub } from "@/lib/hub-api";
 import { localePath, type Locale } from "@/lib/locale";
 import { LAYAWAY_LANGS } from "@/lib/layaway-availability";
-import { postLanguages } from "@/lib/posts";
+import { gatherSitemapData, isListablePost } from "@/lib/sitemap-data";
 import { PAGE_LASTMOD } from "@/lib/page-lastmod.generated";
 import { primaryImage } from "@/lib/product-facts";
 import { STATIC_PAGES } from "@/lib/sitemap-pages";
@@ -41,33 +41,16 @@ import { STATIC_PAGES } from "@/lib/sitemap-pages";
  * THE STATIC PAGE LIST lives in lib/sitemap-pages.ts (shared with llms.txt,
  * lib/llms-txt.ts, so the two can never advertise different pages).
  */
-/** How long the optional product-photo read may take before the sitemap goes out without image tags. */
-const IMAGE_LOOKUP_TIMEOUT_MS = 10_000;
-
 /** Japanese first: the site's primary language. */
 const ORDER: readonly Locale[] = ["ja", "en"];
 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const [cols, cats, prods, posts, catalog] = await Promise.all([
-    hub.collections().catch(() => []),
-    hub.categories().catch(() => []),
-    hub.productSlugs().catch(() => []),
-    // Tag "content", like every other editorial read, so a post published in
-    // the Hub appears here on the next revalidateTag rather than the next
-    // deploy. Caught like its three neighbours: a sitemap is a hint, and the
-    // one thing worse than an incomplete one is /sitemap.xml returning a 500 to
-    // the crawler that came for it. It self-heals — the next content change
-    // busts the tag and rebuilds this.
-    hub.posts().catch(() => []),
-    // The primary photo of each active piece, from the catalog read the
-    // storefront search already uses (same URL, so the same cached copy when
-    // the Data Cache can hold it). It is the heaviest Hub read in this file, so
-    // it is time-boxed: a slow or failed read costs the image tags only — never
-    // the sitemap, never a canonical URL.
-    hub.allProducts(5000, { timeout: IMAGE_LOOKUP_TIMEOUT_MS }).catch(() => []),
-  ]);
+  // DP-15: every essential Hub read is typed ok/failed in lib/sitemap-data.ts. A
+  // failed read THROWS (SitemapUnavailable) rather than becoming an empty list;
+  // a successful empty list is data. The product-photo catalog is optional.
+  const { cols, cats, prods, posts, langs, catalog } = await gatherSitemapData();
   const photo = new Map<string, string>();
   for (const p of Array.isArray(catalog) ? catalog : []) {
     let url: unknown;
@@ -86,21 +69,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    * route sends no bodies (lib/posts.ts), so the list cannot say which. Each
    * post is asked through `postLanguages` — the same predicate the language
    * switcher uses, one cached Hub read per post — so this file cannot advertise
-   * a /ja/blog URL for an English-only post. A failed read answers neither
-   * language: the post is left out, never listed as a guess.
+   * a /ja/blog URL for an English-only post. A 404 is a successful absence; a
+   * FAILED read fails the whole sitemap (DP-15), it is never a silent omission.
    *
    * LAYAWAY-ONLY POSTS STAY UNLISTED, as before 2D. Their /en pages do answer
    * 200, but layaway indexability is Phase 3, not this phase. `published` is
    * normally absent (the list route returns published rows only); an explicit
    * `false` is refused rather than trusted away.
    */
-  const listable = posts.filter((p) => p.slug?.trim() && p.layaway_only !== true && p.published !== false);
+  const listable = posts.filter(isListablePost);
   const newestPost: Partial<Record<Locale, string>> = {};
   const postEntries = (
     await Promise.all(
       listable.map(async (p) => {
         const slug = p.slug.trim();
-        const has = await postLanguages(slug).catch(() => ({ en: false, ja: false }));
+        const has = langs.get(slug) ?? { en: false, ja: false };
         // The last EDIT when the Hub records one; otherwise the day it went up.
         // A post that has never been edited has not been modified since.
         const lastModified = p.updated_at?.trim() || p.published_at;

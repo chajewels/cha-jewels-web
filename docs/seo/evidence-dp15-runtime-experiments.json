@@ -1,0 +1,21 @@
+{
+  "at": "2026-11-01T11:49:53.226Z",
+  "elapsed_s": 181,
+  "results": [
+    {
+      "id": "R0 healthy start",
+      "ok": true,
+      "note": "{\"status\":200,\"cc\":\"public, max-age=0, must-revalidate\",\"cache\":\"HIT\",\"n\":48,\"complete\":true}"
+    },
+    {
+      "id": "R runtime failure",
+      "ok": true,
+      "note": "R1: last good output kept; [{\"status\":200,\"cc\":\"public, max-age=0, must-revalidate\",\"cache\":\"STALE\",\"n\":48,\"complete\":true},{\"status\":200,\"cc\":\"public, max-age=0, must-revalidate\",\"cache\":\"HIT\",\"n\":48,\"complete\":true},{\"status\":200,\"cc\":\"public, max-age=0, must-revalidate\",\"cache\":\"HIT\",\"n\":48,\"complete\":true}]"
+    },
+    {
+      "id": "V recovery",
+      "ok": true,
+      "note": "healthy Hub restored; complete read after 0 s; final {\"status\":200,\"cc\":\"public, max-age=0, must-revalidate\",\"cache\":\"STALE\",\"n\":48,\"complete\":true}"
+    }
+  ]
+}

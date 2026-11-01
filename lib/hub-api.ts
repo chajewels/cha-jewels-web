@@ -158,6 +158,14 @@ function fixtureChoice(choice: CheckoutChoiceInput): Promise<HubCheckoutChoice> 
 }
 
 const notFoundToNull = async <T>(p: Promise<T>): Promise<T | null> => { try { return await p; } catch (e) { if (e instanceof HubError && e.status === 404 && e.code !== "not_linked") return null; throw e; } };
+/**
+ * OPTIONAL CANCELLATION (DP-15, additive). The five sitemap reads accept an
+ * AbortSignal so a slow Hub read can really be stopped. `call()` forwards it to
+ * `fetch` through its existing `...rest`; callers that pass nothing behave
+ * exactly as before. Fixtures mode never touches the network and ignores it.
+ */
+export type ReadOptions = { signal?: AbortSignal };
+const withSignal = (o?: ReadOptions): { signal?: AbortSignal } => (o?.signal ? { signal: o.signal } : {});
 
 export const hub = {
   /**
@@ -165,10 +173,10 @@ export const hub = {
    * /categories are both built from this, so the deck's contents and its order
    * are an owner decision made in the Hub rather than a list in this repo.
    */
-  categories: (): Promise<Category[]> =>
+  categories: (opts?: ReadOptions): Promise<Category[]> =>
     FIXTURES
       ? Promise.resolve([...fx.categories].sort((a, b) => a.sort_order - b.sort_order))
-      : call("/catalog/categories"),
+      : call("/catalog/categories", withSignal(opts)),
   /** One category and the pieces in it. 404 → null, like collection(). */
   category: (slug: string): Promise<(Category & { products: Product[] }) | null> =>
     FIXTURES
@@ -182,7 +190,7 @@ export const hub = {
           return c ? { ...c, products: fx.categoryProducts(slug) } : null;
         })())
       : notFoundToNull(call(`/catalog/categories/${encodeURIComponent(slug)}`)),
-  collections: (): Promise<Collection[]> => FIXTURES ? Promise.resolve(fx.collections) : call("/catalog/collections"),
+  collections: (opts?: ReadOptions): Promise<Collection[]> => FIXTURES ? Promise.resolve(fx.collections) : call("/catalog/collections", withSignal(opts)),
   collection: (slug: string): Promise<(Collection & { products: Product[] }) | null> =>
     FIXTURES ? Promise.resolve((() => { const c = fx.collections.find((x) => x.slug === slug); return c ? { ...c, products: fx.products.filter((p) => p.col === slug || (p.collection_slugs ?? []).includes(slug)) } : null; })())
              : notFoundToNull(call(`/catalog/collections/${encodeURIComponent(slug)}`)),
@@ -198,7 +206,7 @@ export const hub = {
    */
   allProducts: (limit = 5000, opts: { timeout?: number } = {}): Promise<Product[]> =>
     FIXTURES ? Promise.resolve(fx.products) : call(`/catalog/products?limit=${limit}`, opts.timeout ? { timeout: opts.timeout } : {}),
-  productSlugs: (): Promise<{ slug: string; updated_at: string }[]> => FIXTURES ? Promise.resolve(fx.products.map((p) => ({ slug: p.slug, updated_at: "2026-09-01" }))) : call("/catalog/products?fields=slug,updated_at&limit=5000"),
+  productSlugs: (opts?: ReadOptions): Promise<{ slug: string; updated_at: string }[]> => FIXTURES ? Promise.resolve(fx.products.map((p) => ({ slug: p.slug, updated_at: "2026-09-01" }))) : call("/catalog/products?fields=slug,updated_at&limit=5000", withSignal(opts)),
   /**
    * The Hub's layaway_quote for a piece, in the currency the customer is
    * looking at. `price_jpy` is ALWAYS the yen catalog price: for a peso quote
@@ -252,15 +260,15 @@ export const hub = {
    * THROWS. lib/posts.ts is the one place that decides what a Hub failure
    * means, and it means the static posts still render.
    */
-  posts: (type?: PostType): Promise<HubPost[]> =>
+  posts: (type?: PostType, opts?: ReadOptions): Promise<HubPost[]> =>
     FIXTURES
       ? Promise.resolve(type ? fx.postsFixture.filter((p) => p.type === type) : fx.postsFixture)
-      : call(`/content/posts${type ? `?type=${encodeURIComponent(type)}` : ""}`, { tags: ["content"] }),
+      : call(`/content/posts${type ? `?type=${encodeURIComponent(type)}` : ""}`, { tags: ["content"], ...withSignal(opts) }),
   /** One post. 404 → null, like collection() — an unknown slug is not an error. */
-  post: (slug: string): Promise<HubPost | null> =>
+  post: (slug: string, opts?: ReadOptions): Promise<HubPost | null> =>
     FIXTURES
       ? Promise.resolve(fx.postsFixture.find((p) => p.slug === slug) ?? null)
-      : notFoundToNull(call(`/content/posts/${encodeURIComponent(slug)}`, { tags: ["content"] })),
+      : notFoundToNull(call(`/content/posts/${encodeURIComponent(slug)}`, { tags: ["content"], ...withSignal(opts) })),
 
   /**
    * The FAQ, sections in order with their questions inside them.

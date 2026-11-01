@@ -109,9 +109,22 @@ export async function merge(lang: Lang, type?: PostType): Promise<ViewPost[]> {
  */
 export async function postLanguages(slug: string): Promise<{ en: boolean; ja: boolean }> {
   const full = await hub.post(slug).catch(() => null);
+  return languagesOf(full);
+}
+
+function languagesOf(full: HubPost | null): { en: boolean; ja: boolean } {
   const has = (lang: Lang) =>
     !!full && !!fromHub(full, lang, true) && (full.layaway_only !== true || layawayOffered(lang));
   return { en: has("en"), ja: has("ja") };
+}
+
+/**
+ * The sitemap's variant (DP-15): a 404 is a successful absence ({en:false,ja:false}),
+ * but a failed read THROWS instead of reading as "no such language". The
+ * language switcher keeps `postLanguages` above, unchanged.
+ */
+export async function postLanguagesStrict(slug: string, signal?: AbortSignal): Promise<{ en: boolean; ja: boolean }> {
+  return languagesOf(await hub.post(slug, signal ? { signal } : undefined));
 }
 
 export async function getPost(slug: string, lang: Lang): Promise<ViewPost | null> {
