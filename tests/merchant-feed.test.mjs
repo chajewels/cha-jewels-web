@@ -76,6 +76,23 @@ test("brand evidence and code evidence are two axes (reproduced on 1b654f7: one 
   assert.deepEqual(identifierFields(lv, EV({ kind: "brand", name: "Dior" }, { kind: "none" })), { reason: "identifier_conflict" }, "a different brand than the Hub's");
   assert.deepEqual(identifierFields(product({ origin: "JAPAN", brand: "Mikimoto" }), NONE), { reason: "identifier_conflict" }, "any non-empty Hub brand is brand evidence");
   assert.deepEqual(identifierFields(lv, EV(null, null)), { reason: "identifier_unknown" }, "a Hub brand with unknown codes is still unknown (a branded piece may carry a manufacturer MPN)");
+  // origin=BRAND with a null, empty or whitespace brand name is POSITIVE brand evidence (reproduced on b70f5e0: it fell through to identifier_exists=no)
+  for (const brandText of [null, undefined, "", "   ", "\t\n"]) {
+    const unnamed = product({ origin: "BRAND", brand: brandText });
+    assert.deepEqual(hubBrand(unnamed), { kind: "branded_unnamed" }, JSON.stringify(brandText));
+    assert.deepEqual(identifierFields(unnamed, NONE), { reason: "identifier_conflict" }, `rule 'no brand' vs Hub origin=BRAND (${JSON.stringify(brandText)})`);
+    assert.deepEqual(identifierFields(unnamed, EV(null, { kind: "none" })), { reason: "identifier_unknown" }, `brand unknown to the rule, Hub says branded (${JSON.stringify(brandText)})`);
+    assert.deepEqual(identifierFields(unnamed, EV(null, null)), { reason: "identifier_unknown" });
+    assert.deepEqual(identifierFields(unnamed, EV({ kind: "brand", name: " " }, { kind: "none" })), { reason: "identifier_conflict" }, "a blank name does not resolve it");
+    assert.deepEqual(identifierFields(unnamed, EV({ kind: "brand", name: "Louis Vuitton" }, { kind: "codes", mpn: "M62631" })), { fields: { brand: "Louis Vuitton", mpn: "M62631" } }, "the rule may supply the missing name");
+    assert.deepEqual(identifierFields(unnamed, EV({ kind: "brand", name: "Louis Vuitton" }, { kind: "none" })), { fields: { brand: "Louis Vuitton" } });
+    const built = buildFeed([unnamed], "en", B, NONE);
+    assert.equal(built.items.length, 0);
+    assert.doesNotMatch(renderRss(built, { title: "t", link: B, description: "d" }), /identifier_exists/, "never identifier_exists=no for a Hub-branded piece");
+  }
+  assert.deepEqual(hubBrand({ origin: "BRAND", brand: " Louis Vuitton " }), { kind: "named", name: "Louis Vuitton" });
+  assert.deepEqual(hubBrand({ origin: "JAPAN", brand: null }), { kind: "none_recorded" });
+  assert.deepEqual(hubBrand({ origin: "JAPAN", brand: "Mikimoto" }), { kind: "named", name: "Mikimoto" }, "a name is evidence whatever the origin");
   assert.deepEqual(identifierFields(lv, EV(null, { kind: "none" })), { fields: { brand: "Louis Vuitton" } }, "brand with no code: brand alone (Google: MPN optional only when none is clearly associated; the owner's rule asserts that)");
   // own-made pieces: Google's path is the store name as brand plus an MPN of the merchant's choosing (e.g. the SKU)
   assert.deepEqual(identifierFields(product(), EV({ kind: "brand", name: "Cha Jewels" }, { kind: "codes", mpn: "N1616" })), { fields: { brand: "Cha Jewels", mpn: "N1616" } });
@@ -174,8 +191,7 @@ test("source guard: the builder computes nothing from a price, uses the page's o
   assert.match(src, /displayedVariant\(/);
   assert.doesNotMatch(src, /price_jpy\s*[*\/+-]\s*\d|\*\s*0\.|Math\.round\(.*price|jpy_php|toPhp|phpRate/);
   assert.doesNotMatch(src, /identifiers\s*:\s*IdentifierRule\s*=|identifiers\s*=\s*IDENTIFIERS_UNDECIDED/, "no default identifier rule parameter");
-  assert.equal(hubBrand({ origin: "BRAND", brand: " Louis Vuitton " }), "Louis Vuitton");
-  assert.equal(hubBrand({ origin: "JAPAN", brand: null }), undefined);
+
   assert.doesNotMatch(src, /condition === "Preloved" \? "used" : "new"[^;]*\?\?/, "no condition fallback");
   assert.equal(require_exists("app/api/merchant-feed/route.ts"), false, "the feed route needs the owner's route-change approval before it exists");
 });

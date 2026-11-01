@@ -1259,7 +1259,7 @@ Perform keyword validation before final URLs and titles are chosen.
 
 ### Phase 6 add-on — `llms.txt` (site summary for AI assistants)
 
-Added to Phase 6 by owner decision, 2026-10-31. Status: **builder IMPLEMENTED (`lib/llms-txt.ts`, tests); route NOT INTEGRATED — OWNER DECISION PENDING (OD-LLMS-1)**: the route shipped in PR #462 at `d0b3b5f`/`1b654f7` conflicted with the "static file" and "after the Phase 6 URLs are final" rules below and was withdrawn on 2026-11-01; the options and the exact route code are in `phase-6/LLMS-TXT-DECISION-2026-11-01.md`. Nothing is served at `/llms.txt` until the owner decides.
+Added to Phase 6 by owner decision, 2026-10-31. Status: **builder IMPLEMENTED (`lib/llms-txt.ts`, tests); route WITHDRAWN 2026-11-01 and DEFERRED to the Phase 6 batch under the rules below** (the route shipped in PR #462 at `d0b3b5f`/`1b654f7` did not meet "static file" and "after the Phase 6 URLs are final"; the exact route code and the design point for the Phase 6 batch are in `phase-6/LLMS-TXT-DECISION-2026-11-01.md`). No decision is pending; nothing is served at `/llms.txt` before that batch.
 
 What it is: one plain-text file at `https://www.chajewelsjp.com/llms.txt` with a short description of Cha Jewels and links to the main public pages (collections, categories, wholesale, layaway on the English site, guides once approved, contact, policies). AI assistants that look for this file can find the main pages quickly.
 

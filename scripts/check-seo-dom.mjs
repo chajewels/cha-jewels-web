@@ -91,9 +91,10 @@ cov.expect("gated-descendants", "malformed descendants of gated private routes l
 cov.expect("private-pages", "real private pages keep og:url only (per context)", M.privatePages.length * C);
 cov.expect("query-handling", "og:url and the canonical ignore the request query (per context)", M.queryCases.length * C);
 cov.expect("client-navigation", "client-side navigations keep one og:url (per context)", M.navTargets.length * C);
-// /llms.txt is GATED (OD-LLMS-1, docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md): the route is not in the tree until the
-// owner resolves the static-file / Phase 6 timing conflict. While the route file is absent, a 404 is the expected
-// state and the two llms rows are optional (skipped with that reason); the moment the route exists they are required.
+// /llms.txt is DEFERRED to the Phase 6 batch under the owner's approved requirements of 2026-10-31 ("static file",
+// "after the Phase 6 URLs and titles are final"; record docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md). No decision is
+// pending: the route returns with the Phase 6 batch. While the route file is absent, a 404 is the expected state and the
+// two llms rows are optional (skipped with that reason); the moment the route exists they are required.
 const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
 cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page, fetched with the browser context's own credentials (per context)", 1 * C, { optional: !LLMS_ROUTE_PRESENT });
 cov.expect("llms-links", "every link /llms.txt advertises is FETCHED with the context's own credentials and answers 200 text/html, no noindex and one self canonical (one row per link, per context)", 30 * C, { optional: !LLMS_ROUTE_PRESENT });
@@ -299,9 +300,9 @@ for (const [ctxName, opts] of contexts) {
       r = { status: res.status(), contentType: res.headers()["content-type"] ?? null, body: await res.text() };
     } catch (e) { r = { status: 0, contentType: null, body: "", error: describeFailure(e, AUTH) }; }
     if (!LLMS_ROUTE_PRESENT && r.status === 404) {
-      cov.skip("llms-txt", "route gated (OD-LLMS-1 pending): /llms.txt answers 404 as expected while app/llms.txt/route.ts is absent");
-      cov.skip("llms-links", "route gated (OD-LLMS-1 pending): no file to read links from");
-      ok(ctxName, "/llms.txt", "LLMS: route gated on OD-LLMS-1 — 404 recorded as the expected state, not judged", true, "");
+      cov.skip("llms-txt", "route deferred to the Phase 6 batch under the approved requirements of 2026-10-31 (record OD-LLMS-1; not an open decision): /llms.txt answers 404 as expected while app/llms.txt/route.ts is absent");
+      cov.skip("llms-links", "route deferred to the Phase 6 batch under the approved requirements of 2026-10-31 (record OD-LLMS-1; not an open decision): no file to read links from");
+      ok(ctxName, "/llms.txt", "LLMS: route deferred to the Phase 6 batch (approved requirements; record OD-LLMS-1) — 404 recorded as the expected state, not judged", true, "");
     } else {
     cov.hit("llms-txt");
     const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });

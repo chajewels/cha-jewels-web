@@ -35,11 +35,16 @@ import { displayedVariant } from "@/lib/json-ld";
  *    Google Merchant Center help "identifier_exists", "brand", "gtin", "mpn",
  *    "About unique product identifiers", read 2026-11-01). BRAND evidence and
  *    CODE (GTIN/MPN) evidence are separate facts:
- *      · Brand: the Hub carries one — `brand` on a piece marked `origin ===
- *        "BRAND"` (and any non-empty `brand`) is the Hub's own evidence and
- *        always wins. For a piece without a Hub brand, the owner's rule says
- *        "no brand" or names one (Google's stated path for a merchant who is
- *        also the maker: the store name as brand), or leaves it UNKNOWN.
+ *      · Brand: the Hub carries evidence — a non-empty `brand` names it, and
+ *        `origin === "BRAND"` is POSITIVE evidence that a brand exists even
+ *        when the name is null, empty or whitespace ("branded, name unknown").
+ *        Hub evidence always wins: a rule may confirm a name or supply the
+ *        missing one, never deny it. For a piece the Hub records as unbranded,
+ *        the owner's rule says "no brand" or names one (Google's stated path
+ *        for a merchant who is also the maker: the store name), or leaves it
+ *        UNKNOWN. A Hub-branded piece is NEVER `identifier_exists: no`: with no
+ *        usable name it is UNKNOWN (excluded), and a rule that says "no brand"
+ *        for it is a CONFLICT (excluded).
  *      · Codes: the Website API carries no GTIN or MPN, so these come only
  *        from the owner's rule: "none" (certain no code exists), concrete
  *        codes (a manufacturer MPN/GTIN, or — Google's path for own-made
@@ -130,8 +135,17 @@ export type IdentifierEvidence = { brand: BrandEvidence; codes: CodeEvidence };
 export type IdentifierRule = (p: Product) => IdentifierEvidence;
 /** The only built-in rule: no identifier rule exists yet, so every product is UNKNOWN on both axes and the feed is empty. */
 export const IDENTIFIERS_UNDECIDED: IdentifierRule = () => ({ brand: null, codes: null });
-/** The Hub's own brand evidence: the `brand` of a piece the Hub marks as branded (or any non-empty `brand`). */
-export const hubBrand = (p: Pick<Product, "origin" | "brand">): string | undefined => text(p.brand);
+/**
+ * The Hub's own brand evidence. `origin === "BRAND"` is POSITIVE evidence that a brand exists even when the brand
+ * text is null, empty or whitespace ("branded, name unknown"); a non-empty `brand` names it. Neither state may ever
+ * become `identifier_exists: no`.
+ */
+export type HubBrandEvidence = { kind: "named"; name: string } | { kind: "branded_unnamed" } | { kind: "none_recorded" };
+export const hubBrand = (p: Pick<Product, "origin" | "brand">): HubBrandEvidence => {
+  const name = text(p.brand);
+  if (name) return { kind: "named", name };
+  return p.origin === "BRAND" ? { kind: "branded_unnamed" } : { kind: "none_recorded" };
+};
 
 /** Google product taxonomy ids by Hub collection slug (taxonomy-with-ids.en-US.txt, read 2026-10-29). Unmapped: no category. */
 export const GOOGLE_CATEGORY_BY_COLLECTION: Readonly<Record<string, number>> = {
@@ -164,14 +178,19 @@ export function googleCategory(p: Pick<Product, "collection_slugs" | "category_s
  */
 export function identifierFields(p: Product, rule: IdentifierRule): { fields: Pick<FeedItem, "brand" | "gtin" | "mpn" | "identifier_exists"> } | { reason: "identifier_unknown" | "identifier_conflict" } {
   const ev = rule(p);
-  const fromHub = hubBrand(p);
-  // Brand axis: the Hub's brand is evidence and wins; the rule may only confirm it.
+  const hub = hubBrand(p);
+  // Brand axis: the Hub's evidence wins; the rule may only confirm or, for a branded piece without a recorded name, supply the name.
   let brand: string | undefined;
-  if (fromHub) {
-    if (ev.brand === null) brand = fromHub;
+  if (hub.kind === "named") {
+    if (ev.brand === null) brand = hub.name;
     else if (ev.brand.kind === "none") return { reason: "identifier_conflict" };
-    else if (text(ev.brand.name) !== fromHub) return { reason: "identifier_conflict" };
-    else brand = fromHub;
+    else if (text(ev.brand.name) !== hub.name) return { reason: "identifier_conflict" };
+    else brand = hub.name;
+  } else if (hub.kind === "branded_unnamed") {
+    if (ev.brand === null) return { reason: "identifier_unknown" };            // branded, name unknown: not sendable, never "no"
+    if (ev.brand.kind === "none") return { reason: "identifier_conflict" };     // the rule denies a brand the Hub asserts
+    brand = text(ev.brand.name);
+    if (!brand) return { reason: "identifier_conflict" };
   } else if (ev.brand === null) return { reason: "identifier_unknown" };
   else if (ev.brand.kind === "brand") { brand = text(ev.brand.name); if (!brand) return { reason: "identifier_conflict" }; }
   // Code axis: the API has no GTIN/MPN; only the rule can know.
@@ -180,7 +199,7 @@ export function identifierFields(p: Product, rule: IdentifierRule): { fields: Pi
   const mpn = ev.codes.kind === "codes" ? text(ev.codes.mpn) : undefined;
   if (ev.codes.kind === "codes" && !gtin && !mpn) return { reason: "identifier_conflict" };
   if (mpn && !brand) return { reason: "identifier_conflict" };
-  if (!brand && !gtin && !mpn) return { fields: { identifier_exists: "no" } };
+  if (!brand && !gtin && !mpn) return hub.kind === "none_recorded" ? { fields: { identifier_exists: "no" } } : { reason: "identifier_conflict" };
   return { fields: { ...(brand ? { brand } : {}), ...(gtin ? { gtin } : {}), ...(mpn ? { mpn } : {}) } };
 }
 

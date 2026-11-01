@@ -1,6 +1,6 @@
-# `llms.txt` — approval conflict and owner decision OD-LLMS-1 (2026-11-01)
+# `llms.txt` — deferral record OD-LLMS-1 (2026-11-01): the route waits for the Phase 6 batch under the approved requirements
 
-**Status:** builder IMPLEMENTED (`lib/llms-txt.ts`, 4 unit tests); **route NOT INTEGRATED — OWNER DECISION PENDING (OD-LLMS-1).** The route `app/llms.txt/route.ts` shipped in `d0b3b5f` / `1b654f7` of PR #462 is withdrawn from the tree in this batch; its exact code is §4 below. Documentation of a deviation is not approval: the route returns only when the owner has decided.
+**Status:** builder IMPLEMENTED (`lib/llms-txt.ts`, 4 unit tests); **route DEFERRED to the Phase 6 batch — no owner decision requested.** The owner's approved requirements of 2026-10-31 already decide the question ("static file"; "build it inside the Phase 6 batch, after the Phase 6 URLs and titles are final"), so the route is simply not integrated before that batch. This record is a label (OD-LLMS-1), not an approval request; asking again would only re-open what is already decided. The route `app/llms.txt/route.ts` shipped in `d0b3b5f` / `1b654f7` of PR #462 is withdrawn from the tree in this batch; its exact code is §4 below. Documentation of a deviation is not approval: the route returns with the Phase 6 batch, built to the approved requirements.
 
 ## 1. The recorded requirements (owner, 2026-10-31, PR #454)
 
@@ -22,20 +22,20 @@ From `CHA-JEWELS-SEO-MASTER-PLAN.md` "Phase 6 add-on — llms.txt" and `SEO-REQU
 | 4 Every link 200 and indexable | Met on the local fixtures build by both checkers fetching every link (`llms-links`); NOT RUN on real data or a deployment | none in principle; real-data run pending |
 | 5 Collections and categories listed | Met through the Hub rows the sitemap uses | **Internal tension in the recorded rules:** a literal static file cannot list Hub collections and categories without going stale when the Hub renames or adds one; the plan asks for both. |
 
-## 3. Owner decision OD-LLMS-1 (one of)
+## 3. Why no new decision is requested, and what the Phase 6 batch must settle
 
 | Option | What it is | Meets 1 | Meets 2 | Meets 5 | Cost / risk |
 |---|---|---|---|---|---|
-| **A. Defer until Phase 6 is final** (recommended as the literal reading) | Keep the builder and tests; integrate the route in the Phase 6 batch, after OD-P6-1..10 and the landing-page URLs exist; re-run the `llms-links` rows then | decided then | yes | yes | nothing published until Phase 6; no benefit lost of consequence (plan: "few AI crawlers request it today; expect a small benefit at most") |
-| B. Prerendered route now (the withdrawn implementation) | Restore §4 as written: static-cached response from the sitemap sources, follows the sitemap when Phase 6 adds pages | by cache, not by file | no (explicit waiver needed) | yes | the owner waives rule 2 and accepts "static" to mean "static-cached response"; re-verify after Phase 6 |
-| C. Literal static file now, static pages only | `public/llms.txt` written by hand (or by a build step from `lib/sitemap-pages.ts`), listing the home, static pages and `/en/layaway` only; no collections or categories until a maintained process exists | yes | no | **no** | drops the collection and category links the plan names; a renamed collection is never reflected |
+| **A. Defer until Phase 6 is final — THE STATE IN FORCE** (what the approved requirements say) | Keep the builder and tests; integrate the route in the Phase 6 batch, after OD-P6-1..10 and the landing-page URLs exist; re-run the `llms-links` rows then | decided then | yes | yes | nothing published until Phase 6; no benefit lost of consequence (plan: "few AI crawlers request it today; expect a small benefit at most") |
+| B. Prerendered route now (the withdrawn implementation) — NOT pursued; would need a new owner waiver of two approved rules | Restore §4 as written: static-cached response from the sitemap sources, follows the sitemap when Phase 6 adds pages | by cache, not by file | no (explicit waiver needed) | yes | the owner waives rule 2 and accepts "static" to mean "static-cached response"; re-verify after Phase 6 |
+| C. Literal static file now, static pages only — NOT pursued; drops links the plan names | `public/llms.txt` written by hand (or by a build step from `lib/sitemap-pages.ts`), listing the home, static pages and `/en/layaway` only; no collections or categories until a maintained process exists | yes | no | **no** | drops the collection and category links the plan names; a renamed collection is never reflected |
 
-**Until decided: Option A state.** No route, no file; `/llms.txt` answers the site's 404 (noindex, as every unknown path). Both SEO checkers mark the two llms rows as skipped with the reason "route gated (OD-LLMS-1 pending)" while `app/llms.txt/route.ts` is absent, and require them the moment it exists. The builder, its tests, the shared static list (`lib/sitemap-pages.ts`, which the sitemap reads) and the checker rules stay in the tree so the decision costs one file.
+**State in force: A.** Within the Phase 6 batch design (OD-P6-1..10), one open design point is recorded for then, not now: the approved rules ask for both a static file and links to Hub collections and categories, which a literal file cannot keep current — the Phase 6 batch resolves it (build-time generation from the sitemap sources, or static pages only) as part of its own owner review. No route, no file; `/llms.txt` answers the site's 404 (noindex, as every unknown path). Both SEO checkers mark the two llms rows as skipped with the reason "route deferred to the Phase 6 batch" while `app/llms.txt/route.ts` is absent, and require them the moment it exists. The builder, its tests, the shared static list (`lib/sitemap-pages.ts`, which the sitemap reads) and the checker rules stay in the tree so the decision costs one file.
 
-## 4. The route, exactly as withdrawn (for Option B or the Phase 6 batch under Option A)
+## 4. The route, exactly as withdrawn (for the Phase 6 batch)
 
 ```ts
-// app/llms.txt/route.ts  (WITHDRAWN 2026-11-01 pending OD-LLMS-1; see LLMS-TXT-DECISION-2026-11-01.md)
+// app/llms.txt/route.ts  (WITHDRAWN 2026-11-01; deferred to the Phase 6 batch — see LLMS-TXT-DECISION-2026-11-01.md)
 import { hub } from "@/lib/hub-api";
 import { buildLlmsTxt } from "@/lib/llms-txt";
 

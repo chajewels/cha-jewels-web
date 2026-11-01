@@ -37,9 +37,10 @@ const results = [];
 const record = (status, route, what, detail = "") => results.push({ status, route, what, detail });
 const ok = (route, what, cond, detail = "") => record(cond ? "PASS" : "FAIL", route, what, cond ? "" : detail);
 const cov = new Coverage();
-// /llms.txt is GATED (OD-LLMS-1, docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md): the route is not in the tree until the
-// owner resolves the static-file / Phase 6 timing conflict. While the route file is absent, a 404 is the expected
-// state and the two llms rows are optional (skipped with that reason); the moment the route exists they are required.
+// /llms.txt is DEFERRED to the Phase 6 batch under the owner's approved requirements of 2026-10-31 ("static file",
+// "after the Phase 6 URLs and titles are final"; record docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md). No decision is
+// pending: the route returns with the Phase 6 batch. While the route file is absent, a 404 is the expected state and the
+// two llms rows are optional (skipped with that reason); the moment the route exists they are required.
 const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
 
 const robotsMeta = (html) => (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
@@ -428,9 +429,9 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   {
     const r = await get("/llms.txt");
     if (!LLMS_ROUTE_PRESENT && r.status === 404) {
-      cov.skip("llms-txt", "route gated (OD-LLMS-1 pending): /llms.txt answers 404 as expected while app/llms.txt/route.ts is absent");
-      cov.skip("llms-links", "route gated (OD-LLMS-1 pending): no file to read links from");
-      ok("/llms.txt", "LLMS: route gated on OD-LLMS-1 — 404 recorded as the expected state, not judged", true, "");
+      cov.skip("llms-txt", "route deferred to the Phase 6 batch under the approved requirements of 2026-10-31 (record OD-LLMS-1; not an open decision): /llms.txt answers 404 as expected while app/llms.txt/route.ts is absent");
+      cov.skip("llms-links", "route deferred to the Phase 6 batch under the approved requirements of 2026-10-31 (record OD-LLMS-1; not an open decision): no file to read links from");
+      ok("/llms.txt", "LLMS: route deferred to the Phase 6 batch (approved requirements; record OD-LLMS-1) — 404 recorded as the expected state, not judged", true, "");
     } else {
     cov.hit("llms-txt");
     const problems = llmsTxtProblems(r, { publicOrigin: PUBLIC_ORIGIN, sitemapPaths: paths });
