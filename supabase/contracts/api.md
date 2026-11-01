@@ -597,8 +597,11 @@ full-payment quote until 2026-09-25. The Hub no longer sends it; the site keeps
 mapping it (to a neutral "this currency isn't available right now" message) only
 as a rollback safety net.
 
+## Visitor IP (W-06, 2026-11-01)
+The storefront sends `x-forwarded-for: <visitor IP>` on `POST /contact`, `POST /newsletter`, `POST /loyalty/join`, `POST /wholesale/inquiry`, `POST /review-invite/:token` and `GET /receipts/verify`, so per-IP limits count the visitor, not the website server. Taken only from Vercel-set headers (`x-vercel-forwarded-for`, `x-real-ip`, first `x-forwarded-for`), always one IPv4/IPv6 literal; the header is omitted (never empty) when unknown. Bodies are unchanged.
+
 ## Hub → website
-On any change to `products`, `product_variants`, `product_media`, or `collection_products`, a DB trigger calls edge function `notify_website` which POSTs `{productSlug?, collectionSlug?}` to `${WEBSITE_URL}/api/revalidate` with header `x-revalidate-secret: <REVALIDATE_SECRET>`.
+On any change to `products`, `product_variants`, `product_media`, or `collection_products`, a DB trigger calls edge function `notify_website` which POSTs `{productSlug?, collectionSlug?}` to `${WEBSITE_URL}/api/revalidate` with header `x-revalidate-secret: <REVALIDATE_SECRET>`. The website compares it in constant time; if its `REVALIDATE_SECRET` is unset, empty or shorter than 16 characters it answers 401 to every request. Use the same value on both sides, 32+ characters (W-08, 2026-11-01).
 
 `/api/revalidate` also accepts `{tag}` — `"catalog"`, `"content"`, `"paidy"` or `"square"`, an allow-list — and revalidates that cache tag (`"paidy"`: send it when `paidy_mode` changes; `"square"`: when the card switch changes — L1, 2026-10-10; without it they refresh within 5 minutes). On any change to the website settings rows, POST `{"tag":"content"}` so the footer, the social rows and the announcement bar update without waiting out the 60 s backstop. `tag` and the slug fields may be sent together or apart; the same secret header applies. It also accepts `{postSlug}`, which revalidates `/blog` and `/blog/<slug>`; send it alongside `{"tag":"content"}` when a post is published, edited or unpublished. A `postSlug` that is not lowercase letters, digits and hyphens is ignored. It also accepts `{path}` from the allow-list `["/faq"]`; send `{"tag":"content","path":"/faq"}` when an FAQ section or item changes. An unrecognised tag, slug or path comes back in the response as `ignoredTag` / `ignoredPostSlug` / `ignoredPath` rather than being silently dropped.
 

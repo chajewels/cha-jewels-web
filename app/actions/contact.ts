@@ -1,6 +1,8 @@
 "use server";
 
+import { headers } from "next/headers";
 import { hub, HubError } from "@/lib/hub-api";
+import { clientIp } from "@/lib/client-ip";
 import { getLang } from "@/lib/i18n-server";
 import { LOOKS_LIKE_EMAIL, MAX_EMAIL, MAX_NAME, MAX_PHONE, MESSAGE_MAX, MESSAGE_MIN } from "@/lib/contact";
 
@@ -50,7 +52,8 @@ export async function contactAction(
 
   try {
     const lang = await getLang();
-    await hub.contact({ full_name, email, phone: phone || undefined, message, lang, page, newsletter });
+    // W-06: the visitor's address, so the Hub's per-IP limit counts her, not this server.
+    await hub.contact({ full_name, email, phone: phone || undefined, message, lang, page, newsletter }, clientIp(await headers()));
     return "success";
   } catch (e) {
     if (e instanceof HubError && e.status === 429) return "rate_limited";

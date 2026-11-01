@@ -14,6 +14,8 @@ import { writeCart } from "@/lib/cart";
 import { saveCartLater } from "@/lib/cart-sync";
 import { checkoutErrorCode } from "@/lib/checkout-error-code";
 import { isCouponError, normalizeCouponCode } from "@/lib/coupon";
+import { errorTag } from "@/lib/log-safe";
+import { addressListWithNew, parseNewAddress, parseQuoteInput } from "@/lib/action-schemas";
 import type { CheckoutMethod, CheckoutMode, HubAddress, HubCheckoutChoice, HubDraftPayResult, HubQuote, HubLayawayPayResult, HubPayResult, OrderType, SettlementCurrency } from "@/lib/types";
 
 /**
@@ -74,26 +76,37 @@ function cleanCoupon(raw: unknown): { ok: true; value: string | undefined } | { 
 }
 
 /**
- * Appends an address to the customer's list. PUT /me/addresses replaces the
- * WHOLE list, so the existing ones are sent back with it — dropping them here
- * would silently delete addresses the customer still uses.
+ * Appends an address to the customer's list. PUT /me/addresses is sent the
+ * whole list, so the existing ones go with it — dropping them here would
+ * silently lose addresses the customer still uses.
+ *
+ * W-05 (security batch 2): the existing list is READ FROM THE HUB here
+ * (`hub.me`), never taken from the browser. Before, the component sent its
+ * copy and this action forwarded it, so a crafted call could rewrite every
+ * saved address (any id she owns, any field, any length). Now the browser
+ * sends only the new address, checked by lib/action-schemas.ts (trimmed,
+ * capped, country on the Hub's list).
+ *
+ * `legacyAddress`: a page loaded before this deploy still calls
+ * `(existing, address)`. The list it sends is ignored and the address is read
+ * from the second argument, so a tab left open across the release keeps
+ * working.
  */
 export async function saveAddressAction(
-  existing: HubAddress[],
-  address: HubAddress,
+  address: unknown,
+  legacyAddress?: unknown,
 ): Promise<ActionResult<HubAddress[]>> {
+  const parsed = parseNewAddress(Array.isArray(address) ? legacyAddress : address);
+  if (!parsed.ok) return { ok: false, code: parsed.code };
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
-  if (!address.line1?.trim()) return { ok: false, code: "address_required" };
 
-  // A newly added address becomes the default; the Hub enforces one default per
-  // customer, so the others must be cleared in the same payload.
-  const next: HubAddress[] = [
-    ...existing.map((a) => ({ ...a, is_default: false })),
-    { ...address, is_default: true },
-  ];
   try {
-    await hub.putAddresses(jwt, next);
+    // Her own saved addresses, as the Hub holds them. A newly added address
+    // becomes the default; the Hub enforces one default per customer, so the
+    // others are cleared in the same payload (lib/action-schemas.ts).
+    const saved = (await hub.me(jwt)).addresses ?? [];
+    await hub.putAddresses(jwt, addressListWithNew(saved, parsed.address));
     const me = await hub.me(jwt);
     return { ok: true, data: me.addresses };
   } catch (err) {
@@ -101,7 +114,7 @@ export async function saveAddressAction(
   }
 }
 
-export async function quoteAction(input: {
+export async function quoteAction(raw: {
   ship_to_address_id: string;
   order_type: OrderType;
   recipient_name?: string;
@@ -114,9 +127,14 @@ export async function quoteAction(input: {
   /** The language of the page the customer was shown (OD-15); validated, optional, cookie fallback. */
   lang?: string;
 }): Promise<ActionResult<HubQuote>> {
+  // W-05: closed enums and capped text (lib/action-schemas.ts), before any
+  // Hub call. A missing address keeps its own "address_required".
+  const parsed = parseQuoteInput(raw);
+  if (!parsed.ok && parsed.code === "invalid_input") return { ok: false, code: "invalid_input" };
   const jwt = await jwtOrNull();
   if (!jwt) return { ok: false, code: "signed_out" };
-  if (!input.ship_to_address_id) return { ok: false, code: "address_required" };
+  if (!parsed.ok) return { ok: false, code: parsed.code };
+  const input = parsed.input;
 
   // LAYAWAY IS ENGLISH-ONLY (owner decision 2026-09-15). Hiding the toggle is
   // not enough: `mode` is client state that survives a language switch, and
@@ -278,7 +296,8 @@ export async function payLayawayAction(quoteId: string, choice?: { points: numbe
         }
       }
     } catch (err) {
-      console.error("[payLayawayAction] language cookie sync failed (plan unaffected):", err);
+      // W-09: the name and a short code only, never the error object.
+      console.error("[payLayawayAction] language cookie sync failed (plan unaffected):", errorTag(err));
     }
     // The plan holds the stock now, so the basket has served its purpose.
     // Cleared only on success — a refused plan leaves the cart intact.

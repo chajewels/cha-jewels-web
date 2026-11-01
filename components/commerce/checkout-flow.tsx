@@ -15,6 +15,7 @@ import { footer as footerDict } from "@/lib/i18n/sections/footer";
 import { cartItemName, quoteItemName } from "@/lib/catalog-i18n";
 import { formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ADDRESS_CAPS, QUOTE_CAPS } from "@/lib/action-caps";
 import { agreementStatusAction, checkoutChoiceAction, payAction, payLayawayAction, pesoEstimateAction, quoteAction, refreshQuoteAction, saveAddressAction } from "@/lib/checkout-actions";
 import { COUPON_MAX_LENGTH, choiceCoupon, couponErrorKey, couponTyped, isCouponError } from "@/lib/coupon";
 import { checkoutSummary, type PesoEstimateState, amountToPayAfterPoints, layawayTotalAfterCoupon } from "@/lib/checkout-summary";
@@ -325,7 +326,8 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
       phone: String(form.get("phone") ?? "").trim() || null,
     };
     start(async () => {
-      const res = await saveAddressAction(addresses, draft);
+      // Only the new address: the server reads her saved list from the Hub (W-05).
+      const res = await saveAddressAction(draft);
       if (!res.ok) { showError(res.code, res.requestId); return; }
       setAddresses(res.data);
       setAddressId(res.data.find((a) => a.is_default)?.id ?? res.data[0]?.id ?? "");
@@ -708,14 +710,14 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                   ) : (
                     <form className="mt-2 grid gap-x-4 border border-hairline p-4 sm:grid-cols-2 sm:p-5" action={saveAddress}>
                       <p className="mb-3 text-[15px] font-semibold text-charcoal-deep sm:col-span-2">{t("checkout", "newAddress")}</p>
-                      <Field name="recipient_name" label={t("checkout", "recipientName")} autoComplete="name" />
-                      <Field name="phone" label={t("checkout", "phone")} autoComplete="tel" type="tel" />
-                      <Field name="line1" label={t("checkout", "line1")} required className="sm:col-span-2" autoComplete="address-line1" />
-                      <Field name="line2" label={t("checkout", "line2")} className="sm:col-span-2" autoComplete="address-line2" />
-                      <Field name="city" label={t("checkout", "city")} autoComplete="address-level2" />
-                      <Field name="region" label={t("checkout", "region")} autoComplete="address-level1" />
-                      <Field name="postal_code" label={t("checkout", "postal")} autoComplete="postal-code" />
-                      <Field name="country" label={t("checkout", "country")} defaultValue="JP" autoComplete="country" />
+                      <Field name="recipient_name" maxLength={ADDRESS_CAPS.recipient_name} label={t("checkout", "recipientName")} autoComplete="name" />
+                      <Field name="phone" maxLength={ADDRESS_CAPS.phone} label={t("checkout", "phone")} autoComplete="tel" type="tel" />
+                      <Field name="line1" maxLength={ADDRESS_CAPS.line1} label={t("checkout", "line1")} required className="sm:col-span-2" autoComplete="address-line1" />
+                      <Field name="line2" maxLength={ADDRESS_CAPS.line2} label={t("checkout", "line2")} className="sm:col-span-2" autoComplete="address-line2" />
+                      <Field name="city" maxLength={ADDRESS_CAPS.city} label={t("checkout", "city")} autoComplete="address-level2" />
+                      <Field name="region" maxLength={ADDRESS_CAPS.region} label={t("checkout", "region")} autoComplete="address-level1" />
+                      <Field name="postal_code" maxLength={ADDRESS_CAPS.postal_code} label={t("checkout", "postal")} autoComplete="postal-code" />
+                      <Field name="country" maxLength={ADDRESS_CAPS.country} label={t("checkout", "country")} defaultValue="JP" autoComplete="country" />
                       {/* Required, and never the orange action (D3-7): the quote
                           needs a saved address, and "Continue" is this step's buy. */}
                       <div className="sm:col-span-2">
@@ -743,16 +745,16 @@ export function CheckoutFlow({ lang, items, subtotal, initialAddresses, customer
                     <div className="mt-4 grid gap-x-4 sm:grid-cols-2">
                       <label className={FIELD_LABEL}>
                         {t("checkout", "recipientName")}
-                        <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} autoComplete="off" className={INPUT} />
+                        <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} autoComplete="off" maxLength={QUOTE_CAPS.recipient_name} className={INPUT} />
                       </label>
                       <label className={FIELD_LABEL}>
                         {t("checkout", "recipientPhone")}
-                        <input value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} type="tel" autoComplete="off" className={INPUT} />
+                        <input value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} type="tel" autoComplete="off" maxLength={QUOTE_CAPS.recipient_phone} className={INPUT} />
                       </label>
                       {orderType === "GIFT" && (
                         <label className={`${FIELD_LABEL} sm:col-span-2`}>
                           {t("checkout", "giftNote")}
-                          <textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} rows={3} className={`mt-1.5 w-full px-3.5 py-3 text-[15px] ${inputLight}`} />
+                          <textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} rows={3} maxLength={QUOTE_CAPS.gift_note} className={`mt-1.5 w-full px-3.5 py-3 text-[15px] ${inputLight}`} />
                         </label>
                       )}
                     </div>
@@ -1305,13 +1307,13 @@ function ChangeLink({ label, srLabel, onClick }: { label: string; srLabel: strin
   );
 }
 
-function Field({ name, label, required, defaultValue, className, autoComplete, type }: {
-  name: string; label: string; required?: boolean; defaultValue?: string; className?: string; autoComplete?: string; type?: string;
+function Field({ name, label, required, defaultValue, className, autoComplete, type, maxLength }: {
+  name: string; label: string; required?: boolean; defaultValue?: string; className?: string; autoComplete?: string; type?: string; maxLength?: number;
 }) {
   return (
     <label className={`${FIELD_LABEL} ${className ?? ""}`}>
       {label}{required && <span className="text-gold-dark"> *</span>}
-      <input name={name} required={required} defaultValue={defaultValue} autoComplete={autoComplete} type={type ?? "text"} className={INPUT} />
+      <input name={name} required={required} defaultValue={defaultValue} autoComplete={autoComplete} type={type ?? "text"} maxLength={maxLength} className={INPUT} />
     </label>
   );
 }
