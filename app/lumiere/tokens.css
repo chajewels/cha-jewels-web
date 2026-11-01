@@ -240,6 +240,30 @@
 }
 
 /* ---------------------------------------------------------------------------
+   CHA JEWELS — THE SITE'S FACES (D-14, P3). Playfair Display and Inter are
+   gone from app/layout.tsx: `--font-display` is Instrument Serif and
+   `--font-sans` is Manrope on every page, so the existing pages' `font-display`
+   / `font-sans` utilities and the `var(--font-display)` rules in
+   app/globals.css set in the Lumière faces without a rename. `--font-jp`
+   (Noto Serif JP, app/layout.tsx) is unchanged.
+
+   `--lm-font-display` is THE display stack every Lumière display line goes
+   through (`font-serif`, `font-display`, and the BEM blocks' own
+   `font-family` rules): on a Japanese page it adds the Mincho after the
+   serif — Latin glyphs from Instrument Serif, Japanese from Noto Serif JP,
+   then the system Mincho — so no display line can fall to a Gothic face
+   (P3 item 1: the philosophy lines computed `instrumentSerif` alone).
+   --------------------------------------------------------------------------- */
+:root {
+  --lm-font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-sans: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
+}
+html:lang(ja) {
+  --lm-font-display: var(--font-instrument-serif), var(--font-jp), "Hiragino Mincho ProN", "Yu Mincho", serif;
+}
+
+/* ---------------------------------------------------------------------------
    CHA JEWELS — JAPANESE DISPLAY SIZES (docs/tasks/lumiere-p0-report.md §5.8,
    §13, owner-approved 2026-11-01). Instrument Serif has no Japanese glyphs, so
    on `/ja` the display face is Noto Serif JP 500 (`--font-jp`, the site's

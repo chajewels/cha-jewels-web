@@ -7,16 +7,21 @@ import { hub } from "@/lib/hub-api";
 import { tiers as fallbackTiers } from "@/lib/loyalty";
 import type { HubTier } from "@/lib/types";
 import { lumiereLoyalty } from "@/lib/content/lumiere-home";
+import { formatMoney } from "@/lib/utils";
+import { TierIcon } from "@/components/fx/tier-icon";
 
 /**
  * THE LOYALTY BAND (new, D-21 APPROVED) → /loyalty. A black band in the
  * featured stage's and footer's register: the programme's own heading, its
  * one-sentence summary, the two-cell ledger (1 % at Glimmer; one point = ¥1 —
- * the programme page's own strings, set as plain text, P2b item 11), the
- * TIERS AS THE HUB HOLDS THEM (`hub.loyaltyTiers`: name and points
- * multiplier per level, the same read /loyalty makes, the same fallback when
- * the Hub is unreachable) and the "Join free" pill. The medallions stay on
- * the programme page (D-20).
+ * the programme page's own strings, set as plain text, P2b item 11), ALL
+ * FOUR TIERS AS THE HUB HOLDS THEM (P3 item 6; `hub.loyaltyTiers`, the same
+ * read /loyalty makes, the same fallback when the Hub is unreachable): each
+ * with its medallion (components/fx/tier-icon.tsx — the owner's artwork,
+ * restyled around and never replaced, D-20), its name, its qualifying spend
+ * (`threshold_jpy`, formatted as /loyalty formats it; "on joining" for the
+ * entry level) and its multiplier, in the Hub's order; then the link to the
+ * programme page and the "Join free" pill.
  */
 export const LOYALTY_ID = "loyalty";
 
@@ -35,9 +40,14 @@ export const LoyaltySection = async ({ lang }: { lang: Lang }) => {
           {content.heading}
         </h2>
         <p className="loyalty__lead font-tight">{content.lead}</p>
-        <Link href={content.cta.href} className="loyalty__pill font-tight" data-analytics="loyalty-join">
-          {content.cta.label} <span aria-hidden="true">→</span>
-        </Link>
+        <div className="loyalty__actions">
+          <Link href={localePath("/loyalty/join", lang)} className="loyalty__pill font-tight" data-analytics="loyalty-join">
+            {content.cta.label} <span aria-hidden="true">→</span>
+          </Link>
+          <Link href={content.cta.href} className="loyalty__pill loyalty__pill--outline font-tight" data-analytics="loyalty-programme">
+            {t("loyalty", "levelsH")}
+          </Link>
+        </div>
       </div>
       <div className="loyalty__panel">
         <dl className="loyalty__ledger">
@@ -51,12 +61,17 @@ export const LoyaltySection = async ({ lang }: { lang: Lang }) => {
             </div>
           ))}
         </dl>
-        {/* The levels: the Hub's names and multipliers (loyalty.times, "{n}x"). */}
-        <ol className="loyalty__tiers font-manrope" aria-label={t("loyalty", "levelsH")}>
+        {/* The levels: the Hub's tiers — medallion, name, qualifying spend, multiplier. */}
+        <ol className="loyalty__tiers font-manrope" aria-label={t("loyalty", "levelsH")} data-tier-count={tiers.length}>
           {tiers.map((tier, index) => (
-            <li key={tier.slug} className="loyalty__tier">
+            <li key={tier.slug} className="loyalty__tier" data-tier={tier.slug}>
+              <span className="loyalty__tier-medal"><TierIcon slug={tier.slug} sm={56} lg={64} /></span>
               <span className="loyalty__tier-index">{t("loyalty", "level", { n: String(index + 1) })}</span>
               <span className="loyalty__tier-name font-serif">{tier.name}</span>
+              <span className="loyalty__tier-spend">
+                <span className="sr-only">{t("loyalty", "threshold")}: </span>
+                {tier.threshold_jpy === 0 ? t("loyalty", "onJoining") : `${formatMoney(tier.threshold_jpy, "JP")}+`}
+              </span>
               <span className="loyalty__tier-rate">
                 <span className="sr-only">{t("loyalty", "multiplier")}: </span>
                 {tier.multiplier === null ? "—" : t("loyalty", "times", { n: String(tier.multiplier) })}

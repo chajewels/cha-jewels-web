@@ -1226,12 +1226,12 @@ html:lang(ja) .lumiere-home .loyalty__label {
   color: var(--content);
 }
 .lumiere-recent h2 {
-  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-family: var(--lm-font-display);
   font-weight: 400;
   letter-spacing: -0.012em;
 }
 html:lang(ja) .lumiere-home .lumiere-recent h2 {
-  font-family: var(--font-instrument-serif), var(--font-jp), "Hiragino Mincho ProN", serif;
+  font-family: var(--lm-font-display);
   letter-spacing: 0;
 }
 .lumiere-recent > section {
@@ -1245,8 +1245,10 @@ html:lang(ja) .lumiere-home .lumiere-recent h2 {
 
 /* Whatever fixed bar the page has along its bottom edge — the tab bar below
    lg (64px + the safe area) and the cookie bar while it is up — summed into
-   one length the hero's band and the footer clear (P2b items 4 and 8). */
-.lumiere-home {
+   one length the hero's band, the footer and the Messenger button clear
+   (P2b items 4 and 8; on every page since P3, when the cookie bar and the
+   Lumière footer went site-wide). */
+body {
   --lm-tab: 0px;
   --lm-consent: 0px;
   --lm-consent-h: 72px;
@@ -1258,14 +1260,14 @@ html:lang(ja) .lumiere-home .lumiere-recent h2 {
   --lm-bottom-bar: calc(var(--lm-tab) + var(--lm-consent) + var(--lm-announce));
 }
 @media (max-width: 1023.98px) {
-  body:has([data-mobile-tab-bar]) .lumiere-home {
+  body:has([data-mobile-tab-bar]) {
     --lm-tab: calc(64px + env(safe-area-inset-bottom));
   }
-  .lumiere-home {
+  body {
     --lm-consent-h: 128px;
   }
 }
-body:has(.consent-banner--bar) .lumiere-home {
+body:has(.consent-banner--bar) {
   --lm-consent: var(--lm-consent-h);
 }
 /* On a phone the cookie bar does NOT lift the hero band: with the tab bar
@@ -1273,7 +1275,7 @@ body:has(.consent-banner--bar) .lumiere-home {
    band over the ring. The bar is a one-time, dismissible question; the tab
    bar and the announcement bar are permanent chrome and are always cleared. */
 @media (max-width: 1023.98px) {
-  body:has(.consent-banner--bar) .lumiere-home {
+  body:has(.consent-banner--bar) {
     --lm-consent: 0px;
   }
 }
@@ -1294,7 +1296,8 @@ body:has(.consent-banner--bar) .footer.footer--cha {
   }
 }
 
-/* The cookie banner as a bar across the bottom of the Lumière home. */
+/* The cookie banner as a bar across the bottom of every page (the home since
+   P2b, the site since P3). The Messenger button clears it (chrome.css). */
 .consent-banner.consent-banner--bar {
   left: 0;
   right: 0;
@@ -1312,13 +1315,13 @@ body:has(.consent-banner--bar) .footer.footer--cha {
 }
 .consent-banner.consent-banner--bar > h2 {
   margin: 0;
-  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-family: var(--lm-font-display);
   font-weight: 400;
   font-size: 18px;
   white-space: nowrap;
 }
 html:lang(ja) .consent-banner.consent-banner--bar > h2 {
-  font-family: var(--font-instrument-serif), var(--font-jp), serif;
+  font-weight: 500;
 }
 .consent-banner.consent-banner--bar > p {
   margin: 0;
@@ -1525,3 +1528,167 @@ html[data-lumiere-lift] .lumiere-home [data-masked] {
 html[data-lumiere-lift] .lumiere-home [data-hero-headline-art] .grid > span:not([aria-hidden]) .invisible {
   visibility: visible !important;
 }
+
+/* --------------------------------------------------------------------------
+   P3 — the loyalty band: all four Hub tiers with their medallions (item 6),
+   the two actions (join, the programme page)
+   -------------------------------------------------------------------------- */
+.loyalty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.loyalty__actions .loyalty__pill { margin-top: 0; }
+.loyalty__pill--outline {
+  background: transparent;
+  color: var(--content-inverse);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.5);
+}
+.loyalty__copy .loyalty__actions { margin-top: calc(28 * var(--u)); }
+.loyalty__tiers[data-tier-count="4"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.loyalty__tier {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "medal" "index" "name" "spend" "rate";
+  align-content: start;
+  row-gap: 4px;
+  padding: calc(18 * var(--u)) calc(18 * var(--u)) calc(20 * var(--u));
+}
+.loyalty__tier-medal {
+  grid-area: medal;
+  display: block;
+  margin-bottom: calc(10 * var(--u));
+}
+.loyalty__tier-medal .ti { display: block; }
+.loyalty__tier-spend {
+  grid-area: spend;
+  font-size: calc(13 * var(--u));
+  line-height: 1.3;
+  color: rgb(255 255 255 / 0.75);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.loyalty__tier-rate {
+  grid-area: rate;
+  margin-top: 2px;
+  font-size: calc(22 * var(--u));
+}
+@media (max-width: 1439.98px) {
+  .loyalty__tier { padding: 16px 16px 18px; }
+  .loyalty__tier-spend { font-size: 12.5px; }
+  .loyalty__tier-rate { font-size: 20px; }
+  .loyalty__copy .loyalty__actions { margin-top: 24px; }
+}
+@media (max-width: 1023.98px) {
+  .loyalty__tiers[data-tier-count="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 479.98px) {
+  .loyalty__tiers[data-tier-count="4"] { grid-template-columns: minmax(0, 1fr); }
+  .loyalty__tier { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "medal index" "medal name" "medal spend" "medal rate"; column-gap: 14px; }
+  .loyalty__tier-medal { margin-bottom: 0; align-self: center; }
+}
+
+/* --------------------------------------------------------------------------
+   P3 — the layaway band's scene (item 5): the Halcyon Gate plate beside the
+   copy, after the clarix-feature skeleton (GetLayers compositions,
+   "left-column-editorial-stack-full-height": the copy stacks left with a
+   rule breaking it, the right half is the focal object); the steps and the
+   calculator keep their row under it.
+   -------------------------------------------------------------------------- */
+.layaway__feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: calc(48 * var(--u));
+  align-items: stretch;
+  margin-bottom: calc(56 * var(--u));
+}
+.layaway__feature .layaway__intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  max-width: none;
+  margin-bottom: 0;
+}
+.layaway__index {
+  display: flex;
+  justify-content: space-between;
+  font-size: calc(11 * var(--u));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.layaway__rule {
+  display: block;
+  width: calc(96 * var(--u));
+  height: 1px;
+  margin: calc(28 * var(--u)) 0 calc(20 * var(--u));
+  background: currentColor;
+  opacity: 0.4;
+}
+.layaway__cta {
+  margin-top: calc(24 * var(--u));
+  align-self: flex-start;
+}
+.layaway__plate {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  max-height: 640px;
+  overflow: hidden;
+  border-radius: var(--corner-card);
+  background: #e8dcc6;
+  isolation: isolate;
+}
+.layaway__plate canvas,
+.layaway__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.layaway__poster {
+  background:
+    radial-gradient(60% 40% at 50% 58%, rgb(255 250 240 / 0.95), transparent 70%),
+    linear-gradient(180deg, #f4f0ec 0%, #e8dcc6 50%, #7a5a2c 50.4%, #5c4320 100%);
+}
+.layaway__poster-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid #e8c37d;
+  box-shadow: 0 0 0 1px #8a6b12, inset 0 0 0 1px #8a6b12;
+}
+.layaway__plate[data-scene="live"] .layaway__poster { opacity: 0; transition: opacity 900ms var(--ease-hover-role); }
+.layaway__plate canvas { opacity: 0; transition: opacity 900ms var(--ease-hover-role); }
+.layaway__plate[data-scene="live"] canvas { opacity: 1; }
+.layaway__plate-note {
+  position: absolute;
+  left: calc(20 * var(--u));
+  bottom: calc(18 * var(--u));
+  z-index: 2;
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.85);
+  pointer-events: none;
+}
+@media (max-width: 1439.98px) {
+  .layaway__feature { gap: 32px; margin-bottom: 40px; }
+  .layaway__rule { width: 96px; margin: 20px 0 16px; }
+  .layaway__cta { margin-top: 20px; }
+}
+@media (max-width: 859.98px) {
+  .layaway__feature { grid-template-columns: minmax(0, 1fr); }
+  .layaway__plate { max-height: 440px; aspect-ratio: 4 / 3; }
+}
+/* The feature's copy stacks LEFT (the skeleton), whatever the band's own intro alignment. */
+.layaway__feature .layaway__intro,
+.layaway__feature .layaway__intro .layaway__lead,
+.layaway__feature .layaway__intro .layaway__heading { text-align: left; margin-left: 0; margin-right: 0; }
+.layaway__feature .layaway__lead { max-width: 52ch; }

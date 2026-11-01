@@ -1344,7 +1344,8 @@
     height: calc(800 * var(--raw-unit-design));
     background: #fff;
     color: #000;
-    font-family: var(--font-instrument-serif);
+    /* The display token, not the serif alone: on /ja it carries the Mincho (P3 item 1). */
+    font-family: var(--lm-font-display);
   }
 
   /* Below the design width the block keeps its own unit, read off the width

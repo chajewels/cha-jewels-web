@@ -1,5 +1,20 @@
 # Performance baseline
 
+## 2026-11-01 — Lumière redesign P3: the chrome on every page and the home fixes
+
+| Page | Method | Production | P2b (2.5 s cap) | **P3** |
+|---|---|---|---|---|
+| `/ja` mobile | simulated | 82 · LCP 4.24 s · TBT 56 ms | 77 · 5.44 s · 112 ms | **80 (57–82) · LCP 4.89 s · TBT 130 ms** |
+| `/en` mobile | simulated | 81 · LCP 4.38 s · TBT 78 ms | 76 · 5.11 s · 234 ms | **80 (77–81) · LCP 4.90 s · TBT 159 ms** |
+| `/ja` desktop | simulated preset | 97 · 0.92 s | 97 · 1.23 s | **98 · 1.01 s · TBT 0 ms** |
+| `/en` desktop | simulated preset | 98 · 0.94 s | 98 · 1.09 s | **98 · 1.15 s · TBT 14 ms** |
+| `/ja` mobile | applied | 55 · LCP 5.06 s | 69 · 2.92 s | **78 · LCP 2.33 s · TBT 520 ms** |
+| `/en` mobile | applied | 59 · LCP 4.77 s | 67 · 3.04 s | **70 · LCP 2.52 s · TBT 808 ms** |
+| `/en/collections/rings` mobile / desktop | simulated | 83 · LCP 4.40 s / 99 | (not measured) | **88 · 3.93 s · TBT 11 ms / 100 · 0.79 s** |
+| a product page, mobile / desktop | simulated | 86 · LCP 3.94 s / 99 | (not measured) | **86 · 4.14 s · TBT 20 ms / 100 · 0.80 s** |
+
+The home did not regress against P2b: the third scene is mounted near, after the TTI window, and draws only while in view (home first load 194 kB gz against 190). Mobile simulated is still under the P1 bar (83 / 81, LCP 4.3 s); the cause and the closers are unchanged from the P2b entry. Inner pages now carry the Lumière chrome and meet or beat production on mobile score and LCP except the product page (LCP +0.2 s, same score). Local build, fixture mode, three runs, median (range); production rows are the P2b same-day measurements.
+
 ## 2026-11-01 — Lumière redesign P2b: the home fixes and the four approved performance closers
 
 Recorded for the P2b PR (`redesign/lumiere-p2b-home-fixes` → `redesign/lumiere`). On top of P2 (final): the inline pre-hydration curtain (the gate lifts on its own 4 s after first paint, the hero drawn at rest by CSS, every entrance immediate on a late hydration), per-section dictionaries (`lib/i18n/sections/`, `lib/i18n-client.ts` — the 46 kB gz dictionary chunk is out of the home's first load, which is **235 → 190 kB gz**, route "190 kB"), the cookie banner in idle and the home's search box on interaction, both 3D scenes after the TTI window (lift → first interaction or 5 s → idle; posters until then), the 412/480 phone rungs in `deviceSizes`.
@@ -25,6 +40,23 @@ CLS 0.000 throughout; Speed Index mobile 2.85 / 2.45 s (from 3.42 / 2.74); scrip
 | `/en` desktop | 98 (98–98) | 1.09 s (1.06 s–1.13 s) | 0.41 s | 17 ms (17 ms–20 ms) | 0.000 | 0.77 s (0.68 s–0.90 s) | 85 ms (85 ms–90 ms) |
 
 The owner amended D-9 in the P2b correction batch (the curtain's hard cap 2.5 s from first paint, was 4 s). Under the method of record the rows did not move (inside the 4 s-cap build's ranges): with `--throttling-method=simulate` the page is OBSERVED unthrottled, where React hydrates well before 2.5 s after the paint, so the lift the trace records is React's and Lantern projects it onto the slow profile — a time-based lift that precedes hydration on a slow phone is not something the model represents. Applied throttling (`--throttling-method=devtools`, mobile, 3 runs, same build) shows what such a phone gets: `/ja` LCP 2.92 s (2.85–3.01), `/en` 3.04 s (3.04–3.05) — the poster paints at ~3 s — with scores 69 / 67 dominated by TBT 641 / 700 ms, which that method counts in full for the hydration task; the two methods are not comparable on score, and the P1 rows were taken with `simulate`.
+
+### Production vs the redesign, both methods side by side (2026-11-01, same machine, same day)
+
+Production is `https://chajewelsjp.com` (CDN, live Hub data); the redesign is this branch's build on `next start` (fixture mode, a laptop, no CDN). Mobile only for the applied-throttling rows (that method was only ever run for mobile). Three runs per cell, median (range).
+
+| Page | Method | Production | Redesign (P2b, 2.5 s cap) | Redesign vs production |
+|---|---|---|---|---|
+| `/ja` mobile | simulated (method of record) | 82 (81–93) · LCP 4.24 s (2.02–4.28) · TBT 56 ms | 77 (77–81) · LCP 5.44 s (4.74–5.64) · TBT 112 ms | **slower**: −5 points, LCP +1.2 s |
+| `/en` mobile | simulated | 81 (80–82) · LCP 4.38 s (4.31–4.76) · TBT 78 ms | 76 (67–79) · LCP 5.11 s (4.94–5.32) · TBT 234 ms | **slower**: −5 points, LCP +0.7 s |
+| `/ja` desktop | simulated (`--preset=desktop`) | 97 (97–97) · LCP 0.92 s · TBT 0 ms | 97 (96–97) · LCP 1.23 s · TBT 26 ms | score equal, LCP +0.3 s |
+| `/en` desktop | simulated | 98 (96–98) · LCP 0.94 s · TBT 0 ms | 98 (98–98) · LCP 1.09 s · TBT 17 ms | score equal, LCP +0.15 s |
+| `/ja` mobile | applied (`--throttling-method=devtools`) | 55 (54–59) · LCP 5.06 s (5.01–5.23) · TBT 386 ms · FCP 4.49 s | 69 (62–71) · LCP 2.92 s (2.85–3.01) · TBT 641 ms · FCP 2.75 s | **faster**: +14 points, LCP −2.1 s; TBT +255 ms |
+| `/en` mobile | applied | 59 (57–60) · LCP 4.77 s (4.70–4.99) · TBT 350 ms · FCP 4.26 s ¹ | 67 (65–67) · LCP 3.04 s (3.04–3.05) · TBT 700 ms · FCP 2.74 s | **faster**: +8 points, LCP −1.7 s; TBT +350 ms |
+
+¹ Production `/en` under applied throttling: 3 of 6 runs ended in Lighthouse's "page took too long to load" (time to interactive never reached inside the trace window), which scores the run 0; the row is the median of the three runs that completed, and LCP across all six was 4.70–4.99 s. The redesign's runs all completed.
+
+**Verdict.** Under the method of record (simulated), the redesign is slower than production on mobile (five points and 0.7–1.2 s of LCP) and level with it on desktop. Under applied throttling, the redesign is faster than production on mobile by 1.7–2.1 s of LCP and 8–14 points, at the price of more main-thread blocking (the hero's hydration). The two methods disagree because of what each can see: the simulation never observes the inline curtain lift (above), and applied throttling does; production's own first paint sits at 4.3–4.5 s under applied throttling because its above-the-fold images and fonts are fetched on the throttled network before anything is drawn. Today's simulated production rows (82 / 81) match the P0 entry's (81 / 82), so the comparison is on a steady baseline.
 
 **Reading (the 4 s-cap build; the same conclusions hold for the 2.5 s build).** Desktop meets the bar. Mobile closes most of the gap (72 → 80, 73 → 78; TBT 291 → 123 ms, 361 → 177 ms) and does not reach it: `/ja` 80 vs 83, `/en` 78 vs 81; LCP 4.86 / 5.07 s vs ≤ 4.3 s. The cause, per Lighthouse (`lcp-breakdown`, `long-tasks`, the waterfall): the LCP element is still the compact pendant poster and its paint is still the curtain's lift. The inline cap can only lift it 4 s after the first paint (D-9's cap), i.e. at ≈ 5.7 s on the simulated phone (FCP 1.66 s); React now hydrates **before** that — the first load is 190 kB and the dictionary is gone — so the lift lands at the hydration commit, ≈ 4.5 s, plus the 0.4 s settle-and-fade: 4.9–5.1 s. The remaining long tasks are the Next/React runtime's own hydration (`1255`: 201–323 ms, the one task Lighthouse still flags; everything of ours is under 60 ms); the scenes' tasks are outside the window now.
 

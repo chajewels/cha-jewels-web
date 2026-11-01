@@ -1,0 +1,337 @@
+/* ===========================================================================
+   LUMIÈRE CHROME ON EVERY PAGE (P3; docs/tasks/lumiere-redesign.md §6 P3,
+   report §3.2, §7 P3 row, §8). The fixed site header (components/lumiere/
+   site/site-header.tsx), the shared menu (menu-overlay.tsx), the full-screen
+   search (search-overlay.tsx), the pills, the announcement bar, the tab bar,
+   the Messenger button's clearances, the flash notice, and the Cha footer's
+   P3 compaction (components/lumiere/footer/footer-section.tsx). Unlayered,
+   so these beat the utilities they correct. Tokens only (tokens.css).
+   =========================================================================== */
+
+/* --------------------------------------------------------------------------
+   THE SITE HEADER — frosted bone over paper, black with white type over a
+   dark panel (Halden's recolouring: a discrete two-state swap on token
+   timing). Sticky, in flow: the announcement bar scrolls away above it and
+   nothing on a page is covered; `--hdr-h` is published by the component.
+   -------------------------------------------------------------------------- */
+.lm-site-header {
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--content);
+  border-bottom: 1px solid var(--border-muted);
+  transition:
+    background-color var(--duration-hover-in) var(--ease-hover-role),
+    color var(--duration-hover-in) var(--ease-hover-role),
+    border-color var(--duration-hover-in) var(--ease-hover-role);
+}
+.lm-site-header[data-tone="dark"] {
+  background: rgb(0 0 0 / 0.86);
+  color: var(--content-inverse);
+  border-color: rgb(255 255 255 / 0.18);
+}
+.lm-site-header__bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  height: 64px;
+  padding-inline: clamp(16px, 2.8vw, 40px);
+}
+@media (min-width: 1024px) {
+  .lm-site-header__bar { height: 72px; }
+}
+.lm-site-header__nav { grid-column: 1; justify-self: start; }
+.lm-site-header__mark { grid-column: 2; display: block; color: inherit; text-decoration: none; }
+.lm-site-header__tools { grid-column: 3; justify-self: end; }
+/* Below 380px the row (badge, name, cart, search, menu) no longer fits; the
+   narrowest phones keep the badge alone, as the old header did. */
+@media (max-width: 379.98px) {
+  .lm-site-header__name { display: none; }
+}
+/* The language toggle and the account sit in the menu on a phone. */
+.lm-site-header__wide { display: none; }
+@media (min-width: 640px) {
+  .lm-site-header__wide { display: flex; }
+}
+html:lang(ja) .lm-site-header .uppercase,
+html:lang(ja) .lm-menu .uppercase,
+html:lang(ja) .lm-search .uppercase {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* A 44px icon control in the current colour (search, close). */
+.lm-chrome__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: inherit;
+  background: none;
+  border: 0;
+  transition: opacity var(--duration-hover-in) var(--ease-hover-role);
+}
+@media (hover: hover) {
+  .lm-chrome__icon:hover { opacity: 0.7; }
+}
+
+/* THE PILLS (D-4: black on paper, paper on black; no orange). */
+.lm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--content);
+  color: var(--content-inverse);
+  font-family: var(--font-inter-tight), "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+  transition: opacity var(--duration-hover-in) var(--ease-hover-role);
+}
+.lm-pill--outline {
+  background: transparent;
+  color: inherit;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+@media (hover: hover) {
+  .lm-pill:hover { opacity: 0.8; }
+}
+.lm-pill.-active { outline: 2px solid currentColor; outline-offset: 3px; }
+
+/* --------------------------------------------------------------------------
+   THE MENU (menu-overlay.tsx): the portal variant's top row and, on a wide
+   screen, the groups side by side so the desktop reader sees them at once.
+   -------------------------------------------------------------------------- */
+.lm-menu__top { height: 64px; margin-bottom: 8px; }
+@media (min-width: 1024px) {
+  .lm-menu__top { height: 72px; }
+  .lm-menu__groups {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 40px;
+    max-width: 1100px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   THE SEARCH (search-overlay.tsx; Halden S2): one oversized line, the
+   pieces as plates under it.
+   -------------------------------------------------------------------------- */
+.lm-search {
+  padding: max(0px, env(safe-area-inset-top)) clamp(20px, 4vw, 40px) max(24px, env(safe-area-inset-bottom));
+}
+.lm-search__top { height: 64px; }
+@media (min-width: 1024px) { .lm-search__top { height: 72px; } }
+.lm-search__form {
+  margin-top: clamp(12px, 3vh, 32px);
+  padding-bottom: 12px;
+  border-bottom: 1px solid currentColor;
+  transition: border-color var(--duration-hover-in) var(--ease-hover-role), box-shadow var(--duration-hover-in) var(--ease-hover-role);
+}
+/* The line under the type is the focus indication (it doubles on focus,
+   as the footer's field does); the page's gold ring would sit on a field
+   that is the only thing on screen. */
+.lm-search__form:focus-within { box-shadow: 0 1px 0 0 currentColor; }
+.lm-search__input:focus-visible { outline: none; }
+.lm-search__input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: inherit;
+  font-size: clamp(32px, 6vw, 72px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  caret-color: currentColor;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.lm-search__input::placeholder { color: inherit; opacity: 0.35; }
+.lm-search__input::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
+.lm-search__status,
+.lm-search__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+html:lang(ja) .lm-search__status,
+html:lang(ja) .lm-search__eyebrow { text-transform: none; letter-spacing: 0; }
+.lm-search__status { margin-top: 12px; }
+.lm-search__eyebrow { margin-bottom: 12px; }
+.lm-search__results { margin-top: 20px; padding-bottom: 24px; }
+.lm-search__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+@media (min-width: 768px) {
+  .lm-search__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 24px; }
+}
+.lm-search__plate {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: var(--corner-panel);
+  outline: 2px solid transparent;
+  outline-offset: 6px;
+}
+.lm-search__plate.-active { outline-color: currentColor; }
+.lm-search__photo {
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: var(--corner-panel);
+  background: #fff;
+}
+.lm-search__photo img { width: 100%; height: 100%; object-fit: cover; }
+.lm-search__photo img.object-contain { object-fit: contain; }
+.lm-search__name { font-size: 20px; line-height: 1.15; }
+.lm-search__sold {
+  margin-left: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  vertical-align: middle;
+}
+.lm-search__price { font-size: 14px; font-variant-numeric: lining-nums tabular-nums; }
+.lm-search__collections,
+.lm-search__all { margin-top: 32px; }
+
+/* --------------------------------------------------------------------------
+   THE ANNOUNCEMENT BAR, THE FLASH NOTICE, THE MESSENGER BUTTON
+   -------------------------------------------------------------------------- */
+.lm-announce { letter-spacing: 0.02em; }
+html:lang(ja) .lm-announce p { letter-spacing: 0; }
+/* The Messenger pill clears the cookie bar while it is up (every page since
+   P3; app/globals.css carries the tab-bar and buy-bar clearances). */
+body:has(.consent-banner--bar) .messenger-fab {
+  bottom: calc(var(--lm-consent-h, 72px) + 16px + env(safe-area-inset-bottom));
+}
+@media (max-width: 1023.98px) {
+  body:has([data-mobile-tab-bar]):has(.consent-banner--bar) .messenger-fab,
+  body:has([data-buy-bar]):has(.consent-banner--bar) .messenger-fab {
+    bottom: calc(64px + 12px + var(--lm-consent-h, 128px) + env(safe-area-inset-bottom));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   THE CHA FOOTER, P3: on every page, and ONE VIEWPORT AT 1440×900 WITH
+   NOTHING DROPPED (item 7) — the collections list in two columns when it is
+   long, 20px link rows, a compact company block, the subscribe block on the
+   mark's row, the giant wordmark along the base (Halden; report §7 P3 row)
+   at a height that still fits. On a phone the link columns are accordions
+   (native <details>, so they work before hydration) — the old footer's own
+   pattern. The 1440 frame of blocks.css (`.footer--cha`) is the base.
+   -------------------------------------------------------------------------- */
+.footer.footer--cha {
+  min-height: 0;
+  padding-block: calc(28 * var(--raw-unit-design)) calc(16 * var(--raw-unit-design));
+  row-gap: calc(20 * var(--raw-unit-design));
+  grid-template-areas:
+    "logo    subscribe"
+    "columns columns"
+    "rule    rule"
+    "rights  legal"
+    "social  social"
+    "giant   giant";
+}
+.footer--cha .footer__columns {
+  gap: calc(28 * var(--raw-unit-design));
+}
+.footer--cha .footer__link {
+  min-height: 20px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.footer--cha .footer__column-title {
+  font-size: 12px;
+}
+/* A long collections list (the Hub's twelve) runs in two columns. */
+.footer--cha .footer__list--two {
+  display: block;
+  columns: 2;
+  column-gap: calc(16 * var(--raw-unit-design));
+}
+.footer--cha .footer__list--two > li { break-inside: avoid; }
+.footer--cha .footer__company-line {
+  font-size: 11.5px;
+  line-height: 1.35;
+  padding-block: 2px;
+}
+.footer--cha .footer__subscribe {
+  gap: calc(10 * var(--raw-unit-design));
+}
+.footer--cha .footer__note--tagline {
+  font-size: 12px;
+  line-height: 1.4;
+}
+/* The giant wordmark: Halden's letter-spaced name across the base, drawn
+   aria-hidden (the mark above carries the name), sized to the frame so it
+   never wraps and never pushes the footer past one screen. */
+.footer--cha .footer__giant {
+  grid-area: giant;
+  display: block;
+  overflow: hidden;
+  margin-top: 0;
+  color: #fff;
+  font-size: clamp(40px, 9.2vw, 140px);
+  line-height: 0.9;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  opacity: 0.92;
+  user-select: none;
+}
+.footer--cha .footer__giant .line-word { display: inline-block; }
+/* The accordions: a phone only. On a wide screen the lists stand open. */
+.footer--cha .footer__column > details { display: none; }
+@media (max-width: 1023.98px) {
+  .footer--cha .footer__column > .footer__column-title,
+  .footer--cha .footer__column > .footer__list { display: none; }
+  .footer--cha .footer__company > .footer__column-title,
+  .footer--cha .footer__company > .footer__list { display: block; }
+  .footer--cha .footer__company > .footer__list { display: flex; }
+  .footer--cha .footer__column > details { display: block; border-top: 1px solid var(--site-footer-rule); }
+  .footer--cha .footer__column > details > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    list-style: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+  html:lang(ja) .footer--cha .footer__column > details > summary { text-transform: none; }
+  .footer--cha .footer__column > details > summary::-webkit-details-marker { display: none; }
+  .footer--cha .footer__column > details > summary::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 200ms var(--ease-hover-role);
+  }
+  .footer--cha .footer__column > details[open] > summary::after { transform: rotate(225deg); }
+  .footer--cha .footer__column > details > .footer__list { padding-bottom: 12px; }
+  .footer--cha .footer__column > details .footer__link { min-height: 40px; font-size: 15px; }
+  .footer--cha .footer__columns { display: block; }
+  .footer--cha .footer__column { gap: 0; }
+  .footer--cha .footer__company { margin-top: 24px; }
+  .footer--cha .footer__list--two { columns: 1; }
+  .footer--cha .footer__giant { font-size: clamp(40px, 13vw, 96px); letter-spacing: 0.03em; }
+}

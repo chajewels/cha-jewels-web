@@ -24,7 +24,8 @@ import { MessengerAnchor } from "@/components/site/messenger-anchor";
  * and product types, cart and checkout, Layaway, Loyalty and Wholesale.
  * Everywhere else — home, legal, About, FAQ, Contact, search, account,
  * sign-in — has no floating button (Contact, FAQ and search keep their own
- * in-page Messenger links). Decided here, from the client pathname, because
+ * in-page Messenger links). Since P3 it is a Lumière pill: black, white
+ * type, no gold edge (D-4). Decided here, from the client pathname, because
  * the root layout is not re-rendered on a client navigation — a server-side
  * path check would keep whatever the first page decided. Its look is the site
  * frame's: charcoal with a gold edge (D1-1), not orange. On a phone the cart
@@ -45,9 +46,9 @@ export function MessengerButton({ href, label }: { href: string; label: string }
     <MessengerAnchor
       href={href}
       ariaLabel={label}
-      className="messenger-fab btn-press inline-flex h-[52px] w-[52px] items-center justify-center gap-2.5 rounded-full border border-gold bg-charcoal-deep text-[15px] font-medium text-chalk hover:bg-charcoal sm:h-12 sm:w-auto sm:rounded-sm sm:px-5"
+      className="messenger-fab btn-press inline-flex h-[52px] w-[52px] items-center justify-center gap-2.5 rounded-pill bg-content font-manrope text-[14px] font-medium text-content-inverse hover:opacity-85 sm:h-12 sm:w-auto sm:px-5"
     >
-      <span aria-hidden="true" className="text-gold-pale"><SocialGlyph name="messenger" size={20} /></span>
+      <span aria-hidden="true"><SocialGlyph name="messenger" size={20} /></span>
       <span className="hidden sm:inline">{label}</span>
     </MessengerAnchor>
   );

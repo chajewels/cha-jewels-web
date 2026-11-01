@@ -48,3 +48,24 @@ test("React's development double-mount (lock → release → lock) leaves the pa
   second();
   assert.equal(document.body.style.overflow, "");
 });
+
+test("P3: the release puts the page back where it was (the sticky-header focus jump) and tells Lenis", async () => {
+  let scrolledTo = null;
+  globalThis.window = { scrollY: 900, scrollTo: (opts) => { scrolledTo = opts; globalThis.window.scrollY = opts.top; } };
+  const { useScroll } = await import("@/lib/lumiere/scroll-store");
+  const lenisCalls = [];
+  useScroll.getState().setLenis({ scrollTo: (y, o) => lenisCalls.push([y, o]), stop() {}, start() {} });
+  const release = lockScroll();
+  window.scrollY = 16; // the jump, while locked
+  release();
+  assert.deepEqual(scrolledTo, { top: 900, left: 0, behavior: "instant" });
+  assert.deepEqual(lenisCalls, [[900, { immediate: true, force: true }]]);
+  // Unmoved: nothing is written.
+  scrolledTo = null; lenisCalls.length = 0;
+  const release2 = lockScroll();
+  release2();
+  assert.equal(scrolledTo, null);
+  assert.equal(lenisCalls.length, 0);
+  useScroll.getState().setLenis(null);
+  delete globalThis.window;
+});

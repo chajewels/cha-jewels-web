@@ -427,9 +427,9 @@ export const lumiereArrivals = (lang: Lang): LumiereArrivalsStrings => ({
  * cards-almanac). The stories are lib/stories.ts's (testimonials + approved
  * reviews, newest first; a layaway story only where layaway is offered). The
  * heading block is the old section's (`home.testi*`); "Verified buyer" is
- * `reviews.verified`. The stack shows the newest `STORIES_ON_HOME`.
+ * `reviews.verified`. The stack shows EVERY published story (P3 item 4; it
+ * showed a fixed six before).
  */
-export const STORIES_ON_HOME = 6;
 export interface LumiereStoriesStrings {
   eyebrow: string;
   heading: string;

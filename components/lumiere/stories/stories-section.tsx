@@ -4,15 +4,17 @@ import type { Lang } from "@/lib/i18n";
 import { hub } from "@/lib/hub-api";
 import { isOptimizableImage } from "@/lib/image-hosts";
 import { mergeStories, reviewsToStories, toStories, type Story } from "@/lib/stories";
-import { STORIES_ON_HOME, lumiereStories } from "@/lib/content/lumiere-home";
+import { lumiereStories } from "@/lib/content/lumiere-home";
 import { ReviewSummary, Stars } from "@/components/reviews/review-list";
 import { EngineIsland } from "@/components/lumiere/common/engine-island";
 
 /**
  * CUSTOMER STORIES — the Cards Almanac reference re-skinned (report §7 home
- * row; docs/design-refs/cards-almanac): the newest stories as a column of
- * cards that pin and pile as the reader scrolls, each settling flat over the
- * last. The stories are lib/stories.ts's — testimonials and approved reviews
+ * row; docs/design-refs/cards-almanac): EVERY PUBLISHED STORY, newest first,
+ * as a column of cards that pin and pile as the reader scrolls, each
+ * settling flat over the last (P3 item 4: the stack showed a fixed six and
+ * dropped the rest; the old home showed them all, and so does this one — no
+ * story the owner published is left out). The stories are lib/stories.ts's — testimonials and approved reviews
  * in one list, newest first; a layaway story only where layaway is offered
  * (never on the Japanese home) — and THE CUSTOMER'S WORDS ARE SHOWN EXACTLY
  * (pre-wrap, untrimmed), as the typing slideshow showed them.
@@ -32,6 +34,8 @@ import { EngineIsland } from "@/components/lumiere/common/engine-island";
  */
 export const STORIES_ID = "customer-stories";
 const STACK_ID = "customer-stories-stack";
+/** GET /reviews caps `limit` at 50 (supabase/contracts/api.md): every approved review the route can hand over in one read. */
+export const REVIEWS_PAGE_MAX = 50;
 
 const Cover = ({ story }: { story: Story }) => {
   const photo = story.photos[0];
@@ -60,9 +64,10 @@ export const StoriesSection = async ({ lang }: { lang: Lang }) => {
   const strings = lumiereStories(lang);
   const [items, list] = await Promise.all([
     hub.testimonials(),
-    hub.reviews({ lang, limit: 12 }).catch(() => null),
+    // The Hub's page ceiling (50): every approved review the route can hand over.
+    hub.reviews({ lang, limit: REVIEWS_PAGE_MAX }).catch(() => null),
   ]);
-  const stories = mergeStories(toStories(items, lang), reviewsToStories(list?.reviews ?? [], lang)).slice(0, STORIES_ON_HOME);
+  const stories = mergeStories(toStories(items, lang), reviewsToStories(list?.reviews ?? [], lang));
   if (stories.length === 0) return null;
   const average = list?.average ?? null;
   const count = list?.count ?? 0;

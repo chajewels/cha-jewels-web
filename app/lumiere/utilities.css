@@ -9,7 +9,7 @@
    uppercase utility labels are left as written, with no tracking; nothing is
    italic. Unlayered, so these beat the utilities they correct. */
 html:lang(ja) .lumiere-home .font-serif {
-  font-family: var(--font-instrument-serif), var(--font-jp), "Hiragino Mincho ProN", serif;
+  /* The stack itself is `--lm-font-display` (tokens.css); the weight is the Mincho's. */
   font-weight: 500;
 }
 html:lang(ja) .lumiere-home .uppercase {

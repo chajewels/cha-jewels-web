@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { siteUrl } from "@/lib/site";
-import { Playfair_Display, Inter, Noto_Serif_JP } from "next/font/google";
+import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/site/header";
-import { Footer } from "@/components/site/footer";
+import { SiteChrome } from "@/components/lumiere/site/site-chrome";
+import { FooterSection } from "@/components/lumiere/footer/footer-section";
 import { FlashNotice } from "@/components/site/flash-notice";
 import { Suspense } from "react";
 import { getLang } from "@/lib/i18n-server";
@@ -35,25 +35,14 @@ import { ReducedMotion } from "@/components/lumiere/common/reduced-motion";
 import { isHomePath } from "@/lib/lumiere/home-path";
 
 /**
- * ONLY THE FACES THAT ACTUALLY RENDER.
- *
- * Inventoried by walking the computed styles of every element that holds text
- * across /, /collections, a category, a product, /faq, /blog and /about, in
- * both languages. What came back:
- *
- *   Playfair   400, 500, 600 normal. NO ITALIC ANYWHERE — the one `italic`
- *              class on the site is on a testimonial <p>, which is font-sans,
- *              so the italic cut was downloaded on behalf of text that does
- *              not exist. (It also asks for 700 on the collection-card
- *              heading, which is not loaded and never was; see the note in
- *              collection-cards.tsx.)
- *   Inter      400, 500, 600 and 700 all appear. All four stay.
- *   Noto Serif JP  500 only, and only on :lang(ja) h1/h2/h3 — the one rule
- *              in globals.css that uses font-jp. 400 rendered nowhere in
- *              either language.
+ * THE FACES (D-14, Lumière P3). Playfair Display and Inter are gone: the
+ * site's display face is Instrument Serif and its sans is Manrope
+ * (app/fonts.ts, self-hosted; `--font-display` / `--font-sans` are bound to
+ * them in app/lumiere/tokens.css, so every existing `font-display` /
+ * `font-sans` utility and `var(--font-display)` rule follows). Noto Serif JP
+ * 500 stays the Japanese heading face, on :lang(ja) h1/h2/h3 and, through
+ * `--lm-font-display`, after the serif on every Japanese display line.
  */
-const display = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-display", display: "swap" });
-const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans", display: "swap" });
 const jp = Noto_Serif_JP({ subsets: ["latin"], weight: ["500"], variable: "--font-jp", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -104,12 +93,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [lang, h] = await Promise.all([getLang(), headers()]);
   const deferJp = deferJpFont(lang, h.get(PATH_HEADER));
   const t = tr(lang);
-  // LUMIÈRE P2: the home page (/, /en, /ja) renders the Lumière chrome itself —
-  // the header inside the pinned hero, the footer as the last block
-  // (components/lumiere/home/home-view.tsx) — so the site header and footer
-  // step aside there. Every other page keeps them until P3 puts the Lumière
-  // chrome site-wide. The announcement bar, tab bar, Messenger button and
-  // consent banner stay on every page.
+  // LUMIÈRE P3: every page carries the Lumière chrome. The home (/, /en, /ja)
+  // renders its own — the header inside the pinned hero, the footer as the
+  // last block (components/lumiere/home/home-view.tsx); every other page gets
+  // the fixed site header (components/lumiere/site/site-chrome.tsx) and the
+  // same footer from here. The old site Header and Footer stay in the tree,
+  // unused, until P5. The announcement bar, tab bar, Messenger button and
+  // consent banner are restyled and stay on every page.
   const lumiereHome = isHomePath(h.get(PATH_HEADER));
   // `announcement()` answers null for inactive, empty-in-this-language and
   // expired alike. CAUGHT, because the bar is chrome and this is the root
@@ -151,7 +141,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // The three Lumière faces (app/fonts.ts) join the class list as CSS
     // variables only — no element uses them until P3, and they are not
     // preloaded, so the existing pages fetch nothing new.
-    <html lang={lang} translate="no" className={`${display.variable} ${sans.variable} ${jp.variable} ${lumiereFontVariables}`} {...(deferJp ? { "data-jp-defer": "" } : {})}>
+    <html lang={lang} translate="no" className={`${jp.variable} ${lumiereFontVariables}`} {...(deferJp ? { "data-jp-defer": "" } : {})}>
       {/* The announcement bar's pre-paint script sets a data attribute here
           before React hydrates (components/site/announcement-bar.tsx), which is
           a mismatch React reports. Suppressed on <body> precisely because it
@@ -185,7 +175,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             render it, so the script is not even requested there. The browser
             half of the gate and the URL rules are in the component. */}
         {process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && process.env.NEXT_PUBLIC_PREVIEW_FIXTURES !== "1" && <MetricoolTracker />}
-        <a href="#main" className="absolute -left-[999px] top-2 z-50 bg-orange px-3 py-2 text-charcoal-deep focus:left-2">{t("nav", "skip")}</a>
+        <a href="#main" className="absolute -left-[999px] top-2 z-50 rounded-pill bg-content px-4 py-2 font-manrope text-sm text-content-inverse focus:left-2">{t("nav", "skip")}</a>
         {/* Above the header and in normal flow, so it scrolls away and the
             sticky header takes the top once it has. */}
         {notice && <AnnouncementBar text={notice.text} href={notice.href && localizeAuthoredHref(notice.href, lang)} lang={lang} nonce={h.get("x-nonce") ?? undefined} />}
@@ -200,12 +190,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             render nothing. */}
         <ScrollLayout />
         <ReducedMotion />
-        {!lumiereHome && <Header lang={lang} switchTargets={targets} />}
+        {!lumiereHome && <SiteChrome lang={lang} switchTargets={targets} />}
         <Suspense fallback={null}><FlashNotice messages={{ signed_out: t("accountMenu", "signedOut") }} /></Suspense>
         {/* data-messenger: the Hub's Messenger link, for app/error.tsx — a client
             error boundary that cannot read the Hub itself. */}
         <main id="main" data-messenger={messenger ?? undefined}>{children}</main>
-        {!lumiereHome && <Footer lang={lang} switchTargets={targets} />}
+        {!lumiereHome && <FooterSection lang={lang} switchTargets={targets} />}
         <MobileTabBar tabs={tabs} label={t("nav", "tabBar")} />
         {/* Last in the document, so no page chrome paints over it. */}
         {/* The cookie banner: asks once, and again from "Cookie settings" in the footer. */}

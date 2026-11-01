@@ -15,15 +15,15 @@
  *     stylesheet after `next build` and fails if a URL is not the one
  *     `@font-face` actually declares.
  *
- * Only the home renders `FontPreload` (components/lumiere/common/font-preload.tsx,
- * from components/lumiere/home/
- * home-view.tsx, a Server Component): every other page keeps the P1 decision —
- * the faces are fetched only when a rendered element asks for them.
+ * The home renders `FontPreload` (components/lumiere/common/font-preload.tsx,
+ * from components/lumiere/home/home-view.tsx) with `heroFontKeys`; since P3
+ * every other page renders it from app/layout.tsx with `chromeFontKeys` — the
+ * two faces the Lumière header draws above the fold on every page.
  */
 export const LUMIERE_FONT_FILES = {
   instrumentSerif: { file: "InstrumentSerif-Regular.woff2", hash: "29dc5d7306ed60a6" },
   instrumentSerifItalic: { file: "InstrumentSerif-Italic.woff2", hash: "cf354b1b8581a22c" },
-  manrope: { file: "Manrope-Medium.woff2", hash: "7b2e1775768adab5" },
+  manrope: { file: "Manrope-Variable.woff2", hash: "8760c4774489e4ba" },
   interTight: { file: "InterTight-Regular.woff2", hash: "65a890f4ad2d42b9" },
 } as const;
 
@@ -43,3 +43,6 @@ export const lumiereFontUrl = (key: LumiereFontKey): string =>
  */
 export const heroFontKeys = (lang: "en" | "ja"): LumiereFontKey[] =>
   lang === "en" ? ["instrumentSerif", "instrumentSerifItalic", "manrope"] : ["instrumentSerif", "manrope"];
+
+/** The faces the site header draws on every page (P3): the serif wordmark and the Manrope labels. */
+export const chromeFontKeys = (): LumiereFontKey[] => ["instrumentSerif", "manrope"];

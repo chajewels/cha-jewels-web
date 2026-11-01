@@ -37,14 +37,14 @@ export function MobileTabBar({ tabs, label }: { tabs: Tab[]; label: string }) {
   // client navigation.
   if (stripLocale(path).startsWith("/products/")) return null;
   return (
-    <nav aria-label={label} data-mobile-tab-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-chalk/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+    <nav aria-label={label} data-mobile-tab-bar className="lm-tab-bar fixed inset-x-0 bottom-0 z-40 border-t border-border-muted bg-surface/92 pb-[env(safe-area-inset-bottom)] font-manrope backdrop-blur-xl lg:hidden">
       <div className="flex h-16 items-center justify-around px-1">
         {tabs.map(({ href, label: name, icon }) => {
           const Icon = ICONS[icon];
           const bare = stripLocale(path);
           const active = OWNS[icon].some((m) => (m === "/" ? bare === "/" : bare === m || bare.startsWith(`${m}/`)));
           return (
-            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex h-14 min-w-[64px] flex-col items-center justify-center gap-1 px-1 text-[11px] leading-none ${active ? "font-semibold text-gold-deep" : "text-charcoal/75 hover:text-charcoal-deep"}`}>
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex h-14 min-w-[64px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium leading-none ${active ? "text-content" : "text-content/55 hover:text-content"}`}>
               <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} />
               <span className="whitespace-nowrap">{name}</span>
             </Link>

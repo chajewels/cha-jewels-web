@@ -53,7 +53,8 @@ export function NavMenu({ label, menuLabel, crawlLinks = [], children }: { label
   const cancelClose = () => { if (closeTimer.current) { window.clearTimeout(closeTimer.current); closeTimer.current = null; } };
   const close = useCallback((refocus: boolean) => {
     setOpen(false);
-    if (refocus) trigger.current?.focus();
+    // Without scrolling: the trigger is in the sticky header (lib/scroll-lock.ts explains the jump).
+    if (refocus) trigger.current?.focus({ preventScroll: true });
   }, []);
   const show = useCallback(() => {
     setOpen(true);

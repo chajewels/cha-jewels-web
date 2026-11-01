@@ -16,9 +16,14 @@ import { CardMarks, PaidyMark } from "@/components/commerce/card-marks";
 import { CookieSettingsLink } from "@/components/site/cookie-settings-link";
 import { capTrim } from "@/components/lumiere/collections/cap-trim";
 
+import { GiantWordmark } from "./giant-wordmark";
+
 import { Separator } from "./footer-icons";
 import { SubscribeForm } from "./subscribe-form";
 import { CAP_RATIO_MANROPE, TYPE } from "./footer.config";
+
+/** A collections list longer than this runs in two columns (app/lumiere/chrome.css). */
+const TWO_COLUMNS_FROM = 7;
 
 const line = capTrim(
   TYPE.link.size,
@@ -59,6 +64,15 @@ const note = capTrim(
  * its note, "Follow us" over the social row, the founded / authentication
  * ledger lines in the company block, and the language switcher in the bottom
  * row. The social row is whatever the Hub's `social.follow` returns.
+ *
+ * P3: ON EVERY PAGE (app/layout.tsx renders it wherever the home does not),
+ * and ONE VIEWPORT AT 1440×900 WITH NOTHING DROPPED (item 7): the link rows
+ * tighter, the collections in two columns when the Hub's list is long, the
+ * company block compact, and on a phone the four link columns as accordions
+ * (native <details>, open before hydration) — the old footer's own pattern.
+ * Halden's giant wordmark (report §7 P3 row) runs along the base, drawn by
+ * the letter reveal and aria-hidden: the mark above carries the name.
+ * `data-chrome-tone="dark"` tells the site header to go dark over it.
  *
  * A server component but for the e-mail line. Every Hub read is caught: an
  * unreachable Hub costs the tagline or the icons, never the page.
@@ -128,7 +142,7 @@ export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switc
   ];
 
   return (
-    <footer className="footer footer--cha">
+    <footer className="footer footer--cha" data-chrome-tone="dark">
       <Link href={L("/")} className="footer__logo" aria-label="Cha Jewels">
         <Image
           src="/images/brand/logo-badge-192.webp"
@@ -142,12 +156,9 @@ export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switc
       </Link>
 
       <nav className="footer__columns" aria-label={t("footer", "legal")}>
-        {columns.map((column) => (
-          <div key={column.title} className="footer__column">
-            <p className="footer__column-title" style={line}>
-              {column.title}
-            </p>
-            <ul className="footer__list">
+        {columns.map((column) => {
+          const list = (
+            <ul className={`footer__list${column.links.length >= TWO_COLUMNS_FROM ? " footer__list--two" : ""}`}>
               {column.links.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="footer__link" style={line}>
@@ -162,8 +173,22 @@ export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switc
                 </li>
               )}
             </ul>
-          </div>
-        ))}
+          );
+          return (
+            <div key={column.title} className="footer__column">
+              {/* A wide screen: the title and the open list. */}
+              <p className="footer__column-title" style={line}>
+                {column.title}
+              </p>
+              {list}
+              {/* A phone: the same list behind its title (app/lumiere/chrome.css decides which shows). */}
+              <details>
+                <summary className="footer__column-title">{column.title}</summary>
+                {list}
+              </details>
+            </div>
+          );
+        })}
 
         {/* The company block (§1a, D-1, D-2): every line from lib/content/legal.ts. */}
         <div className="footer__column footer__company">
@@ -241,6 +266,13 @@ export const FooterSection = async ({ lang, switchTargets }: { lang: Lang; switc
           <LangSwitcher lang={lang} targets={switchTargets} tone="dark" />
         </span>
       </div>
+
+      {/* Halden's giant wordmark along the base (docs/design-refs/halden/
+          footer-section.tsx): the name, letter by letter, as the rest of the
+          page's headings arrive; aria-hidden — the mark above says it. */}
+      <span className="footer__giant font-serif" aria-hidden="true">
+        <GiantWordmark lang={lang} />
+      </span>
     </footer>
   );
 };

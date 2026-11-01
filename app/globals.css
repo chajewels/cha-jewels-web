@@ -6,6 +6,7 @@
 @import "./lumiere/tokens.css";
 @import "./lumiere/blocks.css";
 @import "./lumiere/sections.css";
+@import "./lumiere/chrome.css";
 @import "./lumiere/utilities.css";
 @tailwind base;
 @tailwind components;

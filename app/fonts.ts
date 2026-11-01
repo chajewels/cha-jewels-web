@@ -1,17 +1,26 @@
 import localFont from "next/font/local";
 
 /**
- * THE LUMIÈRE FACES (D-14): Instrument Serif (roman + italic), Manrope Medium
- * and Inter Tight Regular, self-hosted from public/lumiere/shared/fonts/ and
- * exposed as CSS variables only. Nothing on the existing pages uses them
- * until P3 replaces Playfair Display + Inter; until then the Playfair / Inter /
- * Noto Serif JP loaders in app/layout.tsx stay exactly as they were.
+ * THE LUMIÈRE FACES (D-14): Instrument Serif (roman + italic), Manrope and
+ * Inter Tight Regular, self-hosted from public/lumiere/shared/fonts/ and
+ * exposed as CSS variables. SINCE P3 THEY ARE THE SITE'S FACES: Playfair
+ * Display and Inter are gone from app/layout.tsx, `--font-display` is
+ * Instrument Serif and `--font-sans` is Manrope (app/lumiere/tokens.css), so
+ * every page's chrome and base type set in them; Noto Serif JP stays the
+ * Japanese heading face.
  *
- * `preload: false` on all three, on purpose: a preloaded face is a
- * high-priority request ahead of every page's LCP image, and in P1 no page
- * renders a glyph in them. P3 turns preload on for the faces the header and
- * the home use above the fold. The browser fetches a face only when a rendered
- * element asks for it, so these cost the existing pages nothing.
+ * Manrope is the VARIABLE face (Manrope-Variable.woff2: Google Fonts' Latin
+ * subset of the OFL family, weights 200–800) rather than the reference's
+ * Medium cut alone, because the site's UI sets Manrope at 400, 500, 600 and
+ * 700 (buttons, labels, the cart count) and a single 500 cut would have been
+ * faux-bolded everywhere else. The Lumière home's `font-manrope` resolves to
+ * the same file at 500.
+ *
+ * `preload: false` on all three, still on purpose: next/font would preload
+ * every file of a family on every page (the italic included). The faces the
+ * chrome draws above the fold are preloaded by lib/lumiere/font-urls.ts +
+ * components/lumiere/common/font-preload.tsx instead — the serif and Manrope
+ * on every page (app/layout.tsx), the italic as well on the English home.
  *
  * Inter Tight is the reference's TTF subset to Latin (Google Fonts' latin
  * range + ¥ and •), 105 → 22 KB (docs/tasks/lumiere-p0-report.md §5.6). The
@@ -34,7 +43,7 @@ export const instrumentSerif = localFont({
 });
 
 export const manrope = localFont({
-  src: [{ path: "../public/lumiere/shared/fonts/Manrope-Medium.woff2", weight: "500", style: "normal" }],
+  src: [{ path: "../public/lumiere/shared/fonts/Manrope-Variable.woff2", weight: "200 800", style: "normal" }],
   variable: "--font-manrope",
   display: "swap",
   preload: false,

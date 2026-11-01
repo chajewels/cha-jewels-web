@@ -1,25 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { animated, easings, useSpring } from "@react-spring/web";
+import { animated } from "@react-spring/web";
 
 import { designUnit } from "@/lib/lumiere/design-unit";
-import { lockScroll } from "@/lib/scroll-lock";
+import { BurgerButton, MenuOverlay } from "@/components/lumiere/site/menu-overlay";
 
 import { range } from "./hero-geometry";
 import { useHeroContent } from "./hero-content";
 import { RollLink } from "./hero-hover";
-import {
-  ITEM_STAGGER,
-  MENU_EXIT_MS,
-  MENU_LEAD,
-  MaskedItem,
-  REVEAL,
-  RevealItem,
-  useRevealSpring,
-} from "./hero-reveal";
+import { ITEM_STAGGER, REVEAL, RevealItem, useRevealSpring } from "./hero-reveal";
 import { TIMELINE } from "./hero.config";
 import { useHeroProgress } from "./hero-progress";
 
@@ -35,13 +27,18 @@ import { useHeroProgress } from "./hero-progress";
  *            fades in over it with the frame-3 inversion
  *   right    the site's own controls, rendered on the server and handed down:
  *            the JA/EN toggle (JA first), the account menu, the live cart
- *            count (CartBump), the search
- *   phone    the compact bar — cart and the burger — and the overlay, every
- *            existing destination in groups, each label rising out of its mask
+ *            count (CartBump), the search — and, since P3, the burger at
+ *            every width (the menu lists every destination; a desktop reader
+ *            needs it too)
+ *   phone    the compact bar — search, cart and the burger — and the overlay,
+ *            every existing destination in groups, each label rising out of
+ *            its mask (components/lumiere/site/menu-overlay.tsx, shared with
+ *            the site header on every other page)
  *
  * As in the reference the header lives inside the pinned hero and takes its
- * colour from the stage (`currentColor`); P3 puts a fixed, recolouring header
- * on every page. The mobile tab bar stays (D-19, root layout).
+ * colour from the stage (`currentColor`); the fixed, recolouring header on
+ * every other page is components/lumiere/site/site-header.tsx. The mobile
+ * tab bar stays (D-19, root layout).
  */
 
 /** Burger geometry, in px. The bars sit inside a 44px target. */
@@ -63,6 +60,7 @@ const SHORT_BAR_RATIO = 0.66;
 const linkClass = "inline-flex";
 
 const BADGE = { src: "/images/brand/logo-badge-192.webp", size: 192 } as const;
+const MENU_ID = "hero-menu";
 
 /** The badge + wordmark pair, in the current colour; `inverse` is the white copy. */
 const Wordmark = ({ inverse = false }: { inverse?: boolean }) => (
@@ -88,59 +86,17 @@ export const HeroHeader = () => {
   const { nav, utilities, menu, labels, homeHref } = chrome;
   const progress = useHeroProgress();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // Intent and presence are two different things. `isMenuOpen` is what the
-  // button says; this is whether the panel is still in the DOM. Closing sets
-  // the first to false and leaves the second true until the fade is over —
-  // without it the overlay unmounts on the click and the menu does not leave,
-  // it disappears.
-  const [isMenuMounted, setIsMenuMounted] = useState(false);
+  const compactBurger = useRef<HTMLButtonElement>(null);
+  const wideBurger = useRef<HTMLButtonElement>(null);
   // The wordmark and the compact bar arrive as one; the desktop nav items carry
   // their own staggered entrances instead.
   const chromeReveal = useRevealSpring(REVEAL.chrome, 10);
-  // The menu's divider, drawn out from the left between the two groups.
-  const { divider } = useSpring({
-    divider: isMenuOpen ? 1 : 0,
-    delay: isMenuOpen ? MENU_LEAD + nav.length * ITEM_STAGGER : 0,
-    config: { tension: 120, friction: 26 },
-  });
-
-  // 0 is the burger, 1 the cross. One value drives both bars, so they can never
-  // fall out of step with each other or with the button's state.
-  const icon = useSpring({
-    top: isMenuOpen ? 1 : 0,
-    config: { tension: 320, friction: 26 },
-  });
-
-  // A menu that covers the screen must not leave the page scrolling underneath
-  // — the shared lock, so Lenis stops with it (lib/scroll-lock.ts).
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    return lockScroll();
-  }, [isMenuOpen]);
-
-  // Mount on the way in, unmount a beat after the way out.
-  useEffect(() => {
-    if (isMenuOpen) {
-      setIsMenuMounted(true);
-
-      return;
-    }
-
-    if (!isMenuMounted) return;
-
-    const id = setTimeout(() => setIsMenuMounted(false), MENU_EXIT_MS);
-
-    return () => clearTimeout(id);
-  }, [isMenuOpen, isMenuMounted]);
-
-  const panel = useSpring({
-    opacity: isMenuOpen ? 1 : 0,
-    config: { duration: MENU_EXIT_MS, easing: easings.easeOutCubic },
-  });
+  // 0 is the burger, 1 the cross. One value drives both bars (the compact
+  // bar's own pair; the wide burger is the shared BurgerButton).
+  const icon = { top: isMenuOpen ? 1 : 0 };
 
   const close = () => setIsMenuOpen(false);
-  const utilityCount = 4;
-  let menuIndex = 0;
+  const utilityCount = 5;
 
   return (
     // The header's own z-index has to rise with the menu. At z-20 it opens a
@@ -202,10 +158,12 @@ export const HeroHeader = () => {
 
       {/* The right group: the site's own controls. Figma sets these at 16 and
           top 25, a pairing that only existed to make the larger cap-height sit
-          level with the 14 menu. At a matched size they share the menu's top. */}
+          level with the 14 menu. At a matched size they share the menu's top.
+          Above the overlay while the menu is open, so the burger that opened
+          it can close it. */}
       <nav
         aria-label={labels.account}
-        className="pointer-events-auto absolute top-u-29 right-u-40 hidden lg:block"
+        className={`pointer-events-auto absolute top-u-29 right-u-40 hidden lg:block ${isMenuOpen ? "z-50 text-content" : ""}`}
       >
         {/* Continues the primary nav's count rather than restarting it, so the
             whole top line reads as one pass across the page. */}
@@ -223,6 +181,9 @@ export const HeroHeader = () => {
               {node}
             </RevealItem>
           ))}
+          <RevealItem className="flex items-center" delay={REVEAL.chrome + (nav.length + 4) * ITEM_STAGGER}>
+            <BurgerButton buttonRef={wideBurger} open={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)} controls={MENU_ID} labels={labels} className="-mr-[10px]" />
+          </RevealItem>
         </ul>
       </nav>
 
@@ -249,9 +210,10 @@ export const HeroHeader = () => {
             on the same centre line and only ever move by transform, so the
             morph costs nothing and reverses cleanly if it is interrupted. */}
         <button
+          ref={compactBurger}
           type="button"
           aria-expanded={isMenuOpen}
-          aria-controls="hero-menu"
+          aria-controls={MENU_ID}
           onClick={() => setIsMenuOpen((open) => !open)}
           // The negative margin pulls the bars out to the gutter; once the row
           // reverses it has to pull the other way.
@@ -261,135 +223,37 @@ export const HeroHeader = () => {
             {isMenuOpen ? labels.closeMenu : labels.openMenu}
           </span>
 
-          <animated.span
+          <span
             aria-hidden
-            className="absolute top-1/2 right-[10px] block h-px bg-current md:right-auto md:left-[10px]"
+            className="absolute top-1/2 right-[10px] block h-px bg-current transition-transform duration-300 md:right-auto md:left-[10px]"
             style={{
               width: BAR_WIDTH,
-              transform: icon.top.to(
-                (t) =>
-                  `translateY(${-BAR_GAP + BAR_GAP * t}px) rotate(${45 * t}deg)`,
-              ),
+              transform: `translateY(${-BAR_GAP + BAR_GAP * icon.top}px) rotate(${45 * icon.top}deg)`,
             }}
           />
-          <animated.span
+          <span
             aria-hidden
-            className="absolute top-1/2 right-[10px] block h-px bg-current md:right-auto md:left-[10px]"
+            className="absolute top-1/2 right-[10px] block h-px bg-current transition-[transform,width] duration-300 md:right-auto md:left-[10px]"
             style={{
               // The shorter bar grows to match as it becomes half of the cross.
-              width: icon.top.to(
-                (t) =>
-                  `${BAR_WIDTH * (SHORT_BAR_RATIO + (1 - SHORT_BAR_RATIO) * t)}px`,
-              ),
-              transform: icon.top.to(
-                (t) =>
-                  `translateY(${BAR_GAP - BAR_GAP * t}px) rotate(${-45 * t}deg)`,
-              ),
+              width: `${BAR_WIDTH * (SHORT_BAR_RATIO + (1 - SHORT_BAR_RATIO) * icon.top)}px`,
+              transform: `translateY(${BAR_GAP - BAR_GAP * icon.top}px) rotate(${-45 * icon.top}deg)`,
             }}
           />
         </button>
       </animated.div>
 
-      {isMenuMounted && (
-        <animated.div
-          id="hero-menu"
-          role="dialog"
-          aria-modal="true"
-          aria-label={labels.menu}
-          // Spacing here is in real pixels, not the spacing scale. That scale is
-          // one design unit — `gap-u-24` would mean 24 x 0.72 = 17px — which is
-          // right for reproducing Figma and wrong for a menu that has to stand
-          // on its own at any size.
-          // Padding carries the safe area itself rather than delegating to
-          // `inset-safe`. That utility *sets* padding, so on a phone without a
-          // notch it resolves to 0 and wipes out the gutter.
-          // Scrolls inside (every existing link is listed), not the page.
-          data-lenis-prevent
-          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-surface text-content lg:hidden"
-          style={{
-            paddingLeft: "max(24px, env(safe-area-inset-left))",
-            paddingRight: "max(24px, env(safe-area-inset-right))",
-            paddingTop: "max(88px, env(safe-area-inset-top))",
-            paddingBottom: "max(32px, env(safe-area-inset-bottom))",
-            opacity: panel.opacity,
-            // A panel on its way out must not still be catching taps meant for
-            // the page underneath.
-            pointerEvents: isMenuOpen ? "auto" : "none",
-          }}
-        >
-          <div className="my-auto">
-            {/* The primary labels get the headline's treatment: each rises out
-                from behind its own edge, one after the next. The mask sits
-                inside the link rather than around it, so the 44px tap target
-                is untouched. */}
-            <nav aria-label={labels.primary}>
-              <ul className="flex list-none flex-col gap-[4px] font-serif">
-                {nav.map((link, index) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      onClick={close}
-                      // min-height, not padding alone: the tap target has to
-                      // hold 44px even when the type clamps down on a short
-                      // screen.
-                      className="flex min-h-[44px] items-center text-[clamp(28px,8vw,34px)] leading-[1.2]"
-                    >
-                      <MaskedItem
-                        active={isMenuOpen}
-                        delay={MENU_LEAD + index * ITEM_STAGGER}
-                      >
-                        {link.label}
-                      </MaskedItem>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            {/* The rule draws itself out from the left on the same beat as the
-                item it separates, so the divider arrives with the group rather
-                than sitting there waiting for it. */}
-            <animated.span
-              aria-hidden
-              className="my-[20px] block w-[48px] origin-left bg-current opacity-30"
-              style={{ height: designUnit(0.7), scaleX: divider }}
-            />
-
-            {/* Every other destination the site has, in its groups — the
-                collections, the categories, the company pages, the guides, the
-                account — in the small face, each still rising on its own beat. */}
-            {menu.map((group) => (
-              <nav key={group.title} aria-label={group.title} className="mb-[20px]">
-                <p className="mb-[6px] font-manrope text-[11px] font-medium uppercase tracking-utility opacity-50">{group.title}</p>
-                <ul className="flex list-none flex-col gap-0 font-serif">
-                  {group.links.map((link) => {
-                    const delay = MENU_LEAD + (nav.length + 1 + menuIndex++) * ITEM_STAGGER;
-                    return (
-                      <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          onClick={close}
-                          className="flex min-h-[40px] items-center text-[clamp(18px,5vw,22px)] leading-[1.2]"
-                        >
-                          <MaskedItem active={isMenuOpen} delay={Math.min(delay, MENU_LEAD + 14 * ITEM_STAGGER)}>
-                            {link.label}
-                          </MaskedItem>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-            ))}
-
-            {/* The language toggle and the account, as the site renders them. */}
-            <div className="mt-[8px] flex flex-wrap items-center gap-[16px] font-manrope text-nav font-medium uppercase">
-              {utilities.langSwitcher}
-              {utilities.account}
-            </div>
-          </div>
-        </animated.div>
-      )}
+      <MenuOverlay
+        id={MENU_ID}
+        open={isMenuOpen}
+        onClose={close}
+        nav={nav}
+        menu={menu}
+        utilities={{ langSwitcher: utilities.langSwitcher, account: utilities.account }}
+        labels={labels}
+        homeHref={homeHref}
+        returnTo={compactBurger}
+      />
       {/* Keeps the utility count in the reveal arithmetic honest when groups change. */}
       <span hidden data-utilities={utilityCount} />
     </header>
