@@ -8,6 +8,10 @@
 // for character from STEP-4-OWNER-APPROVAL-RECORD.md), never retyped here. If the owner changes a word in the Hub
 // without changing the record, this check FAILS — by design (the checklist: "if you change any word, tell me").
 //
+// DEFAULT RUN = the twelve SEO listing pages only. The article (BUG-03) is a CONTENT task: it runs only with --article and
+// never decides the default exit status. Exit: 0 fully verified, 1 a page failed/old/other/has a problem, 2 bad usage or a
+// refused baseline, 3 all applied but preservation NOT VERIFIED (no --baseline). --capture-baseline <file> writes the schema-
+// versioned pre-publication snapshot (membership by href, images, unrelated links, title, H1).
 // Per listing record (four collections, two categories), per language, the §8 checks:
 //   - HTTP 200 and no redirect;
 //   - the approved text is the meta description AND appears in the page body; the old text is gone;
@@ -77,55 +81,114 @@ export function parseChecklist(md) {
   return { listings, article };
 }
 
-/** Pull what the checks need from one HTML document (raw HTML, no DOM). */
+/** Strip scripts, styles and comments; the visible document only. */
+const visible = (h) => String(h ?? "").replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, " ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/g, " ").replace(/<!--[\s\S]*?-->/g, " ");
+const textOf = (frag) => norm(unesc(String(frag).replace(/<[^>]+>/g, " ")));
+const section = (h, tag) => { const s = visible(h); const i = s.search(new RegExp(`<${tag}\\b`)); const e = s.lastIndexOf(`</${tag}>`); return i >= 0 && e > i ? s.slice(i, e) : null; };
+const attr = (tag, name) => { const m = tag.match(new RegExp(`\\b${name}="([^"]*)"`)); return m ? unesc(m[1]) : null; };
+/** The image identity behind a Next image URL (`/_next/image?url=<encoded>&w=…`) or the plain src. */
+export const imageIdentity = (src) => { if (!src) return null; const m = src.match(/[?&]url=([^&]+)/); try { return m ? decodeURIComponent(m[1]) : src; } catch { return src; } };
+
+/** Pull what the checks need from one HTML document (raw HTML, no DOM). The page is read in SECTIONS: head, <main>, the listing description block, the <article>. */
 export function readHtml(html) {
   const h = String(html ?? "");
-  const metaDesc = (h.match(/<meta name="description" content="([^"]*)"/) ?? [])[1] ?? null;
-  const ogDesc = (h.match(/<meta property="og:description" content="([^"]*)"/) ?? [])[1] ?? null;
+  const content = (re) => { const m = h.match(re); return m ? norm(unesc(m[1])) : null; };
+  const metaDesc = content(/<meta name="description" content="([^"]*)"/);
+  const ogDesc = content(/<meta property="og:description" content="([^"]*)"/);
+  const twDesc = content(/<meta name="twitter:description" content="([^"]*)"/);
   const canonical = [...h.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1]);
-  const hreflang = [...h.matchAll(/<link rel="alternate" hrefLang="([^"]*)" href="([^"]*)"/g)].map((m) => m[1]).sort();
-  const body = norm(unesc(h.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, " ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ")));
-  const productLinks = new Set([...h.matchAll(/href="(\/(?:en|ja)\/products\/[^"/?#]+)"/g)].map((m) => m[1])).size;
-  return { metaDesc: metaDesc == null ? null : norm(unesc(metaDesc)), ogDesc: ogDesc == null ? null : norm(unesc(ogDesc)), canonical, hreflang, body, productLinks };
+  const hreflang = [...h.matchAll(/<link rel="alternate" hrefLang="([^"]*)" href="([^"]*)"/g)].map((m) => ({ lang: m[1], href: m[2] }));
+  const main = section(h, "main");
+  const descBlocks = main ? [...main.matchAll(/<p class="cs-desc[^"]*"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => textOf(m[1])) : [];
+  const articleHtml = section(h, "article");
+  const hrefs = main ? [...main.matchAll(/<a\b[^>]*>/g)].map((m) => attr(m[0], "href")).filter(Boolean) : [];
+  const members = [...new Set(hrefs.map((x) => x.split(/[?#]/)[0]).filter((x) => /^\/(?:en|ja)\/products\/[^/]+$/.test(x)))].sort();
+  const otherLinks = [...new Set(hrefs.filter((x) => !/^\/(?:en|ja)\/products\/[^/?#]+(?:[?#]|$)/.test(x)))].sort();
+  const images = main ? [...new Set([...main.matchAll(/<img\b[^>]*>/g)].map((m) => imageIdentity(attr(m[0], "src"))).filter(Boolean))].sort() : [];
+  const title = content(/<title>([^<]*)<\/title>/);
+  const h1 = main ? (() => { const m = main.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/); return m ? textOf(m[1]) : null; })() : null;
+  return { metaDesc, ogDesc, twDesc, canonical, hreflang, descBlocks, mainText: main ? textOf(main) : "", articleParagraphs: articleHtml ? [...articleHtml.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/g)].map((m) => textOf(m[1])) : null, members, otherLinks, images, title, h1, productLinks: members.length };
 }
 
 /** APPLIED / OLD / OTHER for one text against the record's wording. */
 export const classify = (text, existing, approved) => (text == null ? "NONE" : norm(text) === norm(approved) ? "APPLIED" : norm(text) === norm(existing) ? "OLD" : "OTHER");
 
-/** One listing page: `{ verdict, problems, facts }`. `res` = { status, redirected, location, html }. */
-export function evaluateListing(res, rec, lang, { baselineCount = null } = {}) {
-  const problems = [];
-  if (res.status !== 200) return { verdict: "FAIL", problems: [`status ${res.status}${res.location ? ` → ${res.location}` : ""}`], facts: {} };
+// ---------------------------------------------------------------- the baseline (recorded BEFORE publication)
+export const BASELINE_SCHEMA = "cha-step4-baseline/1";
+/** Snapshot of one listing page for the preservation checks. */
+export const snapshotOf = (html) => { const d = readHtml(html); return { title: d.title, h1: d.h1, members: d.members, images: d.images, otherLinks: d.otherLinks, canonical: d.canonical[0] ?? null }; };
+/**
+ * Validate a baseline object against the schema and the checklist's listing URLs. Returns { ok, errors }.
+ * The old count-only file (`{ counts: {...} }`) is REFUSED, not silently ignored.
+ */
+export function validateBaseline(b, listings) {
+  const errors = [];
+  if (!b || typeof b !== "object" || Array.isArray(b)) return { ok: false, errors: ["baseline is not a JSON object"] };
+  if (b.schema !== BASELINE_SCHEMA) errors.push(`baseline schema is ${JSON.stringify(b.schema)}, expected ${JSON.stringify(BASELINE_SCHEMA)}${b.counts ? " (this looks like the retired counts-only file)" : ""}`);
+  if (!b.pages || typeof b.pages !== "object") errors.push("baseline has no `pages` object");
+  else for (const rec of listings) for (const l of ["en", "ja"]) {
+    const p = b.pages[rec.urls[l]];
+    if (!p) { errors.push(`baseline lacks ${rec.urls[l]}`); continue; }
+    for (const k of ["members", "images", "otherLinks"]) if (!Array.isArray(p[k]) || !p[k].every((x) => typeof x === "string")) errors.push(`${rec.urls[l]}: \`${k}\` must be an array of strings`);
+    if (Array.isArray(p.members) && p.members.length === 0) errors.push(`${rec.urls[l]}: baseline has no members (an empty listing cannot baseline membership)`);
+  }
+  return { ok: errors.length === 0, errors };
+}
+const setDiff = (a, b) => a.filter((x) => !b.includes(x));
+
+/** One listing page: `{ verdict, problems, notVerified, facts }`. `res` = { status, redirected, location, html }. */
+export function evaluateListing(res, rec, lang, { baselinePage = null } = {}) {
+  const problems = [], notVerified = [];
+  if (res.status !== 200) return { verdict: "FAIL", problems: [`status ${res.status}${res.location ? ` → ${res.location}` : ""}`], notVerified, facts: {} };
   if (res.redirected) problems.push(`redirected to ${res.location ?? "?"}`);
   const d = readHtml(res.html);
   const approved = rec.approved[lang], existing = rec.existing[lang];
-  const meta = classify(d.metaDesc, existing, approved);
-  const bodyHasApproved = d.body.includes(norm(approved)), bodyHasOld = d.body.includes(norm(existing));
-  const own = rec.urls[lang];
+  // Every place the description appears must agree: meta, og, twitter, and THE description block of the page (never header/footer/product cards).
+  const states = { meta: classify(d.metaDesc, existing, approved), og: classify(d.ogDesc, existing, approved), twitter: classify(d.twDesc, existing, approved) };
+  if (d.descBlocks.length !== 1) problems.push(`${d.descBlocks.length} description block(s) in <main>, expected exactly 1`);
+  states.visible = d.descBlocks.length === 1 ? classify(d.descBlocks[0], existing, approved) : "NONE";
+  const own = rec.urls[lang], other = rec.urls[lang === "en" ? "ja" : "en"], en = rec.urls.en;
   if (d.canonical.length !== 1 || d.canonical[0] !== own) problems.push(`canonical ${d.canonical.join("|") || "missing"} ≠ ${own}`);
-  if (d.hreflang.join(",") !== "en,ja,x-default") problems.push(`hreflang ${d.hreflang.join(",") || "missing"}`);
-  const claim = d.metaDesc != null && CLAIM_RULES.find((r) => r.test(d.metaDesc));
-  if (claim) problems.push(`live description carries an origin or country-branded-metal claim (${claim})`);
-  if (baselineCount != null && d.productLinks !== baselineCount) problems.push(`product links ${d.productLinks} ≠ baseline ${baselineCount} (membership changed?)`);
+  const hl = Object.fromEntries(d.hreflang.map((x) => [x.lang, x.href]));
+  const hlOk = d.hreflang.length === 3 && hl.en === rec.urls.en && hl.ja === rec.urls.ja && hl["x-default"] === en;
+  if (!hlOk) problems.push(`hreflang destinations ${d.hreflang.map((x) => `${x.lang}=${x.href}`).join(" ") || "missing"} ≠ en=${rec.urls.en} ja=${rec.urls.ja} x-default=${en}`);
+  for (const [name, text] of [["meta", d.metaDesc], ["og", d.ogDesc], ["visible", d.descBlocks[0]]]) { const claim = text != null && CLAIM_RULES.find((r) => r.test(text)); if (claim) problems.push(`${name} description carries an origin or country-branded-metal claim (${claim})`); }
+  // Preservation against the pre-publication snapshot, by identity — or NOT VERIFIED.
+  if (!baselinePage) notVerified.push("membership identities, images, unrelated links, title and H1 preservation (no baseline)");
+  else {
+    const gone = setDiff(baselinePage.members, d.members), added = setDiff(d.members, baselinePage.members);
+    if (gone.length || added.length) problems.push(`membership changed: ${gone.length} removed${gone.length ? ` (e.g. ${gone.slice(0, 2).join(", ")})` : ""}, ${added.length} added${added.length ? ` (e.g. ${added.slice(0, 2).join(", ")})` : ""}`);
+    const imgGone = setDiff(baselinePage.images, d.images); if (imgGone.length) problems.push(`${imgGone.length} image(s) gone (e.g. ${imgGone[0]})`);
+    const imgNew = setDiff(d.images, baselinePage.images); if (imgNew.length) problems.push(`${imgNew.length} image(s) added (e.g. ${imgNew[0]})`);
+    const lkGone = setDiff(baselinePage.otherLinks, d.otherLinks); if (lkGone.length) problems.push(`${lkGone.length} unrelated link(s) gone (e.g. ${lkGone[0]})`);
+    const lkNew = setDiff(d.otherLinks, baselinePage.otherLinks); if (lkNew.length) problems.push(`${lkNew.length} unrelated link(s) added (e.g. ${lkNew[0]})`);
+    if (baselinePage.title !== d.title) problems.push(`title changed: ${JSON.stringify(baselinePage.title)} → ${JSON.stringify(d.title)}`);
+    if (baselinePage.h1 !== d.h1) problems.push(`H1 changed: ${JSON.stringify(baselinePage.h1)} → ${JSON.stringify(d.h1)}`);
+  }
+  const all = Object.values(states);
   let verdict;
-  if (meta === "APPLIED" && bodyHasApproved && !bodyHasOld) verdict = "APPLIED";
-  else if (meta === "OLD" && bodyHasOld && !bodyHasApproved) verdict = "OLD";
-  else verdict = "OTHER";
-  if (meta === "NONE") problems.push("no meta description");
-  if (verdict === "OTHER") problems.push(`meta=${meta}, body has approved=${bodyHasApproved}, body has old=${bodyHasOld}${meta === "OTHER" ? `, meta text: ${JSON.stringify(d.metaDesc)}` : ""}`);
+  if (all.every((x) => x === "APPLIED")) verdict = "APPLIED";
+  else if (all.every((x) => x === "OLD")) verdict = "OLD";
+  else { verdict = "OTHER"; problems.push(`descriptions disagree or are neither approved nor previous: ${Object.entries(states).map(([k, v]) => `${k}=${v}`).join(" ")}${states.visible === "OTHER" ? ` — visible text: ${JSON.stringify(d.descBlocks[0])}` : ""}${states.meta === "OTHER" ? ` — meta text: ${JSON.stringify(d.metaDesc)}` : ""}`); }
   if (problems.length && verdict !== "OTHER") verdict = `${verdict} WITH PROBLEMS`;
-  return { verdict, problems, facts: { metaDesc: d.metaDesc, ogDesc: d.ogDesc, productLinks: d.productLinks, canonical: d.canonical[0] ?? null, hreflang: d.hreflang } };
+  return { verdict, problems, notVerified, facts: { states, productLinks: d.productLinks, canonical: d.canonical[0] ?? null, hreflang: d.hreflang.map((x) => x.lang) } };
 }
 
-/** The article page in one language: APPLIED when every approved paragraph is present (and, for English, the removed phrase is gone). */
+/**
+ * The article (a CONTENT task, never part of the default SEO run): scoped to the <article> body only — header, footer and
+ * the approved footer clarifier are outside it. APPLIED when every approved paragraph is present as a whole paragraph and,
+ * in English, no paragraph of the article still contains the removed phrase.
+ */
 export function evaluateArticle(res, article, lang) {
-  if (res.status !== 200) return { verdict: "FAIL", problems: [`status ${res.status}`], facts: {} };
+  if (res.status !== 200) return { verdict: "FAIL", problems: [`status ${res.status}`], notVerified: [], facts: {} };
   const d = readHtml(res.html);
-  const missing = article.approvedParagraphs[lang].filter((p) => !d.body.includes(norm(p)));
-  const leftovers = lang === "en" ? article.removedEn.filter((w) => d.body.includes(norm(w))) : [];
-  const problems = [...missing.map((p) => `approved paragraph not found: ${p.slice(0, 60)}…`), ...leftovers.map((w) => `removed phrase still present: ${JSON.stringify(w)}`)];
+  if (!d.articleParagraphs) return { verdict: "FAIL", problems: ["no <article> element: the article body cannot be scoped"], notVerified: [], facts: {} };
+  const paras = d.articleParagraphs.map(norm);
+  const missing = article.approvedParagraphs[lang].filter((p) => !paras.includes(norm(p)));
+  const leftovers = lang === "en" ? paras.filter((p) => article.removedEn.some((w) => p.includes(norm(w)))) : [];
+  const problems = [...missing.map((p) => `approved paragraph not found in the article body: ${p.slice(0, 60)}…`), ...leftovers.map((p) => `article paragraph still carries a removed phrase: ${p.slice(0, 60)}…`)];
   if (res.redirected) problems.push(`redirected to ${res.location ?? "?"}`);
-  return { verdict: problems.length ? "NOT APPLIED" : "APPLIED", problems, facts: { paragraphsFound: article.approvedParagraphs[lang].length - missing.length, of: article.approvedParagraphs[lang].length } };
+  return { verdict: problems.length ? "NOT APPLIED" : "APPLIED", problems, notVerified: [], facts: { paragraphsFound: article.approvedParagraphs[lang].length - missing.length, of: article.approvedParagraphs[lang].length } };
 }
 
 export async function fetchPage(url) {
@@ -136,27 +199,47 @@ export async function fetchPage(url) {
   } catch (e) { return { status: 0, redirected: false, location: null, html: "", error: e instanceof Error ? e.message : String(e) }; }
 }
 
-/** Run every check against `base` (the live URLs in the checklist are rewritten onto it). */
-export async function runLive({ listings, article }, { base = DEFAULT_BASE, baseline = null } = {}) {
+/** Run the SEO listing checks against `base` (the live URLs in the checklist are rewritten onto it). The article only when `article: true`. */
+export async function runLive({ listings, article }, { base = DEFAULT_BASE, baseline = null, withArticle = false } = {}) {
   const onBase = (u) => u.replace(DEFAULT_BASE, base.replace(/\/$/, ""));
   const rows = [];
   for (const rec of listings) for (const lang of ["en", "ja"]) {
     const res = await fetchPage(onBase(rec.urls[lang]));
-    const r = evaluateListing(res, rec, lang, { baselineCount: baseline?.[rec.urls[lang]] ?? null });
-    rows.push({ kind: "SEO", record: rec.name, lang, url: rec.urls[lang], ...r });
+    rows.push({ kind: "SEO", record: rec.name, lang, url: rec.urls[lang], ...evaluateListing(res, rec, lang, { baselinePage: baseline?.pages?.[rec.urls[lang]] ?? null }) });
   }
-  for (const lang of ["en", "ja"]) {
+  if (withArticle) for (const lang of ["en", "ja"]) {
     const res = await fetchPage(onBase(article.urls[lang]));
-    rows.push({ kind: "CONTENT (not an SEO status item)", record: article.name, lang, url: article.urls[lang], ...evaluateArticle(res, article, lang) });
+    rows.push({ kind: "CONTENT (BUG-03; not an SEO status item)", record: article.name, lang, url: article.urls[lang], ...evaluateArticle(res, article, lang) });
   }
   return rows;
 }
 
+/** Capture the pre-publication baseline (schema `cha-step4-baseline/1`) from the live pages. Read-only. */
+export async function captureBaseline({ listings }, { base = DEFAULT_BASE } = {}) {
+  const onBase = (u) => u.replace(DEFAULT_BASE, base.replace(/\/$/, ""));
+  const pages = {};
+  for (const rec of listings) for (const lang of ["en", "ja"]) {
+    const res = await fetchPage(onBase(rec.urls[lang]));
+    if (res.status !== 200) throw new Error(`cannot baseline ${rec.urls[lang]}: status ${res.status}`);
+    pages[rec.urls[lang]] = snapshotOf(res.html);
+  }
+  return { schema: BASELINE_SCHEMA, capturedAt: new Date().toISOString(), base, note: "Snapshot of the twelve Step 4 listing pages BEFORE the owner publishes: product membership by href, image identities, unrelated links, title and H1. Compared by scripts/check-step4-live.mjs --baseline.", pages };
+}
+
+/** Exit status of a run: 1 = a FAIL / OTHER / OLD / problem; 3 = every listing APPLIED but some preservation is NOT VERIFIED; 0 = fully verified. */
+export function exitStatus(rows) {
+  if (rows.some((r) => r.verdict !== "APPLIED")) return 1;
+  if (rows.some((r) => r.notVerified?.length)) return 3;
+  return 0;
+}
+
 export function renderReport(rows, { base, when }) {
-  const L = [`# Step 4 live check — ${when} — ${base}`, "", "| Kind | Record | Lang | Verdict | Problems | Product links |", "|---|---|---|---|---|---|"];
-  for (const r of rows) L.push(`| ${r.kind} | ${r.record} | ${r.lang.toUpperCase()} | **${r.verdict}** | ${r.problems.join("; ") || "—"} | ${r.facts.productLinks ?? "—"} |`);
-  const applied = rows.filter((r) => r.kind === "SEO" && r.verdict === "APPLIED").length, seo = rows.filter((r) => r.kind === "SEO").length;
-  L.push("", `Listing texts applied: ${applied} of ${seo}. Article: ${rows.filter((r) => r.kind !== "SEO").map((r) => `${r.lang.toUpperCase()} ${r.verdict}`).join(", ")}. BUG-03 closes only when both article languages are APPLIED (content task).`);
+  const L = [`# Step 4 live check — ${when} — ${base}`, "", "| Kind | Record | Lang | Verdict | Problems | NOT VERIFIED | Members |", "|---|---|---|---|---|---|---|"];
+  for (const r of rows) L.push(`| ${r.kind} | ${r.record} | ${r.lang.toUpperCase()} | **${r.verdict}** | ${r.problems.join("; ") || "—"} | ${r.notVerified?.join("; ") || "—"} | ${r.facts.productLinks ?? "—"} |`);
+  const seo = rows.filter((r) => r.kind === "SEO"), applied = seo.filter((r) => r.verdict === "APPLIED").length;
+  L.push("", `Listing texts applied: ${applied} of ${seo.length}.`);
+  const art = rows.filter((r) => r.kind !== "SEO");
+  L.push(art.length ? `Article (content task, run only because --article was given): ${art.map((r) => `${r.lang.toUpperCase()} ${r.verdict}`).join(", ")}; BUG-03 closes only when both languages are APPLIED.` : "Article: not run (a separate content task; select it with --article).");
   return L.join("\n") + "\n";
 }
 
@@ -164,11 +247,26 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
   const base = opt("--base") ?? DEFAULT_BASE;
-  const baseline = opt("--baseline") ? JSON.parse(readFileSync(opt("--baseline"), "utf8")) : null;
   const parsed = parseChecklist(readFileSync(join(process.cwd(), CHECKLIST), "utf8"));
-  const rows = await runLive(parsed, { base, baseline });
+  if (args.includes("--capture-baseline")) {
+    const out = opt("--capture-baseline");
+    if (!out || out.startsWith("--")) { console.error("usage: --capture-baseline <file.json>"); process.exit(2); }
+    const b = await captureBaseline(parsed, { base });
+    writeFileSync(out, JSON.stringify(b, null, 1));
+    console.log(`baseline written: ${out} (${Object.keys(b.pages).length} pages, ${Object.values(b.pages).reduce((a, p) => a + p.members.length, 0)} member links)`);
+    process.exit(0);
+  }
+  let baseline = null;
+  if (opt("--baseline")) {
+    let raw;
+    try { raw = JSON.parse(readFileSync(opt("--baseline"), "utf8")); } catch (e) { console.error(`baseline unreadable: ${e instanceof Error ? e.message : e}`); process.exit(2); }
+    const v = validateBaseline(raw, parsed.listings);
+    if (!v.ok) { console.error(`baseline REFUSED:\n- ${v.errors.slice(0, 8).join("\n- ")}`); process.exit(2); }
+    baseline = raw;
+  }
+  const rows = await runLive(parsed, { base, baseline, withArticle: args.includes("--article") });
   const when = new Date().toISOString();
   process.stdout.write(renderReport(rows, { base, when }));
   if (opt("--json")) writeFileSync(opt("--json"), JSON.stringify({ when, base, rows }, null, 1));
-  process.exitCode = rows.every((r) => r.verdict === "APPLIED") ? 0 : 1;
+  process.exitCode = exitStatus(rows);
 }
