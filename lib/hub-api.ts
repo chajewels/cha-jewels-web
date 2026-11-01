@@ -2,6 +2,8 @@ import "server-only";
 import type { CartReminderSource, Category, CheckoutMode, Collection, FxRate, OfferedMethods, PaidyWidgetFlag, PaymentsOfferedFlag, HubAddress, HubCartLine, HubDraft, HubDraftDetail, HubDraftPayResult, HubCardInput, HubCardResult, CheckoutMethod, HubCheckoutChoice, HubCustomer, HubLayawayDetail, HubLayawayPayResult, HubLayawayPlan, HubMe, HubOrder, HubOrderDetail, HubPayResult, HubPointsPreview, HubProfileInput, HubQuote, HubTier, LayawayQuote, OrderType, PaidyAttempt, Product, ServiceRequest, ServiceRequestInput, SettlementCurrency, SiteSettings, HubFaqSection, HubPost, PostType, Testimonial, ContactResult, PaidyProfileInput } from "@/lib/types";
 
 import * as fx from "@/lib/fixtures";
+import { PREVIEW_FIXTURES } from "@/lib/fixtures-mode";
+import { forwardedFor } from "@/lib/client-ip";
 import type { NewsletterSubscribeResult, NewsletterUnsubscribeResult } from "@/lib/types";
 import type { ReviewInvite, ReviewList } from "@/lib/reviews";
 import type { PostComment, PostComments } from "@/lib/comments";
@@ -64,9 +66,11 @@ export type ReceiptVerification = { receipt_number: string; issued_at: string; t
  * ordinary answer, not a failure.
  *
  * FIXTURES MODE IS UNAFFECTED. `NEXT_PUBLIC_PREVIEW_FIXTURES=1` never reaches
- * the network, so there is nothing to throw.
+ * the network, so there is nothing to throw. It is honoured only off
+ * production (W-04, lib/fixtures-mode.ts): on a production deployment the flag
+ * is ignored and every read goes to the real Hub, or throws "not configured".
  */
-const FIXTURES = process.env.NEXT_PUBLIC_PREVIEW_FIXTURES === "1";
+const FIXTURES = PREVIEW_FIXTURES;
 const BASE = (process.env.HUB_API_URL ?? "").replace(/\/$/, "");
 const KEY = process.env.HUB_API_KEY ?? "";
 
@@ -290,18 +294,24 @@ export const hub = {
    *
    * `revalidate: false` because this is a write; nothing about it is cacheable.
    */
+  /**
+   * `ip` (W-06, lib/client-ip.ts) on contact, subscribe, loyaltyJoin and
+   * wholesaleInquiry: the visitor's address, sent as `x-forwarded-for` exactly
+   * like verifyReceipt and submitReview, so the Hub's per-IP limits count the
+   * visitor rather than this server. No header when unknown.
+   */
   contact: (body: {
     full_name: string; email: string; phone?: string; message: string;
     lang?: string; page?: string; newsletter?: boolean;
-  }): Promise<ContactResult> =>
+  }, ip?: string): Promise<ContactResult> =>
     FIXTURES
       ? Promise.resolve({ status: "received" as const })
-      : call("/contact", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+      : call("/contact", { method: "POST", body: JSON.stringify(body), revalidate: false, headers: forwardedFor(ip) }),
 
-  subscribe: (body: { email: string; lang?: string; source?: string }): Promise<NewsletterSubscribeResult> =>
+  subscribe: (body: { email: string; lang?: string; source?: string }, ip?: string): Promise<NewsletterSubscribeResult> =>
     FIXTURES
       ? Promise.resolve({ status: fx.rememberSubscriber(body.email) ? "already_subscribed" : "subscribed" })
-      : call("/newsletter", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+      : call("/newsletter", { method: "POST", body: JSON.stringify(body), revalidate: false, headers: forwardedFor(ip) }),
 
   /**
    * Unsubscribe by token. ALWAYS answers `unsubscribed`, whether the token was
@@ -345,8 +355,8 @@ export const hub = {
   },
   loyaltyTiers: (): Promise<HubTier[]> =>
     FIXTURES ? Promise.resolve(fx.tiers) : call("/loyalty/tiers", { revalidate: 300, tags: ["loyalty"] }),
-  loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }): Promise<{ ok: true }> =>
-    FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+  loyaltyJoin: (body: { name: string; contact: string; region: string; lang: string }, ip?: string): Promise<{ ok: true }> =>
+    FIXTURES ? Promise.resolve({ ok: true }) : call("/loyalty/join", { method: "POST", body: JSON.stringify(body), revalidate: false, headers: forwardedFor(ip) }),
   /**
    * Links or creates the customers row for a signed-in customer. Idempotent.
    *
@@ -639,10 +649,10 @@ export const hub = {
    * PUBLIC receipt check (the QR on every receipt). x-api-key only, no JWT;
    * the visitor's IP goes along for the Hub's per-IP limit. null = no such code.
    */
-  verifyReceipt: (code: string, ip: string | null): Promise<ReceiptVerification | null> =>
+  verifyReceipt: (code: string, ip: string | null | undefined): Promise<ReceiptVerification | null> =>
     FIXTURES
       ? Promise.resolve(fx.verifyReceiptFixture(code))
-      : notFoundToNull(call(`/receipts/verify?code=${encodeURIComponent(code)}`, { revalidate: false, headers: ip ? { "x-forwarded-for": ip } : {} })),
+      : notFoundToNull(call(`/receipts/verify?code=${encodeURIComponent(code)}`, { revalidate: false, headers: forwardedFor(ip) })),
   /**
    * APPROVED reviews, newest approval first, with the count and average for
    * the same filter. `product` narrows to one website piece; without it, every
@@ -703,8 +713,8 @@ export const hub = {
     FIXTURES
       ? Promise.resolve({ ok: true as const })
       : call(`/content/posts/${encodeURIComponent(slug)}/comments/${encodeURIComponent(id)}`, { method: "DELETE", jwt, revalidate: false }),
-  wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }): Promise<{ ok: true }> =>
-    FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false }),
+  wholesaleInquiry: (body: { name: string; business: string; email: string; phone?: string; market: "JP" | "PH" | "BOTH" | "OTHER"; volume: "TEST" | "20_50" | "50_200" | "200_PLUS"; notes?: string; lang: string }, ip?: string): Promise<{ ok: true }> =>
+    FIXTURES ? Promise.resolve({ ok: true }) : call("/wholesale/inquiry", { method: "POST", body: JSON.stringify(body), revalidate: false, headers: forwardedFor(ip) }),
 };
 
 /**
@@ -719,13 +729,13 @@ export const hub = {
  * NEVER throws. Every outcome is the Hub's error code (or "error"), for the
  * form to show inline.
  */
-export async function submitReview(token: string, form: FormData, clientIp: string | null): Promise<{ ok: true } | { ok: false; code: string; status: number | null; requestId: string | null }> {
+export async function submitReview(token: string, form: FormData, clientIp: string | null | undefined): Promise<{ ok: true } | { ok: false; code: string; status: number | null; requestId: string | null }> {
   if (FIXTURES) return { ok: true };
   if (!BASE || !KEY) return { ok: false, code: "error", status: null, requestId: null };
   try {
     const res = await fetch(`${BASE}/review-invite/${encodeURIComponent(token)}`, {
       method: "POST",
-      headers: { "x-api-key": KEY, ...(clientIp ? { "x-forwarded-for": clientIp } : {}) },
+      headers: { "x-api-key": KEY, ...forwardedFor(clientIp) },
       body: form,
       cache: "no-store",
       signal: AbortSignal.timeout(30000),

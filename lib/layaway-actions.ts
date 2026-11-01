@@ -5,7 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { hub, HubError, uploadProof } from "@/lib/hub-api";
 import type { ActionResult } from "@/lib/checkout-actions";
 import { NOT_READY_FOR_PAYMENT } from "@/lib/reservation";
-import { proofTypeOk } from "@/lib/proof-file";
+import { proofBytesOk, proofTypeOk } from "@/lib/proof-file";
 
 /**
  * Reporting a transfer against a layaway plan.
@@ -54,6 +54,8 @@ export async function submitLayawayPaymentAction(
   if (file.size > MAX_PROOF_BYTES) return { ok: false, code: "proof_too_large" };
   // A photo or a PDF only, refused here so a wrong file is never uploaded.
   if (!proofTypeOk(file)) return { ok: false, code: "proof_bad_type" };
+  // ...and it must BE one: the first bytes decide, not the label (W-10).
+  if (!(await proofBytesOk(file))) return { ok: false, code: "proof_bad_type" };
 
   try {
     const proofUrl = await uploadProof(jwt, accountId, file);

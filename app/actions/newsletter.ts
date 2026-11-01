@@ -1,6 +1,8 @@
 "use server";
 
+import { headers } from "next/headers";
 import { hub, HubError } from "@/lib/hub-api";
+import { clientIp } from "@/lib/client-ip";
 import { getLang } from "@/lib/i18n-server";
 
 /**
@@ -51,7 +53,8 @@ export async function subscribeAction(
 
   try {
     const lang = await getLang();
-    const res = await hub.subscribe({ email, lang, source: "footer" });
+    // W-06: the visitor's address, so the Hub's per-IP limit counts her, not this server.
+    const res = await hub.subscribe({ email, lang, source: "footer" }, clientIp(await headers()));
     return res.status === "already_subscribed" ? "already" : "success";
   } catch (e) {
     if (e instanceof HubError && e.status === 429) return "rate_limited";

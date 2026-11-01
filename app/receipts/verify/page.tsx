@@ -5,6 +5,7 @@ import { pageMeta } from "@/lib/page-meta";
 import { tr } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 import { hub, HubError, type ReceiptVerification } from "@/lib/hub-api";
+import { clientIp } from "@/lib/client-ip";
 import { normaliseVerifyCode } from "@/lib/receipts";
 import { formatSiteDate } from "@/lib/site-time";
 import { formatMoney } from "@/lib/utils";
@@ -29,7 +30,7 @@ export default async function ReceiptVerifyPage({ searchParams }: { searchParams
   const t = tr(lang);
   const raw = typeof query.code === "string" ? query.code : "";
   const code = raw ? normaliseVerifyCode(raw) : null;
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || h.get("x-real-ip");
+  const ip = clientIp(h); // W-06: Vercel-set headers only, an IP literal or nothing
 
   let result: ReceiptVerification | null = null;
   let outcome: "none" | "bad" | "found" | "missing" | "limited" | "error" = "none";
