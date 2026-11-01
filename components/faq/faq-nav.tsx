@@ -89,27 +89,28 @@ const FAQ_CSS = `
 .fx-faq { display: grid; grid-template-columns: minmax(0, 1fr); }
 .fx-faq-side { display: contents; }
 .fx-faq-nav { position: sticky; top: var(--hdr-h, 68px); z-index: 20; margin: 0 calc(-1 * clamp(18px, 4vw, 48px));
-  background: color-mix(in srgb, var(--c-chalk) 96%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--rule); transition: top var(--dur-hdr-show) var(--ease-lux); }
+  background: color-mix(in srgb, #fff 94%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--lm-rule); transition: top var(--dur-hdr-show) var(--ease-lux); }
 .fx-faq-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 10px clamp(18px, 4vw, 48px); list-style: none; margin: 0; }
 .fx-faq-list::-webkit-scrollbar { display: none; }
-.fx-faq-list a { display: flex; align-items: center; min-height: 40px; white-space: nowrap; padding: 0 12px; font-size: .875rem; border: 1px solid #E5E5E0; border-radius: 2px; background: #fff;
+.fx-faq-list a { display: flex; align-items: center; min-height: 44px; white-space: nowrap; padding: 0 18px; font-size: .875rem; border: 1px solid var(--lm-rule); border-radius: 999px; background: var(--lm-bone);
   color: var(--c-charcoal-deep); transition: color var(--dur-micro) var(--ease-lux), background-color var(--dur-micro) var(--ease-lux); }
-.fx-faq-list a[aria-current] { background: var(--c-charcoal-deep); border-color: var(--c-charcoal-deep); color: var(--c-chalk); }
+.fx-faq-list a[aria-current] { background: #000; border-color: #000; color: #fff; }
 .fx-faq-list a:focus-visible { outline: 2px solid var(--c-gold-dark); outline-offset: 2px; }
 .fx-faq-n { display: none; }
-.fx-faq-main { padding-top: clamp(28px, 5vw, 48px); }
+.fx-faq-main { padding-top: clamp(20px, 4vw, 36px); }
 .fx-faq-main > section { scroll-margin-top: 132px; }
 @media (min-width: 1024px) {
-  .fx-faq { grid-template-columns: 280px minmax(0, 1fr); gap: 56px; }
+  .fx-faq { grid-template-columns: 290px minmax(0, 1fr); gap: 48px; }
   .fx-faq-side { display: block; position: sticky; align-self: start; top: calc(var(--hdr-h, 68px) + 24px);
     max-height: calc(100vh - var(--hdr-h, 68px) - 48px); overflow-y: auto; scrollbar-width: thin;
     transition: top var(--dur-hdr-show) var(--ease-lux), max-height var(--dur-hdr-show) var(--ease-lux); }
   .fx-faq-nav { position: static; margin: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; }
-  .fx-faq-list { display: block; padding: 0; overflow: visible; border-top: 1px solid #E5E5E0; }
-  .fx-faq-list a { justify-content: space-between; gap: 12px; min-height: 48px; white-space: normal; padding: 8px 4px; border: 0; border-bottom: 1px solid #E5E5E0; border-radius: 0; background: none; font-size: .875rem; line-height: 1.4; }
-  .fx-faq-list a[aria-current] { background: none; color: var(--c-gold-dark); font-weight: 600; box-shadow: inset 2px 0 0 var(--c-gold-dark); padding-left: 12px; border-color: #E5E5E0; }
-  .fx-faq-n { display: inline; flex: none; font-size: 12px; font-weight: 400; color: color-mix(in srgb, var(--c-charcoal) 70%, transparent); }
+  .fx-faq-list { display: grid; gap: 6px; padding: 0; overflow: visible; }
+  .fx-faq-list a { justify-content: space-between; gap: 12px; min-height: 48px; white-space: normal; padding: 8px 8px 8px 20px; font-size: .875rem; line-height: 1.4; }
+  .fx-faq-list a:hover { border-color: #000; }
+  .fx-faq-n { display: inline-grid; place-items: center; flex: none; min-width: 28px; height: 28px; border-radius: 999px; background: #fff; font-size: 12px; font-weight: 500; color: var(--c-charcoal-deep); }
+  .fx-faq-list a[aria-current] .fx-faq-n { background: rgb(255 255 255 / .16); color: #fff; }
   .fx-faq-main { padding-top: 0; }
   .fx-faq-main > section { scroll-margin-top: 92px; }
 }

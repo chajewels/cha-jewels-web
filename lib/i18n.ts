@@ -1525,7 +1525,7 @@ export const dict = {
     native: { ja: "シェア…", en: "Share…" },
     nativeA: { ja: "端末の共有メニューを開く", en: "Open your device's share menu" },
   },
-  blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" }, empty: { ja: "この分類の記事はまだありません。", en: "Nothing here yet." } },
+  blog: { h1: { ja: "ブログ", en: "Blog" }, back: { ja: "ブログ一覧へ", en: "All posts" }, read: { ja: "記事を読む", en: "Read" }, empty: { ja: "この分類の記事はまだありません。", en: "Nothing here yet." } },
   notFound: { h1: { ja: "そのお品物はここにはありません。", en: "That piece is not here." }, p: { ja: "すでに売れたか、リンクが古い可能性があります。", en: "It may have sold, or the link is old." }, back: { ja: "コレクションに戻る", en: "Back to the collections" } },
   /** Header account menu (signed in) and the drawer's account section. */
   /** Service requests — raised from an order or plan, answered by staff in the Hub. */

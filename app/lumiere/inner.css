@@ -1,0 +1,74 @@
+/* ===========================================================================
+   LUMIÈRE INNER PAGES — THE SHARED LANGUAGE (P4b). Primitives every inner page
+   composes from (components/lumiere/page/page-head.tsx). Contract:
+   docs/tasks/lumiere-p4b-inner-pages.md. Tokens only; navigation colours stay
+   in nav.css. Per-family CSS lives in inner-content.css, inner-commerce.css
+   and inner-account.css.
+   =========================================================================== */
+:root {
+  --lm-plate-radius: 22px;
+  --lm-plate-radius-sm: 14px;
+  --lm-bone: #f4f0ec;
+  --lm-sheet: #ffffff;
+  --lm-ink: #1c1c1c;
+  --lm-rule: #dad6d0;
+  --lm-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* The head ------------------------------------------------------------------ */
+.lm-head { padding: clamp(40px, 7vw, 104px) 0 clamp(28px, 4.5vw, 64px); }
+.lm-head--ink { background: #000; color: #fff; padding-block: clamp(56px, 9vw, 128px) clamp(40px, 6vw, 88px); }
+.lm-head__in { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px clamp(24px, 4vw, 64px); }
+.lm-head__text { min-width: 0; max-width: 62rem; }
+.lm-head__aside { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.lm-eyebrow {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 clamp(14px, 2vw, 22px);
+  font-family: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--nav-gold-deep, #6f5510);
+}
+.lm-eyebrow::before { content: ""; width: 32px; height: 1px; background: var(--nav-gold, #c9a227); }
+.lm-head--ink .lm-eyebrow { color: var(--nav-gold, #c9a227); }
+html:lang(ja) .lm-eyebrow { font-size: 12px; letter-spacing: 0.05em; text-transform: none; }
+.lm-h1 { margin: 0; font-size: clamp(40px, 6.4vw, 96px); line-height: 1.02; letter-spacing: -0.012em; text-wrap: balance; }
+html:lang(ja) .lm-h1 { font-size: clamp(30px, 4.6vw, 64px); line-height: 1.22; letter-spacing: 0; word-break: auto-phrase; }
+.lm-lead { margin: clamp(16px, 2.2vw, 28px) 0 0; max-width: 46rem; font-size: clamp(16px, 1.35vw, 19px); line-height: 1.6; color: color-mix(in srgb, currentColor 76%, transparent); }
+.lm-head--ink .lm-lead { color: rgb(255 255 255 / 0.8); }
+
+/* Sections ------------------------------------------------------------------ */
+.lm-sec { padding-block: clamp(36px, 6vw, 88px); }
+.lm-sec--white { background: var(--lm-sheet); }
+.lm-sec--ink { background: #000; color: #fff; }
+.lm-sec--sheet {
+  position: relative; background: var(--lm-sheet);
+  border-radius: clamp(24px, 3.4vw, 48px) clamp(24px, 3.4vw, 48px) 0 0;
+  margin-top: calc(-1 * clamp(20px, 3vw, 40px));
+  box-shadow: 0 -18px 40px rgb(0 0 0 / 0.06);
+}
+.lm-h2 { margin: 0; font-size: clamp(28px, 3.6vw, 52px); line-height: 1.08; letter-spacing: -0.008em; text-wrap: balance; }
+html:lang(ja) .lm-h2 { font-size: clamp(22px, 2.6vw, 38px); line-height: 1.3; letter-spacing: 0; }
+
+/* Plates (cards) ------------------------------------------------------------ */
+.lm-plate {
+  background: var(--lm-sheet); border: 1px solid var(--lm-rule); border-radius: var(--lm-plate-radius);
+  padding: clamp(20px, 2.6vw, 36px);
+  transition: transform 520ms var(--lm-ease), box-shadow 520ms var(--lm-ease);
+}
+.lm-plate--bone { background: var(--lm-bone); border-color: transparent; }
+.lm-plate--ink { background: #000; color: #fff; border-color: transparent; }
+@media (hover: hover) { a.lm-plate:hover, .lm-plate--lift:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgb(0 0 0 / 0.1); } }
+.lm-grid { display: grid; gap: clamp(14px, 2vw, 28px); }
+.lm-grid--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+.lm-grid--3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+
+/* Tags and rows ---------------------------------------------------------------- */
+.lm-tag { display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--lm-rule); background: var(--lm-sheet); font-family: var(--font-manrope), sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+.lm-rule { height: 1px; background: var(--lm-rule); border: 0; margin: 0; }
+
+/* Rise (a view-timeline entrance; at rest where unsupported or reduced motion) --- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lm-rise { animation: lm-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
+    @keyframes lm-rise { from { opacity: 0; transform: translate3d(0, 28px, 0); } to { opacity: 1; transform: none; } }
+  }
+}

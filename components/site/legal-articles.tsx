@@ -91,7 +91,7 @@ export function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
       // Line breaks carry meaning here (a postal address), so each line is its
       // own row rather than wrapped prose.
       return (
-        <div className="mt-4 border-l-2 border-gold-dark bg-white px-5 py-4 text-charcoal-deep">
+        <div className="mt-4 rounded-[14px] border-l-2 border-gold-dark bg-chalk px-5 py-4 text-charcoal-deep">
           {block.lines[lang].map((line) => (
             <div key={line}>{line}</div>
           ))}
@@ -142,7 +142,7 @@ export function LegalArticles({
         // summary block ahead of section 1), and `key={undefined}` is a
         // silent duplicate-key bug rather than a visible one.
         a.n === undefined ? (
-          <article key={ai} className="band-dark mb-2 bg-charcoal-deep px-[clamp(18px,4vw,28px)] pb-6 pt-7 text-chalk max-sm:-mx-[clamp(18px,4vw,48px)] [&_a]:text-gold-pale [&_li]:text-chalk/90 [&_p]:text-chalk/90 [&_ul]:text-chalk/90 [&_h3]:text-gold-pale print:bg-white print:text-charcoal-deep print:[&_p]:text-charcoal print:[&_li]:text-charcoal">
+          <article key={ai} className="ic-legal-summary mb-2 px-[clamp(18px,4vw,28px)] pb-6 pt-7 text-chalk [&_a]:text-gold-pale [&_li]:text-chalk/90 [&_p]:text-chalk/90 [&_ul]:text-chalk/90 [&_h3]:text-gold-pale print:bg-white print:text-charcoal-deep print:[&_p]:text-charcoal print:[&_li]:text-charcoal">
             <h2 id={sectionId(ai)} className="scroll-mt-24 text-[22px] leading-snug text-gold-pale print:text-charcoal-deep [:lang(ja)_&]:text-[20px] [:lang(ja)_&]:leading-[1.5]">
               {a.h[lang]}
             </h2>
