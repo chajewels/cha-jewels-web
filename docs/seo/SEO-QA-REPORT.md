@@ -659,4 +659,6 @@ Scope: sitemap reliability (matrix §S.10–S.12). Authoritative evidence: `docs
 **§24 addendum (final validation).** Post-detail slug required (matrix §S.13); +5 regression tests, suite 743/743; run-4 evidence retained (unaffected). P2 corrected: it does not exercise failure on Vercel.
 
 ## 25. P2 integration acceptance — `develop` `b654dd9` (2026-11-01)
-See matrix §S.14 for the full table. Summary: sitemap family-by-family identical to production (976 URLs); post-detail and 45-of-46 metadata fetches identical (the `/` difference is the language-signal artefact); desktop render and console clean on five pages; mobile 375 inherited, not re-run; fixed checkers not run (DP-02); Vercel failure/cache behaviour NOT verified; first failed sitemap assertion preserved; 500 not reproduced and not explained.
+See matrix §S.14 for the full table. Summary: sitemap family-by-family identical to production (976 URLs); post-detail and 45-of-46 metadata fetches identical (the `/` difference is the language-signal artefact); desktop render and console clean on five pages; mobile 375 INHERITED from `c6d7cd9` (not passed, not unrun; matrix §T.2); fixed checkers not run (DP-02); Vercel failure/cache behaviour NOT verified; first failed sitemap assertion preserved; 500 not reproduced and not explained.
+
+**§25 addendum (2026-11-02).** Blog eligibility flag not exposed by the public page: UNRUN pending one authorized Hub read (matrix §T.3). Step 4 live check today: 0 of 12 listing texts applied. One decision package: matrix §T.5.
