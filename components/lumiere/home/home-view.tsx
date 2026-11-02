@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { preconnect } from "react-dom";
 
 import { type Lang } from "@/lib/i18n-core";
 import { localePath } from "@/lib/locale";
@@ -30,6 +31,7 @@ import { RecentlyViewed } from "@/components/catalog/recently-viewed";
 import { SectionBoundary } from "@/components/home/section-boundary";
 import { lumiereRecentlyViewedTitle } from "@/lib/content/lumiere-home";
 import { homeHubSlots } from "@/lib/lumiere/home-hub";
+import { isOptimizableImage } from "@/lib/image-hosts";
 
 /**
  * THE LUMIÈRE HOME (P2; docs/tasks/lumiere-redesign.md §6, report §7 home row).
@@ -62,6 +64,17 @@ export const LumiereHome = async ({ lang, switchTargets, demo = false }: { lang:
   // never disagree.
   // The chrome and the Hub's image/piece slots are independent reads: one wait, not two (the slots fall back to the placeholders on any failure).
   const [{ chrome }, slots] = await Promise.all([buildChrome({ lang, switchTargets, demo }), homeHubSlots(lang)]);
+
+  // PRECONNECT (P5c, owner finding a) to every host the hero's pieces are drawn from DIRECTLY. The Hub's own storage goes
+  // through the image optimiser (same origin, nothing to connect to from the browser — the server fetches it), so only a
+  // host the optimiser may not fetch (lib/image-hosts.ts) needs the early connection.
+  const direct = new Set<string>();
+  for (const piece of slots.heroPieces.slice(0, 9)) {
+    if (!isOptimizableImage(piece.src)) {
+      try { direct.add(new URL(piece.src).origin); } catch { /* a relative URL has no host to connect to */ }
+    }
+  }
+  direct.forEach((origin) => preconnect(origin));
 
   return (
     <div className="lumiere-home bg-surface text-content">

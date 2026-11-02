@@ -113,7 +113,10 @@ export const lumiereCategories = (lang: Lang): LumiereCategory[] =>
 
 export interface HeroCardSlot {
   position: number;
-  image: HomeImage;
+  /** Null only on the growth card when the Hub has no cut-out for it: the cream plate alone, until the frame-3 photograph crossfades in. */
+  image: HomeImage | null;
+  /** `cut`: an approved cut-out (transparent) set on the cream plate; `photo`: a photograph with its own background (only ever a Cha original). */
+  kind: "cut" | "photo";
   /** Object-position for the cover crop (the reference's). */
   objectPosition?: string;
 }
@@ -133,7 +136,8 @@ export interface LumiereHeroContent {
   categories: { label: string; href: string }[];
   /** The category strip's width in design units: 85 for EN, 100 for JA (row 7). */
   categoryStripWidth: number;
-  cards: HeroCardSlot[];
+  /** The ring's eight places, in order; a place with no piece is `null` and draws nothing (P5c: fewer cards, never mixed backgrounds). */
+  cards: (HeroCardSlot | null)[];
   frame3: HomeImage;
   /**
    * The ring's centre (P5b, owner decision 3): the best real piece from the Hub's hero deck — its hero cut-out when one is
@@ -176,6 +180,27 @@ const CARD_CROPS: Record<number, string> = { 4: "center bottom", 6: "center bott
 export const headingText = (lines: readonly TextRun[][], lang: Lang): string =>
   lines.map((line) => line.map((run) => run.text).join("")).join(lang === "en" ? " " : "");
 
+/**
+ * THE RING'S CARDS (P5c, owner decision a). With the Hub's approved cut-outs (`hub.heroPieces`: [0] is the centre, [1…8] the
+ * cards) the ring shows ONLY cut-outs, each on the cream plate; a place with no cut-out is empty rather than a photograph with
+ * its own background — except place 6 (`FRAME_2.heroIndex`), the card that grows into the frame-3 photograph: with no cut-out it
+ * is the cream plate alone (never a photograph among cut-outs) until the frame-3 photograph crossfades over it. With NO cut-outs at all (the Hub unreachable) the ring is the Cha originals throughout, all of one
+ * kind, so a ring is never half cut-outs and half backgrounds.
+ */
+const heroCards = (lang: Lang, hub?: HomeHubSlots): (HeroCardSlot | null)[] => {
+  const cuts = hub?.heroPieces.slice(1) ?? [];
+  if (cuts.length === 0) {
+    return [...heroCardFallbacks(lang), heroFrame3(lang)].map((image, i) => ({ position: i + 1, image, kind: "photo" as const, objectPosition: CARD_CROPS[i + 1] }));
+  }
+  return Array.from({ length: 8 }, (_, i): HeroCardSlot | null => {
+    const cut = cuts[i];
+    if (cut) return { position: i + 1, image: cut, kind: "cut" };
+    return i === HERO_GROWTH_CARD ? { position: i + 1, image: null, kind: "cut" } : null;
+  });
+};
+/** Index of the card that grows into the hero (hero.config FRAME_2.heroIndex; a test pins the two equal). */
+const HERO_GROWTH_CARD = 5;
+
 export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, collectionsHref: string, hub?: HomeHubSlots): LumiereHeroContent => {
   const cta = dict.hero.cta1[lang];
   return {
@@ -185,16 +210,9 @@ export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, 
     cta: { runs: lang === "en" ? caps(...cta.toLowerCase().split(" ")) : plain(cta), href: collectionsHref },
     categories: lumiereCategories(lang).map((c) => ({ label: c.pill, href: categoryHref(c.slug) })),
     categoryStripWidth: lang === "ja" ? 100 : 85,
-    // Cards 1–7 take real pieces from the Hub's hero deck (the placeholder only where the Hub has no photo to give);
-    // card 8 is the frame-3 hand photograph, which the Hub has no source for (a Cha original; docs/tasks/lumiere-hub-slots.md).
-    cards: [...heroCardFallbacks(lang), heroFrame3(lang)].map((fallback, i) => {
-      const photo = i < 7 ? hub?.heroPhotos[i] : undefined;
-      return photo
-        ? { position: i + 1, image: photo, objectPosition: "50% 45%" }
-        : { position: i + 1, image: fallback, objectPosition: CARD_CROPS[i + 1] };
-    }),
+    cards: heroCards(lang, hub),
     frame3: heroFrame3(lang),
-    centrepiece: hub?.heroPiece ? { image: hub.heroPiece.image, kind: hub.heroPiece.kind } : { image: heroCentrepieceFallback(lang), kind: "whole" },
+    centrepiece: hub?.heroPieces[0] ? { image: hub.heroPieces[0], kind: "cut" } : { image: heroCentrepieceFallback(lang), kind: "whole" },
     pendant3d: null,
   };
 };

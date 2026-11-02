@@ -293,6 +293,18 @@ add("white on charcoal-deep (selected term)", "white", "charcoal-deep", TEXT);
   for (const [label, fg, stop, alpha, need, luma] of rows) pairs.push({ label, fg, bg: `film@${stop}/${luma}`, need, alpha, ratio: over(fg, surface(stop, luma), alpha) });
 }
 
+// LUMIÈRE FEATURED PHOTO PANEL (P5c, owner finding c): white type over a photograph, under a black shade that HOLDS its
+// alpha across the type zone (app/lumiere/blocks.css --featured-shade-*). The photograph is unknown, so every row is taken
+// on pure white, the lightest a photograph can be: the name (28 px serif, clamped to two lines) under the head shade, the
+// materials line (18 px) under the foot shade.
+{
+  const white = [255, 255, 255];
+  const over = (alpha) => { const bg = blend([0, 0, 0], white, alpha); const [L1, L2] = [lum(white), lum(bg)]; return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05); };
+  for (const [label, alpha] of [["piece name under the head shade .60", 0.6], ["materials under the foot shade .66", 0.66]]) {
+    pairs.push({ label: `lumiere featured shade on white photo: ${label}`, fg: "white", bg: "photo", need: TEXT, alpha, ratio: over(alpha) });
+  }
+}
+
 // SALE (components/commerce/sale-price.tsx, owner decisions 2026-10-15): the
 // struck regular price is chalk/60 on dark bands (price card on charcoal-deep,
 // hero caption and Sold card on the stage pool, rows below) and charcoal/70 on

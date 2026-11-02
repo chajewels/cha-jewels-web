@@ -1,6 +1,7 @@
 import "server-only";
 import { hub, SECONDARY_TIMEOUT_MS } from "@/lib/hub-api";
 import { buildHeroDeck, inStockVariant, within } from "@/lib/hero-deck";
+import { lqip } from "@/lib/lumiere/lqip";
 import { categoryName, productName } from "@/lib/catalog-i18n";
 import { allImages, fromPrice } from "@/lib/product-facts";
 import { cardImage } from "@/lib/product-media";
@@ -16,8 +17,7 @@ import type { Product } from "@/lib/types";
  * never the page — the registered placeholder (lib/lumiere/placeholders.ts) stays the fallback.
  *
  *   collections  the Hub's category photograph (`hero_media`, the one the existing menu and category pages use)
- *   hero cards   real pieces from the existing hero deck (lib/hero-deck.ts: only active, in-stock, never sold; the same
- *                photos in the same order) — cards 1–7; card 8, the frame-3 hand photograph, has no Hub source
+ *   hero cards   see "hero pieces" below (P5c replaced the first-photograph cards of P5)
  *   featured     the Hub's featured pieces (GET /catalog/products?featured=1): name as the product page shows it, the yen
  *                price as sent, the metals as stamped, the first photograph; Add to cart is the product page's own action
  *
@@ -25,10 +25,11 @@ import type { Product } from "@/lib/types";
  * computed. A slot with NO Hub source today (the frame-3 photograph, the philosophy plates, the why panels, any 3D model)
  * is a Cha Jewels original (lib/lumiere/home-media.ts) and is listed in docs/tasks/lumiere-hub-slots.md; nothing is invented.
  *
- *   hero centre  (P5b) the best real piece of the hero deck, drawn in the ring's middle: its hero cut-out (the original
- *                tool, approved) when one exists, else the first deck photograph. A hero record, so it only ever reads the
- *                hero's own cut-out (scripts/check-cutouts.mjs rule 3 is about lib/hero-deck.ts; this file never reads a
- *                Photoroom `cutout`).
+ *   hero pieces  (P5c, owner decision a) ONLY pieces with an approved hero cut-out (the original tool; transparent
+ *                background), one per piece, round-robin across the deck's category slides, up to nine: the first is the ring's
+ *                centre, the next eight are the ring's cards. Never a photograph with its own background. A hero record, so it
+ *                only ever reads the hero's own cut-out (scripts/check-cutouts.mjs rule 3 is about lib/hero-deck.ts; this file
+ *                never reads a Photoroom `cutout`). Each carries an instant blurred placeholder (lib/lumiere/lqip.ts).
  *   featured     (P5b) also carries `stage`: the piece's cut-out as the product pages show it (lib/product-media.ts —
  *                Photoroom, approved only) or its photograph, for the right-hand stage.
  */
@@ -36,6 +37,9 @@ export type HubPhoto = { src: string; alt: string };
 
 /** What the featured right-hand stage draws for a piece; `model` is the future per-product 3D model (none today). */
 export type HubStage = { src: string; alt: string; kind: "cut" | "whole"; model: string | null };
+
+/** A cut-out (transparent background) of an available piece, with its natural size and an instant blurred placeholder. */
+export type HubHeroPiece = HubPhoto & { width: number; height: number; blur?: string };
 
 export type HubFeaturedPiece = {
   name: string;
@@ -50,21 +54,20 @@ export type HubFeaturedPiece = {
 export type HomeHubSlots = {
   /** Category slug → the Hub's photograph of it. */
   categoryPhotos: Record<string, HubPhoto>;
-  /** Up to seven photographs of real, available pieces, in the hero deck's order. */
-  heroPhotos: HubPhoto[];
-  /** The best real piece of the hero deck for the ring's centre; null when the deck has none. */
-  heroPiece: { image: HubPhoto; kind: "cut" | "whole" } | null;
+  /** Up to nine available pieces that have an approved hero cut-out: [0] is the ring's centre, [1…8] its cards. */
+  heroPieces: HubHeroPiece[];
   /** Up to five available featured pieces. */
   featured: HubFeaturedPiece[];
 };
 
-const EMPTY: HomeHubSlots = { categoryPhotos: {}, heroPhotos: [], heroPiece: null, featured: [] };
+const EMPTY: HomeHubSlots = { categoryPhotos: {}, heroPieces: [], featured: [] };
 
 /** A Hub URL a plate may draw: ours (`/…`) or HTTPS. Never `//host`, never a data: or javascript: string. */
 const drawable = (src: unknown): src is string =>
   typeof src === "string" && src.length > 1 && (src.startsWith("https://") || (src.startsWith("/") && !src.startsWith("//")));
 
-const HERO_CARDS_FROM_HUB = 7;
+/** The ring's centre and its eight cards. */
+const HERO_PIECES_FROM_HUB = 9;
 const FEATURED_FROM_HUB = 5;
 
 export async function homeHubSlots(lang: Lang): Promise<HomeHubSlots> {
@@ -78,22 +81,29 @@ export async function homeHubSlots(lang: Lang): Promise<HomeHubSlots> {
     const categoryPhotos: Record<string, HubPhoto> = {};
     for (const c of categories) if (drawable(c.hero_media)) categoryPhotos[c.slug] = { src: c.hero_media, alt: categoryName(c, lang) };
 
-    // The first photograph of each piece the hero deck chose, one piece per turn across the category slides, until seven.
-    const pools = deck.flatMap((s) => (s.kind === "category" ? [s.pieces.flatMap((p) => (drawable(p.photos[0]?.url) ? [{ src: p.photos[0].url, alt: p.name }] : []))] : []));
-    const heroPhotos: HubPhoto[] = [];
-    for (let round = 0; heroPhotos.length < HERO_CARDS_FROM_HUB && pools.some((p) => p.length > round); round++) {
-      for (const pool of pools) if (pool[round] && heroPhotos.length < HERO_CARDS_FROM_HUB) heroPhotos.push(pool[round]);
+    // Pieces with an approved hero cut-out only (the deck's `cutout` is `heroCutout`: the original tool's, owner-approved):
+    // the first cut photograph of each piece, one piece per turn across the category slides, until nine.
+    const pools = deck.flatMap((s) =>
+      s.kind === "category"
+        ? [s.pieces.flatMap((p) => {
+            const ph = p.photos.find((x) => x.cutout && drawable(x.cutout.url));
+            return ph?.cutout ? [{ src: ph.cutout.url, alt: ph.alt || p.name, width: ph.cutout.width, height: ph.cutout.height }] : [];
+          })]
+        : [],
+    );
+    const picked: HubHeroPiece[] = [];
+    const seen = new Set<string>();
+    for (let round = 0; picked.length < HERO_PIECES_FROM_HUB && pools.some((p) => p.length > round); round++) {
+      for (const pool of pools) {
+        const piece = pool[round];
+        if (piece && !seen.has(piece.src) && picked.length < HERO_PIECES_FROM_HUB) { seen.add(piece.src); picked.push(piece); }
+      }
     }
-
-    // The ring's centre: the first deck photograph that has an approved hero cut-out; otherwise the first deck photograph.
-    const deckPhotos = deck.flatMap((s) => (s.kind === "category" ? s.pieces.flatMap((p) => p.photos.map((ph) => ({ ph, name: p.name }))) : []));
-    const cut = deckPhotos.find(({ ph }) => ph.cutout && drawable(ph.cutout.url));
-    const whole = deckPhotos.find(({ ph }) => drawable(ph.url));
-    const heroPiece: HomeHubSlots["heroPiece"] = cut?.ph.cutout
-      ? { image: { src: cut.ph.cutout.url, alt: cut.ph.alt || cut.name }, kind: "cut" }
-      : whole
-        ? { image: { src: whole.ph.url, alt: whole.ph.alt || whole.name }, kind: "whole" }
-        : null;
+    // The instant placeholders, in parallel and bounded: a slow storage host costs a card its blur, never the page.
+    const heroPieces: HubHeroPiece[] = await within(
+      Promise.all(picked.map(async (p) => ({ ...p, blur: await lqip(p.src) }))),
+      SECONDARY_TIMEOUT_MS,
+    ).catch(() => picked);
 
     const pieces: HubFeaturedPiece[] = [];
     for (const p of featured) {
@@ -115,7 +125,7 @@ export async function homeHubSlots(lang: Lang): Promise<HomeHubSlots> {
         buy: { variantId: v.id, slug: p.slug, sku: p.sku },
       });
     }
-    return { categoryPhotos, heroPhotos, heroPiece, featured: pieces };
+    return { categoryPhotos, heroPieces, featured: pieces };
   } catch {
     return EMPTY;
   }
