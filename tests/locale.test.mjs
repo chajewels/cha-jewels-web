@@ -178,7 +178,9 @@ test("PHASE 3: the layaway family is English-only AND live in the shipped table;
   const rule = L.FAMILY_RULES.get("layaway");
   assert.deepEqual([...rule.locales], ["en"], "never add ja: nothing layaway-related on the Japanese site");
   assert.equal(rule.live, true);
-  for (const [name, r] of L.FAMILY_RULES) assert.equal(r.live, true, `${name} is live`);
+  // `guides` is deliberately dark until the first guide is published with approved copy (tests/guides.test.mjs binds the two).
+  const DARK_UNTIL_PUBLISHED = new Set(["guides"]);
+  for (const [name, r] of L.FAMILY_RULES) assert.equal(r.live, !DARK_UNTIL_PUBLISHED.has(name), `${name} is ${DARK_UNTIL_PUBLISHED.has(name) ? "deliberately not live" : "live"}`);
 });
 
 test("PHASE 3 (shipped table): /layaway localises to /en/layaway only; /ja/layaway can never be minted", () => {

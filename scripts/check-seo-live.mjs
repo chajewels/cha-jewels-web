@@ -13,7 +13,7 @@
 // Only real <link>/<meta> elements are counted. Next also repeats the metadata
 // inside its RSC payload as escaped JSON, which is not what a crawler reads.
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolveOrigins, authorizeCredentials, makeGet, redactConsole, Coverage, validateSitemap, llmsTxtProblems, llmsTxtLinks, llmsLinkProblems, FOUNDATION_MATRIX as M } from "./lib/seo-check-core.mjs";
 
 // BASE is where requests GO. PUBLIC_ORIGIN is what the pages DECLARE (canonical, hreflang, og:url, sitemap):
@@ -41,7 +41,9 @@ const cov = new Coverage();
 // "after the Phase 6 URLs and titles are final"; record docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md). No decision is
 // pending: the route returns with the Phase 6 batch. While the route file is absent, a 404 is the expected state and the
 // two llms rows are optional (skipped with that reason); the moment the route exists they are required.
-const MERCHANT_ROUTE_PRESENT = existsSync(new URL("../app/api/merchant-feed/route.ts", import.meta.url)); // DP-08: required the moment the route exists
+const MERCHANT_ROUTE_PRESENT = existsSync(new URL("../app/api/merchant-feed/route.ts", import.meta.url));
+// DP-08: the 200/XML success path is REQUIRED once the owner has confirmed identifiers (non-empty registry); until then a truthful 503 is reported as SKIPPED — UNVERIFIED SUCCESS COVERAGE, never as a feed pass.
+const MERCHANT_EXPECT_ITEMS = MERCHANT_ROUTE_PRESENT && !/CONFIRMED_IDENTIFIERS[^=]*=\s*\{\s*\}\s*;/.test(readFileSync(new URL("../lib/merchant-confirmed-identifiers.ts", import.meta.url), "utf8"));
 const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
 
 const robotsMeta = (html) => (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
@@ -350,7 +352,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   cov.expect("gated-descendants", "malformed descendants of gated private routes redirect to /login", gatedMalformed.length);
   cov.expect("private-pages", "real private pages keep og:url only", 3);
   cov.expect("query-handling", "og:url and the canonical ignore the request query", 2);
-  cov.expect("merchant-feed", "/api/merchant-feed?lang=ja is 200 application/xml (RSS with the g: namespace), noindex, with x-feed-items > 0 and the English feed refused (404)", 1, { optional: !MERCHANT_ROUTE_PRESENT });
+  cov.expect("merchant-feed", "/api/merchant-feed?lang=ja is 200 application/xml (RSS with the g: namespace), noindex, with x-feed-items > 0 and the English feed refused (404)", 1, { optional: !MERCHANT_EXPECT_ITEMS });
   cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page (no product, private, Japanese-layaway or figure)", 1, { optional: !LLMS_ROUTE_PRESENT });
   cov.expect("llms-links", "every link /llms.txt advertises is FETCHED and answers 200 text/html, no noindex (header or meta) and one self canonical — the recorded contract, not sitemap membership (one row per link)", 30, { optional: !LLMS_ROUTE_PRESENT });
   if (smv.problems.length === 0) cov.hit("sitemap");

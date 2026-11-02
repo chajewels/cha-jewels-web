@@ -138,6 +138,11 @@ export const FAMILY_RULES: ReadonlyMap<string, FamilyRule> = new Map<string, Fam
   ["sale", page()],
   ["wholesale", page()],
   ["layaway", { shape: "exact", locales: ["en"], live: true }],
+  // GUIDES (Phase 6-8, owner-approved 2026-11-02): English-only. NOT LIVE until the first guide is published with
+  // approved, evidenced copy (lib/guides/registry.ts enforces that flipping this to live: true needs a published guide).
+  // While `live: false`, localePath() returns "/guides/x" unchanged, so no code can mint an /en/guides link by accident.
+  // Never add "ja": there are no Japanese guides.
+  ["guides", { shape: "children", locales: ["en"], live: false }],
 ]);
 
 /**

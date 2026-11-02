@@ -7,6 +7,7 @@ import { gatherSitemapData, isListablePost } from "@/lib/sitemap-data";
 import { PAGE_LASTMOD } from "@/lib/page-lastmod.generated";
 import { primaryImage } from "@/lib/product-facts";
 import { STATIC_PAGES } from "@/lib/sitemap-pages";
+import { publishedGuides } from "@/lib/guides/registry";
 
 /**
  * THE LOCALE SITEMAP (Phase 2D, owner-approved 2026-10-28).
@@ -41,6 +42,9 @@ import { STATIC_PAGES } from "@/lib/sitemap-pages";
  * THE STATIC PAGE LIST lives in lib/sitemap-pages.ts (shared with llms.txt,
  * lib/llms-txt.ts, so the two can never advertise different pages).
  */
+/** Guides exist in English only (lib/locale.ts FAMILY_RULES `guides`). */
+const GUIDE_LANG: Locale = "en";
+
 /** Japanese first: the site's primary language. */
 const ORDER: readonly Locale[] = ["ja", "en"];
 
@@ -116,6 +120,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // listed. Layaway-only posts stay unlisted (a separate decision).
     ...LAYAWAY_LANGS.map((l) => ({ url: `${base}${localePath("/layaway", l)}`, changeFrequency: "monthly" as const, priority: 0.7 })),
     ...postEntries,
+    // Guides (English only): only PUBLISHED, valid guides, each with its own lastmod. Empty until the first publication.
+    ...publishedGuides().map((g) => ({ url: `${base}${localePath(`/guides/${g.slug}`, GUIDE_LANG)}`, lastModified: g.updated, changeFrequency: "monthly" as const, priority: 0.6 })),
     // Products, categories and collections exist in both languages: their pages
     // decide 200 or 404 on the slug alone, never on the language (OD-9 neutral-
     // text eligibility, approved).
