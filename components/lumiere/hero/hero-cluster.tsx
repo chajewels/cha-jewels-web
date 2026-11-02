@@ -229,7 +229,10 @@ export const HeroCluster = () => {
       >
         {placements.map((placement, index) => {
           const card = heroCards[index];
+          // A place with no approved cut-out draws nothing (P5c): fewer cards, never mixed backgrounds.
+          if (!card) return null;
           const isHero = index === FRAME_2.heroIndex;
+          const isCut = card.kind === "cut";
           const stateAt = (p: number) =>
             isHero
               ? heroStateAt(p, width, height, unitPx, offsetScale, ringTop)
@@ -247,7 +250,7 @@ export const HeroCluster = () => {
                  the hint: they never grow, so they only gain from it. */
               className={`absolute left-1/2 overflow-hidden${
                 isHero ? "" : " will-change-transform"
-              }`}
+              }${isCut ? " hero__plate" : ""}`}
               style={{
                 // Not a `max-lg:` class: a Tailwind variant written last in a
                 // template literal butts against the `${` and the scanner lifts
@@ -310,9 +313,14 @@ export const HeroCluster = () => {
                 // 105 px on a 412 screen; Lighthouse "image delivery", P2 A).
                 sizes={isHero ? "100vw" : "(max-width: 767.98px) 26vw, (max-width: 1439.98px) 14vw, 8vw"}
                 quality={PHOTO_QUALITY}
-                priority
-                className="object-cover"
-                style={{ objectPosition: card.objectPosition }}
+                // Only the first four places are requested ahead of everything else (preload + high priority), with the
+                // centre piece; the rest load as the browser reaches them. Eight preloads fought each other and the LCP
+                // image on a phone (P5c, owner finding a).
+                priority={index < 4}
+                placeholder={card.image.blur ? "blur" : "empty"}
+                blurDataURL={card.image.blur}
+                className={isCut ? "hero__cut" : "object-cover"}
+                style={isCut ? undefined : { objectPosition: card.objectPosition }}
               />
 
               {/* The frame-3 photograph, revealed inside the same element —

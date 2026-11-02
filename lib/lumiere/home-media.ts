@@ -21,6 +21,8 @@ export interface HomeImage {
   alt: string;
   width?: number;
   height?: number;
+  /** A tiny data-URL copy for `next/image` placeholder="blur" (Hub pieces only; lib/lumiere/lqip.ts). */
+  blur?: string;
 }
 
 interface ChaPhoto {

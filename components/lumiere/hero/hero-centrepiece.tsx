@@ -59,6 +59,8 @@ export const HeroCentrepiece = ({ tilt, intro }: { tilt: HeroTilt; intro: Spring
         fill
         sizes="(max-width: 929px) 120px, 200px"
         quality={82}
+        placeholder={image.blur ? "blur" : "empty"}
+        blurDataURL={image.blur}
         unoptimized={!isOptimizableImage(image.src)}
         priority
         fetchPriority="high"

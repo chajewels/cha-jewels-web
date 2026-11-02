@@ -404,3 +404,13 @@ body:has(.consent-banner--bar) .messenger-fab {
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
+/* …clamped to two lines (P5c, owner finding c): the full name stays in the heading and the stage's accessible text
+   (featured-stage.tsx), the visual title never runs to three. */
+.featured .featured__title--long > span > span,
+.featured .featured__title--long span[class] > span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}

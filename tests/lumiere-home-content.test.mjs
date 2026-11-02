@@ -73,6 +73,7 @@ test("hero copy is hero.h1a / h1b broken into the approved lines; the CTA is her
   assert.equal(en.cards.length, 8);
   assert.equal(en.frame3.src, "/images/collections/rings.webp", "frame 3 is a Cha original (P5b)");
   assert.equal(en.centrepiece.kind, "whole");
+  assert.ok(en.cards.every((c) => c === null || c.image.src), "every drawn card has an image");
   assert.equal(en.pendant3d, null, "no placeholder 3D pendant");
 
   const ja = lumiereHero("ja", (s) => `/ja/categories/${s}`, "/ja/collections");

@@ -631,10 +631,15 @@
     --raw-color-featured-pill-ink: var(--raw-color-black);
     --featured-pill-blur: calc(14 * var(--raw-unit-design));
     /* The photo panel's shade: alpha at the edge and where it has faded out. */
-    --featured-shade-foot: 0.62;
-    --featured-shade-foot-end: 50%;
-    --featured-shade-head: 0.32;
-    --featured-shade-head-end: 28%;
+    /* P5c (owner finding c): the name read in white over a pale photograph (the Cartier hoops) at 0.32 and 2.3:1. Each
+       shade now HOLDS its alpha across the whole type zone before it fades, so the worst photograph — pure white — still
+       leaves the type at >= 4.5:1 (scripts/check-contrast.mjs rows "lumiere featured shade"). */
+    --featured-shade-foot: 0.66;
+    --featured-shade-foot-hold: 24%;
+    --featured-shade-foot-end: 54%;
+    --featured-shade-head: 0.6;
+    --featured-shade-head-hold: 30%;
+    --featured-shade-head-end: 58%;
     --raw-color-featured-mark: #c9b994;
 
     --featured-gutter: calc(40 * var(--raw-unit-design));
@@ -742,11 +747,13 @@
       linear-gradient(
         to top,
         rgb(0 0 0 / var(--featured-shade-foot)) 0%,
+        rgb(0 0 0 / var(--featured-shade-foot)) var(--featured-shade-foot-hold),
         rgb(0 0 0 / 0) var(--featured-shade-foot-end)
       ),
       linear-gradient(
         to bottom,
         rgb(0 0 0 / var(--featured-shade-head)) 0%,
+        rgb(0 0 0 / var(--featured-shade-head)) var(--featured-shade-head-hold),
         rgb(0 0 0 / 0) var(--featured-shade-head-end)
       );
   }
@@ -785,6 +792,13 @@
   .featured__meta {
     position: relative;
     z-index: 1;
+  }
+
+  /* A soft shadow under the type as well: the scrim carries the contrast, the shadow keeps a letter edge on a photograph
+     whose detail runs through the shade. */
+  .featured__title,
+  .featured__materials {
+    text-shadow: 0 1px 10px rgb(0 0 0 / 0.35);
   }
 
   .featured__title {
@@ -2923,4 +2937,15 @@
   object-fit: cover;
   border-radius: calc(18 * var(--raw-unit-design));
   box-shadow: 0 calc(12 * var(--raw-unit-design)) calc(28 * var(--raw-unit-design)) rgb(44 32 12 / 0.18);
+}
+
+/* THE HERO'S CUT-OUT CARDS (P5c, owner decision a): a transparent cut-out set on Lumière's cream plate, contained with air
+   round it, so every card reads the same whatever the photograph it was cut from. The hero card (grows to the screen)
+   keeps the plate and the piece in its middle until the frame-3 photograph crossfades over it. */
+.hero__plate {
+  background: var(--raw-color-hero-plate, #efe8dc);
+}
+.hero__cut {
+  object-fit: contain;
+  padding: 9%;
 }
