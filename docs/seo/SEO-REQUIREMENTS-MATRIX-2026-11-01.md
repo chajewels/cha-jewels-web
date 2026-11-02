@@ -608,3 +608,38 @@ After merge and deploy: the deployed acceptance run (needs the bypass secret) an
 
 ### V.7 Overall release verdict (2026-11-02)
 Release to `main`: **NOT AUTHORIZED TO PROCEED** under the conditional authorization — DP-01a (cause unverified), DP-02 (deployed checker run not done) and DP-03 (other owners' acceptance not obtained) are unmet; DP-16 is accepted. The 12 listing descriptions are already live on production through the Hub (a content publication, independent of the code release). The code of this batch is not on `develop`.
+
+## W. Integration-ready package (2026-11-02): noindex integration, Step 4 reconciliation, Merchant initial-SKU request, wiring separation, PR A then PR B (authoritative; supersedes §V where it differs)
+
+### W.1 Collection `noindex`: ONE policy in three places (done; categories deliberately inert)
+Policy source: `lib/seo-policy.ts` (a noindex page names no canonical; it keeps og:url). For a collection the Hub marks `noindex: true` (explicit `true` only): **robots** meta `noindex, follow` (`hubListingMeta`); **locale alternates** — `lib/locale-meta.ts` now drops the canonical and all hreflang alternates when a page's own robots say noindex, keeping og:url (an unchanged result for every page that does not set noindex, proved by the full checker runs); **sitemap** — the collection is left out in both languages. Any other value of the field (false, null, a string, a number) or its absence leaves today's behaviour unchanged. `tests/noindex-consistency.test.mjs` (7 tests) covers the explicit case, the unchanged fallbacks, the alternates, the sitemap and the categories. **Categories are INERT on purpose:** their page is rewritten by the Lumière redesign, so a category `noindex` flag has no effect anywhere (not in robots, not in the sitemap) until that page is wired; no half-integration exists.
+
+### W.2 Step 4 preservation reconciled against the ORIGINAL baseline (publication stays CLOSED)
+Baseline `docs/seo/step4-baseline-2026-11-01.json` is unchanged (captured 2026-11-01T08:04Z). Comparison at 2026-11-02 with the verifier's own extraction, per page, in `docs/seo/evidence/step4/preservation-reconciliation-2026-11-02.json`: **members removed 0, images removed 0, other links added or removed 0, title, H1 and canonical changed 0 — on all 12 pages.** Additions: 6 (3 distinct products, each on its EN and JA page): `n1059-necklace-tiffany-co-750-2-40g-alphabet-m-40cm-preloved` (Necklaces collection, 138→139), `b1628-bracelet-k18-28-98g-m-cut-16-sided-triple-kihei-1-4mm-17cm` (Fine Jewelry, 99→100), `e1144-earrings-750-11-20g-diamond-1-44ct-citrine-preloved` (Preloved Jewelry, 195→196); each added listing image is exactly that product's own page image (its `og:image` equals the image added to the listing). These are catalog additions (production sitemap 453→456 products); the preservation exceptions are therefore **explained and exact**, and nothing unrelated disappeared. The 12 descriptions stay verified; publication is CLOSED.
+
+### W.3 Merchant: success coverage stays PENDING; the request is for an INITIAL SET, not the catalog
+Unconfirmed records stay excluded (`identifier_unknown`); the registry is empty; the raw checker reports the 503 as skipped — UNVERIFIED SUCCESS COVERAGE (now on both branches) and requires 200/XML as soon as the registry has an entry. To make the request small and concrete, `scripts/merchant-candidates.mjs` (read-only, public pages only) produced `docs/seo/phase-5/MERCHANT-INITIAL-SKU-PICKLIST-2026-11-02.md`: of 456 live products, 129 are new with no Hub brand (91 in stock), 198 preloved with no brand (131 in stock), 129 preloved with a Hub brand (113 in stock). **Request: confirm brand and MPN/GTIN (with who confirmed and when) for an initial 5–20 SKUs across the classes you choose** (e.g. a few own-made new pieces, a few branded preloved pieces whose manufacturer MPN you hold). A picked SKU can still be excluded for another explicit reason (for example `no_description` when the Hub has no Japanese description); the real-data run reports it. No identifiers are requested for every catalog item.
+
+### W.4 Prepared vs remaining wiring (guides, links, fields) — nothing published
+| Piece | Prepared (branch) | Remaining wiring, and why it waits |
+|---|---|---|
+| Guides route, registry, publication guard | PR B: English-only family not live, drafts only, 404 shape for every draft/unknown/Japanese URL, sitemap hook (empty) | publishing = add an approved, evidenced `PublishedGuide` AND set the family live in one change; no copy approved |
+| "Learn more" link logic | PR B: pure function, tested with mocked published guides | rendering on the product page: `components/catalog/*` and `product-trust` are rewritten by the Lumière redesign |
+| Hub SEO fields | PR A: accessors, collection metadata (title, description, robots), sitemap exclusion, alternates | collection header/H1/intro/seo_copy/FAQ rendering and hero alt: `components/catalog/catalog-section.tsx` (redesign); category page and its noindex: `app/categories/[slug]/page.tsx` (redesign); the fields themselves do not exist in the Hub yet |
+| `llms.txt` | builder only | the final Phase 6 URLs (approved timing rule) |
+
+### W.5 PR A then PR B (prepared for authorization; NOT created, merged or deployed)
+Drafts, ready to paste: `docs/seo/PR-DRAFTS-2026-11-02.md`. **Stacking:** B contains A (B was merged forward from A's final commit), so merge **A first**, then B; after A merges, B's diff shrinks to the routing preparation. Both target `develop`; neither touches `main`. Integration checks recorded for both heads in the drafts. Conflict check against `develop` and against the open Lumière PR is in the drafts.
+
+### W.6 Gates (unchanged and accurately recorded)
+DP-01a (cause of the 2026-11-01 05:58:23 UTC `BOOT_ERROR` unverified; Hub logs needed), DP-02 (deployed checker run not done; bypass secret absent) and DP-03 (other owners' acceptance not obtained) remain **unmet**. DP-16's uncertainty about Vercel-specific sitemap failure and cache behaviour is **accepted** by the owner and recorded as accepted, not verified. Release to `main` is not authorized to proceed.
+
+### W.7 The single remaining facts-and-access list
+1. Merchant: an initial 5–20 SKUs with confirmed brand and MPN/GTIN and who confirmed them (pick-list above); Merchant Center account state.
+2. The bypass secret placed by you in `.env.local` (`VERCEL_AUTOMATION_BYPASS_SECRET`, `SEO_CHECK_BYPASS_ORIGIN`).
+3. Hub owner: function logs for the 05:58:23 UTC event; the SEO fields and `kihei`/`diamonds` collections; the security, hydration and CI owners' own deployed acceptance.
+4. Approved, evidenced guide copy (Kihei, K18), or which claims to cut.
+5. Evidence for the wording claims, or a go-ahead to apply the softer text once the redesign state is known.
+6. Remaining Step 4 items: the 8C100 sentence, preservation evidence (OD-S4-7/-9), the article decision.
+7. Consent classification for the attribution cookie.
+8. Authorization to create PR A and PR B.

@@ -668,3 +668,6 @@ Unit suite, typecheck, lint, guards, production build; local fixtures build: raw
 
 ## 27. Correction-and-completion batch (2026-11-02)
 Step 4 listing descriptions published through the Hub and verified live: 12 of 12 carry the approved text; 6 pages flag +1 new product/image (sitemap 453→456 products), not the edit. Blog eligibility read from the Hub: Published ON, Layaway only ON (exclusion by design). Merchant handler: 13 tests including malformed rows, retrieval failure and the 4999/5000 limit boundary; the fixture 503 is recorded as unverified success coverage, not a pass. Guides branch: 10 tests, local build, `/en|/ja/guides/*` 404 with no canonical/hreflang, raw 672/0, DOM 685/0. Matrix §V.
+
+## 28. Integration-ready package (2026-11-02; matrix §W)
+Noindex policy integrated for collections (robots, sitemap, alternates; 7 tests; categories inert). Step 4 preservation reconciled to exact identities against the unchanged baseline: 0 members, 0 images, 0 links removed, title/H1/canonical unchanged on all 12 pages; 3 new products explained by the catalog (453→456). Merchant success coverage still pending confirmed identifiers (initial-SKU pick-list produced). Checks per branch head are in `docs/seo/PR-DRAFTS-2026-11-02.md`.

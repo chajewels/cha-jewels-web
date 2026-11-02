@@ -36,7 +36,7 @@ test("FAQ: at most 6, both q and a in the page language, junk skipped; empty = n
 });
 test("the collection page uses the Hub fields with today's text as the fallback (source guard)", () => {
   const src = readFileSync("app/collections/[slug]/page.tsx", "utf8");
-  assert.match(src, /seoTitle\(col, lang\) \? \{ absolute/);
-  assert.match(src, /seoDescription\(col, lang\) \?\? collectionDescription\(col, lang\)/);
+  assert.match(src, /hubMeta\.title \?\? listingTitle\("collection"/);
+  assert.match(src, /hubMeta\.description \?\? collectionDescription\(col, lang\)/);
   assert.match(src, /listingTitle\("collection"/, "the existing title remains the fallback");
 });

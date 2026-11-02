@@ -23,6 +23,13 @@ import { isLocale, type Locale } from "@/lib/locale";
  * alone cannot know that a blog post exists in one language (F2), so dynamic
  * wrappers pass a data-driven answer and static pages default to both.
  */
+/** True when a page's own `robots` metadata says "do not index" (object form `index: false`, or a string containing noindex). */
+export function isNoindexRobots(robots: Metadata["robots"] | undefined): boolean {
+  if (!robots) return false;
+  if (typeof robots === "string") return /noindex/i.test(robots);
+  return (robots as { index?: boolean }).index === false;
+}
+
 export type EligibleLangs = { en: boolean; ja: boolean };
 const BOTH: EligibleLangs = { en: true, ja: true };
 
@@ -71,6 +78,9 @@ export function localizedMeta<P extends Record<string, string>>(
     const url = String(alt.alternates?.canonical);
     // Next always passes `parent`; a bare unit-test call may not, which only costs the inherited image (the brand image is named instead).
     const inherited = parent ? (await parent).openGraph : null;
-    return { ...own, ...alt, openGraph: localeOpenGraph({ own: own.openGraph, parent: inherited, lang, url }) };
+    // POLICY (lib/seo-policy.ts): a noindex page names no canonical and no alternates (Google reads that as a mixed signal),
+    // but keeps its og:url. `url` above is still computed, so og:url is unchanged.
+    const noindex = isNoindexRobots(own.robots);
+    return { ...own, ...(noindex ? {} : alt), openGraph: localeOpenGraph({ own: own.openGraph, parent: inherited, lang, url }) };
   };
 }

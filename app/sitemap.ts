@@ -7,6 +7,7 @@ import { gatherSitemapData, isListablePost } from "@/lib/sitemap-data";
 import { PAGE_LASTMOD } from "@/lib/page-lastmod.generated";
 import { primaryImage } from "@/lib/product-facts";
 import { STATIC_PAGES } from "@/lib/sitemap-pages";
+import { isNoindex } from "@/lib/hub-seo-fields";
 
 /**
  * THE LOCALE SITEMAP (Phase 2D, owner-approved 2026-10-28).
@@ -120,7 +121,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // decide 200 or 404 on the slug alone, never on the language (OD-9 neutral-
     // text eligibility, approved).
     ...cats.flatMap((c) => both(`/categories/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
-    ...cols.flatMap((c) => both(`/collections/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
+    // A collection the Hub marks `noindex` (explicit true only) is left out, matching its robots meta and its missing canonical.
+    ...cols.filter((c) => !isNoindex(c)).flatMap((c) => both(`/collections/${c.slug}`, { changeFrequency: "daily", priority: 0.8 })),
     // NO lastmod on products. The Hub's `updated_at` is a row-level trigger on
     // website_products: it moves on administrative and Page365-sync writes that
     // change nothing a visitor sees, and it does NOT move when a price, stock

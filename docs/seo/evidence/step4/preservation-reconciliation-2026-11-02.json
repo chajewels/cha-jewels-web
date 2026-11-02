@@ -1,0 +1,229 @@
+{
+  "checkedAt": "2026-11-02T03:42:46.058Z",
+  "baselineCapturedAt": "2026-11-01T08:04:04.202Z",
+  "baselineFile": "docs/seo/step4-baseline-2026-11-01.json (unchanged)",
+  "pages": {
+    "https://www.chajewelsjp.com/en/collections/necklaces": {
+      "membersRemoved": [],
+      "membersAdded": [
+        "/en/products/n1059-necklace-tiffany-co-750-2-40g-alphabet-m-40cm-preloved"
+      ],
+      "imagesRemoved": [],
+      "imagesAdded": [
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/81901766/481495781-1781007516.jpeg"
+      ],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 138,
+      "countAfter": 139
+    },
+    "https://www.chajewelsjp.com/ja/collections/necklaces": {
+      "membersRemoved": [],
+      "membersAdded": [
+        "/ja/products/n1059-necklace-tiffany-co-750-2-40g-alphabet-m-40cm-preloved"
+      ],
+      "imagesRemoved": [],
+      "imagesAdded": [
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/81901766/481495781-1781007516.jpeg"
+      ],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 138,
+      "countAfter": 139
+    },
+    "https://www.chajewelsjp.com/en/collections/rings": {
+      "membersRemoved": [],
+      "membersAdded": [],
+      "imagesRemoved": [],
+      "imagesAdded": [],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 135,
+      "countAfter": 135
+    },
+    "https://www.chajewelsjp.com/ja/collections/rings": {
+      "membersRemoved": [],
+      "membersAdded": [],
+      "imagesRemoved": [],
+      "imagesAdded": [],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 135,
+      "countAfter": 135
+    },
+    "https://www.chajewelsjp.com/en/collections/other-accessories": {
+      "membersRemoved": [],
+      "membersAdded": [],
+      "imagesRemoved": [],
+      "imagesAdded": [],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 51,
+      "countAfter": 51
+    },
+    "https://www.chajewelsjp.com/ja/collections/other-accessories": {
+      "membersRemoved": [],
+      "membersAdded": [],
+      "imagesRemoved": [],
+      "imagesAdded": [],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 51,
+      "countAfter": 51
+    },
+    "https://www.chajewelsjp.com/en/collections/pendants": {
+      "membersRemoved": [],
+      "membersAdded": [],
+      "imagesRemoved": [],
+      "imagesAdded": [],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 34,
+      "countAfter": 34
+    },
+    "https://www.chajewelsjp.com/ja/collections/pendants": {
+      "membersRemoved": [],
+      "membersAdded": [],
+      "imagesRemoved": [],
+      "imagesAdded": [],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 34,
+      "countAfter": 34
+    },
+    "https://www.chajewelsjp.com/en/categories/fine-jewelry": {
+      "membersRemoved": [],
+      "membersAdded": [
+        "/en/products/b1628-bracelet-k18-28-98g-m-cut-16-sided-triple-kihei-1-4mm-17cm"
+      ],
+      "imagesRemoved": [],
+      "imagesAdded": [
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/7da831da-d15f-402d-9a5d-1c252c9122f6.jpg"
+      ],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 99,
+      "countAfter": 100
+    },
+    "https://www.chajewelsjp.com/ja/categories/fine-jewelry": {
+      "membersRemoved": [],
+      "membersAdded": [
+        "/ja/products/b1628-bracelet-k18-28-98g-m-cut-16-sided-triple-kihei-1-4mm-17cm"
+      ],
+      "imagesRemoved": [],
+      "imagesAdded": [
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/7da831da-d15f-402d-9a5d-1c252c9122f6.jpg"
+      ],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 99,
+      "countAfter": 100
+    },
+    "https://www.chajewelsjp.com/en/categories/preloved-jewelry": {
+      "membersRemoved": [],
+      "membersAdded": [
+        "/en/products/e1144-earrings-750-11-20g-diamond-1-44ct-citrine-preloved"
+      ],
+      "imagesRemoved": [],
+      "imagesAdded": [
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/78045108/428361473-1732101598.jpeg"
+      ],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 195,
+      "countAfter": 196
+    },
+    "https://www.chajewelsjp.com/ja/categories/preloved-jewelry": {
+      "membersRemoved": [],
+      "membersAdded": [
+        "/ja/products/e1144-earrings-750-11-20g-diamond-1-44ct-citrine-preloved"
+      ],
+      "imagesRemoved": [],
+      "imagesAdded": [
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/78045108/428361473-1732101598.jpeg"
+      ],
+      "otherLinksRemoved": [],
+      "otherLinksAdded": [],
+      "titleSame": true,
+      "h1Same": true,
+      "canonicalSame": true,
+      "countBefore": 195,
+      "countAfter": 196
+    }
+  },
+  "totals": {
+    "pages": 12,
+    "membersRemoved": 0,
+    "imagesRemoved": 0,
+    "otherLinksRemoved": 0,
+    "otherLinksAdded": 0,
+    "titleOrH1OrCanonicalChanged": 0,
+    "membersAddedTotal": 6,
+    "distinctAddedProducts": 3
+  },
+  "addedProducts": {
+    "/products/n1059-necklace-tiffany-co-750-2-40g-alphabet-m-40cm-preloved": {
+      "status": true,
+      "status_ok": true,
+      "ogImage": "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/81901766/481495781-1781007516.jpeg",
+      "pageImages": [
+        "/images/brand/logo-badge-96.webp",
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/81901766/481495781-1781007516.jpeg",
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/81901766/481495782-1781007516.jpeg"
+      ]
+    },
+    "/products/b1628-bracelet-k18-28-98g-m-cut-16-sided-triple-kihei-1-4mm-17cm": {
+      "status": true,
+      "status_ok": true,
+      "ogImage": "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/7da831da-d15f-402d-9a5d-1c252c9122f6.jpg",
+      "pageImages": [
+        "/images/brand/logo-badge-96.webp",
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/7da831da-d15f-402d-9a5d-1c252c9122f6.jpg",
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/c1398341-294a-4ad6-9d94-edb7e18e34e9.jpg"
+      ]
+    },
+    "/products/e1144-earrings-750-11-20g-diamond-1-44ct-citrine-preloved": {
+      "status": true,
+      "status_ok": true,
+      "ogImage": "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/78045108/428361473-1732101598.jpeg",
+      "pageImages": [
+        "/images/brand/logo-badge-96.webp",
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/78045108/428361473-1732101598.jpeg",
+        "https://pfoicalpzdcmyxzvwyhz.supabase.co/storage/v1/object/public/promotions/website/page365/82716278/510627542-1792755897.jpeg"
+      ]
+    }
+  }
+}
