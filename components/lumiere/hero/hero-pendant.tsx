@@ -14,11 +14,10 @@ import {
 } from "@/lib/scene/device";
 import { reportAssetError } from "@/components/lumiere/common/asset-banner";
 import { markPendantReady } from "@/lib/scene/pendant-ready";
-import { PENDANT_MODEL_URL } from "@/lib/scene/pendant/pendant-assets";
 import { loadSceneLibraries } from "@/lib/scene/load-libraries";
 import { whenAfterTTI } from "@/lib/scene/after-tti";
 // `import type` ONLY: a value import here put three.js in the home's first load
-// (lib/scene/pendant/pendant-assets.ts explains).
+// (the scene module is dynamic-imported inside the effect).
 import type {
   PendantFraming,
   PendantScene,
@@ -56,7 +55,8 @@ const readFraming = (element: HTMLElement): PendantFraming => {
 };
 
 /**
- * The hero centrepiece: a 3D emerald pendant over a Cycles render of itself.
+ * The 3D pendant path (P5b: kept behind a future site media model; the live site draws hero-centrepiece.tsx).
+ * A 3D pendant over a Cycles render of itself.
  *
  * The render is the poster — it is what bots, browsers without WebGL 2 and the
  * first paint get, framed identically to the scene. The scene loads in its own
@@ -71,7 +71,9 @@ export interface HeroPendantProps {
 
 export const HeroPendant = ({ tilt }: HeroPendantProps) => {
   const { content } = useHeroContent();
-  const { pendant } = content;
+  // Only mounted when the Hub sends a site model (hero-cluster.tsx); never a placeholder.
+  const pendant = content.pendant3d;
+  if (!pendant) throw new Error("HeroPendant needs content.pendant3d");
   const progress = useHeroProgress();
   const boxRef = useRef<HTMLDivElement>(null);
   const mountRef = useRef<HTMLDivElement>(null);
@@ -116,7 +118,7 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
       .then(() => loadSceneLibraries())
       .then(() => import("@/lib/scene/pendant/pendant-scene"))
       .then(({ PendantScene: Scene }) =>
-        Scene.create(canvas, budget, isAnimated),
+        Scene.create(canvas, budget, isAnimated, pendant.model),
       )
       .then((created) => {
         if (isDisposed) {
@@ -170,7 +172,7 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
       })
       .catch((error: unknown) => {
         // Preview: the red banner names the file; production: the poster stays.
-        reportAssetError(PENDANT_MODEL_URL, error);
+        reportAssetError(pendant.model, error);
         markPendantReady();
       });
 
@@ -180,7 +182,7 @@ export const HeroPendant = ({ tilt }: HeroPendantProps) => {
       scene?.dispose();
       canvas.remove();
     };
-  }, [progress, tilt]);
+  }, [progress, tilt, pendant.model]);
 
   return (
     <div ref={boxRef} className="relative h-full w-full">

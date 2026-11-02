@@ -95,6 +95,12 @@
   --pendant-oval-centre: 0.766187;
   --pendant-oval-span: 0.323040;
 
+  /* The ring's centrepiece (P5b: a real piece where the placeholder pendant hung; hero-centrepiece.tsx). Centred on the
+     ring's own centre, in design units: the cards' inner edge is ~140 units from it, so a 150 × 190 box clears them. */
+  --centre-width: calc(150 * var(--raw-unit-design));
+  --centre-height: calc(190 * var(--raw-unit-design));
+  --centre-top: calc(var(--ring-top) - 95 * var(--raw-unit-design));
+
   /* Viewing distance for the card ring's cursor tilt (HERO_TILT). On the unit,
      so the depth of the turn reads the same at every viewport width. */
   --hero-tilt-perspective: calc(1600 * var(--raw-unit-design));
@@ -563,6 +569,17 @@ html:lang(ja) .lumiere-home {
        label beside it. */
     --wordmark-width: max(64px, calc(79.07 * 100vw / 390));
     --wordmark-height: max(32.4px, calc(40 * 100vw / 390));
+  }
+}
+
+/* A SHORT PHONE (P5b, owner decision 2) — 640 tall or less (320 x 568 and its kin). With the announcement bar above and
+   the tab bar below there is not room for a 36 px three-line headline, a three-line 18 px standfirst and a ring that
+   reads as a ring. The two texts step down one size (15 / 19.5 and a lower headline ceiling); the ring is fitted into what is left (components/lumiere/hero/hero-phone-fit.ts). */
+@media (max-width: 767.98px) and (max-height: 640px) {
+  :root {
+    --raw-text-body: 15px;
+    --raw-text-body-leading: 19.5px;
+    --raw-text-display-fluid: clamp(2rem, min(14.1vw, 5.6vh), 55px);
   }
 }
 

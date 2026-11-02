@@ -261,6 +261,8 @@ export const heroStateAt = (
   height: number,
   unitPx: number,
   offsetScale = 1,
+  /** Where the ring's centre sits as a fraction of the stage's height; the phone fit (hero-phone-fit.ts) moves it. */
+  ringTop: number = RING_TOP.compact,
 ): HeroCardState => {
   const base = cardStateAt(
     FRAME_2.heroIndex,
@@ -278,7 +280,7 @@ export const heroStateAt = (
   // instead, or it leaves an uncovered band the height of the difference along
   // the top edge.
   const centreShift = isCompact
-    ? ((RING_TOP.desktop - RING_TOP.compact) * height) / unitPx
+    ? ((RING_TOP.desktop - ringTop) * height) / unitPx
     : 0;
 
   // ...but it is not paid until frame 3, at any width. Two reasons, and they

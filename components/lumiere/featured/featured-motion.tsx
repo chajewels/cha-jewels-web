@@ -18,6 +18,8 @@ const everyFrame = () => 0;
 const ENTRY_TRAVEL = 0.6;
 
 export interface FeaturedMotionProps {
+  /** How many pieces the strip carries (the Hub's featured pieces, 1–5). */
+  count: number;
   children: React.ReactNode;
 }
 
@@ -38,7 +40,8 @@ export interface FeaturedMotionProps {
  * pointer and settle asynchronously, so scrubbing back would not land on the
  * values it passed on the way down; Lenis already smooths the input.
  */
-export const FeaturedMotion = ({ children }: FeaturedMotionProps) => {
+export const FeaturedMotion = ({ count, children }: FeaturedMotionProps) => {
+  const transitions = Math.max(count - 1, 0);
   const trackRef = useRef<HTMLDivElement>(null);
   const pin = useSpringValue(0);
   const entry = useSpringValue(0);
@@ -110,8 +113,8 @@ export const FeaturedMotion = ({ children }: FeaturedMotionProps) => {
       // carries it on either side, clamped a little past both ends.
       strip.set(
         Math.min(
-          Math.max((-top / travel) * TIMELINE.transitions, -STRIP_OVERRUN),
-          TIMELINE.transitions + STRIP_OVERRUN,
+          Math.max((-top / travel) * transitions, -STRIP_OVERRUN),
+          transitions + STRIP_OVERRUN,
         ),
       );
       entry.set(
@@ -125,7 +128,7 @@ export const FeaturedMotion = ({ children }: FeaturedMotionProps) => {
       unsubscribe();
       box.dispose();
     };
-  }, [entry, isPinned, pin, strip]);
+  }, [entry, isPinned, pin, strip, transitions]);
 
   /** Where the page has to be for the ring to be showing state `index`. */
   const scrollToState = useCallback((index: number) => {
@@ -133,16 +136,16 @@ export const FeaturedMotion = ({ children }: FeaturedMotionProps) => {
     if (!track) return;
 
     const travel = track.offsetHeight - window.innerHeight;
-    if (travel <= 0) return;
+    if (travel <= 0 || transitions <= 0) return;
 
     window.scrollTo({
-      top: track.offsetTop + (travel * index) / TIMELINE.transitions,
+      top: track.offsetTop + (travel * index) / transitions,
       behavior: "smooth",
     });
-  }, []);
+  }, [transitions]);
 
   return (
-    <FeaturedProgressContext.Provider value={{ pin, entry, strip, scrollToState, spread }}>
+    <FeaturedProgressContext.Provider value={{ pin, entry, strip, scrollToState, spread, transitions }}>
       <div
         ref={trackRef}
         className="relative"
@@ -150,7 +153,7 @@ export const FeaturedMotion = ({ children }: FeaturedMotionProps) => {
           isPinned
             ? {
                 height: `${
-                  (TIMELINE.transitions * TIMELINE.viewportsPerTransition + 1) *
+                  (transitions * TIMELINE.viewportsPerTransition + 1) *
                   100
                 }svh`,
               }

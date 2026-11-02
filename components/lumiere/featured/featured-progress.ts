@@ -21,6 +21,8 @@ export interface FeaturedProgress {
   pin: SpringValue<number>;
   entry: SpringValue<number>;
   strip: SpringValue<number>;
+  /** How many slots the strip travels while pinned: the pieces less one (the Hub's featured pieces, P5b — not a constant). */
+  transitions: number;
   /** For the indicator: take the page to the scroll where state `index` sits. */
   scrollToState: (index: number) => void;
   /**

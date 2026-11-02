@@ -1051,6 +1051,19 @@
     object-fit: contain;
   }
 
+  /* A cut-out stands free: a soft shadow under it stands in for the plate. */
+  .featured__ring-plate--cut {
+    filter: drop-shadow(0 calc(14 * var(--raw-unit-design)) calc(18 * var(--raw-unit-design)) rgb(44 32 12 / 0.18));
+  }
+
+  /* No cut-out: the whole photograph on a clean plate — a rounded paper tile, the picture covering it. */
+  .featured__ring-plate--whole {
+    object-fit: cover;
+    border-radius: calc(14 * var(--raw-unit-design));
+    background: #f4f0ec;
+    box-shadow: 0 calc(10 * var(--raw-unit-design)) calc(24 * var(--raw-unit-design)) rgb(44 32 12 / 0.14);
+  }
+
   .featured__indicator {
     position: relative;
     z-index: 1;
@@ -2895,3 +2908,19 @@
     .footer--cha .footer__meta--legal { justify-self: start; }
     .footer--cha .footer__meta--social { flex-direction: column; align-items: flex-start; }
   }
+
+
+/* THE HERO CENTREPIECE (P5b; hero-centrepiece.tsx). A cut-out stands free with a soft shadow; a photograph is a
+   rounded frame, the picture covering it. */
+.hero__centrepiece {
+  max-width: none;
+}
+.hero__centrepiece--cut {
+  object-fit: contain;
+  filter: drop-shadow(0 calc(12 * var(--raw-unit-design)) calc(16 * var(--raw-unit-design)) rgb(44 32 12 / 0.2));
+}
+.hero__centrepiece--whole {
+  object-fit: cover;
+  border-radius: calc(18 * var(--raw-unit-design));
+  box-shadow: 0 calc(12 * var(--raw-unit-design)) calc(28 * var(--raw-unit-design)) rgb(44 32 12 / 0.18);
+}

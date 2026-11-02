@@ -16,12 +16,12 @@ import { FeaturedStage } from "./featured-stage";
  *
  * `FeaturedMotion` owns the pin and publishes progress; `FeaturedStage` is
  * everything that stays on screen while it runs — the same division the hero
- * uses, for the same reason. The pieces are Lumière's placeholders (D-16) with
- * the "¥ —" price state and a disabled Add to cart (D-7) until the Hub swap.
+ * uses, for the same reason. The pieces are the Hub's featured pieces (P5b: one to
+ * five, the strip follows the count); the block is not drawn when there are none.
  */
 export const FeaturedSection = ({ content }: { content: LumiereFeaturedContent }) => (
   <FeaturedContentContext.Provider value={content}>
-    <FeaturedMotion>
+    <FeaturedMotion count={content.pieces.length}>
       <FeaturedStage />
     </FeaturedMotion>
   </FeaturedContentContext.Provider>

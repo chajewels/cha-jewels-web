@@ -40,10 +40,6 @@ import {
  * against their own facets, and everything reflects the same studio.
  */
 
-import { PENDANT_MODEL_URL } from "./pendant-assets";
-
-export { PENDANT_MODEL_URL };
-
 /** Where the pendant sits in its box, both as fractions of the box. */
 export interface PendantFraming {
   /** Halo centre, measured down from the top edge. */
@@ -163,17 +159,19 @@ export class PendantScene {
     canvas: HTMLCanvasElement,
     budget: SceneBudget,
     isAnimated: boolean,
+    /** The site's own pendant model (`content.pendant3d.model`, from the Hub's site media); no model ships in the repository. */
+    modelUrl: string,
   ): Promise<PendantScene> {
     const instance = new PendantScene(canvas, budget, isAnimated);
-    await instance.load();
+    await instance.load(modelUrl);
     return instance;
   }
 
-  private async load(): Promise<void> {
+  private async load(modelUrl: string): Promise<void> {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
     const [gltf, hdri] = await Promise.all([
-      loader.loadAsync(PENDANT_MODEL_URL),
+      loader.loadAsync(modelUrl),
       loadHdriCube(this.renderer, STUDIO_HDRI_URL, this.budget.gemCubeSize),
     ]);
     // The build is split into tasks the way the rings' is (report §10 step 3):

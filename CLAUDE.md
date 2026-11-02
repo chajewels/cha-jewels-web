@@ -35,7 +35,7 @@ Storefront (Next.js 15 App Router, TS strict, Tailwind 3.4, shadcn/ui in `compon
 
 ## Lumière redesign (branch `redesign/lumiere` only; owner, 2026-10-31 / 2026-11-01)
 - On `redesign/lumiere` and its `redesign/lumiere-pN-*` phase branches, **`DESIGN-LUMIERE.md` replaces `DESIGN.md`'s visual rules** (D-4): Lumière palette with no orange accent, pills, frosted panels, pinned/scrubbed scroll allowed; product pages and cards stay 3D-free. Accessibility, contrast-ledger, terminology and layout-safety rules are kept. Plan: `docs/tasks/lumiere-redesign.md`; every decision D-1…D-24 is final in `docs/tasks/lumiere-p0-report.md` §12.
-- Lumière placeholder content lives only in `lib/lumiere/placeholders.ts` + `public/lumiere/placeholder/**`; `npm run check:placeholders` (strict on `develop`/`main`/production) keeps it off the live site. "jewelry", never "jewellery" (`check:terms`, D-22). Lenis is off on `/checkout/**`, `/account/**`, `/login`, `/auth/**` (D-13); every dialog locks the page through `lib/scroll-lock.ts`.
+- No Lumière placeholder content remains (P5b): home photographs are the Hub's or Cha Jewels originals (`lib/lumiere/home-hub.ts`, `lib/lumiere/home-media.ts`); the registry and `public/lumiere/placeholder/**` are deleted and `npm run check:placeholders --strict` keeps them gone. "jewelry", never "jewellery" (`check:terms`, D-22). Lenis is off on `/checkout/**`, `/account/**`, `/login`, `/auth/**` (D-13); every dialog locks the page through `lib/scroll-lock.ts`.
 
 ## SEO Implementation Governance
 

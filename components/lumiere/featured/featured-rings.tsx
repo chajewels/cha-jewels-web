@@ -17,10 +17,14 @@ import type {
 import { useFeaturedProgress } from "./featured-progress";
 import { ringOnStrip } from "./featured-trajectory";
 import { RING_3D, SLOTS } from "./featured.config";
+import { isOptimizableImage } from "@/lib/image-hosts";
 import { useFeaturedContent } from "./featured-content";
 import { markRingsReady } from "@/lib/scene/rings-ready";
 import { whenPendantReady } from "@/lib/scene/pendant-ready";
 import { loadSceneLibraries } from "@/lib/scene/load-libraries";
+
+/** How much larger than the slot box a piece's photograph is drawn (the box is 245 × 265 design units). */
+const PIECE_SCALE = 1.5;
 
 /** Start loading the scene this far before the block scrolls in (§4). */
 const LOAD_MARGIN = "150% 0px";
@@ -36,16 +40,15 @@ const IDLE_TIMEOUT_MS = 1500;
 const RENDER_MARGIN = "25% 0px";
 
 /**
- * The ring strip on the featured stage: five rings in a row, first to last,
+ * THE PIECE STRIP on the featured stage (P5b, owner decision 1): the Hub's featured pieces in a row, first to last,
  * sliding right to left past the centre slot at one steady speed with the
- * scroll (`strip`), each turning a quarter round its own vertical axis per
- * slot (`RING_3D.turnsPerTransition`), at rest when dead centre.
+ * scroll (`strip`) — the same slot trajectory, springs and dots as ever.
  *
- * Two layers draw the same rings in the same places. The DOM layer is the
- * posters — Cycles renders in the 3D view's resting pose — placed by the same
- * strip; it is what bots, browsers without WebGL 2 and the first paint see.
- * The 3D layer is one canvas over the stage that reads the same placements
- * each frame, and once compiled it fades in and the posters fade out under it.
+ * Until a piece has a model of its own (future `products.model_glb_url`) each piece is its photograph: the approved
+ * cut-out standing free, else the photograph on a clean plate, so the stage always shows the piece named on the left.
+ * No stand-in 3D ring ships. The 3D layer below is kept, and runs only when EVERY piece carries a model: one canvas over
+ * the stage reads the same placements each frame, turns each piece a quarter round its own vertical axis per slot
+ * (`RING_3D.turnsPerTransition`), and fades in over the photographs once compiled.
  */
 /** The reference's poses: each ring's own lean, in degrees, over the shared three-quarter view. */
 const POSES = [
@@ -59,11 +62,15 @@ const POSES = [
 export const FeaturedRings = () => {
   const { pieces } = useFeaturedContent();
   const featuredViews = pieces.map((piece, index) => ({
-    src: piece.poster.src,
-    alt: piece.poster.alt,
-    model: piece.model.src,
+    src: piece.stage.src,
+    alt: piece.stage.alt,
+    kind: piece.stage.kind,
+    model: piece.stage.model,
     pose: POSES[index] ?? POSES[0],
   }));
+  // The 3D path needs a model for every piece: a strip of mixed pieces and rings would be the very mismatch this fixes.
+  const models = featuredViews.map((view) => view.model);
+  const hasModels = models.length > 0 && models.every((model): model is string => !!model);
   const { strip, spread } = useFeaturedProgress();
   const containerRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -89,8 +96,8 @@ export const FeaturedRings = () => {
     const anchor = anchorRef.current;
     const mount = mountRef.current;
     if (!container || !anchor || !mount) return;
-    // D-10: posters only for a bot, no WebGL 2, Save-Data, ≤ 4 GB or reduced motion.
-    if (!shouldRenderScene()) {
+    // D-10: photographs only for a bot, no WebGL 2, Save-Data, ≤ 4 GB or reduced motion — and while no model exists.
+    if (!hasModels || !shouldRenderScene()) {
       markRingsReady();
       return;
     }
@@ -153,7 +160,7 @@ export const FeaturedRings = () => {
             canvas as HTMLCanvasElement,
             budget,
             featuredViews.map((view) => ({
-              url: view.model,
+              url: view.model as string,
               roll: (view.pose.roll * Math.PI) / 180,
               pitch: (view.pose.pitch * Math.PI) / 180,
             })),
@@ -258,7 +265,7 @@ export const FeaturedRings = () => {
       scene?.dispose();
       canvas?.remove();
     };
-  }, [strip]);
+  }, [strip, hasModels]);
 
   return (
     <div ref={containerRef} className="featured__rings">
@@ -268,7 +275,7 @@ export const FeaturedRings = () => {
 
       {featuredViews.map((view, index) => (
         <animated.div
-          key={view.src}
+          key={`${index}-${view.src}`}
           className="featured__ring"
           style={{
             opacity: strip.to((s) => ringOnStrip(index - s, spread).opacity),
@@ -289,16 +296,18 @@ export const FeaturedRings = () => {
               // Held until the canvas fully covers it — a crossfade of two
               // near-identical rings reads as a double exposure.
               opacity: fade.scene.to((value) => (value > 0.995 ? 0 : 1)),
-              // The poster was framed at `posterFit`; the 3D ring is drawn at `fit`.
-              transform: `scale(${(RING_3D.fit / RING_3D.posterFit).toFixed(4)})`,
+              // The 3D layer draws at `fit`; a photograph is framed to fill the slot box (`PIECE_SCALE`).
+              transform: `scale(${(hasModels ? RING_3D.fit / RING_3D.posterFit : PIECE_SCALE).toFixed(4)})`,
             }}
           >
             <Image
               src={view.src}
-              alt={view.alt}
+              alt=""
+              aria-hidden
+              unoptimized={!isOptimizableImage(view.src)}
               fill
               sizes="35vw"
-              className="featured__ring-plate"
+              className={`featured__ring-plate featured__ring-plate--${view.kind}`}
             />
           </animated.div>
         </animated.div>
