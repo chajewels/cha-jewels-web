@@ -44,3 +44,5 @@ Branch: `seo/master-plan-completion`; PR: **#462** (heads the same day: `d0b3b5f
 **Refresh 4:** DP-15 sitemap reliability (protected; approval needed); DP-01b optional; first failed sitemap assertion preserved in the verdict; 2E-1 redirect matrix established on `c6d7cd9`. Prepared only.
 
 **Refresh 5:** DP-15 final (sitemap; protected, approval needed; option B withdrawn); DP package §N written out in full; DP-01b optional. Prepared only.
+
+**Refresh 6 (2026-11-02):** owner approval recorded (matrix §U). Prepared, NOT applied (Notion unauthenticated): DP-15 CLOSED (source and integration); DP-16 residual uncertainty ACCEPTED by name; DP-05 OnlineStore DELIVERED in the branch (not deployed); DP-08 Merchant route DELIVERED in the branch (not deployed, unverified on real data); DP-09 attribution PREPARED (tracking off); DP-10 softer wording PREPARED; DP-11 procedure ADOPTED; DP-04 backups TAKEN, publication AWAITING Hub sign-in; DP-17 AWAITING access; DP-02 AWAITING the secret; DP-03 owners' evidence located, theirs to accept.

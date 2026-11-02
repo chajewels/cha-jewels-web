@@ -80,7 +80,17 @@ test("breadcrumb: the builder never adds a crumb the page did not pass (two-leve
   assert.equal(d.itemListElement.length, 2);
 });
 
-// ---------------------------------------------------------------- Phase 4: JewelryStore entity (§16)
+// ---------------------------------------------------------------- DP-05: the entity is an OnlineStore (owner-approved 2026-11-02)
+test("store: @type is OnlineStore and makes no visitable-shop claim", () => {
+  for (const prefix of ["", "/en", "/ja"]) {
+    const d = buildJsonLd({ type: "store", email: "sales@example.com", sameAs: ["https://www.facebook.com/chajewelsjapan"] }, B, prefix);
+    assert.equal(d["@type"], "OnlineStore", prefix);
+    for (const k of ["openingHours", "openingHoursSpecification", "geo", "hasMap", "hasPOS", "paymentAccepted", "currenciesAccepted"]) assert.equal(k in d, false, `${k} must not appear (no physical-store claim)`);
+  }
+  assert.equal(JSON.stringify(buildJsonLd({ type: "store" }, B, "")).includes("JewelryStore"), false);
+});
+
+// ---------------------------------------------------------------- Phase 4: store entity (§16; now OnlineStore, see above)
 test("store: the legacy key order is untouched and the new fields are appended", () => {
   const keys = Object.keys(buildJsonLd({ type: "store" }, B, ""));
   assert.deepEqual(keys.slice(0, 8), ["@context", "@type", "name", "legalName", "url", "address", "areaServed", "priceRange"]);

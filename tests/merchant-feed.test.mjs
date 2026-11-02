@@ -1,5 +1,5 @@
 // Merchant Center feed builder (lib/merchant-feed.ts), Phase 5: the pure mapping and the RSS renderer.
-// No route exists; this proves the rules the readiness document and register gaps MC-G7..G11 require, and the
+// (The route now exists under DP-08, 2026-11-02; this file proves the pure builder.) This proves the rules the readiness document and register gaps MC-G7..G11 require, and the
 // 2026-11-01 corrections: identifiers are evidence from an explicit rule (never a default), unknown states are
 // exclusions (never assumptions), nothing is silently skipped, and reconciliation is exact membership.
 // Run: npm run test:unit.
@@ -193,6 +193,6 @@ test("source guard: the builder computes nothing from a price, uses the page's o
   assert.doesNotMatch(src, /identifiers\s*:\s*IdentifierRule\s*=|identifiers\s*=\s*IDENTIFIERS_UNDECIDED/, "no default identifier rule parameter");
 
   assert.doesNotMatch(src, /condition === "Preloved" \? "used" : "new"[^;]*\?\?/, "no condition fallback");
-  assert.equal(require_exists("app/api/merchant-feed/route.ts"), false, "the feed route needs the owner's route-change approval before it exists");
+  assert.equal(require_exists("app/api/merchant-feed/route.ts"), true, "the feed route exists under the owner's DP-08 approval of 2026-11-02 (route-change rule); tests/merchant-route.test.mjs covers it");
 });
 function require_exists(p) { try { readFileSync(join(process.cwd(), p)); return true; } catch { return false; } }

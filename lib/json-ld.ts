@@ -102,8 +102,10 @@ export function buildJsonLd(props: JsonLdProps, base: string, prefix: "" | "/en"
     ? { "@context": "https://schema.org", "@type": "ItemList", numberOfItems: props.slugs.length, itemListElement: props.slugs.map((slug, i) => ({ "@type": "ListItem", position: i + 1, url: `${base}${prefix}/products/${slug}` })) }
     : props.type === "breadcrumb"
     ? { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: props.items.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: crumbUrl(base, prefix, c.path) })) }
+    // OnlineStore (DP-05, owner-approved 2026-11-02; phase-4/STRUCTURED-DATA-REVIEW §1): the business is online-only (OD-GBP-1 = No).
+    // The address is the registered mailing address; NO openingHours, geo, hasMap or any visitable-shop claim.
     : props.type === "store"
-    ? { "@context": "https://schema.org", "@type": "JewelryStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: `${base}${prefix}`,
+    ? { "@context": "https://schema.org", "@type": "OnlineStore", name: "Cha Jewels", legalName: COMPANY_NAME, url: `${base}${prefix}`,
         // Phase 4 (§16): the full registered address — the same parts
         // COMPANY_ADDRESS.en prints, appended behind the three original keys so
         // the legacy output only grows (C0/H0: never reordered).

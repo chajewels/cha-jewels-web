@@ -96,6 +96,8 @@ cov.expect("client-navigation", "client-side navigations keep one og:url (per co
 // pending: the route returns with the Phase 6 batch. While the route file is absent, a 404 is the expected state and the
 // two llms rows are optional (skipped with that reason); the moment the route exists they are required.
 const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
+// DP-08: the feed is a data endpoint, not a rendered page; the raw checker owns its row. Declared here so both checkers carry the same keys, and skipped with that reason.
+cov.expect("merchant-feed", "the Merchant feed is a non-HTML data endpoint checked by the raw checker (check-seo-live.mjs); not a rendered page", 0, { optional: true });
 cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page, fetched with the browser context's own credentials (per context)", 1 * C, { optional: !LLMS_ROUTE_PRESENT });
 cov.expect("llms-links", "every link /llms.txt advertises is FETCHED with the context's own credentials and answers 200 text/html, no noindex and one self canonical (one row per link, per context)", 30 * C, { optional: !LLMS_ROUTE_PRESENT });
 if (smv.problems.length === 0) cov.hit("sitemap");

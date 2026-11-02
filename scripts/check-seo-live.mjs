@@ -41,6 +41,7 @@ const cov = new Coverage();
 // "after the Phase 6 URLs and titles are final"; record docs/seo/phase-6/LLMS-TXT-DECISION-2026-11-01.md). No decision is
 // pending: the route returns with the Phase 6 batch. While the route file is absent, a 404 is the expected state and the
 // two llms rows are optional (skipped with that reason); the moment the route exists they are required.
+const MERCHANT_ROUTE_PRESENT = existsSync(new URL("../app/api/merchant-feed/route.ts", import.meta.url)); // DP-08: required the moment the route exists
 const LLMS_ROUTE_PRESENT = existsSync(new URL("../app/llms.txt/route.ts", import.meta.url));
 
 const robotsMeta = (html) => (html.match(/<meta name="robots" content="([^"]*)"/) ?? [])[1] ?? null;
@@ -158,8 +159,8 @@ for (const path of PUBLIC) {
   const ld = jsonLd(r.body);
   const types = ld.map((d) => d["@type"]);
   if (path === "/") {
-    const s = ld.find((d) => d["@type"] === "JewelryStore");
-    ok(path, "JSON-LD: JewelryStore", !!s, types.join(","));
+    const s = ld.find((d) => d["@type"] === "OnlineStore");
+    ok(path, "JSON-LD: OnlineStore", !!s, types.join(","));
     // Phase 4 §16: the entity facts, and the address with its street and postcode.
     ok(path, "JSON-LD: P4 store has logo, telephone, streetAddress, postalCode", !!s?.logo && !!s?.telephone && !!s?.address?.streetAddress && !!s?.address?.postalCode, JSON.stringify(s?.address ?? null));
     ok(path, "JSON-LD: P4 store declares no openingHours (customer-service hours are not shop hours)", !("openingHours" in (s ?? {})));
@@ -349,6 +350,7 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
   cov.expect("gated-descendants", "malformed descendants of gated private routes redirect to /login", gatedMalformed.length);
   cov.expect("private-pages", "real private pages keep og:url only", 3);
   cov.expect("query-handling", "og:url and the canonical ignore the request query", 2);
+  cov.expect("merchant-feed", "/api/merchant-feed?lang=ja is 200 application/xml (RSS with the g: namespace), noindex, with x-feed-items > 0 and the English feed refused (404)", 1, { optional: !MERCHANT_ROUTE_PRESENT });
   cov.expect("llms-txt", "/llms.txt is 200 text/plain and every link is a public sitemap page (no product, private, Japanese-layaway or figure)", 1, { optional: !LLMS_ROUTE_PRESENT });
   cov.expect("llms-links", "every link /llms.txt advertises is FETCHED and answers 200 text/html, no noindex (header or meta) and one self canonical — the recorded contract, not sitemap membership (one row per link)", 30, { optional: !LLMS_ROUTE_PRESENT });
   if (smv.problems.length === 0) cov.hit("sitemap");
@@ -423,6 +425,22 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
     if (r.status !== 200) { ok(path, "FOUNDATION: a private page answers 200", false, `got ${r.status}`); continue; }
     const h = r.body;
     ok(path, "FOUNDATION: a private route says noindex, names no canonical or alternates, keeps one og:url and one fb:app_id", /noindex/i.test(robotsMeta(h) ?? "") && canonicals(h).length === 0 && alternates(h).length === 0 && ogUrls(h).length === 1 && ogUrls(h)[0] === `${PUBLIC_ORIGIN}${path}` && fbIds(h).length === 1, `robots=${robotsMeta(h)} canon=${canonicals(h).length} hreflang=${alternates(h).length} og:url=${ogUrls(h).join("|")} fb=${fbIds(h).length}`);
+  }
+
+  // 5b. Merchant feed (DP-08): present route -> required; absent route -> skipped with the reason
+  {
+    if (!MERCHANT_ROUTE_PRESENT) cov.skip("merchant-feed", "route not present in this checkout");
+    else {
+      const r = await get("/api/merchant-feed?lang=ja");
+      cov.hit("merchant-feed");
+      const items = (String(r.body ?? "").match(/<item>/g) ?? []).length;
+      const en = await get("/api/merchant-feed?lang=en");
+      // A LOCAL fixtures build has no product description, so the truthful answer there is the 503 "no items": accepted only for localhost and said so. On any other origin a feed without items is a failure.
+      const local = /^(localhost|127\.0\.0\.1)$/.test(new URL(BASE).hostname);
+      const noItems503 = local && r.status === 503 && /feed incomplete: the feed has no items/.test(String(r.body ?? ""));
+      const good = r.status === 200 && /application\/xml/.test(String(r.contentType ?? "")) && /xmlns:g=/.test(String(r.body ?? "")) && items > 0 && /noindex/i.test(String(r.xrobots ?? ""));
+      ok("/api/merchant-feed", "MERCHANT: 200 application/xml RSS (g: namespace), noindex, at least one <item> (a local fixtures build may answer the truthful 503 'no items'); ?lang=en answers 404", (good || noItems503) && en.status === 404, `status ${r.status}, items ${items}, noindex ${/noindex/i.test(String(r.xrobots ?? ""))}, en ${en.status}${noItems503 ? " (local fixtures: no feedable item)" : ""}`);
+    }
   }
 
   // 6. llms.txt (Master Plan PHASE 6 add-on): the shared rule in scripts/lib/seo-check-core.mjs

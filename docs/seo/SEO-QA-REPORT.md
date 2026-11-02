@@ -662,3 +662,6 @@ Scope: sitemap reliability (matrix §S.10–S.12). Authoritative evidence: `docs
 See matrix §S.14 for the full table. Summary: sitemap family-by-family identical to production (976 URLs); post-detail and 45-of-46 metadata fetches identical (the `/` difference is the language-signal artefact); desktop render and console clean on five pages; mobile 375 INHERITED from `c6d7cd9` (not passed, not unrun; matrix §T.2); fixed checkers not run (DP-02); Vercel failure/cache behaviour NOT verified; first failed sitemap assertion preserved; 500 not reproduced and not explained.
 
 **§25 addendum (2026-11-02).** Blog eligibility flag not exposed by the public page: UNRUN pending one authorized Hub read (matrix §T.3). Step 4 live check today: 0 of 12 listing texts applied. One decision package: matrix §T.5.
+
+## 26. Batch of the 2026-11-02 approval — local verification
+Unit suite, typecheck, lint, guards, production build; local fixtures build: raw checker 672 pass / 0 fail (includes the `OnlineStore` entity row and the new `merchant-feed` row, which on a fixtures build accepts only the truthful 503 "no items"), DOM checker 685 / 0. Nothing here was run on a deployment. Details and dispositions: matrix §U.
