@@ -10,9 +10,9 @@
  * typography (an italic capital opening a word) and exist in English only —
  * `runsFor` strips them for Japanese (§5.2), and `LINES` below writes none.
  *
- * Photographs, models and the featured names are Lumière's own placeholders
- * (lib/lumiere/placeholders.ts, D-16) until the Hub swap; the data shape is the
- * one a Hub payload will fill. Business text is never a placeholder.
+ * Photographs are the Hub's where it has a source (lib/lumiere/home-hub.ts) and
+ * Cha Jewels originals otherwise (lib/lumiere/home-media.ts; P5b) — no Lumière
+ * placeholder ships. Business text is never a placeholder.
  *
  * Changing a string here is a content change, not a design change (§13).
  */
@@ -22,15 +22,17 @@ import { CATEGORY_BLURB } from "@/lib/content/frame";
 import { aboutCopy } from "@/lib/content/about";
 import type { TextRun } from "@/lib/lumiere/text-runs";
 import {
-  COLLECTION_PHOTOS,
-  FEATURED_PIECES,
-  HERO_CARDS,
-  PENDANT,
-  PHILOSOPHY,
-  type PlaceholderAsset,
-  type PlaceholderPiece,
-} from "@/lib/lumiere/placeholders";
+  collectionFallback,
+  heroCardFallbacks,
+  heroCentrepieceFallback,
+  heroFrame3,
+  philosophyMedia,
+  whyPanelImages,
+  type HomeImage,
+} from "@/lib/lumiere/home-media";
 import type { HomeHubSlots } from "@/lib/lumiere/home-hub";
+
+export type { HomeImage };
 
 const plain = (text: string): TextRun[] => [{ text }];
 /** "Timeless" → an italic "T" and the rest roman, as the reference opens its lines. */
@@ -109,20 +111,6 @@ export const lumiereCategories = (lang: Lang): LumiereCategory[] =>
 
 /* ---------------------------------------------------------------- hero (§13 rows 1–7) */
 
-/**
- * AN IMAGE IN A HOME SLOT (P5): a registered placeholder (width and height known) or a Hub photograph
- * (`lib/lumiere/home-hub.ts`; the slots draw it with `fill`, so no dimensions are needed). Never both
- * shapes' extras are required: a component reads `src` and `alt`.
- */
-export interface HomeImage {
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
-  /** true only for a registered placeholder; a Hub photograph omits it. */
-  readonly placeholder?: true;
-}
-
 export interface HeroCardSlot {
   position: number;
   image: HomeImage;
@@ -147,7 +135,16 @@ export interface LumiereHeroContent {
   categoryStripWidth: number;
   cards: HeroCardSlot[];
   frame3: HomeImage;
-  pendant: typeof PENDANT;
+  /**
+   * The ring's centre (P5b, owner decision 3): the best real piece from the Hub's hero deck — its hero cut-out when one is
+   * approved, else the photograph — or a Cha original when the deck is empty. `cut` draws it free of a plate; `whole` in a frame.
+   */
+  centrepiece: { image: HomeImage; kind: "cut" | "whole" };
+  /**
+   * The 3D pendant path, kept behind a future site media model (docs/tasks/lumiere-hub-slots.md §2, `site_media`
+   * `home.hero.pendant`). Null until the Hub sends one: no placeholder 3D ships.
+   */
+  pendant3d: { model: string; poster: HomeImage; posterCompact: HomeImage } | null;
 }
 
 const HERO: Record<Lang, Pick<LumiereHeroContent, "headline" | "headlinePhoto" | "tagline" | "taglinePhoto" | "taglineWraps" | "scrollLabel">> = {
@@ -189,15 +186,16 @@ export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, 
     categories: lumiereCategories(lang).map((c) => ({ label: c.pill, href: categoryHref(c.slug) })),
     categoryStripWidth: lang === "ja" ? 100 : 85,
     // Cards 1–7 take real pieces from the Hub's hero deck (the placeholder only where the Hub has no photo to give);
-    // card 8 is the frame-3 hand photograph, which the Hub has no source for (docs/tasks/lumiere-hub-slots.md).
-    cards: HERO_CARDS.map((placeholder, i) => {
+    // card 8 is the frame-3 hand photograph, which the Hub has no source for (a Cha original; docs/tasks/lumiere-hub-slots.md).
+    cards: [...heroCardFallbacks(lang), heroFrame3(lang)].map((fallback, i) => {
       const photo = i < 7 ? hub?.heroPhotos[i] : undefined;
       return photo
         ? { position: i + 1, image: photo, objectPosition: "50% 45%" }
-        : { position: i + 1, image: placeholder, objectPosition: CARD_CROPS[i + 1] };
+        : { position: i + 1, image: fallback, objectPosition: CARD_CROPS[i + 1] };
     }),
-    frame3: HERO_CARDS[7],
-    pendant: PENDANT,
+    frame3: heroFrame3(lang),
+    centrepiece: hub?.heroPiece ? { image: hub.heroPiece.image, kind: hub.heroPiece.kind } : { image: heroCentrepieceFallback(lang), kind: "whole" },
+    pendant3d: null,
   };
 };
 
@@ -234,15 +232,6 @@ const COLLECTIONS: Record<Lang, Pick<LumiereCollectionsContent, "heading" | "lea
   },
 };
 
-/** The reference's four plates and crops, assigned to the five cards; the fifth, full-width card takes the widest plate. */
-const COLLECTION_IMAGES = [
-  { ...COLLECTION_PHOTOS.rings, position: "50% 100%", positionMobile: "13% 50%", scale: 1, scaleMobile: 1.4, aimMobile: 1 },
-  { ...COLLECTION_PHOTOS.necklaces, position: "50% 50%", positionMobile: "30% 50%", scale: 1, scaleMobile: 1.35, aimMobile: -1 },
-  { ...COLLECTION_PHOTOS.earrings, position: "0% 34.4%", positionMobile: "0% 50%", scale: 1.02, scaleMobile: 1, aimMobile: 0 },
-  { ...COLLECTION_PHOTOS.bracelets, position: "43.8% 97.5%", positionMobile: "100% 50%", scale: 1.029, scaleMobile: 1, aimMobile: 0 },
-  { ...COLLECTION_PHOTOS.necklaces, position: "50% 40%", positionMobile: "30% 50%", scale: 1, scaleMobile: 1.2, aimMobile: 0 },
-] as const;
-
 const COLLECTION_WIDTHS = ["narrow", "wide", "wide", "narrow", "full"] as const;
 
 export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => string, hub?: HomeHubSlots): LumiereCollectionsContent => ({
@@ -253,10 +242,8 @@ export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => s
   cards: lumiereCategories(lang).map((category, i) => ({
     category,
     href: categoryHref(category.slug),
-    // The Hub's own category photograph (hero_media) when it has one — cropped centrally; the placeholder, with the reference's crop, otherwise.
-    image: hub?.categoryPhotos[category.slug]
-      ? { ...hub.categoryPhotos[category.slug], position: "50% 50%", positionMobile: "50% 50%", scale: 1, scaleMobile: 1, aimMobile: 0 }
-      : COLLECTION_IMAGES[i],
+    // The Hub's own category photograph (hero_media) when it has one; a Cha original (lib/lumiere/home-media.ts) otherwise — cropped centrally either way.
+    image: { ...(hub?.categoryPhotos[category.slug] ?? collectionFallback(category.slug, lang)), position: "50% 50%", positionMobile: "50% 50%", scale: 1, scaleMobile: 1, aimMobile: 0 },
     noteWidth: lang === "ja" ? 140 : 126,
     width: COLLECTION_WIDTHS[i],
   })),
@@ -264,27 +251,36 @@ export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => s
 
 /* ---------------------------------------------------------------- featured (§13 rows 13–16, D-7) */
 
-/** What Add to cart needs for a REAL piece (a Hub variant); absent on a placeholder, whose button stays disabled (D-7). */
+/** What Add to cart needs for a piece (a Hub variant). */
 export interface FeaturedBuy { variantId: string; slug: string; sku: string }
 
 /**
- * A featured slot (P5). The name, the materials row, the price and the photograph are the Hub's for a real
- * piece; the model and its poster are the registered placeholders either way — the Hub has no 3D source
- * (docs/tasks/lumiere-hub-slots.md). `placeholder: true` keeps D-7's "¥ —" and a disabled pill.
+ * A featured slot — always a REAL Hub piece (P5b; no placeholder piece exists). The name, the materials row, the price and
+ * the photograph are the Hub's. `stage` is what the right-hand stage turns past the centre slot: the piece's own cut-out
+ * when one is approved (the product-page workflow, lib/product-media.ts), otherwise its photograph on a clean plate
+ * (owner decision 1) — so the stage always shows the piece named on the left. `model` is the piece's own 3D model
+ * (future `products.model_glb_url`, docs/tasks/lumiere-hub-slots.md decision 2); null until the Hub sends one, and the
+ * 3D path (featured-rings.tsx) only runs when every piece has one.
  */
+export interface FeaturedStage {
+  src: string;
+  alt: string;
+  kind: "cut" | "whole";
+  model: string | null;
+}
+
 export interface FeaturedPieceContent {
-  placeholder: boolean;
   name: string;
   materials: readonly string[];
-  model: PlaceholderPiece["model"];
-  poster: PlaceholderPiece["poster"];
   photo: HomeImage;
+  stage: FeaturedStage;
   price: string;
-  buy: FeaturedBuy | null;
+  buy: FeaturedBuy;
   nameRuns: TextRun[];
 }
 
 export interface LumiereFeaturedContent {
+  /** The Hub's available featured pieces, up to five; the block is not drawn when there are none. */
   pieces: FeaturedPieceContent[];
   /** The pill after a successful add, and its aria-live text. */
   added: string;
@@ -297,27 +293,24 @@ export interface LumiereFeaturedContent {
 }
 
 const FEATURED: Record<Lang, { scrollCue: string; ring: string }> = {
-  en: { scrollCue: "Scroll to explore", ring: "Ring {n} of {total}" },
-  ja: { scrollCue: "スクロールして見る", ring: "リング {n} / {total}" },
+  en: { scrollCue: "Scroll to explore", ring: "Piece {n} of {total}" },
+  ja: { scrollCue: "スクロールして見る", ring: "{n} / {total} 点目" },
 };
 
 export const lumiereFeatured = (lang: Lang, hub?: HomeHubSlots): LumiereFeaturedContent => ({
   lang,
   added: dict.cart.added[lang],
   viewCart: dict.cart.viewCart[lang],
-  // Slot i takes the Hub's i-th featured piece (name, price, metals, photograph, Add to cart); a slot the Hub cannot fill keeps
-  // its placeholder (names stay Latin in both languages (row 13); the italic capital is EN only).
-  pieces: FEATURED_PIECES.map((piece, i): FeaturedPieceContent => {
-    const real = hub?.featured[i];
-    if (real) {
-      return {
-        placeholder: false, name: real.name, materials: real.materials, model: piece.model, poster: piece.poster,
-        photo: real.photo, price: real.price, buy: real.buy,
-        nameRuns: lang === "en" ? cap(`${real.name}.`) : plain(`${real.name}.`),
-      };
-    }
-    return { ...piece, buy: null, nameRuns: lang === "en" ? cap(`${piece.name}.`) : plain(`${piece.name}.`) };
-  }),
+  // The Hub's featured pieces, in its order (names stay Latin in both languages (row 13); the italic capital is EN only).
+  pieces: (hub?.featured ?? []).map((real): FeaturedPieceContent => ({
+    name: real.name,
+    materials: real.materials,
+    photo: real.photo,
+    stage: real.stage,
+    price: real.price,
+    buy: real.buy,
+    nameRuns: lang === "en" ? cap(`${real.name}.`) : plain(`${real.name}.`),
+  })),
   cta: dict.cart.add[lang],
   scrollCue: FEATURED[lang].scrollCue,
   ringLabel: FEATURED[lang].ring,
@@ -329,8 +322,8 @@ export interface LumierePhilosophyContent {
   lines: Record<"jewelry" | "quite" | "shapes" | "longer" | "look" | "keep", TextRun[]>;
   notes: { top: string[]; left: string[]; right: string[]; bottom: string[] };
   cta: { label: string; href: string };
-  backdrop: { wide: PlaceholderAsset; narrow: PlaceholderAsset };
-  photo: PlaceholderAsset;
+  backdrop: { wide: HomeImage; narrow: HomeImage };
+  photo: HomeImage;
 }
 
 const PHILOSOPHY_LINES: Record<Lang, LumierePhilosophyContent["lines"]> = {
@@ -374,8 +367,8 @@ export const lumierePhilosophy = (lang: Lang, aboutHref: string): LumierePhiloso
   notes: PHILOSOPHY_NOTES[lang],
   // row 27: navMenu.about → /about
   cta: { label: dict.navMenu.about[lang], href: aboutHref },
-  backdrop: { wide: PHILOSOPHY.backdrop, narrow: PHILOSOPHY.backdropNarrow },
-  photo: PHILOSOPHY.hand,
+  backdrop: philosophyMedia(lang).backdrop,
+  photo: philosophyMedia(lang).hand,
 });
 
 /** The sources every philosophy row is drawn from, for the tests: rows 23 and 26 are ✂ about.closing. */
@@ -404,8 +397,8 @@ export const LUMIERE_HOME_STRINGS: Record<Lang, { loading: string; collectionsIn
  */
 export interface LumiereWhyColumn {
   index: string;
-  /** The panel's photograph — a registered placeholder until the values get their own (D-16). */
-  image: PlaceholderAsset;
+  /** The panel's photograph — a Cha original (lib/lumiere/home-media.ts). */
+  image: HomeImage;
   /** `home.value*H` — the chapter's name on the column. */
   name: string;
   /** `home.value*P` — the chapter's line in the swapping headline. */
@@ -419,14 +412,12 @@ export interface LumiereWhyContent {
   tablistLabel: string;
 }
 const WHY_VALUES = ["Timeless", "Worth", "Craft", "Quality"] as const;
-/** One panel photograph per value: the collections placeholders, in their registry order. */
-const WHY_IMAGES = [COLLECTION_PHOTOS.rings, COLLECTION_PHOTOS.necklaces, COLLECTION_PHOTOS.earrings, COLLECTION_PHOTOS.bracelets] as const;
 export const lumiereWhy = (lang: Lang, whyHref: string): LumiereWhyContent => ({
   eyebrow: dict.home.valuesEyebrow[lang],
   heading: dict.home.valuesH[lang],
   columns: WHY_VALUES.map((value, i) => ({
     index: `0${i + 1}`,
-    image: WHY_IMAGES[i],
+    image: whyPanelImages(lang)[i],
     name: dict.home[`value${value}H`][lang],
     title: dict.home[`value${value}P`][lang],
   })),

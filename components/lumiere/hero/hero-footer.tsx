@@ -69,6 +69,7 @@ export const HeroFooter = ({ isPhoto }: HeroFooterProps) => {
           lives in `--footer-*-bottom`, not here. */}
       <animated.p
         data-reveal
+        data-hero-tagline=""
         // Width in classes, not inline: an inline value outranks `lg:w-u-281`
         // and would pin the desktop measure to the phone's.
         className="absolute left-u-40 font-manrope text-body font-medium bottom-[var(--footer-tagline-bottom)] w-[min(calc(100vw-80*var(--raw-unit-design)),var(--footer-tagline-width))] lg:w-u-281"

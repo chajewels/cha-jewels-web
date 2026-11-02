@@ -28,7 +28,6 @@ import {
   PHOTO_PARALLAX,
   PIECE_SWITCH,
   STRIP_OVERRUN,
-  TIMELINE,
   TYPE,
 } from "./featured.config";
 
@@ -40,8 +39,8 @@ const sans = (size: number, leading: number) =>
  * Measured along the strip — the first and last dots stay lit while the strip
  * runs on past them as the block scrolls in and out.
  */
-const dotOpacity = (strip: number, index: number) => {
-  const s = Math.min(Math.max(strip, 0), TIMELINE.transitions);
+const dotOpacity = (strip: number, index: number, transitions: number) => {
+  const s = Math.min(Math.max(strip, 0), transitions);
   return lerp(0.2, 1, clamp01(1 - Math.abs(s - index)));
 };
 
@@ -115,7 +114,7 @@ const useActivePiece = (strip: SpringValue<number>, lastPiece: number): number =
 export const FeaturedStage = () => {
   const content = useFeaturedContent();
   const featuredPieces = content.pieces;
-  const { entry, strip, scrollToState } = useFeaturedProgress();
+  const { entry, strip, scrollToState, transitions } = useFeaturedProgress();
   const active = useActivePiece(strip, featuredPieces.length - 1);
   const activePiece = featuredPieces[active];
   // The button rolls the way the nav links do — same helper, so the character
@@ -185,7 +184,7 @@ export const FeaturedStage = () => {
                   const t =
                     s < 0
                       ? -clamp01(-s / STRIP_OVERRUN)
-                      : clamp01((s - TIMELINE.transitions) / STRIP_OVERRUN);
+                      : clamp01((s - transitions) / STRIP_OVERRUN);
                   const shift =
                     (t * PHOTO_PARALLAX * 100) / (1 + 2 * PHOTO_PARALLAX);
                   return `translate3d(0, ${shift.toFixed(3)}%, 0)`;
@@ -278,15 +277,13 @@ export const FeaturedStage = () => {
                 transform: entry.to((e) => rise(stage(e, 0.3, 0.9), 12, TYPE.pill.size)),
               }}
             >
-              {/* D-7: while the piece is a placeholder there is nothing to buy —
-                  the pill is drawn but disabled, and the price beside it is
-                  "¥ —", never a figure. The Hub swap enables it and wires the
-                  existing add-to-cart action with its analytics event. */}
+              {/* The piece's own Add to cart (the product page's Server Action and
+                  analytics event) beside the Hub's price, as sent. */}
               <button
                 type="button"
                 className="featured__pill featured__pill--cta"
-                disabled={activePiece.placeholder || !buy || pending}
-                aria-disabled={activePiece.placeholder || !buy}
+                disabled={!buy || pending}
+                aria-disabled={!buy}
                 data-analytics="featured-add-to-cart"
                 onClick={onAdd}
                 {...handlers}
@@ -396,14 +393,14 @@ export const FeaturedStage = () => {
           <span className="featured__indicator">
             {featuredPieces.map((piece, index) => (
               <button
-                key={piece.poster.src}
+                key={piece.buy.slug}
                 type="button"
                 className="featured__dot"
                 onClick={() => scrollToState(index)}
               >
                 <animated.span
                   className="featured__dot-mark"
-                  style={{ opacity: strip.to((s) => dotOpacity(s, index)) }}
+                  style={{ opacity: strip.to((s) => dotOpacity(s, index, transitions)) }}
                 />
                 <span className="sr-only">{content.ringLabel.replace("{n}", String(index + 1)).replace("{total}", String(featuredPieces.length))}</span>
               </button>

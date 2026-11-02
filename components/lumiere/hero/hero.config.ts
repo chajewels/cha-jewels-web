@@ -352,7 +352,6 @@ export const CATEGORY_MASK =
  * scene frames itself in this box — halo 136 units across, centred 426 down.
  */
 export const PENDANT = {
-  src: "/lumiere/placeholder/hero/pendant-emerald.webp",
   width: 421,
   height: 556,
   /** Offset from the top edge of the stage, in design units. */
@@ -392,7 +391,6 @@ export const PENDANT = {
  */
 export const PENDANT_COMPACT = {
   /** Cycles poster of the 3D pendant, rendered in this box's framing. */
-  src: "/lumiere/placeholder/hero/pendant-emerald-compact.webp",
   width: 1024,
   height: 1536,
   /** Halo centre down the height (the old artwork's oval, rows 1248-1393). */

@@ -10,39 +10,47 @@ const href = (slug) => `/categories/${slug}`;
 const slots = {
   categoryPhotos: { "fine-jewelry": { src: "https://hub.example/cat/fine.webp", alt: "Fine Jewelry" } },
   heroPhotos: [1, 2, 3].map((n) => ({ src: `https://hub.example/p/${n}.webp`, alt: `Piece ${n}` })),
+  heroPiece: { image: { src: "https://hub.example/p/cut.webp", alt: "Piece cut" }, kind: "cut" },
   featured: [
-    { name: "K18 Twist bangle", materials: ["K18", "PT900"], price: "￥236,800", photo: { src: "https://hub.example/f/1.webp", alt: "Twist bangle" }, buy: { variantId: "v1", slug: "twist-bangle", sku: "SKU-1" } },
+    { name: "K18 Twist bangle", materials: ["K18", "PT900"], price: "￥236,800", photo: { src: "https://hub.example/f/1.webp", alt: "Twist bangle" }, stage: { src: "https://hub.example/f/1-cut.webp", alt: "Twist bangle", kind: "cut", model: null }, buy: { variantId: "v1", slug: "twist-bangle", sku: "SKU-1" } },
+    { name: "K18 Pearl pendant", materials: ["K18"], price: "￥98,000", photo: { src: "https://hub.example/f/2.webp", alt: "Pearl pendant" }, stage: { src: "https://hub.example/f/2.webp", alt: "Pearl pendant", kind: "whole", model: null }, buy: { variantId: "v2", slug: "pearl-pendant", sku: "SKU-2" } },
   ],
 };
 
-test("B — collections: the Hub's category photograph where there is one, the placeholder elsewhere", () => {
+test("B — collections: the Hub's category photograph where there is one, a Cha original elsewhere", () => {
   const withHub = lumiereCollections("en", href, slots);
   const first = withHub.cards.find((c) => c.category.slug === "fine-jewelry");
   assert.equal(first.image.src, "https://hub.example/cat/fine.webp");
-  assert.equal(first.image.placeholder, undefined, "a Hub photograph is not a placeholder");
   const rest = withHub.cards.filter((c) => c.category.slug !== "fine-jewelry");
-  assert.ok(rest.every((c) => c.image.src.startsWith("/lumiere/placeholder/")), "no Hub photo → the placeholder");
-  assert.ok(lumiereCollections("en", href).cards.every((c) => c.image.src.startsWith("/lumiere/placeholder/")), "no slots at all → all placeholders");
+  assert.ok(rest.every((c) => c.image.src.startsWith("/images/collections/")), "no Hub photo → the Cha original");
+  assert.ok(lumiereCollections("en", href).cards.every((c) => c.image.src.startsWith("/images/collections/") && c.image.alt.length > 0), "no slots at all → all Cha originals, with alt");
+  assert.ok(lumiereCollections("ja", href).cards.every((c) => /[぀-ヿ一-鿿]/.test(c.image.alt)), "JA alt text");
 });
 
 test("B — hero: cards 1–7 take real pieces in order, card 8 (the frame-3 hand photograph) has no Hub source", () => {
   const hero = lumiereHero("en", href, "/collections", slots);
   assert.deepEqual(hero.cards.slice(0, 3).map((c) => c.image.src), slots.heroPhotos.map((p) => p.src));
-  assert.ok(hero.cards.slice(3).every((c) => c.image.src.startsWith("/lumiere/placeholder/")), "a card the Hub cannot fill keeps its placeholder");
-  assert.ok(hero.frame3.src.startsWith("/lumiere/placeholder/"));
+  assert.ok(hero.cards.slice(3).every((c) => c.image.src.startsWith("/images/collections/")), "a card the Hub cannot fill keeps a Cha original");
+  assert.equal(hero.frame3.src, "/images/collections/rings.webp");
+  // P5b decision 3: the ring's centre is the Hub's best deck piece (its hero cut-out when approved); no 3D pendant ships.
+  assert.deepEqual(hero.centrepiece, { image: slots.heroPiece.image, kind: "cut" });
+  assert.equal(hero.pendant3d, null);
+  assert.equal(lumiereHero("en", href, "/collections").centrepiece.kind, "whole", "no deck piece → the Cha still life");
 });
 
-test("B — featured: a real piece carries the Hub's name, price and metals and can be bought; the others stay disabled placeholders", () => {
+test("B — featured: real pieces only, each with the stage image of ITS OWN piece (P5b decision 1)", () => {
   const f = lumiereFeatured("en", slots);
-  const [a, ...others] = f.pieces;
-  assert.equal(a.placeholder, false);
+  assert.equal(f.pieces.length, 2, "the strip follows the Hub's count");
+  const [a, b] = f.pieces;
   assert.equal(a.name, "K18 Twist bangle");
   assert.equal(a.price, "￥236,800", "the Hub's price as printed, never computed");
   assert.deepEqual([...a.materials], ["K18", "PT900"]);
   assert.deepEqual(a.buy, { variantId: "v1", slug: "twist-bangle", sku: "SKU-1" });
   assert.equal(a.photo.src, "https://hub.example/f/1.webp");
-  assert.ok(others.every((p) => p.placeholder === true && p.buy === null && p.price === "¥ —"), "D-7: a placeholder has nothing to buy");
-  assert.ok(lumiereFeatured("en").pieces.every((p) => p.placeholder && p.buy === null), "no Hub slots → all placeholders");
+  assert.deepEqual(a.stage, { src: "https://hub.example/f/1-cut.webp", alt: "Twist bangle", kind: "cut", model: null });
+  assert.equal(b.stage.kind, "whole", "no cut-out → the photograph on a plate");
+  assert.equal(b.stage.src, b.photo.src, "the stage shows the piece named on the left");
+  assert.equal(lumiereFeatured("en").pieces.length, 0, "no Hub pieces → no block, never a stand-in");
 });
 
 test("B — the Hub reader never computes money and the stage buys through the product page's own action", () => {
@@ -57,15 +65,18 @@ test("B — the Hub reader never computes money and the stage buys through the p
   assert.match(read("components/fx/cart-bump.tsx"), /export const CART_ADDED = "cj:cart-added";/);
   assert.match(stage, /const CART_ADDED = "cj:cart-added";/, "the same event name as the header's bump");
   assert.match(stage, /trackAddToCart\(buy\.sku, content\.lang\)/);
-  assert.match(stage, /disabled=\{activePiece\.placeholder \|\| !buy \|\| pending\}/);
+  assert.match(stage, /disabled=\{!buy \|\| pending\}/);
 });
 
-test("B — check:placeholders reports every remaining placeholder with its reason and fails on an unclassified file", () => {
-  const s = read("scripts/check-placeholders.mjs");
-  assert.match(s, /const MANIFEST = \[/);
-  assert.match(s, /status: "none"/);
-  assert.match(s, /not in the manifest/);
-  assert.match(read("docs/tasks/lumiere-hub-slots.md"), /DRAFT for the owner and Lovable/);
+test("B — the stage turns no placeholder 3D: photographs always, the 3D path only when every piece carries a model", () => {
+  const rings = read("components/lumiere/featured/featured-rings.tsx");
+  assert.match(rings, /const hasModels = models\.length > 0 && models\.every/);
+  assert.match(rings, /if \(!hasModels \|\| !shouldRenderScene\(\)\)/);
+  assert.match(rings, /piece\.stage\.model/);
+  const home = read("components/lumiere/home/home-view.tsx");
+  assert.match(home, /slots\.featured\.length > 0/, "no Hub pieces, no block");
+  const cluster = read("components/lumiere/hero/hero-cluster.tsx");
+  assert.match(cluster, /has3d \? <HeroPendant tilt=\{tilt\} \/> : <HeroCentrepiece/);
 });
 
 test("A1 — the Messenger button steps aside from prices, totals, buttons and fields instead of covering them", () => {

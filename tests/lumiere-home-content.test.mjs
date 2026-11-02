@@ -71,7 +71,9 @@ test("hero copy is hero.h1a / h1b broken into the approved lines; the CTA is her
   assert.equal(en.categoryStripWidth, 85);
   assert.equal(en.taglineWraps, true);
   assert.equal(en.cards.length, 8);
-  assert.ok(en.frame3.src.endsWith("card-08.webp"));
+  assert.equal(en.frame3.src, "/images/collections/rings.webp", "frame 3 is a Cha original (P5b)");
+  assert.equal(en.centrepiece.kind, "whole");
+  assert.equal(en.pendant3d, null, "no placeholder 3D pendant");
 
   const ja = lumiereHero("ja", (s) => `/ja/categories/${s}`, "/ja/collections");
   assert.deepEqual(ja.headline.map(text), ["身につける、", "時を超える", "美しさ。"]);
@@ -94,30 +96,20 @@ test("collections: the §13 heading and lead, five cards with the fifth full-wid
   assert.deepEqual(en.cards.map((c) => c.width), ["narrow", "wide", "wide", "narrow", "full"]);
   assert.deepEqual(en.cards.map((c) => c.noteWidth), [126, 126, 126, 126, 126]);
   assert.deepEqual(en.cards.map((c) => c.href), CATEGORY_ORDER.map(href));
-  for (const c of en.cards) assert.ok(c.image.src.startsWith("/lumiere/placeholder/collections/"), c.image.src);
+  for (const c of en.cards) assert.ok(c.image.src.startsWith("/images/collections/"), c.image.src);
   const ja = lumiereCollections("ja", href);
   assert.deepEqual(ja.heading.map(text), ["カテゴリーから選ぶ。", "厳選したジュエリー。"]);
   assert.equal(ja.cards[0].noteWidth, 140);
   assert.equal(text(ja.cta), dict.home.colsLink.ja);
 });
 
-test("featured: five placeholder pieces, the price is '¥ —' and never a figure (D-7), the CTA is cart.add", () => {
+test("featured: the Hub's pieces only — none without the Hub, the CTA is cart.add, the dots' label is a template", () => {
   for (const lang of ["en", "ja"]) {
     const f = lumiereFeatured(lang);
-    assert.equal(f.pieces.length, 5);
-    for (const p of f.pieces) {
-      assert.equal(p.placeholder, true);
-      assert.equal(p.price, "¥ —");
-      assert.ok(!/\d/.test(p.price), "no digits in a placeholder price");
-      assert.ok(!/\$/.test(p.price), "never dollars");
-      assert.ok(p.model.src.endsWith(".glb") && p.poster.src.endsWith(".webp") && p.photo.src.endsWith(".webp"));
-    }
+    assert.equal(f.pieces.length, 0, "no stand-in pieces (P5b)");
     assert.equal(f.cta, dict.cart.add[lang]);
     assert.ok(f.ringLabel.includes("{n}") && f.ringLabel.includes("{total}"), "a template, never a function (client boundary)");
   }
-  assert.equal(text(lumiereFeatured("en").pieces[0].nameRuns), "Trinity.");
-  assert.equal(lumiereFeatured("en").pieces[0].nameRuns[0].italic, true);
-  assert.equal(lumiereFeatured("ja").pieces[0].nameRuns.some((r) => r.italic), false);
 });
 
 test("philosophy: the four values of home.valuesP (FIX 4), notes from about.closing / the eyebrow / colsP, 'About us' → /about", () => {
@@ -136,7 +128,9 @@ test("philosophy: the four values of home.valuesP (FIX 4), notes from about.clos
     for (const line of p.notes.top) assert.ok(closingWords.includes(line.replace(/[.。]$/, "")), `${lang} top note "${line}"`);
     assert.equal(p.cta.label, dict.navMenu.about[lang]);
     assert.equal(p.cta.href, `/${lang}/about`);
-    assert.ok(p.backdrop.wide.src.endsWith("backdrop-frame.jpg") && p.backdrop.narrow.src.endsWith("backdrop-frame-412.jpg"));
+    assert.ok(p.backdrop.wide.src.endsWith("philosophy-backdrop.webp") && p.backdrop.narrow.src.endsWith("philosophy-backdrop-narrow.webp"));
+    assert.equal(p.photo.src, "/images/collections/rings.webp");
+    assert.ok(p.photo.alt.length > 0, "the hand photograph has alt text in both languages");
     if (lang === "ja") {
       assert.equal(p.lines.shapes.length, 2, "a centred JA line is two runs so it splits at the 。");
       assert.ok(Object.values(p.lines).flat().every((r) => !r.italic));
@@ -146,7 +140,7 @@ test("philosophy: the four values of home.valuesP (FIX 4), notes from about.clos
 
 test("no British spelling and no origin claim in the home copy; strings exist in both languages", () => {
   for (const lang of ["en", "ja"]) {
-    // Copy only — the placeholder assets' own alt text is the reference's and exempt (D-22, lib/lumiere/placeholders.ts).
+    // Copy only (D-22).
     const hero = lumiereHero(lang, href, "/x"), cols = lumiereCollections(lang, href), phil = lumierePhilosophy(lang, "/x");
     const all = JSON.stringify([
       hero.headline, hero.headlinePhoto, hero.tagline, hero.taglinePhoto, hero.cta.runs, hero.scrollLabel, hero.categories.map((c) => c.label),

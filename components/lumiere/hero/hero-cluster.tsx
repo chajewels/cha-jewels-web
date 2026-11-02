@@ -32,13 +32,15 @@ import {
   FRAME_3_PARALLAX,
   HERO_INTRO,
   HERO_TILT,
-  PENDANT,
   PENDANT_FOG,
+  TABLET,
   TIMELINE,
   resolveCardPlacements,
 } from "./hero.config";
 import { useHeroContent } from "./hero-content";
+import { HeroCentrepiece } from "./hero-centrepiece";
 import { HeroPendant } from "./hero-pendant";
+import { usePhoneFit } from "./hero-phone-fit";
 import { useHeroProgress } from "./hero-progress";
 import { useHeroTilt } from "./use-hero-tilt";
 
@@ -101,6 +103,7 @@ export const HeroCluster = () => {
   const { content } = useHeroContent();
   const heroCards = content.cards;
   const frame3 = content.frame3;
+  const has3d = content.pendant3d !== null;
   const progress = useHeroProgress();
   const tilt = useHeroTilt();
   // The entrance (HERO_INTRO): linear time, eased per card and for the spin.
@@ -128,17 +131,24 @@ export const HeroCluster = () => {
   const offsetScale = frameTwoOffsetScale(width);
   const canvasRatio = frameTwoCanvasRatio(width, height, unitPx);
   const isCompact = isCompactFor(width);
+  // The phone's ring fits the band between the headline and the standfirst (hero-phone-fit.ts); null elsewhere.
+  const fit = usePhoneFit(unitPx, width > 0 && width < TABLET.min);
+  const ringTop = fit?.centreFraction;
   const flipped = isCompact ? FLIPPED_POSITIONS : FLIPPED_POSITIONS_WIDE;
   // The frame-3 lag is meant in screen terms — a share of the distance scrolled
   // — but the photograph's transform is a percentage of the card's own height,
   // and at frame 3 the card is drawn well taller than the screen. This is the
   // screen's height as a share of that card, to convert one into the other.
   const frameThreeCardPx =
-    CARD.height * unitPx * heroStateAt(1, width, height, unitPx, offsetScale).scale;
+    CARD.height * unitPx * heroStateAt(1, width, height, unitPx, offsetScale, ringTop).scale;
   const screenPerCard = frameThreeCardPx > 0 ? height / frameThreeCardPx : 0;
 
   return (
-    <div ref={rootRef} className="pointer-events-none absolute inset-0">
+    <div
+      ref={rootRef}
+      className="pointer-events-none absolute inset-0"
+      style={fit ? ({ "--ring-top": `${fit.centrePx.toFixed(1)}px` } as React.CSSProperties) : undefined}
+    >
       {/* Position lives on the outer element and animation on the inner one.
           Both on the same node meant a CSS `translate` and a spring-driven
           `transform` fighting over where the pendant sits, and the pendant lost
@@ -152,15 +162,18 @@ export const HeroCluster = () => {
           // as long as the screen above the ring demands. The two cases have
           // nothing in common but the aspect ratio, so neither is expressed in
           // terms of the other.
-          width: "var(--pendant-width)",
-          height: "var(--pendant-height)",
-          top: "var(--pendant-top)",
+          width: has3d ? "var(--pendant-width)" : "var(--centre-width)",
+          height: has3d ? "var(--pendant-height)" : "var(--centre-height)",
+          top: has3d ? "var(--pendant-top)" : "calc(var(--ring-top) - var(--centre-height) / 2)",
+          // The phone's ring is fitted smaller (hero-phone-fit.ts); its centrepiece goes with it.
+          scale: !has3d && fit ? fit.scale : undefined,
           // The nudge corrects for the artwork, not the layout: in the compact
           // file the oval is drawn a few pixels left of the frame's centre, and
           // at this size that reads as the pendant hanging off-centre in the
           // ring.
-          translate:
-            "calc(-50% + var(--pendant-nudge-x, 0px)) var(--pendant-shift, 0)",
+          translate: has3d
+            ? "calc(-50% + var(--pendant-nudge-x, 0px)) var(--pendant-shift, 0)"
+            : "-50% 0",
         }}
       >
         <animated.div
@@ -182,9 +195,10 @@ export const HeroCluster = () => {
             }),
           }}
         >
-          {/* The 3D pendant over its poster. The wrapper above still owns the
-              box and this element the exit; the scene only fills the box. */}
-          <HeroPendant tilt={tilt} />
+          {/* The ring's centrepiece: a real piece (P5b), or — only when the Hub sends a site
+              model — the 3D pendant over its poster. The wrapper above owns the box and this
+              element the exit; the piece or the scene only fills the box. */}
+          {has3d ? <HeroPendant tilt={tilt} /> : <HeroCentrepiece tilt={tilt} intro={intro} />}
         </animated.div>
       </div>
 
@@ -203,10 +217,13 @@ export const HeroCluster = () => {
               1 - range(p, TIMELINE.pendantExit[0], TIMELINE.pendantExit[1]);
             const yaw = x * HERO_TILT.yaw * weight;
             const pitch = y * HERO_TILT.pitch * weight;
+            // The phone's fitted scale eases back to 1 as the hero card leaves the formation.
+            const scale = fit ? fit.scale + (1 - fit.scale) * range(p, TIMELINE.rotateEnd, TIMELINE.frame2End) : 1;
+            const fitted = scale < 0.9995 ? ` scale(${scale.toFixed(4)})` : "";
             if (Math.abs(yaw) < TILT_EPSILON && Math.abs(pitch) < TILT_EPSILON) {
-              return "none";
+              return fitted ? fitted.trim() : "none";
             }
-            return `perspective(var(--hero-tilt-perspective)) rotateX(${pitch}rad) rotateY(${yaw}rad)`;
+            return `perspective(var(--hero-tilt-perspective)) rotateX(${pitch}rad) rotateY(${yaw}rad)${fitted}`;
           }),
         }}
       >
@@ -215,7 +232,7 @@ export const HeroCluster = () => {
           const isHero = index === FRAME_2.heroIndex;
           const stateAt = (p: number) =>
             isHero
-              ? heroStateAt(p, width, height, unitPx, offsetScale)
+              ? heroStateAt(p, width, height, unitPx, offsetScale, ringTop)
               : cardStateAt(index, p, offsetScale, canvasRatio);
           const isFlipped = flipped.includes(placement.position);
 
@@ -273,7 +290,7 @@ export const HeroCluster = () => {
                 borderRadius: isHero
                   ? progress.to(
                       (p) =>
-                        `${heroStateAt(p, width, height, unitPx, offsetScale).radius * radiusScaleAt(p, unitPx, isCompact)}px`,
+                        `${heroStateAt(p, width, height, unitPx, offsetScale, ringTop).radius * radiusScaleAt(p, unitPx, isCompact)}px`,
                     )
                   : designUnit(CARD.radius),
               }}

@@ -42,8 +42,8 @@ import { homeHubSlots } from "@/lib/lumiere/home-hub";
  * calculator (EN) → the loyalty band (D-21) → footer (report §7 home row).
  *
  * Every string is §13/§14 copy or an existing `lib/i18n` key
- * (lib/content/lumiere-home.ts); every photograph and model is a registered
- * placeholder (lib/lumiere/placeholders.ts). The chrome inside the hero is the
+ * (lib/content/lumiere-home.ts); every photograph is the Hub's or a Cha Jewels
+ * original (lib/lumiere/home-hub.ts, lib/lumiere/home-media.ts) — no placeholder. The chrome inside the hero is the
  * site's own: the live cart count, the account menu, the language toggle and
  * the search are rendered here, on the server, and handed to the hero's header.
  *
@@ -87,9 +87,12 @@ export const LumiereHome = async ({ lang, switchTargets, demo = false }: { lang:
       <Suspense fallback={null}>
         <CollectionsSection content={lumiereCollections(lang, categoryHref, slots)} />
       </Suspense>
-      <Suspense fallback={null}>
-        <FeaturedSection content={lumiereFeatured(lang, slots)} />
-      </Suspense>
+      {/* The featured block is the Hub's featured pieces (P5b): none available, nothing drawn — no stand-in pieces. */}
+      {slots.featured.length > 0 && (
+        <Suspense fallback={null}>
+          <FeaturedSection content={lumiereFeatured(lang, slots)} />
+        </Suspense>
+      )}
       <Suspense fallback={null}>
         <PhilosophySection lang={lang} content={lumierePhilosophy(lang, L("/about"))} />
       </Suspense>

@@ -48,6 +48,7 @@ export const HeroStage = ({ lang, content, chrome }: HeroSectionProps) => {
         aria-labelledby="hero-headline"
         // the preloader waits for this screen's own images (preloader.tsx)
         data-preload=""
+        data-hero-stage=""
         className="relative isolate h-svh w-full overflow-hidden bg-surface"
         style={{ color: progress.to(inkAt) }}
       >
