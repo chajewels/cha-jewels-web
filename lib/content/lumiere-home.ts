@@ -30,6 +30,7 @@ import {
   type PlaceholderAsset,
   type PlaceholderPiece,
 } from "@/lib/lumiere/placeholders";
+import type { HomeHubSlots } from "@/lib/lumiere/home-hub";
 
 const plain = (text: string): TextRun[] => [{ text }];
 /** "Timeless" → an italic "T" and the rest roman, as the reference opens its lines. */
@@ -108,9 +109,23 @@ export const lumiereCategories = (lang: Lang): LumiereCategory[] =>
 
 /* ---------------------------------------------------------------- hero (§13 rows 1–7) */
 
+/**
+ * AN IMAGE IN A HOME SLOT (P5): a registered placeholder (width and height known) or a Hub photograph
+ * (`lib/lumiere/home-hub.ts`; the slots draw it with `fill`, so no dimensions are needed). Never both
+ * shapes' extras are required: a component reads `src` and `alt`.
+ */
+export interface HomeImage {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  /** true only for a registered placeholder; a Hub photograph omits it. */
+  readonly placeholder?: true;
+}
+
 export interface HeroCardSlot {
   position: number;
-  image: PlaceholderAsset;
+  image: HomeImage;
   /** Object-position for the cover crop (the reference's). */
   objectPosition?: string;
 }
@@ -131,7 +146,7 @@ export interface LumiereHeroContent {
   /** The category strip's width in design units: 85 for EN, 100 for JA (row 7). */
   categoryStripWidth: number;
   cards: HeroCardSlot[];
-  frame3: PlaceholderAsset;
+  frame3: HomeImage;
   pendant: typeof PENDANT;
 }
 
@@ -164,7 +179,7 @@ const CARD_CROPS: Record<number, string> = { 4: "center bottom", 6: "center bott
 export const headingText = (lines: readonly TextRun[][], lang: Lang): string =>
   lines.map((line) => line.map((run) => run.text).join("")).join(lang === "en" ? " " : "");
 
-export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, collectionsHref: string): LumiereHeroContent => {
+export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, collectionsHref: string, hub?: HomeHubSlots): LumiereHeroContent => {
   const cta = dict.hero.cta1[lang];
   return {
     headlineText: headingText(HERO[lang].headline, lang),
@@ -173,7 +188,14 @@ export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, 
     cta: { runs: lang === "en" ? caps(...cta.toLowerCase().split(" ")) : plain(cta), href: collectionsHref },
     categories: lumiereCategories(lang).map((c) => ({ label: c.pill, href: categoryHref(c.slug) })),
     categoryStripWidth: lang === "ja" ? 100 : 85,
-    cards: HERO_CARDS.map((image, i) => ({ position: i + 1, image, objectPosition: CARD_CROPS[i + 1] })),
+    // Cards 1–7 take real pieces from the Hub's hero deck (the placeholder only where the Hub has no photo to give);
+    // card 8 is the frame-3 hand photograph, which the Hub has no source for (docs/tasks/lumiere-hub-slots.md).
+    cards: HERO_CARDS.map((placeholder, i) => {
+      const photo = i < 7 ? hub?.heroPhotos[i] : undefined;
+      return photo
+        ? { position: i + 1, image: photo, objectPosition: "50% 45%" }
+        : { position: i + 1, image: placeholder, objectPosition: CARD_CROPS[i + 1] };
+    }),
     frame3: HERO_CARDS[7],
     pendant: PENDANT,
   };
@@ -184,7 +206,7 @@ export const lumiereHero = (lang: Lang, categoryHref: (slug: string) => string, 
 export interface LumiereCollectionCard {
   category: LumiereCategory;
   href: string;
-  image: PlaceholderAsset & { position: string; positionMobile: string; scale: number; scaleMobile: number; aimMobile: number };
+  image: HomeImage & { position: string; positionMobile: string; scale: number; scaleMobile: number; aimMobile: number };
   /** Figma's measure for the note, in design units: 9 em = 126 u (EN), 10 em = 140 u (JA). */
   noteWidth: number;
   width: "narrow" | "wide" | "full";
@@ -223,7 +245,7 @@ const COLLECTION_IMAGES = [
 
 const COLLECTION_WIDTHS = ["narrow", "wide", "wide", "narrow", "full"] as const;
 
-export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => string): LumiereCollectionsContent => ({
+export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => string, hub?: HomeHubSlots): LumiereCollectionsContent => ({
   headingText: headingText(COLLECTIONS[lang].heading, lang),
   ...COLLECTIONS[lang],
   // row 12: home.colsLink
@@ -231,7 +253,10 @@ export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => s
   cards: lumiereCategories(lang).map((category, i) => ({
     category,
     href: categoryHref(category.slug),
-    image: COLLECTION_IMAGES[i],
+    // The Hub's own category photograph (hero_media) when it has one — cropped centrally; the placeholder, with the reference's crop, otherwise.
+    image: hub?.categoryPhotos[category.slug]
+      ? { ...hub.categoryPhotos[category.slug], position: "50% 50%", positionMobile: "50% 50%", scale: 1, scaleMobile: 1, aimMobile: 0 }
+      : COLLECTION_IMAGES[i],
     noteWidth: lang === "ja" ? 140 : 126,
     width: COLLECTION_WIDTHS[i],
   })),
@@ -239,8 +264,32 @@ export const lumiereCollections = (lang: Lang, categoryHref: (slug: string) => s
 
 /* ---------------------------------------------------------------- featured (§13 rows 13–16, D-7) */
 
+/** What Add to cart needs for a REAL piece (a Hub variant); absent on a placeholder, whose button stays disabled (D-7). */
+export interface FeaturedBuy { variantId: string; slug: string; sku: string }
+
+/**
+ * A featured slot (P5). The name, the materials row, the price and the photograph are the Hub's for a real
+ * piece; the model and its poster are the registered placeholders either way — the Hub has no 3D source
+ * (docs/tasks/lumiere-hub-slots.md). `placeholder: true` keeps D-7's "¥ —" and a disabled pill.
+ */
+export interface FeaturedPieceContent {
+  placeholder: boolean;
+  name: string;
+  materials: readonly string[];
+  model: PlaceholderPiece["model"];
+  poster: PlaceholderPiece["poster"];
+  photo: HomeImage;
+  price: string;
+  buy: FeaturedBuy | null;
+  nameRuns: TextRun[];
+}
+
 export interface LumiereFeaturedContent {
-  pieces: (PlaceholderPiece & { nameRuns: TextRun[] })[];
+  pieces: FeaturedPieceContent[];
+  /** The pill after a successful add, and its aria-live text. */
+  added: string;
+  viewCart: string;
+  lang: Lang;
   cta: string;
   scrollCue: string;
   /** The dots' screen-reader label, with `{n}` and `{total}` to fill (a template, so it can cross into the client). */
@@ -252,9 +301,23 @@ const FEATURED: Record<Lang, { scrollCue: string; ring: string }> = {
   ja: { scrollCue: "スクロールして見る", ring: "リング {n} / {total}" },
 };
 
-export const lumiereFeatured = (lang: Lang): LumiereFeaturedContent => ({
-  // Placeholder names stay Latin in both languages (row 13); the italic capital is EN only.
-  pieces: FEATURED_PIECES.map((piece) => ({ ...piece, nameRuns: lang === "en" ? cap(`${piece.name}.`) : plain(`${piece.name}.`) })),
+export const lumiereFeatured = (lang: Lang, hub?: HomeHubSlots): LumiereFeaturedContent => ({
+  lang,
+  added: dict.cart.added[lang],
+  viewCart: dict.cart.viewCart[lang],
+  // Slot i takes the Hub's i-th featured piece (name, price, metals, photograph, Add to cart); a slot the Hub cannot fill keeps
+  // its placeholder (names stay Latin in both languages (row 13); the italic capital is EN only).
+  pieces: FEATURED_PIECES.map((piece, i): FeaturedPieceContent => {
+    const real = hub?.featured[i];
+    if (real) {
+      return {
+        placeholder: false, name: real.name, materials: real.materials, model: piece.model, poster: piece.poster,
+        photo: real.photo, price: real.price, buy: real.buy,
+        nameRuns: lang === "en" ? cap(`${real.name}.`) : plain(`${real.name}.`),
+      };
+    }
+    return { ...piece, buy: null, nameRuns: lang === "en" ? cap(`${piece.name}.`) : plain(`${piece.name}.`) };
+  }),
   cta: dict.cart.add[lang],
   scrollCue: FEATURED[lang].scrollCue,
   ringLabel: FEATURED[lang].ring,

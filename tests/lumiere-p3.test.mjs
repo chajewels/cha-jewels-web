@@ -38,12 +38,12 @@ test("the chrome on every page — the Lumière header and footer from the root 
   assert.match(layout, /<FooterSection lang=\{lang\} switchTargets=\{targets\} \/>/);
   assert.ok(!/components\/site\/header"|components\/site\/footer"/.test(layout), "the old header and footer are not imported");
   const header = read("components/lumiere/site/site-header.tsx");
-  assert.match(header, /sticky top-0 z-40/);
+  assert.match(header, /sticky top-0 z-\[60\]/); // z 40 until P4b: above all page content (the account menu finding)
   assert.match(header, /root\.style\.setProperty\("--hdr-h"/, "the sticky consumers' contract");
   assert.match(header, /const line = bar\.top \+ bar\.height \/ 2;/, "the tone is sampled at the bar's own midline");
   assert.match(header, /\.footer--cha/, "the footer flips the bar dark");
   // one chrome builder for the home and the inner pages
-  assert.match(read("components/lumiere/home/home-view.tsx"), /await buildChrome\(\{ lang, switchTargets, demo \}\)/);
+  assert.match(read("components/lumiere/home/home-view.tsx"), /buildChrome\(\{ lang, switchTargets, demo \}\)/);
   assert.match(read("components/lumiere/site/site-chrome.tsx"), /await buildChrome\(\{ lang, switchTargets \}\)/);
 });
 
@@ -62,10 +62,10 @@ test("the scroll-reset bug — the lock restores the position and every dialog h
   const lock = read("lib/scroll-lock.ts");
   assert.match(lock, /y: typeof window === "undefined" \? 0 : window\.scrollY/);
   assert.match(lock, /export const focusWithoutScroll/);
-  for (const p of ["components/site/mobile-nav.tsx", "components/site/search-box.tsx", "components/lumiere/site/menu-overlay.tsx", "components/lumiere/site/search-overlay.tsx"]) {
+  for (const p of ["components/lumiere/site/menu-overlay.tsx", "components/lumiere/site/search-overlay.tsx"]) {
     assert.match(read(p), /focusWithoutScroll/, p);
   }
-  for (const p of ["components/site/nav-menu.tsx", "components/site/account-menu.tsx"]) {
+  for (const p of ["components/site/account-menu.tsx"]) {
     assert.match(read(p), /focus\(\{ preventScroll: true \}\)/, p);
   }
 });

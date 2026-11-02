@@ -72,6 +72,7 @@ test("A2 (correction) — the account navigation cannot leave the screen: a grid
   assert.match(css, /@media \(min-width: 1024px\) \{ \.iac-frame \{ grid-template-columns: 252px minmax\(0, 1fr\); \} \}/);
   assert.match(css, /\.iac-frame > \* \{ min-width: 0; \}/);
   assert.match(css, /\.iac-main :where\(dd, dt, td, th, p, li, h2, h3, a, span, label, summary\) \{ overflow-wrap: anywhere; \}/);
+  assert.match(css, /\.iac-main :where\(\.cj-fig, \.cj-fig \*, \.font-mono\) \{ overflow-wrap: normal; white-space: nowrap; \}/, "a figure is never broken (P5)");
   const shell = read("components/account/account-shell.tsx");
   assert.match(shell, /className="iac-chips print-hide mb-5 flex flex-wrap gap-2 lg:hidden"/, "chips wrap — nothing scrolls out of sight");
   assert.ok(!/iac-chips[^"]*overflow-x-auto/.test(shell));

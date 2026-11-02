@@ -57,12 +57,11 @@ test("crawlable nav: both the desktop menus and the phone drawer render a hidden
   const crawl = read("components/site/crawl-links.tsx");
   assert.match(crawl, /<ul hidden/, "display:none: out of Tab order and the accessibility tree");
   assert.match(crawl, /tabIndex=\{-1\}/);
-  const menu = read("components/site/nav-menu.tsx");
-  assert.match(menu, /\{!open && <CrawlLinks links=\{crawlLinks\} \/>\}/);
-  assert.match(menu, /\{open && \(/, "the real panel still mounts on open only (story typing, focus, arrow keys)");
-  assert.match(read("components/site/mobile-nav.tsx"), /\{!open && <CrawlLinks /);
-  const header = read("components/site/header.tsx");
-  assert.equal((header.match(/crawlLinks=\{/g) ?? []).length, 2, "Collections and Company");
+  // P5: the Lumière header is ONE menu on every width (the old nav-menu / mobile-nav / header were retired).
+  const header = read("components/lumiere/site/site-header.tsx");
+  assert.match(header, /\{!open && <CrawlLinks links=\{crawl\} \/>\}/, "the hidden list while the menu is closed");
+  assert.match(read("components/lumiere/site/menu-overlay.tsx"), /\{open|open &&|active=\{open\}/, "the real panel is the overlay, drawn when open");
+  assert.match(read("components/lumiere/site/chrome-data.tsx"), /crawl: \[\.\.\.nav, \.\.\.menu\.flatMap\(\(g\) => g\.links\)\]/, "every destination of the menu is in the crawl list");
 });
 
 test("blog: the article's lead image alt is its title; list thumbnails stay decorative", () => {

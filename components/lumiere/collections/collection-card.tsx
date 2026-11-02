@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
+import { isOptimizableImage } from "@/lib/image-hosts";
 import Link from "next/link";
 import { animated, easings, useSpring } from "@react-spring/web";
 
@@ -132,6 +133,7 @@ export const CollectionCard = ({ card, cta, depth }: CollectionCardProps) => {
         <Image
           src={card.image.src}
           alt={card.image.alt}
+          unoptimized={!isOptimizableImage(card.image.src)}
           fill
           // A phone never needs the desktop plate: the widest this card is ever
           // drawn below 768 is the column itself.
