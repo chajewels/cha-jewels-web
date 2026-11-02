@@ -117,8 +117,8 @@ export type Category = {
   hero_media: string | null;
   cta_label: string | null; cta_label_ja: string | null;
   sort_order: number;
-};
-export type Collection = { id: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; hero_media: string | null; description: string | null; description_en?: string | null; description_ja?: string | null };
+} & import("./hub-seo-fields").HubSeoFields;
+export type Collection = { id: string; slug: string; name: string; name_en?: string | null; name_ja?: string | null; hero_media: string | null; description: string | null; description_en?: string | null; description_ja?: string | null } & import("./hub-seo-fields").HubSeoFields;
 /**
  * What the shared SQL function returns. `allowed_terms` is the business's real
  * term list with this amount's eligibility already decided, so the calculator

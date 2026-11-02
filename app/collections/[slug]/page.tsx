@@ -13,12 +13,14 @@ import { follow } from "@/lib/settings";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { JsonLd } from "@/components/site/json-ld";
 import { listingOpenGraph, listingProductSlugs, ogFor } from "@/lib/listing-seo";
+import { isNoindex, seoDescription, seoTitle } from "@/lib/hub-seo-fields";
 export const revalidate = 60;
 // Pre-render known collections when the Hub is reachable; otherwise build with none and render on demand.
 export async function generateStaticParams() { try { return (await getCollections()).map((c) => ({ slug: c.slug })); } catch { return []; } }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const [col, lang] = await Promise.all([getCollectionWithProducts((await params).slug), getLang()]);
-  return col ? { title: listingTitle("collection", col.slug, collectionName(col, lang), lang), description: collectionDescription(col, lang) ?? undefined, ...ogFor(listingOpenGraph(col.hero_media, collectionName(col, lang), lang)) } : {};
+  // DP-06: the Hub's SEO fields when present (the full <title>, so `absolute`), else exactly today's text. `noindex` is the Hub's thin-page guard.
+  return col ? { title: seoTitle(col, lang) ? { absolute: seoTitle(col, lang)! } : listingTitle("collection", col.slug, collectionName(col, lang), lang), description: seoDescription(col, lang) ?? collectionDescription(col, lang) ?? undefined, ...(isNoindex(col) ? { robots: { index: false, follow: true } } : {}), ...ogFor(listingOpenGraph(col.hero_media, collectionName(col, lang), lang)) } : {};
 }
 
 /**

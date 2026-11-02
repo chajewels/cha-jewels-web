@@ -1,29 +1,24 @@
-import { hubBrand, type IdentifierRule } from "@/lib/merchant-feed";
+import { type IdentifierRule } from "@/lib/merchant-feed";
+import { CONFIRMED_IDENTIFIERS, type ConfirmedIdentifier } from "@/lib/merchant-confirmed-identifiers";
 
 /**
- * THE OWNER'S IDENTIFIER RULE AS CODE (DP-08 / OD-MC-4 / OD-MC-11, owner-approved 2026-11-02).
+ * THE IDENTIFIER RULE AS CODE (DP-08, corrected 2026-11-02): CONFIRMED EVIDENCE ONLY.
  *
- * Two axes, never guessed:
- *  - BRAND: the Hub's evidence always wins. A piece the Hub names a brand for is sent with that brand.
- *    `origin === "BRAND"` with a blank name is "branded, name unknown" -> unknown -> EXCLUDED (never "no brand").
- *  - CODES (GTIN/MPN): they exist nowhere in the Website API. The ONLY confirmed code evidence is the owner's
- *    approved class "own-made new piece": brand "Cha Jewels" + MPN = the piece's own SKU (Google's stated path for a
- *    merchant who is also the maker). It applies only to a piece that the Hub explicitly marks `condition: "New"`,
- *    that has no Hub brand evidence at all, and that has a SKU.
- *  - EVERYTHING ELSE IS UNKNOWN AND EXCLUDED: a branded piece (no MPN is recorded anywhere), a preloved piece
- *    without a brand (the owner has not stated whether an identifier exists), a piece whose condition the Hub
- *    does not state. Nothing is ever sent as `identifier_exists=no`.
+ * A piece is described to Google only when an identifier is CONFIRMED for it in the registry
+ * (`lib/merchant-confirmed-identifiers.ts`, keyed by SKU, empty by default). There is NO inference: not from
+ * `condition`, not from the absence of a Hub brand, not from the SKU's shape, not from `origin`. The builder
+ * (`lib/merchant-feed.ts`) still lets the Hub's brand evidence win over the rule and turns any contradiction into
+ * `identifier_conflict`.
  *
- * ASSUMPTION FOR THE OWNER TO CONFIRM (docs/seo/phase-5/MERCHANT-FEED-IMPLEMENTATION-PROPOSAL.md): "own-made" is
- * encoded as "condition New and no Hub brand evidence", because the Hub has no explicit own-made field.
+ * Everything not in the registry answers "unknown on both axes" and is EXCLUDED with the reason
+ * `identifier_unknown` ("no owner-confirmed identifier evidence for this SKU"); it is never sent as
+ * `identifier_exists=no`. With an empty registry the feed has no items and the route answers 503: the truthful state.
  */
-export const OWN_MADE_BRAND = "Cha Jewels";
-
-export const CHA_IDENTIFIER_RULE: IdentifierRule = (p) => {
-  const hb = hubBrand(p);
-  if (hb.kind === "named") return { brand: { kind: "brand", name: hb.name }, codes: null }; // brand confirmed; no MPN recorded -> code axis unknown
-  if (hb.kind === "branded_unnamed") return { brand: null, codes: null };
+export const makeIdentifierRule = (registry: Readonly<Record<string, ConfirmedIdentifier>>): IdentifierRule => (p) => {
   const sku = typeof p.sku === "string" ? p.sku.trim() : "";
-  if (p.condition === "New" && sku) return { brand: { kind: "brand", name: OWN_MADE_BRAND }, codes: { kind: "codes", mpn: sku } };
-  return { brand: null, codes: null };
+  const e = sku && Object.prototype.hasOwnProperty.call(registry, sku) ? registry[sku] : undefined;
+  if (!e || !e.brand?.trim() || !e.note?.trim() || !(e.mpn?.trim() || e.gtin?.trim())) return { brand: null, codes: null };
+  return { brand: { kind: "brand", name: e.brand.trim() }, codes: { kind: "codes", ...(e.gtin?.trim() ? { gtin: e.gtin.trim() } : {}), ...(e.mpn?.trim() ? { mpn: e.mpn.trim() } : {}) } };
 };
+
+export const CHA_IDENTIFIER_RULE: IdentifierRule = makeIdentifierRule(CONFIRMED_IDENTIFIERS);

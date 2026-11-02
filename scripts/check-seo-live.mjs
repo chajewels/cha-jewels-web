@@ -427,19 +427,23 @@ for (const path of ["/products/nonexistent-seo-check-xyz", "/collections/nonexis
     ok(path, "FOUNDATION: a private route says noindex, names no canonical or alternates, keeps one og:url and one fb:app_id", /noindex/i.test(robotsMeta(h) ?? "") && canonicals(h).length === 0 && alternates(h).length === 0 && ogUrls(h).length === 1 && ogUrls(h)[0] === `${PUBLIC_ORIGIN}${path}` && fbIds(h).length === 1, `robots=${robotsMeta(h)} canon=${canonicals(h).length} hreflang=${alternates(h).length} og:url=${ogUrls(h).join("|")} fb=${fbIds(h).length}`);
   }
 
-  // 5b. Merchant feed (DP-08): present route -> required; absent route -> skipped with the reason
+  // 5b. Merchant feed (DP-08): present route -> required; absent route -> skipped with the reason.
+  // A truthful 503 "no items" (no owner-confirmed identifier evidence yet, or a fixtures catalog) is NOT a feed pass:
+  // the success path is reported as SKIPPED — UNVERIFIED SUCCESS COVERAGE — and only the verified refusal shape is a pass.
   {
     if (!MERCHANT_ROUTE_PRESENT) cov.skip("merchant-feed", "route not present in this checkout");
     else {
       const r = await get("/api/merchant-feed?lang=ja");
-      cov.hit("merchant-feed");
-      const items = (String(r.body ?? "").match(/<item>/g) ?? []).length;
       const en = await get("/api/merchant-feed?lang=en");
-      // A LOCAL fixtures build has no product description, so the truthful answer there is the 503 "no items": accepted only for localhost and said so. On any other origin a feed without items is a failure.
-      const local = /^(localhost|127\.0\.0\.1)$/.test(new URL(BASE).hostname);
-      const noItems503 = local && r.status === 503 && /feed incomplete: the feed has no items/.test(String(r.body ?? ""));
-      const good = r.status === 200 && /application\/xml/.test(String(r.contentType ?? "")) && /xmlns:g=/.test(String(r.body ?? "")) && items > 0 && /noindex/i.test(String(r.xrobots ?? ""));
-      ok("/api/merchant-feed", "MERCHANT: 200 application/xml RSS (g: namespace), noindex, at least one <item> (a local fixtures build may answer the truthful 503 'no items'); ?lang=en answers 404", (good || noItems503) && en.status === 404, `status ${r.status}, items ${items}, noindex ${/noindex/i.test(String(r.xrobots ?? ""))}, en ${en.status}${noItems503 ? " (local fixtures: no feedable item)" : ""}`);
+      const items = (String(r.body ?? "").match(/<item>/g) ?? []).length;
+      const noItems = r.status === 503 && /feed incomplete: the feed has no items/.test(String(r.body ?? ""));
+      if (noItems) {
+        cov.skip("merchant-feed", "UNVERIFIED SUCCESS COVERAGE: the feed answered the truthful 503 'no items' (no owner-confirmed identifier evidence, or a fixtures catalog); the 200/XML path was NOT exercised, so this is not a feed pass");
+        ok("/api/merchant-feed", "MERCHANT refusal shape (not a feed pass): the 503 is noindex and no-store, and ?lang=en answers 404", /noindex/i.test(String(r.xrobots ?? "")) && /no-store/.test(String(r.cache ?? "")) && en.status === 404, `status ${r.status}, xrobots ${r.xrobots}, cache ${r.cache}, en ${en.status}`);
+      } else {
+        cov.hit("merchant-feed");
+        ok("/api/merchant-feed", "MERCHANT: 200 application/xml RSS (g: namespace), noindex, at least one <item>; ?lang=en answers 404", r.status === 200 && /application\/xml/.test(String(r.contentType ?? "")) && /xmlns:g=/.test(String(r.body ?? "")) && items > 0 && /noindex/i.test(String(r.xrobots ?? "")) && en.status === 404, `status ${r.status}, items ${items}, noindex ${/noindex/i.test(String(r.xrobots ?? ""))}, en ${en.status}`);
+      }
     }
   }
 
