@@ -113,7 +113,8 @@ export const lumiereCategories = (lang: Lang): LumiereCategory[] =>
 
 export interface HeroCardSlot {
   position: number;
-  image: HomeImage;
+  /** Null only on the growth card when the Hub has no cut-out for it: the cream plate alone, until the frame-3 photograph crossfades in. */
+  image: HomeImage | null;
   /** `cut`: an approved cut-out (transparent) set on the cream plate; `photo`: a photograph with its own background (only ever a Cha original). */
   kind: "cut" | "photo";
   /** Object-position for the cover crop (the reference's). */
@@ -182,8 +183,8 @@ export const headingText = (lines: readonly TextRun[][], lang: Lang): string =>
 /**
  * THE RING'S CARDS (P5c, owner decision a). With the Hub's approved cut-outs (`hub.heroPieces`: [0] is the centre, [1…8] the
  * cards) the ring shows ONLY cut-outs, each on the cream plate; a place with no cut-out is empty rather than a photograph with
- * its own background — except place 6 (`FRAME_2.heroIndex`), the card that grows into the frame-3 photograph, which keeps that
- * photograph as its base. With NO cut-outs at all (the Hub unreachable) the ring is the Cha originals throughout, all of one
+ * its own background — except place 6 (`FRAME_2.heroIndex`), the card that grows into the frame-3 photograph: with no cut-out it
+ * is the cream plate alone (never a photograph among cut-outs) until the frame-3 photograph crossfades over it. With NO cut-outs at all (the Hub unreachable) the ring is the Cha originals throughout, all of one
  * kind, so a ring is never half cut-outs and half backgrounds.
  */
 const heroCards = (lang: Lang, hub?: HomeHubSlots): (HeroCardSlot | null)[] => {
@@ -194,7 +195,7 @@ const heroCards = (lang: Lang, hub?: HomeHubSlots): (HeroCardSlot | null)[] => {
   return Array.from({ length: 8 }, (_, i): HeroCardSlot | null => {
     const cut = cuts[i];
     if (cut) return { position: i + 1, image: cut, kind: "cut" };
-    return i === HERO_GROWTH_CARD ? { position: i + 1, image: heroFrame3(lang), kind: "photo" } : null;
+    return i === HERO_GROWTH_CARD ? { position: i + 1, image: null, kind: "cut" } : null;
   });
 };
 /** Index of the card that grows into the hero (hero.config FRAME_2.heroIndex; a test pins the two equal). */

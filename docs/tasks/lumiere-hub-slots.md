@@ -28,5 +28,8 @@
 ## 3b. Hero centrepiece (P5b)
 The ring's centre is the best real piece of the hero deck — its approved hero cut-out (the original tool) standing free, else the first deck photograph in a rounded frame — with the old pendant's entrance and tilt; a Cha original still life when the deck is empty. The 3D pendant path remains in code behind `content.pendant3d` (null until a site media model `home.hero.pendant` exists).
 
+## 3c. Hero selection (P5c, owner decision a)
+The hero ring and centre take ONLY pieces with an approved hero cut-out (transparent background, the original tool), set on the cream plate: the first is the centre, the next eight the cards, one piece per category slide per turn (the deck's order). A place without a cut-out is left empty (fewer cards, never mixed backgrounds). **Later, in the Hub:** an owner-curated hero selection (which pieces, in which order) — a ticked/ordered list read through `lib/hero-deck.ts`, which already reads `hero_place` / `picked_at` — replaces the round-robin; nothing on the storefront changes shape.
+
 ## 4. What this means for release
 `npm run check:placeholders --strict` passes (P5b). Managed uploads through the Hub fields in section 2 are an upgrade, not a blocker.

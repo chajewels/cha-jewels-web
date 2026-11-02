@@ -34,14 +34,13 @@ test("B — hero (P5c): the ring is approved cut-outs only; a place without one 
   assert.ok(hero.cards.slice(0, 3).every((c) => c.kind === "cut"));
   assert.equal(hero.cards[0].image.blur, "data:image/png;base64,AAAA", "the instant placeholder travels with the card");
   assert.ok([3, 4, 6, 7].every((i) => hero.cards[i] === null), "no cut-out, no card: never a photograph with its own background");
-  assert.equal(hero.cards[5].kind, "photo", "the card that grows into the hero keeps the frame-3 photograph as its base");
-  assert.equal(hero.cards[5].image.src, "/images/collections/rings.webp");
+  assert.deepEqual([hero.cards[5].kind, hero.cards[5].image], ["cut", null], "the card that grows into the hero is the cream plate alone, never a photograph among cut-outs");
   assert.equal(hero.frame3.src, "/images/collections/rings.webp");
   assert.deepEqual(hero.centrepiece, { image: slots.heroPieces[0], kind: "cut" });
   assert.equal(hero.pendant3d, null);
   // No cut-outs at all (Hub unreachable): the Cha originals throughout — one kind, never a mix.
   const none = lumiereHero("en", href, "/collections", { ...slots, heroPieces: [] });
-  assert.ok(none.cards.every((c) => c && c.kind === "photo" && c.image.src.startsWith("/images/collections/")));
+  assert.ok(none.cards.every((c) => c && c.kind === "photo" && c.image && c.image.src.startsWith("/images/collections/")));
   assert.equal(none.centrepiece.kind, "whole");
   assert.equal(lumiereHero("en", href, "/collections").centrepiece.kind, "whole");
 });
@@ -49,7 +48,7 @@ test("B — hero (P5c): the ring is approved cut-outs only; a place without one 
 test("B — hero images: cards 1–4 and the centre are preloaded, the rest are not; every card has a placeholder path", () => {
   const cluster = read("components/lumiere/hero/hero-cluster.tsx");
   assert.match(cluster, /priority=\{index < 4\}/);
-  assert.match(cluster, /placeholder=\{card\.image\.blur \? "blur" : "empty"\}/);
+  assert.match(cluster, /placeholder=\{image\.blur \? "blur" : "empty"\}/);
   assert.match(cluster, /if \(!card\) return null;/);
   assert.match(read("components/lumiere/hero/hero-centrepiece.tsx"), /fetchPriority="high"/);
   assert.match(read("lib/lumiere/lqip.ts"), /resize\(SIZE, SIZE/);
