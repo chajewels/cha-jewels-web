@@ -92,3 +92,5 @@ Order of operations, each with its evidence and rollback:
 - **UNVERIFIED:** Merchant Center's treatment of a robots-disallowed feed path (MC-G12); English-feed acceptance for Japan (OD-MC-2); the image host's crawl policy; the live sold count and `item_type` presence (Hub API not available in this session).
 
 **UPDATE 2026-11-02 (DP-08 approved):** the route in §3 is implemented as `app/api/merchant-feed/route.ts` (Japanese only; `?lang=en` answers 404) with the identifier rule in `lib/merchant-identifiers.ts`. The §3 listing above is HISTORICAL. Assumption for the owner: "own-made" = `condition New` with no Hub brand. Not deployed; real-data item count unknown.
+
+**CORRECTION 2026-11-02:** the "own-made = New with no Hub brand" assumption stated in the previous update is WITHDRAWN. Records enter the feed only with an owner-confirmed entry in `lib/merchant-confirmed-identifiers.ts` (empty); the route is `lib/merchant-feed-handler.ts` via `app/api/merchant-feed/route.ts`.

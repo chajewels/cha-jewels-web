@@ -55,3 +55,14 @@ export function faqEntries(e: HubSeoFields | null | undefined, lang: Lang): FaqE
   }
   return out;
 }
+
+/**
+ * The Hub's overrides for a LISTING page's metadata (a collection today). Every key is absent when the Hub has no value, so
+ * the page falls back to exactly its existing text. `robots` is set ONLY for an explicit `noindex: true`; the locale layer
+ * (lib/locale-meta.ts) then names no canonical and no alternates, and app/sitemap.ts leaves the page out: one policy
+ * (lib/seo-policy.ts: a noindex page names no canonical) applied in all three places.
+ */
+export function hubListingMeta(e: HubSeoFields | null | undefined, lang: Lang): { title?: { absolute: string }; description?: string; robots?: { index: false; follow: true } } {
+  const title = seoTitle(e, lang), description = seoDescription(e, lang);
+  return { ...(title ? { title: { absolute: title } } : {}), ...(description ? { description } : {}), ...(isNoindex(e) ? { robots: { index: false as const, follow: true as const } } : {}) };
+}
